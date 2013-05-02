@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LICENCE PLACEHOLDER -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+	<groupId>eu.europeana.cloud</groupId>
+	<artifactId>core</artifactId>
+	<packaging>pom</packaging>
+	<version>0.1-SNAPSHOT</version>
+	<name>Europeana Cloud</name>
+	<organization>
+		<url>
+		<!-- TO BE FILLED IN -->
+		</url>
+		<name>Europeana Cloud Development Team</name>
+	</organization>
+	<developers>
+		<developer>
+			<id>ymamakis</id>
+			<name>Yorgos Mamakis</name>
+			<email>Yorgos.Mamakis@ kb.nl</email> <!-- To avoid being spammed provide email with spaces and so on-->
+			<organization>Europeana Foundation</organization>
+			<organizationUrl>http://www.europeana.eu</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+		<!-- Please provide me with similar information and append it here -->
+	</developers>
+	<modules>
+		<!-- Sub modules to be placed here -->
+		<module>test-module</module>
+	</modules>
+	<repositories>
+		<repository>
+			<id>repo1</id>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- ADD ANY OTHER REPOSITORY HERE -->
+	</repositories>
+	<properties>
+		<version.jdk>1.7</version.jdk>
+		<version.junit>4.10</version.junit>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>${version.jdk}</source>
+						<target>${version.jdk}</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${version.junit}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<distributionManagement>
+		<!-- DECIDE ON THE REPOSITORY PLATFORM AND PLACE IT HERE-->
+		<!-- TEST PLACEHOLDER -->
+		<!--<repository>
+			<id>europeanalabs.eu</id>
+			<name>europeanalabs.eu-releases</name>
+			<url>http://europeanalabs.eu/artifactory/libs-releases-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>europeanalabs.eu</id>
+			<name>europeanalabs.eu-snapshots</name>
+			<url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
+		</snapshotRepository>-->
+	</distributionManagement>
+</project>
