@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- LICENCE PLACEHOLDER -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.europeana.cloud</groupId>
-	<artifactId>core</artifactId>
+	<artifactId>ecloud-parent</artifactId>
 	<packaging>pom</packaging>
 	<version>0.1-SNAPSHOT</version>
 	<name>Europeana Cloud</name>
@@ -18,7 +18,7 @@
 		<developer>
 			<id>ymamakis</id>
 			<name>Yorgos Mamakis</name>
-			<email>Yorgos.Mamakis@ kb.nl</email> <!-- To avoid being spammed provide email with spaces and so on-->
+			<email>Yorgos.Mamakis@ kb.nl</email> <!-- To avoid being spammed provide email with spaces and so on -->
 			<organization>Europeana Foundation</organization>
 			<organizationUrl>http://www.europeana.eu</organizationUrl>
 			<roles>
@@ -27,10 +27,10 @@
 		</developer>
 		<!-- Please provide me with similar information and append it here -->
 	</developers>
-<!-- 	<modules> -->
-<!-- Sub modules to be placed here --> 
-<!-- 		<module>test-module</module> -->
-<!-- 	</modules> -->
+	<!-- <modules> -->
+	<!-- Sub modules to be placed here -->
+	<!-- <module>test-module</module> -->
+	<!-- </modules> -->
 	<repositories>
 		<repository>
 			<id>repo1</id>
@@ -57,6 +57,19 @@
 						<source>${version.jdk}</source>
 						<target>${version.jdk}</target>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>1.5</version>
+					<executions>
+						<execution>
+							<id>download-licenses</id>
+							<goals>
+								<goal>download-licenses</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
