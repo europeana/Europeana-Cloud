@@ -27,10 +27,10 @@
 		</developer>
 		<!-- Please provide me with similar information and append it here -->
 	</developers>
-	<modules>
-		<!-- Sub modules to be placed here -->
-		<module>test-module</module>
-	</modules>
+<!-- 	<modules> -->
+<!-- Sub modules to be placed here --> 
+<!-- 		<module>test-module</module> -->
+<!-- 	</modules> -->
 	<repositories>
 		<repository>
 			<id>repo1</id>
@@ -70,9 +70,7 @@
 		</dependency>
 	</dependencies>
 	<distributionManagement>
-		<!-- DECIDE ON THE REPOSITORY PLATFORM AND PLACE IT HERE-->
-		<!-- TEST PLACEHOLDER -->
-		<!--<repository>
+		<repository>
 			<id>europeanalabs.eu</id>
 			<name>europeanalabs.eu-releases</name>
 			<url>http://europeanalabs.eu/artifactory/libs-releases-local</url>
@@ -81,6 +79,6 @@
 			<id>europeanalabs.eu</id>
 			<name>europeanalabs.eu-snapshots</name>
 			<url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
-		</snapshotRepository>-->
+		</snapshotRepository>
 	</distributionManagement>
 </project>
