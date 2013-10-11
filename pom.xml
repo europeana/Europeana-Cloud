@@ -4,8 +4,9 @@
 	<groupId>eu.europeana.cloud</groupId>
 	<artifactId>ecloud-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.1-SNAPSHOT</version>
-	<name>Europeana Cloud</name>
+	<version>${version.parent-pom}</version>
+	
+	<name>eCloud</name>
 	<organization>
 		<url>
 		<!-- TO BE FILLED IN -->
@@ -27,8 +28,7 @@
 	</developers>
 	<modules>
 		<module>definitions</module>
-		<module>services/unique-identifier-service</module>
-    <module>definitions</module>
+		<module>services/uid-service</module>
   </modules>
 	<repositories>
 		<repository>
@@ -43,6 +43,8 @@
 	<properties>
 		<version.jdk>1.7</version.jdk>
 		<version.junit>4.10</version.junit>
+		<version.parent-pom>0.1-SNAPSHOT</version.parent-pom>
+		<version.jersey>2.3.1</version.jersey>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>

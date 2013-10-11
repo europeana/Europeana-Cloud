@@ -5,10 +5,10 @@
   <parent>
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>${version.parent-pom}</version>
   </parent>
   <artifactId>definitions</artifactId>
-  <name>definitions</name>
+  <name>eCloud definitions</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
