@@ -12,8 +12,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 0;
+		public int getHttpCode() {
+			return 200;
 		}
 
 	},
@@ -25,7 +25,7 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
+		public int getHttpCode() {
 			return 1;
 		}
 	},
@@ -37,8 +37,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 100;
+		public int getHttpCode() {
+			return 500;
 		}
 	},
 	RECORDEXISTS {
@@ -50,8 +50,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 200;
+		public int getHttpCode() {
+			return 409;
 		}
 	},
 	RECORDDOESNOTEXIST {
@@ -62,8 +62,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 201;
+		public int getHttpCode() {
+			return 404;
 		}
 	},
 	GLOBALIDDOESNOTEXIST {
@@ -73,8 +73,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 202;
+		public int getHttpCode() {
+			return 404;
 		}
 	},
 	PROVIDERDOESNOTEXIST {
@@ -84,8 +84,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 203;
+		public int getHttpCode() {
+			return 404;
 		}
 	},
 	RECORDIDDOESNOTEXIST {
@@ -95,8 +95,8 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 204;
+		public int getHttpCode() {
+			return 404;
 		}
 	},
 	RECORDSETEMPTY {
@@ -106,12 +106,12 @@ public enum StatusCode {
 		}
 
 		@Override
-		public int getCode() {
-			return 205;
+		public int getHttpCode() {
+			return 404;
 		}
 	};
 
 	public abstract String getDescription(String... args);
 
-	public abstract int getCode();
+	public abstract int getHttpCode();
 }

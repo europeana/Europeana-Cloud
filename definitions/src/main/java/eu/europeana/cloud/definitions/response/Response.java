@@ -1,13 +1,15 @@
 package eu.europeana.cloud.definitions.response;
 
+import eu.europeana.cloud.definitions.StatusCode;
+
 public class Response<T> {
 	
-	int statusCode;
+	StatusCode statusCode;
 	T response;
-	public int getStatusCode(){
+	public StatusCode getStatusCode(){
 		return this.statusCode;
 	}
-	public void setStatusCode(int statusCode){
+	public void setStatusCode(StatusCode statusCode){
 		this.statusCode = statusCode;
 	}
 	public T getResponse(){
