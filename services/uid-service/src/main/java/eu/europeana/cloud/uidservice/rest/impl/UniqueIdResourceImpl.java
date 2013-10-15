@@ -1,11 +1,14 @@
 package eu.europeana.cloud.uidservice.rest.impl;
 
+import java.util.List;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -13,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.definitions.StatusCode;
+import eu.europeana.cloud.definitions.model.GlobalId;
+import eu.europeana.cloud.definitions.model.Provider;
 import eu.europeana.cloud.definitions.response.GenericCloudResponse;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
@@ -87,8 +92,10 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 	@Override
 	public Response getLocalIds(@QueryParam("globalId") String globalId) {
 		try {
+			ProviderList pList = new ProviderList();
+			pList.setList(uniqueIdService.searchByGlobalId(globalId));
 			return generateCloudResponse(StatusCode.OK,
-					uniqueIdService.searchByGlobalId(globalId));
+					pList);
 		} catch (DatabaseConnectionException e) {
 			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
@@ -108,9 +115,11 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("to") @DefaultValue("10000") int to) {
 		try {
+			ProviderList pList = new ProviderList();
+			pList.setList(uniqueIdService.searchLocalIdsByProvider(providerId, start,
+					to));
 			return generateCloudResponse(StatusCode.OK,
-					uniqueIdService.searchLocalIdsByProvider(providerId, start,
-							to).toArray());
+					pList);
 		} catch (DatabaseConnectionException e) {
 			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
@@ -134,9 +143,11 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("to") @DefaultValue("10000") int to) {
 		try {
+			GlobalIdList gList = new GlobalIdList();
+			gList.setList(uniqueIdService.searchGlobalIdsByProvider(providerId,
+					start, to));
 			return generateCloudResponse(StatusCode.OK,
-					uniqueIdService.searchGlobalIdsByProvider(providerId,
-							start, to).toArray());
+					gList);
 		} catch (DatabaseConnectionException e) {
 			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
@@ -224,7 +235,6 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 	private <T> Response generateCloudResponse(StatusCode statusCode, T message) {
 		if (statusCode.equals(StatusCode.OK)
 				&& !message.getClass().isAssignableFrom(String.class)) {
-		
 			return Response.status(statusCode.getHttpCode()).entity(message)
 					.build();
 		}
