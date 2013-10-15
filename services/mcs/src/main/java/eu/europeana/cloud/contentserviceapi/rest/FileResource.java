@@ -24,10 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.contentserviceapi.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.contentserviceapi.model.File;
-import eu.europeana.cloud.contentserviceapi.model.Representation;
 import eu.europeana.cloud.contentserviceapi.service.ContentService;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
+import eu.europeana.cloud.definitions.model.File;
+import eu.europeana.cloud.definitions.model.Representation;
 
 /**
  * FilesResource

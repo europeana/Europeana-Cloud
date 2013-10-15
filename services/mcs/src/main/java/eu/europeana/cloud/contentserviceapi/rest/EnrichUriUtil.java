@@ -5,10 +5,9 @@ import java.net.URI;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import eu.europeana.cloud.contentserviceapi.model.Record;
 import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
-
-import eu.europeana.cloud.contentserviceapi.model.Representation;
+import eu.europeana.cloud.definitions.model.Record;
+import eu.europeana.cloud.definitions.model.Representation;
 
 /**
  * EnrichUriUtil

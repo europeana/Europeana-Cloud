@@ -10,6 +10,6 @@
 >
 	<context:annotation-config />
 	<bean id="uniqueIdService" class="eu.europeana.cloud.uidservice.service.UniqueIdServiceImpl"/>
-	<bean id="uniqueIdResourceMock" class="eu.europeana.cloud.uidservice.rest.impl.UniqueIdResourceMock"/>
+	<bean id="uniqueIdResourceMock" class="eu.europeana.cloud.uidservice.rest.impl.UniqueIdResourceImpl"/>
 
 </beans>

@@ -22,9 +22,8 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
 import eu.europeana.cloud.contentserviceapi.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.contentserviceapi.model.Representation;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
-
+import eu.europeana.cloud.definitions.model.Representation;
 import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**

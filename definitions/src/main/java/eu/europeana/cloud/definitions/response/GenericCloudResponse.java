@@ -1,8 +1,11 @@
 package eu.europeana.cloud.definitions.response;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import eu.europeana.cloud.definitions.StatusCode;
 
-public class Response<T> {
+@XmlRootElement
+public class GenericCloudResponse<T> {
 	
 	StatusCode statusCode;
 	T response;

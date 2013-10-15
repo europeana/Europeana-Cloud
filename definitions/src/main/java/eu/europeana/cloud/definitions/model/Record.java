@@ -1,4 +1,4 @@
-package eu.europeana.cloud.contentserviceapi.model;
+package eu.europeana.cloud.definitions.model;
 
 import java.util.List;
 

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.contentserviceapi.exception.CannotDeletePersistentRepresentationVersion;
@@ -12,10 +13,10 @@ import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
 import eu.europeana.cloud.contentserviceapi.exception.RepresentationAlreadyPersistentException;
 import eu.europeana.cloud.contentserviceapi.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.contentserviceapi.exception.VersionNotExistsException;
-import eu.europeana.cloud.contentserviceapi.model.File;
-import eu.europeana.cloud.contentserviceapi.model.Record;
-import eu.europeana.cloud.contentserviceapi.model.Representation;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
+import eu.europeana.cloud.definitions.model.File;
+import eu.europeana.cloud.definitions.model.Record;
+import eu.europeana.cloud.definitions.model.Representation;
 
 /**
  * InMemoryContentServiceImpl

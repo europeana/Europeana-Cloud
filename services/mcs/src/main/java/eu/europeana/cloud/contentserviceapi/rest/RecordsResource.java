@@ -1,6 +1,7 @@
 package eu.europeana.cloud.contentserviceapi.rest;
 
 import java.net.URI;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,9 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
-import eu.europeana.cloud.contentserviceapi.model.Record;
-import eu.europeana.cloud.contentserviceapi.model.Representation;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
+import eu.europeana.cloud.definitions.model.Record;
+import eu.europeana.cloud.definitions.model.Representation;
 
 /**
  * RecordsResource

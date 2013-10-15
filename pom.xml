@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- LICENCE PLACEHOLDER --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- LICENCE PLACEHOLDER -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.europeana.cloud</groupId>
 	<artifactId>ecloud-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>${version.parent-pom}</version>
-	
+	<version>0.1-SNAPSHOT</version>
+
 	<name>eCloud</name>
 	<organization>
 		<url>
@@ -28,9 +30,15 @@
 	</developers>
 	<modules>
 		<module>definitions</module>
+		<module>services/mcs</module>
 		<module>services/uid-service</module>
-  </modules>
+	</modules>
 	<repositories>
+		<repository>
+			<id>europeanalabs.eu</id>
+			<name>europeanalabs.eu-releases</name>
+			<url>http://europeanalabs.eu/artifactory</url>
+		</repository>
 		<repository>
 			<id>repo1</id>
 			<url>http://repo1.maven.org/maven2</url>
@@ -38,12 +46,12 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+
 		<!-- ADD ANY OTHER REPOSITORY HERE -->
 	</repositories>
 	<properties>
 		<version.jdk>1.7</version.jdk>
 		<version.junit>4.10</version.junit>
-		<version.parent-pom>0.1-SNAPSHOT</version.parent-pom>
 		<version.jersey>2.3.1</version.jersey>
 		<version.spring-framework>3.2.4.RELEASE</version.spring-framework>
 		<version.commons-logging>1.1</version.commons-logging>

@@ -1,8 +1,7 @@
 package eu.europeana.cloud.uidservice.rest;
 
-import eu.europeana.cloud.definitions.response.Response;
+import javax.ws.rs.core.Response;
 
-@SuppressWarnings("rawtypes")
 public interface UniqueIdResource {
 
 	public Response createRecordId(String providerId,String recordId);

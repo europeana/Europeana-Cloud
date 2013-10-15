@@ -6,8 +6,8 @@ import java.io.OutputStream;
 
 import eu.europeana.cloud.contentserviceapi.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.contentserviceapi.exception.FileNotExistsException;
-import eu.europeana.cloud.contentserviceapi.model.File;
-import eu.europeana.cloud.contentserviceapi.model.Representation;
+import eu.europeana.cloud.definitions.model.File;
+import eu.europeana.cloud.definitions.model.Representation;
 
 /**
  * ContentService
