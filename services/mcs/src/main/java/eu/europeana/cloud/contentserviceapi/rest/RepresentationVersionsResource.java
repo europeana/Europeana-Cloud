@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
 import eu.europeana.cloud.definitions.model.Representation;
+import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**
  * RepresentationVersionsResource
@@ -31,10 +32,10 @@ public class RepresentationVersionsResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam("ID")
+    @PathParam(P_GID)
     private String globalId;
 
-    @PathParam("REPRESENTATION")
+    @PathParam(P_REP)
     private String representation;
 
 

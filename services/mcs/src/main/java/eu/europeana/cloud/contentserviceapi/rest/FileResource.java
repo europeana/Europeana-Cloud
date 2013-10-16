@@ -28,6 +28,7 @@ import eu.europeana.cloud.contentserviceapi.service.ContentService;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
 import eu.europeana.cloud.definitions.model.File;
 import eu.europeana.cloud.definitions.model.Representation;
+import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**
  * FilesResource
@@ -45,16 +46,16 @@ public class FileResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam("ID")
+    @PathParam(P_GID)
     private String globalId;
 
-    @PathParam("REPRESENTATION")
+    @PathParam(P_REP)
     private String representation;
 
-    @PathParam("VERSION")
+    @PathParam(P_VER)
     private String version;
 
-    @PathParam("FILE")
+    @PathParam(P_FILE)
     private String fileName;
 
     static final String HEADER_RANGE = "Range";
@@ -83,7 +84,7 @@ public class FileResource {
     public StreamingOutput getFile(
             @HeaderParam(HEADER_RANGE) String range) {
         // extract range
-        final ContentRange contentRange = new ContentRange(range);
+        final ContentRange contentRange = ContentRange.parse(range);
 
         final Representation rep = recordService.getRepresentation(globalId, representation, version);
         final File f = new File();
@@ -98,20 +99,20 @@ public class FileResource {
         };
     }
 
-    class ContentRange {
+    private static class ContentRange {
 
         long start, end;
 
 
-        public ContentRange(long start, long end) {
+        ContentRange(long start, long end) {
             this.start = start;
             this.end = end;
         }
 
 
-        public ContentRange(String range) {
-            start = -1;
-            end = -1;
+        static ContentRange parse(String range) {
+            long start = -1,
+                    end = -1;
             if (range != null) {
                 if (range.startsWith("bytes=")) {
                     range = range.substring("bytes=".length());
@@ -125,6 +126,7 @@ public class FileResource {
                     }
                 }
             }
+            return new ContentRange(start, end);
         }
     }
 }

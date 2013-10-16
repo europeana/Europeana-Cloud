@@ -26,6 +26,7 @@ import eu.europeana.cloud.contentserviceapi.service.ContentService;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
 import eu.europeana.cloud.definitions.model.File;
 import eu.europeana.cloud.definitions.model.Representation;
+import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**
  * FilesResource
@@ -43,13 +44,13 @@ public class FilesResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam("ID")
+    @PathParam(P_GID)
     private String globalId;
 
-    @PathParam("REPRESENTATION")
+    @PathParam(P_REP)
     private String representation;
 
-    @PathParam("VERSION")
+    @PathParam(P_VER)
     private String version;
 
 

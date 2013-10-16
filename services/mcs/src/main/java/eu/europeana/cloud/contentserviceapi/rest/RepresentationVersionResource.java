@@ -21,6 +21,7 @@ import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
 import eu.europeana.cloud.contentserviceapi.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
 import eu.europeana.cloud.definitions.model.Representation;
+import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**
  * RepresentationResource
@@ -38,13 +39,13 @@ public class RepresentationVersionResource {
     @Context
     private Request request;
 
-    @PathParam("ID")
+    @PathParam(P_GID)
     private String globalId;
 
-    @PathParam("REPRESENTATION")
+    @PathParam(P_REP)
     private String representation;
 
-    @PathParam("VERSION")
+    @PathParam(P_VER)
     private String version;
 
 

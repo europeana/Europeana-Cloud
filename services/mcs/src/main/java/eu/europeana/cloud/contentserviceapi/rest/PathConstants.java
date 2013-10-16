@@ -20,5 +20,7 @@ final class PathConstants {
     static final String P_VER = "VERSION";
 
     static final String P_PROVIDER = "DATA_PROVIDER";
+    
+     static final String P_FILE = "FILE";
 
 }

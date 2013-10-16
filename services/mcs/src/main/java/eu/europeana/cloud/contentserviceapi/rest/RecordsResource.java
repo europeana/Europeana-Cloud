@@ -1,6 +1,5 @@
 package eu.europeana.cloud.contentserviceapi.rest;
 
-import java.net.URI;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -9,9 +8,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +19,7 @@ import eu.europeana.cloud.contentserviceapi.exception.RecordNotExistsException;
 import eu.europeana.cloud.contentserviceapi.service.RecordService;
 import eu.europeana.cloud.definitions.model.Record;
 import eu.europeana.cloud.definitions.model.Representation;
+import static eu.europeana.cloud.contentserviceapi.rest.PathConstants.*;
 
 /**
  * RecordsResource
@@ -26,6 +27,8 @@ import eu.europeana.cloud.definitions.model.Representation;
 @Path("/records/{ID}")
 @Component
 public class RecordsResource {
+    
+    private static final Logger log = LoggerFactory.getLogger(RecordsResource.class);
 
     @Autowired
     private RecordService recordService;
@@ -33,7 +36,7 @@ public class RecordsResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam("ID")
+    @PathParam(P_GID)
     private String globalId;
 
 
@@ -41,6 +44,7 @@ public class RecordsResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord()
             throws RecordNotExistsException {
+        log.info("Got request for record {}", globalId);
         Record record = recordService.getRecord(globalId);
         prepare(record);
         return record;
