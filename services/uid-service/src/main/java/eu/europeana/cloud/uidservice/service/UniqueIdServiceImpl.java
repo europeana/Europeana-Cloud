@@ -21,6 +21,12 @@ import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 
+/**
+ * In-memory mockup of the unique identifier service
+ * @see eu.europeana.cloud.uidservice.service.UniqueIdService.java
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 @Service
 public class UniqueIdServiceImpl implements UniqueIdService {
 

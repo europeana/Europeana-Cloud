@@ -6,6 +6,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import eu.europeana.cloud.definitions.model.Provider;
 
+/**
+ * List wrapper for JSON and XML serialization of Provider Ids
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * 
+ */
 @XmlRootElement
 public class ProviderList {
 

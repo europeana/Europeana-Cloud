@@ -1,12 +1,22 @@
 package eu.europeana.cloud.definitions.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
+/**
+ * The provider Id/record Id model
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 @XmlRootElement
 public class Provider {
 
+	/**
+	 * The provider id
+	 */
 	String id;
 	
+	/**
+	 * The record id
+	 */
 	String recordId;
 
 	public String getId() {

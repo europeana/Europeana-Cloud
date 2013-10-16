@@ -1,12 +1,22 @@
 package eu.europeana.cloud.definitions.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
+/**
+ * Unique Identifier model
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 @XmlRootElement
 public class GlobalId {
 
+	/**
+	 * The unique identifier
+	 */
 	String id;
 	
+	/**
+	 * A providerId/recordId combo
+	 */
 	Provider provider;
 
 	public String getId() {

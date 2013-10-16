@@ -19,6 +19,7 @@ import eu.europeana.cloud.definitions.StatusCode;
 import eu.europeana.cloud.definitions.model.GlobalId;
 import eu.europeana.cloud.definitions.model.Provider;
 import eu.europeana.cloud.definitions.response.GenericCloudResponse;
+import eu.europeana.cloud.definitions.response.GenericCloudResponseGenerator;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
@@ -31,8 +32,9 @@ import eu.europeana.cloud.uidservice.rest.UniqueIdResource;
 import eu.europeana.cloud.uidservice.service.UniqueIdService;
 
 /**
- * Implementation of the Unique Identifier Service Accessible path /uniqueid
+ * Implementation of the Unique Identifier Service. Accessible path /uniqueid
  * 
+ * @see eu.europeana.cloud.uidservice.rest.UniquedIdResource
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
@@ -45,20 +47,20 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 
 	@GET
 	@Path("createRecordId")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response createRecordId(@QueryParam("providerId") String providerId,
 			@QueryParam("recordId") String recordId) {
 
 		try {
-			return generateCloudResponse(StatusCode.OK,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK,
 					uniqueIdService.create(providerId, recordId));
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (RecordExistsException e) {
-			return generateCloudResponse(StatusCode.RECORDEXISTS,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.RECORDEXISTS,
 					StatusCode.RECORDEXISTS.getDescription(providerId,
 							recordId, ""));
 		}
@@ -67,20 +69,20 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 
 	@GET
 	@Path("getGlobalId")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getGlobalId(@QueryParam("providerId") String providerId,
 			@QueryParam("recordId") String recordId) {
 		try {
-			return generateCloudResponse(StatusCode.OK,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK,
 					uniqueIdService.search(providerId, recordId));
 
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (RecordDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.RECORDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.RECORDDOESNOTEXIST,
 					StatusCode.RECORDDOESNOTEXIST.getDescription(providerId,
 							recordId));
 		}
@@ -88,27 +90,26 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 
 	@GET
 	@Path("getLocalIds")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getLocalIds(@QueryParam("globalId") String globalId) {
 		try {
 			ProviderList pList = new ProviderList();
 			pList.setList(uniqueIdService.searchByGlobalId(globalId));
-			return generateCloudResponse(StatusCode.OK,
-					pList);
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK, pList);
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (GlobalIdDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
 					StatusCode.GLOBALIDDOESNOTEXIST.getDescription(globalId));
 		}
 	}
 
 	@GET
 	@Path("getLocalIdsByProvider")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getLocalIdsByProvider(
 			@QueryParam("providerId") String providerId,
@@ -116,19 +117,18 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 			@QueryParam("to") @DefaultValue("10000") int to) {
 		try {
 			ProviderList pList = new ProviderList();
-			pList.setList(uniqueIdService.searchLocalIdsByProvider(providerId, start,
-					to));
-			return generateCloudResponse(StatusCode.OK,
-					pList);
+			pList.setList(uniqueIdService.searchLocalIdsByProvider(providerId,
+					start, to));
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK, pList);
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (ProviderDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
 					StatusCode.PROVIDERDOESNOTEXIST.getDescription(providerId));
 		} catch (RecordDatasetEmptyException e) {
-			return generateCloudResponse(StatusCode.RECORDSETEMPTY,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.RECORDSETEMPTY,
 					StatusCode.RECORDSETEMPTY.getDescription(providerId));
 		}
 
@@ -136,7 +136,7 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 
 	@GET
 	@Path("getGlobalIdsByProvider")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getGlobalIdsByProvider(
 			@QueryParam("providerId") String providerId,
@@ -146,103 +146,90 @@ public class UniqueIdResourceImpl implements UniqueIdResource {
 			GlobalIdList gList = new GlobalIdList();
 			gList.setList(uniqueIdService.searchGlobalIdsByProvider(providerId,
 					start, to));
-			return generateCloudResponse(StatusCode.OK,
-					gList);
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK, gList);
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (ProviderDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
 					StatusCode.PROVIDERDOESNOTEXIST.getDescription(providerId));
 		}
 	}
 
 	@GET
 	@Path("createMapping")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response createMapping(@QueryParam("globalId") String globalId,
 			@QueryParam("providerId") String providerId,
 			@QueryParam("recordId") String recordId) {
 		try {
 			uniqueIdService.createFromExisting(globalId, providerId, recordId);
-			return generateCloudResponse(StatusCode.OK,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK,
 					"Mapping created succesfully");
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (ProviderDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
 					StatusCode.PROVIDERDOESNOTEXIST.getDescription(providerId));
 		} catch (GlobalIdDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
 					StatusCode.GLOBALIDDOESNOTEXIST.getDescription(globalId));
 		} catch (IdHasBeenMappedException e) {
-			return generateCloudResponse(StatusCode.IDHASBEENMAPPED,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.IDHASBEENMAPPED,
 					StatusCode.IDHASBEENMAPPED.getDescription(recordId,
 							providerId, globalId));
 		} catch (RecordIdDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.RECORDIDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.RECORDIDDOESNOTEXIST,
 					StatusCode.RECORDIDDOESNOTEXIST.getDescription(recordId));
 		}
 	}
 
 	@DELETE
 	@Path("removeMappingByLocalId")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response removeMappingByLocalId(
 			@QueryParam("providerId") String providerId,
 			@QueryParam("recordId") String recordId) {
 		try {
 			uniqueIdService.removeMappingByLocalId(providerId, recordId);
-			return generateCloudResponse(StatusCode.OK,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK,
 					"Mapping marked as deleted");
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (ProviderDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.PROVIDERDOESNOTEXIST,
 					StatusCode.PROVIDERDOESNOTEXIST.getDescription(providerId));
 		} catch (RecordIdDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.RECORDIDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.RECORDIDDOESNOTEXIST,
 					StatusCode.RECORDIDDOESNOTEXIST.getDescription(recordId));
 		}
 	}
 
 	@DELETE
 	@Path("deleteGlobalId")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response deleteGlobalId(@QueryParam("globalId") String globalId) {
 		try {
 			uniqueIdService.deleteGlobalId(globalId);
-			return generateCloudResponse(StatusCode.OK,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.OK,
 					"GlobalId marked as deleted");
 		} catch (DatabaseConnectionException e) {
-			return generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.DATABASECONNECTIONERROR,
 					StatusCode.DATABASECONNECTIONERROR.getDescription("", "",
 							"", e.getMessage()));
 		} catch (GlobalIdDoesNotExistException e) {
-			return generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
+			return GenericCloudResponseGenerator.generateCloudResponse(StatusCode.GLOBALIDDOESNOTEXIST,
 					StatusCode.GLOBALIDDOESNOTEXIST.getDescription(globalId));
 		}
 	}
 
-	private <T> Response generateCloudResponse(StatusCode statusCode, T message) {
-		if (statusCode.equals(StatusCode.OK)
-				&& !message.getClass().isAssignableFrom(String.class)) {
-			return Response.status(statusCode.getHttpCode()).entity(message)
-					.build();
-		}
-		GenericCloudResponse<T> response = new GenericCloudResponse<T>();
-		response.setStatusCode(statusCode);
-		response.setResponse(message);
-		return Response.status(statusCode.getHttpCode()).entity(response)
-				.build();
-
-	}
+	
 }

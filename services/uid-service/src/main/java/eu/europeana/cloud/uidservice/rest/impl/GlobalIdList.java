@@ -5,6 +5,13 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import eu.europeana.cloud.definitions.model.GlobalId;
+
+/**
+ * List wrapper for JSON and XML serialization of Unique Identifiers
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * 
+ */
 @XmlRootElement
 public class GlobalIdList {
 

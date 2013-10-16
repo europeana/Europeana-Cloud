@@ -2,9 +2,17 @@ package eu.europeana.cloud.definitions;
 
 import javax.ws.rs.core.Response.Status;
 
+/**
+ * Status Messages returned by all methods
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * 
+ */
 public enum StatusCode {
 
-	// Operation Successful
+	/**
+	 * OK message - HTTP Code: 200
+	 */
 	OK {
 		@Override
 		public String getDescription(String... args) {
@@ -18,7 +26,9 @@ public enum StatusCode {
 		}
 
 	},
-	// Unspecified Error
+	/**
+	 * Unspecified Error - HTTP Code: 500
+	 */
 	GENERICERROR {
 		@Override
 		public String getDescription(String... args) {
@@ -31,6 +41,9 @@ public enum StatusCode {
 			return Status.INTERNAL_SERVER_ERROR;
 		}
 	},
+	/**
+	 * Database Connection Error - HTTP Code: 500
+	 */
 	DATABASECONNECTIONERROR {
 		@Override
 		public String getDescription(String... args) {
@@ -44,6 +57,9 @@ public enum StatusCode {
 			return Status.INTERNAL_SERVER_ERROR;
 		}
 	},
+	/**
+	 * Record exists already in the database - HTTP code: 409
+	 */
 	RECORDEXISTS {
 		@Override
 		public String getDescription(String... args) {
@@ -57,6 +73,9 @@ public enum StatusCode {
 			return Status.CONFLICT;
 		}
 	},
+	/**
+	 * The record does not exist in the database - HTTP code: 404
+	 */
 	RECORDDOESNOTEXIST {
 		@Override
 		public String getDescription(String... args) {
@@ -70,6 +89,9 @@ public enum StatusCode {
 			return Status.NOT_FOUND;
 		}
 	},
+	/**
+	 * The supplied unique identifier does not exist - HTTP code: 404
+	 */
 	GLOBALIDDOESNOTEXIST {
 		@Override
 		public String getDescription(String... args) {
@@ -83,6 +105,9 @@ public enum StatusCode {
 			return Status.NOT_FOUND;
 		}
 	},
+	/**
+	 * The provider id does not exist - HTTP code: 404
+	 */
 	PROVIDERDOESNOTEXIST {
 		@Override
 		public String getDescription(String... args) {
@@ -96,6 +121,9 @@ public enum StatusCode {
 			return Status.NOT_FOUND;
 		}
 	},
+	/**
+	 * The record id does not exist - HTTP code: 404
+	 */
 	RECORDIDDOESNOTEXIST {
 		@Override
 		public String getDescription(String... args) {
@@ -109,6 +137,9 @@ public enum StatusCode {
 			return Status.NOT_FOUND;
 		}
 	},
+	/**
+	 * The requested record set for the provider id is empty - HTTP code: 404
+	 */
 	RECORDSETEMPTY {
 		@Override
 		public String getDescription(String... args) {
@@ -122,6 +153,10 @@ public enum StatusCode {
 			return Status.NOT_FOUND;
 		}
 	},
+	/**
+	 * The combination of provider id/ record id has already been mapped to
+	 * another unique identifier - HTTP code: 409
+	 */
 	IDHASBEENMAPPED {
 
 		@Override
@@ -138,7 +173,16 @@ public enum StatusCode {
 
 	};
 
+	/**
+	 * Return a predefined human readable error message
+	 * @param args
+	 * @return
+	 */
 	public abstract String getDescription(String... args);
 
+	/**
+	 * Return the HTTP code
+	 * @return
+	 */
 	public abstract Status getHttpCode();
 }
