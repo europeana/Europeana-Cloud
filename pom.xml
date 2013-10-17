@@ -7,14 +7,15 @@
 	<artifactId>ecloud-parent</artifactId>
 	<packaging>pom</packaging>
 	<version>0.1-SNAPSHOT</version>
+	<inceptionYear>2013</inceptionYear>
 
-	<name>eCloud</name>
+	<name>Europeana Cloud: Parent Module</name>
+
 	<organization>
-		<url>
-		<!-- TO BE FILLED IN -->
-		</url>
+		<url>http://pro.europeana.eu/web/europeana-cloud</url>
 		<name>Europeana Cloud Development Team</name>
 	</organization>
+
 	<developers>
 		<developer>
 			<id>ymamakis</id>
@@ -28,11 +29,13 @@
 		</developer>
 		<!-- Please provide me with similar information and append it here -->
 	</developers>
+
 	<modules>
 		<module>definitions</module>
 		<module>services/mcs</module>
-		<module>services/uid-service</module>
+		<module>services/uis</module>
 	</modules>
+
 	<repositories>
 		<repository>
 			<id>europeanalabs.eu</id>
@@ -46,9 +49,9 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-
 		<!-- ADD ANY OTHER REPOSITORY HERE -->
 	</repositories>
+
 	<properties>
 		<version.jdk>1.7</version.jdk>
 		<version.junit>4.10</version.junit>
@@ -59,12 +62,14 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
+
 	<build>
 		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.5.1</version>
 					<configuration>
 						<source>${version.jdk}</source>
 						<target>${version.jdk}</target>
@@ -83,9 +88,104 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1.1</version>
+					<configuration>
+						<failOnMissingWebXml>false</failOnMissingWebXml>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>javax.ws.rs</groupId>
+				<artifactId>javax.ws.rs-api</artifactId>
+				<version>2.0</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.1</version>
+			</dependency>
+
+			<!--Jersey -->
+			<dependency>
+				<groupId>org.glassfish.jersey.ext</groupId>
+				<artifactId>jersey-spring3</artifactId>
+				<version>${version.jersey}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.media</groupId>
+				<artifactId>jersey-media-moxy</artifactId>
+				<version>${version.jersey}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.media</groupId>
+				<artifactId>jersey-media-multipart</artifactId>
+				<version>${version.jersey}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.containers</groupId>
+				<artifactId>jersey-container-servlet-core</artifactId>
+				<version>${version.jersey}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${version.spring-framework}</version>
+				<scope>compile</scope>
+				<exclusions>
+					<!--without jcl - because we use log4j through slf4j -->
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<!--logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${version.slf4j}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${version.slf4j}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${version.slf4j}</version>
+			</dependency>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.17</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>${version.commons-logging}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.servlet</groupId>
+						<artifactId>servlet-api</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -94,6 +194,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
 	<distributionManagement>
 		<repository>
 			<id>europeanalabs.eu</id>
