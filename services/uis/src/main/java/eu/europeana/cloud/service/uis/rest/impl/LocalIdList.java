@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import eu.europeana.cloud.common.model.Provider;
+import eu.europeana.cloud.common.model.LocalId;
 
 /**
  * List wrapper for JSON and XML serialization of Provider Ids
@@ -13,15 +13,14 @@ import eu.europeana.cloud.common.model.Provider;
  * 
  */
 @XmlRootElement
-public class ProviderList {
+public class LocalIdList {
+    private List<LocalId> list;
 
-	List<Provider> list;
+    public List<LocalId> getList() {
+        return list;
+    }
 
-	public List<Provider> getList() {
-		return list;
-	}
-
-	public void setList(List<Provider> list) {
-		this.list = list;
-	}
+    public void setList(List<LocalId> list) {
+        this.list = list;
+    }
 }
