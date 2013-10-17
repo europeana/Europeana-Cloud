@@ -1,39 +1,38 @@
 package eu.europeana.cloud.common.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Unique Identifier model
+ * 
  * @author Yorgos.Mamakis@ kb.nl
- *
+ * 
  */
 @XmlRootElement
 public class GlobalId {
+    /**
+     * The unique identifier
+     */
+    private String  id;
 
-	/**
-	 * The unique identifier
-	 */
-	String id;
-	
-	/**
-	 * A providerId/recordId combo
-	 */
-	Provider provider;
+    /**
+     * A providerId/recordId combo
+     */
+    private LocalId localId;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public Provider getProvider() {
-		return provider;
-	}
+    public LocalId getLocalId() {
+        return localId;
+    }
 
-	public void setProvider(Provider provider) {
-		this.provider = provider;
-	}
-	
-	
+    public void setLocalId(LocalId localId) {
+        this.localId = localId;
+    }
 }
