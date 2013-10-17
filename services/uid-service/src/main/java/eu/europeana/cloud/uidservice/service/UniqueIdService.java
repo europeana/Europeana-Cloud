@@ -23,31 +23,116 @@ import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
  */
 public interface UniqueIdService {
 
+	/**
+	 * Create a Unique Identifier from the given providerId and recordId
+	 * 
+	 * @param providerId
+	 * @param recordId
+	 * @return The unique identifier for this record
+	 * @throws DatabaseConnectionException
+	 * @throws RecordExistsException
+	 */
 	GlobalId create(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordExistsException;
 
+	/**
+	 * Search for a unique identifier based on the providerId and recordId
+	 * 
+	 * @param providerId
+	 * @param recordId
+	 * @return The unique identifier of the record
+	 * @throws DatabaseConnectionException
+	 * @throws RecordDoesNotExistException
+	 */
 	GlobalId search(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordDoesNotExistException;
 
+	/**
+	 * Search all the records that are linked to a unique identifier
+	 * 
+	 * @param globalId
+	 * @return A list of providerIds with the records that have been linked to
+	 *         the unique identifier provided
+	 * @throws DatabaseConnectionException
+	 * @throws GlobalIdDoesNotExistException
+	 */
 	List<Provider> searchByGlobalId(String globalId)
 			throws DatabaseConnectionException, GlobalIdDoesNotExistException;
 
-	List<Provider> searchLocalIdsByProvider(String providerId, int start, int end)
-			throws DatabaseConnectionException, ProviderDoesNotExistException,
-			RecordDatasetEmptyException;
+	/**
+	 * Retrieve the recordIds for a given provider, supporting pagination. If no
+	 * pagination is provided then the recordIds retrieved are 10000 starting
+	 * from record 0
+	 * 
+	 * @param providerId
+	 * @param start
+	 * @param end
+	 * @return A list of recordIds for a provider bound to 10000 results
+	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
+	List<Provider> searchLocalIdsByProvider(String providerId, int start,
+			int end) throws DatabaseConnectionException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException;
 
-	List<GlobalId> searchGlobalIdsByProvider(String providerId, int start, int end)
-			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
+	/**
+	 * Retrieve the globalIds for a given provider, supporting pagination. If no
+	 * pagination is provided then the globalIds retrieved are 10000 starting
+	 * from record 0
+	 * 
+	 * @param providerId
+	 * @param start
+	 * @param end
+	 * @return A list of globalIds for a provider bound to 10000 results
+	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
+	List<GlobalId> searchGlobalIdsByProvider(String providerId, int start,
+			int end) throws DatabaseConnectionException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException;
 
+	/**
+	 * Create a mapping between a new providerId and recordId and an existing
+	 * global identifier
+	 * 
+	 * @param globalId
+	 * @param providerId
+	 * @param recordId
+	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException
+	 * @throws GlobalIdDoesNotExistException
+	 * @throws RecordIdDoesNotExistException
+	 * @throws IdHasBeenMappedException
+	 */
 	void createFromExisting(String globalId, String providerId, String recordId)
 			throws DatabaseConnectionException, ProviderDoesNotExistException,
 			GlobalIdDoesNotExistException, RecordIdDoesNotExistException,
 			IdHasBeenMappedException;
 
+	/**
+	 * Remove the mapping between the providerId/recordId and the global
+	 * identifier The mapping is soft-deleted
+	 * 
+	 * @param providerId
+	 * @param recordId
+	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordIdDoesNotExistException
+	 */
 	void removeMappingByLocalId(String providerId, String recordId)
 			throws DatabaseConnectionException, ProviderDoesNotExistException,
 			RecordIdDoesNotExistException;
 
+	/**
+	 * Delete a global Identifier and all of its relevant mappings. Everything
+	 * is soft-deleted
+	 * 
+	 * @param globalId
+	 * @throws DatabaseConnectionException
+	 * @throws GlobalIdDoesNotExistException
+	 */
 	void deleteGlobalId(String globalId) throws DatabaseConnectionException,
 			GlobalIdDoesNotExistException;
 }
