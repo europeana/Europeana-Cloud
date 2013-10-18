@@ -12,6 +12,10 @@ final class PathConstants {
     static final String REPRESENTATIONS = "representations";
 
     static final String VERSIONS = "versions";
+    
+    static final String PROVIDERS = "data-providers";
+
+    static final String DATASETS = "data-sets";
 
     static final String P_GID = "ID";
 
@@ -19,8 +23,12 @@ final class PathConstants {
 
     static final String P_VER = "VERSION";
 
-    static final String P_PROVIDER = "DATA_PROVIDER";
+    static final String P_PROVIDER = "DATAPROVIDER";
+    
+    static final String P_DATASET = "DATASET";
     
      static final String P_FILE = "FILE";
+     
+      static final String F_DATASET = "dataSetId";
 
 }

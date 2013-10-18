@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
 import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
@@ -31,5 +33,15 @@ final class EnrichUriUtil {
             URI latestVersionUri = versionsUriBuilder.path(representation.getVersion()).build();
             representation.setSelfUri(latestVersionUri);
         }
+    }
+    
+    static void enrich(UriInfo uriInfo, DataProvider provider) {
+        UriBuilder providerUriBuilder = uriInfo.getBaseUriBuilder().segment(PROVIDERS, provider.getId());
+        provider.setUri(providerUriBuilder.build());
+    }
+
+    static void enrich(UriInfo uriInfo, DataSet dataSet) {
+        UriBuilder providerUriBuilder = uriInfo.getBaseUriBuilder().segment(PROVIDERS, dataSet.getProviderId(), DATASETS, dataSet.getId());
+        dataSet.setUri(providerUriBuilder.build());
     }
 }

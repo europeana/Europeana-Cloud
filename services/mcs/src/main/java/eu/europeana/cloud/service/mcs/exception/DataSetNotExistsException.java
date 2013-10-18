@@ -4,11 +4,11 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 /**
- * ProviderNotExistsException
+ * DataSetNotExistsException
  */
-public class ProviderNotExistsException extends WebApplicationException {
+public class DataSetNotExistsException extends WebApplicationException {
 
-    public ProviderNotExistsException() {
+    public DataSetNotExistsException() {
         super(Response.Status.NOT_FOUND);
     }
 }

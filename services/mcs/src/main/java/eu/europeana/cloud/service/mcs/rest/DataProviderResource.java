@@ -1,6 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.P_PROVIDER;
+import eu.europeana.cloud.common.model.DataProvider;
+import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.service.DataProviderService;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -13,36 +16,40 @@ import javax.ws.rs.core.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * Resource for DataProviders
  *
  */
-@Path("/data-providers/{ID}")
+@Path("/data-providers/{"+ P_PROVIDER + "}")
 @Component
 public class DataProviderResource {
 
     @Autowired
     DataProviderService providerService;
     
-    @PathParam("ID")
+    @PathParam(P_PROVIDER)
     private String providerId;
    
+    @Context
+    private UriInfo uriInfo;
     
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public DataProvider getProvider() throws ProviderNotExistsException {
+    public DataProvider getProvider() {
         return providerService.getProvider(providerId);
     }
     
     //add parameter for provider properties
     @PUT
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public DataProvider createProvider() {
-        return providerService.createProvider(providerId);
+    public Response createProvider() {
+        DataProvider provider = providerService.createProvider(providerId);
+        EnrichUriUtil.enrich(uriInfo, provider);
+        return Response.created(provider.getUri()).build();
     }
     
 
