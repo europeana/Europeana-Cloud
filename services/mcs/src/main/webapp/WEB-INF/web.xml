@@ -20,7 +20,7 @@
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>javax.ws.rs.Application</param-name>
-			<param-value>eu.europeana.cloud.contentserviceapi.rest.JerseyConfig</param-value>
+			<param-value>eu.europeana.cloud.service.mcs.rest.JerseyConfig</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
