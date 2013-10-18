@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
@@ -10,7 +11,9 @@ public class JerseyConfig extends ResourceConfig {
      * Register JAX-RS application components.
      */
     public JerseyConfig() {
+        super();
         register(RequestContextFilter.class);
+        register(LoggingFilter.class);
         register(CustomExceptionMapper.class);
         register(MultiPartFeature.class);
         register(RecordsResource.class);

@@ -16,7 +16,7 @@
 	</context-param>
 
 	<servlet>
-		<servlet-name>SpringApplication</servlet-name>
+		<servlet-name>MCS Rest API</servlet-name>
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>javax.ws.rs.Application</param-name>
@@ -25,7 +25,7 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>SpringApplication</servlet-name>
+		<servlet-name>MCS Rest API</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 

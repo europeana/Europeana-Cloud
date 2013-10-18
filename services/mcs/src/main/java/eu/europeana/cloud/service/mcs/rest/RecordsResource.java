@@ -44,7 +44,6 @@ public class RecordsResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord()
             throws RecordNotExistsException {
-        log.info("Got request for record {}", globalId);
         Record record = recordService.getRecord(globalId);
         prepare(record);
         return record;
