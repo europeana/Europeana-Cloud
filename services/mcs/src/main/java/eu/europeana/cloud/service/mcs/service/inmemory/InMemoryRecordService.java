@@ -12,6 +12,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.CannotDeletePersistentRepresentationVersion;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyPersistentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -266,6 +267,27 @@ public class InMemoryRecordService implements RecordService {
         }
         Collections.reverse(result);
         return result;
+    }
+
+
+    @Override
+    public Representation addFileToRepresentation(String globalId, String representationName, String version, File file)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
+                Map<String, List<Representation>> representations = records.get(globalId);
+        if (representations == null) {
+            throw new RecordNotExistsException();
+        }
+        List<Representation> representationVersions = representations.get(representationName);
+        if (representationVersions == null) {
+            throw new RepresentationNotExistsException();
+        }
+        Representation rep = getByVersion(representationVersions, version);
+        if (rep == null) {
+            throw new VersionNotExistsException();
+        } else {
+            rep.getFiles().add(file);
+            return copy(rep);
+        }
     }
 
 

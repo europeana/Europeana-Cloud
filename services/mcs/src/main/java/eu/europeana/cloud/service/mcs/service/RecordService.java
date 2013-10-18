@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.CannotDeletePersistentRepresentationVersion;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyPersistentException;
@@ -55,4 +56,6 @@ public interface RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, RepresentationAlreadyPersistentException;
 
 
+    Representation addFileToRepresentation(String globalId, String representationName, String version, File f)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException;
 }

@@ -72,7 +72,7 @@ public class RepresentationResource {
             @FormParam(P_PROVIDER) String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException {
         if (providerId == null || providerId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("you must provide id").build();
         }
         Representation version = recordService.createRepresentation(globalId, representation, providerId);
         EnrichUriUtil.enrich(uriInfo, version);

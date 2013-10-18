@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.service.ContentService;
 import eu.europeana.cloud.service.mcs.service.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
@@ -81,22 +82,37 @@ public class FileResource {
 
 
     @GET
-    public StreamingOutput getFile(
+    public Response getFile(
             @HeaderParam(HEADER_RANGE) String range) {
         // extract range
         final ContentRange contentRange = ContentRange.parse(range);
 
         final Representation rep = recordService.getRepresentation(globalId, representation, version);
-        final File f = new File();
-        f.setFileName(fileName);
-        return new StreamingOutput() {
+        final File requestedFile = getByName(fileName, rep);
+
+        if (requestedFile == null) {
+            throw new FileNotExistsException();
+        }
+
+        StreamingOutput output = new StreamingOutput() {
 
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                contentService.writeContent(rep, f, contentRange.start, contentRange.end, output);
+                contentService.writeContent(rep, requestedFile, contentRange.start, contentRange.end, output);
             }
         };
+        return Response.ok(output).build();
+    }
+
+
+    private File getByName(String fileName, Representation rep) {
+        for (File f : rep.getFiles()) {
+            if (f.getFileName().equals(fileName)) {
+                return f;
+            }
+        }
+        return null;
     }
 
     private static class ContentRange {
