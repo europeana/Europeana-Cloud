@@ -31,7 +31,7 @@
 	</developers>
 
 	<modules>
-		<module>definitions</module>
+		<module>common</module>
 		<module>services/mcs</module>
 		<module>services/uis</module>
 	</modules>
