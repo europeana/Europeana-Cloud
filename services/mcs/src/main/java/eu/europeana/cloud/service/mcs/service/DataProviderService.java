@@ -6,6 +6,8 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 
 /**
@@ -20,7 +22,7 @@ public interface DataProviderService {
     
     DataProvider createProvider(String providerId); //TODO add parameter for provider configuration
     
-    void deleteProvider(String providerId) throws ProviderNotExistsException;
+    void deleteProvider(String providerId) throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException;
     
     DataSet createDataSet(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetAlreadyExistsException;
 

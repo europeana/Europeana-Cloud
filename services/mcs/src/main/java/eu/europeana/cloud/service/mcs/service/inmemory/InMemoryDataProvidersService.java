@@ -11,6 +11,8 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.service.DataProviderService;
 import java.util.Collection;
@@ -48,10 +50,14 @@ public class InMemoryDataProvidersService implements DataProviderService {
     }
 
     @Override
-    public void deleteProvider(String providerId)
-            throws ProviderNotExistsException {
-        if(!providers.containsKey(providerId))
+    public void deleteProvider(String providerId) throws ProviderNotExistsException,
+        ProviderHasDataSetsException, ProviderHasRecordsException {
+        if (!providers.containsKey(providerId)) {
             throw new ProviderNotExistsException();
+        }
+        Map<String, DataSet> providerSets = dataSets.get(providerId);
+        if(!providerSets.isEmpty())
+            throw new ProviderHasDataSetsException();
         providers.remove(providerId);
     }
     

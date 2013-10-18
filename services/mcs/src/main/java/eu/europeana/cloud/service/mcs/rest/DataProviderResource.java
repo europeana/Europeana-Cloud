@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.service.DataProviderService;
@@ -54,7 +56,8 @@ public class DataProviderResource {
     
 
     @DELETE
-    public void deleteProvider() throws ProviderNotExistsException {
+    public void deleteProvider() throws ProviderNotExistsException, 
+        ProviderHasDataSetsException,ProviderHasRecordsException {
         providerService.deleteProvider(providerId);
     }
     
