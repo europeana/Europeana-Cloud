@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * RecordNotExistsException
  */
-public class FileNotExistsException extends WebApplicationException {
+public class FileNotExistsException extends RuntimeException {
 
     public FileNotExistsException() {
-        super(Response.Status.NOT_FOUND);
+    }
+
+
+    public FileNotExistsException(String message) {
+        super(message);
     }
 }

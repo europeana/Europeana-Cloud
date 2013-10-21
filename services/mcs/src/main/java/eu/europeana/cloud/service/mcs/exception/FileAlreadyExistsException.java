@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * RecordNotExistsException
  */
-public class FileAlreadyExistsException extends WebApplicationException {
+public class FileAlreadyExistsException extends RuntimeException {
 
     public FileAlreadyExistsException() {
-        super(Response.Status.CONFLICT);
+    }
+
+
+    public FileAlreadyExistsException(String message) {
+        super(message);
     }
 }

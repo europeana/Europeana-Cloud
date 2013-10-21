@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * DataSetAlreadyExistsException
  */
-public class DataSetAlreadyExistsException extends WebApplicationException {
+public class DataSetAlreadyExistsException extends RuntimeException {
+
+    public DataSetAlreadyExistsException(String message) {
+        super(message);
+    }
+
 
     public DataSetAlreadyExistsException() {
-        super(Response.Status.CONFLICT);
     }
 }

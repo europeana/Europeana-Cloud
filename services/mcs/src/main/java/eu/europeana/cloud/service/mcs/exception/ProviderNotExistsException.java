@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * ProviderNotExistsException
  */
-public class ProviderNotExistsException extends WebApplicationException {
+public class ProviderNotExistsException extends RuntimeException {
 
     public ProviderNotExistsException() {
-        super(Response.Status.NOT_FOUND);
+    }
+
+
+    public ProviderNotExistsException(String message) {
+        super(message);
     }
 }

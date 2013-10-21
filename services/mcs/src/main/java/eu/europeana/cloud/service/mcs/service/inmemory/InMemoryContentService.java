@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.service.ContentService;
 import eu.europeana.cloud.service.mcs.service.RecordService;
@@ -32,7 +33,7 @@ public class InMemoryContentService implements ContentService {
 
     @Override
     public void insertContent(Representation rep, File file, InputStream data)
-            throws IOException {
+            throws IOException, FileAlreadyExistsException {
         if (file.getFileName() == null || file.getFileName().isEmpty()) {
             file.setFileName(UUID.randomUUID().toString());
             rep.getFiles().add(file);

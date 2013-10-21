@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.service.RecordService;
@@ -70,7 +71,7 @@ public class RepresentationResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRepresentation(
             @FormParam(P_PROVIDER) String providerId)
-            throws RecordNotExistsException, RepresentationNotExistsException {
+            throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         if (providerId == null || providerId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("you must provide id").build();
         }

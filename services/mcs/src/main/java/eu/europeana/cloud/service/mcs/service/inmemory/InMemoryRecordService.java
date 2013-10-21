@@ -11,10 +11,9 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.CannotDeletePersistentRepresentationVersion;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyPersistentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.service.RecordService;
@@ -24,10 +23,10 @@ import eu.europeana.cloud.service.mcs.service.RecordService;
  */
 @Service
 public class InMemoryRecordService implements RecordService {
-    
+
     private Map<String, Map<String, List<Representation>>> records = new HashMap<>();
-    
-    
+
+
     @Override
     public Record getRecord(String globalId)
             throws RecordNotExistsException {
@@ -44,8 +43,8 @@ public class InMemoryRecordService implements RecordService {
         }
         return record;
     }
-    
-    
+
+
     @Override
     public void deleteRecord(String globalId)
             throws RecordNotExistsException {
@@ -55,10 +54,10 @@ public class InMemoryRecordService implements RecordService {
             throw new RecordNotExistsException();
         }
     }
-    
-    
+
+
     private Representation getLatestPersistentRepresentation(List<Representation> versions) {
-        
+
         for (int i = versions.size() - 1; i >= 0; i--) {
             Representation rep = versions.get(i);
             if (rep.isPersistent()) {
@@ -67,8 +66,8 @@ public class InMemoryRecordService implements RecordService {
         }
         return null;
     }
-    
-    
+
+
     private Representation getLatestRepresentation(List<Representation> versions) {
         Representation latestPersistent = getLatestPersistentRepresentation(versions);
         if (latestPersistent == null) {
@@ -77,8 +76,8 @@ public class InMemoryRecordService implements RecordService {
             return latestPersistent;
         }
     }
-    
-    
+
+
     private Representation copy(Representation rep) {
         Representation copy = new Representation();
         copy.setDataProvider(rep.getDataProvider());
@@ -89,8 +88,8 @@ public class InMemoryRecordService implements RecordService {
         copy.setVersion(rep.getVersion());
         return copy;
     }
-    
-    
+
+
     @Override
     public Representation getRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
@@ -104,8 +103,8 @@ public class InMemoryRecordService implements RecordService {
         }
         return getLatestRepresentation(representationVersions);
     }
-    
-    
+
+
     @Override
     public void deleteRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
@@ -119,8 +118,8 @@ public class InMemoryRecordService implements RecordService {
             throw new RepresentationNotExistsException();
         }
     }
-    
-    
+
+
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId) {
         Map<String, List<Representation>> representations = records.get(globalId);
@@ -169,8 +168,8 @@ public class InMemoryRecordService implements RecordService {
             return parts[0] + "-" + (Integer.parseInt(parts[1]) + 1);
         }
     }
-    
-    
+
+
     @Override
     public Representation getRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
@@ -189,8 +188,8 @@ public class InMemoryRecordService implements RecordService {
             return copy(rep);
         }
     }
-    
-    
+
+
     @Override
     public void deleteRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
@@ -206,13 +205,13 @@ public class InMemoryRecordService implements RecordService {
         if (repInVersion == null) {
             throw new VersionNotExistsException();
         } else if (repInVersion.isPersistent()) {
-            throw new CannotDeletePersistentRepresentationVersion();
+            throw new CannotModifyPersistentRepresentationException();
         } else {
             representationVersions.remove(repInVersion);
         }
     }
-    
-    
+
+
     private Representation getByVersion(List<Representation> versions, String version) {
         for (Representation rep : versions) {
             if (rep.getVersion().equals(version)) {
@@ -221,11 +220,11 @@ public class InMemoryRecordService implements RecordService {
         }
         return null;
     }
-    
-    
+
+
     @Override
     public Representation persistRepresentation(String globalId, String representationName, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, RepresentationAlreadyPersistentException {
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RecordNotExistsException();
@@ -238,18 +237,18 @@ public class InMemoryRecordService implements RecordService {
         if (repVersion == null) {
             throw new VersionNotExistsException();
         } else if (repVersion.isPersistent()) {
-            throw new RepresentationAlreadyPersistentException();
+            throw new CannotModifyPersistentRepresentationException("Representation " + globalId + " - " + representationName + " - " + version + " is already persistent");
         }
         String newVersion = generateNewVersionNumber(representationVersions, true);
         repVersion.setVersion(newVersion);
         repVersion.setPersistent(true);
-        
+
         representationVersions.remove(repVersion);
         representationVersions.add(repVersion);
         return repVersion;
     }
-    
-    
+
+
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
@@ -273,7 +272,7 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public Representation addFileToRepresentation(String globalId, String representationName, String version, File file)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
-                Map<String, List<Representation>> representations = records.get(globalId);
+        Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RecordNotExistsException();
         }
@@ -289,6 +288,4 @@ public class InMemoryRecordService implements RecordService {
             return copy(rep);
         }
     }
-
-
 }

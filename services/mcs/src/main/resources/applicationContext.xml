@@ -10,6 +10,6 @@
 >
 	
 	<context:component-scan
-		base-package="eu.europeana.cloud.service.mcs.service.inmemory, eu.europeana.cloud.service.mcs.service.rest"/>
+		base-package="eu.europeana.cloud.service.mcs.service.inmemory, eu.europeana.cloud.service.mcs.rest"/>
 
 </beans>

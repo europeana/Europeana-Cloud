@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * DataSetNotExistsException
  */
-public class DataSetNotExistsException extends WebApplicationException {
+public class DataSetNotExistsException extends RuntimeException {
 
     public DataSetNotExistsException() {
-        super(Response.Status.NOT_FOUND);
+    }
+
+
+    public DataSetNotExistsException(String message) {
+        super(message);
     }
 }

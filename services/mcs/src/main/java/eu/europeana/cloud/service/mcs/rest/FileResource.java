@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -27,6 +26,9 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.service.ContentService;
 import eu.europeana.cloud.service.mcs.service.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
@@ -67,7 +69,7 @@ public class FileResource {
     public Response sendFile(
             @FormDataParam("mimeType") String mimeType,
             @FormDataParam("data") InputStream data)
-            throws FileAlreadyExistsException, IOException {
+            throws FileAlreadyExistsException, IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         if (data == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You must provide data.").build();
         }
@@ -83,7 +85,8 @@ public class FileResource {
 
     @GET
     public Response getFile(
-            @HeaderParam(HEADER_RANGE) String range) {
+            @HeaderParam(HEADER_RANGE) String range)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException {
         // extract range
         final ContentRange contentRange = ContentRange.parse(range);
 
@@ -99,7 +102,11 @@ public class FileResource {
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                contentService.writeContent(rep, requestedFile, contentRange.start, contentRange.end, output);
+                try {
+                    contentService.writeContent(rep, requestedFile, contentRange.start, contentRange.end, output);
+                } catch (FileNotExistsException ex) {
+                    throw new WebApplicationException(ex);
+                }
             }
         };
         return Response.ok(output).build();

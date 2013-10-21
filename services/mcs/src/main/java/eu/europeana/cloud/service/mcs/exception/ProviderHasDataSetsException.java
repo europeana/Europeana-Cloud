@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * ProviderNotExistsException
  */
-public class ProviderHasDataSetsException extends WebApplicationException {
+public class ProviderHasDataSetsException extends RuntimeException {
 
     public ProviderHasDataSetsException() {
-        super(Response.Status.METHOD_NOT_ALLOWED);
+    }
+
+
+    public ProviderHasDataSetsException(String message) {
+        super(message);
     }
 }

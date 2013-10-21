@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.service.ContentService;
 import eu.europeana.cloud.service.mcs.service.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
@@ -60,7 +63,7 @@ public class FilesResource {
             @FormDataParam("mimeType") String mimeType,
             @FormDataParam("fileName") String fileName,
             @FormDataParam("data") InputStream data)
-            throws FileAlreadyExistsException, IOException {
+            throws FileAlreadyExistsException, IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         if (fileName != null) {
             return Response.status(Response.Status.NOT_IMPLEMENTED).entity("If you want to provide your own file name, use: files/{FILE_NAME}").build();
         }

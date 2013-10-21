@@ -41,7 +41,7 @@ public class DataProviderResource {
     
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public DataProvider getProvider() {
+    public DataProvider getProvider() throws ProviderNotExistsException {
         return providerService.getProvider(providerId);
     }
     

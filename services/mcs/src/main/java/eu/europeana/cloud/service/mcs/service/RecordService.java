@@ -5,11 +5,10 @@ import java.util.List;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.CannotDeletePersistentRepresentationVersion;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyPersistentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 
@@ -49,11 +48,11 @@ public interface RecordService {
 
 
     void deleteRepresentation(String globalId, String representationName, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotDeletePersistentRepresentationVersion;
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
     Representation persistRepresentation(String globalId, String representationName, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, RepresentationAlreadyPersistentException;
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
     Representation addFileToRepresentation(String globalId, String representationName, String version, File f)

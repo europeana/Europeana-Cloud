@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * RecordNotExistsException
  */
-public class RepresentationNotExistsException extends WebApplicationException {
+public class RepresentationNotExistsException extends RuntimeException {
 
     public RepresentationNotExistsException() {
-        super(Response.Status.NOT_FOUND);
+    }
+
+
+    public RepresentationNotExistsException(String message) {
+        super(message);
     }
 }

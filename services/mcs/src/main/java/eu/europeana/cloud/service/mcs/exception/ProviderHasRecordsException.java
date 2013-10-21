@@ -6,9 +6,13 @@ import javax.ws.rs.core.Response;
 /**
  * ProviderNotExistsException
  */
-public class ProviderHasRecordsException extends WebApplicationException {
+public class ProviderHasRecordsException extends RuntimeException {
 
     public ProviderHasRecordsException() {
-        super(Response.Status.METHOD_NOT_ALLOWED);
+    }
+
+
+    public ProviderHasRecordsException(String message) {
+        super(message);
     }
 }

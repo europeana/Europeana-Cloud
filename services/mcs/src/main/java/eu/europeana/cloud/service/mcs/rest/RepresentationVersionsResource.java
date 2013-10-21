@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.service.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
 
@@ -42,7 +43,7 @@ public class RepresentationVersionsResource {
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<Representation> listVersions()
-            throws RecordNotExistsException {
+            throws RecordNotExistsException, RepresentationNotExistsException {
         List<Representation> representationVersions = recordService.listRepresentationVersions(globalId, representation);
         for (Representation representationVersion : representationVersions) {
             prepare(representationVersion);
