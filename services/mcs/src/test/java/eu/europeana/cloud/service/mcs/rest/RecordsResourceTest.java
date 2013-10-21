@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -20,6 +22,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
+import com.google.common.collect.Lists;
+
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
@@ -49,7 +54,33 @@ public class RecordsResourceTest extends JerseyTest {
 	@Test
 	public void getRecord() {
 		String globalId = "global1";
-		Record record = newRecord(globalId);
+		Record record = newRecord(
+				globalId,
+				Lists.newArrayList(newRepresentation(
+						globalId,
+						"DC",
+						"1",
+						null,
+						null,
+						"FBC",
+						Lists.newArrayList(newFile(
+								"dc.xml",
+								"text/xml",
+								"91162629d258a876ee994e9233b2ad87",
+								"2013-10-21",
+								12345L,
+								URI.create("http://examplecloud.eu/records/"
+										+ globalId
+										+ "/representations/DC/versions/1/dc.xml"))),
+						false)));
+		Record expected = newRecord(record.getId(), record.getRepresentations());
+		Representation representation = expected.getRepresentations().get(0);
+		representation.setRecordId(null);
+		representation.setFiles(null);
+		representation.setAllVersionsUri(URI.create(getBaseUri() + "records/"
+				+ globalId + "/representations/DC/versions"));
+		representation.setSelfUri(URI.create(getBaseUri() + "records/"
+				+ globalId + "/representations/DC/versions/1"));
 		when(recordService.getRecord(globalId)).thenReturn(record);
 
 		Response response = target().path("/records/" + globalId)
@@ -58,7 +89,7 @@ public class RecordsResourceTest extends JerseyTest {
 		assertThat(response.getStatus(), is(200));
 		assertThat(response.getMediaType(), is(MediaType.APPLICATION_XML_TYPE));
 		Object entity = response.readEntity(Record.class);
-		assertThat((Record) entity, is(record));
+		assertThat((Record) entity, is(expected));
 		verify(recordService, times(1)).getRecord(globalId);
 		verifyNoMoreInteractions(recordService);
 	}
@@ -103,11 +134,65 @@ public class RecordsResourceTest extends JerseyTest {
 		verifyNoMoreInteractions(recordService);
 	}
 
-	private static Record newRecord(String globalId) {
+	private static Record newRecord(final String globalId,
+			final List<Representation> representations) {
 		Record record = new Record();
 		record.setId(globalId);
-		record.setRepresentations(new ArrayList<Representation>());
+		List<Representation> newRepresentations = null;
+		if (representations != null) {
+			newRepresentations = new ArrayList<>(representations.size());
+			for (Representation representation : representations) {
+				newRepresentations.add(newRepresentation(
+						representation.getRecordId(),
+						representation.getSchema(),
+						representation.getVersion(),
+						representation.getAllVersionsUri(),
+						representation.getSelfUri(),
+						representation.getDataProvider(),
+						representation.getFiles(),
+						representation.isPersistent()));
+			}
+		}
+		record.setRepresentations(newRepresentations);
 		return record;
 	}
 
+	private static Representation newRepresentation(final String recordId,
+			final String schema, final String version,
+			final URI allVersionsUri, final URI selfUri,
+			final String dataProvider, final List<File> files,
+			final boolean persistent) {
+		Representation representation = new Representation();
+		representation.setRecordId(recordId);
+		representation.setSchema(schema);
+		representation.setVersion(version);
+		representation.setAllVersionsUri(allVersionsUri);
+		representation.setSelfUri(selfUri);
+		representation.setDataProvider(dataProvider);
+		List<File> newFiles = null;
+		if (files != null) {
+			newFiles = new ArrayList<>(files.size());
+			for (File file : files) {
+				newFiles.add(newFile(file.getFileName(), file.getMimeType(),
+						file.getMd5(), file.getDate(), file.getContentLength(),
+						file.getContentUri()));
+			}
+		}
+		representation.setFiles(newFiles);
+		representation.setPersistent(persistent);
+		return representation;
+	}
+
+	private static File newFile(final String fileName, final String mimeType,
+			final String md5, final String date, final long contentLength,
+			final URI contentUri) {
+		File file = new File();
+		file.setFileName(fileName);
+		file.setMimeType(mimeType);
+		file.setMd5(md5);
+		file.setDate(date);
+		file.setContentLength(contentLength);
+		file.setContentUri(contentUri);
+		return file;
+	}
 }
