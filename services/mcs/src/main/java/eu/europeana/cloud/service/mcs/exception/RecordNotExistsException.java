@@ -12,7 +12,7 @@ public class RecordNotExistsException extends RuntimeException {
     }
 
 
-    public RecordNotExistsException(String message) {
-        super(message);
+    public RecordNotExistsException(String recordId) {
+        super("There is no record with provided global id: " + recordId);
     }
 }

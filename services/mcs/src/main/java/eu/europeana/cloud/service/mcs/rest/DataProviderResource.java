@@ -60,8 +60,7 @@ public class DataProviderResource {
 
     @DELETE
     public void deleteProvider()
-            throws ProviderNotExistsException,
-            ProviderHasDataSetsException, ProviderHasRecordsException {
+            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
         providerService.deleteProvider(providerId);
     }
 }

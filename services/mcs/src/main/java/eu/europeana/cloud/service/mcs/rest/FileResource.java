@@ -71,9 +71,7 @@ public class FileResource {
             @FormDataParam("mimeType") String mimeType,
             @FormDataParam("data") InputStream data)
             throws FileAlreadyExistsException, IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        if (data == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You must provide data.").build();
-        }
+        ParamUtil.require("data", data);
         Representation rep = recordService.getRepresentation(globalId, representation, version);
         File f = new File();
         f.setMimeType(mimeType);

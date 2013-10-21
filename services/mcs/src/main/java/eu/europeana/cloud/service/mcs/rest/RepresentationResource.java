@@ -71,11 +71,9 @@ public class RepresentationResource {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRepresentation(
-            @FormParam(P_PROVIDER) String providerId)
+            @FormParam(F_PROVIDER) String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
-        if (providerId == null || providerId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("you must provide id").build();
-        }
+        ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, representation, providerId);
         EnrichUriUtil.enrich(uriInfo, version);
         return Response.created(version.getSelfUri()).build();

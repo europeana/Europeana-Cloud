@@ -46,4 +46,8 @@ final class EnrichUriUtil {
         UriBuilder providerUriBuilder = uriInfo.getBaseUriBuilder().segment(PROVIDERS, dataSet.getProviderId(), DATASETS, dataSet.getId());
         dataSet.setUri(providerUriBuilder.build());
     }
+
+
+    private EnrichUriUtil() {
+    }
 }

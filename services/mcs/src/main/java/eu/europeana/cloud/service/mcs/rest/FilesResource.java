@@ -67,9 +67,7 @@ public class FilesResource {
         if (fileName != null) {
             return Response.status(Response.Status.NOT_IMPLEMENTED).entity("If you want to provide your own file name, use: files/{FILE_NAME}").build();
         }
-        if (data == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("You must provide data.").build();
-        }
+        ParamUtil.require("data", data);
         Representation rep = recordService.getRepresentation(globalId, representation, version);
         File f = new File();
         f.setMimeType(mimeType);

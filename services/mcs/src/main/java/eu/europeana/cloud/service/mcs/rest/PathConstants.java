@@ -7,6 +7,7 @@ final class PathConstants {
 
     static final String LATEST_VERSION_KEYWORD = "LATEST";
 
+    // resources' paths
     static final String RECORDS = "records";
 
     static final String REPRESENTATIONS = "representations";
@@ -17,6 +18,7 @@ final class PathConstants {
 
     static final String DATASETS = "data-sets";
 
+    // path parameters' names
     static final String P_GID = "ID";
 
     static final String P_REP = "REPRESENTATION";
@@ -29,6 +31,15 @@ final class PathConstants {
 
     static final String P_FILE = "FILE";
 
+    // form parameters' names
     static final String F_DATASET = "dataSetId";
+
+    static final String F_PROVIDER = "providerId";
+
+    static final String F_GID = "recordId";
+
+    static final String F_REP = "representation";
+
+    static final String F_VER = "version";
 
 }

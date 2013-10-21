@@ -32,7 +32,7 @@ public class InMemoryRecordService implements RecordService {
             throws RecordNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         Record record = new Record();
         record.setId(globalId);
@@ -51,7 +51,7 @@ public class InMemoryRecordService implements RecordService {
         if (records.containsKey(globalId)) {
             records.remove(globalId);
         } else {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
     }
 
@@ -91,26 +91,11 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public Representation getRepresentation(String globalId, String representationName)
-            throws RecordNotExistsException, RepresentationNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException();
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        return getLatestRepresentation(representationVersions);
-    }
-
-
-    @Override
     public void deleteRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
         Map<String, List< Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         if (representations.containsKey(representationName)) {
             representations.remove(representationName);
@@ -171,21 +156,32 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
+    public Representation getRepresentation(String globalId, String representationName)
+            throws RecordNotExistsException, RepresentationNotExistsException {
+        return getRepresentation(globalId, representationName, null);
+    }
+
+
+    @Override
     public Representation getRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(representationName);
         if (representationVersions == null) {
             throw new RepresentationNotExistsException();
         }
-        Representation rep = getByVersion(representationVersions, version);
-        if (rep == null) {
-            throw new VersionNotExistsException();
+        if (version == null) {
+            return getLatestRepresentation(representationVersions);
         } else {
-            return copy(rep);
+            Representation rep = getByVersion(representationVersions, version);
+            if (rep == null) {
+                throw new VersionNotExistsException();
+            } else {
+                return copy(rep);
+            }
         }
     }
 
@@ -195,7 +191,7 @@ public class InMemoryRecordService implements RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(representationName);
         if (representationVersions == null) {
@@ -227,7 +223,7 @@ public class InMemoryRecordService implements RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(representationName);
         if (representationVersions == null) {
@@ -254,7 +250,7 @@ public class InMemoryRecordService implements RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(representationName);
         if (representationVersions == null) {
@@ -274,7 +270,7 @@ public class InMemoryRecordService implements RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException();
+            throw new RecordNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(representationName);
         if (representationVersions == null) {
