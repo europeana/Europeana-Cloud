@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -69,9 +68,10 @@ public class RepresentationVersionResource {
 
 
     @DELETE
-    public void deleteRepresentation()
+    public Response deleteRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         recordService.deleteRepresentation(globalId, representation, version);
+        return Response.noContent().build();
     }
 
 

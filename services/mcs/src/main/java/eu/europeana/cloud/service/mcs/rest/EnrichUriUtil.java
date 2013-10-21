@@ -34,11 +34,13 @@ final class EnrichUriUtil {
             representation.setSelfUri(latestVersionUri);
         }
     }
-    
+
+
     static void enrich(UriInfo uriInfo, DataProvider provider) {
         UriBuilder providerUriBuilder = uriInfo.getBaseUriBuilder().segment(PROVIDERS, provider.getId());
         provider.setUri(providerUriBuilder.build());
     }
+
 
     static void enrich(UriInfo uriInfo, DataSet dataSet) {
         UriBuilder providerUriBuilder = uriInfo.getBaseUriBuilder().segment(PROVIDERS, dataSet.getProviderId(), DATASETS, dataSet.getId());

@@ -6,9 +6,10 @@ import java.io.OutputStream;
 import java.net.URI;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
@@ -64,7 +65,7 @@ public class FileResource {
     static final String HEADER_RANGE = "Range";
 
 
-    @POST
+    @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(
             @FormDataParam("mimeType") String mimeType,
@@ -110,6 +111,12 @@ public class FileResource {
             }
         };
         return Response.ok(output).build();
+    }
+
+
+    @DELETE
+    public Response deleteFile() {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
 

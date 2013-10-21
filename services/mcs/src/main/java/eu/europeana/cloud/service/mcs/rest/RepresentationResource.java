@@ -61,9 +61,10 @@ public class RepresentationResource {
 
 
     @DELETE
-    public void deleteRepresentation()
+    public Response deleteRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException {
         recordService.deleteRepresentation(globalId, representation);
+        return Response.noContent().build();
     }
 
 

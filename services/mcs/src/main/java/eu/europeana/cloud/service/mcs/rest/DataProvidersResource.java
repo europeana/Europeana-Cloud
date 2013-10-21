@@ -23,10 +23,11 @@ public class DataProvidersResource {
 
     @Autowired
     DataProviderService providerService;
-    
+
+
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<DataProvider> getProviders() {
         return providerService.getProviders();
-    } 
+    }
 }

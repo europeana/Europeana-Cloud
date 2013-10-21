@@ -1,4 +1,3 @@
-
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -19,18 +18,20 @@ import org.springframework.stereotype.Component;
 public class DataSetResource {
 
     private static final Logger log = LoggerFactory.getLogger(DataSetResource.class);
-    
+
     @Autowired
     private DataProviderService providerService;
-    
+
     @PathParam(P_PROVIDER)
     private String providerId;
-    
+
     @PathParam(P_DATASET)
     private String dataSetId;
 
+
     @DELETE
-    public void deleteDataSet() throws ProviderNotExistsException, DataSetNotExistsException {
+    public void deleteDataSet()
+            throws ProviderNotExistsException, DataSetNotExistsException {
         providerService.deleteDataSet(providerId, dataSetId);
     }
 }

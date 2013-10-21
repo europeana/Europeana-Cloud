@@ -26,26 +26,29 @@ import javax.ws.rs.core.UriInfo;
  * Resource for DataProviders
  *
  */
-@Path("/data-providers/{"+ P_PROVIDER + "}")
+@Path("/data-providers/{" + P_PROVIDER + "}")
 @Component
 public class DataProviderResource {
 
     @Autowired
     DataProviderService providerService;
-    
+
     @PathParam(P_PROVIDER)
     private String providerId;
-   
+
     @Context
     private UriInfo uriInfo;
-    
+
+
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public DataProvider getProvider() throws ProviderNotExistsException {
+    public DataProvider getProvider()
+            throws ProviderNotExistsException {
         return providerService.getProvider(providerId);
     }
-    
+
     //add parameter for provider properties
+
     @PUT
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response createProvider() {
@@ -53,12 +56,12 @@ public class DataProviderResource {
         EnrichUriUtil.enrich(uriInfo, provider);
         return Response.created(provider.getUri()).build();
     }
-    
+
 
     @DELETE
-    public void deleteProvider() throws ProviderNotExistsException, 
-        ProviderHasDataSetsException,ProviderHasRecordsException {
+    public void deleteProvider()
+            throws ProviderNotExistsException,
+            ProviderHasDataSetsException, ProviderHasRecordsException {
         providerService.deleteProvider(providerId);
     }
-    
 }

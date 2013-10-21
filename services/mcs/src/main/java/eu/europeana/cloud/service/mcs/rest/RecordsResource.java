@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -8,6 +7,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
 @Path("/records/{ID}")
 @Component
 public class RecordsResource {
-    
+
     private static final Logger log = LoggerFactory.getLogger(RecordsResource.class);
 
     @Autowired
@@ -51,12 +51,17 @@ public class RecordsResource {
 
 
     @DELETE
-    public void deleteRecord()
+    public Response deleteRecord()
             throws RecordNotExistsException {
         recordService.deleteRecord(globalId);
+        return Response.noContent().build();
     }
 
 
+    /**
+     * Removes unimportant (at this point) information from record to reduce response size.
+     * @param record 
+     */
     private void prepare(Record record) {
         EnrichUriUtil.enrich(uriInfo, record);
         for (Representation representation : record.getRepresentations()) {
