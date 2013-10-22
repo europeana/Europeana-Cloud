@@ -8,8 +8,9 @@
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd"
 >
-	<context:annotation-config />
-	<bean id="uniqueIdService" class="eu.europeana.cloud.uidservice.service.UniqueIdServiceImpl"/>
-	<bean id="uniqueIdResourceMock" class="eu.europeana.cloud.uidservice.rest.impl.UniqueIdResourceImpl"/>
-
+<!-- 	<context:annotation-config /> -->
+<!-- 	<bean id="uniqueIdService" class="eu.europeana.cloud.service.uis.service.inmemory.InMemoryUniqueIdentifierService"/> -->
+<!-- 	<bean id="uniqueIdResource" class="eu.europeana.cloud.service.uis.rest.impl.BasicUniqueIdResource"/> -->
+<context:component-scan
+		base-package="eu.europeana.cloud.service.uis.service.inmemory, eu.europeana.cloud.service.uis.rest.impl"/>
 </beans>
