@@ -1,31 +1,38 @@
 package eu.europeana.cloud.common.response;
 
 import javax.ws.rs.core.Response;
-
-import eu.europeana.cloud.common.StatusCode;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Helper class that generates a JSON/XML response
+ * 
  * @author Yorgos.Mamakis@ kb.nl
- *
+ * 
  */
 public class GenericCloudResponseGenerator {
 
 	/**
-	 * Generate a cloud response ensuring that void responses are handled correctly
+	 * Generate a cloud response ensuring that void responses are handled
+	 * correctly
+	 * 
 	 * @param statusCode
 	 * @param message
 	 * @return The JSON/XML response served by the API
 	 */
-	public static <T> Response generateCloudResponse(StatusCode statusCode, T message) {
-		if (statusCode.equals(StatusCode.OK)
+	public static <T> Response generateCloudResponse(StatusCode statusCode,
+			T message) {
+		//If everything went ok and the result is not a String
+		if (statusCode.getHttpCode().equals(Status.OK)
 				&& !message.getClass().isAssignableFrom(String.class)) {
-			return Response.status(statusCode.getHttpCode()).entity(message)
-					.build();
+			return Response.status(Status.OK).entity(message).build();
 		}
+		//For exceptions and simple OK responses
 		GenericCloudResponse<T> response = new GenericCloudResponse<T>();
-		response.setStatusCode(statusCode);
+		response.setStatusCode(statusCode.getStatusCode());
+		response.setDescription(statusCode.getDescription());
+
 		response.setResponse(message);
+
 		return Response.status(statusCode.getHttpCode()).entity(response)
 				.build();
 

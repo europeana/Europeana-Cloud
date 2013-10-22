@@ -2,8 +2,6 @@ package eu.europeana.cloud.common.response;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import eu.europeana.cloud.common.StatusCode;
-
 /**
  * A generic response wrapper
  * 
@@ -18,18 +16,32 @@ public class GenericCloudResponse<T> {
 	/**
 	 * The confirmation or error message of the response
 	 */
-	StatusCode statusCode;
-	
+	String statusCode;
+
 	/**
 	 * The JSON/XML response
 	 */
 	T response;
 
-	public StatusCode getStatusCode() {
+	/**
+	 * A human readable description for simple responses
+	 */
+	String description;
+	
+	
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getStatusCode() {
 		return this.statusCode;
 	}
 
-	public void setStatusCode(StatusCode statusCode) {
+	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
 	}
 

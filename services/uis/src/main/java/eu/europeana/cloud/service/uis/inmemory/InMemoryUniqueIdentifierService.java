@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.service.inmemory;
+package eu.europeana.cloud.service.uis.inmemory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
 import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.service.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 
 /**
  * In-memory mockup of the unique identifier service

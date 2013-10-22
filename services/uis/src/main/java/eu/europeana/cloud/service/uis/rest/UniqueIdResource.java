@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
  * UniqueId REST API implementation
  * 
  * @author Yorgos.Mamakis@ kb.nl
- * 
+ * @since Oct 17, 2013
  */
 public interface UniqueIdResource {
     /**
