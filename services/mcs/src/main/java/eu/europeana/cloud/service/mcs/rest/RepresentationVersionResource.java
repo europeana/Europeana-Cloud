@@ -63,7 +63,9 @@ public class RepresentationVersionResource {
                 throw new RepresentationNotExistsException();
             }
         }
-        return Response.ok(recordService.getRepresentation(globalId, representation, version)).build();
+        Representation rep = recordService.getRepresentation(globalId, representation, version);
+        prepare(rep);
+        return Response.ok(rep).build();
     }
 
 
@@ -94,5 +96,10 @@ public class RepresentationVersionResource {
         Representation copiedRep = recordService.createRepresentation(globalId, representation, rep.getDataProvider());
         // TODO: copy files
         return Response.created(copiedRep.getSelfUri()).build();
+    }
+
+
+    private void prepare(Representation representationVersion) {
+        EnrichUriUtil.enrich(uriInfo, representationVersion);
     }
 }
