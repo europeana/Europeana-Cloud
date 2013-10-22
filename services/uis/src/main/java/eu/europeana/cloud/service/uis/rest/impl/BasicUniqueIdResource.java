@@ -33,7 +33,7 @@ import eu.europeana.cloud.service.uis.service.UniqueIdentifierService;
  * 
  */
 @Component
-@Path("uniqueid")
+@Path("uniqueId")
 public class BasicUniqueIdResource implements UniqueIdResource {
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;

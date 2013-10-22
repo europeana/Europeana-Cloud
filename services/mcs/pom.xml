@@ -12,7 +12,7 @@
 	<artifactId>ecloud-service-mcs</artifactId>
 	<packaging>war</packaging>
 	<name>Europeana Cloud: Metadata and Content Service</name>
-	
+
 	<properties>
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
@@ -101,6 +101,12 @@
 			<groupId>org.glassfish.jersey.test-framework</groupId>
 			<artifactId>jersey-test-framework-core</artifactId>
 			<version>${version.org.glassfish.jersey.test-framework}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>pl.pragmatists</groupId>
+			<artifactId>JUnitParams</artifactId>
+			<version>1.0.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
