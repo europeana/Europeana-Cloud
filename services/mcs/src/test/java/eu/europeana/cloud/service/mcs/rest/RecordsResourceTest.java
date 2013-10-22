@@ -101,6 +101,14 @@ public class RecordsResourceTest extends JerseyTest {
 		verifyNoMoreInteractions(recordService);
 	}
 
+	@Test
+	public void getRecordReturns406ForUnsupportedFormat() {
+		Response response = target().path("/records/global1")
+				.request(MediaType.APPLICATION_SVG_XML_TYPE).get();
+
+		assertThat(response.getStatus(), is(406));
+	}
+
 	@SuppressWarnings("unused")
 	private Object[] mimeTypes() {
 		return $($(MediaType.APPLICATION_XML_TYPE),
