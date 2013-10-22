@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static junitparams.JUnitParamsRunner.*;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -15,10 +16,14 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
@@ -32,6 +37,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.service.RecordService;
 
+@RunWith(JUnitParamsRunner.class)
 public class RecordsResourceTest extends JerseyTest {
 
 	private RecordService recordService;
@@ -52,7 +58,8 @@ public class RecordsResourceTest extends JerseyTest {
 	}
 
 	@Test
-	public void getRecord() {
+	@Parameters(method = "mimeTypes")
+	public void getRecord(MediaType mediaType) {
 		String globalId = "global1";
 		Record record = newRecord(
 				globalId,
@@ -84,14 +91,20 @@ public class RecordsResourceTest extends JerseyTest {
 		when(recordService.getRecord(globalId)).thenReturn(record);
 
 		Response response = target().path("/records/" + globalId)
-				.request(MediaType.APPLICATION_XML).get();
+				.request(mediaType).get();
 
 		assertThat(response.getStatus(), is(200));
-		assertThat(response.getMediaType(), is(MediaType.APPLICATION_XML_TYPE));
+		assertThat(response.getMediaType(), is(mediaType));
 		Object entity = response.readEntity(Record.class);
 		assertThat((Record) entity, is(expected));
 		verify(recordService, times(1)).getRecord(globalId);
 		verifyNoMoreInteractions(recordService);
+	}
+
+	@SuppressWarnings("unused")
+	private Object[] mimeTypes() {
+		return $($(MediaType.APPLICATION_XML_TYPE),
+				$(MediaType.APPLICATION_JSON_TYPE));
 	}
 
 	@Test
