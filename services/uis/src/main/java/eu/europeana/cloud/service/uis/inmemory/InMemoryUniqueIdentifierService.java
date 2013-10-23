@@ -25,7 +25,7 @@ import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 /**
  * In-memory mockup of the unique identifier service
  * 
- * @see eu.europeana.cloud.service.uis.service.UniqueIdentifierService.java
+ * @see UniqueIdentifierService
  * @author Yorgos.Mamakis@kb.nl
  * @since Oct 17, 2013
  */

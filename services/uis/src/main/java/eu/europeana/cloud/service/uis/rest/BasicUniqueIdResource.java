@@ -27,7 +27,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierCloudStati;
 /**
  * Implementation of the Unique Identifier Service. Accessible path /uniqueid
  * 
- * @see eu.europeana.cloud.uidservice.rest.UniquedIdResource
+ * @see UniqueIdResource
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 17, 2013
  */

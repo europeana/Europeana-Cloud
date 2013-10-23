@@ -14,14 +14,24 @@ import eu.europeana.cloud.common.model.GlobalId;
  * @since Oct 17, 2013
  */
 @XmlRootElement
-@XmlSeeAlso({GlobalId.class})
+@XmlSeeAlso({ GlobalId.class })
 public class GlobalIdList {
+    /**
+     * list of global Ids
+     */
     private List<GlobalId> list;
 
+    /**
+     * @return list of global Ids
+     */
     public List<GlobalId> getList() {
         return list;
     }
 
+    /**
+     * @param list
+     *            list of global Ids
+     */
     public void setList(List<GlobalId> list) {
         this.list = list;
     }
