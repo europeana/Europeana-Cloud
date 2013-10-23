@@ -24,10 +24,10 @@ public enum IdentifierCloudStati {
     /**
      * Unspecified Error - HTTP Code: 500
      */
-    GENERICERROR {
+    GENERIC_ERROR {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("GENERICERROR", String.format(
+            return new CloudStatus("GENERIC_ERROR", String.format(
                     "Unspecified Error occured with message %s", args[0]),
                     Status.INTERNAL_SERVER_ERROR);
         }
@@ -36,10 +36,10 @@ public enum IdentifierCloudStati {
     /**
      * Database Connection Error - HTTP Code: 500
      */
-    DATABASECONNECTIONERROR {
+    DATABASE_CONNECTION_ERROR {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("DATABASECONNECTIONERROR", String.format(
+            return new CloudStatus("DATABASE_CONNECTION_ERROR", String.format(
                     "The connection to the DB %s:%s/%s failed with error %s", args[0], args[1],
                     args[2], args[3]), Status.INTERNAL_SERVER_ERROR);
         }
@@ -48,11 +48,11 @@ public enum IdentifierCloudStati {
     /**
      * Record exists already in the database - HTTP code: 409
      */
-    RECORDEXISTS {
+    RECORD_EXISTS {
         @Override
         public CloudStatus getCloudStatus(String... args) {
             return new CloudStatus(
-                    "RECORDEXISTS",
+                    "RECORD_EXISTS",
                     String.format(
                             "An identifier for provider id %s and record id %s already exists in the database",
                             args[0], args[1]), Status.CONFLICT);
@@ -62,10 +62,10 @@ public enum IdentifierCloudStati {
     /**
      * The record does not exist in the database - HTTP code: 404
      */
-    RECORDDOESNOTEXIST {
+    RECORD_DOES_NOT_EXIST {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("RECORDDOESNOTEXIST", String.format(
+            return new CloudStatus("RECORD_DOES_NOT_EXIST", String.format(
                     "A global identifier for provider id %s and record id %s does not exist",
                     args[0], args[1]), Status.NOT_FOUND);
         }
@@ -74,10 +74,10 @@ public enum IdentifierCloudStati {
     /**
      * The supplied unique identifier does not exist - HTTP code: 404
      */
-    GLOBALIDDOESNOTEXIST {
+    GLOBALID_DOES_NOT_EXIST {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("GLOBALIDDOESNOTEXIST", String.format(
+            return new CloudStatus("GLOBALID_DOES_NOT_EXIST", String.format(
                     "The supplied global identifier %s does not exist", args[0]), Status.NOT_FOUND);
         }
     },
@@ -85,10 +85,10 @@ public enum IdentifierCloudStati {
     /**
      * The provider id does not exist - HTTP code: 404
      */
-    PROVIDERDOESNOTEXIST {
+    PROVIDER_DOES_NOT_EXIST {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("PROVIDERDOESNOTEXIST", String.format(
+            return new CloudStatus("PROVIDER_DOES_NOT_EXIST", String.format(
                     "The supplied provider identifier %s does not exist", args[0]),
                     Status.NOT_FOUND);
         }
@@ -97,22 +97,21 @@ public enum IdentifierCloudStati {
     /**
      * The record id does not exist - HTTP code: 404
      */
-    RECORDIDDOESNOTEXIST {
+    RECORDID_DOES_NOT_EXIST {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("RECORDIDDOESNOTEXIST", String.format(
+            return new CloudStatus("RECORDID_DOES_NOT_EXIST", String.format(
                     "The supplied record identifier %s does not exist", args[0]), Status.NOT_FOUND);
         }
-
     },
 
     /**
      * The requested record set for the provider id is empty - HTTP code: 404
      */
-    RECORDSETEMPTY {
+    RECORDSET_EMPTY {
         @Override
         public CloudStatus getCloudStatus(String... args) {
-            return new CloudStatus("RECORDSETEMPTY", String.format(
+            return new CloudStatus("RECORDSET_EMPTY", String.format(
                     "The supplied provider %s does not have any records associated with it",
                     args[0]), Status.NOT_FOUND);
         }
@@ -122,11 +121,11 @@ public enum IdentifierCloudStati {
      * The combination of provider id/ record id has already been mapped to another unique
      * identifier - HTTP code: 409
      */
-    IDHASBEENMAPPED {
+    ID_HAS_BEEN_MAPPED {
         @Override
         public CloudStatus getCloudStatus(String... args) {
             return new CloudStatus(
-                    "IDHASBEENMAPPED",
+                    "ID_HAS_BEEN_MAPPED",
                     String.format(
                             "The supplied %s id for provider %s has already been assigned to the global identifier %s",
                             args[0], args[1], args[2]), Status.CONFLICT);

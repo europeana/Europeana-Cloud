@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.rest.impl;
+package eu.europeana.cloud.service.uis.rest;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -22,7 +22,6 @@ import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.rest.UniqueIdResource;
 import eu.europeana.cloud.service.uis.status.IdentifierCloudStati;
 
 /**
@@ -50,11 +49,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     uniqueIdentifierService.createGlobalId(providerId, recordId));
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (RecordExistsException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.RECORDEXISTS.getCloudStatus(providerId, recordId), null);
+                    IdentifierCloudStati.RECORD_EXISTS.getCloudStatus(providerId, recordId), null);
         }
     }
 
@@ -70,11 +69,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     uniqueIdentifierService.getGlobalId(providerId, recordId));
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (RecordDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.RECORDDOESNOTEXIST.getCloudStatus(providerId, recordId),
+                    IdentifierCloudStati.RECORD_DOES_NOT_EXIST.getCloudStatus(providerId, recordId),
                     null);
         }
     }
@@ -91,11 +90,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), pList);
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (GlobalIdDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+                    IdentifierCloudStati.GLOBALID_DOES_NOT_EXIST.getCloudStatus(globalId), null);
         }
     }
 
@@ -113,14 +112,14 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), pList);
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (ProviderDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+                    IdentifierCloudStati.PROVIDER_DOES_NOT_EXIST.getCloudStatus(providerId), null);
         } catch (RecordDatasetEmptyException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.RECORDSETEMPTY.getCloudStatus(providerId), null);
+                    IdentifierCloudStati.RECORDSET_EMPTY.getCloudStatus(providerId), null);
         }
 
     }
@@ -139,11 +138,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), gList);
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (ProviderDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+                    IdentifierCloudStati.PROVIDER_DOES_NOT_EXIST.getCloudStatus(providerId), null);
         }
     }
 
@@ -159,21 +158,21 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), "Mapping created succesfully");
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (ProviderDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+                    IdentifierCloudStati.PROVIDER_DOES_NOT_EXIST.getCloudStatus(providerId), null);
         } catch (GlobalIdDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+                    IdentifierCloudStati.GLOBALID_DOES_NOT_EXIST.getCloudStatus(globalId), null);
         } catch (IdHasBeenMappedException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.IDHASBEENMAPPED.getCloudStatus(recordId, providerId,
+                    IdentifierCloudStati.ID_HAS_BEEN_MAPPED.getCloudStatus(recordId, providerId,
                             globalId), null);
         } catch (RecordIdDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.RECORDIDDOESNOTEXIST.getCloudStatus(recordId), null);
+                    IdentifierCloudStati.RECORDID_DOES_NOT_EXIST.getCloudStatus(recordId), null);
         }
     }
 
@@ -189,14 +188,14 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), "Mapping marked as deleted");
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (ProviderDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+                    IdentifierCloudStati.PROVIDER_DOES_NOT_EXIST.getCloudStatus(providerId), null);
         } catch (RecordIdDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.RECORDIDDOESNOTEXIST.getCloudStatus(recordId), null);
+                    IdentifierCloudStati.RECORDID_DOES_NOT_EXIST.getCloudStatus(recordId), null);
         }
     }
 
@@ -211,11 +210,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
                     IdentifierCloudStati.OK.getCloudStatus(), "GlobalId marked as deleted");
         } catch (DatabaseConnectionException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                    IdentifierCloudStati.DATABASE_CONNECTION_ERROR.getCloudStatus("", "", "",
                             e.getMessage()), null);
         } catch (GlobalIdDoesNotExistException e) {
             return GenericCloudResponseGenerator.generateCloudResponse(
-                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+                    IdentifierCloudStati.GLOBALID_DOES_NOT_EXIST.getCloudStatus(globalId), null);
         }
     }
 }

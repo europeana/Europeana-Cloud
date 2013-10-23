@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.rest.impl;
+package eu.europeana.cloud.service.uis.rest;
 
 import java.util.List;
 
