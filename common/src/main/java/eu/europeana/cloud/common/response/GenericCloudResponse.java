@@ -5,51 +5,70 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * A generic response wrapper
  * 
- * @author Yorgos.Mamakis@ kb.nl
- * 
  * @param <T>
  *            Class agnostic response wrapper
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Oct 01, 2013
  */
 @XmlRootElement
 public class GenericCloudResponse<T> {
+    /**
+     * The confirmation or error message of the response
+     */
+    private String statusCode;
 
-	/**
-	 * The confirmation or error message of the response
-	 */
-	String statusCode;
+    /**
+     * A human readable description for simple responses
+     */
+    private String description;
 
-	/**
-	 * The JSON/XML response
-	 */
-	T response;
+    /**
+     * The JSON/XML response
+     */
+    private T      response;
 
-	/**
-	 * A human readable description for simple responses
-	 */
-	String description;
-	
-	
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @return A human readable description for simple responses
+     */
+    public String getDescription() {
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    /**
+     * @param description
+     *            A human readable description for simple responses
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public String getStatusCode() {
-		return this.statusCode;
-	}
+    /**
+     * @return The confirmation or error message of the response
+     */
+    public String getStatusCode() {
+        return this.statusCode;
+    }
 
-	public void setStatusCode(String statusCode) {
-		this.statusCode = statusCode;
-	}
+    /**
+     * @param statusCode
+     *            The confirmation or error message of the response
+     */
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
+    }
 
-	public T getResponse() {
-		return response;
-	}
+    /**
+     * @return The JSON/XML response
+     */
+    public T getResponse() {
+        return response;
+    }
 
-	public void setResponse(T response) {
-		this.response = response;
-	}
+    /**
+     * @param response
+     *            The JSON/XML response
+     */
+    public void setResponse(T response) {
+        this.response = response;
+    }
 }

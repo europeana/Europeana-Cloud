@@ -23,7 +23,7 @@ import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.rest.UniqueIdResource;
-import eu.europeana.cloud.service.uis.status.StatusCodes;
+import eu.europeana.cloud.service.uis.status.IdentifierCloudStati;
 
 /**
  * Implementation of the Unique Identifier Service. Accessible path /uniqueid
@@ -35,208 +35,187 @@ import eu.europeana.cloud.service.uis.status.StatusCodes;
 @Component
 @Path("uniqueId")
 public class BasicUniqueIdResource implements UniqueIdResource {
-	@Autowired
-	private UniqueIdentifierService uniqueIdentifierService;
+    @Autowired
+    private UniqueIdentifierService uniqueIdentifierService;
 
-	@GET
-	@Path("createRecordId")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response createGlobalId(@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
-		try {
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(), uniqueIdentifierService
-							.createGlobalId(providerId, recordId));
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (RecordExistsException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.RECORDEXISTS
-							.getStatusCode(providerId, recordId),null);
-		}
-	}
+    @GET
+    @Path("createRecordId")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response createGlobalId(@QueryParam("providerId") String providerId,
+            @QueryParam("recordId") String recordId) {
+        try {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(),
+                    uniqueIdentifierService.createGlobalId(providerId, recordId));
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (RecordExistsException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.RECORDEXISTS.getCloudStatus(providerId, recordId), null);
+        }
+    }
 
-	@GET
-	@Path("getGlobalId")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response getGlobalId(@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
-		try {
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(),
-					uniqueIdentifierService.getGlobalId(providerId, recordId));
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (RecordDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.RECORDDOESNOTEXIST
-							.getStatusCode(providerId, recordId),null);
-		}
-	}
+    @GET
+    @Path("getGlobalId")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response getGlobalId(@QueryParam("providerId") String providerId,
+            @QueryParam("recordId") String recordId) {
+        try {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(),
+                    uniqueIdentifierService.getGlobalId(providerId, recordId));
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (RecordDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.RECORDDOESNOTEXIST.getCloudStatus(providerId, recordId),
+                    null);
+        }
+    }
 
-	@GET
-	@Path("getLocalIds")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response getLocalIds(@QueryParam("globalId") String globalId) {
-		try {
-			LocalIdList pList = new LocalIdList();
-			pList.setList(uniqueIdentifierService
-					.getLocalIdsByGlobalId(globalId));
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(), pList);
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (GlobalIdDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.GLOBALIDDOESNOTEXIST
-							.getStatusCode(globalId),null);
-		}
-	}
+    @GET
+    @Path("getLocalIds")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response getLocalIds(@QueryParam("globalId") String globalId) {
+        try {
+            LocalIdList pList = new LocalIdList();
+            pList.setList(uniqueIdentifierService.getLocalIdsByGlobalId(globalId));
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), pList);
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (GlobalIdDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+        }
+    }
 
-	@GET
-	@Path("getLocalIdsByProvider")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response getLocalIdsByProvider(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start,
-			@QueryParam("to") @DefaultValue("10000") int to) {
-		try {
-			LocalIdList pList = new LocalIdList();
-			pList.setList(uniqueIdentifierService.getLocalIdsByProvider(
-					providerId, start, to));
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(), pList);
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (ProviderDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.PROVIDERDOESNOTEXIST
-							.getStatusCode(providerId),null);
-		} catch (RecordDatasetEmptyException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.RECORDSETEMPTY
-							.getStatusCode(providerId),null);
-		}
+    @GET
+    @Path("getLocalIdsByProvider")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response getLocalIdsByProvider(@QueryParam("providerId") String providerId,
+            @QueryParam("start") @DefaultValue("0") int start,
+            @QueryParam("to") @DefaultValue("10000") int to) {
+        try {
+            LocalIdList pList = new LocalIdList();
+            pList.setList(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), pList);
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (ProviderDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+        } catch (RecordDatasetEmptyException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.RECORDSETEMPTY.getCloudStatus(providerId), null);
+        }
 
-	}
+    }
 
-	@GET
-	@Path("getGlobalIdsByProvider")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response getGlobalIdsByProvider(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start,
-			@QueryParam("to") @DefaultValue("10000") int to) {
-		try {
-			GlobalIdList gList = new GlobalIdList();
-			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(
-					providerId, start, to));
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(), gList);
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (ProviderDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.PROVIDERDOESNOTEXIST
-							.getStatusCode(providerId),null);
-		}
-	}
+    @GET
+    @Path("getGlobalIdsByProvider")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response getGlobalIdsByProvider(@QueryParam("providerId") String providerId,
+            @QueryParam("start") @DefaultValue("0") int start,
+            @QueryParam("to") @DefaultValue("10000") int to) {
+        try {
+            GlobalIdList gList = new GlobalIdList();
+            gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(providerId, start, to));
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), gList);
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (ProviderDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+        }
+    }
 
-	@GET
-	@Path("createMapping")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response createIdMapping(@QueryParam("globalId") String globalId,
-			@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
-		try {
-			uniqueIdentifierService.createIdMapping(globalId, providerId,
-					recordId);
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(),
-					"Mapping created succesfully");
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (ProviderDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.PROVIDERDOESNOTEXIST
-							.getStatusCode(providerId),null);
-		} catch (GlobalIdDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.GLOBALIDDOESNOTEXIST
-							.getStatusCode(globalId),null);
-		} catch (IdHasBeenMappedException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.IDHASBEENMAPPED
-							.getStatusCode(recordId, providerId, globalId),null);
-		} catch (RecordIdDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.RECORDIDDOESNOTEXIST
-							.getStatusCode(recordId),null);
-		}
-	}
+    @GET
+    @Path("createMapping")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response createIdMapping(@QueryParam("globalId") String globalId,
+            @QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
+        try {
+            uniqueIdentifierService.createIdMapping(globalId, providerId, recordId);
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), "Mapping created succesfully");
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (ProviderDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+        } catch (GlobalIdDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+        } catch (IdHasBeenMappedException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.IDHASBEENMAPPED.getCloudStatus(recordId, providerId,
+                            globalId), null);
+        } catch (RecordIdDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.RECORDIDDOESNOTEXIST.getCloudStatus(recordId), null);
+        }
+    }
 
-	@DELETE
-	@Path("removeMappingByLocalId")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response removeIdMapping(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
-		try {
-			uniqueIdentifierService.removeIdMapping(providerId, recordId);
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.OK.getStatusCode(),
-							"Mapping marked as deleted");
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.DATABASECONNECTIONERROR
-							.getStatusCode("", "", "", e.getMessage()),null);
-		} catch (ProviderDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.PROVIDERDOESNOTEXIST
-							.getStatusCode(providerId),null);
-		} catch (RecordIdDoesNotExistException e) {
-			return GenericCloudResponseGenerator
-					.generateCloudResponse(StatusCodes.RECORDIDDOESNOTEXIST
-							.getStatusCode(recordId),null);
-		}
-	}
+    @DELETE
+    @Path("removeMappingByLocalId")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response removeIdMapping(@QueryParam("providerId") String providerId,
+            @QueryParam("recordId") String recordId) {
+        try {
+            uniqueIdentifierService.removeIdMapping(providerId, recordId);
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), "Mapping marked as deleted");
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (ProviderDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.PROVIDERDOESNOTEXIST.getCloudStatus(providerId), null);
+        } catch (RecordIdDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.RECORDIDDOESNOTEXIST.getCloudStatus(recordId), null);
+        }
+    }
 
-	@DELETE
-	@Path("deleteGlobalId")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Override
-	public Response deleteGlobalId(@QueryParam("globalId") String globalId) {
-		try {
-			uniqueIdentifierService.deleteGlobalId(globalId);
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.OK.getStatusCode(),
-					"GlobalId marked as deleted");
-		} catch (DatabaseConnectionException e) {
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.DATABASECONNECTIONERROR.getStatusCode("", "",
-							"", e.getMessage()),null);
-		} catch (GlobalIdDoesNotExistException e) {
-			return GenericCloudResponseGenerator.generateCloudResponse(
-					StatusCodes.GLOBALIDDOESNOTEXIST.getStatusCode(globalId),null);
-		}
-	}
+    @DELETE
+    @Path("deleteGlobalId")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public Response deleteGlobalId(@QueryParam("globalId") String globalId) {
+        try {
+            uniqueIdentifierService.deleteGlobalId(globalId);
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.OK.getCloudStatus(), "GlobalId marked as deleted");
+        } catch (DatabaseConnectionException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.DATABASECONNECTIONERROR.getCloudStatus("", "", "",
+                            e.getMessage()), null);
+        } catch (GlobalIdDoesNotExistException e) {
+            return GenericCloudResponseGenerator.generateCloudResponse(
+                    IdentifierCloudStati.GLOBALIDDOESNOTEXIST.getCloudStatus(globalId), null);
+        }
+    }
 }
