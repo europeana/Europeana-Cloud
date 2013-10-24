@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
+package eu.europeana.cloud.common.response;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class ErrorInfo {
 
-    private String code;
+    private String errorCode;
 
     private String details;
 
@@ -17,19 +17,19 @@ public class ErrorInfo {
     }
 
 
-    public ErrorInfo(Exception e) {
-        this.code = e.getClass().getSimpleName();
-        this.details = e.getMessage();
+    public ErrorInfo(String errorCode, String details) {
+        this.errorCode = errorCode;
+        this.details = details;
     }
 
 
-    public String getCode() {
-        return code;
+    public String getErrorCode() {
+        return errorCode;
     }
 
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 
 

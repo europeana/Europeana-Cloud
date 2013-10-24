@@ -10,10 +10,6 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 
 @Provider
-public class DataSetAlreadyExistsExceptionMapper implements ExceptionMapper<DataSetAlreadyExistsException> {
-
-    @Override
-    public Response toResponse(DataSetAlreadyExistsException exception) {
-        return Response.status(Response.Status.CONFLICT).entity(new ErrorInfo(exception)).build();
-    }
+public class DataSetAlreadyExistsExceptionMapper extends UnitedExceptionMapper
+        implements ExceptionMapper<DataSetAlreadyExistsException> {
 }
