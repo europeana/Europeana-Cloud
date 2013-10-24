@@ -36,7 +36,7 @@ final class EnrichUriUtil {
                     P_GID, representation.getRecordId(),
                     P_REP, representation.getSchema(),
                     P_VER, representation.getVersion()));
-            representation.setSelfUri(uriInfo.resolve(latestVersionUri));
+            representation.setUri(uriInfo.resolve(latestVersionUri));
         }
         if (representation.getFiles() != null) {
             for (File f : representation.getFiles()) {

@@ -86,7 +86,7 @@ public class RecordsResourceTest extends JerseyTest {
 		representation.setFiles(null);
 		representation.setAllVersionsUri(URI.create(getBaseUri() + "records/"
 				+ globalId + "/representations/DC/versions"));
-		representation.setSelfUri(URI.create(getBaseUri() + "records/"
+		representation.setUri(URI.create(getBaseUri() + "records/"
 				+ globalId + "/representations/DC/versions/1"));
 		when(recordService.getRecord(globalId)).thenReturn(record);
 
@@ -168,7 +168,7 @@ public class RecordsResourceTest extends JerseyTest {
 						representation.getSchema(),
 						representation.getVersion(),
 						representation.getAllVersionsUri(),
-						representation.getSelfUri(),
+						representation.getUri(),
 						representation.getDataProvider(),
 						representation.getFiles(),
 						representation.isPersistent()));
@@ -188,7 +188,7 @@ public class RecordsResourceTest extends JerseyTest {
 		representation.setSchema(schema);
 		representation.setVersion(version);
 		representation.setAllVersionsUri(allVersionsUri);
-		representation.setSelfUri(selfUri);
+		representation.setUri(selfUri);
 		representation.setDataProvider(dataProvider);
 		List<File> newFiles = null;
 		if (files != null) {

@@ -76,7 +76,7 @@ public class RepresentationResource {
         ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, representation, providerId);
         EnrichUriUtil.enrich(uriInfo, version);
-        return Response.created(version.getSelfUri()).build();
+        return Response.created(version.getUri()).build();
     }
 
 

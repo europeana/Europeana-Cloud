@@ -19,7 +19,7 @@ public class Representation {
 
 	private URI allVersionsUri;
 
-	private URI selfUri;
+	private URI uri;
 
 	private String dataProvider;
 
@@ -83,12 +83,12 @@ public class Representation {
 		this.allVersionsUri = allVersionsUri;
 	}
 
-	public URI getSelfUri() {
-		return selfUri;
+	public URI getUri() {
+		return uri;
 	}
 
-	public void setSelfUri(URI selfUri) {
-		this.selfUri = selfUri;
+	public void setUri(URI selfUri) {
+		this.uri = selfUri;
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class Representation {
 		result = prime * result
 				+ ((recordId == null) ? 0 : recordId.hashCode());
 		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
-		result = prime * result + ((selfUri == null) ? 0 : selfUri.hashCode());
+		result = prime * result + ((uri == null) ? 0 : uri.hashCode());
 		result = prime * result + ((version == null) ? 0 : version.hashCode());
 		return result;
 	}
@@ -145,10 +145,10 @@ public class Representation {
 				return false;
 		} else if (!schema.equals(other.schema))
 			return false;
-		if (selfUri == null) {
-			if (other.selfUri != null)
+		if (uri == null) {
+			if (other.uri != null)
 				return false;
-		} else if (!selfUri.equals(other.selfUri))
+		} else if (!uri.equals(other.uri))
 			return false;
 		if (version == null) {
 			if (other.version != null)
@@ -162,7 +162,7 @@ public class Representation {
 	public String toString() {
 		return "Representation [recordId=" + recordId + ", schema=" + schema
 				+ ", version=" + version + ", allVersionsUri=" + allVersionsUri
-				+ ", selfUri=" + selfUri + ", dataProvider=" + dataProvider
+				+ ", selfUri=" + uri + ", dataProvider=" + dataProvider
 				+ ", files=" + files + ", persistent=" + persistent + "]";
 	}
 
