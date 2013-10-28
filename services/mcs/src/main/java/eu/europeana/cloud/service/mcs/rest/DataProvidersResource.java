@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 
 /**
  * Resource for DataProviders

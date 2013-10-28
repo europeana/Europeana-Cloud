@@ -1,10 +1,11 @@
-package eu.europeana.cloud.service.mcs.service.inmemory;
+package eu.europeana.cloud.service.mcs.inmemory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,8 @@ import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.service.RecordService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * InMemoryContentServiceImpl
@@ -279,9 +281,46 @@ public class InMemoryRecordService implements RecordService {
         Representation rep = getByVersion(representationVersions, version);
         if (rep == null) {
             throw new VersionNotExistsException();
-        } else {
-            rep.getFiles().add(file);
-            return copy(rep);
         }
+
+        if (file.getFileName() == null || file.getFileName().isEmpty()) {
+            file.setFileName(UUID.randomUUID().toString());
+
+        } else {
+            for (File f : rep.getFiles()) {
+                if (f.getFileName().equals(file.getFileName())) {
+                    throw new FileAlreadyExistsException();
+                }
+            }
+        }
+
+        rep.getFiles().add(file);
+        return copy(rep);
+    }
+
+
+    @Override
+    public Representation removeFileFromRepresentation(String globalId, String representationName, String version, String fileName)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException {
+        Map<String, List<Representation>> representations = records.get(globalId);
+        if (representations == null) {
+            throw new RecordNotExistsException(globalId);
+        }
+        List<Representation> representationVersions = representations.get(representationName);
+        if (representationVersions == null) {
+            throw new RepresentationNotExistsException();
+        }
+        Representation rep = getByVersion(representationVersions, version);
+        if (rep == null) {
+            throw new VersionNotExistsException();
+        }
+
+        for (File f : rep.getFiles()) {
+            if (f.getFileName().equals(fileName)) {
+                rep.getFiles().remove(f);
+                return copy(rep);
+            }
+        }
+        throw new FileNotExistsException();
     }
 }

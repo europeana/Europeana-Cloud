@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.service.inmemory;
+package eu.europeana.cloud.service.mcs.inmemory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +14,11 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 import java.util.Collection;
 import java.util.Iterator;
 
-import eu.europeana.cloud.service.mcs.service.DataSetService;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
  * InMemoryContentServiceImpl

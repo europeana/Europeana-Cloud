@@ -3,9 +3,9 @@ package eu.europeana.cloud.service.mcs.rest;
 import java.util.List;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.service.DataSetService;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}")
 @Component

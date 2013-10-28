@@ -21,8 +21,8 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.service.RecordService;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import eu.europeana.cloud.service.mcs.RecordService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
 /**
  * RepresentationResource
@@ -54,7 +54,7 @@ public class RepresentationVersionResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response getRepresentationVersion()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        if (PathConstants.LATEST_VERSION_KEYWORD.equals(version)) {
+        if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
             Representation representationInfo = recordService.getRepresentation(globalId, representation);
             EnrichUriUtil.enrich(uriInfo, representationInfo);
             if (representationInfo.getUri()!= null) {

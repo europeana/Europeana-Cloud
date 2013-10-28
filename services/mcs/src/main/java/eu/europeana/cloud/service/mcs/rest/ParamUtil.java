@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.F_GID;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_GID;
 
 /**
  * ParamUtil

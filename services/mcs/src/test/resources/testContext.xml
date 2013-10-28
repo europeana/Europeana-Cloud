@@ -8,7 +8,7 @@
 	<bean id="recordService" name="recordService" class="org.mockito.Mockito"
 		factory-method="mock">
 		<constructor-arg
-			value="eu.europeana.cloud.service.mcs.service.RecordService" />
+			value="eu.europeana.cloud.service.mcs.RecordService" />
 	</bean>
 
 </beans>

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.service;
+package eu.europeana.cloud.service.mcs;
 
 import java.util.List;
 

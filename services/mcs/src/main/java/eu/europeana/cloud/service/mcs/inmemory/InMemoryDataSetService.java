@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.service.inmemory;
+package eu.europeana.cloud.service.mcs.inmemory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,9 +17,9 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
-import eu.europeana.cloud.service.mcs.service.DataSetService;
-import eu.europeana.cloud.service.mcs.service.RecordService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
 
 /**
  * InMemoryDataSetService

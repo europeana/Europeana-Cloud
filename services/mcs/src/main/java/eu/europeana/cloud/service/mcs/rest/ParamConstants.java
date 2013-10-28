@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 /**
  * PathConstants
  */
-final class PathConstants {
+public interface ParamConstants {
 
     static final String LATEST_VERSION_KEYWORD = "LATEST";
 
@@ -41,5 +41,9 @@ final class PathConstants {
     static final String F_REP = "representation";
 
     static final String F_VER = "version";
+
+    static final String F_FILE_DATA = "data";
+
+    static final String F_FILE_MIME = "mimeType";
 
 }

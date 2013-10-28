@@ -3,9 +3,9 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;

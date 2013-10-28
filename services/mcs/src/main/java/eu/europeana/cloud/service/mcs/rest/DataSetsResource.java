@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 
-import eu.europeana.cloud.service.mcs.service.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 import java.util.List;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.service.mcs.service.DataSetService;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets")
 @Component

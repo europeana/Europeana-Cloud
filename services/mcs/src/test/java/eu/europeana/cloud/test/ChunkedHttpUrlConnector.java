@@ -20,9 +20,12 @@ public class ChunkedHttpUrlConnector extends HttpUrlConnector {
     public ChunkedHttpUrlConnector(final Configuration config) {
         super(new HttpUrlConnector.ConnectionFactory() {
 
+            @Override
             public HttpURLConnection getConnection(URL url)
                     throws IOException {
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setDoInput(true);
+                con.setDoOutput(true);
                 con.setChunkedStreamingMode(PropertiesHelper.getValue(config.getProperties(),
                         ClientProperties.CHUNKED_ENCODING_SIZE, -1));
                 return con;

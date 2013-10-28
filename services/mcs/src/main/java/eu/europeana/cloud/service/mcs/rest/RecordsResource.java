@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.service.RecordService;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import eu.europeana.cloud.service.mcs.RecordService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
 /**
  * RecordsResource

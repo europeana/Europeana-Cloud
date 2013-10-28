@@ -9,7 +9,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.File;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 

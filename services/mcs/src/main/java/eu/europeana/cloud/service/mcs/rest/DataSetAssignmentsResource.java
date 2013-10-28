@@ -9,8 +9,8 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
-import eu.europeana.cloud.service.mcs.service.DataSetService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
  * DataSetAssignmentsResource

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.service.inmemory;
+package eu.europeana.cloud.service.mcs.inmemory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,8 +16,8 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.service.ContentService;
-import eu.europeana.cloud.service.mcs.service.RecordService;
+import eu.europeana.cloud.service.mcs.ContentService;
+import eu.europeana.cloud.service.mcs.RecordService;
 
 /**
  * InMemoryContentService
@@ -32,30 +32,19 @@ public class InMemoryContentService implements ContentService {
 
 
     @Override
-    public void insertContent(Representation rep, File file, InputStream data)
+    public void putContent(Representation rep, File file, InputStream data)
             throws IOException, FileAlreadyExistsException {
-        if (file.getFileName() == null || file.getFileName().isEmpty()) {
-            file.setFileName(UUID.randomUUID().toString());
-            rep.getFiles().add(file);
-        } else {
-            boolean alreadyExists = false;
-            for (File f : rep.getFiles()) {
-                if (f.getFileName().equals(file.getFileName())) {
-                    alreadyExists = true;
-                    break;
-                }
-            }
-            if (!alreadyExists) {
-                rep.getFiles().add(file);
-            }
+        try {
+            recordService.addFileToRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file);
+        } catch (FileAlreadyExistsException e) {
+            // it is OK
         }
-        recordService.addFileToRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file);
         content.put(generateKey(rep, file), consume(data));
     }
 
 
     @Override
-    public void writeContent(Representation rep, File file, long rangeStart, long rangeEnd,
+    public void getContent(Representation rep, File file, long rangeStart, long rangeEnd,
             OutputStream os)
             throws IOException {
         byte[] data = content.get(generateKey(rep, file));
@@ -70,14 +59,19 @@ public class InMemoryContentService implements ContentService {
 
 
     @Override
-    public void writeContent(Representation rep, File file, OutputStream os)
+    public void getContent(Representation rep, File file, OutputStream os)
             throws IOException {
-        writeContent(rep, file, -1, -1, os);
+        getContent(rep, file, -1, -1, os);
     }
 
 
-    private String generateKey(Representation r, File f) {
-        return r.getRecordId() + "|" + r.getSchema() + "|" + r.getVersion() + "|" + f.getFileName();
+    private String generateKey(Representation r, String fileName) {
+        return r.getRecordId() + "|" + r.getSchema() + "|" + r.getVersion() + "|" + fileName;
+    }
+
+
+    private String generateKey(Representation r, File file) {
+        return generateKey(r, file.getFileName());
     }
 
 
@@ -94,5 +88,17 @@ public class InMemoryContentService implements ContentService {
         buffer.flush();
 
         return buffer.toByteArray();
+    }
+
+
+    @Override
+    public void deleteContent(String globalId, String representationName, String version, String fileName)
+            throws FileNotExistsException {
+        recordService.removeFileFromRepresentation(globalId, representationName, version, fileName);
+        Representation rep = new Representation();
+        rep.setRecordId(globalId);
+        rep.setSchema(representationName);
+        rep.setVersion(version);
+        content.remove(generateKey(rep, fileName));
     }
 }

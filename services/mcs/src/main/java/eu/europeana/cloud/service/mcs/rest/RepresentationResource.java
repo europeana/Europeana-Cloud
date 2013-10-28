@@ -24,8 +24,8 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.service.RecordService;
-import static eu.europeana.cloud.service.mcs.rest.PathConstants.*;
+import eu.europeana.cloud.service.mcs.RecordService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
 /**
  * RepresentationResource

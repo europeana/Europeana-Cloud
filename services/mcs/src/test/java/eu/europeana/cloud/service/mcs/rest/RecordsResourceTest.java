@@ -35,7 +35,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.service.RecordService;
+import eu.europeana.cloud.service.mcs.RecordService;
 
 @RunWith(JUnitParamsRunner.class)
 public class RecordsResourceTest extends JerseyTest {
