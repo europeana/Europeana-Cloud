@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import javax.ws.rs.Consumes;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Resource for DataProviders
@@ -51,8 +54,9 @@ public class DataProviderResource {
 
     @PUT
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response createProvider() {
-        DataProvider provider = providerService.createProvider(providerId);
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response createProvider(DataProviderProperties dataProviderProperties) {
+        DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
         EnrichUriUtil.enrich(uriInfo, provider);
         return Response.created(provider.getUri()).build();
     }

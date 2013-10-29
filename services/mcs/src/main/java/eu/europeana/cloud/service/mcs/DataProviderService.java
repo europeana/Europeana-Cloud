@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs;
 import java.util.List;
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -23,7 +24,7 @@ public interface DataProviderService {
             throws ProviderNotExistsException;
 
 
-    DataProvider createProvider(String providerId); //TODO add parameter for provider configuration
+    DataProvider createProvider(String providerId, DataProviderProperties properties); //TODO add parameter for provider configuration
 
 
     void deleteProvider(String providerId)

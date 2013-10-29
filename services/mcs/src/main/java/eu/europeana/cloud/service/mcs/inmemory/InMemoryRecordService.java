@@ -283,6 +283,10 @@ public class InMemoryRecordService implements RecordService {
             throw new VersionNotExistsException();
         }
 
+        if (rep.isPersistent()) {
+            throw new CannotModifyPersistentRepresentationException();
+        }
+
         if (file.getFileName() == null || file.getFileName().isEmpty()) {
             file.setFileName(UUID.randomUUID().toString());
 
@@ -313,6 +317,10 @@ public class InMemoryRecordService implements RecordService {
         Representation rep = getByVersion(representationVersions, version);
         if (rep == null) {
             throw new VersionNotExistsException();
+        }
+
+        if (rep.isPersistent()) {
+            throw new CannotModifyPersistentRepresentationException();
         }
 
         for (File f : rep.getFiles()) {

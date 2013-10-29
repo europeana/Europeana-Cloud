@@ -109,6 +109,12 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
+    @Ignore(value = "TODO: implement")
+    public void shouldRemainConsistentWithConcurrentPuts() {
+    }
+
+
+    @Test
     public void shouldOverrideFileOnRepeatedPut()
             throws IOException {
         byte[] content = {1, 2, 3, 4};

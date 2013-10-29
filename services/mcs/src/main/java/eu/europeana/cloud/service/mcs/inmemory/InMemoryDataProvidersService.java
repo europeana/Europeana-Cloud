@@ -16,8 +16,10 @@ import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
+import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
@@ -49,9 +51,10 @@ public class InMemoryDataProvidersService implements DataProviderService {
 
 
     @Override
-    public DataProvider createProvider(String providerId) {
+    public DataProvider createProvider(String providerId, DataProviderProperties properties) {
         DataProvider provider = new DataProvider();
         provider.setId(providerId);
+        provider.setProperties(properties);
         providers.put(providerId, provider);
         return provider;
     }
