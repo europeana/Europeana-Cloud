@@ -11,6 +11,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -61,18 +62,17 @@ public class FilesResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(
             @FormDataParam(F_FILE_MIME) String mimeType,
-            @FormDataParam("fileName") String fileName,
             @FormDataParam(F_FILE_DATA) InputStream data)
-            throws FileAlreadyExistsException, IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        if (fileName != null) {
-            return Response.status(Response.Status.NOT_IMPLEMENTED).entity("If you want to provide your own file name, use: files/{FILE_NAME}").build();
-        }
+            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
-        Representation rep = recordService.getRepresentation(globalId, representation, version);
+
         File f = new File();
         f.setMimeType(mimeType);
+
+        Representation rep = recordService.addFileToRepresentation(globalId, representation, version, f);
         contentService.putContent(rep, f, data);
+
         EnrichUriUtil.enrich(uriInfo, rep, f);
-        return Response.created(f.getContentUri()).build();
+        return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }

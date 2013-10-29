@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
@@ -19,6 +20,8 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
  * AllExceptionMapper
  */
 public class UnitedExceptionMapper {
+    
+    final static int UNPROCESSABLE_ENTITY = 422;
 
     public Response toResponse(CannotModifyPersistentRepresentationException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION, exception);
@@ -75,7 +78,16 @@ public class UnitedExceptionMapper {
     }
 
 
+    public Response toResponse(FileContentHashMismatchException exception) {
+        return buildResponse(UNPROCESSABLE_ENTITY, McsErrorCode.FILE_CONTENT_HASH_MISMATCH, exception);
+    }
+
+
     private static Response buildResponse(Response.Status httpStatus, McsErrorCode errorCode, Exception e) {
-        return Response.status(httpStatus).entity(new ErrorInfo(errorCode.name(), e.getMessage())).build();
+        return buildResponse(httpStatus.getStatusCode(), errorCode, e);
+    }
+    
+     private static Response buildResponse(int httpStatusCode, McsErrorCode errorCode, Exception e) {
+        return Response.status(httpStatusCode).entity(new ErrorInfo(errorCode.name(), e.getMessage())).build();
     }
 }

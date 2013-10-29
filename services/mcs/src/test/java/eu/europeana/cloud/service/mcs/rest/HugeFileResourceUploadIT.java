@@ -3,6 +3,9 @@ package eu.europeana.cloud.service.mcs.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -27,6 +30,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
@@ -68,23 +73,22 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:fileResourceTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
     }
 
 
     @Override
     protected void configureClient(ClientConfig config) {
         config.register(MultiPartFeature.class);
-           config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 1024);
+        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 1024);
         config.connector(new ChunkedHttpUrlConnector(config));
     }
 
 
-
     @Test
     public void testUploadingHugeFile()
-            throws IOException {
-     
+            throws IOException, NoSuchAlgorithmException {
+
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(contentService).putContent(any(Representation.class), any(File.class), any(InputStream.class));
         WebTarget webTarget = target("/records/{ID}/representations/{REPRESENTATION}/versions/{VERSION}/files/{FILE}")
@@ -94,7 +98,8 @@ public class HugeFileResourceUploadIT extends JerseyTest {
                 ParamConstants.P_VER, recordRepresentation.getVersion(),
                 ParamConstants.P_FILE, "terefere"));
 
-        InputStream inputStream = new DummyStream(HUGE_FILE_SIZE);
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
 
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, MediaType.APPLICATION_OCTET_STREAM)
@@ -103,9 +108,10 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         Response response = webTarget.request().put(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
+
+        String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
+        assertEquals("Content hash mismatch", contentMd5Hex, response.getEntityTag().getValue());
     }
-
-
 
     /**
      * Mock answer for {@link ContentService#putContent(eu.europeana.cloud.common.model.Representation, 
@@ -120,8 +126,11 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         public Object answer(InvocationOnMock invocation)
                 throws Throwable {
             Object[] args = invocation.getArguments();
-            InputStream inputStream = (InputStream) args[2];
+            File file = (File) args[1];
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            DigestInputStream inputStream = new DigestInputStream((InputStream) args[2], md);
             consume(inputStream);
+            file.setMd5(BaseEncoding.base16().lowerCase().encode(md.digest()));
             return null;
         }
 
@@ -137,7 +146,6 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             }
         }
     }
-
 
     /**
      * Input stream that generates unspecified bytes. The total length of stream is specified in constuctor.

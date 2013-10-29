@@ -68,7 +68,7 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:fileResourceTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
     }
 
 

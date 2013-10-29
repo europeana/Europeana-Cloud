@@ -3,7 +3,8 @@ package eu.europeana.cloud.service.mcs.rest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Random;
+import java.net.URI;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -25,6 +26,7 @@ import org.junit.Ignore;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -84,7 +86,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:fileResourceTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
     }
 
 
@@ -94,7 +96,18 @@ public class FileResourceTest extends JerseyTest {
     }
 
 
-    @Ignore(value = "to implement: code 204 when put updated, not created object")
+    @Test
+    @Ignore(value = "TODO: implement")
+    public void shouldReturnContentWithinRange() {
+    }
+
+
+    @Test
+    @Ignore(value = "TODO: implement")
+    public void shouldReturnErrorWhenRangeUnreachable() {
+    }
+
+
     @Test
     public void shouldOverrideFileOnRepeatedPut()
             throws IOException {
@@ -127,7 +140,7 @@ public class FileResourceTest extends JerseyTest {
     @Test
     public void shouldDeleteFile() {
         final byte[] content = new byte[1000];
-        new Random().nextBytes(content);
+        ThreadLocalRandom.current().nextBytes(content);
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -160,7 +173,8 @@ public class FileResourceTest extends JerseyTest {
     public void shouldUploadDataWithPut()
             throws IOException {
         byte[] content = new byte[1000];
-        new Random().nextBytes(content);
+        ThreadLocalRandom.current().nextBytes(content);
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -168,12 +182,15 @@ public class FileResourceTest extends JerseyTest {
         Response putFileResponse = fileWebTarget.request().put(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), putFileResponse.getStatus());
         assertEquals("Unexpected content location", fileWebTarget.getUri(), putFileResponse.getLocation());
+        assertEquals("File content tag mismatch", contentMd5, putFileResponse.getEntityTag().getValue());
 
         Response getFileResponse = fileWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), getFileResponse.getStatus());
+
         InputStream responseStream = getFileResponse.readEntity(InputStream.class);
         byte[] responseContent = ByteStreams.toByteArray(responseStream);
-
         assertArrayEquals("Read data is different from written", content, responseContent);
+        assertEquals("File content tag mismatch", contentMd5, getFileResponse.getEntityTag().getValue());
 
         Response getRepresentationResponse = representationWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), getRepresentationResponse.getStatus());
@@ -192,32 +209,34 @@ public class FileResourceTest extends JerseyTest {
     @Test
     public void shouldUploadDataWithPost()
             throws IOException {
-//        byte[] content = new byte[1000];
-//        new Random().nextBytes(content);
-//        FormDataMultiPart multipart = new FormDataMultiPart()
-//                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-//                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-//        
-//        Response putFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-//        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), putFileResponse.getStatus());
-//        assertEquals("Unexpected content location", fileWebTarget.getUri(), putFileResponse.getLocation());
-//        
-//        Response getFileResponse = fileWebTarget.request().get();
-//        InputStream responseStream = getFileResponse.readEntity(InputStream.class);
-//        byte[] responseContent = ByteStreams.toByteArray(responseStream);
-//        
-//        assertArrayEquals("Read data is different from written", content, responseContent);
-//        
-//        Response getRepresentationResponse = representationWebTarget.request().get();
-//        assertEquals(Response.Status.OK.getStatusCode(), getRepresentationResponse.getStatus());
-//        Representation rep = getRepresentationResponse.readEntity(Representation.class);
-//        File insertedFile = null;
-//        for (File f : rep.getFiles()) {
-//            if (f.getFileName().equals(file.getFileName())) {
-//                insertedFile = f;
-//                break;
-//            }
-//        }
-//        assertNotNull("Cannot find inserted file in representation's files", insertedFile);
+        byte[] content = new byte[1000];
+        ThreadLocalRandom.current().nextBytes(content);
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+
+        FormDataMultiPart multipart = new FormDataMultiPart()
+                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
+        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+
+        URI putFileLocation = postFileResponse.getLocation();
+        assertNotNull(putFileLocation);
+        fileWebTarget = client().target(putFileLocation);
+
+        Response getFileResponse = fileWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), getFileResponse.getStatus());
+
+        InputStream responseStream = getFileResponse.readEntity(InputStream.class);
+        byte[] responseContent = ByteStreams.toByteArray(responseStream);
+        assertArrayEquals("Read data is different from written", content, responseContent);
+        assertEquals("File content tag mismatch", contentMd5, getFileResponse.getEntityTag().getValue());
+
+        Response getRepresentationResponse = representationWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), getRepresentationResponse.getStatus());
+        Representation rep = getRepresentationResponse.readEntity(Representation.class);
+
+        assertTrue("Representation does not have inserted file", rep.getFiles() != null && rep.getFiles().size() == 1);
     }
 }

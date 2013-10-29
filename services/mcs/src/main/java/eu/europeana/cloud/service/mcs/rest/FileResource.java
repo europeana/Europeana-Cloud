@@ -70,15 +70,26 @@ public class FileResource {
     public Response sendFile(
             @FormDataParam(F_FILE_MIME) String mimeType,
             @FormDataParam(F_FILE_DATA) InputStream data)
-            throws FileAlreadyExistsException, IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
-        Representation rep = recordService.getRepresentation(globalId, representation, version);
+
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
+
+        boolean isUpdateOperation = false;
+        Representation rep = null;
+        try {
+            rep = recordService.addFileToRepresentation(globalId, representation, version, f);
+        } catch (FileAlreadyExistsException e) {
+            isUpdateOperation = true;
+            rep = recordService.getRepresentation(globalId, representation, version);
+        }
         contentService.putContent(rep, f, data);
         EnrichUriUtil.enrich(uriInfo, rep, f);
-        return Response.created(f.getContentUri()).build();
+
+        Response.Status operationStatus = isUpdateOperation ? Response.Status.NO_CONTENT : Response.Status.CREATED;
+        return Response.status(operationStatus).location(f.getContentUri()).tag(f.getMd5()).build();
     }
 
 
@@ -108,7 +119,7 @@ public class FileResource {
                 }
             }
         };
-        return Response.ok(output).build();
+        return Response.ok(output).tag(requestedFile.getMd5()).build();
     }
 
 
