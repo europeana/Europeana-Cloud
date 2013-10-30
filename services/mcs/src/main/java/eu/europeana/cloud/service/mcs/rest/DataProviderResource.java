@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import java.util.List;
 import javax.ws.rs.Consumes;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
@@ -24,6 +25,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
  * Resource for DataProviders
@@ -35,6 +38,9 @@ public class DataProviderResource {
 
     @Autowired
     DataProviderService providerService;
+
+    @Autowired
+    private DataSetService dataSetService;
 
     @PathParam(P_PROVIDER)
     private String providerId;
@@ -65,6 +71,10 @@ public class DataProviderResource {
     @DELETE
     public void deleteProvider()
             throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
+        List<DataSet> providerDataSets = dataSetService.getDataSets(providerId);
+        if (providerDataSets != null && !providerDataSets.isEmpty()) {
+            throw new ProviderHasDataSetsException();
+        }
         providerService.deleteProvider(providerId);
     }
 }

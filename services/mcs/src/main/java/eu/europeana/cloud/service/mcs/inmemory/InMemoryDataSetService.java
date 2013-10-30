@@ -123,6 +123,9 @@ public class InMemoryDataSetService implements DataSetService {
         // only to check if dataprovider exists
         dataProviderService.getProvider(providerId);
 
+        if (!dataSets.containsKey(providerId)) {
+            dataSets.put(providerId, new HashMap<String, DataSet>());
+        }
         Map<String, DataSet> providerSets = dataSets.get(providerId);
         if (providerSets.containsKey(dataSetId)) {
             throw new DataSetAlreadyExistsException();
