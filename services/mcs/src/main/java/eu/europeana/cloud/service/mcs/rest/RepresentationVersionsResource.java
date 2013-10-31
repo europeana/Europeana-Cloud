@@ -23,7 +23,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * RepresentationVersionsResource
  */
-@Path("/records/{ID}/representations/{REPRESENTATION}/versions")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions")
 @Component
 public class RepresentationVersionsResource {
 

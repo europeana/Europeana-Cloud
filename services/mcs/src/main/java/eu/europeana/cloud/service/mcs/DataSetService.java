@@ -24,7 +24,7 @@ public interface DataSetService {
             throws DataSetNotExistsException;
 
 
-    DataSet createDataSet(String providerId, String dataSetId)
+    DataSet createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException;
 
 

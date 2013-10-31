@@ -53,10 +53,12 @@ public class DataSetsResource {
 
 
     @POST
-    public Response createDataSet(@FormParam(F_DATASET) String dataSetId)
+    public Response createDataSet(
+            @FormParam(F_DATASET) String dataSetId,
+            @FormParam(F_DESCRIPTION) String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
         ParamUtil.require(F_DATASET, dataSetId);
-        DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId);
+        DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(uriInfo, dataSet);
         return Response.created(dataSet.getUri()).build();
     }

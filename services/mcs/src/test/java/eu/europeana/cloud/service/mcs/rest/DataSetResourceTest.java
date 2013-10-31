@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.net.URI;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.test.JerseyTest;
@@ -22,9 +23,8 @@ import static org.junit.Assert.*;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
 
 /**
  * DataSetResourceTest
@@ -35,7 +35,7 @@ public class DataSetResourceTest extends JerseyTest {
 
     private DataSetService dataSetService;
 
-    private WebTarget dataSetsWebTarget;
+    private RecordService recordService;
 
     private WebTarget dataSetWebTarget;
 
@@ -55,9 +55,8 @@ public class DataSetResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-        dataSetsWebTarget = target("/data-providers/{" + P_PROVIDER + "}/data-sets");
-        dataSetWebTarget = dataSetsWebTarget.path("{" + P_DATASET + "}");
-        dataSetAssignmentWebTarget = dataSetWebTarget.path("assignments");
+        recordService = applicationContext.getBean(RecordService.class);
+        dataSetWebTarget = target("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}");
         dataProvider = dataProviderService.createProvider("provident", new DataProviderProperties());
     }
 
@@ -75,45 +74,73 @@ public class DataSetResourceTest extends JerseyTest {
 
     @Test
     public void shouldCreateDataset() {
-        dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId());
-        Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, "dataset")));
+        String dataSetId = "dataset";
+        String description = "dataset description";
+
+        // when you add data set for a provider 
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        Response createResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
         assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
 
-        URI expectedObjectUri = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, "dataset").getUri();
-        assertEquals(expectedObjectUri, createResponse.getLocation());
-
-        Response getReponse = client().target(expectedObjectUri).request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), getReponse.getStatus());
+        // ten this set should be visible in service
+        List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId());
+        assertEquals("Expected single dataset in service", 1, dataSetsForPrivider.size());
+        DataSet ds = dataSetsForPrivider.get(0);
+        assertEquals(dataSetId, ds.getId());
+        assertEquals(description, ds.getDescription());
     }
 
 
     @Test
-    public void shouldNotCreateTwoDatasetsWithSameId() {
-        dataSetService.createDataSet(dataProvider.getId(), "dataset");
+    public void shouldDeleteDataset() {
+        // given certain datasets with the same id for different providers
+        String dataSetId = "dataset";
+        String anotherProvider = "anotherProvider";
+        dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
+        dataProviderService.createProvider("anotherProvider", new DataProviderProperties());
+        dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
-        dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId());
-        Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, "dataset")));
-        assertEquals(Response.Status.CONFLICT.getStatusCode(), createResponse.getStatus());
-        ErrorInfo errorInfo = createResponse.readEntity(ErrorInfo.class);
-        assertEquals(McsErrorCode.DATASET_ALREADY_EXISTS.toString(), errorInfo.getErrorCode());
+        // when you delete it for one provider
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        Response deleteResponse = dataSetWebTarget.request().delete();
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
+
+        // than deleted dataset should not be in service and non-deleted should remain
+        assertTrue("Expecting no dataset for provier service", dataSetService.getDataSets(dataProvider.getId()).isEmpty());
+        assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider).size());
     }
 
 
     @Test
-    public void shouldNotCreateDatasetForNotexistingProvider() {
-        dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, "notexisting");
-        Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, "dataset")));
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), createResponse.getStatus());
-        ErrorInfo errorInfo = createResponse.readEntity(ErrorInfo.class);
-        assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), errorInfo.getErrorCode());
+    public void shouldListRepresentationsFromDataset() {
+        // given data set with assigned record representations
+        String dataSetId = "dataset";
+        dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
+        Representation r1_1 = recordService.createRepresentation("1", "dc", dataProvider.getId());
+        Representation r1_2 = recordService.createRepresentation("1", "dc", dataProvider.getId());
+        Representation r2_1 = recordService.createRepresentation("2", "dc", dataProvider.getId());
+        Representation r2_2 = recordService.createRepresentation("2", "dc", dataProvider.getId());
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getRecordId(), r1_1.getSchema(), null);
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getRecordId(), r2_1.getSchema(), r2_1.getVersion());
+
+        // when you list dataset contents
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        Response listDataset = dataSetWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
+        List<Representation> dataSetContents = listDataset.readEntity(new GenericType<List<Representation>>() {
+        });
+
+        // then you should get assigned records in specified versions or latest (depending on assigmnents)
+        assertEquals(2, dataSetContents.size());
+        Representation r1FromDataset, r2FromDataset;
+        if (dataSetContents.get(0).getRecordId().equals(r1_1.getRecordId())) {
+            r1FromDataset = dataSetContents.get(0);
+            r2FromDataset = dataSetContents.get(1);
+        } else {
+            r1FromDataset = dataSetContents.get(1);
+            r2FromDataset = dataSetContents.get(0);
+        }
+        assertEquals(r1_2, r1FromDataset);
+        assertEquals(r2_1, r2FromDataset);
     }
-
-
-//    public void shouldAddAssignment() {
-//        dataSetService.createDataSet(dataProvider.getId(), "dataset");
-//        
-//        dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, "dataset");
-//        
-//        dataSetAssignmentWebTarget
-//    }
 }

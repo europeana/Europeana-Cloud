@@ -22,7 +22,7 @@ import eu.europeana.cloud.service.mcs.DataProviderService;
 public class DataProvidersResource {
 
     @Autowired
-    DataProviderService providerService;
+    private DataProviderService providerService;
 
 
     @GET

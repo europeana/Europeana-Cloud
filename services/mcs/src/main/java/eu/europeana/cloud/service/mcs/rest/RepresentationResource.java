@@ -30,7 +30,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * RepresentationResource
  */
-@Path("/records/{ID}/representations/{REPRESENTATION}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}")
 @Component
 public class RepresentationResource {
 

@@ -56,7 +56,6 @@ public class DataProviderResource {
         return providerService.getProvider(providerId);
     }
 
-    //add parameter for provider properties
 
     @PUT
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})

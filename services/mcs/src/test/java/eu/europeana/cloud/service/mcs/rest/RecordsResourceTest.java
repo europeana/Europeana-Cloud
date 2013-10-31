@@ -10,6 +10,7 @@ import static junitparams.JUnitParamsRunner.*;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.core.Application;
@@ -82,8 +83,9 @@ public class RecordsResourceTest extends JerseyTest {
 						false)));
 		Record expected = newRecord(record.getId(), record.getRepresentations());
 		Representation representation = expected.getRepresentations().get(0);
-		representation.setRecordId(null);
-		representation.setFiles(null);
+//		 TODO: why this two lines???
+        representation.setRecordId(null);  
+		representation.setFiles(Collections.EMPTY_LIST);
 		representation.setAllVersionsUri(URI.create(getBaseUri() + "records/"
 				+ globalId + "/representations/DC/versions"));
 		representation.setUri(URI.create(getBaseUri() + "records/"
