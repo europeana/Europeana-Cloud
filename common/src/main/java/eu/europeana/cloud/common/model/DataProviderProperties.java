@@ -1,5 +1,6 @@
 package eu.europeana.cloud.common.model;
 
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -122,5 +123,57 @@ public class DataProviderProperties {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 23 * hash + Objects.hashCode(this.organisationName);
+        hash = 23 * hash + Objects.hashCode(this.officialAddress);
+        hash = 23 * hash + Objects.hashCode(this.organisationWebsite);
+        hash = 23 * hash + Objects.hashCode(this.organisationWebsiteURL);
+        hash = 23 * hash + Objects.hashCode(this.digitalLibraryWebsite);
+        hash = 23 * hash + Objects.hashCode(this.digitalLibraryURL);
+        hash = 23 * hash + Objects.hashCode(this.contactPerson);
+        hash = 23 * hash + Objects.hashCode(this.remarks);
+        return hash;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DataProviderProperties other = (DataProviderProperties) obj;
+        if (!Objects.equals(this.organisationName, other.organisationName)) {
+            return false;
+        }
+        if (!Objects.equals(this.officialAddress, other.officialAddress)) {
+            return false;
+        }
+        if (!Objects.equals(this.organisationWebsite, other.organisationWebsite)) {
+            return false;
+        }
+        if (!Objects.equals(this.organisationWebsiteURL, other.organisationWebsiteURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.digitalLibraryWebsite, other.digitalLibraryWebsite)) {
+            return false;
+        }
+        if (!Objects.equals(this.digitalLibraryURL, other.digitalLibraryURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.contactPerson, other.contactPerson)) {
+            return false;
+        }
+        if (!Objects.equals(this.remarks, other.remarks)) {
+            return false;
+        }
+        return true;
     }
 }
