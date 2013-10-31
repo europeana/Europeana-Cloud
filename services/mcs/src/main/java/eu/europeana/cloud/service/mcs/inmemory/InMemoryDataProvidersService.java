@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.DataSetService;
 
@@ -29,8 +30,6 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 public class InMemoryDataProvidersService implements DataProviderService {
 
     private Map<String, DataProvider> providers = new HashMap<>();
-    
-    private DataSetService dataSetService;
 
 
     @Override
@@ -67,10 +66,7 @@ public class InMemoryDataProvidersService implements DataProviderService {
         if (!providers.containsKey(providerId)) {
             throw new ProviderNotExistsException();
         }
-        List<DataSet> providerDataSets = dataSetService.getDataSets(providerId);
-        if (providerDataSets != null && !providerDataSets.isEmpty()) {
-            throw new ProviderHasDataSetsException();
-        }
+
         providers.remove(providerId);
     }
 }

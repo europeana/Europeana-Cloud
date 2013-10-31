@@ -19,6 +19,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
  * DataProviderResourceTest
@@ -26,6 +27,8 @@ import eu.europeana.cloud.service.mcs.DataProviderService;
 public class DataProviderResourceTest extends JerseyTest {
 
     private DataProviderService dataProviderService;
+
+    private DataSetService dataSetService;
 
     WebTarget dataProvidersWebTarget;
 
@@ -42,6 +45,7 @@ public class DataProviderResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
+        dataSetService = applicationContext.getBean(DataSetService.class);
         dataProvidersWebTarget = target("data-providers");
         dataProviderWebTarget = dataProvidersWebTarget.path("{" + ParamConstants.P_PROVIDER + "}");
     }
@@ -66,8 +70,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    @Ignore
-    public void shouldReturnPutProviderOnList() {
+    public void shouldReturnInsertedProviderOnList() {
         DataProviderProperties properties = new DataProviderProperties();
         String providerName = "provident";
         Response putResponse = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName).request().put(Entity.json(properties));
@@ -78,10 +81,47 @@ public class DataProviderResourceTest extends JerseyTest {
         List<DataProvider> dataProviders = listDataProvidersResponse.readEntity(new GenericType<List<DataProvider>>() {
         });
         assertEquals("Expected single data provider on list", 1, dataProviders.size());
+        assertEquals("Wrong provider identifier", providerName, dataProviders.get(0).getId());
     }
 
 
     @Test
     public void putAndGetProvider() {
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        String providerName = "provident";
+        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
+        Response putResponse = providentWebTarget.request().put(Entity.json(properties));
+        assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
+
+        Response getResponse = providentWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), getResponse.getStatus());
+        DataProvider receivedDataProvider = getResponse.readEntity(DataProvider.class);
+        assertEquals(providerName, receivedDataProvider.getId());
+        assertEquals(properties, receivedDataProvider.getProperties());
+    }
+
+
+    @Test
+    public void shouldDeleteProvider() {
+        // put
+        String providerName = "provident";
+        dataProviderService.createProvider(providerName, new DataProviderProperties());
+
+        // delete
+        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
+        Response deleteResponse = providentWebTarget.request().delete();
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
+
+        // get - should return 404
+        Response getResponse = providentWebTarget.request().get();
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
+
+        // get list of providers - should be empty
+        Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
+        List<DataProvider> dataProviders = listDataProvidersResponse.readEntity(new GenericType<List<DataProvider>>() {
+        });
+        assertTrue("Expected empty list of data providers", dataProviders.isEmpty());
     }
 }

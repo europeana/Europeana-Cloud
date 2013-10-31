@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -24,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -52,6 +54,14 @@ public class HugeFileResourceUploadIT extends JerseyTest {
     private Representation recordRepresentation;
 
     private static final int HUGE_FILE_SIZE = 1 << 30;
+
+
+    @BeforeClass
+    public static void cleanUpAfterPreviousTest()
+            throws InterruptedException {
+        // not sure why it's needed - but without it, this test fails (something isn't cleaned after previous test)
+        TimeUnit.SECONDS.sleep(5);
+    }
 
 
     @Before

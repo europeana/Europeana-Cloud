@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -40,6 +41,7 @@ public class DataSetAssignmentsResource {
     }
 
 
+    @DELETE
     public void removeAssignment(
             @FormParam(F_GID) String recordId,
             @FormParam(F_REP) String representationName,
