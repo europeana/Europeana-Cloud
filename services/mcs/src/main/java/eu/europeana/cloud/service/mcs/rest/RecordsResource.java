@@ -24,7 +24,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * RecordsResource
  */
-@Path("/records/{ID}")
+@Path("/records/{" + P_GID + "}")
 @Component
 public class RecordsResource {
 

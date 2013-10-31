@@ -35,7 +35,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * FilesResource
  */
-@Path("/records/{ID}/representations/{REPRESENTATION}/versions/{VERSION}/files/")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions/{" + P_VER + "}/files")
 @Component
 public class FilesResource {
 

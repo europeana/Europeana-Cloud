@@ -7,6 +7,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -59,8 +60,9 @@ public class DataSetResource {
 
 
     @PUT
-    public Response createDataSet() {
-        DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId);
+    public Response createDataSet(
+            @FormParam(F_DESCRIPTION) String description) {
+        DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(uriInfo, dataSet);
         return Response.created(dataSet.getUri()).build();
     }

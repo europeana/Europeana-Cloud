@@ -118,7 +118,7 @@ public class InMemoryDataSetService implements DataSetService {
 
 
     @Override
-    public DataSet createDataSet(String providerId, String dataSetId)
+    public DataSet createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
         // only to check if dataprovider exists
         dataProviderService.getProvider(providerId);
@@ -133,6 +133,7 @@ public class InMemoryDataSetService implements DataSetService {
         DataSet dataSet = new DataSet();
         dataSet.setId(dataSetId);
         dataSet.setProviderId(providerId);
+        dataSet.setDescription(description);
         providerSets.put(dataSetId, dataSet);
         dataSetsAssignments.put(dataSet, new ArrayList<Representation>());
         return dataSet;
@@ -145,14 +146,12 @@ public class InMemoryDataSetService implements DataSetService {
         // only to check if dataprovider exists
         dataProviderService.getProvider(providerId);
 
-        // ??
-        List<DataSet> sets = new ArrayList<>();
-        Collection<Map<String, DataSet>> values = dataSets.values();
-        Iterator<Map<String, DataSet>> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            sets.addAll(iterator.next().values());
+        Map<String, DataSet> datasetsForProvider = dataSets.get(providerId);
+        if (datasetsForProvider != null) {
+            return new ArrayList<>(datasetsForProvider.values());
+        } else {
+            return new ArrayList<>(0);
         }
-        return sets;
     }
 
 
