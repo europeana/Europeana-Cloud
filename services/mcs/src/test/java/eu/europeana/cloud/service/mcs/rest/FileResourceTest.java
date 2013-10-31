@@ -112,6 +112,12 @@ public class FileResourceTest extends JerseyTest {
     @Ignore(value = "TODO: implement")
     public void shouldRemainConsistentWithConcurrentPuts() {
     }
+    
+    
+    @Test
+    @Ignore(value = "TODO: implement")
+    public void shouldReturnErrorOnHashMismatch() {
+    }
 
 
     @Test

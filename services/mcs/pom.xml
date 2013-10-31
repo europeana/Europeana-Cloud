@@ -15,6 +15,7 @@
 
 	<properties>
 		<version.org.glassfish.jersey.test-framework>${version.jersey}</version.org.glassfish.jersey.test-framework>
+		
 	</properties>
 
 	<dependencies>
@@ -91,11 +92,6 @@
 
 		<!-- tests -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
 			<scope>test</scope>
@@ -138,17 +134,22 @@
 
 	</dependencies>
 
-	<!-- <build> -->
-	<!-- <plugins> -->
-	<!-- <plugin> -->
-	<!-- <groupId>org.apache.maven.plugins</groupId> -->
-	<!-- <artifactId>maven-war-plugin</artifactId> -->
-	<!-- <version>2.1.1</version> -->
-	<!-- <configuration> -->
-	<!-- <failOnMissingWebXml>false</failOnMissingWebXml> -->
-	<!-- </configuration> -->
-	<!-- </plugin> -->
-	<!-- </plugins> -->
-	<!-- </build> -->
+<!--	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.16</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>-->
 
 </project>
