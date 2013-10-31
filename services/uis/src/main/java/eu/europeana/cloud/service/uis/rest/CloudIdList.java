@@ -5,7 +5,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import eu.europeana.cloud.common.model.GlobalId;
+import eu.europeana.cloud.common.model.CloudId;
 
 /**
  * List wrapper for JSON and XML serialization of Unique Identifiers
@@ -14,17 +14,17 @@ import eu.europeana.cloud.common.model.GlobalId;
  * @since Oct 17, 2013
  */
 @XmlRootElement
-@XmlSeeAlso({ GlobalId.class })
-public class GlobalIdList {
+@XmlSeeAlso({ CloudId.class })
+public class CloudIdList {
     /**
      * list of global Ids
      */
-    private List<GlobalId> list;
+    private List<CloudId> list;
 
     /**
      * @return list of global Ids
      */
-    public List<GlobalId> getList() {
+    public List<CloudId> getList() {
         return list;
     }
 
@@ -32,7 +32,7 @@ public class GlobalIdList {
      * @param list
      *            list of global Ids
      */
-    public void setList(List<GlobalId> list) {
+    public void setList(List<CloudId> list) {
         this.list = list;
     }
 }

@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -22,10 +21,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
-import eu.europeana.cloud.common.model.GlobalId;
+import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.service.uis.encoder.Base50;
 import eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource;
-import eu.europeana.cloud.service.uis.rest.GlobalIdList;
+import eu.europeana.cloud.service.uis.rest.CloudIdList;
 import eu.europeana.cloud.service.uis.rest.LocalIdList;
 
 /**
@@ -66,7 +66,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	@Test
 	public void testCreateGlobalId() {
 
-		GlobalId originalGid = createGlobalId(providerId, recordId);
+		CloudId originalGid = createGlobalId(providerId, recordId);
 		when(uniqueIdentifierService.createGlobalId(providerId, recordId))
 				.thenReturn(originalGid);
 		// Create a single object test
@@ -76,13 +76,13 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
 				.get();
 		assertThat(response.getStatus(), is(200));
-		GlobalId retrieveCreate = response.readEntity(GlobalId.class);
+		CloudId retrieveCreate = response.readEntity(CloudId.class);
 		assertEquals(originalGid.getId(), retrieveCreate.getId());
 		assertEquals(originalGid.getLocalId().getProviderId(), retrieveCreate
 				.getLocalId().getProviderId());
 		assertEquals(originalGid.getLocalId().getRecordId(), retrieveCreate
 				.getLocalId().getRecordId());
-
+		
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 */
 	@Test
 	public void testGetGlobalId() {
-		GlobalId originalGid = createGlobalId(providerId, recordId);
+		CloudId originalGid = createGlobalId(providerId, recordId);
 		when(uniqueIdentifierService.getGlobalId(providerId, recordId))
 				.thenReturn(originalGid);
 		// Retrieve the single object by provider and recordId
@@ -99,7 +99,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.queryParam(recordId, recordId).request().get();
 
 		assertThat(response.getStatus(), is(200));
-		GlobalId retrieveGet = response.readEntity(GlobalId.class);
+		CloudId retrieveGet = response.readEntity(CloudId.class);
 		assertEquals(originalGid.getId(), retrieveGet.getId());
 		assertEquals(originalGid.getLocalId().getProviderId(), retrieveGet
 				.getLocalId().getProviderId());
@@ -160,8 +160,8 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 */
 	@Test
 	public void testGetGlobalIdsByProvider() {
-		GlobalIdList globalIdListWrapper = new GlobalIdList();
-		List<GlobalId> globalIdList = new ArrayList<>();
+		CloudIdList globalIdListWrapper = new CloudIdList();
+		List<CloudId> globalIdList = new ArrayList<>();
 		globalIdList.add(createGlobalId(providerId, recordId));
 		globalIdListWrapper.setList(globalIdList);
 		when(
@@ -170,7 +170,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		Response response = target("/uniqueId/getGlobalIdsByProvider")
 				.queryParam(providerId, providerId).request().get();
 		assertThat(response.getStatus(), is(200));
-		GlobalIdList retList = response.readEntity(GlobalIdList.class);
+		CloudIdList retList = response.readEntity(CloudIdList.class);
 		assertThat(retList.getList().size(), is(globalIdListWrapper.getList()
 				.size()));
 		assertEquals(retList.getList().get(0).getId(), globalIdListWrapper
@@ -186,15 +186,44 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * 
 	 */
 	@Test
-	public void testCreateIdMapping() {
-		GlobalId gid = createGlobalId(providerId, recordId);
-		Response res = target("/uniqueId/createIdMapping")
-				.queryParam(gid.getId(), providerId + "1", recordId + "1")
-				.request().get();
-		assertEquals(res.getStatusInfo().getStatusCode(), Status.OK);
-		assertNotNull(gid);
+	public void testCreateMapping() {
+		CloudId gid = createGlobalId(providerId, recordId);
+		when(uniqueIdentifierService.createGlobalId(providerId, recordId))
+				.thenReturn(gid);
+		// Create a single object test
+		target("/uniqueId/createRecordId")
+				.queryParam(providerId, providerId)
+				.queryParam(recordId, recordId)
+				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
+				.get();
+		Response res = target("/uniqueId/createMapping")
+				.queryParam("globalId", gid.getId())
+				.queryParam(providerId, providerId + "1")
+				.queryParam(recordId, recordId + "1").request().get();
+		assertThat(res.getStatus(),
+				is(200));
 	}
 
+	/**
+	 * 
+	 */
+	@Test
+	public void testRemoveMapping() {
+		CloudId gid = createGlobalId(providerId, recordId);
+		when(uniqueIdentifierService.createGlobalId(providerId, recordId))
+				.thenReturn(gid);
+		target("/uniqueId/createRecordId")
+				.queryParam(providerId, providerId)
+				.queryParam(recordId, recordId)
+				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
+				.get();
+		Response res = target("/uniqueId/removeMappingByLocalId")
+				.queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request().delete();
+		assertThat(res.getStatus(),
+				is(200));
+		
+	}
 	private static LocalId createLocalId(String providerId, String recordId) {
 		LocalId localId = new LocalId();
 		localId.setProviderId(providerId);
@@ -202,10 +231,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		return localId;
 	}
 
-	private static GlobalId createGlobalId(String providerId, String recordId) {
-		GlobalId globalId = new GlobalId();
+	private static CloudId createGlobalId(String providerId, String recordId) {
+		CloudId globalId = new CloudId();
 		globalId.setLocalId(createLocalId(providerId, recordId));
-		globalId.setId("/" + providerId + "/" + recordId);
+		globalId.setId(Base50.encode("/" + providerId + "/" + recordId));
 		return globalId;
 	}
 }

@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.common.model.GlobalId;
+import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -22,6 +22,7 @@ import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.encoder.Base50;
 
 /**
  * In-memory mockup of the unique identifier service
@@ -37,9 +38,10 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	private Map<String, List<String>> providerGlobalIds = new HashMap<>();
 
 	@Override
-	public GlobalId createGlobalId(String providerId, String recordId)
+	public CloudId createGlobalId(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordExistsException {
-		String globalId = String.format("/%s/%s", providerId, recordId);
+		String globalId = Base50.encode(String.format("/%s/%s", providerId,
+				recordId));
 		for (Record record : records) {
 			if (StringUtils.equals(record.getId(), globalId)) {
 				throw new RecordExistsException();
@@ -72,14 +74,14 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 		localId.setProviderId(providerId);
 		localId.setRecordId(recordId);
 
-		GlobalId gId = new GlobalId();
+		CloudId gId = new CloudId();
 		gId.setLocalId(localId);
 		gId.setId(globalId);
 		return gId;
 	}
 
 	@Override
-	public GlobalId getGlobalId(String providerId, String recordId)
+	public CloudId getGlobalId(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordDoesNotExistException {
 		for (Record rec : records) {
 
@@ -92,7 +94,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 					localId.setProviderId(providerId);
 					localId.setRecordId(recordId);
 
-					GlobalId gId = new GlobalId();
+					CloudId gId = new CloudId();
 					gId.setLocalId(localId);
 					gId.setId(rec.getId());
 					return gId;
@@ -145,7 +147,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public List<GlobalId> getGlobalIdsByProvider(String providerId, int start,
+	public List<CloudId> getGlobalIdsByProvider(String providerId, int start,
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		if (providerGlobalIds.containsKey(providerId)) {
@@ -154,7 +156,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 				throw new RecordDatasetEmptyException();
 			}
 
-			List<GlobalId> globalIds = new ArrayList<>();
+			List<CloudId> globalIds = new ArrayList<>();
 			for (String globalId : providerGlobalIds.get(providerId).subList(
 					start,
 					Math.min(providerGlobalIds.get(providerId).size(), start
@@ -162,7 +164,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 				LocalId provider = new LocalId();
 				provider.setProviderId(providerId);
 
-				GlobalId gId = new GlobalId();
+				CloudId gId = new CloudId();
 				gId.setLocalId(provider);
 				gId.setId(globalId);
 				globalIds.add(gId);

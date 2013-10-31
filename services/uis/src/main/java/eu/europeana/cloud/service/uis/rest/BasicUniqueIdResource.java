@@ -155,7 +155,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("to") @DefaultValue("10000") int to) {
 		try {
-			GlobalIdList gList = new GlobalIdList();
+			CloudIdList gList = new CloudIdList();
 			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(
 					providerId, start, to));
 			return Response.ok(gList).build();

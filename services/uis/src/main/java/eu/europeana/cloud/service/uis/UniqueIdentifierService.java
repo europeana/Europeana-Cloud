@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 
-import eu.europeana.cloud.common.model.GlobalId;
+import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
@@ -30,7 +30,7 @@ public interface UniqueIdentifierService {
      * @throws DatabaseConnectionException
      * @throws RecordExistsException
      */
-    GlobalId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+    CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
             RecordExistsException;
 
     /**
@@ -42,7 +42,7 @@ public interface UniqueIdentifierService {
      * @throws DatabaseConnectionException
      * @throws RecordDoesNotExistException
      */
-    GlobalId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+    CloudId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
             RecordDoesNotExistException;
 
     /**
@@ -85,7 +85,7 @@ public interface UniqueIdentifierService {
      * @throws ProviderDoesNotExistException
      * @throws RecordDatasetEmptyException
      */
-    List<GlobalId> getGlobalIdsByProvider(String providerId, int start, int end)
+    List<CloudId> getGlobalIdsByProvider(String providerId, int start, int end)
             throws DatabaseConnectionException, ProviderDoesNotExistException,
             RecordDatasetEmptyException;
 

@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * 
  */
 @XmlRootElement
-public class GlobalId {
+public class CloudId {
     /**
      * The unique identifier
      */
