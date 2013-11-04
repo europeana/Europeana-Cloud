@@ -1,17 +1,15 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static junitparams.JUnitParamsRunner.*;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -34,9 +32,9 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.RecordService;
 
 @RunWith(JUnitParamsRunner.class)
 public class RecordsResourceTest extends JerseyTest {
@@ -62,16 +60,16 @@ public class RecordsResourceTest extends JerseyTest {
 	@Parameters(method = "mimeTypes")
 	public void getRecord(MediaType mediaType) {
 		String globalId = "global1";
-		Record record = newRecord(
+		Record record = new Record(
 				globalId,
-				Lists.newArrayList(newRepresentation(
+				Lists.newArrayList(new Representation(
 						globalId,
 						"DC",
 						"1",
 						null,
 						null,
 						"FBC",
-						Lists.newArrayList(newFile(
+						Lists.newArrayList(new File(
 								"dc.xml",
 								"text/xml",
 								"91162629d258a876ee994e9233b2ad87",
@@ -81,14 +79,16 @@ public class RecordsResourceTest extends JerseyTest {
 										+ globalId
 										+ "/representations/DC/versions/1/dc.xml"))),
 						false)));
-		Record expected = newRecord(record.getId(), record.getRepresentations());
-		Representation representation = expected.getRepresentations().get(0);
-//		 TODO: why this two lines???
-        representation.setRecordId(null);  
-		representation.setFiles(Collections.EMPTY_LIST);
-		representation.setAllVersionsUri(URI.create(getBaseUri() + "records/"
+		Record expected = new Record(record);
+		Representation expectedRepresentation = expected.getRepresentations().get(0);
+		// prepare expected representation: 
+		// - erase record id and files
+		// - set URIs
+        expectedRepresentation.setRecordId(null);  
+		expectedRepresentation.setFiles(Collections.<File>emptyList());
+		expectedRepresentation.setAllVersionsUri(URI.create(getBaseUri() + "records/"
 				+ globalId + "/representations/DC/versions"));
-		representation.setUri(URI.create(getBaseUri() + "records/"
+		expectedRepresentation.setUri(URI.create(getBaseUri() + "records/"
 				+ globalId + "/representations/DC/versions/1"));
 		when(recordService.getRecord(globalId)).thenReturn(record);
 
@@ -155,67 +155,5 @@ public class RecordsResourceTest extends JerseyTest {
 		assertThat(response.getStatus(), is(404));
 		verify(recordService, times(1)).deleteRecord(globalId);
 		verifyNoMoreInteractions(recordService);
-	}
-
-	private static Record newRecord(final String globalId,
-			final List<Representation> representations) {
-		Record record = new Record();
-		record.setId(globalId);
-		List<Representation> newRepresentations = null;
-		if (representations != null) {
-			newRepresentations = new ArrayList<>(representations.size());
-			for (Representation representation : representations) {
-				newRepresentations.add(newRepresentation(
-						representation.getRecordId(),
-						representation.getSchema(),
-						representation.getVersion(),
-						representation.getAllVersionsUri(),
-						representation.getUri(),
-						representation.getDataProvider(),
-						representation.getFiles(),
-						representation.isPersistent()));
-			}
-		}
-		record.setRepresentations(newRepresentations);
-		return record;
-	}
-
-	private static Representation newRepresentation(final String recordId,
-			final String schema, final String version,
-			final URI allVersionsUri, final URI selfUri,
-			final String dataProvider, final List<File> files,
-			final boolean persistent) {
-		Representation representation = new Representation();
-		representation.setRecordId(recordId);
-		representation.setSchema(schema);
-		representation.setVersion(version);
-		representation.setAllVersionsUri(allVersionsUri);
-		representation.setUri(selfUri);
-		representation.setDataProvider(dataProvider);
-		List<File> newFiles = null;
-		if (files != null) {
-			newFiles = new ArrayList<>(files.size());
-			for (File file : files) {
-				newFiles.add(newFile(file.getFileName(), file.getMimeType(),
-						file.getMd5(), file.getDate(), file.getContentLength(),
-						file.getContentUri()));
-			}
-		}
-		representation.setFiles(newFiles);
-		representation.setPersistent(persistent);
-		return representation;
-	}
-
-	private static File newFile(final String fileName, final String mimeType,
-			final String md5, final String date, final long contentLength,
-			final URI contentUri) {
-		File file = new File();
-		file.setFileName(fileName);
-		file.setMimeType(mimeType);
-		file.setMd5(md5);
-		file.setDate(date);
-		file.setContentLength(contentLength);
-		file.setContentUri(contentUri);
-		return file;
 	}
 }

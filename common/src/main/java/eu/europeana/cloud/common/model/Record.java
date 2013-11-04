@@ -20,6 +20,27 @@ public class Record {
 		this.id = null;
 		this.representations = new ArrayList<>();
 	}
+	
+	
+	public Record(String id, List<Representation> representations) {
+		super();
+		this.id = id;
+		this.representations = representations;
+	}
+
+
+	public Record(final Record record){
+		this(record.getId(), cloneRepresentations(record.getRepresentations()));		
+	}
+
+	private static List<Representation> cloneRepresentations(List<Representation> representations) {
+		List<Representation> newRepresentations = new ArrayList<>(representations.size());
+		for (Representation representation : representations) {
+			newRepresentations.add(new Representation(representation));
+		}
+		return newRepresentations;
+	}
+
 
 	public String getId() {
 		return id;
