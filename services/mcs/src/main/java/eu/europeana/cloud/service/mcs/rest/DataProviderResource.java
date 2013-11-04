@@ -37,7 +37,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 public class DataProviderResource {
 
     @Autowired
-    DataProviderService providerService;
+    private DataProviderService providerService;
 
     @Autowired
     private DataSetService dataSetService;
