@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -67,13 +69,14 @@ public class FileResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        representationWebTarget = target("/records/{ID}/representations/{REPRESENTATION}/versions/{VERSION}")
-                .resolveTemplates(ImmutableMap.<String, Object>of(
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, recordRepresentation.getRecordId(),
                 ParamConstants.P_REP, recordRepresentation.getSchema(),
-                ParamConstants.P_VER, recordRepresentation.getVersion()));
-        filesWebTarget = representationWebTarget.path("files");
-        fileWebTarget = filesWebTarget.path(file.getFileName());
+                ParamConstants.P_VER, recordRepresentation.getVersion(),
+                ParamConstants.P_FILE, file.getFileName());
+        representationWebTarget = target(RepresentationVersionResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
+        filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
+        fileWebTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
 
@@ -112,8 +115,8 @@ public class FileResourceTest extends JerseyTest {
     @Ignore(value = "TODO: implement")
     public void shouldRemainConsistentWithConcurrentPuts() {
     }
-    
-    
+
+
     @Test
     @Ignore(value = "TODO: implement")
     public void shouldReturnErrorOnHashMismatch() {

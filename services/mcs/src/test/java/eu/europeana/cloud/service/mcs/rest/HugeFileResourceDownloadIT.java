@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -88,7 +89,7 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         doAnswer(mockGetContent).when(contentService).getContent(any(Representation.class), any(File.class), anyLong(),
                 anyLong(), any(OutputStream.class));
 
-        WebTarget webTarget = target("/records/{ID}/representations/{REPRESENTATION}/versions/{VERSION}/files/{FILE}")
+        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value())
                 .resolveTemplates(ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, recordRepresentation.getRecordId(),
                 ParamConstants.P_REP, recordRepresentation.getSchema(),

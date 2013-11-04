@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -101,7 +102,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(contentService).putContent(any(Representation.class), any(File.class), any(InputStream.class));
-        WebTarget webTarget = target("/records/{ID}/representations/{REPRESENTATION}/versions/{VERSION}/files/{FILE}")
+        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value())
                 .resolveTemplates(ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, recordRepresentation.getRecordId(),
                 ParamConstants.P_REP, recordRepresentation.getSchema(),

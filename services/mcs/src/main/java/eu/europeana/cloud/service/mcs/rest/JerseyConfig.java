@@ -6,6 +6,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileAlreadyExistsExceptionMapper;
@@ -14,6 +15,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderHasDataSetsE
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderHasRecordsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationAlreadyInSetExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
 
@@ -43,6 +45,7 @@ public class JerseyConfig extends ResourceConfig {
         register(RecordNotExistsExceptionMapper.class);
         register(RepresentationNotExistsExceptionMapper.class);
         register(VersionNotExistsExceptionMapper.class);
+        register(RepresentationAlreadyInSetExceptionMapper.class);
 
         // resources
         register(RecordsResource.class);

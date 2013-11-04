@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 
 /**
  * InMemoryDataSetService
@@ -73,7 +74,7 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Override
     public void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
-            throws DataSetNotExistsException, RepresentationNotExistsException {
+            throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
         DataSet dataSet = getDataSet(providerId, dataSetId);
         if (dataSet == null) {
             throw new DataSetNotExistsException();
@@ -88,12 +89,14 @@ public class InMemoryDataSetService implements DataSetService {
             stub.setSchema(representationName);
             stub.setVersion(version);
             listOfStubs.add(stub);
+        } else {
+            throw new RepresentationAlreadyInSetException(recordId, representationName, dataSetId, providerId);
         }
     }
 
 
     @Override
-    public void removeAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
+    public void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
             throws DataSetNotExistsException {
         DataSet dataSet = getDataSet(providerId, dataSetId);
         if (dataSet == null) {

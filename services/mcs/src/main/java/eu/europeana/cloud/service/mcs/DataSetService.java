@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**
@@ -17,10 +18,10 @@ public interface DataSetService {
 
 
     void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
-            throws DataSetNotExistsException, RepresentationNotExistsException;
+            throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException;
 
 
-    void removeAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
+    void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
             throws DataSetNotExistsException;
 
 

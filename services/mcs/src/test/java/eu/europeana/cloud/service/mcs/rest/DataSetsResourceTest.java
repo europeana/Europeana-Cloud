@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import java.net.URI;
 import java.util.List;
+
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -23,7 +25,6 @@ import static org.junit.Assert.*;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 
@@ -52,7 +53,7 @@ public class DataSetsResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-        dataSetsWebTarget = target("/data-providers/{" + P_PROVIDER + "}/data-sets");
+        dataSetsWebTarget = target(DataSetsResource.class.getAnnotation(Path.class).value());
         dataProvider = dataProviderService.createProvider("provident", new DataProviderProperties());
     }
 

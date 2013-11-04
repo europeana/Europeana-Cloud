@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import java.util.List;
 
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -32,9 +33,9 @@ public class DataProviderResourceTest extends JerseyTest {
 
     private DataSetService dataSetService;
 
-    WebTarget dataProvidersWebTarget;
+    private WebTarget dataProvidersWebTarget;
 
-    WebTarget dataProviderWebTarget;
+    private WebTarget dataProviderWebTarget;
 
 
     @Override
@@ -48,8 +49,9 @@ public class DataProviderResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-        dataProvidersWebTarget = target("data-providers");
-        dataProviderWebTarget = dataProvidersWebTarget.path("{" + ParamConstants.P_PROVIDER + "}");
+
+        dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
+        dataProviderWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
     }
 
 
