@@ -25,6 +25,21 @@ public class File {
 	public File() {
 	}
 
+	public File(String fileName, String mimeType, String md5, String date,
+			long contentLength, URI contentUri) {
+		super();
+		this.fileName = fileName;
+		this.mimeType = mimeType;
+		this.md5 = md5;
+		this.date = date;
+		this.contentLength = contentLength;
+		this.contentUri = contentUri;
+	}
+	
+	public File(final File file){
+		this(file.getFileName(), file.getMimeType(), file.getMd5(), file.getDate(), file.getContentLength(), file.getContentUri());
+	}
+
 	public String getFileName() {
 		return fileName;
 	}

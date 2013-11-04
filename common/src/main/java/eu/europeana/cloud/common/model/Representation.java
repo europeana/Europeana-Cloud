@@ -27,6 +27,39 @@ public class Representation {
     private List<File> files = new ArrayList<File>(0);
 
     private boolean persistent;
+    
+	public Representation() {
+		super();
+	}
+
+	public Representation(String recordId, String schema, String version,
+			URI allVersionsUri, URI uri, String dataProvider, List<File> files,
+			boolean persistent) {
+		super();
+		this.recordId = recordId;
+		this.schema = schema;
+		this.version = version;
+		this.allVersionsUri = allVersionsUri;
+		this.uri = uri;
+		this.dataProvider = dataProvider;
+		this.files = files;
+		this.persistent = persistent;
+	}
+	
+	
+	public Representation(final Representation representation) {
+		this(representation.getRecordId(), representation.getSchema(), representation.getVersion(), 
+				representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(), 
+				cloneFiles(representation), representation.isPersistent());
+	}
+
+	private static List<File> cloneFiles(Representation representation) {
+		List<File> files = new ArrayList<>(representation.getFiles().size());
+		for (File file : representation.getFiles()) {
+			files.add(new File(file));
+		}
+		return files;
+	}
 
 
     public String getRecordId() {
