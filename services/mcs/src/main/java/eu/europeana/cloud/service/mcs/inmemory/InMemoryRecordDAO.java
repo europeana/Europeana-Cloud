@@ -1,10 +1,10 @@
-
 package eu.europeana.cloud.service.mcs.inmemory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +22,7 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
  * InMemoryRecordDAO
  */
 public class InMemoryRecordDAO {
+
     private Map<String, Map<String, List<Representation>>> records = new HashMap<>();
 
 
@@ -148,6 +149,7 @@ public class InMemoryRecordDAO {
         }
     }
 
+
     public Representation getRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
@@ -169,6 +171,7 @@ public class InMemoryRecordDAO {
             }
         }
     }
+
 
     public void deleteRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
@@ -199,6 +202,7 @@ public class InMemoryRecordDAO {
         }
         return null;
     }
+
 
     public Representation persistRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
@@ -245,7 +249,7 @@ public class InMemoryRecordDAO {
     }
 
 
-    public Representation addFileToRepresentation(String globalId, String representationName, String version, File file)
+    public Representation addOrReplaceFileInRepresentation(String globalId, String representationName, String version, File file)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
@@ -264,14 +268,12 @@ public class InMemoryRecordDAO {
             throw new CannotModifyPersistentRepresentationException();
         }
 
-        if (file.getFileName() == null || file.getFileName().isEmpty()) {
-            file.setFileName(UUID.randomUUID().toString());
-
-        } else {
-            for (File f : rep.getFiles()) {
-                if (f.getFileName().equals(file.getFileName())) {
-                    throw new FileAlreadyExistsException();
-                }
+        ListIterator<File> filesIterator = rep.getFiles().listIterator();
+        while (filesIterator.hasNext()) {
+            File f = filesIterator.next();
+            if (f.getFileName().equals(file.getFileName())) {
+                filesIterator.remove();
+                break;
             }
         }
 

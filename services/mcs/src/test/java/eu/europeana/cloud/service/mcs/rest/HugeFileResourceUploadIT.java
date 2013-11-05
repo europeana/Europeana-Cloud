@@ -129,9 +129,9 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         public Object answer(InvocationOnMock invocation)
                 throws Throwable {
             Object[] args = invocation.getArguments();
-            File file = (File) args[1];
+            File file = (File) args[3];
             MessageDigest md = MessageDigest.getInstance("MD5");
-            DigestInputStream inputStream = new DigestInputStream((InputStream) args[2], md);
+            DigestInputStream inputStream = new DigestInputStream((InputStream) args[4], md);
             consume(inputStream);
             file.setMd5(BaseEncoding.base16().lowerCase().encode(md.digest()));
             return null;

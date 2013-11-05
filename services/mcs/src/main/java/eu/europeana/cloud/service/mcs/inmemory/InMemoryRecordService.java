@@ -103,14 +103,25 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
             throws FileAlreadyExistsException, IOException {
-        boolean isCreate = true;
-        try {
-            recordDAO.addFileToRepresentation(globalId, representationName, version, file);
-        } catch (FileAlreadyExistsException e) {
-            // it is OK
-            isCreate = false;
+        Representation representation = recordDAO.getRepresentation(globalId, representationName, version);
+        if (representation.isPersistent()) {
+            throw new CannotModifyPersistentRepresentationException();
         }
+
+        boolean isCreate = true; // if it is create file operation or update content
+        if (file.getFileName() == null) {
+            file.setFileName(UUID.randomUUID().toString());
+        } else {
+            for (File f : representation.getFiles()) {
+                if (f.getFileName().equals(file.getFileName())) {
+                    isCreate = false;
+                    break;
+                }
+            }
+        }
+        
         contentDAO.putContent(globalId, representationName, version, file, content);
+        recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, version, file);
         return isCreate;
     }
 

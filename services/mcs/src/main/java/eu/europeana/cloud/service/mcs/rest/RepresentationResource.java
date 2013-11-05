@@ -40,9 +40,6 @@ public class RepresentationResource {
     @Context
     private UriInfo uriInfo;
 
-    @Context
-    private Request request;
-
     @PathParam(P_GID)
     private String globalId;
 

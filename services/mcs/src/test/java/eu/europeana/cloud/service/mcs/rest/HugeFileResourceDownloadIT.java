@@ -131,7 +131,7 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         public Object answer(InvocationOnMock invocation)
                 throws Throwable {
             Object[] args = invocation.getArguments();
-            OutputStream os = (OutputStream) args[4];
+            OutputStream os = (OutputStream) args[6];
             writeBytes(os);
             return null;
         }
