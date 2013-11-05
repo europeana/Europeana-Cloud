@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
@@ -28,31 +29,25 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetExcept
 @Service
 public class InMemoryDataSetService implements DataSetService {
 
-    // providerId, datasetId -> dataSet
-    private Map<String, Map<String, DataSet>> dataSets = new HashMap<>();
-
-    private Map<DataSet, List<Representation>> dataSetsAssignments = new HashMap<>();
+    @Autowired
+    private InMemoryDataSetDAO dataSetDAO;
 
     @Autowired
-    private RecordService recordService;
+    private InMemoryRecordDAO recordDAO;
 
     @Autowired
-    private DataProviderService dataProviderService;
+    private InMemoryDataProviderDAO dataProviderDao;
 
 
     @Override
     public List<Representation> listDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
-        DataSet dataSet = getDataSet(providerId, dataSetId);
-        if (dataSet == null) {
-            throw new DataSetNotExistsException();
-        }
-        List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
+        List<Representation> listOfStubs = dataSetDAO.listDataSet(providerId, dataSetId);
         List<Representation> toReturn = new ArrayList<>(listOfStubs.size());
         for (Representation stub : listOfStubs) {
             Representation realContent;
             try {
-                realContent = recordService.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
+                realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
             } catch (RecordNotExistsException | RepresentationNotExistsException | VersionNotExistsException e) {
                 // we have reference to an object that not exists anymore!
                 continue;
@@ -63,60 +58,19 @@ public class InMemoryDataSetService implements DataSetService {
     }
 
 
-    private DataSet getDataSet(String providerId, String dataSetId) {
-        Map<String, DataSet> idToDataset = dataSets.get(providerId);
-        if (idToDataset != null) {
-            return idToDataset.get(dataSetId);
-        }
-        return null;
-    }
-
-
     @Override
     public void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
-        DataSet dataSet = getDataSet(providerId, dataSetId);
-        if (dataSet == null) {
-            throw new DataSetNotExistsException();
-        }
         // just to check if such representation does exist
-        recordService.getRepresentation(recordId, representationName, version);
-        List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
-        Representation stub = getStub(listOfStubs, recordId, representationName);
-        if (stub == null) {
-            stub = new Representation();
-            stub.setRecordId(recordId);
-            stub.setSchema(representationName);
-            stub.setVersion(version);
-            listOfStubs.add(stub);
-        } else {
-            throw new RepresentationAlreadyInSetException(recordId, representationName, dataSetId, providerId);
-        }
+        recordDAO.getRepresentation(recordId, representationName, version);
+        dataSetDAO.addAssignment(providerId, dataSetId, recordId, representationName, version);
     }
 
 
     @Override
     public void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
             throws DataSetNotExistsException {
-        DataSet dataSet = getDataSet(providerId, dataSetId);
-        if (dataSet == null) {
-            throw new DataSetNotExistsException();
-        }
-        List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
-        Representation stub = getStub(listOfStubs, recordId, representationName);
-        if (stub != null) {
-            listOfStubs.remove(stub);
-        }
-    }
-
-
-    private Representation getStub(List<Representation> listOfStubs, String recordId, String representationName) {
-        for (Representation stub : listOfStubs) {
-            if (stub.getRecordId().equals(recordId) && stub.getSchema().equals(representationName)) {
-                return stub;
-            }
-        }
-        return null;
+        dataSetDAO.removeAssignment(providerId, dataSetId, recordId, representationName);
     }
 
 
@@ -124,22 +78,9 @@ public class InMemoryDataSetService implements DataSetService {
     public DataSet createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
         // only to check if dataprovider exists
-        dataProviderService.getProvider(providerId);
+        dataProviderDao.getProvider(providerId);
 
-        if (!dataSets.containsKey(providerId)) {
-            dataSets.put(providerId, new HashMap<String, DataSet>());
-        }
-        Map<String, DataSet> providerSets = dataSets.get(providerId);
-        if (providerSets.containsKey(dataSetId)) {
-            throw new DataSetAlreadyExistsException();
-        }
-        DataSet dataSet = new DataSet();
-        dataSet.setId(dataSetId);
-        dataSet.setProviderId(providerId);
-        dataSet.setDescription(description);
-        providerSets.put(dataSetId, dataSet);
-        dataSetsAssignments.put(dataSet, new ArrayList<Representation>());
-        return dataSet;
+        return dataSetDAO.createDataSet(providerId, dataSetId, description);
     }
 
 
@@ -147,14 +88,9 @@ public class InMemoryDataSetService implements DataSetService {
     public List<DataSet> getDataSets(String providerId)
             throws ProviderNotExistsException {
         // only to check if dataprovider exists
-        dataProviderService.getProvider(providerId);
+        dataProviderDao.getProvider(providerId);
 
-        Map<String, DataSet> datasetsForProvider = dataSets.get(providerId);
-        if (datasetsForProvider != null) {
-            return new ArrayList<>(datasetsForProvider.values());
-        } else {
-            return new ArrayList<>(0);
-        }
+        return dataSetDAO.getDataSets(providerId);
     }
 
 
@@ -162,13 +98,7 @@ public class InMemoryDataSetService implements DataSetService {
     public void deleteDataSet(String providerId, String dataSetId)
             throws ProviderNotExistsException, DataSetNotExistsException {
         // only to check if dataprovider exists
-        dataProviderService.getProvider(providerId);
-
-        DataSet dataSetToRemove = getDataSet(providerId, dataSetId);
-        if (dataSetToRemove == null) {
-            throw new DataSetNotExistsException();
-        }
-        dataSets.get(providerId).remove(dataSetId);
-        dataSetsAssignments.remove(dataSetToRemove);
+        dataProviderDao.getProvider(providerId);
+        dataSetDAO.deleteDataSet(providerId, dataSetId);
     }
 }

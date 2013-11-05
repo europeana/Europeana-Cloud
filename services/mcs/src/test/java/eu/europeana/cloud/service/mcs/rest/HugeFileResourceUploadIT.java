@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -27,19 +26,15 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.ContentService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 
@@ -49,8 +44,6 @@ import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 public class HugeFileResourceUploadIT extends JerseyTest {
 
     private static RecordService recordService;
-
-    private static ContentService contentService;
 
     private Representation recordRepresentation;
 
@@ -69,7 +62,6 @@ public class HugeFileResourceUploadIT extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-        contentService = applicationContext.getBean(ContentService.class);
 
         recordRepresentation = recordService.createRepresentation("1", "1", "1");
     }
@@ -101,7 +93,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             throws IOException, NoSuchAlgorithmException {
 
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
-        doAnswer(mockPutContent).when(contentService).putContent(any(Representation.class), any(File.class), any(InputStream.class));
+        doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class), any(InputStream.class));
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value())
                 .resolveTemplates(ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, recordRepresentation.getRecordId(),

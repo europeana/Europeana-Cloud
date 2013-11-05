@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import eu.europeana.cloud.common.model.File;
@@ -56,10 +59,18 @@ public interface RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
-    Representation addFileToRepresentation(String globalId, String representationName, String version, File f)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException;
+    boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
+            throws FileAlreadyExistsException, IOException;
 
 
-    Representation removeFileFromRepresentation(String globalId, String representationName, String version, String fileName)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException;
+    void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
+            throws FileNotExistsException, IOException;
+
+
+    String getContent(String globalId, String representationName, String version, String fileName, OutputStream os)
+            throws FileNotExistsException, IOException;
+
+
+    void deleteContent(String globalId, String representationName, String version, String fileName)
+            throws FileNotExistsException;
 }

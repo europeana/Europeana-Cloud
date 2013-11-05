@@ -34,7 +34,6 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.ContentService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 
@@ -44,8 +43,6 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 public class FileResourceTest extends JerseyTest {
 
     private static RecordService recordService;
-
-    private static ContentService contentService;
 
     private Representation recordRepresentation;
 
@@ -62,7 +59,6 @@ public class FileResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-        contentService = applicationContext.getBean(ContentService.class);
 
         recordRepresentation = recordService.createRepresentation("1", "1", "1");
         file = new File();

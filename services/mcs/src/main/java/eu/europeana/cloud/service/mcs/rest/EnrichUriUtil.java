@@ -47,10 +47,15 @@ final class EnrichUriUtil {
 
 
     static void enrich(UriInfo uriInfo, Representation rep, File file) {
+        enrich(uriInfo, rep.getRecordId(), rep.getSchema(), rep.getVersion(), file);
+    }
+
+
+    static void enrich(UriInfo uriInfo, String recordId, String schema, String version, File file) {
         URI fileUri = UriBuilder.fromResource(FileResource.class).buildFromMap(ImmutableMap.of(
-                P_GID, rep.getRecordId(),
-                P_REP, rep.getSchema(),
-                P_VER, rep.getVersion(),
+                P_GID, recordId,
+                P_REP, schema,
+                P_VER, version,
                 P_FILE, file.getFileName()));
         file.setContentUri(uriInfo.resolve(fileUri));
     }

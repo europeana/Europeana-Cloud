@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -25,12 +24,10 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.ContentService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
@@ -43,9 +40,6 @@ public class FileResource {
 
     @Autowired
     private RecordService recordService;
-
-    @Autowired
-    private ContentService contentService;
 
     @Context
     private UriInfo uriInfo;
@@ -77,18 +71,10 @@ public class FileResource {
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        boolean isUpdateOperation = false;
-        Representation rep = null;
-        try {
-            rep = recordService.addFileToRepresentation(globalId, representation, version, f);
-        } catch (FileAlreadyExistsException e) {
-            isUpdateOperation = true;
-            rep = recordService.getRepresentation(globalId, representation, version);
-        }
-        contentService.putContent(rep, f, data);
-        EnrichUriUtil.enrich(uriInfo, rep, f);
+        boolean isCreateOperation = recordService.putContent(globalId, representation, version, f, data);
+        EnrichUriUtil.enrich(uriInfo, globalId, representation, version, f);
 
-        Response.Status operationStatus = isUpdateOperation ? Response.Status.NO_CONTENT : Response.Status.CREATED;
+        Response.Status operationStatus = isCreateOperation ? Response.Status.CREATED : Response.Status.NO_CONTENT;
         return Response.status(operationStatus).location(f.getContentUri()).tag(f.getMd5()).build();
     }
 
@@ -100,11 +86,16 @@ public class FileResource {
         // extract range
         final ContentRange contentRange = ContentRange.parse(range);
 
-        final Representation rep = recordService.getRepresentation(globalId, representation, version);
-        final File requestedFile = getByName(fileName, rep);
+        // TODO: this is some kind of logic here, we do not want this
+        String md5 = null;
+        if (!contentRange.isSpecified()) {
+            final Representation rep = recordService.getRepresentation(globalId, representation, version);
+            final File requestedFile = getByName(fileName, rep);
 
-        if (requestedFile == null) {
-            throw new FileNotExistsException();
+            if (requestedFile == null) {
+                throw new FileNotExistsException();
+            }
+            md5 = requestedFile.getMd5();
         }
 
         StreamingOutput output = new StreamingOutput() {
@@ -112,21 +103,12 @@ public class FileResource {
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                try {
-                    contentService.getContent(rep, requestedFile, contentRange.start, contentRange.end, output);
-                } catch (FileNotExistsException ex) {
-                    throw new WebApplicationException(ex);
-                }
+                recordService.getContent(globalId, representation, version, fileName, contentRange.start, contentRange.end, output);
             }
         };
-        return Response.ok(output).tag(requestedFile.getMd5()).build();
-    }
 
-
-    @DELETE
-    public Response deleteFile() {
-        contentService.deleteContent(globalId, representation, version, fileName);
-        return Response.noContent().build();
+        return Response.ok(output).tag(md5).build();
+//        return Response.ok(output).build();
     }
 
 
@@ -139,6 +121,13 @@ public class FileResource {
         return null;
     }
 
+
+    @DELETE
+    public Response deleteFile() {
+        recordService.deleteContent(globalId, representation, version, fileName);
+        return Response.noContent().build();
+    }
+
     private static class ContentRange {
 
         long start, end;
@@ -147,6 +136,11 @@ public class FileResource {
         ContentRange(long start, long end) {
             this.start = start;
             this.end = end;
+        }
+
+
+        boolean isSpecified() {
+            return start != -1 || end != -1;
         }
 
 

@@ -13,12 +13,18 @@
 		base-package="eu.europeana.cloud.service.mcs.rest"/>
 	
 	<bean id="recordService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordService" />
-	<bean id="contentService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentService" />
 	<bean id="dataSetService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetService" />
 	<bean id="dataProvidersService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProvidersService" />
+	<bean id="recordDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordDAO" />
+	<bean id="contentDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentDAO" />
+	<bean id="dataSetDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetDAO" />
+	<bean id="dataProviderDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProviderDAO" />
 	
 	<mockito:spy beanName="recordService" />
-	<mockito:spy beanName="contentService" />
 	<mockito:spy beanName="dataSetService" />
 	<mockito:spy beanName="dataProvidersService" />
+	<mockito:spy beanName="recordDAO" />
+	<mockito:spy beanName="contentDAO" />
+	<mockito:spy beanName="dataSetDAO" />
+	<mockito:spy beanName="dataProviderDAO" />
 </beans>
