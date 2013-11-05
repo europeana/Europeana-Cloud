@@ -11,8 +11,6 @@ class URITools {
 
 	static final String representationPath = "records/{ID}/representations/{REPRESENTATION}";
 	static final String allVersionsPath = representationPath + "/versions";
-	static final String VersionPath = representationPath
-			+ "/versions/{VERSION}";
 	static final String contentPath = representationPath
 			+ "/versions/{VERSION}/files/{FILE}";
 
@@ -25,7 +23,18 @@ class URITools {
 	static URI getVersionUri(URI baseUri, String globalId,
 			String representationName, String version) {
 		return UriBuilder
-				.fromUri(baseUri.toString() + VersionPath)
+				.fromResource(RepresentationVersionResource.class)
+				.host(baseUri.getHost())
+				.port(baseUri.getPort())
+				.scheme(baseUri.getScheme())
+				.buildFromMap(
+						getTemplateValues(globalId, representationName, version));
+	}
+
+	static URI getVersionPath(String globalId, String representationName,
+			String version) {
+		return UriBuilder
+				.fromResource(RepresentationVersionResource.class)
 				.buildFromMap(
 						getTemplateValues(globalId, representationName, version));
 	}

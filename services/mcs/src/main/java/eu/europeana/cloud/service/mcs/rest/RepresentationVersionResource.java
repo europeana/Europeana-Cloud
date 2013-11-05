@@ -82,7 +82,7 @@ public class RepresentationVersionResource {
     public Response persistRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Representation persistentVersion = recordService.persistRepresentation(globalId, representation, version);
-
+        EnrichUriUtil.enrich(uriInfo, persistentVersion);
         return Response.created(persistentVersion.getUri()).build();
     }
 
