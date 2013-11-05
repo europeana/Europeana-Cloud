@@ -43,6 +43,15 @@ class URITools {
 								version, fileName));
 	}
 
+	static URI getRepresentationsPath(String globalId) {
+		return UriBuilder.fromResource(RepresentationsResource.class)
+				.buildFromMap(getTemplateValues(globalId));
+	}
+
+	private static Map<String, ?> getTemplateValues(String globalId) {
+		return ImmutableMap.<String, Object> of(ParamConstants.P_GID, globalId);
+	}
+
 	private static Map<String, Object> getTemplateValues(String globalId,
 			String representationName) {
 		return ImmutableMap.<String, Object> of(ParamConstants.P_GID, globalId,
