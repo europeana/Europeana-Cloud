@@ -3,27 +3,23 @@ package eu.europeana.cloud.service.mcs.inmemory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * InMemoryContentServiceImpl
@@ -60,7 +56,8 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public Representation createRepresentation(String globalId, String representationName, String providerId) {
+    public Representation createRepresentation(String globalId, String representationName, String providerId) 
+    		throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
 

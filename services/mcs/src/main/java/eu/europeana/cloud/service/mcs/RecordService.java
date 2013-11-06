@@ -51,7 +51,7 @@ public interface RecordService {
 
 
     Representation createRepresentation(String globalId, String representationName, String providerId)
-            throws ProviderNotExistsException;
+            throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException;
 
 
     //==
