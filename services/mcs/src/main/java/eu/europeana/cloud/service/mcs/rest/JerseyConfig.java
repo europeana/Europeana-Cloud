@@ -55,6 +55,7 @@ public class JerseyConfig extends ResourceConfig {
         register(RepresentationsResource.class);
         register(RepresentationVersionResource.class);
         register(RepresentationVersionsResource.class);
+        register(RepresentationSearchResource.class);
         register(FilesResource.class);
         register(FileResource.class);
         register(DataProviderResource.class);

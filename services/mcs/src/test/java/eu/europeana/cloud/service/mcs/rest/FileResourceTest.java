@@ -56,8 +56,6 @@ public class FileResourceTest extends JerseyTest {
 
     private WebTarget representationWebTarget;
 
-    private WebTarget filesWebTarget;
-
 
     @Before
     public void mockUp() {
@@ -75,7 +73,6 @@ public class FileResourceTest extends JerseyTest {
                 ParamConstants.P_VER, rep.getVersion(),
                 ParamConstants.P_FILE, file.getFileName());
         representationWebTarget = target(RepresentationVersionResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
-        filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
         fileWebTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
@@ -272,40 +269,5 @@ public class FileResourceTest extends JerseyTest {
         byte[] responseContent = ByteStreams.toByteArray(responseStream);
         assertArrayEquals("Read data is different from written", content, responseContent);
         assertEquals("File content tag mismatch", contentMd5, getFileResponse.getEntityTag().getValue());
-    }
-
-
-    @Test
-    public void shouldUploadDataWithPost()
-            throws IOException {
-        byte[] content = new byte[1000];
-        ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
-
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
-        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
-
-        URI putFileLocation = postFileResponse.getLocation();
-        assertNotNull(putFileLocation);
-        fileWebTarget = client().target(putFileLocation);
-
-        Response getFileResponse = fileWebTarget.request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), getFileResponse.getStatus());
-
-        InputStream responseStream = getFileResponse.readEntity(InputStream.class);
-        byte[] responseContent = ByteStreams.toByteArray(responseStream);
-        assertArrayEquals("Read data is different from written", content, responseContent);
-        assertEquals("File content tag mismatch", contentMd5, getFileResponse.getEntityTag().getValue());
-
-        Response getRepresentationResponse = representationWebTarget.request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), getRepresentationResponse.getStatus());
-        Representation rep = getRepresentationResponse.readEntity(Representation.class);
-
-        assertTrue("Representation does not have inserted file", rep.getFiles() != null && rep.getFiles().size() == 1);
     }
 }

@@ -77,4 +77,6 @@ public interface RecordService {
 
     void deleteContent(String globalId, String representationName, String version, String fileName)
             throws FileNotExistsException;
+    
+    List<Representation> search(String providerId, String representationName, String dataSetId);
 }

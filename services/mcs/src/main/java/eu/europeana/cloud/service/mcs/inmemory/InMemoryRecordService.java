@@ -3,12 +3,14 @@ package eu.europeana.cloud.service.mcs.inmemory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -32,6 +34,9 @@ public class InMemoryRecordService implements RecordService {
 
     @Autowired
     private InMemoryContentDAO contentDAO;
+
+    @Autowired
+    private InMemoryDataSetDAO dataSetDAO;
 
 
     @Override
@@ -69,8 +74,8 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public Representation createRepresentation(String globalId, String representationName, String providerId) 
-    		throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+    public Representation createRepresentation(String globalId, String representationName, String providerId)
+            throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
 
@@ -187,5 +192,24 @@ public class InMemoryRecordService implements RecordService {
         }
         //get version after all modifications
         return recordDAO.getRepresentation(globalId, representationName, copiedRep.getVersion());
+    }
+
+
+    @Override
+    public List<Representation> search(String providerId, String schema, String dataSetId) {
+        if (providerId != null && dataSetId != null) {
+            // get all for dataset then filter for schema
+            List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId);
+            List<Representation> toReturn = new ArrayList<>(representationStubs.size());
+            for (Representation stub : representationStubs) {
+                if (schema == null || schema.equals(stub.getSchema())) {
+                    Representation realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
+                    toReturn.add(realContent);
+                }
+            }
+            return toReturn;
+        } else {
+            return recordDAO.findRepresentations(providerId, schema);
+        }
     }
 }

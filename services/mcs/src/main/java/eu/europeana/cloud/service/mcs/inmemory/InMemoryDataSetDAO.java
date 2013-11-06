@@ -21,7 +21,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 @Repository
 public class InMemoryDataSetDAO {
 
-    // providerId, datasetId -> dataSet
+    // providerId -> (datasetId -> dataSet)
     private Map<String, Map<String, DataSet>> dataSets = new HashMap<>();
 
     private Map<DataSet, List<Representation>> dataSetsAssignments = new HashMap<>();
@@ -35,6 +35,16 @@ public class InMemoryDataSetDAO {
         }
         List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
         return listOfStubs;
+    }
+
+
+    public List<DataSet> getAllByProviderId(String providerId) {
+        Map<String, DataSet> allForProvider = dataSets.get(providerId);
+        if (allForProvider != null) {
+            return new ArrayList<>(allForProvider.values());
+        } else {
+            return new ArrayList<>(0);
+        }
     }
 
 

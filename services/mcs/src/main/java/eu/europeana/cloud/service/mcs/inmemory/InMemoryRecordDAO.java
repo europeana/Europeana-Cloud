@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 @Repository
 public class InMemoryRecordDAO {
 
+    // globalId -> (representationName -> representationVersions)
     private Map<String, Map<String, List<Representation>>> records = new HashMap<>();
 
 
@@ -52,6 +53,22 @@ public class InMemoryRecordDAO {
         } else {
             throw new RecordNotExistsException(globalId);
         }
+    }
+
+
+    public List<Representation> findRepresentations(String providerId, String schema) {
+        List<Representation> representations = new ArrayList<>();
+        for (Map<String, List<Representation>> representationNameToVersionList : records.values()) {
+            for (List<Representation> repVersionList : representationNameToVersionList.values()) {
+                Representation latestVersion = getLatestRepresentation(repVersionList);
+                boolean providerMatch = providerId == null || latestVersion.getDataProvider().equals(providerId);
+                boolean schemaMatch = schema == null || latestVersion.getSchema().equals(schema);
+                if (providerMatch && schemaMatch) {
+                    representations.add(latestVersion);
+                }
+            }
+        }
+        return representations;
     }
 
 
