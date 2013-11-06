@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
+
 /**
  * McsErrorCode
  */
@@ -17,6 +19,7 @@ public enum McsErrorCode {
     REPRESENTATION_NOT_EXISTS,
     VERSION_NOT_EXISTS,
     FILE_CONTENT_HASH_MISMATCH,
+    REPRESENTATION_ALREADY_IN_SET,
     OTHER
 
 }

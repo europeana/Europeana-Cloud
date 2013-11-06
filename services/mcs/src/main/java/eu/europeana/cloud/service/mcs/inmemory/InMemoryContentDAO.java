@@ -10,57 +10,44 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import org.springframework.stereotype.Repository;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.ContentService;
-import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
- * InMemoryContentService
+ * InMemoryContentDAO
  */
-@Service
-public class InMemoryContentService implements ContentService {
-    
+@Repository
+public class InMemoryContentDAO {
+
     private Map<String, byte[]> content = new HashMap<>();
-    
-    @Autowired
-    private RecordService recordService;
-    
-    
-    @Override
-    public void putContent(Representation rep, File file, InputStream data)
+
+
+    public void putContent(String globalId, String representationName, String version, File file, InputStream data)
             throws IOException, FileAlreadyExistsException {
-        try {
-            recordService.addFileToRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file);
-        } catch (FileAlreadyExistsException e) {
-            // it is OK
-        }
         DigestInputStream md5DigestInputStream = md5InputStream(data);
         byte[] fileContent = ByteStreams.toByteArray(md5DigestInputStream);
-//        BaseEncoding.base16().encode(fileContent)
         String actualContentMd5Hex = BaseEncoding.base16().lowerCase().encode(
                 md5DigestInputStream.getMessageDigest().digest());
         int actualContentLength = fileContent.length;
-        
+
         if (file.getMd5() != null && !file.getMd5().equals(actualContentMd5Hex)) {
             throw new FileContentHashMismatchException(String.format(
                     "Declared content hash was: %s, actual: %s.", file.getMd5(), actualContentMd5Hex));
         }
-        
+
         file.setContentLength(actualContentLength);
         file.setMd5(actualContentMd5Hex);
-        content.put(generateKey(rep, file), fileContent);
+        content.put(generateKey(globalId, representationName, version, file.getFileName()), fileContent);
     }
-    
-    
+
+
     private DigestInputStream md5InputStream(InputStream is) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -69,44 +56,47 @@ public class InMemoryContentService implements ContentService {
             throw new AssertionError("Cannot get instance of MD5 but such algorithm should be provided", ex);
         }
     }
-    
-    
-    @Override
-    public void getContent(Representation rep, File file, long rangeStart, long rangeEnd,
+
+
+    public void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd,
             OutputStream os)
             throws IOException {
-        byte[] data = content.get(generateKey(rep, file));
+        byte[] data = content.get(generateKey(globalId, representationName, version, fileName));
         if (data == null) {
             throw new FileNotExistsException();
         }
-        if (rangeStart != -1 && rangeEnd != -1) {
+        if (rangeStart != -1) {
+            if (rangeStart > data.length - 1 || rangeEnd > data.length - 1) {
+                throw new WrongContentRangeException("Cannot satisfy requested range - data length is " + data.length);
+            }
+            if (rangeEnd == -1) {
+                rangeEnd = data.length - 1;
+            }
             data = Arrays.copyOfRange(data, (int) rangeStart, (int) rangeEnd);
         }
         os.write(data);
     }
-    
-    
-    @Override
-    public void getContent(Representation rep, File file, OutputStream os)
-            throws IOException {
-        getContent(rep, file, -1, -1, os);
+
+
+    public void copyContent(String srcGlobalId, String srcRepName, String srcVersion, String srcFileName,
+            String trgGlobalId, String trgRepName, String trgVersion, String trgFileName) {
+        String srcKey = generateKey(srcGlobalId, srcRepName, srcVersion, srcFileName);
+        String trgKey = generateKey(trgGlobalId, trgRepName, trgVersion, trgFileName);
+        byte[] data = content.get(srcKey);
+        if (data == null) {
+            throw new FileNotExistsException();
+        }
+        content.put(trgKey, data);
     }
-    
-    
+
+
     private String generateKey(String recordId, String repName, String version, String fileName) {
         return recordId + "|" + repName + "|" + version + "|" + fileName;
     }
-    
-    
-    private String generateKey(Representation r, File file) {
-        return generateKey(r.getRecordId(), r.getSchema(), r.getVersion(), file.getFileName());
-    }
-    
-    
-    @Override
+
+
     public void deleteContent(String globalId, String representationName, String version, String fileName)
             throws FileNotExistsException {
-        recordService.removeFileFromRepresentation(globalId, representationName, version, fileName);
         content.remove(generateKey(globalId, representationName, version, fileName));
     }
 }

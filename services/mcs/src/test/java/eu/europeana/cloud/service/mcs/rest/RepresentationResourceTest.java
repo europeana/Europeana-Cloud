@@ -11,7 +11,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -28,20 +30,40 @@ import org.springframework.context.ApplicationContext;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationResourceTest extends JerseyTest {
 
 	private RecordService recordService;
 
+	static final private String globalId = "1";
+	static final private String representationName = "DC";
+	static final private String version = "1.0";
+	static final private String providerID = "DLF";
+	static final private Representation representation = new Representation(
+			globalId, representationName, version, null, null, "DLF",
+			Arrays.asList(new File("1.xml", "text/xml",
+					"91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
+					null)), true);
+	static final private Form form = new Form(ParamConstants.F_PROVIDER,
+			providerID);
+
 	@Override
 	public Application configure() {
 		return new ResourceConfig()
 				.registerClasses(RepresentationResource.class)
 				.registerClasses(RecordNotExistsExceptionMapper.class)
+				.registerClasses(RepresentationNotExistsExceptionMapper.class)
+				.registerClasses(ProviderNotExistsExceptionMapper.class)
 				.property("contextConfigLocation", "classpath:testContext.xml");
 	}
 
@@ -62,15 +84,6 @@ public class RepresentationResourceTest extends JerseyTest {
 	@Test
 	@Parameters(method = "mimeTypes")
 	public void getRepresentation(MediaType mediaType) {
-		String globalId = "1";
-		String representationName = "DC";
-		String version = "1.0";
-		String fileName = "1.xml";
-		Representation representation = new Representation(globalId,
-				representationName, version, null, null, "DLF",
-				Arrays.asList(new File(fileName, "text/xml",
-						"91162629d258a876ee994e9233b2ad87", "2013-01-01",
-						12345, null)), true);
 		Representation expected = new Representation(representation);
 		expected.setUri(URITools.getVersionUri(getBaseUri(), globalId,
 				representationName, version));
@@ -78,8 +91,8 @@ public class RepresentationResourceTest extends JerseyTest {
 				globalId, representationName));
 		expected.setFiles(new ArrayList<File>());
 		when(recordService.getRepresentation(globalId, representationName))
-				.thenReturn(representation);
-		
+				.thenReturn(new Representation(representation));
+
 		Response response = target(
 				URITools.getRepresentationPath(globalId, representationName)
 						.toString()).request(mediaType).get();
@@ -91,5 +104,133 @@ public class RepresentationResourceTest extends JerseyTest {
 		verify(recordService, times(1)).getRepresentation(globalId,
 				representationName);
 		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	public void getRepresentationReturns406ForUnsupportedFormat() {
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString())
+				.request(MediaType.APPLICATION_SVG_XML_TYPE).get();
+
+		assertThat(response.getStatus(), is(406));
+	}
+
+	@SuppressWarnings("unused")
+	private Object[] errors() {
+		return $(
+				$(new RepresentationNotExistsException(),
+						McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()),
+				$(new RecordNotExistsException(),
+						McsErrorCode.RECORD_NOT_EXISTS.toString()));
+	}
+
+	@Test
+	@Parameters(method = "errors")
+	public void getRepresentationReturns404IfRepresentationOrRecordDoesNotExists(
+			Throwable exception, String errorCode) {
+		when(recordService.getRepresentation(globalId, representationName))
+				.thenThrow(exception);
+
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString())
+				.request(MediaType.APPLICATION_XML).get();
+
+		assertThat(response.getStatus(), is(404));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(errorCode));
+		verify(recordService, times(1)).getRepresentation(globalId,
+				representationName);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	public void deleteRecord() {
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString()).request().delete();
+
+		assertThat(response.getStatus(), is(204));
+		verify(recordService, times(1)).deleteRepresentation(globalId,
+				representationName);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	@Parameters(method = "errors")
+	public void deleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(
+			Throwable exception, String errorCode) throws Exception {
+		Mockito.doThrow(exception).when(recordService)
+				.deleteRepresentation(globalId, representationName);
+
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString()).request().delete();
+
+		assertThat(response.getStatus(), is(404));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(errorCode));
+		verify(recordService, times(1)).deleteRepresentation(globalId,
+				representationName);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	public void createRepresentation() {
+		when(
+				recordService.createRepresentation(globalId,
+						representationName, providerID)).thenReturn(
+				new Representation(representation));
+
+		Response response = target(
+				URITools.getRepresentationPath(globalId, representationName)
+						.toString()).request()
+				.post(Entity.entity(form,
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(201));
+		assertThat(response.getLocation(), is(URITools.getVersionUri(
+				getBaseUri(), globalId, representationName, version)));
+		verify(recordService, times(1)).createRepresentation(globalId,
+				representationName, providerID);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	@Parameters(method = "errors")
+	public void createRepresentationReturns404IfRecordOrRepresentationDoesNotExists(
+			Throwable exception, String errorCode) throws Exception {
+		Mockito.doThrow(exception).when(recordService)
+				.createRepresentation(globalId, representationName, providerID);
+
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString())
+				.request()
+				.post(Entity.entity(form,
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(404));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(errorCode));
+		verify(recordService, times(1)).createRepresentation(globalId,
+				representationName, providerID);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	public void createRepresentationReturns404IfProviderIdIsNotGiven()
+			throws Exception {
+		Response response = target()
+				.path(URITools.getRepresentationPath(globalId,
+						representationName).toString())
+				.request()
+				.post(Entity.entity(new Form(),
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(400));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(McsErrorCode.OTHER.toString()));
 	}
 }

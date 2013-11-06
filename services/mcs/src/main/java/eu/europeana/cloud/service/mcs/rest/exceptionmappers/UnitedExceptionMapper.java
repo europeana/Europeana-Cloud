@@ -13,15 +13,18 @@ import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * AllExceptionMapper
  */
 public class UnitedExceptionMapper {
-    
+
     final static int UNPROCESSABLE_ENTITY = 422;
+
 
     public Response toResponse(CannotModifyPersistentRepresentationException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION, exception);
@@ -83,11 +86,22 @@ public class UnitedExceptionMapper {
     }
 
 
+    public Response toResponse(RepresentationAlreadyInSetException exception) {
+        return buildResponse(Response.Status.CONFLICT, McsErrorCode.REPRESENTATION_ALREADY_IN_SET, exception);
+    }
+
+
+    public Response toResponse(WrongContentRangeException exception) {
+        return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.OTHER, exception);
+    }
+
+
     private static Response buildResponse(Response.Status httpStatus, McsErrorCode errorCode, Exception e) {
         return buildResponse(httpStatus.getStatusCode(), errorCode, e);
     }
-    
-     private static Response buildResponse(int httpStatusCode, McsErrorCode errorCode, Exception e) {
+
+
+    private static Response buildResponse(int httpStatusCode, McsErrorCode errorCode, Exception e) {
         return Response.status(httpStatusCode).entity(new ErrorInfo(errorCode.name(), e.getMessage())).build();
     }
 }

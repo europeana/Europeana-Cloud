@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import java.util.List;
+
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -56,7 +58,7 @@ public class DataSetResourceTest extends JerseyTest {
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
-        dataSetWebTarget = target("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}");
+        dataSetWebTarget = target(DataSetResource.class.getAnnotation(Path.class).value());
         dataProvider = dataProviderService.createProvider("provident", new DataProviderProperties());
     }
 

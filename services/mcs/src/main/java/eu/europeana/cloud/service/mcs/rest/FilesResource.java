@@ -2,33 +2,24 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.ContentService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
@@ -41,9 +32,6 @@ public class FilesResource {
 
     @Autowired
     private RecordService recordService;
-
-    @Autowired
-    private ContentService contentService;
 
     @Context
     private UriInfo uriInfo;
@@ -69,10 +57,9 @@ public class FilesResource {
         File f = new File();
         f.setMimeType(mimeType);
 
-        Representation rep = recordService.addFileToRepresentation(globalId, representation, version, f);
-        contentService.putContent(rep, f, data);
+        recordService.putContent(globalId, representation, version, f, data);
 
-        EnrichUriUtil.enrich(uriInfo, rep, f);
+        EnrichUriUtil.enrich(uriInfo, globalId, representation, version, f);
         return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }

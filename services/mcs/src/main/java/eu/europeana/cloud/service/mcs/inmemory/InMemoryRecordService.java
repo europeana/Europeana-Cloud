@@ -1,24 +1,27 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * InMemoryContentServiceImpl
@@ -26,309 +29,187 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 @Service
 public class InMemoryRecordService implements RecordService {
 
-    private Map<String, Map<String, List<Representation>>> records = new HashMap<>();
+    @Autowired
+    private InMemoryRecordDAO recordDAO;
+
+    @Autowired
+    private InMemoryContentDAO contentDAO;
+
+    @Autowired
+    private InMemoryDataSetDAO dataSetDAO;
 
 
     @Override
     public Record getRecord(String globalId)
             throws RecordNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        Record record = new Record();
-        record.setId(globalId);
-        List<Representation> representationInfos = new ArrayList<>();
-        record.setRepresentations(representationInfos);
-        for (Map.Entry<String, List<Representation>> representation : representations.entrySet()) {
-            representationInfos.add(getLatestRepresentation(representation.getValue()));
-        }
-        return record;
+        return recordDAO.getRecord(globalId);
     }
 
 
     @Override
     public void deleteRecord(String globalId)
             throws RecordNotExistsException {
-        if (records.containsKey(globalId)) {
-            records.remove(globalId);
-        } else {
-            throw new RecordNotExistsException(globalId);
-        }
-    }
-
-
-    private Representation getLatestPersistentRepresentation(List<Representation> versions) {
-
-        for (int i = versions.size() - 1; i >= 0; i--) {
-            Representation rep = versions.get(i);
-            if (rep.isPersistent()) {
-                return copy(rep);
+        Record r = recordDAO.getRecord(globalId);
+        for (Representation rep : r.getRepresentations()) {
+            for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
+                for (File f : repVersion.getFiles()) {
+                    contentDAO.deleteContent(globalId, repVersion.getSchema(), repVersion.getVersion(), f.getFileName());
+                }
             }
         }
-        return null;
-    }
-
-
-    private Representation getLatestRepresentation(List<Representation> versions) {
-        Representation latestPersistent = getLatestPersistentRepresentation(versions);
-        if (latestPersistent == null) {
-            return copy(versions.get(versions.size() - 1));
-        } else {
-            return latestPersistent;
-        }
-    }
-
-
-    private Representation copy(Representation rep) {
-        Representation copy = new Representation();
-        copy.setDataProvider(rep.getDataProvider());
-        copy.setFiles(new ArrayList<>(rep.getFiles()));
-        copy.setPersistent(rep.isPersistent());
-        copy.setRecordId(rep.getRecordId());
-        copy.setSchema(rep.getSchema());
-        copy.setVersion(rep.getVersion());
-        return copy;
+        recordDAO.deleteRecord(globalId);
     }
 
 
     @Override
     public void deleteRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        Map<String, List< Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+        for (Representation rep : recordDAO.listRepresentationVersions(globalId, representationName)) {
+            for (File f : rep.getFiles()) {
+                contentDAO.deleteContent(globalId, representationName, rep.getVersion(), f.getFileName());
+            }
         }
-        if (representations.containsKey(representationName)) {
-            representations.remove(representationName);
-        } else {
-            throw new RepresentationNotExistsException();
-        }
+        recordDAO.deleteRepresentation(globalId, representationName);
     }
 
 
     @Override
-    public Representation createRepresentation(String globalId, String representationName, String providerId) {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            representations = new HashMap<>();
-            records.put(globalId, representations);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            representationVersions = new ArrayList<>();
-            representations.put(representationName, representationVersions);
-        }
-        Representation rep = new Representation();
-        rep.setRecordId(globalId);
-        rep.setPersistent(false);
-        rep.setDataProvider(providerId);
-        rep.setSchema(representationName);
-        rep.setFiles(new ArrayList<File>());
-        String version = generateNewVersionNumber(representationVersions, false);
-        rep.setVersion(version);
-        representationVersions.add(rep);
-        return rep;
-    }
-
-// persistentVersion: \d+
-    // tempVersion: \d+[.]PRE-\d+
-
-    private String generateNewVersionNumber(List<Representation> versions, boolean persistent) {
-        if (versions.isEmpty()) {
-            if (persistent) {
-                return "1";
-            } else {
-                return "1.PRE-1";
-            }
-        }
-        Representation latestRepresentation = versions.get(versions.size() - 1);
-        boolean latestIsPersistent = latestRepresentation.isPersistent();
-        if (latestIsPersistent && persistent) {
-            return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1);
-        } else if (latestIsPersistent && !persistent) {
-            return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1) + ".PRE-1";
-        } else if (persistent) {
-            return latestRepresentation.getVersion().substring(0, latestRepresentation.getVersion().indexOf("."));
-        } else {
-            String[] parts = latestRepresentation.getVersion().split("-");
-            return parts[0] + "-" + (Integer.parseInt(parts[1]) + 1);
-        }
+    public Representation createRepresentation(String globalId, String representationName, String providerId)
+            throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+        return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
 
 
     @Override
     public Representation getRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        return getRepresentation(globalId, representationName, null);
+        return recordDAO.getRepresentation(globalId, representationName, null);
     }
 
 
     @Override
     public Representation getRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        if (version == null) {
-            return getLatestRepresentation(representationVersions);
-        } else {
-            Representation rep = getByVersion(representationVersions, version);
-            if (rep == null) {
-                throw new VersionNotExistsException();
-            } else {
-                return copy(rep);
-            }
-        }
+        return recordDAO.getRepresentation(globalId, representationName, version);
     }
 
 
     @Override
     public void deleteRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+        Representation rep = recordDAO.getRepresentation(globalId, representationName, version);
+        for (File f : rep.getFiles()) {
+            contentDAO.deleteContent(globalId, representationName, version, f.getFileName());
         }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        Representation repInVersion = getByVersion(representationVersions, version);
-        if (repInVersion == null) {
-            throw new VersionNotExistsException();
-        } else if (repInVersion.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException();
-        } else {
-            representationVersions.remove(repInVersion);
-        }
-    }
-
-
-    private Representation getByVersion(List<Representation> versions, String version) {
-        for (Representation rep : versions) {
-            if (rep.getVersion().equals(version)) {
-                return rep;
-            }
-        }
-        return null;
+        recordDAO.deleteRepresentation(globalId, representationName, version);
     }
 
 
     @Override
     public Representation persistRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        Representation repVersion = getByVersion(representationVersions, version);
-        if (repVersion == null) {
-            throw new VersionNotExistsException();
-        } else if (repVersion.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException("Representation " + globalId + " - " + representationName + " - " + version + " is already persistent");
-        }
-        String newVersion = generateNewVersionNumber(representationVersions, true);
-        repVersion.setVersion(newVersion);
-        repVersion.setPersistent(true);
-
-        representationVersions.remove(repVersion);
-        representationVersions.add(repVersion);
-        return repVersion;
+        return recordDAO.persistRepresentation(globalId, representationName, version);
     }
 
 
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        List<Representation> result = new ArrayList<>(representationVersions.size());
-        for (Representation representation : representationVersions) {
-            result.add(copy(representation));
-        }
-        Collections.reverse(result);
-        return result;
+        return recordDAO.listRepresentationVersions(globalId, representationName);
     }
 
 
     @Override
-    public Representation addFileToRepresentation(String globalId, String representationName, String version, File file)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        Representation rep = getByVersion(representationVersions, version);
-        if (rep == null) {
-            throw new VersionNotExistsException();
-        }
-
-        if (rep.isPersistent()) {
+    public boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
+            throws FileAlreadyExistsException, IOException {
+        Representation representation = recordDAO.getRepresentation(globalId, representationName, version);
+        if (representation.isPersistent()) {
             throw new CannotModifyPersistentRepresentationException();
         }
 
-        if (file.getFileName() == null || file.getFileName().isEmpty()) {
+        boolean isCreate = true; // if it is create file operation or update content
+        if (file.getFileName() == null) {
             file.setFileName(UUID.randomUUID().toString());
-
         } else {
-            for (File f : rep.getFiles()) {
+            for (File f : representation.getFiles()) {
                 if (f.getFileName().equals(file.getFileName())) {
-                    throw new FileAlreadyExistsException();
+                    isCreate = false;
+                    break;
                 }
             }
         }
 
-        rep.getFiles().add(file);
-        return copy(rep);
+        contentDAO.putContent(globalId, representationName, version, file, content);
+        recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, version, file);
+        return isCreate;
     }
 
 
     @Override
-    public Representation removeFileFromRepresentation(String globalId, String representationName, String version, String fileName)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException {
-        Map<String, List<Representation>> representations = records.get(globalId);
-        if (representations == null) {
-            throw new RecordNotExistsException(globalId);
-        }
-        List<Representation> representationVersions = representations.get(representationName);
-        if (representationVersions == null) {
-            throw new RepresentationNotExistsException();
-        }
-        Representation rep = getByVersion(representationVersions, version);
-        if (rep == null) {
-            throw new VersionNotExistsException();
-        }
+    public void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
+            throws FileNotExistsException, IOException {
+        contentDAO.getContent(globalId, representationName, version, fileName, rangeStart, rangeEnd, os);
+    }
 
-        if (rep.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException();
-        }
 
+    @Override
+    public String getContent(String globalId, String representationName, String version, String fileName, OutputStream os)
+            throws FileNotExistsException, IOException {
+        Representation rep = getRepresentation(globalId, representationName, version);
+        String md5 = null;
         for (File f : rep.getFiles()) {
-            if (f.getFileName().equals(fileName)) {
-                rep.getFiles().remove(f);
-                return copy(rep);
+            if (fileName.equals(f.getFileName())) {
+                md5 = f.getMd5();
             }
         }
-        throw new FileNotExistsException();
+        if (md5 == null) {
+            throw new FileNotExistsException();
+        }
+        contentDAO.getContent(globalId, representationName, version, fileName, -1, -1, os);
+        return md5;
+    }
+
+
+    @Override
+    public void deleteContent(String globalId, String representationName, String version, String fileName)
+            throws FileNotExistsException {
+        recordDAO.removeFileFromRepresentation(globalId, representationName, version, fileName);
+        contentDAO.deleteContent(globalId, representationName, version, fileName);
+    }
+
+
+    @Override
+    public Representation copyRepresentation(String globalId, String representationName, String version)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+        Representation srcRep = recordDAO.getRepresentation(globalId, representationName, version);
+        Representation copiedRep = recordDAO.createRepresentation(globalId, representationName, srcRep.getDataProvider());
+        for (File srcFile : srcRep.getFiles()) {
+            File copiedFile = new File(srcFile);
+            copyRepresentation(globalId, representationName, version);
+            contentDAO.copyContent(globalId, representationName, version, srcFile.getFileName(),
+                    globalId, representationName, copiedRep.getVersion(), copiedFile.getFileName());
+            recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, copiedRep.getVersion(), copiedFile);
+        }
+        //get version after all modifications
+        return recordDAO.getRepresentation(globalId, representationName, copiedRep.getVersion());
+    }
+
+
+    @Override
+    public List<Representation> search(String providerId, String schema, String dataSetId) {
+        if (providerId != null && dataSetId != null) {
+            // get all for dataset then filter for schema
+            List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId);
+            List<Representation> toReturn = new ArrayList<>(representationStubs.size());
+            for (Representation stub : representationStubs) {
+                if (schema == null || schema.equals(stub.getSchema())) {
+                    Representation realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
+                    toReturn.add(realContent);
+                }
+            }
+            return toReturn;
+        } else {
+            return recordDAO.findRepresentations(providerId, schema);
+        }
     }
 }

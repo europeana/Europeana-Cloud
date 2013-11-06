@@ -57,7 +57,7 @@ public class RepresentationVersionResource {
         if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
             Representation representationInfo = recordService.getRepresentation(globalId, representation);
             EnrichUriUtil.enrich(uriInfo, representationInfo);
-            if (representationInfo.getUri()!= null) {
+            if (representationInfo.getUri() != null) {
                 return Response.temporaryRedirect(representationInfo.getUri()).build();
             } else {
                 throw new RepresentationNotExistsException();
@@ -82,7 +82,7 @@ public class RepresentationVersionResource {
     public Response persistRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Representation persistentVersion = recordService.persistRepresentation(globalId, representation, version);
-
+        prepare(persistentVersion);
         return Response.created(persistentVersion.getUri()).build();
     }
 
@@ -91,10 +91,8 @@ public class RepresentationVersionResource {
     @Path("/copy")
     public Response copyRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, ProviderNotExistsException {
-        Representation rep = recordService.getRepresentation(globalId, representation, version);
-
-        Representation copiedRep = recordService.createRepresentation(globalId, representation, rep.getDataProvider());
-        // TODO: copy files
+        Representation copiedRep = recordService.copyRepresentation(globalId, representation, version);
+        prepare(copiedRep);
         return Response.created(copiedRep.getUri()).build();
     }
 

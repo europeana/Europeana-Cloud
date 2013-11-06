@@ -24,7 +24,7 @@ public interface DataProviderService {
             throws ProviderNotExistsException;
 
 
-    DataProvider createProvider(String providerId, DataProviderProperties properties); //TODO add parameter for provider configuration
+    DataProvider createProvider(String providerId, DataProviderProperties properties);
 
 
     void deleteProvider(String providerId)

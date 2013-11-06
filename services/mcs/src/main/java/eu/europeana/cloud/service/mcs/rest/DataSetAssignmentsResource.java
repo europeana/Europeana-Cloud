@@ -5,6 +5,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,17 +38,16 @@ public class DataSetAssignmentsResource {
             @FormParam(F_VER) String representationVersion) {
         ParamUtil.require(F_GID, recordId);
         ParamUtil.require(F_REP, representationName);
-        dataSetService.addAssignment(providerId, dataSetId, recordId, representationName, recordId);
+        dataSetService.addAssignment(providerId, dataSetId, recordId, representationName, representationVersion);
     }
 
 
     @DELETE
     public void removeAssignment(
-            @FormParam(F_GID) String recordId,
-            @FormParam(F_REP) String representationName,
-            @FormParam(F_VER) String representationVersion) {
+            @QueryParam(F_GID) String recordId,
+            @QueryParam(F_REP) String representationName) {
         ParamUtil.require(F_GID, recordId);
         ParamUtil.require(F_REP, representationName);
-        dataSetService.removeAssignment(providerId, dataSetId, recordId, representationName, recordId);
+        dataSetService.removeAssignment(providerId, dataSetId, recordId, representationName);
     }
 }

@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import java.util.List;
 
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
@@ -11,7 +11,6 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
@@ -19,7 +18,6 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
  * DataProviderResourceTest
@@ -41,7 +39,7 @@ public class DataProvidersResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
-        dataProvidersWebTarget = target("data-providers");
+        dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
     }
 
 
