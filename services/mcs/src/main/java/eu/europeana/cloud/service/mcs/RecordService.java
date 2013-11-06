@@ -60,7 +60,7 @@ public interface RecordService {
 
 
     Representation copyRepresentation(String globalId, String representationName, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException;
 
 
     boolean putContent(String globalId, String representationName, String version, File file, InputStream content)

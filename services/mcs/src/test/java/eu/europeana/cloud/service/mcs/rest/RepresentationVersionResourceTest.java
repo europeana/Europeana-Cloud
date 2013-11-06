@@ -28,14 +28,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
+import com.google.common.collect.ObjectArrays;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotModifyPersistentRepresentationExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
@@ -53,6 +57,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	static final private String persistPath = URITools.getPath(
 			RepresentationVersionResource.class, "persistRepresentation",
 			globalId, representationName, version).toString();
+	static final private String copyPath = URITools.getPath(
+			RepresentationVersionResource.class, "copyRepresentation",
+			globalId, representationName, version).toString();
 
 	static final private Representation representation = new Representation(
 			globalId, representationName, version, null, null, "DLF",
@@ -67,6 +74,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 				.registerClasses(RecordNotExistsExceptionMapper.class)
 				.registerClasses(RepresentationNotExistsExceptionMapper.class)
 				.registerClasses(VersionNotExistsExceptionMapper.class)
+				.registerClasses(CannotModifyPersistentRepresentationExceptionMapper.class)
 				.property("contextConfigLocation", "classpath:testContext.xml");
 	}
 
@@ -88,15 +96,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	@Parameters(method = "mimeTypes")
 	public void testGetRepresentationVersion(MediaType mediaType) {
 		Representation expected = new Representation(representation);
-		expected.setUri(URITools.getVersionUri(getBaseUri(), globalId,
-				representationName, version));
-		expected.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(),
-				globalId, representationName));
-		expected.getFiles()
-				.get(0)
-				.setContentUri(
-						URITools.getContentUri(getBaseUri(), globalId,
-								representationName, version, fileName));
+		enrich(expected);
 		when(
 				recordService.getRepresentation(globalId, representationName,
 						version))
@@ -113,6 +113,17 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		verify(recordService, times(1)).getRepresentation(globalId,
 				representationName, version);
 		verifyNoMoreInteractions(recordService);
+	}
+
+	private void enrich(Representation expected) {
+		expected.setUri(URITools.getVersionUri(getBaseUri(), globalId,
+				representationName, version));
+		expected.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(),
+				globalId, representationName));
+		for (File file : expected.getFiles()) {
+			file.setContentUri(URITools.getContentUri(getBaseUri(), globalId,
+					representationName, version, file.getFileName()));
+		}
 	}
 
 	@Test
@@ -135,21 +146,20 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		verifyNoMoreInteractions(recordService);
 	}
 
-	@SuppressWarnings("unused")
 	private Object[] errors() {
 		return $(
 				$(new RecordNotExistsException(),
-						McsErrorCode.RECORD_NOT_EXISTS.toString()),
+						McsErrorCode.RECORD_NOT_EXISTS.toString(), 404),
 				$(new RepresentationNotExistsException(),
-						McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()),
+						McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
 				$(new VersionNotExistsException(),
-						McsErrorCode.VERSION_NOT_EXISTS.toString()));
+						McsErrorCode.VERSION_NOT_EXISTS.toString(), 404));
 	}
 
 	@Test
 	@Parameters(method = "errors")
 	public void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
-			Throwable exception, String errorCode) {
+			Throwable exception, String errorCode, int statusCode) {
 		when(
 				recordService.getRepresentation(globalId, representationName,
 						version)).thenThrow(exception);
@@ -159,7 +169,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 						version).toString()).request(MediaType.APPLICATION_XML)
 				.get();
 
-		assertThat(response.getStatus(), is(404));
+		assertThat(response.getStatus(), is(statusCode));
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).getRepresentation(globalId,
@@ -192,7 +202,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	@Test
 	@Parameters(method = "errors")
 	public void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(
-			Throwable exception, String errorCode) throws Exception {
+			Throwable exception, String errorCode, int statusCode)
+			throws Exception {
 		Mockito.doThrow(exception).when(recordService)
 				.deleteRepresentation(globalId, representationName, version);
 
@@ -200,7 +211,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 				.path(URITools.getVersionPath(globalId, representationName,
 						version).toString()).request().delete();
 
-		assertThat(response.getStatus(), is(404));
+		assertThat(response.getStatus(), is(statusCode));
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).deleteRepresentation(globalId,
@@ -228,9 +239,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	}
 
 	@Test
-	@Parameters(method = "errors")
-	public void testPersistRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
-			Throwable exception, String errorCode) {
+	@Parameters(method = "persistErrors")
+	public void testPersistRepresentationReturns40XIfExceptionOccur(
+			Throwable exception, String errorCode, int statusCode) {
 		when(
 				recordService.persistRepresentation(globalId,
 						representationName, version)).thenThrow(exception);
@@ -241,11 +252,61 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 				.post(Entity.entity(new Form(),
 						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-		assertThat(response.getStatus(), is(404));
+		assertThat(response.getStatus(), is(statusCode));
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).persistRepresentation(globalId,
 				representationName, version);
 		verifyNoMoreInteractions(recordService);
 	}
+
+	@SuppressWarnings("unused")
+	private Object[] persistErrors() {
+		return $(ObjectArrays.concat(
+				(Object) $(new CannotModifyPersistentRepresentationException(),
+						McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
+				errors()));
+	}
+
+	@Test
+	public void testCopyRepresentation() {
+		when(
+				recordService.copyRepresentation(globalId, representationName,
+						version))
+				.thenReturn(new Representation(representation));
+
+		Response response = target(copyPath).request().post(
+				Entity.entity(new Form(),
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(201));
+		assertThat(response.getLocation(), is(URITools.getVersionUri(
+				getBaseUri(), globalId, representationName, version)));
+		verify(recordService, times(1)).copyRepresentation(globalId,
+				representationName, version);
+		verifyNoMoreInteractions(recordService);
+	}
+
+	@Test
+	@Parameters(method = "errors")
+	public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
+			Throwable exception, String errorCode, int statusCode) {
+		when(
+				recordService.copyRepresentation(globalId, representationName,
+						version)).thenThrow(exception);
+
+		Response response = target()
+				.path(copyPath)
+				.request()
+				.post(Entity.entity(new Form(),
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(statusCode));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(errorCode));
+		verify(recordService, times(1)).copyRepresentation(globalId,
+				representationName, version);
+		verifyNoMoreInteractions(recordService);
+	}
+
 }
