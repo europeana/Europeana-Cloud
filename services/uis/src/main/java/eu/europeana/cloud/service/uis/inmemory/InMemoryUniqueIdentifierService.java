@@ -22,7 +22,7 @@ import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.encoder.Base50;
+import eu.europeana.cloud.service.uis.encoder.Base36;
 
 /**
  * In-memory mockup of the unique identifier service
@@ -40,7 +40,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordExistsException {
-		String globalId = Base50.encode(String.format("/%s/%s", providerId,
+		String globalId = Base36.encode(String.format("/%s/%s", providerId,
 				recordId));
 		for (Record record : records) {
 			if (StringUtils.equals(record.getId(), globalId)) {

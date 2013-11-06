@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationContext;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.encoder.Base50;
+import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource;
 import eu.europeana.cloud.service.uis.rest.CloudIdList;
 import eu.europeana.cloud.service.uis.rest.LocalIdList;
@@ -234,7 +234,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	private static CloudId createGlobalId(String providerId, String recordId) {
 		CloudId globalId = new CloudId();
 		globalId.setLocalId(createLocalId(providerId, recordId));
-		globalId.setId(Base50.encode("/" + providerId + "/" + recordId));
+		globalId.setId(Base36.encode("/" + providerId + "/" + recordId));
 		return globalId;
 	}
 }
