@@ -50,6 +50,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	static final private String representationName = "DC";
 	static final private String version = "1.0";
 	static final private String fileName = "1.xml";
+	static final private String persistPath = URITools.getPath(
+			RepresentationVersionResource.class, "persistRepresentation",
+			globalId, representationName, version).toString();
 
 	static final private Representation representation = new Representation(
 			globalId, representationName, version, null, null, "DLF",
@@ -92,7 +95,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		expected.getFiles()
 				.get(0)
 				.setContentUri(
-						URITools.getContetntUri(getBaseUri(), globalId,
+						URITools.getContentUri(getBaseUri(), globalId,
 								representationName, version, fileName));
 		when(
 				recordService.getRepresentation(globalId, representationName,
@@ -212,9 +215,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 						representationName, version)).thenReturn(
 				new Representation(representation));
 
-		Response response = target(
-				URITools.getVersionPath(globalId, representationName, version)
-						.toString() + "/persist").request().post(
+		Response response = target(persistPath).request().post(
 				Entity.entity(new Form(),
 						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
@@ -226,4 +227,25 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		verifyNoMoreInteractions(recordService);
 	}
 
+	@Test
+	@Parameters(method = "errors")
+	public void testPersistRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
+			Throwable exception, String errorCode) {
+		when(
+				recordService.persistRepresentation(globalId,
+						representationName, version)).thenThrow(exception);
+
+		Response response = target()
+				.path(persistPath)
+				.request()
+				.post(Entity.entity(new Form(),
+						MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+		assertThat(response.getStatus(), is(404));
+		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+		assertThat(errorInfo.getErrorCode(), is(errorCode));
+		verify(recordService, times(1)).persistRepresentation(globalId,
+				representationName, version);
+		verifyNoMoreInteractions(recordService);
+	}
 }
