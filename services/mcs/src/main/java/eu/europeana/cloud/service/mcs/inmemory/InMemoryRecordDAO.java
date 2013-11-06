@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
@@ -21,6 +22,7 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 /**
  * InMemoryRecordDAO
  */
+@Repository
 public class InMemoryRecordDAO {
 
     private Map<String, Map<String, List<Representation>>> records = new HashMap<>();

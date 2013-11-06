@@ -5,9 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Repository;
+
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
@@ -16,6 +17,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 /**
  * InMemoryDataProviderDAO
  */
+@Repository
 public class InMemoryDataProviderDAO {
 
     private Map<String, DataProvider> providers = new HashMap<>();
