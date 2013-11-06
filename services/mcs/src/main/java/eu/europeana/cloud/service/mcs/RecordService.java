@@ -59,6 +59,10 @@ public interface RecordService {
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
+    Representation copyRepresentation(String globalId, String representationName, String version)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
+
+
     boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
             throws FileAlreadyExistsException, IOException;
 

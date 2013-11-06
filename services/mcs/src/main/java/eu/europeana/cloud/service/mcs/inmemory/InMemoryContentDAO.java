@@ -18,6 +18,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * InMemoryContentDAO
@@ -64,10 +65,28 @@ public class InMemoryContentDAO {
         if (data == null) {
             throw new FileNotExistsException();
         }
-        if (rangeStart != -1 && rangeEnd != -1) {
+        if (rangeStart != -1) {
+            if (rangeStart > data.length - 1 || rangeEnd > data.length - 1) {
+                throw new WrongContentRangeException("Cannot satisfy requested range - data length is " + data.length);
+            }
+            if (rangeEnd == -1) {
+                rangeEnd = data.length - 1;
+            }
             data = Arrays.copyOfRange(data, (int) rangeStart, (int) rangeEnd);
         }
         os.write(data);
+    }
+
+
+    public void copyContent(String srcGlobalId, String srcRepName, String srcVersion, String srcFileName,
+            String trgGlobalId, String trgRepName, String trgVersion, String trgFileName) {
+        String srcKey = generateKey(srcGlobalId, srcRepName, srcVersion, srcFileName);
+        String trgKey = generateKey(trgGlobalId, trgRepName, trgVersion, trgFileName);
+        byte[] data = content.get(srcKey);
+        if (data == null) {
+            throw new FileNotExistsException();
+        }
+        content.put(trgKey, data);
     }
 
 

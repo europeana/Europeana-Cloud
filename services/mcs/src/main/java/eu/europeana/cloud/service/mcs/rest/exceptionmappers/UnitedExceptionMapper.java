@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * AllExceptionMapper
@@ -87,6 +88,11 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(RepresentationAlreadyInSetException exception) {
         return buildResponse(Response.Status.CONFLICT, McsErrorCode.REPRESENTATION_ALREADY_IN_SET, exception);
+    }
+
+
+    public Response toResponse(WrongContentRangeException exception) {
+        return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.OTHER, exception);
     }
 
 

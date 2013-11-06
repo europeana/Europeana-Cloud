@@ -44,6 +44,14 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public void deleteRecord(String globalId)
             throws RecordNotExistsException {
+        Record r = recordDAO.getRecord(globalId);
+        for (Representation rep : r.getRepresentations()) {
+            for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
+                for (File f : repVersion.getFiles()) {
+                    contentDAO.deleteContent(globalId, repVersion.getSchema(), repVersion.getVersion(), f.getFileName());
+                }
+            }
+        }
         recordDAO.deleteRecord(globalId);
     }
 
@@ -51,6 +59,11 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public void deleteRepresentation(String globalId, String representationName)
             throws RecordNotExistsException, RepresentationNotExistsException {
+        for (Representation rep : recordDAO.listRepresentationVersions(globalId, representationName)) {
+            for (File f : rep.getFiles()) {
+                contentDAO.deleteContent(globalId, representationName, rep.getVersion(), f.getFileName());
+            }
+        }
         recordDAO.deleteRepresentation(globalId, representationName);
     }
 
@@ -79,6 +92,10 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public void deleteRepresentation(String globalId, String representationName, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+        Representation rep = recordDAO.getRepresentation(globalId, representationName, version);
+        for (File f : rep.getFiles()) {
+            contentDAO.deleteContent(globalId, representationName, version, f.getFileName());
+        }
         recordDAO.deleteRepresentation(globalId, representationName, version);
     }
 
@@ -116,7 +133,7 @@ public class InMemoryRecordService implements RecordService {
                 }
             }
         }
-        
+
         contentDAO.putContent(globalId, representationName, version, file, content);
         recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, version, file);
         return isCreate;
@@ -153,5 +170,22 @@ public class InMemoryRecordService implements RecordService {
             throws FileNotExistsException {
         recordDAO.removeFileFromRepresentation(globalId, representationName, version, fileName);
         contentDAO.deleteContent(globalId, representationName, version, fileName);
+    }
+
+
+    @Override
+    public Representation copyRepresentation(String globalId, String representationName, String version)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+        Representation srcRep = recordDAO.getRepresentation(globalId, representationName, version);
+        Representation copiedRep = recordDAO.createRepresentation(globalId, representationName, srcRep.getDataProvider());
+        for (File srcFile : srcRep.getFiles()) {
+            File copiedFile = new File(srcFile);
+            copyRepresentation(globalId, representationName, version);
+            contentDAO.copyContent(globalId, representationName, version, srcFile.getFileName(),
+                    globalId, representationName, copiedRep.getVersion(), copiedFile.getFileName());
+            recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, copiedRep.getVersion(), copiedFile);
+        }
+        //get version after all modifications
+        return recordDAO.getRepresentation(globalId, representationName, copiedRep.getVersion());
     }
 }

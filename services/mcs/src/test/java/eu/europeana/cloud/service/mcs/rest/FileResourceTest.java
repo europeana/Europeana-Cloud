@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -98,20 +99,70 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
-    @Ignore(value = "TODO: implement")
-    public void shouldReturnContentWithinRange() {
+    public void shouldReturnContentWithinRangeOffset()
+            throws IOException {
+        // given particular content in service
+        byte[] content = {1, 2, 3, 4};
+        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(content));
+
+        // when part of file is requested (skip first byte)
+        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=1-").get();
+        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), getFileResponse.getStatus());
+
+        // then retrieved content should consist of second and third byte of inserted byte array
+        InputStream responseStream = getFileResponse.readEntity(InputStream.class);
+        byte[] responseContent = ByteStreams.toByteArray(responseStream);
+        byte[] expectedResponseContent = Arrays.copyOfRange(content, 1, content.length - 1);
+        assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
 
 
     @Test
-    @Ignore(value = "TODO: implement")
-    public void shouldReturnErrorWhenRangeUnreachable() {
+    public void shouldReturnContentWithinRange()
+            throws IOException {
+        // given particular content in service
+        byte[] content = {1, 2, 3, 4};
+        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(content));
+
+        // when part of file is requested (2 bytes with 1 byte offset)
+        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=1-2").get();
+        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), getFileResponse.getStatus());
+
+        // then retrieved content should consist of second and third byte of inserted byte array
+        InputStream responseStream = getFileResponse.readEntity(InputStream.class);
+        byte[] responseContent = ByteStreams.toByteArray(responseStream);
+        byte[] expectedResponseContent = Arrays.copyOfRange(content, 1, 2);
+        assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
 
 
     @Test
-    @Ignore(value = "TODO: implement")
-    public void shouldRemainConsistentWithConcurrentPuts() {
+    public void shouldReturnErrorWhenRequestedRangeNotSatisfiable()
+            throws IOException {
+        // given particular content in service
+        byte[] content = {1, 2, 3, 4};
+        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(content));
+
+        // when unsatisfiable content range is requested
+        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=1-5").get();
+
+        // then should response that requested range is not satisfiable
+        assertEquals(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE.getStatusCode(), getFileResponse.getStatus());
+    }
+
+
+    @Test
+    public void shouldReturnErrorWhenRequestedRangeNotValid()
+            throws IOException {
+        // given particular content in service
+        byte[] content = {1, 2, 3, 4};
+        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(content));
+
+        // when part of file is requested (2 bytes with 1 byte offset)
+        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=-2").get();
+
+        // then should response that request is wrongly formatted
+        assertEquals(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE.getStatusCode(), getFileResponse.getStatus());
     }
 
 
