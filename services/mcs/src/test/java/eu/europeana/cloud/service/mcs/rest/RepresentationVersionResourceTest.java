@@ -96,7 +96,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	@Parameters(method = "mimeTypes")
 	public void testGetRepresentationVersion(MediaType mediaType) {
 		Representation expected = new Representation(representation);
-		enrich(expected);
+		URITools.enrich(expected, getBaseUri());
 		when(
 				recordService.getRepresentation(globalId, representationName,
 						version))
@@ -113,17 +113,6 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		verify(recordService, times(1)).getRepresentation(globalId,
 				representationName, version);
 		verifyNoMoreInteractions(recordService);
-	}
-
-	private void enrich(Representation expected) {
-		expected.setUri(URITools.getVersionUri(getBaseUri(), globalId,
-				representationName, version));
-		expected.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(),
-				globalId, representationName));
-		for (File file : expected.getFiles()) {
-			file.setContentUri(URITools.getContentUri(getBaseUri(), globalId,
-					representationName, version, file.getFileName()));
-		}
 	}
 
 	@Test
