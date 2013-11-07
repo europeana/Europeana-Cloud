@@ -3,3 +3,10 @@
 /.settings
 /.classpath
 /.project
+/services/mcs/mcs-api/target/
+/services/mcs/mcs-inmemory-impl/target/
+/services/mcs/mcs-persistent-impl/target/
+/services/mcs/mcs-rest/target/
+/services/mcs/nbactions.xml
+
+/services/mcs/mcs-rest/nb-configuration.xml

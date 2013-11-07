@@ -165,6 +165,13 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+			
+			<dependency>
+				<artifactId>guava</artifactId>
+				<groupId>com.google.guava</groupId>
+				<type>jar</type>
+				<version>15.0</version>
+			</dependency>
 
 			<!--logging -->
 			<dependency>
