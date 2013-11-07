@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_REP;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -29,7 +29,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 /**
  * RepresentationResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}")
 @Component
 public class RepresentationResource {
 
@@ -42,15 +42,15 @@ public class RepresentationResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_REP)
-    private String representation;
+    @PathParam(P_SCHEMA)
+    private String schema;
 
 
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Representation getRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException {
-        Representation info = recordService.getRepresentation(globalId, representation);
+        Representation info = recordService.getRepresentation(globalId, schema);
         prepare(info);
         return info;
     }
@@ -59,7 +59,7 @@ public class RepresentationResource {
     @DELETE
     public Response deleteRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException {
-        recordService.deleteRepresentation(globalId, representation);
+        recordService.deleteRepresentation(globalId, schema);
         return Response.noContent().build();
     }
 
@@ -70,7 +70,7 @@ public class RepresentationResource {
             @FormParam(F_PROVIDER) String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         ParamUtil.require(F_PROVIDER, providerId);
-        Representation version = recordService.createRepresentation(globalId, representation, providerId);
+        Representation version = recordService.createRepresentation(globalId, schema, providerId);
         EnrichUriUtil.enrich(uriInfo, version);
         return Response.created(version.getUri()).build();
     }

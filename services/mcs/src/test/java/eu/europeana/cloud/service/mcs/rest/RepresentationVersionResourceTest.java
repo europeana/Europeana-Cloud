@@ -51,18 +51,18 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	private RecordService recordService;
 
 	static final private String globalId = "1";
-	static final private String representationName = "DC";
+	static final private String schema = "DC";
 	static final private String version = "1.0";
 	static final private String fileName = "1.xml";
 	static final private String persistPath = URITools.getPath(
 			RepresentationVersionResource.class, "persistRepresentation",
-			globalId, representationName, version).toString();
+			globalId, schema, version).toString();
 	static final private String copyPath = URITools.getPath(
 			RepresentationVersionResource.class, "copyRepresentation",
-			globalId, representationName, version).toString();
+			globalId, schema, version).toString();
 
 	static final private Representation representation = new Representation(
-			globalId, representationName, version, null, null, "DLF",
+			globalId, schema, version, null, null, "DLF",
 			Arrays.asList(new File(fileName, "text/xml",
 					"91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
 					null)), true);
@@ -98,12 +98,12 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		Representation expected = new Representation(representation);
 		URITools.enrich(expected, getBaseUri());
 		when(
-				recordService.getRepresentation(globalId, representationName,
+				recordService.getRepresentation(globalId, schema,
 						version))
 				.thenReturn(new Representation(representation));
 
 		Response response = target(
-				URITools.getVersionPath(globalId, representationName, version)
+				URITools.getVersionPath(globalId, schema, version)
 						.toString()).request(mediaType).get();
 
 		assertThat(response.getStatus(), is(200));
@@ -111,27 +111,27 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		Representation entity = response.readEntity(Representation.class);
 		assertThat(entity, is(expected));
 		verify(recordService, times(1)).getRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
 	@Test
 	@Parameters(method = "mimeTypes")
 	public void testGetLatestRepresentationVersion(MediaType mediaType) {
-		when(recordService.getRepresentation(globalId, representationName))
+		when(recordService.getRepresentation(globalId, schema))
 				.thenReturn(new Representation(representation));
 
 		client().property(ClientProperties.FOLLOW_REDIRECTS, false);
 		Response response = target(
-				URITools.getVersionPath(globalId, representationName,
+				URITools.getVersionPath(globalId, schema,
 						ParamConstants.LATEST_VERSION_KEYWORD).toString())
 				.request(mediaType).get();
 
 		assertThat(response.getStatus(), is(307));
 		assertThat(response.getLocation(), is(URITools.getVersionUri(
-				getBaseUri(), globalId, representationName, version)));
+				getBaseUri(), globalId, schema, version)));
 		verify(recordService, times(1)).getRepresentation(globalId,
-				representationName);
+				schema);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -150,11 +150,11 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	public void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
 			Throwable exception, String errorCode, int statusCode) {
 		when(
-				recordService.getRepresentation(globalId, representationName,
+				recordService.getRepresentation(globalId, schema,
 						version)).thenThrow(exception);
 
 		Response response = target()
-				.path(URITools.getVersionPath(globalId, representationName,
+				.path(URITools.getVersionPath(globalId, schema,
 						version).toString()).request(MediaType.APPLICATION_XML)
 				.get();
 
@@ -162,14 +162,14 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).getRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
 	@Test
 	public void testGetRepresentationVersionReturns406ForUnsupportedFormat() {
 		Response response = target()
-				.path(URITools.getVersionPath(globalId, representationName,
+				.path(URITools.getVersionPath(globalId, schema,
 						version).toString())
 				.request(MediaType.APPLICATION_SVG_XML_TYPE).get();
 
@@ -179,12 +179,12 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	@Test
 	public void testDeleteRepresentation() {
 		Response response = target()
-				.path(URITools.getVersionPath(globalId, representationName,
+				.path(URITools.getVersionPath(globalId, schema,
 						version).toString()).request().delete();
 
 		assertThat(response.getStatus(), is(204));
 		verify(recordService, times(1)).deleteRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -194,17 +194,17 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 			Throwable exception, String errorCode, int statusCode)
 			throws Exception {
 		Mockito.doThrow(exception).when(recordService)
-				.deleteRepresentation(globalId, representationName, version);
+				.deleteRepresentation(globalId, schema, version);
 
 		Response response = target()
-				.path(URITools.getVersionPath(globalId, representationName,
+				.path(URITools.getVersionPath(globalId, schema,
 						version).toString()).request().delete();
 
 		assertThat(response.getStatus(), is(statusCode));
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).deleteRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -212,7 +212,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	public void testPersistRepresentation() {
 		when(
 				recordService.persistRepresentation(globalId,
-						representationName, version)).thenReturn(
+						schema, version)).thenReturn(
 				new Representation(representation));
 
 		Response response = target(persistPath).request().post(
@@ -221,9 +221,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 		assertThat(response.getStatus(), is(201));
 		assertThat(response.getLocation(), is(URITools.getVersionUri(
-				getBaseUri(), globalId, representationName, version)));
+				getBaseUri(), globalId, schema, version)));
 		verify(recordService, times(1)).persistRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -233,7 +233,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 			Throwable exception, String errorCode, int statusCode) {
 		when(
 				recordService.persistRepresentation(globalId,
-						representationName, version)).thenThrow(exception);
+						schema, version)).thenThrow(exception);
 
 		Response response = target()
 				.path(persistPath)
@@ -245,7 +245,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).persistRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -260,7 +260,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	@Test
 	public void testCopyRepresentation() {
 		when(
-				recordService.copyRepresentation(globalId, representationName,
+				recordService.copyRepresentation(globalId, schema,
 						version))
 				.thenReturn(new Representation(representation));
 
@@ -270,9 +270,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 		assertThat(response.getStatus(), is(201));
 		assertThat(response.getLocation(), is(URITools.getVersionUri(
-				getBaseUri(), globalId, representationName, version)));
+				getBaseUri(), globalId, schema, version)));
 		verify(recordService, times(1)).copyRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 
@@ -281,7 +281,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 	public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
 			Throwable exception, String errorCode, int statusCode) {
 		when(
-				recordService.copyRepresentation(globalId, representationName,
+				recordService.copyRepresentation(globalId, schema,
 						version)).thenThrow(exception);
 
 		Response response = target()
@@ -294,7 +294,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 		ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
 		assertThat(errorInfo.getErrorCode(), is(errorCode));
 		verify(recordService, times(1)).copyRepresentation(globalId,
-				representationName, version);
+				schema, version);
 		verifyNoMoreInteractions(recordService);
 	}
 

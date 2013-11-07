@@ -30,52 +30,52 @@ public interface RecordService {
 
 //==
 
-    Representation getRepresentation(String globalId, String representationName)
+    Representation getRepresentation(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException;
 
 
-    Representation getRepresentation(String globalId, String representationName, String version)
+    Representation getRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException;
 
 
-    List<Representation> listRepresentationVersions(String globalId, String representationName)
+    List<Representation> listRepresentationVersions(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException;
 
 
-    void deleteRepresentation(String globalId, String representationName)
+    void deleteRepresentation(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException;
 
 
-    void deleteRepresentation(String globalId, String representationName, String version)
+    void deleteRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
-    Representation createRepresentation(String globalId, String representationName, String providerId)
+    Representation createRepresentation(String globalId, String schema, String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException;
 
 
     //==
-    Representation persistRepresentation(String globalId, String representationName, String version)
+    Representation persistRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException;
 
 
-    Representation copyRepresentation(String globalId, String representationName, String version)
+    Representation copyRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException;
 
 
-    boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
+    boolean putContent(String globalId, String schema, String version, File file, InputStream content)
             throws FileAlreadyExistsException, IOException;
 
 
-    void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
+    void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
             throws FileNotExistsException, IOException;
 
 
-    String getContent(String globalId, String representationName, String version, String fileName, OutputStream os)
+    String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
             throws FileNotExistsException, IOException;
 
 
-    void deleteContent(String globalId, String representationName, String version, String fileName)
+    void deleteContent(String globalId, String schema, String version, String fileName)
             throws FileNotExistsException;
     
     List<Representation> search(String providerId, String representationName, String dataSetId);

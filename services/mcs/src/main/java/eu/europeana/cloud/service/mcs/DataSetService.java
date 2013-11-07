@@ -17,11 +17,11 @@ public interface DataSetService {
     List<Representation> listDataSet(String providerId, String dataSetId);
 
 
-    void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
+    void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException;
 
 
-    void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
+    void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
             throws DataSetNotExistsException;
 
 

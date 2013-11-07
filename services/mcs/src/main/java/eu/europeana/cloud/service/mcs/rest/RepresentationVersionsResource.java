@@ -22,7 +22,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * RepresentationVersionsResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions")
+@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions")
 @Component
 public class RepresentationVersionsResource {
 
@@ -35,7 +35,7 @@ public class RepresentationVersionsResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_REP)
+    @PathParam(P_SCHEMA)
     private String representation;
 
 

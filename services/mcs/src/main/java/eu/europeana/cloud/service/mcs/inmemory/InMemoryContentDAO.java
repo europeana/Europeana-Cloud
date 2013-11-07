@@ -28,7 +28,7 @@ public class InMemoryContentDAO {
     private Map<String, byte[]> content = new HashMap<>();
 
 
-    public void putContent(String globalId, String representationName, String version, File file, InputStream data)
+    public void putContent(String globalId, String schema, String version, File file, InputStream data)
             throws IOException, FileAlreadyExistsException {
         DigestInputStream md5DigestInputStream = md5InputStream(data);
         byte[] fileContent = ByteStreams.toByteArray(md5DigestInputStream);
@@ -43,7 +43,7 @@ public class InMemoryContentDAO {
 
         file.setContentLength(actualContentLength);
         file.setMd5(actualContentMd5Hex);
-        content.put(generateKey(globalId, representationName, version, file.getFileName()), fileContent);
+        content.put(generateKey(globalId, schema, version, file.getFileName()), fileContent);
     }
 
 
@@ -57,10 +57,10 @@ public class InMemoryContentDAO {
     }
 
 
-    public void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd,
+    public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd,
             OutputStream os)
             throws IOException {
-        byte[] data = content.get(generateKey(globalId, representationName, version, fileName));
+        byte[] data = content.get(generateKey(globalId, schema, version, fileName));
         if (data == null) {
             throw new FileNotExistsException();
         }
@@ -94,8 +94,8 @@ public class InMemoryContentDAO {
     }
 
 
-    public void deleteContent(String globalId, String representationName, String version, String fileName)
+    public void deleteContent(String globalId, String schema, String version, String fileName)
             throws FileNotExistsException {
-        content.remove(generateKey(globalId, representationName, version, fileName));
+        content.remove(generateKey(globalId, schema, version, fileName));
     }
 }

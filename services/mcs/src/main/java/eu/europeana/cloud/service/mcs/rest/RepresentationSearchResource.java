@@ -34,7 +34,7 @@ public class RepresentationSearchResource {
     public List<Representation> searchRepresentations(
             @QueryParam(F_PROVIDER) String providerId,
             @QueryParam(F_DATASET) String dataSetId,
-            @QueryParam(F_REP) String representationName) {
+            @QueryParam(F_SCHEMA) String representationName) {
         // data set id is meaningful only with connection with provider id
         if (dataSetId != null) {
             ParamUtil.require(F_PROVIDER, providerId);

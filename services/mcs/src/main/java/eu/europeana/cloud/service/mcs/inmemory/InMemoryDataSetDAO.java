@@ -57,7 +57,7 @@ public class InMemoryDataSetDAO {
     }
 
 
-    public void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
+    public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
         DataSet dataSet = getDataSet(providerId, dataSetId);
         if (dataSet == null) {
@@ -65,36 +65,36 @@ public class InMemoryDataSetDAO {
         }
         // just to check if such representation does exist
         List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
-        Representation stub = getStub(listOfStubs, recordId, representationName);
+        Representation stub = getStub(listOfStubs, recordId, schema);
         if (stub == null) {
             stub = new Representation();
             stub.setRecordId(recordId);
-            stub.setSchema(representationName);
+            stub.setSchema(schema);
             stub.setVersion(version);
             listOfStubs.add(stub);
         } else {
-            throw new RepresentationAlreadyInSetException(recordId, representationName, dataSetId, providerId);
+            throw new RepresentationAlreadyInSetException(recordId, schema, dataSetId, providerId);
         }
     }
 
 
-    public void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
+    public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
             throws DataSetNotExistsException {
         DataSet dataSet = getDataSet(providerId, dataSetId);
         if (dataSet == null) {
             throw new DataSetNotExistsException();
         }
         List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
-        Representation stub = getStub(listOfStubs, recordId, representationName);
+        Representation stub = getStub(listOfStubs, recordId, schema);
         if (stub != null) {
             listOfStubs.remove(stub);
         }
     }
 
 
-    private Representation getStub(List<Representation> listOfStubs, String recordId, String representationName) {
+    private Representation getStub(List<Representation> listOfStubs, String recordId, String schema) {
         for (Representation stub : listOfStubs) {
-            if (stub.getRecordId().equals(recordId) && stub.getSchema().equals(representationName)) {
+            if (stub.getRecordId().equals(recordId) && stub.getSchema().equals(schema)) {
                 return stub;
             }
         }

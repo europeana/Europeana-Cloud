@@ -26,7 +26,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * FilesResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions/{" + P_VER + "}/files")
+@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}/files")
 @Component
 public class FilesResource {
 
@@ -39,8 +39,8 @@ public class FilesResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_REP)
-    private String representation;
+    @PathParam(P_SCHEMA)
+    private String schema;
 
     @PathParam(P_VER)
     private String version;
@@ -57,9 +57,9 @@ public class FilesResource {
         File f = new File();
         f.setMimeType(mimeType);
 
-        recordService.putContent(globalId, representation, version, f, data);
+        recordService.putContent(globalId, schema, version, f, data);
 
-        EnrichUriUtil.enrich(uriInfo, globalId, representation, version, f);
+        EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
         return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }

@@ -46,10 +46,10 @@ public class RepresentationsResourceTest extends JerseyTest {
 	private RecordService recordService;
 
 	static final private String globalId = "1";
-	static final private String representationName = "DC";
+	static final private String schema = "DC";
 	static final private String version = "1.0";
 	static final private Record record = new Record(globalId,
-			Lists.newArrayList(new Representation(globalId, representationName,
+			Lists.newArrayList(new Representation(globalId, schema,
 					version, null, null, "DLF", Arrays.asList(new File("1.xml",
 							"text/xml", "91162629d258a876ee994e9233b2ad87",
 							"2013-01-01", 12345, null)), true)));
@@ -83,9 +83,9 @@ public class RepresentationsResourceTest extends JerseyTest {
 		Representation expectedRepresentation = expected.getRepresentations()
 				.get(0);
 		expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(),
-				globalId, representationName, version));
+				globalId, schema, version));
 		expectedRepresentation.setAllVersionsUri(URITools.getAllVersionsUri(
-				getBaseUri(), globalId, representationName));
+				getBaseUri(), globalId, schema));
 		expectedRepresentation.setFiles(new ArrayList<File>());
 		when(recordService.getRecord(globalId)).thenReturn(new Record(record));
 

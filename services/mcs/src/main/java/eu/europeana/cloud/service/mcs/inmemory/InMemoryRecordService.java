@@ -64,14 +64,14 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public void deleteRepresentation(String globalId, String representationName)
+    public void deleteRepresentation(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        for (Representation rep : recordDAO.listRepresentationVersions(globalId, representationName)) {
+        for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
             for (File f : rep.getFiles()) {
-                contentDAO.deleteContent(globalId, representationName, rep.getVersion(), f.getFileName());
+                contentDAO.deleteContent(globalId, schema, rep.getVersion(), f.getFileName());
             }
         }
-        recordDAO.deleteRepresentation(globalId, representationName);
+        recordDAO.deleteRepresentation(globalId, schema);
     }
 
 
@@ -84,48 +84,48 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public Representation getRepresentation(String globalId, String representationName)
+    public Representation getRepresentation(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        return recordDAO.getRepresentation(globalId, representationName, null);
+        return recordDAO.getRepresentation(globalId, schema, null);
     }
 
 
     @Override
-    public Representation getRepresentation(String globalId, String representationName, String version)
+    public Representation getRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        return recordDAO.getRepresentation(globalId, representationName, version);
+        return recordDAO.getRepresentation(globalId, schema, version);
     }
 
 
     @Override
-    public void deleteRepresentation(String globalId, String representationName, String version)
+    public void deleteRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-        Representation rep = recordDAO.getRepresentation(globalId, representationName, version);
+        Representation rep = recordDAO.getRepresentation(globalId, schema, version);
         for (File f : rep.getFiles()) {
-            contentDAO.deleteContent(globalId, representationName, version, f.getFileName());
+            contentDAO.deleteContent(globalId, schema, version, f.getFileName());
         }
-        recordDAO.deleteRepresentation(globalId, representationName, version);
+        recordDAO.deleteRepresentation(globalId, schema, version);
     }
 
 
     @Override
-    public Representation persistRepresentation(String globalId, String representationName, String version)
+    public Representation persistRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
-        return recordDAO.persistRepresentation(globalId, representationName, version);
+        return recordDAO.persistRepresentation(globalId, schema, version);
     }
 
 
     @Override
-    public List<Representation> listRepresentationVersions(String globalId, String representationName)
+    public List<Representation> listRepresentationVersions(String globalId, String schema)
             throws RecordNotExistsException, RepresentationNotExistsException {
-        return recordDAO.listRepresentationVersions(globalId, representationName);
+        return recordDAO.listRepresentationVersions(globalId, schema);
     }
 
 
     @Override
-    public boolean putContent(String globalId, String representationName, String version, File file, InputStream content)
+    public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
             throws FileAlreadyExistsException, IOException {
-        Representation representation = recordDAO.getRepresentation(globalId, representationName, version);
+        Representation representation = recordDAO.getRepresentation(globalId, schema, version);
         if (representation.isPersistent()) {
             throw new CannotModifyPersistentRepresentationException();
         }
@@ -142,23 +142,23 @@ public class InMemoryRecordService implements RecordService {
             }
         }
 
-        contentDAO.putContent(globalId, representationName, version, file, content);
-        recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, version, file);
+        contentDAO.putContent(globalId, schema, version, file, content);
+        recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
         return isCreate;
     }
 
 
     @Override
-    public void getContent(String globalId, String representationName, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
+    public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
             throws FileNotExistsException, IOException {
-        contentDAO.getContent(globalId, representationName, version, fileName, rangeStart, rangeEnd, os);
+        contentDAO.getContent(globalId, schema, version, fileName, rangeStart, rangeEnd, os);
     }
 
 
     @Override
-    public String getContent(String globalId, String representationName, String version, String fileName, OutputStream os)
+    public String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
             throws FileNotExistsException, IOException {
-        Representation rep = getRepresentation(globalId, representationName, version);
+        Representation rep = getRepresentation(globalId, schema, version);
         String md5 = null;
         for (File f : rep.getFiles()) {
             if (fileName.equals(f.getFileName())) {
@@ -168,33 +168,33 @@ public class InMemoryRecordService implements RecordService {
         if (md5 == null) {
             throw new FileNotExistsException();
         }
-        contentDAO.getContent(globalId, representationName, version, fileName, -1, -1, os);
+        contentDAO.getContent(globalId, schema, version, fileName, -1, -1, os);
         return md5;
     }
 
 
     @Override
-    public void deleteContent(String globalId, String representationName, String version, String fileName)
+    public void deleteContent(String globalId, String schema, String version, String fileName)
             throws FileNotExistsException {
-        recordDAO.removeFileFromRepresentation(globalId, representationName, version, fileName);
-        contentDAO.deleteContent(globalId, representationName, version, fileName);
+        recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
+        contentDAO.deleteContent(globalId, schema, version, fileName);
     }
 
 
     @Override
-    public Representation copyRepresentation(String globalId, String representationName, String version)
+    public Representation copyRepresentation(String globalId, String schema, String version)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
-        Representation srcRep = recordDAO.getRepresentation(globalId, representationName, version);
-        Representation copiedRep = recordDAO.createRepresentation(globalId, representationName, srcRep.getDataProvider());
+        Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
+        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
-            copyRepresentation(globalId, representationName, version);
-            contentDAO.copyContent(globalId, representationName, version, srcFile.getFileName(),
-                    globalId, representationName, copiedRep.getVersion(), copiedFile.getFileName());
-            recordDAO.addOrReplaceFileInRepresentation(globalId, representationName, copiedRep.getVersion(), copiedFile);
+            copyRepresentation(globalId, schema, version);
+            contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(),
+                    globalId, schema, copiedRep.getVersion(), copiedFile.getFileName());
+            recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
         }
         //get version after all modifications
-        return recordDAO.getRepresentation(globalId, representationName, copiedRep.getVersion());
+        return recordDAO.getRepresentation(globalId, schema, copiedRep.getVersion());
     }
 
 

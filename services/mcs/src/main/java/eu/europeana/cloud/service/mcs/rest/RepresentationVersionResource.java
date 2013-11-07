@@ -27,7 +27,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * RepresentationResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions/{" + P_VER + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}")
 @Component
 public class RepresentationVersionResource {
 
@@ -43,8 +43,8 @@ public class RepresentationVersionResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_REP)
-    private String representation;
+    @PathParam(P_SCHEMA)
+    private String schema;
 
     @PathParam(P_VER)
     private String version;
@@ -55,7 +55,7 @@ public class RepresentationVersionResource {
     public Response getRepresentationVersion()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
-            Representation representationInfo = recordService.getRepresentation(globalId, representation);
+            Representation representationInfo = recordService.getRepresentation(globalId, schema);
             EnrichUriUtil.enrich(uriInfo, representationInfo);
             if (representationInfo.getUri() != null) {
                 return Response.temporaryRedirect(representationInfo.getUri()).build();
@@ -63,7 +63,7 @@ public class RepresentationVersionResource {
                 throw new RepresentationNotExistsException();
             }
         }
-        Representation rep = recordService.getRepresentation(globalId, representation, version);
+        Representation rep = recordService.getRepresentation(globalId, schema, version);
         prepare(rep);
         return Response.ok(rep).build();
     }
@@ -72,7 +72,7 @@ public class RepresentationVersionResource {
     @DELETE
     public Response deleteRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
-        recordService.deleteRepresentation(globalId, representation, version);
+        recordService.deleteRepresentation(globalId, schema, version);
         return Response.noContent().build();
     }
 
@@ -81,7 +81,7 @@ public class RepresentationVersionResource {
     @Path("/persist")
     public Response persistRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
-        Representation persistentVersion = recordService.persistRepresentation(globalId, representation, version);
+        Representation persistentVersion = recordService.persistRepresentation(globalId, schema, version);
         prepare(persistentVersion);
         return Response.created(persistentVersion.getUri()).build();
     }
@@ -91,7 +91,7 @@ public class RepresentationVersionResource {
     @Path("/copy")
     public Response copyRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, ProviderNotExistsException {
-        Representation copiedRep = recordService.copyRepresentation(globalId, representation, version);
+        Representation copiedRep = recordService.copyRepresentation(globalId, schema, version);
         prepare(copiedRep);
         return Response.created(copiedRep.getUri()).build();
     }

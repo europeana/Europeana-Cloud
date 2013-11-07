@@ -33,20 +33,20 @@ public class DataSetAssignmentsResource {
     @POST
     public void addAssignment(
             @FormParam(F_GID) String recordId,
-            @FormParam(F_REP) String representationName,
+            @FormParam(F_SCHEMA) String schema,
             @FormParam(F_VER) String representationVersion) {
         ParamUtil.require(F_GID, recordId);
-        ParamUtil.require(F_REP, representationName);
-        dataSetService.addAssignment(providerId, dataSetId, recordId, representationName, representationVersion);
+        ParamUtil.require(F_SCHEMA, schema);
+        dataSetService.addAssignment(providerId, dataSetId, recordId, schema, representationVersion);
     }
 
 
     @DELETE
     public void removeAssignment(
             @QueryParam(F_GID) String recordId,
-            @QueryParam(F_REP) String representationName) {
+            @QueryParam(F_SCHEMA) String schema) {
         ParamUtil.require(F_GID, recordId);
-        ParamUtil.require(F_REP, representationName);
-        dataSetService.removeAssignment(providerId, dataSetId, recordId, representationName);
+        ParamUtil.require(F_SCHEMA, schema);
+        dataSetService.removeAssignment(providerId, dataSetId, recordId, schema);
     }
 }

@@ -104,7 +104,7 @@ public class RepresentationSearchTest extends JerseyTest {
         // given representations s1_p1, s1_p2, s2_p1
 
         // when searching for schema s1
-        Response searchForSchemaResponse = representationSearchWebTarget.queryParam(ParamConstants.F_REP, "s1").request().get();
+        Response searchForSchemaResponse = representationSearchWebTarget.queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchForSchemaResponse.getStatus());
         List<Representation> s1Representations = searchForSchemaResponse.readEntity(new GenericType<List<Representation>>() {
         });
@@ -137,7 +137,7 @@ public class RepresentationSearchTest extends JerseyTest {
 
         // when searching for provider p1
         Response searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_PROVIDER, "p1")
-                .queryParam(ParamConstants.F_REP, "s1").request().get();
+                .queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchResponse.getStatus());
         List<Representation> foundRepresenations = searchResponse.readEntity(new GenericType<List<Representation>>() {
         });
@@ -162,7 +162,7 @@ public class RepresentationSearchTest extends JerseyTest {
         assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
 
         searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_DATASET, "p1")
-                .queryParam(ParamConstants.F_REP, "s1").request().get();
+                .queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
     }
 
@@ -170,7 +170,7 @@ public class RepresentationSearchTest extends JerseyTest {
     @SuppressWarnings("unused")
     private List<Map<String, String>> searchParams() {
         Map<String, String> allQueryParams = ImmutableMap.of(
-                ParamConstants.F_REP, "s1",
+                ParamConstants.F_SCHEMA, "s1",
                 ParamConstants.F_PROVIDER, "p1",
                 ParamConstants.F_DATASET, "ds");
         // all possible param configurations

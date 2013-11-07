@@ -13,12 +13,12 @@ import eu.europeana.cloud.common.model.Representation;
 class URITools {
 
 	static URI getAllVersionsUri(URI baseUri, String globalId,
-			String representationName) {
+			String schema) {
 		UriBuilder uriFromResource = UriBuilder
 				.fromResource(RepresentationVersionsResource.class);
 		setBaseUri(uriFromResource, baseUri);
 		return uriFromResource.buildFromMap(getRepresentationMap(globalId,
-				representationName));
+				schema));
 	}
 
 	private static void setBaseUri(UriBuilder uriFromResource, URI baseUri) {
@@ -27,34 +27,34 @@ class URITools {
 	}
 
 	static URI getVersionUri(URI baseUri, String globalId,
-			String representationName, String version) {
+			String schema, String version) {
 		UriBuilder uriFromResource = UriBuilder
 				.fromResource(RepresentationVersionResource.class);
 		setBaseUri(uriFromResource, baseUri);
 		return uriFromResource.buildFromMap(getVersionMap(globalId,
-				representationName, version));
+				schema, version));
 	}
 
-	static URI getVersionPath(String globalId, String representationName,
+	static URI getVersionPath(String globalId, String schema,
 			String version) {
 		return UriBuilder.fromResource(RepresentationVersionResource.class)
 				.buildFromMap(
-						getVersionMap(globalId, representationName, version));
+						getVersionMap(globalId, schema, version));
 	}
 
-	static URI getRepresentationPath(String globalId, String representationName) {
+	static URI getRepresentationPath(String globalId, String schema) {
 		return UriBuilder.fromResource(RepresentationResource.class)
 				.buildFromMap(
-						getRepresentationMap(globalId, representationName));
+						getRepresentationMap(globalId, schema));
 	}
 
 	static URI getContentUri(URI baseUri, String globalId,
-			String representationName, String version, String fileName) {
+			String schema, String version, String fileName) {
 		UriBuilder uriFromResource = UriBuilder
 				.fromResource(FileResource.class);
 		setBaseUri(uriFromResource, baseUri);
 		return uriFromResource.buildFromMap(getFileMap(globalId,
-				representationName, version, fileName));
+				schema, version, fileName));
 	}
 
 	static URI getRepresentationsPath(String globalId) {
@@ -62,20 +62,20 @@ class URITools {
 				.buildFromMap(getGlobalIdMap(globalId));
 	}
 
-	static Object getListVersionsPath(String globalId, String representationName) {
+	static Object getListVersionsPath(String globalId, String schema) {
 		return UriBuilder.fromResource(RepresentationVersionsResource.class)
 				.buildFromMap(
-						getRepresentationMap(globalId, representationName));
+						getRepresentationMap(globalId, schema));
 	}
 
 	static URI getPath(Class<RepresentationVersionResource> resourceClass,
-			String method, String globalId, String representationName,
+			String method, String globalId, String schema,
 			String version) {
 		return UriBuilder
 				.fromResource(resourceClass)
 				.path(resourceClass, method)
 				.buildFromMap(
-						getVersionMap(globalId, representationName, version));
+						getVersionMap(globalId, schema, version));
 	}
 
 	private static Map<String, String> getGlobalIdMap(String globalId) {
@@ -83,22 +83,22 @@ class URITools {
 	}
 
 	private static Map<String, String> getRepresentationMap(String globalId,
-			String representationName) {
+			String schema) {
 		return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId,
-				ParamConstants.P_REP, representationName);
+				ParamConstants.P_SCHEMA, schema);
 	}
 
 	private static Map<String, String> getVersionMap(String globalId,
-			String representationName, String version) {
+			String schema, String version) {
 		return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId,
-				ParamConstants.P_REP, representationName, ParamConstants.P_VER,
+				ParamConstants.P_SCHEMA, schema, ParamConstants.P_VER,
 				version);
 	}
 
 	private static Map<String, String> getFileMap(String globalId,
-			String representationName, String version, String fileName) {
+			String schema, String version, String fileName) {
 		return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId,
-				ParamConstants.P_REP, representationName, ParamConstants.P_VER,
+				ParamConstants.P_SCHEMA, schema, ParamConstants.P_VER,
 				version, ParamConstants.P_FILE, fileName);
 	}
 

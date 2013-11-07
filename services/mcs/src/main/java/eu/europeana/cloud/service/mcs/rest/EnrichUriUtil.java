@@ -28,13 +28,13 @@ final class EnrichUriUtil {
     static void enrich(UriInfo uriInfo, Representation representation) {
         URI allVersionsUri = UriBuilder.fromResource(RepresentationVersionsResource.class).buildFromMap(ImmutableMap.of(
                 P_GID, representation.getRecordId(),
-                P_REP, representation.getSchema()));
+                P_SCHEMA, representation.getSchema()));
         representation.setAllVersionsUri(uriInfo.resolve(allVersionsUri));
 
         if (representation.getVersion() != null) {
             URI latestVersionUri = UriBuilder.fromResource(RepresentationVersionResource.class).buildFromMap(ImmutableMap.of(
                     P_GID, representation.getRecordId(),
-                    P_REP, representation.getSchema(),
+                    P_SCHEMA, representation.getSchema(),
                     P_VER, representation.getVersion()));
             representation.setUri(uriInfo.resolve(latestVersionUri));
         }
@@ -54,7 +54,7 @@ final class EnrichUriUtil {
     static void enrich(UriInfo uriInfo, String recordId, String schema, String version, File file) {
         URI fileUri = UriBuilder.fromResource(FileResource.class).buildFromMap(ImmutableMap.of(
                 P_GID, recordId,
-                P_REP, schema,
+                P_SCHEMA, schema,
                 P_VER, version,
                 P_FILE, file.getFileName()));
         file.setContentUri(uriInfo.resolve(fileUri));

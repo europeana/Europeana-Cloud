@@ -87,7 +87,7 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value())
                 .resolveTemplates(ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, recordRepresentation.getRecordId(),
-                ParamConstants.P_REP, recordRepresentation.getSchema(),
+                ParamConstants.P_SCHEMA, recordRepresentation.getSchema(),
                 ParamConstants.P_VER, recordRepresentation.getVersion(),
                 ParamConstants.P_FILE, f.getFileName()));
 

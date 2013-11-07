@@ -63,7 +63,7 @@ public class FilesResourceTest extends JerseyTest {
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(
                 ParamConstants.P_GID, rep.getRecordId(),
-                ParamConstants.P_REP, rep.getSchema(),
+                ParamConstants.P_SCHEMA, rep.getSchema(),
                 ParamConstants.P_VER, rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }

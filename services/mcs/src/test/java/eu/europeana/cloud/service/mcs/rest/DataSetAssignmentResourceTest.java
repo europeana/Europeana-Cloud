@@ -89,7 +89,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
                 .resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
         Entity<Form> assinmentForm = Entity.form(
-                new Form(F_GID, rep2.getRecordId()).param(F_REP, rep2.getSchema()).param(F_VER, rep2.getVersion()));
+                new Form(F_GID, rep2.getRecordId()).param(F_SCHEMA, rep2.getSchema()).param(F_VER, rep2.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
 
         // then error should be returned
@@ -107,7 +107,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
                 .resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_REP, rep.getSchema()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_SCHEMA, rep.getSchema()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
@@ -128,7 +128,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
                 .resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_REP, rep.getSchema()).param(F_VER, rep.getVersion()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_SCHEMA, rep.getSchema()).param(F_VER, rep.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
@@ -151,7 +151,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
                 .resolveTemplate(P_DATASET, dataSet.getId());
         Response deleteAssignmentResponse = dataSetAssignmentWebTarget
                 .queryParam(F_GID, rep.getRecordId())
-                .queryParam(F_REP, rep.getSchema()).request().delete();
+                .queryParam(F_SCHEMA, rep.getSchema()).request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteAssignmentResponse.getStatus());
 
         // then there should be no representation in data set

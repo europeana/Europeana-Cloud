@@ -38,7 +38,7 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 /**
  * FilesResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REP + "}/versions/{" + P_VER + "}/files/{" + P_FILE + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}/files/{" + P_FILE + "}")
 @Component
 public class FileResource {
 
@@ -54,8 +54,8 @@ public class FileResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_REP)
-    private String representation;
+    @PathParam(P_SCHEMA)
+    private String schema;
 
     @PathParam(P_VER)
     private String version;
@@ -78,8 +78,8 @@ public class FileResource {
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        boolean isCreateOperation = recordService.putContent(globalId, representation, version, f, data);
-        EnrichUriUtil.enrich(uriInfo, globalId, representation, version, f);
+        boolean isCreateOperation = recordService.putContent(globalId, schema, version, f, data);
+        EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 
         Response.Status operationStatus = isCreateOperation ? Response.Status.CREATED : Response.Status.NO_CONTENT;
         return Response.status(operationStatus).location(f.getContentUri()).tag(f.getMd5()).build();
@@ -120,7 +120,7 @@ public class FileResource {
             status = Response.Status.PARTIAL_CONTENT;
         } else {
             status = Response.Status.OK;
-            final Representation rep = recordService.getRepresentation(globalId, representation, version);
+            final Representation rep = recordService.getRepresentation(globalId, schema, version);
             final File requestedFile = getByName(fileName, rep);
 
             if (requestedFile == null) {
@@ -134,7 +134,7 @@ public class FileResource {
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                recordService.getContent(globalId, representation, version, fileName, contentRange.start, contentRange.end, output);
+                recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end, output);
             }
         };
 
@@ -154,7 +154,7 @@ public class FileResource {
 
     @DELETE
     public Response deleteFile() {
-        recordService.deleteContent(globalId, representation, version, fileName);
+        recordService.deleteContent(globalId, schema, version, fileName);
         return Response.noContent().build();
     }
 

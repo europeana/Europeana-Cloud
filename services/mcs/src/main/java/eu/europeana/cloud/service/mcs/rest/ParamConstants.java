@@ -21,7 +21,7 @@ public interface ParamConstants {
     // path parameters' names
     static final String P_GID = "ID";
 
-    static final String P_REP = "REPRESENTATION";
+    static final String P_SCHEMA = "SCHEMA";
 
     static final String P_VER = "VERSION";
 
@@ -40,7 +40,7 @@ public interface ParamConstants {
 
     static final String F_GID = "recordId";
 
-    static final String F_REP = "representation";
+    static final String F_SCHEMA = "schema";
 
     static final String F_VER = "version";
 

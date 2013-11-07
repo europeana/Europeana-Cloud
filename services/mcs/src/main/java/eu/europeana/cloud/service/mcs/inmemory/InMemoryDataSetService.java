@@ -52,18 +52,18 @@ public class InMemoryDataSetService implements DataSetService {
 
 
     @Override
-    public void addAssignment(String providerId, String dataSetId, String recordId, String representationName, String version)
+    public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
         // just to check if such representation does exist
-        recordDAO.getRepresentation(recordId, representationName, version);
-        dataSetDAO.addAssignment(providerId, dataSetId, recordId, representationName, version);
+        recordDAO.getRepresentation(recordId, schema, version);
+        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
     }
 
 
     @Override
-    public void removeAssignment(String providerId, String dataSetId, String recordId, String representationName)
+    public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
             throws DataSetNotExistsException {
-        dataSetDAO.removeAssignment(providerId, dataSetId, recordId, representationName);
+        dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
     }
 
 
