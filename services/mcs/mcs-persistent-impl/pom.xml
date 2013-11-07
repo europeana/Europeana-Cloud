@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>eu.europeana.cloud</groupId>
+		<artifactId>ecloud-service-mcs</artifactId>
+		<version>0.1-SNAPSHOT</version>		
+	</parent>
+
+	<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+	<packaging>jar</packaging>
+	<name>Europeana Cloud: Metadata and Content Service Persistent Implementation</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-mcs-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<scope>compile</scope>
+			<exclusions>
+				<!--without jcl - because we use log4j through slf4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
+			<version>2.0.0-beta2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+			<version>${version.spring-framework}</version>
+			<exclusions>
+				<!--without jcl - because we use log4j through slf4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!--logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+
+	</dependencies>
+
+
+</project>
