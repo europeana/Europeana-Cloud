@@ -33,10 +33,12 @@ import org.springframework.context.ApplicationContext;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
@@ -46,7 +48,9 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
  */
 public class FilesResourceTest extends JerseyTest {
 
-    private static RecordService recordService;
+    private RecordService recordService;
+
+    private DataProviderService providerService;
 
     private Representation rep;
 
@@ -59,7 +63,9 @@ public class FilesResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
+        providerService = applicationContext.getBean(DataProviderService.class);
 
+        providerService.createProvider("1", new DataProviderProperties());
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");
@@ -75,6 +81,7 @@ public class FilesResourceTest extends JerseyTest {
 
     @After
     public void cleanUp() {
+        providerService.deleteProvider("1");
         recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
     }
 

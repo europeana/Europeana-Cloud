@@ -38,6 +38,9 @@ public class InMemoryRecordService implements RecordService {
     @Autowired
     private InMemoryDataSetDAO dataSetDAO;
 
+    @Autowired
+    private InMemoryDataProviderDAO dataProviderDAO;
+
 
     @Override
     public Record getRecord(String globalId)
@@ -76,6 +79,7 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
+        dataProviderDAO.getProvider(providerId);
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
 
