@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
@@ -25,7 +23,6 @@ import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
-import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -37,7 +34,6 @@ import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import junitparams.JUnitParamsRunner;
-import static junitparams.JUnitParamsRunner.$;
 import junitparams.Parameters;
 
 /**

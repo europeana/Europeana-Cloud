@@ -4,7 +4,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_GID;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 
 /**

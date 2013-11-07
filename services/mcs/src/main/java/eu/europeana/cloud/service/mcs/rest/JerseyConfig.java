@@ -6,7 +6,6 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileAlreadyExistsExceptionMapper;

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -9,7 +8,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;

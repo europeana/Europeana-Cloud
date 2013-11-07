@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.GET;

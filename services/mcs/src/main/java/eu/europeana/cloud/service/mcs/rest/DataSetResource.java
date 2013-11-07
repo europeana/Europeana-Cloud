@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
-import eu.europeana.cloud.service.mcs.DataProviderService;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
