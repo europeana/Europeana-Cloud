@@ -1,25 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
-		<artifactId>ecloud-parent</artifactId>
+		<artifactId>ecloud-service-uis</artifactId>
 		<version>0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>ecloud-service-uis</artifactId>
-	<packaging>pom</packaging>
+	<artifactId>ecloud-service-uis-api</artifactId>
+	<packaging>jar</packaging>
 
-	<name>Europeana Cloud: Unique Identifier Service</name>
+	<name>Europeana Cloud: Unique Identifier Service API</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	<modules>
-		<module>ecloud-service-uis-api</module>
-		<module>ecloud-service-uis-inmemory</module>
-		<module>ecloud-service-uis-persistent</module>
-		<module>ecloud-service-uis-rest</module>
-	</modules>
+	
+	<dependencies>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>
