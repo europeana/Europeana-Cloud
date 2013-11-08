@@ -29,13 +29,14 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	private String host;
 	private String keyspace;
-	
+	private String port;
 	
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,LocalIdDao localIdDao){
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
 		this.host = cloudIdDao.getHost();
 		this.keyspace = cloudIdDao.getKeyspace();
+		this.port = cloudIdDao.getPort();
 	}
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
@@ -186,6 +187,10 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	@Override
 	public String getKeyspace() {
 		return this.keyspace;
+	}
+	@Override
+	public String getPort() {
+		return this.port;
 	}
 
 }

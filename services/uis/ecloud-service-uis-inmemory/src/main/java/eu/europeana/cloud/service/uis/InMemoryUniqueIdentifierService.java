@@ -223,4 +223,9 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	public String getKeyspace() {
 		return "testkeyspace";
 	}
+
+	@Override
+	public String getPort() {
+		return "testport";
+	}
 }

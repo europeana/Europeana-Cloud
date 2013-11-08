@@ -135,4 +135,6 @@ public interface UniqueIdentifierService {
      */
     String getKeyspace();
     
+    String getPort();
+    
 }

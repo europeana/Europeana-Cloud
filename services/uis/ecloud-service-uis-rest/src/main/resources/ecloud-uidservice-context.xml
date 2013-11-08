@@ -13,13 +13,20 @@
 		<constructor-arg name="localIdDao" ref="localIdDao"/>
 		</bean>
 	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
-		<constructor-arg name="host" value="localhost"/>
-		<constructor-arg name="keyspaceName" value="uis"/>
+		<constructor-arg name="dbService" ref="dbService"/>
 	</bean>
+	
 	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.database.dao.LocalIdDao">
+		<constructor-arg name="dbService" ref="dbService"/>
+	</bean>
+	
+	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
 		<constructor-arg name="host" value="localhost"/>
+		<constructor-arg name="port" value="9160"/>
 		<constructor-arg name="keyspaceName" value="uis"/>
 	</bean>
+	
+	
 	<bean id="uniqueIdResource"
 		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />
 </beans>

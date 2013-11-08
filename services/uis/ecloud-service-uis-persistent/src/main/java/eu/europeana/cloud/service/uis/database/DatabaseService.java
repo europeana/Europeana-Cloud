@@ -12,13 +12,16 @@ import com.datastax.driver.core.Session;
 public class DatabaseService {
 
 	private Cluster cluster;
-	private static Session session;
-
-	private DatabaseService(String host, String keyspaceName) {
-		if (cluster == null && cluster.getMetadata().getAllHosts().contains(host)) {
-			cluster = new Cluster.Builder().addContactPoints(host).build();
-
-		}
+	private Session session;
+	private String host;
+	private String port;
+	private String keyspaceName;
+	
+	public DatabaseService(String host, String port, String keyspaceName) {
+		this.host = host;
+		this.port=port;
+		this.keyspaceName = keyspaceName;
+		cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
 		session = cluster.connect(keyspaceName);
 	}
 
@@ -32,9 +35,20 @@ public class DatabaseService {
 	 *            The keyspace to connect to
 	 * @return A session to a Cassandra connection
 	 */
-	public static Session getSession(String host, String keyspaceName) {
-		new DatabaseService(host, keyspaceName);
-		return session;
+	public Session getSession() {
+		return this.session;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public String getPort() {
+		return port;
+	}
+
+	public String getKeyspaceName() {
+		return keyspaceName;
 	}
 
 }

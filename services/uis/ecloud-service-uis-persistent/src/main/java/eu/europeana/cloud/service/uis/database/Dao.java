@@ -63,4 +63,6 @@ public interface Dao <T , V extends List<T>>{
 	 * @return The keyspace of the database
 	 */
 	String getKeyspace();
+	
+	String getPort();
 }

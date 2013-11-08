@@ -24,20 +24,24 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private String host;
 	private String keyspaceName;
+	private String port;
+	private DatabaseService dbService;
 	private static String insertStatement = "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)";
 	private static String searchStatement = "SELECT * FROM Cloud_Id WHERE cloud_id=? AND deleted=?";
 	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=?";
 	
-	public CloudIdDao(String host, String keyspaceName){
-		this.host = host;
-		this.keyspaceName = keyspaceName;
+	public CloudIdDao(DatabaseService service){
+		this.dbService = service;
+		this.host = service.getHost();
+		this.port = service.getPort();
+		this.keyspaceName = service.getKeyspaceName();
 	}
 	
 	@Override
 	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(searchStatement);
-			ResultSet rs = DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], deleted));
+			PreparedStatement statement = dbService.getSession().prepare(searchStatement);
+			ResultSet rs = dbService.getSession().execute(statement.bind(args[0], deleted));
 			if (!rs.iterator().hasNext()) {
 				throw new GlobalIdDoesNotExistException();
 			}
@@ -70,8 +74,8 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(insertStatement);
-			DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], args[1], args[2]));
+			PreparedStatement statement = dbService.getSession().prepare(insertStatement);
+			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
@@ -81,8 +85,8 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public void delete(String... args) throws DatabaseConnectionException {
 		try{
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(deleteStatement);
-			DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0]));
+			PreparedStatement statement = dbService.getSession().prepare(deleteStatement);
+			dbService.getSession().execute(statement.bind(args[0]));
 		} catch (NoHostAvailableException e){
 			throw new DatabaseConnectionException();
 		}
@@ -101,6 +105,11 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public String getKeyspace() {
 		return keyspaceName;
+	}
+
+	@Override
+	public String getPort() {
+		return this.port;
 	}
 
 	

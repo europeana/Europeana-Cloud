@@ -23,17 +23,22 @@ import eu.europeana.cloud.service.uis.database.DatabaseService;
 public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private String host;
+	private String port;
 	private String keyspaceName;
-
-	private static String insertStatement = "INSERT INTO Provider_Record_Id(provider_id,record_id,cloud_id,deleted) VALUES(?,?,?,false)";
+	private DatabaseService dbService;
+	private static String insertStatement = "INSERT INTO Provider_Record_Id(provider_id,record_id,cloud_id,deleted,pagination_index) VALUES(?,?,?,false,?)";
 	private static String deleteStatement = "UPDATE Provider_Record_Id SET deleted=true WHERE provider_id=? AND record_Id=?";
 	private static String updateStatement = "UPDATE Provider_Record_Id SET cloud_id=? where provider_id=? AND record_Id=? AND deleted=false";
 	private static String searchByProviderStatement = "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ?";
 	private static String searchByRecordIdStatement = "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=?";
-
-	public LocalIdDao(String host, String keyspaceName) {
-		this.host = host;
-		this.keyspaceName = keyspaceName;
+	private static String searchByProviderPaginatedStatement = "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? AND pagination_index>=? LIMIT ?";
+	private static String countAllStatement = "SELECT COUNT(*) FROM Provider_Record_Id where provider_Id = ?";
+	
+	public LocalIdDao(DatabaseService service) {
+		this.dbService = service;
+		this.host = dbService.getHost();
+		this.port = dbService.getPort();
+		this.keyspaceName = dbService.getKeyspaceName();
 	}
 
 	@Override
@@ -43,44 +48,46 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			PreparedStatement statement = null;
 			ResultSet rs = null;
 			if (args.length == 1) {
-				statement = DatabaseService.getSession(host, keyspaceName).prepare(searchByProviderStatement);
-				rs = DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0],deleted));
+				statement = dbService.getSession().prepare(searchByProviderStatement);
+				rs = dbService.getSession().execute(statement.bind(args[0],deleted));
 				
 			} else if (args.length == 2) {
-				statement = DatabaseService.getSession(host, keyspaceName).prepare(searchByRecordIdStatement);
-				rs = DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], args[1],deleted));
+				statement = dbService.getSession().prepare(searchByRecordIdStatement);
+				rs = dbService.getSession().execute(statement.bind(args[0], args[1],deleted));
 				
 			}
-
-			List<CloudId> cloudIds = new ArrayList<>();
 			while (!rs.isFullyFetched()) {
 				rs.fetchMoreResults();
 			}
-			for (Row row : rs.all()) {
-				LocalId lId = new LocalId();
-				lId.setProviderId(row.getString("provider_Id"));
-				lId.setRecordId(row.getString("record_Id"));
-				CloudId cloudId = new CloudId();
-				cloudId.setId(row.getString("cloud_id"));
-				cloudId.setLocalId(lId);
-				cloudIds.add(cloudId);
-			}
-			return cloudIds;
+			return createCloudIdsFromRs(rs);
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
 	}
+
 
 	@Override
 	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException {
 		return searchById(false, args[0]);
 	}
 
+	public List<CloudId> searchActiveWithPagination(int start, int end, String... args){
+		PreparedStatement statement = dbService.getSession().prepare(searchByProviderPaginatedStatement);
+		ResultSet rs = dbService.getSession().execute(statement.bind(args[0], args[1], Integer.parseInt(args[2])-Integer.parseInt(args[1]),false));
+		while (!rs.isFullyFetched()) {
+			rs.fetchMoreResults();
+		}
+		return createCloudIdsFromRs(rs);
+	}
+	
 	@Override
 	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(insertStatement);
-			DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], args[1], args[2]));
+			PreparedStatement stmt = dbService.getSession().prepare(countAllStatement);
+			ResultSet rs = dbService.getSession().execute(stmt.bind(args[0]));
+			long count = rs.one().getLong("count");
+			PreparedStatement statement = dbService.getSession().prepare(insertStatement);
+			dbService.getSession().execute(statement.bind(args[0], args[1], args[2],count+1));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
@@ -90,8 +97,8 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public void delete(String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(deleteStatement);
-			DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], args[1]));
+			PreparedStatement statement = dbService.getSession().prepare(deleteStatement);
+			dbService.getSession().execute(statement.bind(args[0], args[1]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
@@ -100,8 +107,8 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public void update(String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = DatabaseService.getSession(host, keyspaceName).prepare(updateStatement);
-			DatabaseService.getSession(host, keyspaceName).execute(statement.bind(args[0], args[1], args[2]));
+			PreparedStatement statement =dbService.getSession().prepare(updateStatement);
+			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
@@ -117,4 +124,22 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		return keyspaceName;
 	}
 
+	private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
+		List<CloudId> cloudIds = new ArrayList<>();
+		for (Row row : rs.all()) {
+			LocalId lId = new LocalId();
+			lId.setProviderId(row.getString("provider_Id"));
+			lId.setRecordId(row.getString("record_Id"));
+			CloudId cloudId = new CloudId();
+			cloudId.setId(row.getString("cloud_id"));
+			cloudId.setLocalId(lId);
+			cloudIds.add(cloudId);
+		}
+		return cloudIds;
+	}
+
+	@Override
+	public String getPort() {
+		return this.port;
+	}
 }
