@@ -51,4 +51,16 @@ public interface Dao <T , V extends List<T>>{
 	 * @throws DatabaseConnectionException
 	 */
 	void update(String... args) throws DatabaseConnectionException;
+	
+	/**
+	 * Expose the host the of the database
+	 * @return The host IP of the database
+	 */
+	String getHost();
+	
+	/**
+	 * Expose the name of the keyspace the database 
+	 * @return The keyspace of the database
+	 */
+	String getKeyspace();
 }

@@ -67,11 +67,9 @@ public interface UniqueIdentifierService {
      * @return A list of recordIds for a provider bound to 10000 results
      * @throws DatabaseConnectionException
      * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
      */
     List<LocalId> getLocalIdsByProvider(String providerId, int start, int end)
-            throws DatabaseConnectionException, ProviderDoesNotExistException,
-            RecordDatasetEmptyException;
+            throws DatabaseConnectionException, ProviderDoesNotExistException;
 
     /**
      * Retrieve the globalIds for a given provider, supporting pagination. If no pagination is
@@ -96,14 +94,11 @@ public interface UniqueIdentifierService {
      * @param providerId
      * @param recordId
      * @throws DatabaseConnectionException
-     * @throws ProviderDoesNotExistException
      * @throws GlobalIdDoesNotExistException
-     * @throws RecordIdDoesNotExistException
      * @throws IdHasBeenMappedException
      */
     void createIdMapping(String globalId, String providerId, String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException,
-            GlobalIdDoesNotExistException, RecordIdDoesNotExistException, IdHasBeenMappedException;
+            throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException;
 
     /**
      * Remove the mapping between the providerId/recordId and the global identifier The mapping is
@@ -127,4 +122,17 @@ public interface UniqueIdentifierService {
      */
     void deleteGlobalId(String globalId) throws DatabaseConnectionException,
             GlobalIdDoesNotExistException;
+    
+    /**
+     * Expose information about the database host entry;
+     * @return The host IP
+     */
+    String getHost();
+    
+    /**
+     * Expose information about the keyspaceName
+     * @return The keyspace name
+     */
+    String getKeyspace();
+    
 }

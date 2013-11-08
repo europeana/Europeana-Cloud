@@ -13,10 +13,13 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
-import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.database.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
-
+/**
+ * Dao providing access to the search based on record id and provider id operations 
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private String host;
@@ -102,6 +105,16 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();
 		}
+	}
+
+	@Override
+	public String getHost() {
+		return host;
+	}
+
+	@Override
+	public String getKeyspace() {
+		return keyspaceName;
 	}
 
 }

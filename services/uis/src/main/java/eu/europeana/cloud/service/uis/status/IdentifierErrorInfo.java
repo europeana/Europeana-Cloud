@@ -7,7 +7,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 /**
  * Status Messages returned by all methods
  * 
- * @author Yorgos.Mamakis@kb.nl
+ * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 22, 2013
  */
 public enum IdentifierErrorInfo {
@@ -34,8 +34,8 @@ public enum IdentifierErrorInfo {
         @Override
         public ErrorInfo getErrorInfo(String... args) {
             return new ErrorInfo("DATABASE_CONNECTION_ERROR", String.format(
-                    "The connection to the DB %s:%s/%s failed with error %s", args[0], args[1],
-                    args[2], args[3]));
+                    "The connection to the DB %s/%s failed with error %s", args[0], args[1],
+                    args[2]));
         }
         
         @Override

@@ -15,6 +15,11 @@ import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.database.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 
+/**
+ * Dao providing access to database operations on Cloud id database
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private String host;
@@ -88,4 +93,15 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		throw new UnsupportedOperationException("This method is not implemented for the Cloud Id");
 	}
 
+	@Override
+	public String getHost() {
+		return host;
+	}
+
+	@Override
+	public String getKeyspace() {
+		return keyspaceName;
+	}
+
+	
 }

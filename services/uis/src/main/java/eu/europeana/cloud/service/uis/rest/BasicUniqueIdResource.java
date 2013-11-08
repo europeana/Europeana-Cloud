@@ -40,24 +40,16 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("createRecordId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response createGlobalId(@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
+	public Response createGlobalId(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
 		try {
-			return Response.ok().entity(
-					uniqueIdentifierService
-							.createGlobalId(providerId, recordId)).build();
+			return Response.ok().entity(uniqueIdentifierService.createGlobalId(providerId, recordId)).build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 
 		} catch (RecordExistsException e) {
-			return Response
-					.status(IdentifierErrorInfo.RECORD_EXISTS.getHttpCode())
-					.entity(IdentifierErrorInfo.RECORD_EXISTS.getErrorInfo(
-							providerId, recordId)).build();
+			return Response.status(IdentifierErrorInfo.RECORD_EXISTS.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORD_EXISTS.getErrorInfo(providerId, recordId)).build();
 		}
 	}
 
@@ -65,25 +57,16 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getGlobalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getGlobalId(@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
+	public Response getGlobalId(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
 		try {
-			return Response.ok(
-					uniqueIdentifierService.getGlobalId(providerId, recordId))
-					.build();
+			return Response.ok(uniqueIdentifierService.getGlobalId(providerId, recordId)).build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (RecordDoesNotExistException e) {
 
-			return Response
-					.status(IdentifierErrorInfo.RECORD_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.RECORD_DOES_NOT_EXIST
-							.getErrorInfo(providerId, recordId)).build();
+			return Response.status(IdentifierErrorInfo.RECORD_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)).build();
 		}
 	}
 
@@ -94,21 +77,14 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	public Response getLocalIds(@QueryParam("globalId") String globalId) {
 		try {
 			LocalIdList pList = new LocalIdList();
-			pList.setList(uniqueIdentifierService
-					.getLocalIdsByGlobalId(globalId));
+			pList.setList(uniqueIdentifierService.getLocalIdsByGlobalId(globalId));
 			return Response.ok(pList).build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (GlobalIdDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getErrorInfo(globalId)).build();
+			return Response.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo(globalId)).build();
 		}
 	}
 
@@ -116,32 +92,21 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getLocalIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getLocalIdsByProvider(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start,
-			@QueryParam("to") @DefaultValue("10000") int to) {
+	public Response getLocalIdsByProvider(@QueryParam("providerId") String providerId,
+			@QueryParam("start") @DefaultValue("0") int start, @QueryParam("to") @DefaultValue("10000") int to) {
 		try {
 			LocalIdList pList = new LocalIdList();
-			pList.setList(uniqueIdentifierService.getLocalIdsByProvider(
-					providerId, start, to));
+			pList.setList(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
 			return Response.ok(pList).build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (ProviderDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getErrorInfo(providerId)).build();
+			return Response.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)).build();
 		} catch (RecordDatasetEmptyException e) {
-			return Response
-					.status(IdentifierErrorInfo.RECORDSET_EMPTY.getHttpCode())
-					.entity(IdentifierErrorInfo.RECORDSET_EMPTY
-							.getErrorInfo(providerId)).build();
+			return Response.status(IdentifierErrorInfo.RECORDSET_EMPTY.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORDSET_EMPTY.getErrorInfo(providerId)).build();
 		}
 
 	}
@@ -150,27 +115,21 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getGlobalIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getGlobalIdsByProvider(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start,
-			@QueryParam("to") @DefaultValue("10000") int to) {
+	public Response getGlobalIdsByProvider(@QueryParam("providerId") String providerId,
+			@QueryParam("start") @DefaultValue("0") int start, @QueryParam("to") @DefaultValue("10000") int to) {
 		try {
 			CloudIdList gList = new CloudIdList();
-			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(
-					providerId, start, to));
+			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(providerId, start, to));
 			return Response.ok(gList).build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (ProviderDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getErrorInfo(providerId)).build();
+			return Response.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)).build();
+		} catch(RecordDatasetEmptyException e){
+			return Response.status(IdentifierErrorInfo.RECORDSET_EMPTY.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORDSET_EMPTY.getErrorInfo(providerId)).build();
 		}
 	}
 
@@ -179,43 +138,26 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response createIdMapping(@QueryParam("globalId") String globalId,
-			@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
+			@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
 		try {
-			uniqueIdentifierService.createIdMapping(globalId, providerId,
-					recordId);
+			uniqueIdentifierService.createIdMapping(globalId, providerId, recordId);
 			return Response.ok("Mapping created succesfully").build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (ProviderDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getErrorInfo(providerId)).build();
+			return Response.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)).build();
 		} catch (GlobalIdDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getErrorInfo(globalId)).build();
+			return Response.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo(globalId)).build();
 		} catch (IdHasBeenMappedException e) {
-			return Response
-					.status(IdentifierErrorInfo.ID_HAS_BEEN_MAPPED
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.ID_HAS_BEEN_MAPPED
-							.getErrorInfo(recordId, providerId, globalId))
+			return Response.status(IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getHttpCode())
+					.entity(IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getErrorInfo(recordId, providerId, globalId))
 					.build();
 		} catch (RecordIdDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST
-							.getErrorInfo(recordId)).build();
+			return Response.status(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST.getErrorInfo(recordId)).build();
 		}
 	}
 
@@ -223,30 +165,19 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("removeMappingByLocalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response removeIdMapping(
-			@QueryParam("providerId") String providerId,
-			@QueryParam("recordId") String recordId) {
+	public Response removeIdMapping(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
 		try {
 			uniqueIdentifierService.removeIdMapping(providerId, recordId);
 			return Response.ok("Mapping marked as deleted").build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (ProviderDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST
-							.getErrorInfo(providerId)).build();
+			return Response.status(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)).build();
 		} catch (RecordIdDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST
-							.getErrorInfo(recordId)).build();
+			return Response.status(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORDID_DOES_NOT_EXIST.getErrorInfo(recordId)).build();
 		}
 	}
 
@@ -259,17 +190,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 			uniqueIdentifierService.deleteGlobalId(globalId);
 			return Response.ok("GlobalId marked as deleted").build();
 		} catch (DatabaseConnectionException e) {
-			return Response
-					.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR
-							.getErrorInfo("", "", "", e.getMessage())).build();
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
 		} catch (GlobalIdDoesNotExistException e) {
-			return Response
-					.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getHttpCode())
-					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST
-							.getErrorInfo(globalId)).build();
+			return Response.status(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getHttpCode())
+					.entity(IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo(globalId)).build();
 		}
 	}
 }

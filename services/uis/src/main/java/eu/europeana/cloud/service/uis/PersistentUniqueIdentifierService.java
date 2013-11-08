@@ -26,9 +26,15 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	private CloudIdDao cloudIdDao;
 	private LocalIdDao localIdDao;
 
+	private String host;
+	private String keyspace;
+	
+	
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,LocalIdDao localIdDao){
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
+		this.host = cloudIdDao.getHost();
+		this.keyspace = cloudIdDao.getKeyspace();
 	}
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
@@ -48,6 +54,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			cloudId.setLocalId(lId);
 			return cloudId;
 		} catch (DatabaseConnectionException e) {
+			
 			throw e;
 		}
 	}
@@ -93,6 +100,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		try {
 			List<CloudId> cloudIds = localIdDao.searchActive(providerId);
+			
 			List<LocalId> localIds = new ArrayList<>();
 			for (CloudId cloudId : cloudIds) {
 				localIds.add(cloudId.getLocalId());
@@ -102,9 +110,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			throw e;
 		} catch (ProviderDoesNotExistException e) {
 			throw e;
-		} catch (RecordDatasetEmptyException e) {
-			throw e;
-		}
+		} 
 	}
 
 	@Override
@@ -124,8 +130,8 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public void createIdMapping(String globalId, String providerId, String recordId)
-			throws DatabaseConnectionException, ProviderDoesNotExistException, GlobalIdDoesNotExistException,
-			RecordIdDoesNotExistException, IdHasBeenMappedException {
+			throws DatabaseConnectionException, GlobalIdDoesNotExistException,
+			 IdHasBeenMappedException {
 		try {
 			List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 			if (localIds.size() == 0) {
@@ -140,11 +146,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			cloudIdDao.insert(id, providerId, recordId);
 		} catch (DatabaseConnectionException e) {
 			throw e;
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
-		} catch (RecordIdDoesNotExistException e) {
-			throw e;
-		}
+		} 
 
 	}
 
@@ -174,6 +176,15 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 		} catch (DatabaseConnectionException e) {
 			throw e;
 		}
+	}
+	
+	@Override
+	public String getHost() {
+		return this.host;
+	}
+	@Override
+	public String getKeyspace() {
+		return this.keyspace;
 	}
 
 }
