@@ -93,7 +93,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getLocalIdsByProvider(@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start, @QueryParam("to") @DefaultValue("10000") int to) {
+			@QueryParam("start") String start, @QueryParam("to") @DefaultValue("10000") int to) {
 		try {
 			LocalIdList pList = new LocalIdList();
 			pList.setList(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
@@ -116,7 +116,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getGlobalIdsByProvider(@QueryParam("providerId") String providerId,
-			@QueryParam("start") @DefaultValue("0") int start, @QueryParam("to") @DefaultValue("10000") int to) {
+			@QueryParam("start") String start, @QueryParam("to") @DefaultValue("10000") int to) {
 		try {
 			CloudIdList gList = new CloudIdList();
 			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(providerId, start, to));

@@ -12,7 +12,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.database.Dao;
+import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 
 /**
@@ -28,13 +28,14 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	private DatabaseService dbService;
 	private static String insertStatement = "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)";
 	private static String searchStatement = "SELECT * FROM Cloud_Id WHERE cloud_id=? AND deleted=?";
-	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=?";
+	private static String searchStatementNonActive = "SELECT * FROM Cloud_Id WHERE cloud_id=?";
+	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?";
 	
-	public CloudIdDao(DatabaseService service){
-		this.dbService = service;
-		this.host = service.getHost();
-		this.port = service.getPort();
-		this.keyspaceName = service.getKeyspaceName();
+	public CloudIdDao(DatabaseService dbService){
+		this.dbService = dbService;
+		this.host = dbService.getHost();
+		this.port = dbService.getPort();
+		this.keyspaceName = dbService.getKeyspaceName();
 	}
 	
 	@Override
@@ -71,6 +72,23 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		return searchById(false, args[0]);
 	}
 
+	public List<CloudId> search(String args) throws DatabaseConnectionException {
+		PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
+		ResultSet rs = dbService.getSession().execute(statement.bind(args));
+		List<Row> results = rs.all();
+		List<CloudId> cloudIds = new ArrayList<>();
+		for (Row row : results) {
+			CloudId cId = new CloudId();
+			cId.setId(args);
+			LocalId lId = new LocalId();
+			lId.setProviderId(row.getString("provider_Id"));
+			lId.setRecordId(row.getString("record_Id"));
+			cId.setLocalId(lId);
+			cloudIds.add(cId);
+		}
+		return cloudIds;
+	}
+	
 	@Override
 	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
 		try {
@@ -86,7 +104,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	public void delete(String... args) throws DatabaseConnectionException {
 		try{
 			PreparedStatement statement = dbService.getSession().prepare(deleteStatement);
-			dbService.getSession().execute(statement.bind(args[0]));
+			dbService.getSession().execute(statement.bind(args[0],args[1],args[2]));
 		} catch (NoHostAvailableException e){
 			throw new DatabaseConnectionException();
 		}

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.database;
+package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 

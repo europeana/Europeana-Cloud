@@ -23,21 +23,21 @@ import eu.europeana.cloud.service.uis.encoder.Base36;
 @Service
 public class PersistentUniqueIdentifierService implements UniqueIdentifierService {
 
-	
 	private CloudIdDao cloudIdDao;
 	private LocalIdDao localIdDao;
 
 	private String host;
 	private String keyspace;
 	private String port;
-	
-	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,LocalIdDao localIdDao){
+
+	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao, LocalIdDao localIdDao) {
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
 		this.host = cloudIdDao.getHost();
 		this.keyspace = cloudIdDao.getKeyspace();
 		this.port = cloudIdDao.getPort();
 	}
+
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordExistsException {
@@ -47,7 +47,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			}
 			String id = Base36.encode("/" + providerId + "/" + recordId);
 			List<CloudId> cloudIds = cloudIdDao.insert(id, providerId, recordId);
-			localIdDao.insert(providerId,recordId,id);
+			localIdDao.insert(providerId, recordId, id);
 			CloudId cloudId = new CloudId();
 			cloudId.setId(cloudIds.get(0).getId());
 			LocalId lId = new LocalId();
@@ -56,7 +56,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			cloudId.setLocalId(lId);
 			return cloudId;
 		} catch (DatabaseConnectionException e) {
-			
+
 			throw e;
 		}
 	}
@@ -98,11 +98,16 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByProvider(String providerId, int start, int end)
+	public List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		try {
-			List<CloudId> cloudIds = localIdDao.searchActive(providerId);
 			
+			List<CloudId> cloudIds = null;
+			if(start==null){
+				cloudIds = localIdDao.searchActive(providerId);
+			} else {
+				cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
+			}
 			List<LocalId> localIds = new ArrayList<>();
 			for (CloudId cloudId : cloudIds) {
 				localIds.add(cloudId.getLocalId());
@@ -112,14 +117,19 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			throw e;
 		} catch (ProviderDoesNotExistException e) {
 			throw e;
-		} 
+		}
 	}
 
 	@Override
-	public List<CloudId> getGlobalIdsByProvider(String providerId, int start, int end)
+	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		try {
-			return localIdDao.searchActive(providerId);
+			
+			if(start==null){
+				return localIdDao.searchActive(providerId);
+			} else {
+				return localIdDao.searchActiveWithPagination(start, end, providerId);
+			}
 
 		} catch (DatabaseConnectionException e) {
 			throw e;
@@ -132,11 +142,10 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public void createIdMapping(String globalId, String providerId, String recordId)
-			throws DatabaseConnectionException, GlobalIdDoesNotExistException,
-			 IdHasBeenMappedException {
+			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException {
 		try {
 			List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
-			if (localIds.size() == 0) {
+			if (localIds.size() != 0) {
 				throw new IdHasBeenMappedException();
 			}
 			List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
@@ -144,11 +153,11 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 				throw new GlobalIdDoesNotExistException();
 			}
 			String id = Base36.encode("/" + providerId + "/" + recordId);
-			localIdDao.insert(providerId,recordId,id);
+			localIdDao.insert(providerId, recordId, id);
 			cloudIdDao.insert(id, providerId, recordId);
 		} catch (DatabaseConnectionException e) {
 			throw e;
-		} 
+		}
 
 	}
 
@@ -156,7 +165,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordIdDoesNotExistException {
 		try {
-			localIdDao.delete(providerId,recordId);
+			localIdDao.delete(providerId, recordId);
 		} catch (DatabaseConnectionException e) {
 			throw e;
 		} catch (ProviderDoesNotExistException e) {
@@ -173,21 +182,26 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
 				throw new GlobalIdDoesNotExistException();
 			}
-			cloudIdDao.delete(globalId);
-			//TODO synchronize with the localIdDao
+			List<CloudId> localIds = cloudIdDao.search(globalId);
+			for (CloudId cId : localIds) {
+				localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+				cloudIdDao.delete(globalId,cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+			}
 		} catch (DatabaseConnectionException e) {
 			throw e;
 		}
 	}
-	
+
 	@Override
 	public String getHost() {
 		return this.host;
 	}
+
 	@Override
 	public String getKeyspace() {
 		return this.keyspace;
 	}
+
 	@Override
 	public String getPort() {
 		return this.port;

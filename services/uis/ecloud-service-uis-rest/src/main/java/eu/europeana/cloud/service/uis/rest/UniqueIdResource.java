@@ -44,7 +44,7 @@ public interface UniqueIdResource {
      * @param to
      * @return JSON/XML response with the list of local ids of that provider or Error Message
      */
-    Response getLocalIdsByProvider(String providerId, int start, int to);
+    Response getLocalIdsByProvider(String providerId, String start, int to);
 
     /**
      * Invoke the retrieval of all unique identifiers for a giver provider HTTP call: GET
@@ -54,7 +54,7 @@ public interface UniqueIdResource {
      * @param to
      * @return JSON/XML response with the list of unique ids of that provider or Error Message
      */
-    Response getGlobalIdsByProvider(String providerId, int start, int to);
+    Response getGlobalIdsByProvider(String providerId, String start, int to);
 
     /**
      * Create the mapping between an existing unique identifier and a providerId/recordId combo HTTP

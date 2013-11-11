@@ -61,7 +61,7 @@ public class Base36 {
 	private static String convertToNum(String str) {
 		StringBuffer sb = new StringBuffer();
 		for (char c : str.toCharArray()) {
-			sb.append((c - 32 + "000"));
+			sb.append((c - 32));
 		}
 		return sb.toString();
 	}

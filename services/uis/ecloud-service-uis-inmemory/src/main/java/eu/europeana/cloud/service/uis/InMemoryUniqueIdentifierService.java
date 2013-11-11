@@ -120,42 +120,42 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByProvider(String providerId, int start, int end)
+	public List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException {
 		if (providerLocalIds.containsKey(providerId)) {
 
-			List<LocalId> providers = new ArrayList<>();
-			for (String localId : providerLocalIds.get(providerId).subList(start,
-					Math.min(providerLocalIds.get(providerId).size(), start + end))) {
-				LocalId provider = new LocalId();
-				provider.setProviderId(providerId);
-				provider.setRecordId(localId);
-				providers.add(provider);
-			}
-			return providers;
+//			List<LocalId> providers = new ArrayList<>();
+//			for (String localId : providerLocalIds.get(providerId).subList(start,
+//					Math.min(providerLocalIds.get(providerId).size(), start + end))) {
+//				LocalId provider = new LocalId();
+//				provider.setProviderId(providerId);
+//				provider.setRecordId(localId);
+//				providers.add(provider);
+//			}
+//			return providers;
 		}
 		throw new ProviderDoesNotExistException();
 	}
 
 	@Override
-	public List<CloudId> getGlobalIdsByProvider(String providerId, int start, int end)
+	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		if (providerGlobalIds.containsKey(providerId)) {
-			if (providerLocalIds.get(providerId).isEmpty() || providerLocalIds.get(providerId).size() < start) {
-				throw new RecordDatasetEmptyException();
-			}
-
+//			if (providerLocalIds.get(providerId).isEmpty() || providerLocalIds.get(providerId).size() < start) {
+//				throw new RecordDatasetEmptyException();
+//			}
+//
 			List<CloudId> globalIds = new ArrayList<>();
-			for (String globalId : providerGlobalIds.get(providerId).subList(start,
-					Math.min(providerGlobalIds.get(providerId).size(), start + end))) {
-				LocalId provider = new LocalId();
-				provider.setProviderId(providerId);
-
-				CloudId gId = new CloudId();
-				gId.setLocalId(provider);
-				gId.setId(globalId);
-				globalIds.add(gId);
-			}
+//			for (String globalId : providerGlobalIds.get(providerId).subList(start,
+//					Math.min(providerGlobalIds.get(providerId).size(), start + end))) {
+//				LocalId provider = new LocalId();
+//				provider.setProviderId(providerId);
+//
+//				CloudId gId = new CloudId();
+//				gId.setLocalId(provider);
+//				gId.setId(globalId);
+//				globalIds.add(gId);
+//			}
 			return globalIds;
 
 		}

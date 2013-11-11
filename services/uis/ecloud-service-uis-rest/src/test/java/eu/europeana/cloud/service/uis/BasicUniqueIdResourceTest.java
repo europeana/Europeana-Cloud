@@ -239,9 +239,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		List<LocalId> localIdList = new ArrayList<>();
 		localIdList.add(createLocalId(providerId, recordId));
 		lidListWrapper.setList(localIdList);
-		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, 0, 10000)).thenReturn(localIdList);
-		Response response = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId).request()
-				.get();
+		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenReturn(localIdList);
+		Response response = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request().get();
 		assertThat(response.getStatus(), is(200));
 		LocalIdList retList = response.readEntity(LocalIdList.class);
 		assertThat(retList.getList().size(), is(lidListWrapper.getList().size()));
@@ -253,7 +253,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetLocalIdsByProviderDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, 0, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
@@ -273,10 +273,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetLocalIdsByProviderProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
 
-		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, 0, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -294,9 +294,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		List<CloudId> globalIdList = new ArrayList<>();
 		globalIdList.add(createGlobalId(providerId, recordId));
 		globalIdListWrapper.setList(globalIdList);
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, 0, 10000)).thenReturn(globalIdList);
-		Response response = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId).request()
-				.get();
+		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenReturn(globalIdList);
+		Response response = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request().get();
 		assertThat(response.getStatus(), is(200));
 		CloudIdList retList = response.readEntity(CloudIdList.class);
 		assertThat(retList.getList().size(), is(globalIdListWrapper.getList().size()));
@@ -311,10 +311,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetGlobalIdsByProviderDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, 0, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(
@@ -331,10 +331,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetGlobalIdsByProviderProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, 0, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -347,10 +347,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetGlobalIdsByProviderRecordDatasetEmptyException() {
 		Throwable exception = new RecordDatasetEmptyException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, 0, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(), IdentifierErrorInfo.RECORDSET_EMPTY.getErrorInfo(providerId)
@@ -450,9 +450,8 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).removeIdMapping(providerId, recordId);
 
-		Response resp = target("/uniqueId/removeMappingByLocalId")
-				.queryParam(providerId, providerId).queryParam(recordId, recordId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
+		Response resp = target("/uniqueId/removeMappingByLocalId").queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(
@@ -471,17 +470,14 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).removeIdMapping(providerId, recordId);
 
-		Response resp = target("/uniqueId/removeMappingByLocalId")
-				.queryParam(providerId, providerId).queryParam(recordId, recordId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
+		Response resp = target("/uniqueId/removeMappingByLocalId").queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-		StringUtils.equals(
-				errorInfo.getErrorCode(),
+		StringUtils.equals(errorInfo.getErrorCode(),
 				IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId).getErrorCode());
-		StringUtils.equals(
-				errorInfo.getDetails(),
-				IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId).getDetails());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)
+				.getDetails());
 	}
 
 	@Test
@@ -490,17 +486,14 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).removeIdMapping(providerId, recordId);
 
-		Response resp = target("/uniqueId/removeMappingByLocalId")
-				.queryParam(providerId, providerId).queryParam(recordId, recordId)
-				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
+		Response resp = target("/uniqueId/removeMappingByLocalId").queryParam(providerId, providerId)
+				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-		StringUtils.equals(
-				errorInfo.getErrorCode(),
+		StringUtils.equals(errorInfo.getErrorCode(),
 				IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId).getErrorCode());
-		StringUtils.equals(
-				errorInfo.getDetails(),
-				IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId).getDetails());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)
+				.getDetails());
 	}
 
 	@Test
@@ -520,8 +513,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).deleteGlobalId("globalId");
 
-		Response resp = target("/uniqueId/deleteGlobalId")
-				.queryParam("globalId","globalId")
+		Response resp = target("/uniqueId/deleteGlobalId").queryParam("globalId", "globalId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -541,17 +533,14 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).deleteGlobalId("globalId");
 
-		Response resp = target("/uniqueId/deleteGlobalId")
-				.queryParam("globalId","globalId")
+		Response resp = target("/uniqueId/deleteGlobalId").queryParam("globalId", "globalId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-		StringUtils.equals(
-				errorInfo.getErrorCode(),
+		StringUtils.equals(errorInfo.getErrorCode(),
 				IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId").getErrorCode());
-		StringUtils.equals(
-				errorInfo.getDetails(),
-				IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId").getDetails());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId")
+				.getDetails());
 	}
 
 	private static LocalId createLocalId(String providerId, String recordId) {

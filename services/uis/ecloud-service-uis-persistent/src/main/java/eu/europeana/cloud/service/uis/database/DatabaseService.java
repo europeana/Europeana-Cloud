@@ -21,7 +21,7 @@ public class DatabaseService {
 		this.host = host;
 		this.port=port;
 		this.keyspaceName = keyspaceName;
-		cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
+		cluster = new Cluster.Builder().addContactPoints(host).build();
 		session = cluster.connect(keyspaceName);
 	}
 
@@ -38,15 +38,27 @@ public class DatabaseService {
 	public Session getSession() {
 		return this.session;
 	}
-
+	
+	/**
+	 * Expose the contact server IP address
+	 * @return
+	 */
 	public String getHost() {
 		return host;
 	}
 
+	/**
+	 * Expose the contact server port
+	 * @return
+	 */
 	public String getPort() {
 		return port;
 	}
 
+	/**
+	 * Expose the keyspace
+	 * @return
+	 */
 	public String getKeyspaceName() {
 		return keyspaceName;
 	}
