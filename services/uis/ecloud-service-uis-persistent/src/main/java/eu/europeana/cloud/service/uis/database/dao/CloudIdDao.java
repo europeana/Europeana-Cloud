@@ -72,7 +72,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		return searchById(false, args[0]);
 	}
 
-	public List<CloudId> search(String args) throws DatabaseConnectionException {
+	public List<CloudId> searchAll(String args) throws DatabaseConnectionException {
 		PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
 		ResultSet rs = dbService.getSession().execute(statement.bind(args));
 		List<Row> results = rs.all();

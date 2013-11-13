@@ -1,0 +1,200 @@
+package eu.europeana.cloud.service.uis.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.exceptions.DatabaseConnectionException;
+import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
+import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.Dao;
+import eu.europeana.cloud.service.uis.InMemoryCloudObject;
+
+public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
+
+	private static List<InMemoryCloudObject> cloudIds = new ArrayList<>();
+
+	@Override
+	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException {
+		List<CloudId> retCloudIds = new ArrayList<>();
+		if (args.length == 1) {
+			for (InMemoryCloudObject obj : cloudIds) {
+				if (obj.getProviderId().contentEquals(args[0]) && obj.isDeleted() == deleted) {
+					CloudId cId = new CloudId();
+					cId.setId(obj.getCloudId());
+					LocalId lId = new LocalId();
+					lId.setProviderId(obj.getProviderId());
+					lId.setRecordId(obj.getRecordId());
+					cId.setLocalId(lId);
+					retCloudIds.add(cId);
+				}
+			}
+			if (retCloudIds.isEmpty()) {
+				throw new ProviderDoesNotExistException();
+			}
+		}
+
+		if (args.length == 2) {
+			for (InMemoryCloudObject obj : cloudIds) {
+				if (obj.getProviderId().contentEquals(args[0]) && obj.getRecordId().contentEquals(args[1])
+						&& obj.isDeleted() == deleted) {
+					CloudId cId = new CloudId();
+					cId.setId(obj.getCloudId());
+					LocalId lId = new LocalId();
+					lId.setProviderId(obj.getProviderId());
+					lId.setRecordId(obj.getRecordId());
+					cId.setLocalId(lId);
+					retCloudIds.add(cId);
+				}
+			}
+		}
+
+		return retCloudIds;
+	}
+
+	@Override
+	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException {
+		return searchById(false, args);
+	}
+
+	/**
+	 * Method that enbales result pagination of search requests
+	 * 
+	 * @param start
+	 *            The record to start from
+	 * @param end
+	 *            How many records to retrieve
+	 * @param providerId
+	 *            The provider Identifier to search on
+	 * @return A list of Cloud Identifiers that conforms to the search criteria
+	 */
+	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
+		List<CloudId> cIds = new ArrayList<>();
+		int index = 0;
+		int i = 0;
+		boolean providerDoesNotExist = true;
+		for (InMemoryCloudObject obj : cloudIds) {
+			if (obj.getProviderId().contentEquals(providerId)) {
+				providerDoesNotExist = false;
+				if (obj.getRecordId().contentEquals(start)) {
+					index = i;
+				}
+			}
+			i++;
+		}
+		if (providerDoesNotExist) {
+			throw new ProviderDoesNotExistException();
+		}
+		int k = 0;
+		for (InMemoryCloudObject obj : cloudIds.subList(index, cloudIds.size())) {
+			if (obj.getProviderId().contentEquals(providerId)) {
+				if (k == 0 && !obj.getRecordId().contentEquals(start)) {
+					break;
+				}
+				CloudId cId = new CloudId();
+				cId.setId(obj.getCloudId());
+				LocalId lId = new LocalId();
+				lId.setProviderId(providerId);
+				lId.setRecordId(obj.getRecordId());
+				cIds.add(cId);
+				k++;
+				if (cIds.size() == end) {
+
+					return cIds;
+				}
+			}
+
+		}
+		if (cIds.size() == 0) {
+			throw new RecordDatasetEmptyException();
+		}
+		return cIds;
+
+	}
+
+	@Override
+	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
+		InMemoryCloudObject obj = new InMemoryCloudObject();
+		obj.setCloudId(args[0]);
+		obj.setProviderId(args[1]);
+		obj.setRecordId(args[2]);
+		obj.setDeleted(false);
+		cloudIds.add(obj);
+		final CloudId cId = new CloudId();
+		cId.setId(args[0]);
+		LocalId lId = new LocalId();
+		lId.setProviderId(args[1]);
+		lId.setRecordId(args[2]);
+		cId.setLocalId(lId);
+		return new ArrayList<CloudId>() {
+			private static final long serialVersionUID = 4075489743327584853L;
+
+			{
+				add(cId);
+			}
+		};
+	}
+
+	@Override
+	public void delete(String... args) throws DatabaseConnectionException {
+		InMemoryCloudObject objNew = new InMemoryCloudObject();
+		boolean deleted = false;
+		int i = 0;
+		int index = 0;
+		for (InMemoryCloudObject obj : cloudIds) {
+			if (obj.getProviderId().contentEquals(args[0])) {
+				objNew.setProviderId(obj.getProviderId());
+				if (obj.getRecordId().contentEquals(args[1]) && !obj.isDeleted()) {
+					obj.setDeleted(true);
+					deleted = true;
+					objNew = obj;
+					index = i;
+				}
+			}
+
+			i++;
+		}
+		if (deleted) {
+			cloudIds.remove(index);
+			cloudIds.add(objNew);
+		}
+		
+		if(objNew.getProviderId()==null){
+			throw new ProviderDoesNotExistException();
+		}
+		if(objNew.getRecordId()==null){
+			throw new RecordIdDoesNotExistException();
+		}
+	}
+
+	@Override
+	public void update(String... args) throws DatabaseConnectionException {
+		for (InMemoryCloudObject obj : cloudIds) {
+			if (obj.getProviderId().contentEquals(args[1]) && obj.getRecordId().contentEquals(args[2])
+					&& !obj.isDeleted()) {
+				obj.setCloudId(args[0]);
+			}
+		}
+	}
+
+	@Override
+	public String getHost() {
+		return "";
+	}
+
+	@Override
+	public String getKeyspace() {
+		return "";
+	}
+
+	@Override
+	public String getPort() {
+		return "";
+	}
+
+	public void reset() {
+		cloudIds = new ArrayList<>();
+	}
+}

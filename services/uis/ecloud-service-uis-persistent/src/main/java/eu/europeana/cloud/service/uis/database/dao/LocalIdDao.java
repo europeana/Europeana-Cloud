@@ -73,9 +73,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		return searchById(false, args);
 	}
 
-	public List<CloudId> searchActiveWithPagination(String start, int end, String... args) {
+	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
 		PreparedStatement statement = dbService.getSession().prepare(searchByProviderPaginatedStatement);
-		ResultSet rs = dbService.getSession().execute(statement.bind(args[0], start, end));
+		ResultSet rs = dbService.getSession().execute(statement.bind(providerId, start, end));
 		while (!rs.isFullyFetched()) {
 			rs.fetchMoreResults();
 		}

@@ -56,7 +56,6 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			cloudId.setLocalId(lId);
 			return cloudId;
 		} catch (DatabaseConnectionException e) {
-
 			throw e;
 		}
 	}
@@ -152,9 +151,9 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			if (cloudIds.size() == 0) {
 				throw new GlobalIdDoesNotExistException();
 			}
-			String id = Base36.encode("/" + providerId + "/" + recordId);
-			localIdDao.insert(providerId, recordId, id);
-			cloudIdDao.insert(id, providerId, recordId);
+			
+			localIdDao.insert(providerId, recordId, globalId);
+			cloudIdDao.insert(globalId, providerId, recordId);
 		} catch (DatabaseConnectionException e) {
 			throw e;
 		}
@@ -182,7 +181,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
 				throw new GlobalIdDoesNotExistException();
 			}
-			List<CloudId> localIds = cloudIdDao.search(globalId);
+			List<CloudId> localIds = cloudIdDao.searchAll(globalId);
 			for (CloudId cId : localIds) {
 				localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 				cloudIdDao.delete(globalId,cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
