@@ -1,0 +1,14 @@
+Since there is a bug in EmbeddedCassandra that prevents running prepared statement if JAMM has not been 
+configured. Do the following to successfully run the unit test
+
+from command line (Linux/Mac):
+export JVM_OPTS = $JVM_OPTS -javaagent:{path to UIS Persistent service}src/test/resources/jamm-0.2.5.jar
+
+from command line (WINDOWS)
+set JVM_OPTS = $JVM_OPTS -javaagent:{path to UIS Persistent service}src/test/resources/jamm-0.2.5.jar
+
+From Eclipse
+
+Create an environmental variable in the Run Configuration and append in the VM options
+
+ -javaagent:src/test/resources/jamm-0.2.5.jar
