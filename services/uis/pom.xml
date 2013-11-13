@@ -21,5 +21,6 @@
 		<module>ecloud-service-uis-inmemory</module>
 		<module>ecloud-service-uis-persistent</module>
 		<module>ecloud-service-uis-rest</module>
+		<module>ecloud-service-uis-rest-client</module>
 	</modules>
 </project>

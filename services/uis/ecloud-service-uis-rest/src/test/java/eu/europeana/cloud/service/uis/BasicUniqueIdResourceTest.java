@@ -34,8 +34,6 @@ import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource;
-import eu.europeana.cloud.service.uis.rest.CloudIdList;
-import eu.europeana.cloud.service.uis.rest.LocalIdList;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 
 /**
