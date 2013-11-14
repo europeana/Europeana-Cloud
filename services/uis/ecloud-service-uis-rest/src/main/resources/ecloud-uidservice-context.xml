@@ -22,7 +22,7 @@
 	
 	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
 		<constructor-arg name="host" value="127.0.0.1"/>
-		<constructor-arg name="port" value="9160"/>
+		<constructor-arg name="port" value="9142"/>
 		<constructor-arg name="keyspaceName" value="uis"/>
 	</bean>
 	

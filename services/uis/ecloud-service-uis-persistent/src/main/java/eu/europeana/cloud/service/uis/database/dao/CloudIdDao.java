@@ -31,6 +31,10 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	private static String searchStatementNonActive = "SELECT * FROM Cloud_Id WHERE cloud_id=?";
 	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?";
 	
+	/**
+	 * The Cloud Id Dao
+	 * @param dbService The service exposing the connection and session
+	 */
 	public CloudIdDao(DatabaseService dbService){
 		this.dbService = dbService;
 		this.host = dbService.getHost();
@@ -73,6 +77,12 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		return searchById(false, args[0]);
 	}
 
+	/**
+	 * Search for all the Cloud Identifiers regardless if they are deleted or not
+	 * @param args The cloudId to search on
+	 * @return A list of cloudIds
+	 * @throws DatabaseConnectionException
+	 */
 	public List<CloudId> searchAll(String args) throws DatabaseConnectionException {
 		PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
 		ResultSet rs = dbService.getSession().execute(statement.bind(args));

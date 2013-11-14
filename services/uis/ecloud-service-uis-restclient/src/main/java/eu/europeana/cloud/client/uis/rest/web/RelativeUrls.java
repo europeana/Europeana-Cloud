@@ -3,6 +3,11 @@ package eu.europeana.cloud.client.uis.rest.web;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Enumeration that holds the relative urls and parameters of each API call
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 public enum RelativeUrls {
 
 	CREATERECORDID {
@@ -127,7 +132,15 @@ public enum RelativeUrls {
 	private static final String GLOBAL_ID="globalId";
 	private static final String TO = "to";
 	
+	/**
+	 * Get API calls parameters
+	 * @return List with the API call parameters
+	 */
 	public abstract List<String> getParamNames();
 
+	/**
+	 * Get the URL call of each method
+	 * @return The string to be used for the creation of the full URL
+	 */
 	public abstract String getUrl();
 }

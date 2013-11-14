@@ -20,6 +20,11 @@ import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 
+/**
+ * Cassandra implementation of the Unique Identifier Service
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 @Service
 public class PersistentUniqueIdentifierService implements UniqueIdentifierService {
 
@@ -30,6 +35,11 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	private String keyspace;
 	private String port;
 
+	/**
+	 * Initialization of the service with its DAOs
+	 * @param cloudIdDao The cloud identifier Dao
+	 * @param localIdDao The local identifieir Dao
+	 */
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao, LocalIdDao localIdDao) {
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;

@@ -48,6 +48,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	private String providerId = "providerId";
 	private String recordId = "recordId";
 
+	/**
+	 * Configuration of the Spring context
+	 */
 	@Override
 	public Application configure() {
 		return new ResourceConfig().registerClasses(BasicUniqueIdResource.class).property("contextConfigLocation",
@@ -55,7 +58,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Initialization of the Unique Identifier service mockup
 	 */
 	@Before
 	public void mockUp() {
@@ -65,7 +68,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test to create a global Id
 	 */
 	@Test
 	public void testCreateGlobalId() {
@@ -83,6 +86,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testCreateGlobalIdDbException() {
 		Throwable databaseException = new DatabaseConnectionException();
@@ -103,6 +109,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the a global id already exists for the record id
+	 */
 	@Test
 	public void testCreateGlobalIdRecordExistsException() {
 		Throwable exception = new RecordExistsException();
@@ -120,7 +129,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test the retrieval of a cloud id
 	 */
 	@Test
 	public void testGetGlobalId() {
@@ -137,6 +146,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		assertEquals(originalGid.getLocalId().getRecordId(), retrieveGet.getLocalId().getRecordId());
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testGetGlobalIdDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -157,6 +169,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception that a gloabl id does not exist for this record id
+	 */
 	@Test
 	public void testGetGlobalIdRecordDoesNotExistException() {
 		Throwable exception = new RecordDoesNotExistException();
@@ -174,7 +189,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test the retrieval of local ids by a global id
 	 */
 	@Test
 	public void testGetLocalIds() {
@@ -192,6 +207,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		assertEquals(retList.getList().get(0).getRecordId(), lidListWrapper.getList().get(0).getRecordId());
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testGetLocalIdsDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -212,6 +230,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test that a global id does not exist
+	 */
 	@Test
 	public void testGetLocalIdsGlobalIdDoesNotExistException() {
 		Throwable exception = new GlobalIdDoesNotExistException();
@@ -229,7 +250,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test the retrieval of local Ids by a provider
 	 */
 	@Test
 	public void testGetLocalIdsByProvider() {
@@ -247,6 +268,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		assertEquals(retList.getList().get(0).getRecordId(), lidListWrapper.getList().get(0).getRecordId());
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testGetLocalIdsByProviderDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -267,6 +291,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception that a provider does not exist
+	 */
 	@Test
 	public void testGetLocalIdsByProviderProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
@@ -284,7 +311,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * The the retrieval of cloud ids based on a provider
 	 */
 	@Test
 	public void testGetGlobalIdsByProvider() {
@@ -305,6 +332,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.getLocalId().getRecordId());
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testGetGlobalIdsByProviderDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -325,6 +355,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception of cloud ids when a provider does not exist
+	 */
 	@Test
 	public void testGetGlobalIdsByProviderProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
@@ -341,6 +374,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.getDetails());
 	}
 
+	/**
+	 * Test the retrieval of an empty dataset based on provider search
+	 */
 	@Test
 	public void testGetGlobalIdsByProviderRecordDatasetEmptyException() {
 		Throwable exception = new RecordDatasetEmptyException();
@@ -358,7 +394,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test the creation of a mapping between a cloud id and a record id
 	 */
 	@Test
 	public void testCreateMapping() {
@@ -372,6 +408,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		assertThat(res.getStatus(), is(200));
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testCreateMappingDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -393,6 +432,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception of a a missing cloud id between the mapping of a cloud id and a record id
+	 */
 	@Test
 	public void testCreateMappingGlobalIdException() {
 		Throwable exception = new GlobalIdDoesNotExistException();
@@ -410,6 +452,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.getDetails());
 	}
 
+	/**
+	 * Test the exception when a recordd id is mapped twice
+	 */
 	@Test
 	public void testCreateMappingIdHasBeenMmapped() {
 		Throwable exception = new IdHasBeenMappedException();
@@ -428,7 +473,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * 
+	 * Test the removal of a mapping between a cloud id and a record id
 	 */
 	@Test
 	public void testRemoveMapping() {
@@ -442,6 +487,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testRemoveMappingDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -462,6 +510,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception when the provider used for the removal of a mapping is non existent
+	 */
 	@Test
 	public void testRemoveMappingProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
@@ -478,6 +529,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.getDetails());
 	}
 
+	/**
+	 * Test the exception when a record to be removed does not exist
+	 */
 	@Test
 	public void testRemoveMappingRecordIdDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
@@ -494,6 +548,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 				.getDetails());
 	}
 
+	/**
+	 * Test the deletion of a cloud id
+	 */
 	@Test
 	public void testDeleteCloudId() {
 		CloudId gid = createGlobalId(providerId, recordId);
@@ -505,6 +562,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		assertThat(res.getStatus(), is(200));
 	}
 
+	/**
+	 * Test the database exception
+	 */
 	@Test
 	public void testDeleteCloudIdDBException() {
 		Throwable exception = new DatabaseConnectionException();
@@ -525,6 +585,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 						uniqueIdentifierService.getHost(), "").getDetails());
 	}
 
+	/**
+	 * Test the exception of the removal of a cloud id when a cloud id does not exist
+	 */
 	@Test
 	public void testDeleteCloudIdGlobalIdDoesNotExistException() {
 		Throwable exception = new GlobalIdDoesNotExistException();

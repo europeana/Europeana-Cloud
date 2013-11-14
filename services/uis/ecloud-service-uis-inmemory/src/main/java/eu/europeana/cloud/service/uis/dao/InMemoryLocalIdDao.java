@@ -60,7 +60,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	/**
-	 * Method that enbales result pagination of search requests
+	 * Method that enables result pagination of search requests
 	 * 
 	 * @param start
 	 *            The record to start from

@@ -19,15 +19,26 @@ import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.InMemoryUniqueIdentifierService;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 
+/**
+ * Unit test for the In Memory i0mplementation of the database
+ * @author Yorgos.Mamakis@ kb.nl
+ *
+ */
 public class InMemoryUniqueIdentifierServiceTest {
 
 	InMemoryUniqueIdentifierService service;
 	
+	/**
+	 * Prepare the test execution
+	 */
 	@Before
 	public void prepare(){
 		service = new InMemoryUniqueIdentifierService();
 	}
 	
+	/**
+	 * Test the creation and retrieval of an object and the exception that a record exists
+	 */
 	@Test (expected = RecordExistsException.class)
 	public void testCreateAndRetrieve(){
 		CloudId gId = service.createGlobalId("test", "test");
@@ -37,12 +48,18 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test that a record does not exist
+	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testRecordDoesNotExist(){
 		service.getGlobalId("test2", "test2");
 		service.reset();
 	}
 	
+	/**
+	 * Test CloudId retrieval and exception if it does not exist
+	 */
 	@Test(expected = GlobalIdDoesNotExistException.class)
 	public void testGetLocalIdsByGlobalId(){
 		List<LocalId> gid = service.getLocalIdsByGlobalId(Base36.encode("/test11/test11"));
@@ -52,6 +69,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test retrieval by a provider id and exception if it does not exist
+	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testGetGlobalIdsByProvider(){
 		service.createGlobalId("test3", "test3");
@@ -64,6 +84,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test if a dataset is empty
+	 */
 	@Test (expected = RecordDatasetEmptyException.class)
 	public void testGetGlobalIdsByProviderDatasetEmtpy(){
 		service.createGlobalId("test4", "test4");
@@ -71,6 +94,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test localId retrieval and exception if the database does not exist
+	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testGetLocalIdsByProviderId(){
 		service.createGlobalId("test5", "test5");
@@ -82,7 +108,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		cIds = service.getLocalIdsByProvider("test10", "test", 1);
 		service.reset();
 	}
-	
+	/**
+	 * Test if a dataset is empty
+	 */
 	@Test (expected = RecordDatasetEmptyException.class)
 	public void testGetLocalIdsByProviderDatasetEmtpy(){
 		service.createGlobalId("test6", "test6");
@@ -90,6 +118,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test Create mapping and exception if the record Id is already mapped
+	 */
 	@Test (expected = IdHasBeenMappedException.class)
 	public void testCreateIdMapping(){
 		CloudId gid = service.createGlobalId("test12", "test12");
@@ -98,6 +129,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test create mapping if the global Id does not exist
+	 */
 	@Test(expected = GlobalIdDoesNotExistException.class)
 	public void testCreateIdMappingGlobalIdDoesNotExist(){
 		service.createGlobalId("test14", "test14");
@@ -105,6 +139,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test mapping removal
+	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testRemoveIdMapping(){
 		service.createGlobalId("test16", "test16");
@@ -113,6 +150,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test mapping removal provider does not exist
+	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testRemoveIdMappingProvDoesNotExist(){
 		service.createGlobalId("test17", "test17");
@@ -120,6 +160,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test mapping removal record does not exist
+	 */
 	@Test (expected = RecordIdDoesNotExistException.class)
 	public void testRemoveIdMappingRecIdDoesNotExist(){
 		service.createGlobalId("test19", "test19");
@@ -127,6 +170,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test global id deletion
+	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testDeleteGlobalId(){
 		CloudId cId = service.createGlobalId("test21", "test21");
@@ -135,6 +181,9 @@ public class InMemoryUniqueIdentifierServiceTest {
 		service.reset();
 	}
 	
+	/**
+	 * Test global id deletion exception
+	 */
 	@Test (expected = GlobalIdDoesNotExistException.class)
 	public void testDeleteGlobalIdException(){
 		service.deleteGlobalId("test");

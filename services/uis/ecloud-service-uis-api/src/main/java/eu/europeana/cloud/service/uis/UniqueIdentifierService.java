@@ -135,6 +135,10 @@ public interface UniqueIdentifierService {
      */
     String getKeyspace();
     
+    /**
+     * Expose the port of the database
+     * @return The database port
+     */
     String getPort();
     
 }

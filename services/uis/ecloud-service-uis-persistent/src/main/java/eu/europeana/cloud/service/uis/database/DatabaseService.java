@@ -24,11 +24,18 @@ public class DatabaseService {
 			+ " deleted boolean, PRIMARY KEY (provider_id,record_id));";
 	
 	private final static String PROVIDER_RECORD_ID_SECONDARY_INDEX = "CREATE INDEX record_deleted on Provider_Record_Id(deleted);";
+	
+	/**
+	 * Initialization of the database connection
+	 * @param host The host to connect to
+	 * @param port The port to connect to
+	 * @param keyspaceName The keyspace to connect to
+	 */
 	public DatabaseService(String host, String port, String keyspaceName) {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
+		Cluster cluster = new Cluster.Builder().addContactPoints(host).build();
 		session = cluster.connect();
 		if (session.getCluster().getMetadata().getKeyspace(keyspaceName) == null) {
 

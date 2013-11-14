@@ -36,6 +36,10 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	private static String searchByRecordIdStatement = "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING";
 	private static String searchByProviderPaginatedStatement = "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ? ALLOW FILTERING";
 
+	/**
+	 * The LocalId Dao
+	 * @param dbService The service that exposes the database connection
+	 */
 	public LocalIdDao(DatabaseService dbService) {
 		this.dbService = dbService;
 		this.host = dbService.getHost();
@@ -72,6 +76,13 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		return searchById(false, args);
 	}
 
+	/**
+	 * Enable pagination search on active local Id information
+	 * @param start Record to start from
+	 * @param end The number of record to retrieve
+	 * @param providerId The provider Identifier
+	 * @return A list of CloudId objects
+	 */
 	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
 		PreparedStatement statement = dbService.getSession().prepare(searchByProviderPaginatedStatement);
 		ResultSet rs = dbService.getSession().execute(statement.bind(providerId, start, end));
@@ -123,6 +134,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	public String getKeyspace() {
 		return keyspaceName;
 	}
+
 
 	private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
 		List<CloudId> cloudIds = new ArrayList<>();
