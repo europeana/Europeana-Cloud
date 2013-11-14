@@ -35,7 +35,7 @@ public class DatabaseService {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		Cluster cluster = new Cluster.Builder().addContactPoints(host).build();
+		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
 		session = cluster.connect();
 		if (session.getCluster().getMetadata().getKeyspace(keyspaceName) == null) {
 
