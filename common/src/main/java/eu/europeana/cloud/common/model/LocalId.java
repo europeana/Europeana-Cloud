@@ -37,8 +37,17 @@ public class LocalId {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((providerId == null) ? 0 : providerId.hashCode());
+		result = prime * result + ((recordId == null) ? 0 : recordId.hashCode());
+		return result;
+	}
+
+	@Override
 	public boolean equals(Object e) {
-		if (!e.getClass().isAssignableFrom(LocalId.class)) {
+		if (e==null || !e.getClass().isAssignableFrom(LocalId.class)) {
 			return false;
 		}
 		if (!(this.providerId.contentEquals(((LocalId) e).getProviderId())
@@ -47,4 +56,6 @@ public class LocalId {
 		}
 		return true;
 	}
+
+	
 }

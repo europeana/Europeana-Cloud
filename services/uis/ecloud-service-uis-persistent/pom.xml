@@ -17,7 +17,7 @@
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
 
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
@@ -65,13 +65,13 @@
 		<dependency>
 			<groupId>org.apache.cassandra</groupId>
 			<artifactId>cassandra-all</artifactId>
-			<version>2.0.2</version>
+			<version>2.0.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
-			<version>2.0.0-rc1</version>
+			<version>2.0.0-beta2</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>
@@ -79,6 +79,44 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+			<version>${version.spring-framework}</version>
+			<exclusions>
+				<!--without jcl - because we use log4j through slf4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.github.psnc-dl.cassandraunit</groupId>
+			<artifactId>cassandra-unit</artifactId>
+			<version>2.0.1.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.psnc-dl.cassandraunit</groupId>
+			<artifactId>cassandra-unit-spring</artifactId>
+			<version>2.0.1.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.jpountz.lz4</groupId>
+			<artifactId>lz4</artifactId>
+			<version>1.1.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>synat-a09-libs-releases-public</id>
+			<name>synat-a09-libs-releases-public</name>
+			<url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
+		</repository>
+
+	</repositories>
 </project>

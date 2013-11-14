@@ -11,7 +11,6 @@ import com.datastax.driver.core.Session;
  */
 public class DatabaseService {
 
-	private Cluster cluster;
 	private Session session;
 	private String host;
 	private String port;
@@ -29,7 +28,7 @@ public class DatabaseService {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
+		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
 		session = cluster.connect();
 		if (session.getCluster().getMetadata().getKeyspace(keyspaceName) == null) {
 

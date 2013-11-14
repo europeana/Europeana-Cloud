@@ -122,10 +122,10 @@ public enum RelativeUrls {
 		}
 	};
 
-	private final static String PROVIDER_ID="providerId";
-	private final static String RECORD_ID="recordId";
-	private final static String GLOBAL_ID="globalId";
-	private final static String TO = "to";
+	private static final String PROVIDER_ID="providerId";
+	private static final String RECORD_ID="recordId";
+	private static final String GLOBAL_ID="globalId";
+	private static final String TO = "to";
 	
 	public abstract List<String> getParamNames();
 

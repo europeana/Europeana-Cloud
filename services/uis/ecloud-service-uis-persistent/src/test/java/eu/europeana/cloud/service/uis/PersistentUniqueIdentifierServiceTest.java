@@ -6,9 +6,16 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.cassandra.service.EmbeddedCassandraService;
+import org.cassandraunit.spring.CassandraDataSet;
+import org.cassandraunit.spring.CassandraUnitTestExecutionListener;
+import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
@@ -16,31 +23,27 @@ import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
+import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(value = {"classpath:/default-context.xml"})
+@TestExecutionListeners({CassandraUnitTestExecutionListener.class})
+@CassandraDataSet(keyspace=Cassandra.KEYSPACE)
+@EmbeddedCassandra(host = Cassandra.HOST, port = Cassandra.PORT)
 public class PersistentUniqueIdentifierServiceTest {
 	private PersistentUniqueIdentifierService service;
-	private static EmbeddedCassandraService cassandra;
 	private static DatabaseService dbService;
-
-	static {
-		cassandra = new EmbeddedCassandraService();
-		try {
-			cassandra.start();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	@Before
 	public void prepare() {
 		System.setProperty("storage-config", "src/test/resources");
 
-		dbService = new DatabaseService("127.0.0.1", "20042", "uis_test4");
+		dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE);
 		CloudIdDao cloudIdDao = new CloudIdDao(dbService);
 		LocalIdDao localIdDao = new LocalIdDao(dbService);
 		service = new PersistentUniqueIdentifierService(cloudIdDao, localIdDao);
@@ -142,11 +145,6 @@ public class PersistentUniqueIdentifierServiceTest {
 	@Test(expected = GlobalIdDoesNotExistException.class)
 	public void testDeleteGlobalIdException() {
 		service.deleteGlobalId("test");
-	}
-
-	@AfterClass
-	public static void destroy() {
-		dbService.getSession().execute("DROP KEYSPACE uis_test4;");
 	}
 
 }

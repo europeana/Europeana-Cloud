@@ -1,18 +1,12 @@
 package eu.europeana.cloud.service.uis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
@@ -21,7 +15,6 @@ import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
 import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao;
 import eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
@@ -36,8 +29,8 @@ import eu.europeana.cloud.service.uis.encoder.Base36;
 @Service
 public class InMemoryUniqueIdentifierService implements UniqueIdentifierService {
 
-	InMemoryCloudIdDao cloudIdDao = new InMemoryCloudIdDao();
-	InMemoryLocalIdDao localIdDao = new InMemoryLocalIdDao();
+	private InMemoryCloudIdDao cloudIdDao = new InMemoryCloudIdDao();
+	private InMemoryLocalIdDao localIdDao = new InMemoryLocalIdDao();
 
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
@@ -97,15 +90,13 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds;
-		try {
-			if (start == null) {
-				cloudIds = localIdDao.searchActive(providerId);
-			} else {
-				cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
-			}
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
+
+		if (start == null) {
+			cloudIds = localIdDao.searchActive(providerId);
+		} else {
+			cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
 		}
+
 		if (cloudIds.size() == 0) {
 			throw new RecordDatasetEmptyException();
 		}
@@ -131,13 +122,9 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordIdDoesNotExistException {
-		try {
-			localIdDao.delete(providerId, recordId);
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
-		} catch (RecordIdDoesNotExistException e) {
-			throw e;
-		}
+
+		localIdDao.delete(providerId, recordId);
+
 	}
 
 	@Override

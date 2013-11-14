@@ -41,154 +41,113 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	@Override
 	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordExistsException {
-		try {
-			if (localIdDao.searchActive(providerId, recordId).size() > 0) {
-				throw new RecordExistsException();
-			}
-			String id = Base36.encode("/" + providerId + "/" + recordId);
-			List<CloudId> cloudIds = cloudIdDao.insert(id, providerId, recordId);
-			localIdDao.insert(providerId, recordId, id);
-			CloudId cloudId = new CloudId();
-			cloudId.setId(cloudIds.get(0).getId());
-			LocalId lId = new LocalId();
-			lId.setProviderId(providerId);
-			lId.setRecordId(recordId);
-			cloudId.setLocalId(lId);
-			return cloudId;
-		} catch (DatabaseConnectionException e) {
-			throw e;
+		if (localIdDao.searchActive(providerId, recordId).size() > 0) {
+			throw new RecordExistsException();
 		}
+		String id = Base36.encode("/" + providerId + "/" + recordId);
+		List<CloudId> cloudIds = cloudIdDao.insert(id, providerId, recordId);
+		localIdDao.insert(providerId, recordId, id);
+		CloudId cloudId = new CloudId();
+		cloudId.setId(cloudIds.get(0).getId());
+		LocalId lId = new LocalId();
+		lId.setProviderId(providerId);
+		lId.setRecordId(recordId);
+		cloudId.setLocalId(lId);
+		return cloudId;
 	}
 
 	@Override
 	public CloudId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordDoesNotExistException {
-		try {
-			List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
-			if (cloudIds.size() == 0) {
-				throw new RecordDoesNotExistException();
-			}
-			return cloudIds.get(0);
-		} catch (DatabaseConnectionException e) {
-			throw e;
+		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
+		if (cloudIds.size() == 0) {
+			throw new RecordDoesNotExistException();
 		}
+		return cloudIds.get(0);
 	}
 
 	@Override
 	public List<LocalId> getLocalIdsByGlobalId(String globalId) throws DatabaseConnectionException,
 			GlobalIdDoesNotExistException {
-		try {
-			List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
-			if (cloudIds.size() == 0) {
-				throw new GlobalIdDoesNotExistException();
-			}
-			List<LocalId> localIds = new ArrayList<>();
-			for (CloudId cloudId : cloudIds) {
-				if (localIdDao.searchActive(cloudId.getLocalId().getProviderId(), cloudId.getLocalId().getRecordId())
-						.size() > 0) {
-					localIds.add(cloudId.getLocalId());
-				}
-			}
-			return localIds;
-		} catch (DatabaseConnectionException e) {
-			throw e;
+		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+		if (cloudIds.size() == 0) {
+			throw new GlobalIdDoesNotExistException();
 		}
+		List<LocalId> localIds = new ArrayList<>();
+		for (CloudId cloudId : cloudIds) {
+			if (localIdDao.searchActive(cloudId.getLocalId().getProviderId(), cloudId.getLocalId().getRecordId())
+					.size() > 0) {
+				localIds.add(cloudId.getLocalId());
+			}
+		}
+		return localIds;
 
 	}
 
 	@Override
 	public List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-		try {
-			
-			List<CloudId> cloudIds = null;
-			if(start==null){
-				cloudIds = localIdDao.searchActive(providerId);
-			} else {
-				cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
-			}
-			List<LocalId> localIds = new ArrayList<>();
-			for (CloudId cloudId : cloudIds) {
-				localIds.add(cloudId.getLocalId());
-			}
-			return localIds;
-		} catch (DatabaseConnectionException e) {
-			throw e;
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
+
+		List<CloudId> cloudIds = null;
+		if (start == null) {
+			cloudIds = localIdDao.searchActive(providerId);
+		} else {
+			cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
 		}
+		List<LocalId> localIds = new ArrayList<>();
+		for (CloudId cloudId : cloudIds) {
+			localIds.add(cloudId.getLocalId());
+		}
+		return localIds;
 	}
 
 	@Override
 	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-		try {
-			
-			if(start==null){
-				return localIdDao.searchActive(providerId);
-			} else {
-				return localIdDao.searchActiveWithPagination(start, end, providerId);
-			}
 
-		} catch (DatabaseConnectionException e) {
-			throw e;
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
-		} catch (RecordDatasetEmptyException e) {
-			throw e;
+		if (start == null) {
+			return localIdDao.searchActive(providerId);
+		} else {
+			return localIdDao.searchActiveWithPagination(start, end, providerId);
 		}
 	}
 
 	@Override
 	public void createIdMapping(String globalId, String providerId, String recordId)
 			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException {
-		try {
-			List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
-			if (localIds.size() != 0) {
-				throw new IdHasBeenMappedException();
-			}
-			List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
-			if (cloudIds.size() == 0) {
-				throw new GlobalIdDoesNotExistException();
-			}
-			
-			localIdDao.insert(providerId, recordId, globalId);
-			cloudIdDao.insert(globalId, providerId, recordId);
-		} catch (DatabaseConnectionException e) {
-			throw e;
+		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
+		if (localIds.size() != 0) {
+			throw new IdHasBeenMappedException();
 		}
+		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+		if (cloudIds.size() == 0) {
+			throw new GlobalIdDoesNotExistException();
+		}
+
+		localIdDao.insert(providerId, recordId, globalId);
+		cloudIdDao.insert(globalId, providerId, recordId);
 
 	}
 
 	@Override
 	public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordIdDoesNotExistException {
-		try {
-			localIdDao.delete(providerId, recordId);
-		} catch (DatabaseConnectionException e) {
-			throw e;
-		} catch (ProviderDoesNotExistException e) {
-			throw e;
-		} catch (RecordIdDoesNotExistException e) {
-			throw e;
-		}
+		localIdDao.delete(providerId, recordId);
 
 	}
 
 	@Override
 	public void deleteGlobalId(String globalId) throws DatabaseConnectionException, GlobalIdDoesNotExistException {
-		try {
-			if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
-				throw new GlobalIdDoesNotExistException();
-			}
-			List<CloudId> localIds = cloudIdDao.searchAll(globalId);
-			for (CloudId cId : localIds) {
-				localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-				cloudIdDao.delete(globalId,cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-			}
-		} catch (DatabaseConnectionException e) {
-			throw e;
+
+		if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
+			throw new GlobalIdDoesNotExistException();
 		}
+		List<CloudId> localIds = cloudIdDao.searchAll(globalId);
+		for (CloudId cId : localIds) {
+			localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+			cloudIdDao.delete(globalId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+		}
+
 	}
 
 	@Override

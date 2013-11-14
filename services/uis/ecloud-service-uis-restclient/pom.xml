@@ -10,7 +10,7 @@
 	<artifactId>ecloud-service-uis-restclient</artifactId>
 	<packaging>jar</packaging>
 
-	<name>ecloud-service-uis-restclient</name>
+	<name>Europeana Cloud: Unique Identifier Service REST Client</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

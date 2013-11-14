@@ -61,6 +61,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 				cId.setLocalId(lId);
 				cloudIds.add(cId);
 			}
+			
 			return cloudIds;
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException();

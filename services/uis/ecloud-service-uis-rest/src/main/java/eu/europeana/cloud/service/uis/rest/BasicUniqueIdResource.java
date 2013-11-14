@@ -38,11 +38,16 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Autowired
 	private UniqueIdentifierService uniqueIdentifierService;
 
+	private final static String PROVIDERID="providerId";
+	private final static String RECORDID="recordId";
+	private final static String GLOBALID="globalId";
+	private final static String START = "start";
+	private final static String TO="to";
 	@GET
 	@Path("createRecordId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response createGlobalId(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
+	public Response createGlobalId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
 		try {
 			return Response.ok().entity(uniqueIdentifierService.createGlobalId(providerId, recordId)).build();
 		} catch (DatabaseConnectionException e) {
@@ -59,7 +64,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getGlobalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getGlobalId(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
+	public Response getGlobalId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
 		try {
 			return Response.ok(uniqueIdentifierService.getGlobalId(providerId, recordId)).build();
 		} catch (DatabaseConnectionException e) {
@@ -76,7 +81,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getLocalIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getLocalIds(@QueryParam("globalId") String globalId) {
+	public Response getLocalIds(@QueryParam(GLOBALID) String globalId) {
 		try {
 			LocalIdList pList = new LocalIdList();
 			pList.setList(uniqueIdentifierService.getLocalIdsByGlobalId(globalId));
@@ -94,8 +99,8 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getLocalIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getLocalIdsByProvider(@QueryParam("providerId") String providerId,
-			@QueryParam("start") String start, @QueryParam("to") @DefaultValue("10000") int to) {
+	public Response getLocalIdsByProvider(@QueryParam(PROVIDERID) String providerId,
+			@QueryParam(START) String start, @QueryParam(TO) @DefaultValue("10000") int to) {
 		try {
 			LocalIdList pList = new LocalIdList();
 			pList.setList(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
@@ -117,8 +122,8 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getGlobalIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response getGlobalIdsByProvider(@QueryParam("providerId") String providerId,
-			@QueryParam("start") String start, @QueryParam("to") @DefaultValue("10000") int to) {
+	public Response getGlobalIdsByProvider(@QueryParam(PROVIDERID) String providerId,
+			@QueryParam(START) String start, @QueryParam(TO) @DefaultValue("10000") int to) {
 		try {
 			CloudIdList gList = new CloudIdList();
 			gList.setList(uniqueIdentifierService.getGlobalIdsByProvider(providerId, start, to));
@@ -139,8 +144,8 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("createMapping")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response createIdMapping(@QueryParam("globalId") String globalId,
-			@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
+	public Response createIdMapping(@QueryParam(GLOBALID) String globalId,
+			@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
 		try {
 			uniqueIdentifierService.createIdMapping(globalId, providerId, recordId);
 			return Response.ok("Mapping created succesfully").build();
@@ -167,7 +172,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("removeMappingByLocalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response removeIdMapping(@QueryParam("providerId") String providerId, @QueryParam("recordId") String recordId) {
+	public Response removeIdMapping(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
 		try {
 			uniqueIdentifierService.removeIdMapping(providerId, recordId);
 			return Response.ok("Mapping marked as deleted").build();
@@ -187,7 +192,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("deleteGlobalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response deleteGlobalId(@QueryParam("globalId") String globalId) {
+	public Response deleteGlobalId(@QueryParam(GLOBALID) String globalId) {
 		try {
 			uniqueIdentifierService.deleteGlobalId(globalId);
 			return Response.ok("GlobalId marked as deleted").build();

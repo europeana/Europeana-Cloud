@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis.database.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
