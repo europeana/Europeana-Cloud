@@ -239,7 +239,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		lidListWrapper.setList(localIdList);
 		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenReturn(localIdList);
 		Response response = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request().get();
+				.queryParam("start", recordId).request().get();
 		assertThat(response.getStatus(), is(200));
 		LocalIdList retList = response.readEntity(LocalIdList.class);
 		assertThat(retList.getList().size(), is(lidListWrapper.getList().size()));
@@ -253,7 +253,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId).queryParam("start",recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -274,7 +274,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -294,7 +294,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		globalIdListWrapper.setList(globalIdList);
 		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenReturn(globalIdList);
 		Response response = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request().get();
+				.queryParam("start", recordId).request().get();
 		assertThat(response.getStatus(), is(200));
 		CloudIdList retList = response.readEntity(CloudIdList.class);
 		assertThat(retList.getList().size(), is(globalIdListWrapper.getList().size()));
@@ -312,7 +312,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(
@@ -332,7 +332,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -348,7 +348,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
 		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
-				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
+				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(), IdentifierErrorInfo.RECORDSET_EMPTY.getErrorInfo(providerId)
