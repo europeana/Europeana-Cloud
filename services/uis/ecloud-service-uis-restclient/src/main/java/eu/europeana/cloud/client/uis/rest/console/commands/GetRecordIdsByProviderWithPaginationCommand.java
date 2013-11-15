@@ -8,7 +8,7 @@ import eu.europeana.cloud.common.model.LocalId;
 
 /**
  * Retrieval of record ids by provider with pagination console command
- * @author ecloud
+ * @author Yorgos.Mamakis@ kb.nl
  *
  */
 public class GetRecordIdsByProviderWithPaginationCommand extends Command {
@@ -17,10 +17,10 @@ public class GetRecordIdsByProviderWithPaginationCommand extends Command {
 	public void execute(UISClient client,String... input) {
 		try {
 			for (LocalId cId : client.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2]))) {
-				System.console().writer().println(cId.toString());
+				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {
-			System.console().writer().println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 		
 	}

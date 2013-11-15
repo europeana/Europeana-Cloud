@@ -16,9 +16,9 @@ public class GetCloudIdCommand extends Command {
 	public void execute(UISClient client,String... input) {
 		try{
 			CloudId cId = client.getCloudId(input[0], input[1]);
-			System.console().writer().println(cId.toString());
+			System.out.println(cId.toString());
 		} catch (CloudException e){
-			System.console().writer().println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 
 	}

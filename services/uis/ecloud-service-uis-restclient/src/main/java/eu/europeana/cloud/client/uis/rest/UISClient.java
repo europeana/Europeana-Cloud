@@ -204,7 +204,7 @@ public class UISClient {
 	public boolean removeMappingByLocalId(String providerId, String recordId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.REMOVEMAPPINGBYLOCALID.getUrl()))
 				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), providerId)
-				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(1), recordId).request().get();
+				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(1), recordId).request().delete();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;
 		} else {
@@ -221,7 +221,7 @@ public class UISClient {
 	 */
 	public boolean deleteCloudId(String cloudId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.DELETEGLOBALID.getUrl()))
-				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), cloudId).request().get();
+				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), cloudId).request().delete();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;
 		} else {

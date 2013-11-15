@@ -16,10 +16,10 @@ public class GetRecordIdsByProviderCommand extends Command {
 	public void execute(UISClient client,String... input) {
 		try {
 			for (LocalId cId : client.getRecordIdsByProvider(input[0])) {
-				System.console().writer().println(cId.toString());
+				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {
-			System.console().writer().println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 
 	}

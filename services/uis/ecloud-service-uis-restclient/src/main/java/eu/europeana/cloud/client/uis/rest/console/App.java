@@ -25,10 +25,10 @@ import eu.europeana.cloud.client.uis.rest.console.commands.RemoveMappingByLocalI
  * 
  */
 public class App implements Runnable {
-
+	private static UISClient client = new UISClient();
 	@Override
 	public void run() {
-		UISClient client = new UISClient();
+		
 		Scanner scanner;
 		while (true) {
 			scanner = new Scanner(System.in);
@@ -67,7 +67,7 @@ public class App implements Runnable {
 				put("getRecordIdsByProvider", new GetRecordIdsByProviderCommand());
 				put("getRecordIdsByProviderWithPagination", new GetRecordIdsByProviderWithPaginationCommand());
 				put("getRecordIds", new GetRecordIdsCommand());
-				put("removeMappindByLocalId", new RemoveMappingByLocalIdCommand());
+				put("removeMappingByLocalId", new RemoveMappingByLocalIdCommand());
 			}
 
 		};

@@ -14,9 +14,9 @@ public class DeleteCloudIdCommand extends Command {
 	@Override
 	public void execute(UISClient client,String... input) {
 		try{
-			System.console().writer().println(client.deleteCloudId(input[0]));
+			System.out.println(client.deleteCloudId(input[0]));
 		} catch (CloudException e){
-			System.console().writer().println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 	}
 

@@ -28,7 +28,7 @@
 		<constructor-arg name="host" value="${db.host}" />
 		<constructor-arg name="port" value="${db.port}" />
 		<constructor-arg name="keyspaceName" value="${db.keyspace}" />
-		<constructor-arg name="path" value="classpath:cassandra-uis.cql" />
+		<constructor-arg name="path" value="src/main/resources/cassandra-uis.cql" />
 	</bean>
 
 

@@ -101,7 +101,6 @@ public enum RelativeUrls {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){{
-				add(GLOBAL_ID);
 				add(PROVIDER_ID);
 				add(RECORD_ID);
 			}
