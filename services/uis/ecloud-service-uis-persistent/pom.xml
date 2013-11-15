@@ -16,8 +16,7 @@
 	<properties>
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
-
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>

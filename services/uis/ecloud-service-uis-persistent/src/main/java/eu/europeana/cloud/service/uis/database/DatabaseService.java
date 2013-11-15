@@ -21,7 +21,7 @@ public class DatabaseService {
 	private String host;
 	private String port;
 	private String keyspaceName;
-
+	private String path;
 	/**
 	 * Initialization of the database connection
 	 * 
@@ -32,13 +32,13 @@ public class DatabaseService {
 	 * @param keyspaceName
 	 *            The keyspace to connect to
 	 */
-	public DatabaseService(String host, String port, String keyspaceName) throws IOException {
+	public DatabaseService(String host, String port, String keyspaceName, String path) throws IOException {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
 		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
 		session = cluster.connect();
-		List<String> cql = FileUtils.readLines(new File("src/main/resources/cassandra-uis.cql"));
+		List<String> cql = FileUtils.readLines(new File(path));
 		int i = 0;
 		for (String query : cql) {
 			if (i < 2) {

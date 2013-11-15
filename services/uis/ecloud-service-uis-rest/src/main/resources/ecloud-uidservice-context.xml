@@ -7,26 +7,30 @@
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
 	<context:annotation-config />
+	<bean id="applicationProperties"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:service.properties" />
+	</bean>
 	<bean id="uniqueIdService"
-		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService" >
-		<constructor-arg name="cloudIdDao" ref="cloudIdDao"/>
-		<constructor-arg name="localIdDao" ref="localIdDao"/>
-		</bean>
+		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">
+		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+		<constructor-arg name="localIdDao" ref="localIdDao" />
+	</bean>
 	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
-		<constructor-arg name="dbService" ref="dbService"/>
+		<constructor-arg name="dbService" ref="dbService" />
 	</bean>
-	
+
 	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.database.dao.LocalIdDao">
-		<constructor-arg name="dbService" ref="dbService"/>
+		<constructor-arg name="dbService" ref="dbService" />
 	</bean>
-	
+
 	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
-		<constructor-arg name="host" value="127.0.0.1"/>
-		<constructor-arg name="port" value="9142"/>
-		<constructor-arg name="keyspaceName" value="uis"/>
+		<constructor-arg name="host" value="${db.host}" />
+		<constructor-arg name="port" value="${db.port}" />
+		<constructor-arg name="keyspaceName" value="${db.keyspace}" />
 	</bean>
-	
-	
+
+
 	<bean id="uniqueIdResource"
 		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />
 </beans>

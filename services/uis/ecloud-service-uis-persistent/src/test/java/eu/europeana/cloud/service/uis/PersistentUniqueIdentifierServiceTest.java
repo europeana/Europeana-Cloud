@@ -27,11 +27,10 @@ import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 
-
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/default-context.xml"})
-@TestExecutionListeners({CassandraUnitTestExecutionListener.class})
-@CassandraDataSet(keyspace=Cassandra.KEYSPACE)
+@ContextConfiguration(value = { "classpath:/default-context.xml" })
+@TestExecutionListeners({ CassandraUnitTestExecutionListener.class })
+@CassandraDataSet(keyspace = Cassandra.KEYSPACE)
 @EmbeddedCassandra(host = Cassandra.HOST, port = Cassandra.PORT)
 public class PersistentUniqueIdentifierServiceTest {
 	private PersistentUniqueIdentifierService service;
@@ -40,9 +39,10 @@ public class PersistentUniqueIdentifierServiceTest {
 	@Before
 	public void prepare() {
 		System.setProperty("storage-config", "src/test/resources");
-		try{
-		dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE);
-		} catch(IOException e){
+		try {
+			dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE,
+					System.getProperty("storage-config") + "/cassandra-uis.cql");
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		CloudIdDao cloudIdDao = new CloudIdDao(dbService);
