@@ -13,9 +13,9 @@ import eu.europeana.cloud.client.uis.rest.console.Command;
 public class CreateMappingCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client,String... input) {
 		try {
-			System.out.println(UISClient.createMapping(input[0], input[1], input[2]));
+			System.out.println(client.createMapping(input[0], input[1], input[2]));
 		} catch (CloudException e) {
 			System.out.println(e.getMessage());
 		}

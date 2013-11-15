@@ -13,9 +13,9 @@ import eu.europeana.cloud.common.model.LocalId;
 public class GetRecordIdsByProviderCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client,String... input) {
 		try {
-			for (LocalId cId : UISClient.getRecordIdsByProvider(input[0])) {
+			for (LocalId cId : client.getRecordIdsByProvider(input[0])) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

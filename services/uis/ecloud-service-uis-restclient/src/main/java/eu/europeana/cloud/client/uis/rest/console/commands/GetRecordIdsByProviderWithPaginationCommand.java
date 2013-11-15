@@ -14,9 +14,9 @@ import eu.europeana.cloud.common.model.LocalId;
 public class GetRecordIdsByProviderWithPaginationCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client,String... input) {
 		try {
-			for (LocalId cId : UISClient.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2]))) {
+			for (LocalId cId : client.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2]))) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

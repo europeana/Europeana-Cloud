@@ -14,9 +14,9 @@ import eu.europeana.cloud.common.model.CloudId;
 public class CreateCloudIdCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client, String... input) {
 		try {
-			CloudId cId = UISClient.createCloudId(input[0], input[1]);
+			CloudId cId = client.createCloudId(input[0], input[1]);
 			System.out.println(cId.toString());
 		} catch (CloudException e) {
 			System.out.println(e.getMessage());

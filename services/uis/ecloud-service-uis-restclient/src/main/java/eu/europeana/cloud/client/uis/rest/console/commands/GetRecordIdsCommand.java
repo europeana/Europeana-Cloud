@@ -13,9 +13,9 @@ import eu.europeana.cloud.common.model.CloudId;
 public class GetRecordIdsCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client,String... input) {
 		try {
-			for (CloudId cId : UISClient.getRecordId(input[0])) {
+			for (CloudId cId : client.getRecordId(input[0])) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

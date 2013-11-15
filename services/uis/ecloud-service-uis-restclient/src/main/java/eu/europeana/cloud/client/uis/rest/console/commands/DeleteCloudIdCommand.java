@@ -12,9 +12,9 @@ import eu.europeana.cloud.client.uis.rest.console.Command;
 public class DeleteCloudIdCommand extends Command {
 
 	@Override
-	public void execute(String... input) {
+	public void execute(UISClient client,String... input) {
 		try{
-			System.out.println(UISClient.deleteCloudId(input[0]));
+			System.out.println(client.deleteCloudId(input[0]));
 		} catch (CloudException e){
 			System.out.println(e.getMessage());
 		}

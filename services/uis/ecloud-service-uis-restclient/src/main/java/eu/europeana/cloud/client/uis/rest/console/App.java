@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 import javax.naming.directory.InvalidAttributesException;
 
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateMappingCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.DeleteCloudIdCommand;
@@ -19,28 +20,38 @@ import eu.europeana.cloud.client.uis.rest.console.commands.RemoveMappingByLocalI
 
 /**
  * Command line application that uses the REST API Client
+ * 
  * @author Yorgos.Mamakis@ kb.nl
- *
+ * 
  */
 public class App implements Runnable {
 
 	@Override
 	public void run() {
-		while(true){
-		Scanner scanner = new Scanner(System.in);
-		String[] input = scanner.nextLine().split(" ");
-		
-		Map<String, Command> commands = populateCommands();
+		UISClient client = new UISClient();
+		Scanner scanner;
+		while (true) {
+			scanner = new Scanner(System.in);
+			String[] input = scanner.nextLine().split(" ");
 
-		if (!commands.containsKey(input[0])) {
-			throw new UnsupportedOperationException();
+			Map<String, Command> commands = populateCommands();
+			
+			if(input[0].equalsIgnoreCase("exit")){
+				scanner.close();
+			}
+			if (!commands.containsKey(input[0])) {
+				throw new UnsupportedOperationException();
+
+			}
+			try {
+				commands.get(input[0]).execute(client, subArray(input));
+			} catch (InvalidAttributesException e) {
+				e.printStackTrace();
+			}
+			
+			
 		}
-		try {
-			commands.get(input[0]).execute(subArray(input));
-		} catch (InvalidAttributesException e) {
-			e.printStackTrace();
-		}
-		}
+		
 
 	}
 
@@ -67,9 +78,7 @@ public class App implements Runnable {
 			throw new InvalidAttributesException();
 		}
 		String[] ret = new String[input.length - 1];
-		for (int i = 1; i < input.length; i++) {
-			ret[i - 1] = input[i];
-		}
+		System.arraycopy(input, 1, ret, 0, ret.length);
 		return ret;
 	}
 }

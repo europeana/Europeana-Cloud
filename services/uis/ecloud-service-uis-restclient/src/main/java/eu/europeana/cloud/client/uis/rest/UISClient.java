@@ -33,7 +33,7 @@ public class UISClient {
 	 * @return The newly generated CloudId
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static CloudId createCloudId(String providerId, String recordId) throws CloudException {
+	public CloudId createCloudId(String providerId, String recordId) throws CloudException {
 		
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.CREATERECORDID.getUrl()))
 				.queryParam(RelativeUrls.CREATERECORDID.getParamNames().get(0), providerId)
@@ -54,7 +54,7 @@ public class UISClient {
 	 * @return The retrieved cloud Id 
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static CloudId getCloudId(String providerId, String recordId) throws CloudException {
+	public CloudId getCloudId(String providerId, String recordId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALID.getUrl()))
 				.queryParam(RelativeUrls.GETGLOBALID.getParamNames().get(0), providerId)
 				.queryParam(RelativeUrls.GETGLOBALID.getParamNames().get(1), recordId).request().get();
@@ -73,7 +73,7 @@ public class UISClient {
 	 * @return The List of local ids associated with the cloud id
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static List<CloudId> getRecordId(String globalId) throws CloudException {
+	public List<CloudId> getRecordId(String globalId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETLOCALIDS.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDS.getParamNames().get(0), globalId).request().get();
 
@@ -92,7 +92,7 @@ public class UISClient {
 	 * @return The List of Local ids associated with a provider
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static List<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
+	public List<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
@@ -111,7 +111,7 @@ public class UISClient {
 	 * @return The list of cloud ids associated with the procider id
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static List<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
+	public List<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
@@ -132,7 +132,7 @@ public class UISClient {
 	 * @return A list of local ids associated with the provider
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static List<LocalId> getRecordIdsByProviderWithPagination(String providerId, String recordId, int window)
+	public List<LocalId> getRecordIdsByProviderWithPagination(String providerId, String recordId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(0), providerId)
@@ -156,7 +156,7 @@ public class UISClient {
 	 * @return A list of cloud ids associated with the provider
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static List<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
+	public List<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(0), providerId)
@@ -180,13 +180,13 @@ public class UISClient {
 	 * @return A confirmation that the mapping has been created
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static String createMapping(String globalId, String providerId, String recordId) throws CloudException {
+	public boolean createMapping(String globalId, String providerId, String recordId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.CREATEMAPPING.getUrl()))
 				.queryParam(RelativeUrls.CREATEMAPPING.getParamNames().get(0), globalId)
 				.queryParam(RelativeUrls.CREATEMAPPING.getParamNames().get(1), providerId)
 				.queryParam(RelativeUrls.CREATEMAPPING.getParamNames().get(2), recordId).request().get();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			return "Mapping was created correctly";
+			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
@@ -201,12 +201,12 @@ public class UISClient {
 	 * @return A confirmation that the mapping has removed correctly
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static String removeMappingByLocalId(String providerId, String recordId) throws CloudException {
+	public boolean removeMappingByLocalId(String providerId, String recordId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.REMOVEMAPPINGBYLOCALID.getUrl()))
 				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), providerId)
 				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(1), recordId).request().get();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			return "Mapping removed correctly";
+			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
@@ -219,11 +219,11 @@ public class UISClient {
 	 * @return A confirmation message that the mappings have been removed correctly
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
-	public static String deleteCloudId(String cloudId) throws CloudException {
+	public boolean deleteCloudId(String cloudId) throws CloudException {
 		Response resp = client.target(urlProvider.createUrl(RelativeUrls.DELETEGLOBALID.getUrl()))
 				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), cloudId).request().get();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			return "CloudId removed correctly";
+			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
