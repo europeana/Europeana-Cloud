@@ -1,5 +1,11 @@
 package eu.europeana.cloud.service.uis.database;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
@@ -16,36 +22,31 @@ public class DatabaseService {
 	private String port;
 	private String keyspaceName;
 
-	private final static String CLOUD_ID = "CREATE TABLE Cloud_Id(cloud_id varchar, provider_id varchar, record_id varchar, deleted boolean, "
-			+ "PRIMARY KEY (cloud_id, provider_id,record_id));";
-	private final static String CLOUD_ID_SECONDARY_INDEX = "CREATE INDEX deleted_records ON Cloud_Id(deleted);";
-
-	private final static String PROVIDER_RECORD_ID = "CREATE TABLE Provider_Record_Id(provider_id varchar, record_id varchar, cloud_id varchar,"
-			+ " deleted boolean, PRIMARY KEY (provider_id,record_id));";
-	
-	private final static String PROVIDER_RECORD_ID_SECONDARY_INDEX = "CREATE INDEX record_deleted on Provider_Record_Id(deleted);";
-	
 	/**
 	 * Initialization of the database connection
-	 * @param host The host to connect to
-	 * @param port The port to connect to
-	 * @param keyspaceName The keyspace to connect to
+	 * 
+	 * @param host
+	 *            The host to connect to
+	 * @param port
+	 *            The port to connect to
+	 * @param keyspaceName
+	 *            The keyspace to connect to
 	 */
-	public DatabaseService(String host, String port, String keyspaceName) {
+	public DatabaseService(String host, String port, String keyspaceName) throws IOException {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
 		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
 		session = cluster.connect();
-		if (session.getCluster().getMetadata().getKeyspace(keyspaceName) == null) {
-
-			session.execute("CREATE KEYSPACE " + keyspaceName + " WITH replication "
-					+ "= {'class':'SimpleStrategy', 'replication_factor':1};");
-			session.execute("USE "+keyspaceName +";");
-			session.execute(CLOUD_ID);
-			session.execute(CLOUD_ID_SECONDARY_INDEX);
-			session.execute(PROVIDER_RECORD_ID);
-			session.execute(PROVIDER_RECORD_ID_SECONDARY_INDEX);
+		List<String> cql = FileUtils.readLines(new File("src/main/resources/cassandra-uis.cql"));
+		int i = 0;
+		for (String query : cql) {
+			if (i < 2) {
+				session.execute(String.format(query, keyspaceName));
+			} else {
+				session.execute(query);
+			}
+			i++;
 		}
 		session = cluster.connect(keyspaceName);
 	}

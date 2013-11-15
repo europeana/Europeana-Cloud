@@ -5,11 +5,9 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.cassandra.service.EmbeddedCassandraService;
 import org.cassandraunit.spring.CassandraDataSet;
 import org.cassandraunit.spring.CassandraUnitTestExecutionListener;
 import org.cassandraunit.spring.EmbeddedCassandra;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,8 +40,11 @@ public class PersistentUniqueIdentifierServiceTest {
 	@Before
 	public void prepare() {
 		System.setProperty("storage-config", "src/test/resources");
-
+		try{
 		dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE);
+		} catch(IOException e){
+			e.printStackTrace();
+		}
 		CloudIdDao cloudIdDao = new CloudIdDao(dbService);
 		LocalIdDao localIdDao = new LocalIdDao(dbService);
 		service = new PersistentUniqueIdentifierService(cloudIdDao, localIdDao);
