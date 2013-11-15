@@ -15,7 +15,6 @@ public class UrlProvider {
 			props.load(new FileInputStream(new File("src/main/resources/client.properties")));
 			baseUrl = props.getProperty("server.baseUrl");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

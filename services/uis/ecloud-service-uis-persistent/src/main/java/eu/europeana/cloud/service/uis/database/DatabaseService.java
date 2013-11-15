@@ -21,7 +21,6 @@ public class DatabaseService {
 	private String host;
 	private String port;
 	private String keyspaceName;
-	private String path;
 	/**
 	 * Initialization of the database connection
 	 * 
@@ -32,7 +31,7 @@ public class DatabaseService {
 	 * @param keyspaceName
 	 *            The keyspace to connect to
 	 */
-	public DatabaseService(String host, String port, String keyspaceName, String path) throws IOException {
+	public DatabaseService(String host, String port, String keyspaceName,String path) throws IOException {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
