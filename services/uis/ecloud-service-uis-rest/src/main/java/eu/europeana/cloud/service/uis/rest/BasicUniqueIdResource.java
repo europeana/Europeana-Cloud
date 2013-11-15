@@ -38,11 +38,11 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Autowired
 	private UniqueIdentifierService uniqueIdentifierService;
 
-	private final static String PROVIDERID="providerId";
-	private final static String RECORDID="recordId";
-	private final static String GLOBALID="globalId";
-	private final static String START = "start";
-	private final static String TO="to";
+	private static final String PROVIDERID="providerId";
+	private static final String RECORDID="recordId";
+	private static final String GLOBALID="globalId";
+	private static final String START = "start";
+	private static final String TO="to";
 	@GET
 	@Path("createRecordId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })

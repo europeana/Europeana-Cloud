@@ -15,9 +15,9 @@ public class CreateMappingCommand extends Command {
 	@Override
 	public void execute(UISClient client,String... input) {
 		try {
-			System.out.println(client.createMapping(input[0], input[1], input[2]));
+			System.console().writer().println(client.createMapping(input[0], input[1], input[2]));
 		} catch (CloudException e) {
-			System.out.println(e.getMessage());
+			System.console().writer().println(e.getMessage());
 		}
 	}
 

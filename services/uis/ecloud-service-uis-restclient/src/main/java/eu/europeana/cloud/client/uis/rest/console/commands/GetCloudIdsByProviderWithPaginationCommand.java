@@ -16,10 +16,10 @@ public class GetCloudIdsByProviderWithPaginationCommand extends Command {
 		try {
 			for (CloudId cId : client.getCloudIdsByProviderWithPagination(input[0], input[1],
 					Integer.parseInt(input[2]))) {
-				System.out.println(cId.toString());
+				System.console().writer().println(cId.toString());
 			}
 		} catch (CloudException e) {
-			System.out.println(e.getMessage());
+			System.console().writer().println(e.getMessage());
 		}
 
 	}

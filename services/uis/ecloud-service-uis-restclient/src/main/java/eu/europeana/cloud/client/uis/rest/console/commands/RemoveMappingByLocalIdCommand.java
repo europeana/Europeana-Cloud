@@ -14,9 +14,9 @@ public class RemoveMappingByLocalIdCommand extends Command {
 	@Override
 	public void execute(UISClient client,String... input) {
 		try{
-			System.out.println(client.removeMappingByLocalId(input[0], input[1]));
+			System.console().writer().println(client.removeMappingByLocalId(input[0], input[1]));
 		} catch (CloudException e){
-			System.out.println(e.getMessage());
+			System.console().writer().println(e.getMessage());
 		}
 	}
 

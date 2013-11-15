@@ -17,10 +17,10 @@ public class GetRecordIdsByProviderWithPaginationCommand extends Command {
 	public void execute(UISClient client,String... input) {
 		try {
 			for (LocalId cId : client.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2]))) {
-				System.out.println(cId.toString());
+				System.console().writer().println(cId.toString());
 			}
 		} catch (CloudException e) {
-			System.out.println(e.getMessage());
+			System.console().writer().println(e.getMessage());
 		}
 		
 	}
