@@ -1,5 +1,16 @@
-/* NOTICE: due to a bug in parsing by cassandraunit, statements must end with a semicolon directly followed by 
-   a newline character - particularly, there cannot be whitespace before line end */
+/* 
+
+   ! IMPORTANT NOTICE !
+   Due to a bug in parsing by cassandraunit, statements must end with a semicolon directly followed by 
+   a newline character - particularly, there cannot be whitespace before line end 
+
+   This file assumes that it is executed in a particular keyspace context. 
+   In order to create a keyspace, you can use e.g.
+  
+   CREATE KEYSPACE ecloud_test
+           WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};  
+   USE ecloud_test; 
+*/
 
 CREATE TABLE data_providers (
 	provider_id varchar PRIMARY KEY,
@@ -40,10 +51,11 @@ CREATE INDEX representations_provider_id ON representations (provider_id);
 
 CREATE TABLE representations_latest_versions (
 	cloud_id varchar,
-	representation_name varchar,
-	persistent boolean,
+	schema_id varchar,
 	version varchar,
-	PRIMARY KEY (cloud_id, representation_name, persistent)
+	provider_id varchar,
+	persistent boolean,
+	PRIMARY KEY (cloud_id, schema_id, persistent)
 );
 
 CREATE TABLE files (

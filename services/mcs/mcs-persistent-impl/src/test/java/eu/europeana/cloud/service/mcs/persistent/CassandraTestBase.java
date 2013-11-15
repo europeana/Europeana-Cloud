@@ -1,11 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-
-import org.apache.cassandra.exceptions.ConfigurationException;
-import org.apache.thrift.transport.TTransportException;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -18,7 +13,6 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.google.common.io.ByteStreams;
 
 public abstract class CassandraTestBase {
 

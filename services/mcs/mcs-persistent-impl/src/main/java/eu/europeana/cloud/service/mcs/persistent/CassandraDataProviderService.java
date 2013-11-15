@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.response.ResultSlice;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,14 @@ public class CassandraDataProviderService implements DataProviderService {
 
 
     @Override
-    public List<DataProvider> getProviders() {
-        return dataProviderDAO.getProviders();
+    public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
+		String nextProvider = null;
+        List<DataProvider> providers = dataProviderDAO.getProviders(thresholdProviderId, limit + 1);
+		if (providers.size() == limit + 1) {
+			nextProvider = providers.get(limit).getId();
+			providers.remove(limit);
+		}
+		return new ResultSlice(nextProvider, providers);
     }
 
 

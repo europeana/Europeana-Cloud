@@ -58,14 +58,14 @@ public class DataSetsResourceTest extends JerseyTest {
     }
 
 
-    @After
-    public void cleanUp() {
-        for (DataProvider prov : dataProviderService.getProviders()) {
-            for (DataSet ds : dataSetService.getDataSets(prov.getId())) {
-                dataSetService.deleteDataSet(prov.getId(), ds.getId());
-            }
-            dataProviderService.deleteProvider(prov.getId());
-        }
+	@After
+	public void cleanUp() {
+		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
+			for (DataSet ds : dataSetService.getDataSets(prov.getId())) {
+				dataSetService.deleteDataSet(prov.getId(), ds.getId());
+			}
+			dataProviderService.deleteProvider(prov.getId());
+		}
     }
 
 

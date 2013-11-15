@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import java.util.Collection;
 
 /**
  * InMemoryDataProviderDAO
@@ -23,8 +24,9 @@ public class InMemoryDataProviderDAO {
     private Map<String, DataProvider> providers = new HashMap<>();
 
 
-    public List<DataProvider> getProviders() {
-        return new ArrayList<>(providers.values());
+    public List<DataProvider> getProviders(int limit)  {
+		Collection<DataProvider> providerList = providers.values();
+        return new ArrayList<>(providerList).subList(0, Math.min(limit, providerList.size()));
     }
 
 

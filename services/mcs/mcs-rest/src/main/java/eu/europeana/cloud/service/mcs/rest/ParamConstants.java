@@ -47,5 +47,9 @@ public interface ParamConstants {
     static final String F_FILE_DATA = "data";
 
     static final String F_FILE_MIME = "mimeType";
+	
+	static final String F_START_FROM = "startFrom";
+	
+	static final String F_LIMIT = "limit";
 
 }

@@ -16,12 +16,16 @@ import org.springframework.context.ApplicationContext;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import org.junit.Ignore;
 
 /**
  * DataProviderResourceTest
  */
+//@Ignore
+
 public class DataProvidersResourceTest extends JerseyTest {
 
     private DataProviderService dataProviderService;
@@ -43,12 +47,12 @@ public class DataProvidersResourceTest extends JerseyTest {
     }
 
 
-    @After
-    public void cleanUp() {
-        for (DataProvider prov : dataProviderService.getProviders()) {
-            dataProviderService.deleteProvider(prov.getId());
-        }
-    }
+	@After
+	public void cleanUp() {
+		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
+			dataProviderService.deleteProvider(prov.getId());
+		}
+	}
 
 
     @Test
@@ -58,11 +62,10 @@ public class DataProvidersResourceTest extends JerseyTest {
         // when you list all providers 
         Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
-        List<DataProvider> dataProviders = listDataProvidersResponse.readEntity(new GenericType<List<DataProvider>>() {
-        });
+        ResultSlice<DataProvider> dataProviders= listDataProvidersResponse.readEntity(ResultSlice.class);
 
         // then you should get empty list
-        assertTrue("Expected empty list of data providers", dataProviders.isEmpty());
+        assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
     }
 
 
@@ -75,10 +78,10 @@ public class DataProvidersResourceTest extends JerseyTest {
         // when you list all providers 
         Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
-        List<DataProvider> dataProviders = listDataProvidersResponse.readEntity(new GenericType<List<DataProvider>>() {
-        });
+        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
+		
         // then there should be exacly one provider, the same as inserted
-        assertEquals("Expected single data provider on list", 1, dataProviders.size());
-        assertEquals("Wrong provider identifier", providerName, dataProviders.get(0).getId());
+        assertEquals("Expected single data provider on list", 1, dataProviders.getResults().size());
+        assertEquals("Wrong provider identifier", providerName, dataProviders.getResults().get(0).getId());
     }
 }

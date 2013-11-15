@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +19,6 @@ import com.datastax.driver.core.Row;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 
 /**
@@ -44,7 +40,7 @@ public class CassandraDataProviderDAO {
 
     private PreparedStatement getAllProvidersStatement;
 
-
+	
     @PostConstruct
     private void prepareStatements() {
         insertNewProviderStatement = connectionProvider.getSession().prepare(
@@ -60,12 +56,16 @@ public class CassandraDataProviderDAO {
                 "DELETE FROM data_providers WHERE provider_id = ?;");
 
         getAllProvidersStatement = connectionProvider.getSession().prepare(
-                "SELECT provider_id, properties FROM data_providers;");
+                "SELECT provider_id, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
     }
 
 
-    public List<DataProvider> getProviders() {
-        BoundStatement boundStatement = getAllProvidersStatement.bind();
+	
+    public List<DataProvider> getProviders(String thresholdProviderId, int limit) {
+		if (thresholdProviderId == null) {
+			thresholdProviderId = "";
+		}
+        BoundStatement boundStatement = getAllProvidersStatement.bind(thresholdProviderId, limit);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<DataProvider> dataProviders = new ArrayList<>();
         for (Row row : rs) {

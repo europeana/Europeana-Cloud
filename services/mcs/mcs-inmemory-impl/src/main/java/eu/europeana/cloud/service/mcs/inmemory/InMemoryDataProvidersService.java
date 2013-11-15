@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -27,8 +28,12 @@ public class InMemoryDataProvidersService implements DataProviderService {
 
 
     @Override
-    public List<DataProvider> getProviders() {
-        return dataProviderDAO.getProviders();
+    public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
+		if (thresholdProviderId != null) {
+			throw new UnsupportedOperationException("Paging with threshold provider id is not supported");
+		}
+        List<DataProvider> providers = dataProviderDAO.getProviders(limit);
+		return new ResultSlice(null, providers);
     }
 
 

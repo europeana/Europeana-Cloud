@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.response.ResultSlice;
 import java.util.List;
 
 import eu.europeana.cloud.common.model.DataProvider;
@@ -14,7 +15,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
  */
 public interface DataProviderService {
 
-    List<DataProvider> getProviders();
+    ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit);
 
 
     DataProvider getProvider(String providerId)

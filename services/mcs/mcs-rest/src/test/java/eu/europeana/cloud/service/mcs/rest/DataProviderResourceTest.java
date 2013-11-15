@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.util.List;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
@@ -18,10 +16,12 @@ import org.springframework.context.ApplicationContext;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import org.junit.Ignore;
 
 /**
  * DataProviderResourceTest
@@ -56,7 +56,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
     @After
     public void cleanUp() {
-        for (DataProvider prov : dataProviderService.getProviders()) {
+        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             dataProviderService.deleteProvider(prov.getId());
         }
     }
@@ -130,8 +130,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
         // then it should not be in service anymore
         Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
-        List<DataProvider> dataProviders = listDataProvidersResponse.readEntity(new GenericType<List<DataProvider>>() {
-        });
-        assertTrue("Expected empty list of data providers", dataProviders.isEmpty());
+        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
+        assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
     }
 }

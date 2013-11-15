@@ -11,7 +11,6 @@ import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.ShutdownFuture;
-import com.google.common.util.concurrent.Futures;
 
 /**
  * CassandraConnectionProvider
