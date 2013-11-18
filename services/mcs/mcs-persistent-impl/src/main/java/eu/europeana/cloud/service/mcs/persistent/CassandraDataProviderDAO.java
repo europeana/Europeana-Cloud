@@ -102,7 +102,10 @@ public class CassandraDataProviderDAO {
         if (!applied) {
             throw new ProviderAlreadyExistsException();
         }
-        return createOrUpdateProvider(providerId, properties, now);
+        DataProvider dp = new DataProvider();
+        dp.setId(providerId);
+        dp.setProperties(properties);
+        return dp;
     }
 
 

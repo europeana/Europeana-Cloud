@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs;
 import java.util.List;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -14,7 +15,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
  */
 public interface DataSetService {
 
-    List<Representation> listDataSet(String providerId, String dataSetId);
+    ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit);
 
 
     void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
@@ -29,7 +30,7 @@ public interface DataSetService {
             throws ProviderNotExistsException, DataSetAlreadyExistsException;
 
 
-    List<DataSet> getDataSets(String providerId)
+    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
             throws ProviderNotExistsException;
 
 

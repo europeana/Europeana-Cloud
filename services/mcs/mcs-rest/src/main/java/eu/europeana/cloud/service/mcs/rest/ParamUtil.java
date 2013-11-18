@@ -10,6 +10,12 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
  * ParamUtil
  */
 final class ParamUtil {
+	
+	/**
+	 * Default number of elements returned on lists
+	 * TODO: externalize configuration
+	 */
+	public static final int DEFAULT_LIST_LIMIT = 100;
 
     /**
      * Checks if parameter value is not null. If it is, WebApplicationException is thrown with 400 HTTP code and suitable
@@ -24,7 +30,10 @@ final class ParamUtil {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
     }
-
+	
+	static int numberOfElements() {
+		return DEFAULT_LIST_LIMIT;
+	}
 
     private ParamUtil() {
     }

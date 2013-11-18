@@ -26,6 +26,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 
 /**
@@ -66,7 +67,7 @@ public class DataSetResourceTest extends JerseyTest {
     @After
     public void cleanUp() {
 		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			for (DataSet ds : dataSetService.getDataSets(prov.getId())) {
+			for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
 				dataSetService.deleteDataSet(prov.getId(), ds.getId());
 			}
 			dataProviderService.deleteProvider(prov.getId());
@@ -85,7 +86,7 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
 
         // ten this set should be visible in service
-        List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId());
+        List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults();
         assertEquals("Expected single dataset in service", 1, dataSetsForPrivider.size());
         DataSet ds = dataSetsForPrivider.get(0);
         assertEquals(dataSetId, ds.getId());
@@ -108,8 +109,8 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
 
         // than deleted dataset should not be in service and non-deleted should remain
-        assertTrue("Expecting no dataset for provier service", dataSetService.getDataSets(dataProvider.getId()).isEmpty());
-        assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider).size());
+        assertTrue("Expecting no dataset for provier service", dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
+        assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults().size());
     }
 
 
@@ -129,8 +130,7 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
         Response listDataset = dataSetWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
-        List<Representation> dataSetContents = listDataset.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> dataSetContents = listDataset.readEntity(ResultSlice.class).getResults();
 
         // then you should get assigned records in specified versions or latest (depending on assigmnents)
         assertEquals(2, dataSetContents.size());

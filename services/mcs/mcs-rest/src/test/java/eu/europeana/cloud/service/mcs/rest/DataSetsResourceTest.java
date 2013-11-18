@@ -61,7 +61,7 @@ public class DataSetsResourceTest extends JerseyTest {
 	@After
 	public void cleanUp() {
 		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			for (DataSet ds : dataSetService.getDataSets(prov.getId())) {
+			for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
 				dataSetService.deleteDataSet(prov.getId(), ds.getId());
 			}
 			dataProviderService.deleteProvider(prov.getId());
@@ -89,7 +89,7 @@ public class DataSetsResourceTest extends JerseyTest {
         assertEquals(expectedObjectUri, createResponse.getLocation());
 
         // and then this set should be visible in service
-        List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId());
+        List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults();
         assertEquals("Expected single dataset in service", 1, dataSetsForPrivider.size());
         DataSet ds = dataSetsForPrivider.get(0);
         assertEquals(datasetId, ds.getId());

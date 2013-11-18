@@ -70,7 +70,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 	@After
 	public void cleanUp() {
 		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			for (DataSet ds : dataSetService.getDataSets(prov.getId())) {
+			for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
 				dataSetService.deleteDataSet(prov.getId(), ds.getId());
 			}
 			dataProviderService.deleteProvider(prov.getId());
@@ -113,7 +113,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
         // then we get representation in latest version
         Representation latestRepresentation = recordService.createRepresentation("globalId", dataSet.getId(), dataProvider.getId());
-        List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId());
+        List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(),null, 10000).getResults();
         assertEquals(1, representations.size());
         assertEquals(latestRepresentation, representations.get(0));
     }
@@ -133,7 +133,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
         // then we get specified version in dataset
-        List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId());
+        List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null, 10000).getResults();
         assertEquals(1, representations.size());
         assertEquals(rep, representations.get(0));
     }
@@ -143,7 +143,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldRemoveAssignment() {
         // given assignment in data set
         dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(), rep.getVersion());
-        assertEquals(1, dataSetService.listDataSet(dataProvider.getId(), dataSet.getId()).size());
+        assertEquals(1, dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null, 10000).getResults().size());
 
         // when assignment is deleted
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
@@ -155,6 +155,6 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteAssignmentResponse.getStatus());
 
         // then there should be no representation in data set
-        assertTrue(dataSetService.listDataSet(dataProvider.getId(), dataSet.getId()).isEmpty());
+        assertTrue(dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null, 10000).getResults().isEmpty());
     }
 }

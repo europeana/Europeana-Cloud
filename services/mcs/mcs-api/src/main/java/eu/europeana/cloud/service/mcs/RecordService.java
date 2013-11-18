@@ -8,6 +8,7 @@ import java.util.List;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -78,5 +79,5 @@ public interface RecordService {
     void deleteContent(String globalId, String schema, String version, String fileName)
             throws FileNotExistsException;
     
-    List<Representation> search(String providerId, String representationName, String dataSetId);
+    ResultSlice<Representation> search(String providerId, String representationName, String dataSetId, String thresholdParam, int limit);
 }

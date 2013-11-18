@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -106,8 +107,7 @@ public class RepresentationSearchTest extends JerseyTest {
         // when searching for schema s1
         Response searchForSchemaResponse = representationSearchWebTarget.queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchForSchemaResponse.getStatus());
-        List<Representation> s1Representations = searchForSchemaResponse.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> s1Representations = searchForSchemaResponse.readEntity(ResultSlice.class).getResults();
 
         // then received representations should be all from s1 schema
         assertEquals(new HashSet<>(Arrays.asList(s1_p1, s1_p2)), new HashSet<>(s1Representations));
@@ -122,8 +122,7 @@ public class RepresentationSearchTest extends JerseyTest {
         // when searching for provider p1
         Response searchForProviderResponse = representationSearchWebTarget.queryParam(ParamConstants.F_PROVIDER, "p1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchForProviderResponse.getStatus());
-        List<Representation> p1Representations = searchForProviderResponse.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> p1Representations = searchForProviderResponse.readEntity(ResultSlice.class).getResults();
 
         // then received representations should be all from p1 provider
         assertEquals(new HashSet<>(Arrays.asList(s1_p1, s2_p1)), new HashSet<>(p1Representations));
@@ -139,8 +138,7 @@ public class RepresentationSearchTest extends JerseyTest {
         Response searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_PROVIDER, "p1")
                 .queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchResponse.getStatus());
-        List<Representation> foundRepresenations = searchResponse.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> foundRepresenations = searchResponse.readEntity(ResultSlice.class).getResults();
 
         // then received representations should be all from p1 provider s1 schema
         assertEquals(new HashSet<>(Arrays.asList(s1_p1)), new HashSet<>(foundRepresenations));
@@ -200,8 +198,7 @@ public class RepresentationSearchTest extends JerseyTest {
 
         Response searchResponse = representationSearchWebTarget.request().get();
         assertEquals("Unexpected status code for params " + searchParams, Response.Status.OK.getStatusCode(), searchResponse.getStatus());
-        List<Representation> foundRepresenations = searchResponse.readEntity(new GenericType<List<Representation>>() {
-        });
+        List<Representation> foundRepresenations = searchResponse.readEntity(ResultSlice.class).getResults();
 
         assertFalse(foundRepresenations.isEmpty());
     }

@@ -44,7 +44,7 @@ public abstract class CassandraTestBase {
                 } catch (Exception e) {
                     LOGGER.error("Cannot start embedded Cassandra!", e);
                     EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-                    throw new RuntimeException("Cannot start embedded Cassandra!");
+                    throw new RuntimeException("Cannot start embedded Cassandra!", e);
                 }
             }
         }

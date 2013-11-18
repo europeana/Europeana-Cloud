@@ -1,6 +1,8 @@
 package eu.europeana.cloud.common.response;
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +14,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  * @author sielski
  */
 @XmlRootElement
-@XmlSeeAlso({DataProvider.class})
+@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class})
 public class ResultSlice<T> {
 
 	private String nextSlice;

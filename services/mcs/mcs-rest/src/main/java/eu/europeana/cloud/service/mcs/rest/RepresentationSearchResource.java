@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
@@ -31,10 +32,11 @@ public class RepresentationSearchResource {
 
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Representation> searchRepresentations(
+    public ResultSlice<Representation> searchRepresentations(
             @QueryParam(F_PROVIDER) String providerId,
             @QueryParam(F_DATASET) String dataSetId,
-            @QueryParam(F_SCHEMA) String representationName) {
+            @QueryParam(F_SCHEMA) String representationName,
+			@QueryParam(F_START_FROM) String startFrom) {
         // data set id is meaningful only with connection with provider id
         if (dataSetId != null) {
             ParamUtil.require(F_PROVIDER, providerId);
@@ -44,6 +46,6 @@ public class RepresentationSearchResource {
             ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), "At least one parameter must be provided");
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
-        return recordService.search(providerId, representationName, dataSetId);
+        return recordService.search(providerId, representationName, dataSetId, startFrom,  ParamUtil.numberOfElements());
     }
 }

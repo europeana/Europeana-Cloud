@@ -19,38 +19,45 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 @Service
 public class CassandraDataProviderService implements DataProviderService {
 
-    @Autowired
-    private CassandraDataProviderDAO dataProviderDAO;
+	@Autowired
+	private CassandraDataProviderDAO dataProviderDAO;
+
+	@Autowired
+	private CassandraDataSetDAO cassandraDataSetDAO;
 
 
-    @Override
-    public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
+	@Override
+	public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
 		String nextProvider = null;
-        List<DataProvider> providers = dataProviderDAO.getProviders(thresholdProviderId, limit + 1);
+		List<DataProvider> providers = dataProviderDAO.getProviders(thresholdProviderId, limit + 1);
 		if (providers.size() == limit + 1) {
 			nextProvider = providers.get(limit).getId();
 			providers.remove(limit);
 		}
 		return new ResultSlice(nextProvider, providers);
-    }
+	}
 
 
-    @Override
-    public DataProvider getProvider(String providerId)
-            throws ProviderNotExistsException {
-        return dataProviderDAO.getProvider(providerId);
-    }
+	@Override
+	public DataProvider getProvider(String providerId)
+			throws ProviderNotExistsException {
+		return dataProviderDAO.getProvider(providerId);
+	}
 
 
-    @Override
-    public DataProvider createProvider(String providerId, DataProviderProperties properties) {
-        return dataProviderDAO.createOrUpdateProvider(providerId, properties);
-    }
+	@Override
+	public DataProvider createProvider(String providerId, DataProviderProperties properties) {
+		return dataProviderDAO.createOrUpdateProvider(providerId, properties);
+	}
 
 
-    @Override
-    public void deleteProvider(String providerId)
-            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
-        dataProviderDAO.deleteProvider(providerId);
-    }
+	@Override
+	public void deleteProvider(String providerId)
+			throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
+		boolean providerHasDataSets = !cassandraDataSetDAO.getDataSets(providerId, null, 1).isEmpty();
+		if (providerHasDataSets) {
+			throw new ProviderHasDataSetsException();
+		}
+		dataProviderDAO.deleteProvider(providerId);
+	}
 }

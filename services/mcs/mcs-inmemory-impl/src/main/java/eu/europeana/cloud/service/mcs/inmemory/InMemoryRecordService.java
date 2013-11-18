@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
@@ -199,7 +200,11 @@ public class InMemoryRecordService implements RecordService {
 
 
     @Override
-    public List<Representation> search(String providerId, String schema, String dataSetId) {
+    public ResultSlice<Representation> search(String providerId, String schema, String dataSetId, String thresholdParam, int limit) {
+		if (thresholdParam != null) {
+			throw new UnsupportedOperationException("Paging with threshold is not supported");
+		}
+		List<Representation> result;
         if (providerId != null && dataSetId != null) {
             // get all for dataset then filter for schema
             List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId);
@@ -210,9 +215,11 @@ public class InMemoryRecordService implements RecordService {
                     toReturn.add(realContent);
                 }
             }
-            return toReturn;
+            result= toReturn;
         } else {
-            return recordDAO.findRepresentations(providerId, schema);
+            result= recordDAO.findRepresentations(providerId, schema);
         }
+		result = result.subList(0, Math.min(limit, result.size()));
+		return new ResultSlice<>(null, result);
     }
 }

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,11 +30,7 @@ public class DataProvidersResource {
 	@GET
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 	public ResultSlice<DataProvider> getProviders(
-			@QueryParam(F_START_FROM) String startFrom,
-			@QueryParam(F_LIMIT) Integer limit) {
-		if (limit == null) {
-			limit = 100;
-		}
-		return providerService.getProviders(startFrom, limit);
+			@QueryParam(F_START_FROM) String startFrom) {
+		return providerService.getProviders(startFrom, ParamUtil.numberOfElements());
 	}
 }
