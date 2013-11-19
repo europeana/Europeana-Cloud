@@ -42,29 +42,34 @@ public class CassandraDataSetDAO {
 
 	private PreparedStatement listDataSetsStatement;
 
+	private PreparedStatement getDataSetStatement;
+
 
 	@PostConstruct
 	private void prepareStatements() {
 		createDataSetStatement = connectionProvider.getSession().prepare(
 				"INSERT INTO data_sets (provider_id, dataset_id, description, creation_date) VALUES (?,?,?,?) IF NOT EXISTS;");
-		
+
 		deleteDataSetStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_sets WHERE provider_id = ? AND dataset_id = ?;");
-		
+
 		addAssignmentStatement = connectionProvider.getSession().prepare(
 				"INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version, creation_date) VALUES (?,?,?,?,?) IF NOT EXISTS;");
-		
+
 		removeAssignmentStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
-		
+
 		removeAssignmentsStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ?;");
-		
+
 		listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
 				"SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
 
 		listDataSetsStatement = connectionProvider.getSession().prepare(
-				"SELECT * FROM data_sets WHERE provider_id = ? AND dataset_id >= ? LIMIT ?");
+				"SELECT provider_id, dataset_id, description FROM data_sets WHERE provider_id = ? AND dataset_id >= ? LIMIT ?;");
+
+		getDataSetStatement = connectionProvider.getSession().prepare(
+				"SELECT provider_id, dataset_id, description FROM data_sets WHERE provider_id = ? AND dataset_id >= ?;");
 	}
 
 
@@ -99,6 +104,16 @@ public class CassandraDataSetDAO {
 			throw new RepresentationAlreadyInSetException(recordId, schema, dataSetId, providerId);
 		}
 	}
+	
+	public DataSet getDataSet(String providerId, String dataSetId) {
+		BoundStatement boundStatement = getDataSetStatement.bind(providerId,dataSetId);
+		Row row = connectionProvider.getSession().execute(boundStatement).one();
+		if (row == null) {
+			throw new DataSetNotExistsException();
+		} else {
+			return mapRowToDataSet(row);
+		}
+	}
 
 
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema) {
@@ -118,7 +133,11 @@ public class CassandraDataSetDAO {
 		if (!applied) {
 			throw new DataSetAlreadyExistsException();
 		}
-		return mapRowToDataSet(row);
+		DataSet ds = new DataSet();
+		ds.setId(dataSetId);
+		ds.setDescription(description);
+		ds.setProviderId(providerId);
+		return ds;
 	}
 
 
@@ -168,10 +187,10 @@ public class CassandraDataSetDAO {
 	private Representation mapRowToRepresentationStub(String providerId, Row row) {
 		Representation representation = new Representation();
 		representation.setDataProvider(providerId);
-		representation.setRecordId(row.getString("provider_id"));
+		representation.setRecordId(row.getString("cloud_id"));
 		representation.setSchema(row.getString("schema_id"));
 		representation.setVersion(row.getString("version"));
 		return representation;
 	}
-	
+
 }

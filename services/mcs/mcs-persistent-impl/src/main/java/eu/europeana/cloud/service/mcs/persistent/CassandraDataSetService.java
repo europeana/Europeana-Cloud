@@ -23,7 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class CassandraDataSetService implements DataSetService {
 
 	@Autowired
-	private CassandraDataSetDAO cassandradaDataSetDAO;
+	private CassandraDataSetDAO dataSetDAO;
+	
+	@Autowired
+	private CassandraRecordDAO recordDAO;
+	
+	@Autowired
+	private CassandraDataProviderDAO dataProviderDAO;
 
 
 	@Override
@@ -39,7 +45,7 @@ public class CassandraDataSetService implements DataSetService {
 			thresholdCloudId = thresholdCloudIdAndSchema.get(0);
 			thresholdSchemaId = thresholdCloudIdAndSchema.get(1);
 		}
-		List<Representation> representations = cassandradaDataSetDAO.
+		List<Representation> representations = dataSetDAO.
 				listDataSet(providerId, dataSetId, thresholdCloudId, thresholdSchemaId, limit + 1);
 		String nextResultToken = null;
 		if (representations.size() == limit + 1) {
@@ -54,21 +60,29 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
 			throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
-		cassandradaDataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
+		
+		// check if dataset exists
+		dataSetDAO.getDataSet(providerId, dataSetId);
+		
+		// check if representation exists
+		recordDAO.getRepresentation(recordId, schema, version);
+		
+		// now - if everyting exists - add assignment
+		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
 	}
 
 
 	@Override
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
 			throws DataSetNotExistsException {
-		cassandradaDataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
 	}
 
 
 	@Override
 	public DataSet createDataSet(String providerId, String dataSetId, String description)
 			throws ProviderNotExistsException, DataSetAlreadyExistsException {
-		return cassandradaDataSetDAO.createDataSet(providerId, dataSetId, description);
+		return dataSetDAO.createDataSet(providerId, dataSetId, description);
 	}
 
 
@@ -76,7 +90,7 @@ public class CassandraDataSetService implements DataSetService {
 	public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
 			throws ProviderNotExistsException {
 
-		List<DataSet> dataSets = cassandradaDataSetDAO.
+		List<DataSet> dataSets = dataSetDAO.
 				getDataSets(providerId, thresholdDatasetId, limit + 1);
 		String nextDataSet = null;
 		if (dataSets.size() == limit + 1) {
@@ -91,7 +105,7 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public void deleteDataSet(String providerId, String dataSetId)
 			throws ProviderNotExistsException, DataSetNotExistsException {
-		cassandradaDataSetDAO.deleteDataSet(providerId, dataSetId);
+		dataSetDAO.deleteDataSet(providerId, dataSetId);
 	}
 
 

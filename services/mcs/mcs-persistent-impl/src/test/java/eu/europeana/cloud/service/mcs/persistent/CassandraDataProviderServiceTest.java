@@ -1,13 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.is;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;

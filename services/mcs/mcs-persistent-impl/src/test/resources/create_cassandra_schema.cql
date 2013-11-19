@@ -55,7 +55,7 @@ CREATE TABLE representations_latest_versions (
 	version varchar,
 	provider_id varchar,
 	persistent boolean,
-	PRIMARY KEY (cloud_id, schema_id, persistent)
+	PRIMARY KEY (cloud_id, schema_id)
 );
 
 CREATE TABLE files (
