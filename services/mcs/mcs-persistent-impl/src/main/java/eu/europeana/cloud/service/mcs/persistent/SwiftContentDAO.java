@@ -23,35 +23,30 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SwiftContentDAO {
 
-	public void putContent(String globalId, String schema, String version, File file, InputStream data)
+	public void putContent(String objectId, File file, InputStream data)
 			throws IOException {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 
-	public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd,
-			OutputStream os)
+	public void getContent(String objectId, long rangeStart, long rangeEnd, OutputStream os)
 			throws IOException {
 		throw new UnsupportedOperationException("Not implemented");
 
 	}
 
 
-	public void copyContent(String srcGlobalId, String srcRepName, String srcVersion, String srcFileName,
-			String trgGlobalId, String trgRepName, String trgVersion, String trgFileName) {
+	public void copyContent(String sourceObjectId, String trgObjectId) {
 		throw new UnsupportedOperationException("Not implemented");
 
 	}
 
 
-	public void deleteContent(String globalId, String schema, String version, String fileName)
+	public void deleteContent(String objectId)
 			throws FileNotExistsException {
 		throw new UnsupportedOperationException("Not implemented");
 
 	}
 
 
-	private String generateKey(String recordId, String repName, String version, String fileName) {
-		return recordId + "|" + repName + "|" + version + "|" + fileName;
-	}
 }

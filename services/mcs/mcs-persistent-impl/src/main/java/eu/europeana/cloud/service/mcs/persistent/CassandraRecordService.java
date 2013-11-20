@@ -54,7 +54,7 @@ public class CassandraRecordService implements RecordService {
 		for (Representation rep : r.getRepresentations()) {
 			for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
 				for (File f : repVersion.getFiles()) {
-					contentDAO.deleteContent(globalId, repVersion.getSchema(), repVersion.getVersion(), f.getFileName());
+					contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(), repVersion.getVersion(), f.getFileName()));
 				}
 			}
 		}
@@ -67,7 +67,7 @@ public class CassandraRecordService implements RecordService {
 			throws RecordNotExistsException, RepresentationNotExistsException {
 		for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
 			for (File f : rep.getFiles()) {
-				contentDAO.deleteContent(globalId, schema, rep.getVersion(), f.getFileName());
+				contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
 			}
 		}
 		recordDAO.deleteRepresentation(globalId, schema);
@@ -101,7 +101,7 @@ public class CassandraRecordService implements RecordService {
 			throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
 		Representation rep = recordDAO.getRepresentation(globalId, schema, version);
 		for (File f : rep.getFiles()) {
-			contentDAO.deleteContent(globalId, schema, version, f.getFileName());
+			contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
 		}
 		recordDAO.deleteRepresentation(globalId, schema, version);
 	}
@@ -141,7 +141,7 @@ public class CassandraRecordService implements RecordService {
 			}
 		}
 
-		contentDAO.putContent(globalId, schema, version, file, content);
+		contentDAO.putContent(generateKeyForFile(globalId, schema, version, file.getFileName()), file, content);
 		recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
 		return isCreate;
 	}
@@ -150,7 +150,7 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
 			throws FileNotExistsException, IOException {
-		contentDAO.getContent(globalId, schema, version, fileName, rangeStart, rangeEnd, os);
+		contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
 	}
 
 
@@ -167,7 +167,7 @@ public class CassandraRecordService implements RecordService {
 		if (md5 == null) {
 			throw new FileNotExistsException();
 		}
-		contentDAO.getContent(globalId, schema, version, fileName, -1, -1, os);
+		contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), -1, -1, os);
 		return md5;
 	}
 
@@ -176,7 +176,7 @@ public class CassandraRecordService implements RecordService {
 	public void deleteContent(String globalId, String schema, String version, String fileName)
 			throws FileNotExistsException {
 		recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
-		contentDAO.deleteContent(globalId, schema, version, fileName);
+		contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, fileName));
 	}
 
 
@@ -188,8 +188,8 @@ public class CassandraRecordService implements RecordService {
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
 			copyRepresentation(globalId, schema, version);
-			contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(),
-					globalId, schema, copiedRep.getVersion(), copiedFile.getFileName());
+			contentDAO.copyContent(generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
+					generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
 			recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
 		}
 		//get version after all modifications
@@ -218,6 +218,11 @@ public class CassandraRecordService implements RecordService {
 //		}
 //		result = result.subList(0, Math.min(limit, result.size()));
 //		return new ResultSlice<>(null, result);
+	}
+	
+	
+	private String generateKeyForFile(String recordId, String repName, String version, String fileName) {
+		return recordId + "|" + repName + "|" + version + "|" + fileName;
 	}
 
 }
