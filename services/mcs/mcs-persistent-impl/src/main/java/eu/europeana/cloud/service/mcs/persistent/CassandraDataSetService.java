@@ -24,16 +24,19 @@ public class CassandraDataSetService implements DataSetService {
 
 	@Autowired
 	private CassandraDataSetDAO dataSetDAO;
-	
+
 	@Autowired
 	private CassandraRecordDAO recordDAO;
-	
+
 	@Autowired
 	private CassandraDataProviderDAO dataProviderDAO;
 
 
 	@Override
 	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit) {
+		// check if dataset exists
+		dataSetDAO.getDataSet(providerId, dataSetId);
+
 		String thresholdCloudId = null;
 		String thresholdSchemaId = null;
 		if (thresholdParam != null) {
@@ -60,13 +63,13 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
 			throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
-		
+
 		// check if dataset exists
 		dataSetDAO.getDataSet(providerId, dataSetId);
-		
+
 		// check if representation exists
 		recordDAO.getRepresentation(recordId, schema, version);
-		
+
 		// now - if everyting exists - add assignment
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
 	}
@@ -75,6 +78,9 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
 			throws DataSetNotExistsException {
+		// check if dataset exists
+		dataSetDAO.getDataSet(providerId, dataSetId);
+
 		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
 	}
 
@@ -82,6 +88,9 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public DataSet createDataSet(String providerId, String dataSetId, String description)
 			throws ProviderNotExistsException, DataSetAlreadyExistsException {
+		// check if data provider exists
+		dataProviderDAO.getProvider(providerId);
+
 		return dataSetDAO.createDataSet(providerId, dataSetId, description);
 	}
 
@@ -89,6 +98,8 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
 			throws ProviderNotExistsException {
+		// check if data provider exists
+		dataProviderDAO.getProvider(providerId);
 
 		List<DataSet> dataSets = dataSetDAO.
 				getDataSets(providerId, thresholdDatasetId, limit + 1);
