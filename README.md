@@ -1,4 +1,4 @@
-eCloud
+Europeana Cloud
 ======
 
 Europeana Cloud is a Best Practice Network, coordinated by The European Library, designed to establish a cloud-based system for Europeana and its aggregators.
