@@ -14,7 +14,9 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +37,6 @@ public class CassandraRecordDAO {
 
 	private PreparedStatement getLatestRepresentationVersionStatement;
 
-	private PreparedStatement getLatestPersistentRepresentationVersionStatement;
-
 	private PreparedStatement insertNewLatestVersionStatement;
 
 	private PreparedStatement updateLatestVersionStatement;
@@ -49,10 +49,11 @@ public class CassandraRecordDAO {
 
 	private PreparedStatement listRepresentationVersionsStatement;
 
-//	private PreparedStatement persistRepresentationStatement;
+	private PreparedStatement persistRepresentationStatement;
 
-//	private PreparedStatement persistLatestRepresentationStatement;
 	private PreparedStatement insertFileStatement;
+
+	private PreparedStatement removeFileForNameStatement;
 
 	private PreparedStatement removeFileStatement;
 
@@ -65,9 +66,7 @@ public class CassandraRecordDAO {
 	private void prepareStatements() {
 		Session s = connectionProvider.getSession();
 		getLatestRepresentationVersionStatement = s.prepare(
-				"SELECT version FROM representations_latest_versions WHERE cloud_id = ? AND schema_id = ?;");
-//		getLatestPersistentRepresentationVersionStatement = s.prepare(
-//				"SELECT version FROM representations_latest_versions WHERE cloud_id = ? AND schema_id = ? AND persistent = TRUE;");
+				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations_latest_versions WHERE cloud_id = ? AND schema_id = ?;");
 		insertNewLatestVersionStatement = s.prepare(
 				"INSERT INTO representations_latest_versions (cloud_id, schema_id, version, provider_id, persistent) VALUES (?,?,?,?,?) IF NOT EXISTS;");
 		updateLatestVersionStatement = s.prepare(
@@ -75,22 +74,19 @@ public class CassandraRecordDAO {
 		insertRepresentationStatement = s.prepare(
 				"INSERT INTO representations (cloud_id, schema_id, version, provider_id, persistent, creation_date) VALUES (?,?,?,?,?,?) IF NOT EXISTS;");
 		deleteRepresentationBatch = s.prepare(
-				"BEGIN BATCH "
-				+ "DELETE FROM representations WHERE cloud_id = ? AND schema_id = ? "
-				+ "DELETE FROM representations_latest_versions WHERE cloud_id = ? AND schema_id = ? "
-				+ "APPLY BATCH;");
+				"DELETE FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
 		getRepresentationVersionStatement = s.prepare(
 				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
 		listRepresentationVersionsStatement = s.prepare(
 				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations WHERE cloud_id = ? AND schema_id = ?;");
-//		persistRepresentationStatement = s.prepare(
-//				"UPDATE representations SET persistent = TRUE, version = ? WHERE cloud_id = ? AND schema_id=? AND version = ? IF persistent = FALSE;");
-//		persistLatestRepresentationStatement = s.prepare(
-//				"UPDATE representations_latest_versions SET persistent = TRUE version = ? WHERE cloud_id = ? AND schema_id=?;");
+		persistRepresentationStatement = s.prepare(
+				"UPDATE representations SET persistent = TRUE WHERE cloud_id = ? AND schema_id=? AND version = ? IF persistent = FALSE;");
 		insertFileStatement = s.prepare(
 				"INSERT INTO files(representation_id,file_name,mime_type,content_md5,content_length,last_modification_date) VALUES (?,?,?,?,?,?);");
-		removeFileStatement = s.prepare(
+		removeFileForNameStatement = s.prepare(
 				"DELETE FROM files WHERE representation_id = ? AND file_name = ?;");
+		removeFileStatement = s.prepare(
+				"DELETE FROM files WHERE representation_id = ?;");
 		getFilesStatement = s.prepare(
 				"SELECT file_name, mime_type, content_md5, content_length, last_modification_date FROM files WHERE representation_id = ?;");
 		getAllRepresentationsForRecord = s.prepare(
@@ -101,8 +97,27 @@ public class CassandraRecordDAO {
 
 	public Record getRecord(String cloudId)
 			throws RecordNotExistsException {
-		throw new UnsupportedOperationException("Not implemented");
-
+		ResultSet rs = connectionProvider.getSession().execute(removeFileStatement.bind(cloudId));
+		Map<String, Representation> schemaToLatestPersistentRepresentation = new HashMap<>();
+		for (Row row : rs) {
+			Representation rep = mapToRepresentation(row);
+			if (!rep.isPersistent()) {
+				continue;
+			}
+			Representation prevRepresentationVersionForSchema = schemaToLatestPersistentRepresentation.get(rep.
+					getSchema());
+			if (prevRepresentationVersionForSchema == null) {
+				schemaToLatestPersistentRepresentation.put(rep.getSchema(), rep);
+			} else {
+				int previousVersion = Integer.parseInt(prevRepresentationVersionForSchema.getVersion());
+				int thisVersion = Integer.parseInt(rep.getVersion());
+				if (thisVersion > previousVersion) {
+					schemaToLatestPersistentRepresentation.put(rep.getVersion(), rep);
+				}
+			}
+		}
+		List<Representation> representations = new ArrayList<>(schemaToLatestPersistentRepresentation.values());
+		return new Record(cloudId, representations);
 	}
 
 
@@ -117,22 +132,24 @@ public class CassandraRecordDAO {
 
 	public List<Representation> findRepresentations(String providerId, String schema, String thresholdRecordId, int limit) {
 		throw new UnsupportedOperationException("Not implemented");
-
 	}
 
 
 	public void deleteRepresentation(String cloudId, String schema)
 			throws RecordNotExistsException, RepresentationNotExistsException {
 		throw new UnsupportedOperationException("Not implemented");
-//		BoundStatement boundStatement = deleteRepresentationBatch.bind(cloudId, schema, cloudId, schema);
-//		connectionProvider.getSession().execute(boundStatement);
 	}
 
 
 	public void deleteRepresentation(String cloudId, String schema, String version)
 			throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
-		throw new UnsupportedOperationException("Not implemented");
-
+		Representation rep = getRepresentation(cloudId, schema, version);
+		if (rep.isPersistent()) {
+			throw new CannotModifyPersistentRepresentationException();
+		}
+		String representationKey = generateRepresentationKey(cloudId, schema, version);
+		connectionProvider.getSession().execute(removeFileStatement.bind(representationKey));
+		connectionProvider.getSession().execute(deleteRepresentationBatch.bind(cloudId, schema, version));
 	}
 
 
@@ -145,6 +162,25 @@ public class CassandraRecordDAO {
 		} else {
 			return mapToRepresentation(row);
 		}
+	}
+
+
+	public Representation getLatestPersistentRepresentation(String cloudId, String schema) {
+		// TODO: This method might be more efficient...
+		List<Representation> allRepresentations = this.listRepresentationVersions(cloudId, schema);
+		// filter out temporary representations
+		Representation latestRepresentation = null;
+		int latestRepresentationVersion = 0;
+		for (Representation r : allRepresentations) {
+			if (r.isPersistent()) {
+				int version = Integer.valueOf(r.getVersion());
+				if (version > latestRepresentationVersion) {
+					latestRepresentation = r;
+					latestRepresentationVersion = version;
+				}
+			}
+		}
+		return latestRepresentation;
 	}
 
 
@@ -214,26 +250,39 @@ public class CassandraRecordDAO {
 	 * @return new version number.
 	 */
 	private String generateNewVersionNumber(Representation latestRepresentation, boolean persistent) {
-		// this will be the first version.
+		// now: versions have just sequential numbers, no distinction between temp and persistent
 		if (latestRepresentation == null) {
 			return "1";
+		} else {
+			return Integer.toString(1 + Integer.parseInt(latestRepresentation.getVersion()));
 		}
 
-		boolean latestIsPersistent = latestRepresentation.isPersistent();
-		if (latestIsPersistent && persistent) {
-			return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1);
-		} else if (latestIsPersistent && !persistent) {
-			return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1) + ".PRE-1";
-		} else if (persistent) {
-			return latestRepresentation.getVersion().substring(0, latestRepresentation.getVersion().indexOf("."));
-		} else {
-			String[] parts = latestRepresentation.getVersion().split("-");
-			return parts[0] + "-" + (Integer.parseInt(parts[1]) + 1);
-		}
+//		if (latestRepresentation == null) {
+//			if (persistent) {
+//				return "1";
+//			} else {
+//				return "1.PRE-1";
+//			}
+//		}
+//
+//		boolean latestIsPersistent = latestRepresentation.isPersistent();
+//		if (latestIsPersistent && persistent) {
+//			return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1);
+//		} else if (latestIsPersistent && !persistent) {
+//			return Integer.toString(Integer.parseInt(latestRepresentation.getVersion()) + 1) + ".PRE-1";
+//		} else if (persistent) {
+//			return latestRepresentation.getVersion().substring(0, latestRepresentation.getVersion().indexOf("."));
+//		} else {
+//			String[] parts = latestRepresentation.getVersion().split("-");
+//			return parts[0] + "-" + (Integer.parseInt(parts[1]) + 1);
+//		}
 	}
 
 
 	public Representation getRepresentation(String cloudId, String schema, String version) {
+		if (cloudId == null || schema == null || version == null) {
+			throw new IllegalArgumentException("Parameters cannot be null");
+		}
 		BoundStatement boundStatement = getRepresentationVersionStatement.bind(cloudId, schema, version);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 		Row row = rs.one();
@@ -259,16 +308,38 @@ public class CassandraRecordDAO {
 
 	public Representation persistRepresentation(String cloudId, String schema, String version)
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-		throw new UnsupportedOperationException("Not implemented");
-//		// first - check if such representation exists and is not persistent
-//		Representation representation = getRepresentation(cloudId, schema, version);
-//		if (representation == null) {
-//			throw new RepresentationNotExistsException();
-//		} else if (representation.isPersistent()) {
-//			throw new CannotModifyPersistentRepresentationException("Already persistent");
-//		}
-//
-//		// generate new number for persistent representation
+//		throw new UnsupportedOperationException("Not implemented");
+		// check if representation has at least one file - otherwhise, such representation has no meaning.
+		// first - check if such representation exists and is not persistent
+		Representation representation = getRepresentation(cloudId, schema, version);
+		if (representation == null) {
+			throw new RepresentationNotExistsException();
+		} else if (representation.isPersistent()) {
+			throw new CannotModifyPersistentRepresentationException("Already persistent");
+		}
+
+		BoundStatement boundStatement = persistRepresentationStatement.bind(cloudId, schema, version);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		Row row = rs.one();
+		boolean applied = row.getBool("[applied]");
+		if (applied) {
+			return new Representation(cloudId, schema, version, null, null, representation.
+					getDataProvider(), new ArrayList<File>(), true);
+		} else {
+			boolean representationExisted = rs.getColumnDefinitions().contains("persistent");
+			if (representationExisted) {
+				boolean wasAlreadyPersistent = row.getBool("persistent");
+				if (wasAlreadyPersistent) {
+					throw new CannotModifyPersistentRepresentationException();
+				} else {
+					throw new IllegalStateException("Could not persist row but it was not persistent before");
+				}
+			} else {
+				throw new RepresentationNotExistsException("Representation does not exist anymore");
+			}
+		}
+
+		// generate new number for persistent representation
 //		Representation latestRepresentation = getLatestRepresentationVersion(cloudId, schema);
 //		if (latestRepresentation == null) {
 //			throw new RepresentationNotExistsException();
@@ -293,25 +364,7 @@ public class CassandraRecordDAO {
 //		boundStatement = persistRepresentationStatement.bind(persistentVersionNumber, cloudId, schema, version);
 //		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 //		row = rs.one();
-//
-//		// check if change has been applied
-//		applied = row.getBool("[applied]");
-//		if (applied) {
-//			return new Representation(cloudId, schema, persistentVersionNumber, null, null, representation.
-//					getDataProvider(), new ArrayList<File>(), true);
-//		} else {
-//			boolean representationExisted = rs.getColumnDefinitions().contains("persistent");
-//			if (representationExisted) {
-//				boolean wasAlreadyPersistent = row.getBool("persistent");
-//				if (wasAlreadyPersistent) {
-//					throw new CannotModifyPersistentRepresentationException();
-//				} else {
-//					throw new IllegalStateException("Could not persist row but it was not persistent before");
-//				}
-//			} else {
-//				throw new RepresentationNotExistsException("Representation does not exist anymore");
-//			}
-//		}
+		// check if change has been applied
 	}
 
 
@@ -338,7 +391,7 @@ public class CassandraRecordDAO {
 
 	public void removeFileFromRepresentation(String cloudId, String schema, String version, String fileName) {
 		String representationKey = generateRepresentationKey(cloudId, schema, version);
-		BoundStatement boundStatement = removeFileStatement.bind(representationKey, fileName);
+		BoundStatement boundStatement = removeFileForNameStatement.bind(representationKey, fileName);
 		connectionProvider.getSession().execute(boundStatement);
 	}
 

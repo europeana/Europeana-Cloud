@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.exception.CannotAssignTemporaryRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -48,15 +49,15 @@ public class CassandraDataSetService implements DataSetService {
 			thresholdCloudId = thresholdCloudIdAndSchema.get(0);
 			thresholdSchemaId = thresholdCloudIdAndSchema.get(1);
 		}
-		List<Representation> representations = dataSetDAO.
+		List<Representation> representationStubs = dataSetDAO.
 				listDataSet(providerId, dataSetId, thresholdCloudId, thresholdSchemaId, limit + 1);
 		String nextResultToken = null;
-		if (representations.size() == limit + 1) {
-			Representation nextResult = representations.get(limit);
+		if (representationStubs.size() == limit + 1) {
+			Representation nextResult = representationStubs.get(limit);
 			nextResultToken = encodeParams(nextResult.getRecordId(), nextResult.getSchema());
-			representations.remove(limit);
+			representationStubs.remove(limit);
 		}
-		return new ResultSlice(nextResultToken, representations);
+		return new ResultSlice(nextResultToken, representationStubs);
 	}
 
 
@@ -68,9 +69,24 @@ public class CassandraDataSetService implements DataSetService {
 		dataSetDAO.getDataSet(providerId, dataSetId);
 
 		// check if representation exists
-		recordDAO.getRepresentation(recordId, schema, version);
+		if (version == null) {
+			Representation rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
+			if (rep == null) {
+				throw new RepresentationNotExistsException();
+			}
+		} else {
+			Representation rep = recordDAO.getRepresentation(recordId, schema, version);
 
-		// now - if everyting exists - add assignment
+			if (rep == null) {
+				throw new RepresentationNotExistsException();
+			} else if (!rep.isPersistent()) {
+				throw new CannotAssignTemporaryRepresentationException(String.
+						format("Cannot assign representation %s of record %s in version %s to dataset because this "
+								+ "version is not persistent.", schema, recordId, version));
+			}
+		}
+
+		// now - when everything is validated - add assignment
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
 	}
 

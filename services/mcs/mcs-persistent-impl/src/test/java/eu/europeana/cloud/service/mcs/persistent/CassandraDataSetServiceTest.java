@@ -70,6 +70,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	public void shouldNotAssignToNotExistingDataSet() {
 		// given all objects exist except for dataset
 		Representation r = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
+		cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
 
 		// when trying to add assignment - error is expected
 		cassandraDataSetService.
@@ -93,7 +94,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
 		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
+		r1 = cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
+
 		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
+		r2=cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
 
 		// when representations are assigned to data set
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
@@ -109,12 +113,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	}
 
 
+	@Test
 	public void shouldRemoveAssignmentsFromDataSet() {
 		// given some representations in data set
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
 		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
 		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
+		r1=cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
+		r2=cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
 				getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(), r2.
@@ -131,13 +138,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	@Ignore
 	public void shouldDeleteDataSetWithAssignments() {
 		// given particular data set and representations in it
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
 		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
 		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
+			cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
+		cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
 				getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(), r2.
@@ -159,13 +167,18 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	}
 
 
+	@Test
+	@Ignore("currently listDataSet does not return information about version of latest representation")
 	public void shouldAssignMostRecentVersionToDataSet() {
 		// given data set and multiple versions of the same representation
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
 		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
+		cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
 		Representation r2 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
+		cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
 		Representation r3 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
+		cassandraRecordService.persistRepresentation(r3.getRecordId(), r3.getSchema(), r3.getVersion());
 
 		//when assigned representation without specyfying version
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), null);
@@ -239,7 +252,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		String dsName = "ds";
 		cassandraDataSetService.createDataSet(providerId, dsName, "description");
 		cassandraDataSetService.createDataSet(providerId, dsName, "description of another");
-
 	}
 
 }

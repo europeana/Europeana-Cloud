@@ -36,7 +36,7 @@ public class CassandraDataSetDAO {
 
 	private PreparedStatement removeAssignmentStatement;
 
-	private PreparedStatement removeAssignmentsStatement;
+	private PreparedStatement listDataSetAssignmentsNoPaging;
 
 	private PreparedStatement listDataSetRepresentationsStatement;
 
@@ -59,8 +59,8 @@ public class CassandraDataSetDAO {
 		removeAssignmentStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
 
-		removeAssignmentsStatement = connectionProvider.getSession().prepare(
-				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ?;");
+		listDataSetAssignmentsNoPaging = connectionProvider.getSession().prepare(
+				"SELECT * FROM data_set_assignments WHERE provider_dataset_id = ?;");
 
 		listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
 				"SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
@@ -86,7 +86,9 @@ public class CassandraDataSetDAO {
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 		List<Representation> representationStubs = new ArrayList<>(limit);
 		for (Row row : rs) {
-			representationStubs.add(mapRowToRepresentationStub(providerId, row));
+			Representation stub = mapRowToRepresentationStub(providerId, row);
+			stub.setPersistent(true); // because they must be persistent in assignments
+			representationStubs.add(stub);
 		}
 		return representationStubs;
 	}
@@ -161,8 +163,14 @@ public class CassandraDataSetDAO {
 			throws ProviderNotExistsException, DataSetNotExistsException {
 		// remove all assignments
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-		BoundStatement boundStatement = removeAssignmentsStatement.bind(providerDataSetId);
-		connectionProvider.getSession().execute(boundStatement);
+		BoundStatement boundStatement = listDataSetAssignmentsNoPaging.bind(providerDataSetId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		for (Row row : rs) {
+			String cloudId = row.getString("cloud_id");
+			String schemaId = row.getString("schema_id");
+			connectionProvider.getSession().
+					execute(removeAssignmentStatement.bind(providerDataSetId, cloudId, schemaId));
+		}
 
 		// remove dataset itself
 		boundStatement = deleteDataSetStatement.bind(providerId, dataSetId);
