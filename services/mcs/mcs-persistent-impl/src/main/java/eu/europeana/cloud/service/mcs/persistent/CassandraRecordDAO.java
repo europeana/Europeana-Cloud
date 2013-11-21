@@ -97,7 +97,7 @@ public class CassandraRecordDAO {
 
 	public Record getRecord(String cloudId)
 			throws RecordNotExistsException {
-		ResultSet rs = connectionProvider.getSession().execute(removeFileStatement.bind(cloudId));
+		ResultSet rs = connectionProvider.getSession().execute(getAllRepresentationsForRecord.bind(cloudId));
 		Map<String, Representation> schemaToLatestPersistentRepresentation = new HashMap<>();
 		for (Row row : rs) {
 			Representation rep = mapToRepresentation(row);
