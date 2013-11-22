@@ -1,3 +1,5 @@
+*.iml
+*.idea
 /services/mcs/nb-configuration.xml
 /target
 /.settings
