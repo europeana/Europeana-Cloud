@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,7 +56,9 @@ public class CassandraRecordDAO {
 
 	private PreparedStatement getFilesStatement;
 
-	private PreparedStatement getAllRepresentationsForRecord;
+	private PreparedStatement getAllRepresentationsForRecordStatement;
+
+	private PreparedStatement singleRecordIdForProviderStatement;
 
 
 	@PostConstruct
@@ -76,7 +79,7 @@ public class CassandraRecordDAO {
 				"DELETE files[?] FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
 		getFilesStatement = s.prepare(
 				"SELECT files FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
-		getAllRepresentationsForRecord = s.prepare(
+		getAllRepresentationsForRecordStatement = s.prepare(
 				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations WHERE cloud_id = ? ORDER BY schema_id DESC, version DESC;");
 		deleteRecordStatement = s.prepare(
 				"BEGIN BATCH "
@@ -93,6 +96,8 @@ public class CassandraRecordDAO {
 				+ "DELETE FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ? "
 				+ "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? "
 				+ "APPLY BATCH;");
+		singleRecordIdForProviderStatement = s.prepare(
+				"SELECT cloud_id FROM representations WHERE provider_id = ? LIMIT 1;");
 	}
 
 
@@ -104,7 +109,7 @@ public class CassandraRecordDAO {
 	 * @return
 	 */
 	public Record getRecord(String cloudId) {
-		ResultSet rs = connectionProvider.getSession().execute(getAllRepresentationsForRecord.bind(cloudId));
+		ResultSet rs = connectionProvider.getSession().execute(getAllRepresentationsForRecordStatement.bind(cloudId));
 		List<Representation> representations = new ArrayList<>();
 		String prevSchema = null;
 		for (Row row : rs) {
@@ -203,7 +208,6 @@ public class CassandraRecordDAO {
 		} else {
 			Map<String, String> fileNameToFile = row.getMap("files", String.class, String.class);
 			return deserializeFiles(fileNameToFile);
-
 		}
 	}
 
@@ -246,6 +250,12 @@ public class CassandraRecordDAO {
 	}
 
 
+	public boolean providerHasRepresentations(String providerId) {
+		Row row = connectionProvider.getSession().execute(singleRecordIdForProviderStatement.bind(providerId)).one();
+		return row != null;
+	}
+
+
 	private Representation mapToRepresentation(Row row) {
 		Representation representation = new Representation();
 		representation.setDataProvider(row.getString("provider_id"));
@@ -274,7 +284,8 @@ public class CassandraRecordDAO {
 		f.setContentUri(null);
 		return gson.toJson(f);
 	}
-	
+
+
 	private static UUID getTimeUUID() {
 		return UUID.fromString(new com.eaio.uuid.UUID().toString());
 	}

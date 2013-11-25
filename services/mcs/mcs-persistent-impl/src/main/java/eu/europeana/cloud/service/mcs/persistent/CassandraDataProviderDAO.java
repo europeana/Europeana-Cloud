@@ -19,7 +19,6 @@ import com.datastax.driver.core.Row;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 
 /**
  * InMemoryDataProviderDAO

@@ -167,7 +167,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	@Ignore("currently listDataSet does not return information about version of latest representation")
 	public void shouldAssignMostRecentVersionToDataSet() {
 		// given data set and multiple versions of the same representation
 		String dsName = "ds";

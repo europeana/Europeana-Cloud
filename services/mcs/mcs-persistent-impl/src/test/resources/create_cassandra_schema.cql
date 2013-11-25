@@ -40,3 +40,4 @@ CREATE TABLE representations (
 	creation_date timestamp,
 	PRIMARY KEY (cloud_id, schema_id, version)
 );
+CREATE INDEX representations_provider_id ON representations (provider_id);

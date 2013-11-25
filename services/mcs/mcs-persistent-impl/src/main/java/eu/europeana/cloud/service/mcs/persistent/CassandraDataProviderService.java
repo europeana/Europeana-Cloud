@@ -23,7 +23,10 @@ public class CassandraDataProviderService implements DataProviderService {
 	private CassandraDataProviderDAO dataProviderDAO;
 
 	@Autowired
-	private CassandraDataSetDAO cassandraDataSetDAO;
+	private CassandraDataSetDAO dataSetDAO;
+
+	@Autowired
+	private CassandraRecordDAO recordDAO;
 
 
 	@Override
@@ -41,8 +44,8 @@ public class CassandraDataProviderService implements DataProviderService {
 	@Override
 	public DataProvider getProvider(String providerId)
 			throws ProviderNotExistsException {
-		DataProvider dp =  dataProviderDAO.getProvider(providerId);
-		if (dp == null ){ 
+		DataProvider dp = dataProviderDAO.getProvider(providerId);
+		if (dp == null) {
 			throw new ProviderNotExistsException();
 		} else {
 			return dp;
@@ -59,9 +62,13 @@ public class CassandraDataProviderService implements DataProviderService {
 	@Override
 	public void deleteProvider(String providerId)
 			throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
-		boolean providerHasDataSets = !cassandraDataSetDAO.getDataSets(providerId, null, 1).isEmpty();
+		boolean providerHasDataSets = !dataSetDAO.getDataSets(providerId, null, 1).isEmpty();
 		if (providerHasDataSets) {
 			throw new ProviderHasDataSetsException();
+		}
+		boolean providerHasRepresentation = recordDAO.providerHasRepresentations(providerId);
+		if (providerHasRepresentation) {
+			throw new ProviderHasRecordsException();
 		}
 		dataProviderDAO.deleteProvider(providerId);
 	}

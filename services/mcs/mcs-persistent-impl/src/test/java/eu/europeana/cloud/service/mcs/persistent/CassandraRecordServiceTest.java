@@ -120,7 +120,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 		// we will get representations with empty file lists - for comparison, we should remove files from our representations
 		jpg.setFiles(Collections.EMPTY_LIST);
 		edm4.setFiles(Collections.EMPTY_LIST);
-		
+
 		Record record = cassandraRecordService.getRecord("globalId");
 		Set<Representation> expectedRepresentations = new HashSet<>(Arrays.asList(jpg, edm4));
 		Set<Representation> fetchedRepresentations = new HashSet<>(record.getRepresentations());
@@ -135,7 +135,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 		Representation r3 = cassandraRecordService.createRepresentation("globalId", "dc", providerId);
 
 		cassandraRecordService.deleteRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
-		
+
 		// we will get representations with empty file lists - for comparison, we should remove files from our representations
 		r2.setFiles(Collections.EMPTY_LIST);
 
@@ -261,6 +261,21 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 		//then
 		r = cassandraRecordService.getRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
 		assertTrue(r.getFiles().isEmpty());
+	}
+
+
+	public void shouldCopyRepresentation() throws IOException {
+		Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
+		Representation copy = cassandraRecordService.copyRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+
+		assertThat(copy, is(r));
+		for (File f : r.getFiles()) {
+			ByteArrayOutputStream rContent = new ByteArrayOutputStream();
+			ByteArrayOutputStream copyContent = new ByteArrayOutputStream();
+			cassandraRecordService.getContent(r.getRecordId(), r.getSchema(), r.getVersion(), f.getFileName(), rContent);
+			cassandraRecordService.getContent(copy.getRecordId(), copy.getSchema(), copy.getVersion(), f.getFileName(), copyContent);
+			assertThat(rContent.toByteArray(), is(copyContent.toByteArray()));
+		}
 	}
 
 

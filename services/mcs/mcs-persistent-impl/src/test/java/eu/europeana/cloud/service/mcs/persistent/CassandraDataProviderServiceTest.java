@@ -14,6 +14,8 @@ import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,20 +25,26 @@ import static org.hamcrest.Matchers.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
 public class CassandraDataProviderServiceTest extends CassandraTestBase {
-	
+
 	@Autowired
 	private CassandraDataProviderService cassandraDataProviderService;
-	
-	
+
+	@Autowired
+	private CassandraRecordService cassandraRecordService;
+
+	@Autowired
+	private CassandraDataSetService cassandraDataSetService;
+
+
 	@Test
 	public void shouldCreateAndGetProvider() {
 		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
-		
+
 		DataProvider dpFromService = cassandraDataProviderService.getProvider("provident");
 		assertThat(dp, is(dpFromService));
 	}
-	
-	
+
+
 	@Test(expected = ProviderNotExistsException.class)
 	public void shouldDeleteProvider() {
 		// given particular provider in service;
@@ -48,20 +56,36 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 		// then it should no more be available in service
 		cassandraDataProviderService.getProvider(dp.getId());
 	}
-	
-	
+
+
 	@Test(expected = ProviderNotExistsException.class)
 	public void shouldFailWhenFetchingNonExistingProvider() {
 		cassandraDataProviderService.getProvider("provident");
 	}
-	
-	
+
+
+	@Test(expected = ProviderHasRecordsException.class)
+	public void shouldFailWhenDeletingProviderWithRecords() {
+		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
+		cassandraRecordService.createRepresentation("global", "dc", dp.getId());
+		cassandraDataProviderService.deleteProvider(dp.getId());
+	}
+
+
+	@Test(expected = ProviderHasDataSetsException.class)
+	public void shouldFailWhenDeletingProviderWithDataSets() {
+		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
+		cassandraDataSetService.createDataSet(dp.getId(), "ds", "description");
+		cassandraDataProviderService.deleteProvider(dp.getId());
+	}
+
+
 	@Test
 	public void shouldReturnEmptyArrayWhenNoProviderAdded() {
 		assertTrue("Expecting no providers", cassandraDataProviderService.getProviders(null, 1).getResults().isEmpty());
 	}
-	
-	
+
+
 	@Test
 	public void shouldReturnAllProviders() {
 		int providerCount = 10;
@@ -72,15 +96,15 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 			insertedProviders.add(
 					cassandraDataProviderService.createProvider("dp_" + provId, createRandomDataProviderProperties()));
 		}
-		
+
 		Set<DataProvider> fetchedProviders = new HashSet<>(cassandraDataProviderService.getProviders(null, 100).
 				getResults());
 		assertThat(fetchedProviders, is(insertedProviders));
 	}
-	
-	
+
+
 	@Test
-	public void shouldReturnPagedResults() {
+	public void shouldReturnPagedProviderList() {
 		int providerCount = 1000;
 		List<String> insertedProviderIds = new ArrayList<>(providerCount);
 
@@ -99,17 +123,17 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 			ResultSlice<DataProvider> resultSlice = cassandraDataProviderService.getProviders(token, sliceSize);
 			token = resultSlice.getNextSlice();
 			assertTrue(resultSlice.getResults().size() == sliceSize || token == null);
-			for (DataProvider dp: resultSlice.getResults()) {
+			for (DataProvider dp : resultSlice.getResults()) {
 				fetchedProviderIds.add(dp.getId());
 			}
 		} while (token != null);
-		
+
 		Collections.sort(insertedProviderIds);
 		Collections.sort(fetchedProviderIds);
 		assertThat(insertedProviderIds, is(fetchedProviderIds));
 	}
-	
-	
+
+
 	private DataProviderProperties createRandomDataProviderProperties() {
 		DataProviderProperties properties = new DataProviderProperties();
 		properties.setContactPerson("Contact_Person_" + randomString());
@@ -122,8 +146,8 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 		properties.setRemarks("Important remarks for provider include " + randomString());
 		return properties;
 	}
-	
-	
+
+
 	private static String randomString() {
 		byte[] randomBytes = new byte[10];
 		ThreadLocalRandom.current().nextBytes(randomBytes);
