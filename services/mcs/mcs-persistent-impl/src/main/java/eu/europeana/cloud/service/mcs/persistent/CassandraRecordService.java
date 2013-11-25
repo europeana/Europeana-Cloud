@@ -16,8 +16,12 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -160,6 +164,7 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
 			throws FileAlreadyExistsException, IOException {
+		DateTime now = new DateTime();
 		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
@@ -180,6 +185,8 @@ public class CassandraRecordService implements RecordService {
 		String keyForFile = generateKeyForFile(globalId, schema, version, file.getFileName());
 		PutResult result = contentDAO.putContent(keyForFile, content);
 		file.setMd5(result.getMd5());
+		DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+		file.setDate(fmt.print(now));
 		file.setContentLength(result.getContentLength());
 		recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
 		return isCreate;
