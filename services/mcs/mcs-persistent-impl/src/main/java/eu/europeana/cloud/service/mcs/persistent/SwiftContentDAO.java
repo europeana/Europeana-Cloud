@@ -27,7 +27,7 @@ public class SwiftContentDAO
 
 
 	/**
-	 * Puts givent content to storage under given fileName. Counts content length and md5 checksum and updates file with
+	 * Puts given content to storage under given fileName. Counts content length and md5 checksum and updates file with
 	 * it.
 	 * 
 	 * @param fileName name of the file
@@ -51,7 +51,7 @@ public class SwiftContentDAO
 
 
 	/**
-	 * Retrieves content of file from storage. Can retrieve range od bytes of the file.
+	 * Retrieves content of file from storage. Can retrieve range of bytes of the file.
 	 * 
 	 * @param fileName name of the file to retrieve
 	 * @param start first offset included in the response. If equal to -1, ignored.
@@ -109,7 +109,7 @@ public class SwiftContentDAO
 
 
 	/**
-	 * Deletes storage object identifed by fileName.
+	 * Deletes storage object identified by fileName.
 	 * 
 	 * @param fileName name of the object to be deleted
 	 * @throws FileNotExistsException if object does not exist in the storage
