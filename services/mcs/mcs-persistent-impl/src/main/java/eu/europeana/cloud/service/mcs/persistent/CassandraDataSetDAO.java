@@ -6,14 +6,15 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -42,19 +43,17 @@ public class CassandraDataSetDAO {
 
 	private PreparedStatement listDataSetsStatement;
 
-	private PreparedStatement getDataSetStatement;
-
 
 	@PostConstruct
 	private void prepareStatements() {
 		createDataSetStatement = connectionProvider.getSession().prepare(
-				"INSERT INTO data_sets (provider_id, dataset_id, description, creation_date) VALUES (?,?,?,?) IF NOT EXISTS;");
+				"UPDATE data_providers SET data_sets[?] = ? WHERE provider_id = ?;");
 
 		deleteDataSetStatement = connectionProvider.getSession().prepare(
-				"DELETE FROM data_sets WHERE provider_id = ? AND dataset_id = ?;");
+				"DELETE data_sets[?] FROM data_providers WHERE provider_id = ?;");
 
 		addAssignmentStatement = connectionProvider.getSession().prepare(
-				"INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version, creation_date) VALUES (?,?,?,?,?) IF NOT EXISTS;");
+				"INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version, creation_date) VALUES (?,?,?,?,?);");
 
 		removeAssignmentStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
@@ -66,13 +65,21 @@ public class CassandraDataSetDAO {
 				"SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
 
 		listDataSetsStatement = connectionProvider.getSession().prepare(
-				"SELECT provider_id, dataset_id, description FROM data_sets WHERE provider_id = ? AND dataset_id >= ? LIMIT ?;");
-
-		getDataSetStatement = connectionProvider.getSession().prepare(
-				"SELECT provider_id, dataset_id, description FROM data_sets WHERE provider_id = ? AND dataset_id >= ?;");
+				"SELECT data_sets FROM data_providers WHERE provider_id = ?;");
 	}
 
 
+	/**
+	 * Returns stubs of representations assigned to a data set. Stubs contain cloud id and schema of the representation,
+	 * may also contain version (if a certain version is in a data set).
+	 *
+	 * @param providerId
+	 * @param dataSetId
+	 * @param thresholdCloudId
+	 * @param thresholdSchema
+	 * @param limit
+	 * @return
+	 */
 	public List<Representation> listDataSet(String providerId, String dataSetId, String thresholdCloudId, String thresholdSchema, int limit) {
 		if (thresholdCloudId == null) {
 			thresholdCloudId = "";
@@ -86,55 +93,52 @@ public class CassandraDataSetDAO {
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 		List<Representation> representationStubs = new ArrayList<>(limit);
 		for (Row row : rs) {
-			Representation stub = mapRowToRepresentationStub(providerId, row);
-			stub.setPersistent(true); // because they must be persistent in assignments
+			Representation stub = mapRowToRepresentationStub(row);
 			representationStubs.add(stub);
 		}
 		return representationStubs;
 	}
 
 
-	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-			throws RepresentationAlreadyInSetException {
+	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version) {
 		Date now = new Date();
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
 		BoundStatement boundStatement = addAssignmentStatement.bind(providerDataSetId, recordId, schema, version, now);
-		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-		Row result = rs.one();
-		boolean applied = result.getBool("[applied]");
-		if (!applied) {
-			throw new RepresentationAlreadyInSetException(recordId, schema, dataSetId, providerId);
-		}
+		connectionProvider.getSession().execute(boundStatement);
 	}
-	
-	public DataSet getDataSet(String providerId, String dataSetId) {
-		BoundStatement boundStatement = getDataSetStatement.bind(providerId,dataSetId);
-		Row row = connectionProvider.getSession().execute(boundStatement).one();
+
+
+	public DataSet getDataSet(String providerId, String dataSetId)
+			throws ProviderNotExistsException {
+		BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		Row row = rs.one();
 		if (row == null) {
-			throw new DataSetNotExistsException();
-		} else {
-			return mapRowToDataSet(row);
+			throw new ProviderNotExistsException();
 		}
+		Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
+		if (!datasets.containsKey(dataSetId)) {
+			return null;
+		}
+		DataSet ds = new DataSet();
+		ds.setProviderId(providerId);
+		ds.setId(dataSetId);
+		ds.setDescription(datasets.get(dataSetId));
+		return ds;
 	}
 
 
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema) {
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
 		BoundStatement boundStatement = removeAssignmentStatement.bind(providerDataSetId, recordId, schema);
-		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		connectionProvider.getSession().execute(boundStatement);
 	}
 
 
-	public DataSet createDataSet(String providerId, String dataSetId, String description)
-			throws DataSetAlreadyExistsException {
-		Date now = new Date();
-		BoundStatement boundStatement = createDataSetStatement.bind(providerId, dataSetId, description, now);
-		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-		Row row = rs.one();
-		boolean applied = row.getBool("[applied]");
-		if (!applied) {
-			throw new DataSetAlreadyExistsException();
-		}
+	public DataSet createDataSet(String providerId, String dataSetId, String description) {
+		BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
+		connectionProvider.getSession().execute(boundStatement);
+
 		DataSet ds = new DataSet();
 		ds.setId(dataSetId);
 		ds.setDescription(description);
@@ -143,24 +147,34 @@ public class CassandraDataSetDAO {
 	}
 
 
-	public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
-			throws ProviderNotExistsException {
-		if (thresholdDatasetId == null) {
-			thresholdDatasetId = "";
-		}
-		BoundStatement boundStatement = listDataSetsStatement.
-				bind(providerId, thresholdDatasetId, limit);
+	public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
+		BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-		List<DataSet> dataSets = new ArrayList<>(limit);
-		for (Row row : rs) {
-			dataSets.add(mapRowToDataSet(row));
+		Row row = rs.one();
+		if (row == null) {
+			return null;
 		}
-		return dataSets;
+		Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
+		NavigableMap<String, String> sortedDatasets = new TreeMap(datasets);
+		if (thresholdDatasetId != null) {
+			sortedDatasets = sortedDatasets.tailMap(thresholdDatasetId, true);
+		}
+		List<DataSet> result = new ArrayList<>(Math.min(limit, sortedDatasets.size()));
+		for (Map.Entry<String, String> entry : sortedDatasets.entrySet()) {
+			if (result.size() >= limit) {
+				break;
+			}
+			DataSet ds = new DataSet();
+			ds.setProviderId(providerId);
+			ds.setId(entry.getKey());
+			ds.setDescription(entry.getValue());
+			result.add(ds);
+		}
+		return result;
 	}
 
 
-	public void deleteDataSet(String providerId, String dataSetId)
-			throws ProviderNotExistsException, DataSetNotExistsException {
+	public void deleteDataSet(String providerId, String dataSetId) {
 		// remove all assignments
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
 		BoundStatement boundStatement = listDataSetAssignmentsNoPaging.bind(providerDataSetId);
@@ -173,7 +187,7 @@ public class CassandraDataSetDAO {
 		}
 
 		// remove dataset itself
-		boundStatement = deleteDataSetStatement.bind(providerId, dataSetId);
+		boundStatement = deleteDataSetStatement.bind(dataSetId, providerId);
 		connectionProvider.getSession().execute(boundStatement);
 	}
 
@@ -183,18 +197,15 @@ public class CassandraDataSetDAO {
 	}
 
 
-	private DataSet mapRowToDataSet(Row row) {
-		DataSet ds = new DataSet();
-		ds.setId(row.getString("dataset_id"));
-		ds.setProviderId(row.getString("provider_id"));
-		ds.setDescription(row.getString("description"));
-		return ds;
-	}
-
-
-	private Representation mapRowToRepresentationStub(String providerId, Row row) {
+//	private DataSet mapRowToDataSet(Row row) {
+//		DataSet ds = new DataSet();
+//		ds.setId(row.getString("dataset_id"));
+//		ds.setProviderId(row.getString("provider_id"));
+//		ds.setDescription(row.getString("description"));
+//		return ds;
+//	}
+	private Representation mapRowToRepresentationStub(Row row) {
 		Representation representation = new Representation();
-		representation.setDataProvider(providerId);
 		representation.setRecordId(row.getString("cloud_id"));
 		representation.setSchema(row.getString("schema_id"));
 		representation.setVersion(row.getString("version"));

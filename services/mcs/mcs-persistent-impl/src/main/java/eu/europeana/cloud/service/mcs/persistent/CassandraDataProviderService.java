@@ -41,7 +41,12 @@ public class CassandraDataProviderService implements DataProviderService {
 	@Override
 	public DataProvider getProvider(String providerId)
 			throws ProviderNotExistsException {
-		return dataProviderDAO.getProvider(providerId);
+		DataProvider dp =  dataProviderDAO.getProvider(providerId);
+		if (dp == null ){ 
+			throw new ProviderNotExistsException();
+		} else {
+			return dp;
+		}
 	}
 
 

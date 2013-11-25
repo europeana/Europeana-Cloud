@@ -75,13 +75,12 @@ public class CassandraDataProviderDAO {
     }
 
 
-    public DataProvider getProvider(String providerId)
-            throws ProviderNotExistsException {
+    public DataProvider getProvider(String providerId) {
         BoundStatement boundStatement = getProviderStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row result = rs.one();
         if (result == null) {
-            throw new ProviderNotExistsException();
+            return null;
         } else {
             return map(result);
         }

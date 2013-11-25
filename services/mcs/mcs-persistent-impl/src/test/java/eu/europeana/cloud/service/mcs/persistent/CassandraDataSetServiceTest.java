@@ -2,18 +2,22 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
+import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,8 +73,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	@Test(expected = DataSetNotExistsException.class)
 	public void shouldNotAssignToNotExistingDataSet() {
 		// given all objects exist except for dataset
-		Representation r = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+		Representation r = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
 		// when trying to add assignment - error is expected
 		cassandraDataSetService.
@@ -84,7 +87,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds", "description of this set");
 
 		// when trying to add assignment - error is expected
-		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), "cloud-id", "schema", "version");
+		String version = new com.eaio.uuid.UUID().toString();
+		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), "cloud-id", "schema", version);
 	}
 
 
@@ -93,11 +97,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// given particular data set and representations
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		r1 = cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
+		Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
-		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
-		r2=cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
+		Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 
 		// when representations are assigned to data set
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
@@ -118,10 +120,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// given some representations in data set
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
-		r1=cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
-		r2=cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
+		Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+		Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
+
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
 				getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(), r2.
@@ -142,10 +143,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// given particular data set and representations in it
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		Representation r2 = cassandraRecordService.createRepresentation("cloud-id_1", "schema", providerId);
-			cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
-		cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
+		Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+		Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), r1.
 				getVersion());
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(), r2.
@@ -173,12 +172,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// given data set and multiple versions of the same representation
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-		Representation r1 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		cassandraRecordService.persistRepresentation(r1.getRecordId(), r1.getSchema(), r1.getVersion());
-		Representation r2 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		cassandraRecordService.persistRepresentation(r2.getRecordId(), r2.getSchema(), r2.getVersion());
-		Representation r3 = cassandraRecordService.createRepresentation("cloud-id", "schema", providerId);
-		cassandraRecordService.persistRepresentation(r3.getRecordId(), r3.getSchema(), r3.getVersion());
+		Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+		Representation r2 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+		Representation r3 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
 		//when assigned representation without specyfying version
 		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), null);
@@ -252,6 +248,18 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		String dsName = "ds";
 		cassandraDataSetService.createDataSet(providerId, dsName, "description");
 		cassandraDataSetService.createDataSet(providerId, dsName, "description of another");
+	}
+	
+	private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
+		Representation r = cassandraRecordService.createRepresentation(cloudId, schema, providerId);
+		byte[] dummyContent = {1,2,3};
+		File f = new File("content.xml", "application/xml", null, null, 0, null);
+		try {
+			cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
+		} catch (IOException ex) {
+			throw new RuntimeException("Should not happen");
+		}
+		return cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
 	}
 
 }

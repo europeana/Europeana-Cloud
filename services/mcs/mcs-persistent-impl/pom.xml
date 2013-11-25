@@ -43,29 +43,39 @@
 			<artifactId>cassandra-driver-core</artifactId>
 			<version>2.0.0-rc1</version>
 		</dependency>
-		
-                <dependency>
-                        <groupId>org.jclouds</groupId>
-                        <artifactId>jclouds-blobstore</artifactId>
-                        <version>1.6.0</version>
-                </dependency>
-                <dependency>
-                        <groupId>org.jclouds</groupId>
-                        <artifactId>jclouds-allblobstore</artifactId>
-                        <version>1.6.0</version>
-                </dependency>
-                <dependency>
-                        <groupId>commons-io</groupId>
-                        <artifactId>commons-io</artifactId>
-                        <version>2.4</version>
-                </dependency>
-                <dependency>
-                        <groupId>commons-codec</groupId>
-                        <artifactId>commons-codec</artifactId>
-                        <version>1.8</version>
-                </dependency>
+		<dependency>
+			<groupId>com.eaio.uuid</groupId>
+			<artifactId>uuid</artifactId>
+			<version>3.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jclouds</groupId>
+			<artifactId>jclouds-blobstore</artifactId>
+			<version>1.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jclouds</groupId>
+			<artifactId>jclouds-allblobstore</artifactId>
+			<version>1.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.8</version>
+		</dependency>
                     
-                
+             
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.1</version>
+		</dependency>
+            
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -121,7 +131,7 @@
 			<version>1.1.0</version>
 			<scope>test</scope>
 		</dependency>
-        </dependencies>
+	</dependencies>
 	
 	<repositories>
 		<repository>
@@ -129,7 +139,11 @@
 			<name>synat-a09-libs-releases-public</name>
 			<url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
 		</repository>
-
+		<repository>
+			<id>eaio.com</id>
+			<url>http://eaio.com/maven2</url>
+		</repository>
+		
 	</repositories>
 
 

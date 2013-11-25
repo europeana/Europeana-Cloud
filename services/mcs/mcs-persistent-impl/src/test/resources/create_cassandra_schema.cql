@@ -14,16 +14,9 @@
 
 CREATE TABLE data_providers (
 	provider_id varchar PRIMARY KEY,
-	properties map<varchar, text>,
+	properties map<varchar, text>, /* properties such as organization name, website url etc. */
+	data_sets map<varchar, varchar>, /* identifier -> description of data set */
 	creation_date timestamp	
-);
-
-CREATE TABLE data_sets (
-	provider_id varchar,
-	dataset_id varchar,
-	description text,
-	creation_date timestamp,	
-	PRIMARY KEY (provider_id, dataset_id)
 );
 
 CREATE TABLE data_set_assignments (
@@ -40,30 +33,10 @@ CREATE INDEX data_set_assignments_provider_dataset_id ON data_set_assignments (p
 CREATE TABLE representations (
 	cloud_id varchar,
 	schema_id varchar,
-	version varchar,
+	version timeuuid,
 	provider_id varchar,
 	persistent boolean,
+	files map<varchar, text>,  /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
 	creation_date timestamp,
 	PRIMARY KEY (cloud_id, schema_id, version)
-);
-CREATE INDEX representations_schema_id ON representations (schema_id);
-CREATE INDEX representations_provider_id ON representations (provider_id);
-
-CREATE TABLE representations_latest_versions (
-	cloud_id varchar,
-	schema_id varchar,
-	version varchar,
-	provider_id varchar,
-	persistent boolean,
-	PRIMARY KEY (cloud_id, schema_id)
-);
-
-CREATE TABLE files (
-	representation_id varchar, /* concatenation: cloud_id | schema_id | version */
-	file_name varchar,
-	mime_type varchar,
-	content_md5 varchar,
-	content_length int,
-	last_modification_date timestamp,
-	PRIMARY KEY (representation_id, file_name)
 );

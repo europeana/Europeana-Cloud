@@ -7,13 +7,14 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.exception.CannotAssignTemporaryRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,8 +37,10 @@ public class CassandraDataSetService implements DataSetService {
 	@Override
 	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit) {
 		// check if dataset exists
-		dataSetDAO.getDataSet(providerId, dataSetId);
-
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
 		String thresholdCloudId = null;
 		String thresholdSchemaId = null;
 		if (thresholdParam != null) {
@@ -57,7 +60,16 @@ public class CassandraDataSetService implements DataSetService {
 			nextResultToken = encodeParams(nextResult.getRecordId(), nextResult.getSchema());
 			representationStubs.remove(limit);
 		}
-		return new ResultSlice(nextResultToken, representationStubs);
+		// replace representation stubs to real representations
+		List<Representation> representations = new ArrayList<>(representationStubs.size());
+		for (Representation stub:representationStubs) {
+			if (stub.getVersion() == null) {
+				representations.add(recordDAO.getLatestPersistentRepresentation(stub.getRecordId(), stub.getSchema()));
+			} else {
+				representations.add(recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion()));
+			}
+		}
+		return new ResultSlice(nextResultToken, representations);
 	}
 
 
@@ -66,7 +78,10 @@ public class CassandraDataSetService implements DataSetService {
 			throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
 
 		// check if dataset exists
-		dataSetDAO.getDataSet(providerId, dataSetId);
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
 
 		// check if representation exists
 		if (version == null) {
@@ -79,11 +94,12 @@ public class CassandraDataSetService implements DataSetService {
 
 			if (rep == null) {
 				throw new RepresentationNotExistsException();
-			} else if (!rep.isPersistent()) {
-				throw new CannotAssignTemporaryRepresentationException(String.
-						format("Cannot assign representation %s of record %s in version %s to dataset because this "
-								+ "version is not persistent.", schema, recordId, version));
-			}
+			} 
+//			else if (!rep.isPersistent()) {
+//				throw new CannotPersistEmptyRepresentationException(String.
+//						format("Cannot assign representation %s of record %s in version %s to dataset because this "
+//								+ "version is not persistent.", schema, recordId, version));
+//			}
 		}
 
 		// now - when everything is validated - add assignment
@@ -95,7 +111,10 @@ public class CassandraDataSetService implements DataSetService {
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
 			throws DataSetNotExistsException {
 		// check if dataset exists
-		dataSetDAO.getDataSet(providerId, dataSetId);
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
 
 		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
 	}
@@ -105,8 +124,16 @@ public class CassandraDataSetService implements DataSetService {
 	public DataSet createDataSet(String providerId, String dataSetId, String description)
 			throws ProviderNotExistsException, DataSetAlreadyExistsException {
 		// check if data provider exists
-		dataProviderDAO.getProvider(providerId);
-
+		if (dataProviderDAO.getProvider(providerId) == null) {
+			throw new ProviderNotExistsException();
+		}
+		
+		// check if dataset exists
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		if (ds != null) {
+			throw new DataSetAlreadyExistsException();
+		}
+		
 		return dataSetDAO.createDataSet(providerId, dataSetId, description);
 	}
 
@@ -115,7 +142,9 @@ public class CassandraDataSetService implements DataSetService {
 	public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
 			throws ProviderNotExistsException {
 		// check if data provider exists
-		dataProviderDAO.getProvider(providerId);
+		if (dataProviderDAO.getProvider(providerId) == null) {
+			throw new ProviderNotExistsException();
+		}
 
 		List<DataSet> dataSets = dataSetDAO.
 				getDataSets(providerId, thresholdDatasetId, limit + 1);
