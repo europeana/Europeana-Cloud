@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,7 +37,9 @@ public class SwiftContentDAOTest
 		InputStream is = new ByteArrayInputStream(content);
 
 		File file = new File();
-		instance.putContent(fileName, file, is);
+		PutResult result = instance.putContent(fileName, is);
+                file.setMd5(result.getMd5());
+                file.setContentLength(result.getContentLength());
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		instance.getContent(fileName, -1, -1, os);
 		assertTrue(Arrays.equals(content, os.toByteArray()));
@@ -59,8 +62,10 @@ public class SwiftContentDAOTest
 		InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
 
 		File file = new File();
-		instance.putContent(fileName, file, is);
-
+		PutResult result = instance.putContent(fileName, is);
+                file.setMd5(result.getMd5());
+                file.setContentLength(result.getContentLength());
+                
 		int from = -1;
 		int to = -1;
 		checkRange(from, to, content.getBytes(), fileName);
@@ -110,7 +115,10 @@ public class SwiftContentDAOTest
 		File file = new File();
 		String content = "This is a test content";
 		InputStream is = new ByteArrayInputStream(content.getBytes());
-		instance.putContent(objectId, file, is);
+                PutResult result = instance.putContent(objectId, is);
+                file.setMd5(result.getMd5());
+                file.setContentLength(result.getContentLength());
+                
 		instance.deleteContent(objectId);
 		instance.getContent(objectId, -1, -1, null);
 	}
@@ -143,9 +151,24 @@ public class SwiftContentDAOTest
 		instance.copyContent(objectId, trg);
 	}
 
+        @Test(expected = FileAlreadyExistsException.class)
+	public void shouldThrowAlreadyExpWhenCopingToExistingFile()
+		throws Exception
+	{
+		String sourceObjectId = "srcObjId";
+		String trgObjectId = "trgObjId";
+		String content = "This is a test content";
+		InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+                instance.putContent(sourceObjectId, is);
+                is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+                instance.putContent(trgObjectId, is);
+                
+                instance.copyContent(sourceObjectId, trgObjectId);
+	}
+        
 
 	@Test
-	public void testCopyContent()
+	public void shouldCopyContent()
 		throws Exception
 	{
 		String sourceObjectId = "sourceObjectId";
@@ -154,8 +177,10 @@ public class SwiftContentDAOTest
 		InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
 
 		File file = new File();
-		//input source object
-		instance.putContent(sourceObjectId, file, is);
+                //input source object
+                PutResult putResult = instance.putContent(sourceObjectId, is);
+                file.setMd5(putResult.getMd5());
+                file.setContentLength(putResult.getContentLength());
 		//copy object
 		instance.copyContent(sourceObjectId, trgObjectId);
 

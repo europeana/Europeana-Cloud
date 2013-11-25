@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import com.google.common.io.ByteStreams;
-import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,15 +27,14 @@ public class SwiftContentDAO
 
 
 	/**
-	 * Puts given content to storage under given fileName. Counts content length and md5 checksum and updates file with
-	 * it.
+	 * Puts given content to storage under given fileName. Counts and returns content length and md5 checksum from given data.
 	 * 
 	 * @param fileName name of the file
-	 * @param file file to be saved
 	 * @param data content of file to be saved
+         * @return md5 and content length
 	 * @throws IOException if an I/O error occurs
 	 */
-	public void putContent(String fileName, File file, InputStream data)
+	public PutResult putContent(String fileName, InputStream data)
 		throws IOException
 	{
 
@@ -44,9 +43,9 @@ public class SwiftContentDAO
 
 		Blob blob = blobStore.blobBuilder(fileName).name(fileName).payload(data).calculateMD5().build();
 		blobStore.putBlob(container, blob);
-
-		file.setMd5(new String(Hex.encodeHex(blob.getMetadata().getContentMetadata().getContentMD5())));
-		file.setContentLength(blob.getMetadata().getContentMetadata().getContentLength());
+                String md5 = new String(Hex.encodeHex(blob.getMetadata().getContentMetadata().getContentMD5()));
+                Long contentLength = blob.getMetadata().getContentMetadata().getContentLength();
+                return new PutResult(md5, contentLength);
 	}
 
 
@@ -95,12 +94,15 @@ public class SwiftContentDAO
 	 * @throws FileNotExistsException if source object does not exist in the storage
 	 */
 	public void copyContent(String sourceObjectId, String trgObjectId)
-		throws FileNotExistsException
+		throws FileNotExistsException, FileAlreadyExistsException
 	{
 		BlobStore blobStore = connectionProvider.getBlobStore();
 		String container = connectionProvider.getContainer();
 		if (!blobStore.blobExists(connectionProvider.getContainer(), sourceObjectId)) {
 			throw new FileNotExistsException(String.format("File %s not exists", sourceObjectId));
+		}
+                if (blobStore.blobExists(connectionProvider.getContainer(), trgObjectId)) {
+			throw new FileAlreadyExistsException(String.format("Target file %s already exists", trgObjectId));
 		}
 		Blob blob = blobStore.getBlob(container, sourceObjectId);
 		Blob newBlob = blobStore.blobBuilder(trgObjectId).name(trgObjectId).payload(blob.getPayload()).build();

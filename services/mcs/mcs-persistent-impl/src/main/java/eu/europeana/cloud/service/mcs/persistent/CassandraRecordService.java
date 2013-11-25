@@ -140,8 +140,11 @@ public class CassandraRecordService implements RecordService {
 				}
 			}
 		}
-
-		contentDAO.putContent(generateKeyForFile(globalId, schema, version, file.getFileName()), file, content);
+            
+                String keyForFile = generateKeyForFile(globalId, schema, version, file.getFileName());
+                PutResult result = contentDAO.putContent(keyForFile, content);
+                file.setMd5(result.getMd5());
+                file.setContentLength(result.getContentLength());
 		recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
 		return isCreate;
 	}
