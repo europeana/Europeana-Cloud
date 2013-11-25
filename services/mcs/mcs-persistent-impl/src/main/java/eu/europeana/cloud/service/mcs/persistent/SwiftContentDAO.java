@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
  * @author olanowak
  */
 @Repository
-public class SwiftContentDAO
+public class SwiftContentDAO implements ContentDAO
 {
 
 	@Autowired
@@ -34,6 +34,7 @@ public class SwiftContentDAO
          * @return md5 and content length
 	 * @throws IOException if an I/O error occurs
 	 */
+        @Override
 	public PutResult putContent(String fileName, InputStream data)
 		throws IOException
 	{
@@ -59,6 +60,7 @@ public class SwiftContentDAO
 	 * @throws IOException if an I/O error occurs
 	 * @throws FileNotExistsException if object does not exist in the storage
 	 */
+        @Override
 	public void getContent(String fileName, long start, long end, OutputStream os)
 		throws IOException, FileNotExistsException
 	{
@@ -93,6 +95,7 @@ public class SwiftContentDAO
 	 * @param trgObjectId name of the target storage object
 	 * @throws FileNotExistsException if source object does not exist in the storage
 	 */
+        @Override
 	public void copyContent(String sourceObjectId, String trgObjectId)
 		throws FileNotExistsException, FileAlreadyExistsException
 	{
@@ -116,6 +119,7 @@ public class SwiftContentDAO
 	 * @param fileName name of the object to be deleted
 	 * @throws FileNotExistsException if object does not exist in the storage
 	 */
+        @Override
 	public void deleteContent(String fileName)
 		throws FileNotExistsException
 	{

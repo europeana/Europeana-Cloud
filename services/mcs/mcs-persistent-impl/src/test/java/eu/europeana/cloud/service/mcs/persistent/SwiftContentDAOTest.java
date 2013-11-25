@@ -25,7 +25,7 @@ public class SwiftContentDAOTest
 {
 
 	@Autowired
-	private SwiftContentDAO instance;
+	private ContentDAO instance;
 
 
 	@Test
