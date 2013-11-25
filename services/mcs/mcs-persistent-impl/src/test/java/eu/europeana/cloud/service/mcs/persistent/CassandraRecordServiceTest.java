@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.io.ByteArrayInputStream;
@@ -262,7 +261,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 		r = cassandraRecordService.getRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
 		assertTrue(r.getFiles().isEmpty());
 	}
-
+	
 
 	public void shouldCopyRepresentation() throws IOException {
 		Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
