@@ -1,12 +1,16 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.CountingInputStream;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.apache.commons.codec.binary.Hex;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.domain.Blob;
@@ -19,7 +23,8 @@ import org.springframework.stereotype.Repository;
  * @author olanowak
  */
 @Repository
-public class SwiftContentDAO implements ContentDAO
+public class SwiftContentDAO
+	implements ContentDAO
 {
 
 	@Autowired
@@ -27,26 +32,28 @@ public class SwiftContentDAO implements ContentDAO
 
 
 	/**
-	 * Puts given content to storage under given fileName. Counts and returns content length and md5 checksum from given data.
+	 * Puts given content to storage under given fileName. Counts and returns content length and md5 checksum from given
+	 * data.
 	 * 
 	 * @param fileName name of the file
 	 * @param data content of file to be saved
-         * @return md5 and content length
+	 * @return md5 and content length
 	 * @throws IOException if an I/O error occurs
 	 */
-        @Override
+	@Override
 	public PutResult putContent(String fileName, InputStream data)
 		throws IOException
 	{
 
 		BlobStore blobStore = connectionProvider.getBlobStore();
 		String container = connectionProvider.getContainer();
-
-		Blob blob = blobStore.blobBuilder(fileName).name(fileName).payload(data).calculateMD5().build();
+		CountingInputStream countingInputStream = new CountingInputStream(data);
+		DigestInputStream md5DigestInputStream = md5InputStream(countingInputStream);
+		Blob blob = blobStore.blobBuilder(fileName).name(fileName).payload(md5DigestInputStream).build();
 		blobStore.putBlob(container, blob);
-                String md5 = new String(Hex.encodeHex(blob.getMetadata().getContentMetadata().getContentMD5()));
-                Long contentLength = blob.getMetadata().getContentMetadata().getContentLength();
-                return new PutResult(md5, contentLength);
+		String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
+		Long contentLength = countingInputStream.getCount();
+		return new PutResult(md5, contentLength);
 	}
 
 
@@ -60,7 +67,7 @@ public class SwiftContentDAO implements ContentDAO
 	 * @throws IOException if an I/O error occurs
 	 * @throws FileNotExistsException if object does not exist in the storage
 	 */
-        @Override
+	@Override
 	public void getContent(String fileName, long start, long end, OutputStream os)
 		throws IOException, FileNotExistsException
 	{
@@ -95,7 +102,7 @@ public class SwiftContentDAO implements ContentDAO
 	 * @param trgObjectId name of the target storage object
 	 * @throws FileNotExistsException if source object does not exist in the storage
 	 */
-        @Override
+	@Override
 	public void copyContent(String sourceObjectId, String trgObjectId)
 		throws FileNotExistsException, FileAlreadyExistsException
 	{
@@ -104,7 +111,7 @@ public class SwiftContentDAO implements ContentDAO
 		if (!blobStore.blobExists(connectionProvider.getContainer(), sourceObjectId)) {
 			throw new FileNotExistsException(String.format("File %s not exists", sourceObjectId));
 		}
-                if (blobStore.blobExists(connectionProvider.getContainer(), trgObjectId)) {
+		if (blobStore.blobExists(connectionProvider.getContainer(), trgObjectId)) {
 			throw new FileAlreadyExistsException(String.format("Target file %s already exists", trgObjectId));
 		}
 		Blob blob = blobStore.getBlob(container, sourceObjectId);
@@ -119,7 +126,7 @@ public class SwiftContentDAO implements ContentDAO
 	 * @param fileName name of the object to be deleted
 	 * @throws FileNotExistsException if object does not exist in the storage
 	 */
-        @Override
+	@Override
 	public void deleteContent(String fileName)
 		throws FileNotExistsException
 	{
@@ -129,5 +136,17 @@ public class SwiftContentDAO implements ContentDAO
 			throw new FileNotExistsException(String.format("File %s not exists", fileName));
 		}
 		blobStore.removeBlob(container, fileName);
+	}
+
+
+	private DigestInputStream md5InputStream(InputStream is)
+	{
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			return new DigestInputStream(is, md);
+		}
+		catch (NoSuchAlgorithmException ex) {
+			throw new AssertionError("Cannot get instance of MD5 but such algorithm should be provided", ex);
+		}
 	}
 }

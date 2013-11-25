@@ -1,15 +1,23 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,8 +35,8 @@ public class SwiftContentDAOTest
 	@Autowired
 	private ContentDAO instance;
 
-
-	@Test
+      
+        @Test
 	public void shouldPutAndGetContent()
 		throws Exception
 	{
@@ -44,6 +52,8 @@ public class SwiftContentDAOTest
 		instance.getContent(fileName, -1, -1, os);
 		assertTrue(Arrays.equals(content, os.toByteArray()));
 
+                assertNotNull(file.getContentLength());
+                assertEquals(file.getContentLength(), content.length);
 		String md5Hex = DigestUtils.md5Hex(content);
 		//check if file md5 got updated
 		assertNotNull(file.getMd5());
@@ -53,7 +63,7 @@ public class SwiftContentDAOTest
 		assertEquals(md5Hex, DigestUtils.md5Hex(os.toByteArray()));
 	}
 
-
+        
 	public void shouldRetrieveRangeOfBytes()
 		throws Exception
 	{
@@ -87,7 +97,7 @@ public class SwiftContentDAOTest
 		checkRange(from, to, content.getBytes(), fileName);
 	}
 
-
+        
 	private void checkRange(int from, int to, byte[] expected, String fileName)
 		throws Exception
 	{
@@ -106,7 +116,6 @@ public class SwiftContentDAOTest
 		assertTrue(String.format("Ranges not equal %d-%d", from, to), Arrays.equals(rangeOfContent, os.toByteArray()));
 	}
 
-
 	@Test(expected = FileNotExistsException.class)
 	public void testDeleteContent()
 		throws Exception
@@ -123,8 +132,8 @@ public class SwiftContentDAOTest
 		instance.getContent(objectId, -1, -1, null);
 	}
 
-
-	@Test(expected = FileNotExistsException.class)
+	
+        @Test(expected = FileNotExistsException.class)
 	public void shouldThrowNotFoundExpWhenGettingNotExistingFile()
 		throws Exception
 	{
@@ -132,8 +141,8 @@ public class SwiftContentDAOTest
 		instance.getContent(objectId, -1, -1, null);
 	}
 
-
-	@Test(expected = FileNotExistsException.class)
+	
+        @Test(expected = FileNotExistsException.class)
 	public void shouldThrowNotFoundExpWhenDeletingNotExistingFile()
 		throws Exception
 	{
@@ -141,8 +150,8 @@ public class SwiftContentDAOTest
 		instance.deleteContent(objectId);
 	}
 
-
-	@Test(expected = FileNotExistsException.class)
+	
+        @Test(expected = FileNotExistsException.class)
 	public void shouldThrowNotFoundExpWhenCopingNotExistingFile()
 		throws Exception
 	{
@@ -151,6 +160,7 @@ public class SwiftContentDAOTest
 		instance.copyContent(objectId, trg);
 	}
 
+        
         @Test(expected = FileAlreadyExistsException.class)
 	public void shouldThrowAlreadyExpWhenCopingToExistingFile()
 		throws Exception
@@ -167,7 +177,7 @@ public class SwiftContentDAOTest
 	}
         
 
-	@Test
+        @Test
 	public void shouldCopyContent()
 		throws Exception
 	{
