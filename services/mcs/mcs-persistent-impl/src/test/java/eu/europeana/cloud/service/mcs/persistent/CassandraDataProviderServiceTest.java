@@ -14,6 +14,8 @@ import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -37,7 +39,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldCreateAndGetProvider() {
+	public void shouldCreateAndGetProvider() throws ProviderAlreadyExistsException, ProviderNotExistsException {
 		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
 
 		DataProvider dpFromService = cassandraDataProviderService.getProvider("provident");
@@ -46,7 +48,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = ProviderNotExistsException.class)
-	public void shouldDeleteProvider() {
+	public void shouldDeleteProvider() throws ProviderAlreadyExistsException, ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
 		// given particular provider in service;
 		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
 
@@ -59,13 +61,13 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = ProviderNotExistsException.class)
-	public void shouldFailWhenFetchingNonExistingProvider() {
+	public void shouldFailWhenFetchingNonExistingProvider() throws ProviderNotExistsException {
 		cassandraDataProviderService.getProvider("provident");
 	}
 
 
 	@Test(expected = ProviderHasRecordsException.class)
-	public void shouldFailWhenDeletingProviderWithRecords() {
+	public void shouldFailWhenDeletingProviderWithRecords() throws ProviderNotExistsException, ProviderAlreadyExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
 		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
 		cassandraRecordService.createRepresentation("global", "dc", dp.getId());
 		cassandraDataProviderService.deleteProvider(dp.getId());
@@ -73,7 +75,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = ProviderHasDataSetsException.class)
-	public void shouldFailWhenDeletingProviderWithDataSets() {
+	public void shouldFailWhenDeletingProviderWithDataSets() throws ProviderAlreadyExistsException, ProviderNotExistsException, ProviderHasDataSetsException, DataSetAlreadyExistsException, ProviderHasRecordsException {
 		DataProvider dp = cassandraDataProviderService.createProvider("provident", createRandomDataProviderProperties());
 		cassandraDataSetService.createDataSet(dp.getId(), "ds", "description");
 		cassandraDataProviderService.deleteProvider(dp.getId());
@@ -87,7 +89,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldReturnAllProviders() {
+	public void shouldReturnAllProviders() throws ProviderAlreadyExistsException {
 		int providerCount = 10;
 		Set<DataProvider> insertedProviders = new HashSet<>(providerCount * 2);
 
@@ -104,7 +106,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldReturnPagedProviderList() {
+	public void shouldReturnPagedProviderList() throws ProviderAlreadyExistsException {
 		int providerCount = 1000;
 		List<String> insertedProviderIds = new ArrayList<>(providerCount);
 

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * RecordNotExistsException
  */
-public class VersionNotExistsException extends RuntimeException {
+public class VersionNotExistsException extends RepresentationNotExistsException {
 
     public VersionNotExistsException() {
     }

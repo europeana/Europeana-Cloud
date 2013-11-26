@@ -92,7 +92,7 @@ public class CassandraDataProviderDAO {
     }
 
 
-    public DataProvider createProvider(String providerId, DataProviderProperties properties) {
+    public DataProvider createProvider(String providerId, DataProviderProperties properties) throws ProviderAlreadyExistsException {
         Date now = new Date();
         BoundStatement boundStatement = insertNewProviderStatement.bind(providerId, propertiesToMap(properties), now);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);

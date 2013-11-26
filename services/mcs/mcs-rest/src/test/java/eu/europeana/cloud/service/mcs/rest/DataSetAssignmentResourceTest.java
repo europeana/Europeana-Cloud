@@ -27,6 +27,7 @@ import static org.junit.Assert.*;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import org.junit.Ignore;
 
 /**
  * DataSetAssignmentResourceTest
@@ -79,6 +80,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 
     @Test
+	@Ignore("Now, there secont assignment the same representation to data set does not raise error, it just overrides previous version")
     public void shouldReturnErrorWhenRepresentationIsAssignedTwice() {
         // given that representation is already assigned to set
         dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(), rep.getVersion());

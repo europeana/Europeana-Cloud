@@ -66,38 +66,38 @@ public class CassandraRecordDAO {
 		Session s = connectionProvider.getSession();
 
 		insertRepresentationStatement = s.prepare(
-				"INSERT INTO representations (cloud_id, schema_id, version, provider_id, persistent, creation_date) VALUES (?,?,?,?,?,?);");
+				"INSERT INTO representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) VALUES (?,?,?,?,?,?);");
 		getRepresentationVersionStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version, provider_id, persistent, files FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		listRepresentationVersionsStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version DESC;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version_id DESC;");
 		persistRepresentationStatement = s.prepare(
-				"UPDATE representations SET persistent = TRUE WHERE cloud_id = ? AND schema_id=? AND version = ?;");
+				"UPDATE representation_versions SET persistent = TRUE WHERE cloud_id = ? AND schema_id=? AND version_id = ?;");
 		insertFileStatement = s.prepare(
-				"UPDATE representations SET files[?] = ? WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
+				"UPDATE representation_versions SET files[?] = ? WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		removeFileStatement = s.prepare(
-				"DELETE files[?] FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
+				"DELETE files[?] FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		getFilesStatement = s.prepare(
-				"SELECT files FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ?;");
+				"SELECT files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		getAllRepresentationsForRecordStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version, provider_id, persistent FROM representations WHERE cloud_id = ? ORDER BY schema_id DESC, version DESC;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent FROM representation_versions WHERE cloud_id = ? ORDER BY schema_id DESC, version_id DESC;");
 		deleteRecordStatement = s.prepare(
 				"BEGIN BATCH "
-				+ "DELETE FROM representations WHERE cloud_id = ? "
+				+ "DELETE FROM representation_versions WHERE cloud_id = ? "
 				+ "DELETE FROM data_set_assignments WHERE cloud_id = ? "
 				+ "APPLY BATCH;");
 		deleteRepresentationStatement = s.prepare(
 				"BEGIN BATCH "
-				+ "DELETE FROM representations WHERE cloud_id = ? AND schema_id = ? "
+				+ "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? "
 				+ "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? "
 				+ "APPLY BATCH;");
 		deleteRepresentationVersionStatement = s.prepare(
 				"BEGIN BATCH "
-				+ "DELETE FROM representations WHERE cloud_id = ? AND schema_id = ? AND version = ? "
+				+ "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ? "
 				+ "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? "
 				+ "APPLY BATCH;");
 		singleRecordIdForProviderStatement = s.prepare(
-				"SELECT cloud_id FROM representations WHERE provider_id = ? LIMIT 1;");
+				"SELECT cloud_id FROM representation_versions WHERE provider_id = ? LIMIT 1;");
 	}
 
 
@@ -182,7 +182,7 @@ public class CassandraRecordDAO {
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 		Row row = rs.one();
 		if (row == null) {
-			throw new RepresentationNotExistsException();
+			return null;
 		} else {
 			Representation rep = mapToRepresentation(row);
 			rep.setFiles(deserializeFiles(row.getMap("files", String.class, String.class)));
@@ -261,7 +261,7 @@ public class CassandraRecordDAO {
 		representation.setDataProvider(row.getString("provider_id"));
 		representation.setRecordId(row.getString("cloud_id"));
 		representation.setSchema(row.getString("schema_id"));
-		representation.setVersion(row.getUUID("version").toString());
+		representation.setVersion(row.getUUID("version_id").toString());
 		representation.setPersistent(row.getBool("persistent"));
 
 		return representation;

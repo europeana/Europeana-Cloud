@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -54,7 +55,23 @@ public class CassandraDataProviderService implements DataProviderService {
 
 
 	@Override
-	public DataProvider createProvider(String providerId, DataProviderProperties properties) {
+	public DataProvider createProvider(String providerId, DataProviderProperties properties)
+			throws ProviderAlreadyExistsException {
+		DataProvider dp = dataProviderDAO.getProvider(providerId);
+		if (dp != null) {
+			throw new ProviderAlreadyExistsException();
+		}
+		return dataProviderDAO.createOrUpdateProvider(providerId, properties);
+	}
+
+
+	@Override
+	public DataProvider updateProvider(String providerId, DataProviderProperties properties)
+			throws ProviderNotExistsException {
+		DataProvider dp = dataProviderDAO.getProvider(providerId);
+		if (dp == null) {
+			throw new ProviderNotExistsException();
+		}
 		return dataProviderDAO.createOrUpdateProvider(providerId, properties);
 	}
 

@@ -36,10 +36,10 @@ public class InMemoryContentDAO {
                 md5DigestInputStream.getMessageDigest().digest());
         int actualContentLength = fileContent.length;
 
-        if (file.getMd5() != null && !file.getMd5().equals(actualContentMd5Hex)) {
-            throw new FileContentHashMismatchException(String.format(
-                    "Declared content hash was: %s, actual: %s.", file.getMd5(), actualContentMd5Hex));
-        }
+//        if (file.getMd5() != null && !file.getMd5().equals(actualContentMd5Hex)) {
+//            throw new FileContentHashMismatchException(String.format(
+//                    "Declared content hash was: %s, actual: %s.", file.getMd5(), actualContentMd5Hex));
+//        }
 
         file.setContentLength(actualContentLength);
         file.setMd5(actualContentMd5Hex);
@@ -59,7 +59,7 @@ public class InMemoryContentDAO {
 
     public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd,
             OutputStream os)
-            throws IOException {
+            throws IOException, FileNotExistsException, WrongContentRangeException {
         byte[] data = content.get(generateKey(globalId, schema, version, fileName));
         if (data == null) {
             throw new FileNotExistsException();
@@ -78,7 +78,7 @@ public class InMemoryContentDAO {
 
 
     public void copyContent(String srcGlobalId, String srcRepName, String srcVersion, String srcFileName,
-            String trgGlobalId, String trgRepName, String trgVersion, String trgFileName) {
+            String trgGlobalId, String trgRepName, String trgVersion, String trgFileName) throws FileNotExistsException {
         String srcKey = generateKey(srcGlobalId, srcRepName, srcVersion, srcFileName);
         String trgKey = generateKey(trgGlobalId, trgRepName, trgVersion, trgFileName);
         byte[] data = content.get(srcKey);

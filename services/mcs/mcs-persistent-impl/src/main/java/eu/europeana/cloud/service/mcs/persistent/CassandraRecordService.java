@@ -19,9 +19,12 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +34,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CassandraRecordService implements RecordService {
+
+	private final static org.slf4j.Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
 	@Autowired
 	private CassandraRecordDAO recordDAO;
@@ -59,8 +64,14 @@ public class CassandraRecordService implements RecordService {
 		for (Representation rep : r.getRepresentations()) {
 			for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
 				for (File f : repVersion.getFiles()) {
-					contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(), repVersion.
-							getVersion(), f.getFileName()));
+					try {
+						contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(), repVersion.
+								getVersion(), f.getFileName()));
+					} catch (FileNotExistsException ex) {
+						log.
+								warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
+										getFileName(), globalId, rep.getSchema(), rep.getVersion());
+					}
 				}
 			}
 		}
@@ -70,10 +81,16 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public void deleteRepresentation(String globalId, String schema)
-			throws RecordNotExistsException, RepresentationNotExistsException {
+			throws RepresentationNotExistsException {
 		for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
 			for (File f : rep.getFiles()) {
-				contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
+				try {
+					contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
+				} catch (FileNotExistsException ex) {
+					log.
+							warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
+									getFileName(), globalId, rep.getSchema(), rep.getVersion());
+				}
 			}
 		}
 		recordDAO.deleteRepresentation(globalId, schema);
@@ -117,7 +134,7 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public void deleteRepresentation(String globalId, String schema, String version)
-			throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 		Representation rep = recordDAO.getRepresentation(globalId, schema, version);
 		if (rep == null) {
 			throw new RepresentationNotExistsException();
@@ -126,7 +143,13 @@ public class CassandraRecordService implements RecordService {
 			throw new CannotModifyPersistentRepresentationException();
 		}
 		for (File f : rep.getFiles()) {
-			contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
+			try {
+				contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
+			} catch (FileNotExistsException ex) {
+				log.
+						warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
+								getFileName(), globalId, rep.getSchema(), rep.getVersion());
+			}
 		}
 		recordDAO.deleteRepresentation(globalId, schema, version);
 	}
@@ -156,14 +179,14 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public List<Representation> listRepresentationVersions(String globalId, String schema)
-			throws RecordNotExistsException, RepresentationNotExistsException {
+			throws RepresentationNotExistsException {
 		return recordDAO.listRepresentationVersions(globalId, schema);
 	}
 
 
 	@Override
 	public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-			throws FileAlreadyExistsException, IOException {
+			throws FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
 		DateTime now = new DateTime();
 		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
@@ -183,7 +206,12 @@ public class CassandraRecordService implements RecordService {
 		}
 
 		String keyForFile = generateKeyForFile(globalId, schema, version, file.getFileName());
-		PutResult result = contentDAO.putContent(keyForFile, content);
+		PutResult result;
+		try {
+			result = contentDAO.putContent(keyForFile, content);
+		} catch (IOException ex) {
+			throw new SystemException(ex);
+		}
 		file.setMd5(result.getMd5());
 		DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
 		file.setDate(fmt.print(now));
@@ -195,14 +223,18 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
-			throws FileNotExistsException, IOException {
-		contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
+			throws FileNotExistsException {
+		try {
+			contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
+		} catch (IOException ex) {
+			throw new SystemException(ex);
+		}
 	}
 
 
 	@Override
 	public String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
-			throws FileNotExistsException, IOException {
+			throws FileNotExistsException, RepresentationNotExistsException {
 		Representation rep = getRepresentation(globalId, schema, version);
 		String md5 = null;
 		for (File f : rep.getFiles()) {
@@ -213,14 +245,18 @@ public class CassandraRecordService implements RecordService {
 		if (md5 == null) {
 			throw new FileNotExistsException();
 		}
-		contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), -1, -1, os);
+		try {
+			contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), -1, -1, os);
+		} catch (IOException ex) {
+			throw new SystemException(ex);
+		}
 		return md5;
 	}
 
 
 	@Override
 	public void deleteContent(String globalId, String schema, String version, String fileName)
-			throws FileNotExistsException {
+			throws FileNotExistsException, CannotModifyPersistentRepresentationException {
 		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
@@ -232,14 +268,23 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public Representation copyRepresentation(String globalId, String schema, String version)
-			throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+			throws RepresentationNotExistsException {
 		Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
 		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
-			copyRepresentation(globalId, schema, version);
-			contentDAO.copyContent(generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
-					generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
+			try {
+				contentDAO.copyContent(generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
+						generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
+			} catch (FileNotExistsException ex) {
+				log.
+						warn("File {} was found in representation {}-{}-{} but no content of such file was found", srcFile.
+								getFileName(), globalId, schema, version);
+			} catch (FileAlreadyExistsException ex) {
+				log.
+						warn("File already exists in newly created representation?", copiedFile.
+								getFileName(), globalId, schema, copiedRep.getVersion());
+			}
 			recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
 		}
 		//get version after all modifications

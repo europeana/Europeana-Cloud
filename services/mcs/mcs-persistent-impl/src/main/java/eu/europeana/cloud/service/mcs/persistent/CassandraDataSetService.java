@@ -15,6 +15,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -34,9 +36,14 @@ public class CassandraDataSetService implements DataSetService {
 
 
 	@Override
-	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit) {
+	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit) throws DataSetNotExistsException {
 		// check if dataset exists
-		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		DataSet ds;
+		try {
+			ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		} catch (ProviderNotExistsException ex) {
+				throw new DataSetNotExistsException("No such provider: " + providerId);
+		}
 		if (ds == null) {
 			throw new DataSetNotExistsException();
 		}
@@ -74,10 +81,15 @@ public class CassandraDataSetService implements DataSetService {
 
 	@Override
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-			throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
+			throws DataSetNotExistsException, RepresentationNotExistsException {
 
 		// check if dataset exists
-		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		DataSet ds;
+		try {
+			ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		} catch (ProviderNotExistsException ex) {
+			throw new DataSetNotExistsException("No such provider: " + providerId);
+		}
 		if (ds == null) {
 			throw new DataSetNotExistsException();
 		}
@@ -110,7 +122,12 @@ public class CassandraDataSetService implements DataSetService {
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
 			throws DataSetNotExistsException {
 		// check if dataset exists
-		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		DataSet ds;
+		try {
+			ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		} catch (ProviderNotExistsException ex) {
+			throw new DataSetNotExistsException("No such provider: " + providerId);
+		}
 		if (ds == null) {
 			throw new DataSetNotExistsException();
 		}
@@ -159,7 +176,7 @@ public class CassandraDataSetService implements DataSetService {
 
 	@Override
 	public void deleteDataSet(String providerId, String dataSetId)
-			throws ProviderNotExistsException, DataSetNotExistsException {
+			throws DataSetNotExistsException {
 		dataSetDAO.deleteDataSet(providerId, dataSetId);
 	}
 

@@ -46,7 +46,7 @@ public class InMemoryDataSetService implements DataSetService {
 			Representation realContent;
 			try {
 				realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
-			} catch (RecordNotExistsException | RepresentationNotExistsException | VersionNotExistsException e) {
+			} catch (RepresentationNotExistsException e) {
 				// we have reference to an object that not exists anymore!
 				continue;
 			}
@@ -58,7 +58,7 @@ public class InMemoryDataSetService implements DataSetService {
 
 	@Override
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-			throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
+			throws DataSetNotExistsException, RepresentationNotExistsException {
 		// just to check if such representation does exist
 		recordDAO.getRepresentation(recordId, schema, version);
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
@@ -98,9 +98,7 @@ public class InMemoryDataSetService implements DataSetService {
 
 	@Override
 	public void deleteDataSet(String providerId, String dataSetId)
-			throws ProviderNotExistsException, DataSetNotExistsException {
-		// only to check if dataprovider exists
-		dataProviderDao.getProvider(providerId);
+			throws DataSetNotExistsException {
 		dataSetDAO.deleteDataSet(providerId, dataSetId);
 	}
 }

@@ -107,10 +107,10 @@ public class InMemoryRecordDAO {
 
 
     public void deleteRepresentation(String globalId, String schema)
-            throws RecordNotExistsException, RepresentationNotExistsException {
+            throws  RepresentationNotExistsException {
         Map<String, List< Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException();
         }
         if (representations.containsKey(schema)) {
             representations.remove(schema);
@@ -170,10 +170,10 @@ public class InMemoryRecordDAO {
 
 
     public Representation getRepresentation(String globalId, String schema, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws RepresentationNotExistsException, VersionNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException("No representation for " + globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {
@@ -193,10 +193,10 @@ public class InMemoryRecordDAO {
 
 
     public void deleteRepresentation(String globalId, String schema, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {
@@ -224,10 +224,10 @@ public class InMemoryRecordDAO {
 
 
     public Representation persistRepresentation(String globalId, String schema, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {
@@ -250,10 +250,10 @@ public class InMemoryRecordDAO {
 
 
     public List<Representation> listRepresentationVersions(String globalId, String schema)
-            throws RecordNotExistsException, RepresentationNotExistsException {
+            throws RepresentationNotExistsException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {
@@ -269,10 +269,10 @@ public class InMemoryRecordDAO {
 
 
     public Representation addOrReplaceFileInRepresentation(String globalId, String schema, String version, File file)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileAlreadyExistsException {
+            throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {
@@ -302,10 +302,10 @@ public class InMemoryRecordDAO {
 
 
     public Representation removeFileFromRepresentation(String globalId, String schema, String version, String fileName)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException {
+            throws RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
-            throw new RecordNotExistsException(globalId);
+            throw new RepresentationNotExistsException(globalId);
         }
         List<Representation> representationVersions = representations.get(schema);
         if (representationVersions == null) {

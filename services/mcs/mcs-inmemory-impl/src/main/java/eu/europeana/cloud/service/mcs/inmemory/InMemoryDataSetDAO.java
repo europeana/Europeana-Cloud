@@ -58,7 +58,7 @@ public class InMemoryDataSetDAO {
 
 
     public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-            throws DataSetNotExistsException, RepresentationNotExistsException, RepresentationAlreadyInSetException {
+            throws DataSetNotExistsException, RepresentationNotExistsException {
         DataSet dataSet = getDataSet(providerId, dataSetId);
         if (dataSet == null) {
             throw new DataSetNotExistsException();
@@ -73,7 +73,7 @@ public class InMemoryDataSetDAO {
             stub.setVersion(version);
             listOfStubs.add(stub);
         } else {
-            throw new RepresentationAlreadyInSetException(recordId, schema, dataSetId, providerId);
+            stub.setVersion(version);
         }
     }
 
@@ -136,7 +136,7 @@ public class InMemoryDataSetDAO {
 
 
     public void deleteDataSet(String providerId, String dataSetId)
-            throws ProviderNotExistsException, DataSetNotExistsException {
+            throws DataSetNotExistsException {
 
         DataSet dataSetToRemove = getDataSet(providerId, dataSetId);
         if (dataSetToRemove == null) {

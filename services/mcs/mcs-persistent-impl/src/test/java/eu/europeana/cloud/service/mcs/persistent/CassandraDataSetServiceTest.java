@@ -49,13 +49,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Before
-	public void prepareData() {
+	public void prepareData()
+			throws Exception {
 		cassandraDataProviderService.createProvider(providerId, new DataProviderProperties());
 	}
 
 
 	@Test
-	public void shouldCreateDataSet() {
+	public void shouldCreateDataSet()
+			throws Exception {
 		// given properties of data set
 		String dsName = "ds";
 		String description = "description of data set";
@@ -71,7 +73,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = DataSetNotExistsException.class)
-	public void shouldNotAssignToNotExistingDataSet() {
+	public void shouldNotAssignToNotExistingDataSet()
+			throws Exception {
 		// given all objects exist except for dataset
 		Representation r = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
@@ -82,7 +85,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = RepresentationNotExistsException.class)
-	public void shouldNotAssignNotExistingRepresentation() {
+	public void shouldNotAssignNotExistingRepresentation()
+			throws Exception {
 		// given all objects exist except for representation
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds", "description of this set");
 
@@ -93,7 +97,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldAssignRepresentationsToDataSet() {
+	public void shouldAssignRepresentationsToDataSet()
+			throws Exception {
 		// given particular data set and representations
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -116,7 +121,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldRemoveAssignmentsFromDataSet() {
+	public void shouldRemoveAssignmentsFromDataSet()
+			throws Exception {
 		// given some representations in data set
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -139,7 +145,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldDeleteDataSetWithAssignments() {
+	public void shouldDeleteDataSetWithAssignments()
+			throws Exception {
 		// given particular data set and representations in it
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -167,7 +174,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldAssignMostRecentVersionToDataSet() {
+	public void shouldAssignMostRecentVersionToDataSet()
+			throws Exception {
 		// given data set and multiple versions of the same representation
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -186,7 +194,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldCreateAndGetDataSet() {
+	public void shouldCreateAndGetDataSet()
+			throws Exception {
 		// given
 		String dsName = "ds";
 		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -201,7 +210,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test
-	public void shouldReturnPagedDataSets() {
+	public void shouldReturnPagedDataSets()
+			throws Exception {
 		int dataSetCount = 1000;
 		List<String> insertedDataSetIds = new ArrayList<>(dataSetCount);
 
@@ -231,33 +241,35 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
 	@Test(expected = ProviderNotExistsException.class)
-	public void shouldThrowExceptionWhenListingDatasetsOfNotExistingProvider() {
+	public void shouldThrowExceptionWhenListingDatasetsOfNotExistingProvider()
+			throws Exception {
 		cassandraDataSetService.getDataSets("not-existing-provider", null, 10000);
 	}
 
 
 	@Test(expected = ProviderNotExistsException.class)
-	public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider() {
+	public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider()
+			throws Exception {
 		cassandraDataSetService.createDataSet("not-existing-provider", "ds", "description");
 	}
 
 
 	@Test(expected = DataSetAlreadyExistsException.class)
-	public void shouldNotCreateTwoDatasetsWithSameNameForProvider() {
+	public void shouldNotCreateTwoDatasetsWithSameNameForProvider()
+			throws Exception {
 		String dsName = "ds";
 		cassandraDataSetService.createDataSet(providerId, dsName, "description");
 		cassandraDataSetService.createDataSet(providerId, dsName, "description of another");
 	}
-	
-	private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
+
+
+	private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
+			throws Exception {
 		Representation r = cassandraRecordService.createRepresentation(cloudId, schema, providerId);
-		byte[] dummyContent = {1,2,3};
+		byte[] dummyContent = {1, 2, 3};
 		File f = new File("content.xml", "application/xml", null, null, 0, null);
-		try {
-			cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
-		} catch (IOException ex) {
-			throw new RuntimeException("Should not happen");
-		}
+		cassandraRecordService.
+				putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 		return cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
 	}
 

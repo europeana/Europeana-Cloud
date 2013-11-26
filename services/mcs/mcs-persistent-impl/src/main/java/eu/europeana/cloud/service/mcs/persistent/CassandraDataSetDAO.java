@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -51,7 +52,7 @@ public class CassandraDataSetDAO {
 				"DELETE data_sets[?] FROM data_providers WHERE provider_id = ?;");
 
 		addAssignmentStatement = connectionProvider.getSession().prepare(
-				"INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version, creation_date) VALUES (?,?,?,?,?);");
+				"INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) VALUES (?,?,?,?,?);");
 
 		removeAssignmentStatement = connectionProvider.getSession().prepare(
 				"DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
@@ -101,7 +102,11 @@ public class CassandraDataSetDAO {
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version) {
 		Date now = new Date();
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-		BoundStatement boundStatement = addAssignmentStatement.bind(providerDataSetId, recordId, schema, version, now);
+		UUID versionId = null;
+		if (version != null) {
+			versionId = UUID.fromString(version);
+		}
+		BoundStatement boundStatement = addAssignmentStatement.bind(providerDataSetId, recordId, schema, versionId, now);
 		connectionProvider.getSession().execute(boundStatement);
 	}
 
@@ -206,7 +211,11 @@ public class CassandraDataSetDAO {
 		Representation representation = new Representation();
 		representation.setRecordId(row.getString("cloud_id"));
 		representation.setSchema(row.getString("schema_id"));
-		representation.setVersion(row.getString("version"));
+		UUID verisonId = row.getUUID("version_id");
+		if (verisonId != null) {
+			representation.setVersion(verisonId.toString());
+		}
+
 		return representation;
 	}
 
