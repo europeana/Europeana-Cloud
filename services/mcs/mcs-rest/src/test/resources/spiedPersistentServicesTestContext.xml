@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:mockito="http://www.mockito.org/spring/mockito"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils" />
+	
+	<context:component-scan
+		base-package="eu.europeana.cloud.service.mcs.rest"/>
+	
+		<context:annotation-config />
+	
+	<!--connection provider - with options the same as in embedded cassandra--> 
+	<bean id="cassandraConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.CassandraConnectionProvider">
+		<constructor-arg name="host" type="java.lang.String" value="localhost"/>
+		<constructor-arg name="port" type="int" value="9142"/>
+		<constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
+	</bean>
+	<bean id="cassandraDataProviderService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderService" />
+	<bean id="cassandraDataProviderDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderDAO" />
+
+	<bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService" />
+	<bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO" />
+
+	<bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService" />
+	<bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordDAO" />
+	<bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO" />
+        <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.SwiftConnectionProvider">
+                <constructor-arg name="provider" type="java.lang.String" value="transient"/>
+                <constructor-arg name="container" type="java.lang.String" value="test_container"/>
+		<constructor-arg name="endpoint" type="java.lang.String" value=""/>
+		<constructor-arg name="user" type="java.lang.String" value="test_user"/>
+		<constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
+	</bean>
+
+	<!--spy on everything-->
+	<mockito:spy beanName="cassandraConnectionProvider" />
+	<mockito:spy beanName="cassandraDataProviderService" />
+	<mockito:spy beanName="cassandraDataProviderDAO" />
+	<mockito:spy beanName="cassandraDataSetService" />
+	<mockito:spy beanName="cassandraDataSetDAO" />
+	<mockito:spy beanName="cassandraRecordService" />
+	<mockito:spy beanName="cassandraRecordDAO" />
+	<mockito:spy beanName="swiftContentDAO" />
+        <mockito:spy beanName="swiftConnectionProvider" />
+</beans>
