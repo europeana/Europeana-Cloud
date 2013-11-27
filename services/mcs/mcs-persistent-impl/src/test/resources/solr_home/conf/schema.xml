@@ -25,19 +25,15 @@
 
 	<fields>	
 	
-                <field name="cloud_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
-                <field name="schema" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-                <field name="version" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-                <field name="provider" type="string" indexed="true" stored="true" required="true" multiValued="false" />
-                <field name="persistent" type="boolean" indexed="true" stored="true" required="true" multiValued="false" />
-                <field name="creation_date" type="date" indexed="true" stored="true" required="true" multiValued="false" />
-                <field name="data_set" type="string" indexed="true" stored="true" required="false" multiValued="true" />
-            </fields>
+		<field name="cloud_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
+		<field name="schema" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="version_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="provider_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="persistent" type="boolean" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="creation_date" type="date" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="data_sets" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+	</fields>
 
-	<uniqueKey>cloud_id</uniqueKey>
-
-	<defaultSearchField>id</defaultSearchField>
-
-	<solrQueryParser defaultOperator="AND"/>
+	<uniqueKey>version_id</uniqueKey>
 
 </schema>
