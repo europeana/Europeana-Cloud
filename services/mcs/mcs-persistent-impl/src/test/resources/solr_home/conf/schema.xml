@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="metadata" version="1.5">
+	<types>
+		<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+
+		<fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
+
+		<fieldType name="tdate" class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
+
+		<fieldType name="text_shingles" class="solr.TextField" positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<filter class="solr.ShingleFilterFactory" maxShingleSize="3" outputUnigrams="true"/>
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+			</analyzer>
+		</fieldType>
+
+		<fieldType name="bool" class="solr.BoolField" sortMissingLast="true"/>
+	</types>
+
+	<fields>	
+	
+            	<field name="id" type="string" indexed="true" stored="true" required="true" />
+
+	</fields>
+
+	<uniqueKey>id</uniqueKey>
+
+	<defaultSearchField>id</defaultSearchField>
+
+	<solrQueryParser defaultOperator="AND"/>
+
+</schema>
