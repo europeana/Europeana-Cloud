@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.Representation;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,12 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 	public void prepareData()
 			throws Exception {
 		cassandraDataProviderService.createProvider(providerId, new DataProviderProperties());
+	}
+
+
+	@After
+	public void resetMocks() {
+		Mockito.reset(swiftContentDAO);
 	}
 
 
