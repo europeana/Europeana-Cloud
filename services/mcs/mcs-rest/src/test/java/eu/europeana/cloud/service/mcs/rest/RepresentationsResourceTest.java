@@ -39,6 +39,7 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import java.util.Date;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationsResourceTest extends JerseyTest {
@@ -52,7 +53,7 @@ public class RepresentationsResourceTest extends JerseyTest {
 			Lists.newArrayList(new Representation(globalId, schema,
 					version, null, null, "DLF", Arrays.asList(new File("1.xml",
 							"text/xml", "91162629d258a876ee994e9233b2ad87",
-							"2013-01-01", 12345, null)), true)));
+							"2013-01-01", 12345, null)), true, new Date())));
 
 	@Override
 	public Application configure() {

@@ -100,11 +100,12 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public Representation createRepresentation(String globalId, String representationName, String providerId)
 			throws ProviderNotExistsException {
+		Date now = new Date();
 		// check if data provider exists
 		if (dataProviderDAO.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
-		return recordDAO.createRepresentation(globalId, representationName, providerId);
+		return recordDAO.createRepresentation(globalId, representationName, providerId, now);
 	}
 
 
@@ -158,6 +159,7 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public Representation persistRepresentation(String globalId, String schema, String version)
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
+		Date now = new Date();
 		Representation rep = recordDAO.getRepresentation(globalId, schema, version);
 		if (rep == null) {
 			throw new RepresentationNotExistsException();
@@ -171,8 +173,9 @@ public class CassandraRecordService implements RecordService {
 		} else if (recordFiles.isEmpty()) {
 			throw new CannotPersistEmptyRepresentationException();
 		}
-		recordDAO.persistRepresentation(globalId, schema, version);
+		recordDAO.persistRepresentation(globalId, schema, version,now);
 		rep.setPersistent(true);
+		rep.setCreationDate(now);
 		return rep;
 	}
 
@@ -269,8 +272,12 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public Representation copyRepresentation(String globalId, String schema, String version)
 			throws RepresentationNotExistsException {
+		Date now = new Date();
 		Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
-		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
+		if (srcRep == null) {
+			throw new RepresentationNotExistsException();
+		}
+		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
 			try {

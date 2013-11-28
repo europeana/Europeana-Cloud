@@ -68,11 +68,11 @@ public class CassandraRecordDAO {
 		insertRepresentationStatement = s.prepare(
 				"INSERT INTO representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) VALUES (?,?,?,?,?,?);");
 		getRepresentationVersionStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		listRepresentationVersionsStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version_id, provider_id, persistent FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version_id DESC;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version_id DESC;");
 		persistRepresentationStatement = s.prepare(
-				"UPDATE representation_versions SET persistent = TRUE WHERE cloud_id = ? AND schema_id=? AND version_id = ?;");
+				"UPDATE representation_versions SET persistent = TRUE, creation_date = ? WHERE cloud_id = ? AND schema_id=? AND version_id = ?;");
 		insertFileStatement = s.prepare(
 				"UPDATE representation_versions SET files[?] = ? WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		removeFileStatement = s.prepare(
@@ -80,7 +80,7 @@ public class CassandraRecordDAO {
 		getFilesStatement = s.prepare(
 				"SELECT files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		getAllRepresentationsForRecordStatement = s.prepare(
-				"SELECT cloud_id, schema_id, version_id, provider_id, persistent FROM representation_versions WHERE cloud_id = ? ORDER BY schema_id DESC, version_id DESC;");
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ? ORDER BY schema_id DESC, version_id DESC;");
 		deleteRecordStatement = s.prepare(
 				"BEGIN BATCH "
 				+ "DELETE FROM representation_versions WHERE cloud_id = ? "
@@ -128,11 +128,6 @@ public class CassandraRecordDAO {
 	}
 
 
-	public List<Representation> findRepresentations(String providerId, String schema, String thresholdRecordId, int limit) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-
 	public void deleteRepresentation(String cloudId, String schema) {
 		connectionProvider.getSession().execute(deleteRepresentationStatement.bind(cloudId, schema, cloudId, schema));
 	}
@@ -158,18 +153,17 @@ public class CassandraRecordDAO {
 	}
 
 
-	public Representation createRepresentation(String cloudId, String schema, String providerId) {
+	public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime) {
 		if (cloudId == null || schema == null || providerId == null) {
 			throw new IllegalArgumentException("Parameters cannot be null");
 		}
-		Date now = new Date();
 		UUID version = getTimeUUID();
 
 		// insert representation into representation table.
 		BoundStatement boundStatement = insertRepresentationStatement.
-				bind(cloudId, schema, version, providerId, false, now);
+				bind(cloudId, schema, version, providerId, false, creationTime);
 		connectionProvider.getSession().execute(boundStatement);
-		return new Representation(cloudId, schema, version.toString(), null, null, providerId, new ArrayList<File>(0), false);
+		return new Representation(cloudId, schema, version.toString(), null, null, providerId, new ArrayList<File>(0), false, creationTime);
 	}
 
 
@@ -212,8 +206,9 @@ public class CassandraRecordDAO {
 	}
 
 
-	public void persistRepresentation(String cloudId, String schema, String version) {
-		BoundStatement boundStatement = persistRepresentationStatement.bind(cloudId, schema, UUID.fromString(version));
+	public void persistRepresentation(String cloudId, String schema, String version, Date creationTime) {
+		BoundStatement boundStatement = persistRepresentationStatement.bind(creationTime, cloudId, schema, UUID.
+				fromString(version));
 		connectionProvider.getSession().execute(boundStatement);
 	}
 
@@ -263,7 +258,7 @@ public class CassandraRecordDAO {
 		representation.setSchema(row.getString("schema_id"));
 		representation.setVersion(row.getUUID("version_id").toString());
 		representation.setPersistent(row.getBool("persistent"));
-
+		representation.setCreationDate(row.getDate("creation_date"));
 		return representation;
 	}
 

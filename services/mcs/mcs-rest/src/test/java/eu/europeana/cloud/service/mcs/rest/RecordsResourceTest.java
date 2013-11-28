@@ -35,6 +35,7 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import java.util.Date;
 
 @RunWith(JUnitParamsRunner.class)
 public class RecordsResourceTest extends JerseyTest {
@@ -78,7 +79,7 @@ public class RecordsResourceTest extends JerseyTest {
 								URI.create("http://examplecloud.eu/records/"
 										+ globalId
 										+ "/representations/DC/versions/1/dc.xml"))),
-						false)));
+						false, new Date())));
 		Record expected = new Record(record);
 		Representation expectedRepresentation = expected.getRepresentations().get(0);
 		// prepare expected representation: 

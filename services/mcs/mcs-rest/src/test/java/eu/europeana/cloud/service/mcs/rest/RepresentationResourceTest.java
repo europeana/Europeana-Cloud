@@ -39,6 +39,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
+import java.util.Date;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationResourceTest extends JerseyTest {
@@ -53,7 +54,7 @@ public class RepresentationResourceTest extends JerseyTest {
 			globalId, schema, version, null, null, "DLF",
 			Arrays.asList(new File("1.xml", "text/xml",
 					"91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-					null)), true);
+					null)), true, new Date());
 	static final private Form form = new Form(ParamConstants.F_PROVIDER,
 			providerID);
 

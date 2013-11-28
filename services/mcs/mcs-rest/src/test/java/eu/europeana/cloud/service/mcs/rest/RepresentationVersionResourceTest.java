@@ -44,6 +44,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
+import java.util.Date;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationVersionResourceTest extends JerseyTest {
@@ -65,7 +66,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 			globalId, schema, version, null, null, "DLF",
 			Arrays.asList(new File(fileName, "text/xml",
 					"91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-					null)), true);
+					null)), true, new Date());
 
 	@Override
 	public Application configure() {
