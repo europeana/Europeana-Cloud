@@ -45,6 +45,7 @@ public class SolrDAO
 	 * @param dataSetIds list of dataset ids
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
+         * @throws SolrDocumentNotFoundException if document can't be found in Solr index
 	 */
 	public void insertRepresentation(String prevVersion, Representation rep, Collection<String> dataSetIds)
 		throws IOException, SolrServerException, SolrDocumentNotFoundException
@@ -104,6 +105,7 @@ public class SolrDAO
 	 * @param dataSetId
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
+         * @throws SolrDocumentNotFoundException if document can't be found in Solr index
 	 */
 	public void addAssignment(String versionId, String dataSetId)
 		throws SolrServerException, IOException, SolrDocumentNotFoundException
