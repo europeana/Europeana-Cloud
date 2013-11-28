@@ -49,6 +49,4 @@ public abstract class SolrDAO {
 	 * @param ds
 	 */
 	public abstract void removeAssignment(Representation rep, DataSet ds);
-//	
-//	public List<Representation> search(String schema, String dataProvider, boolean persistent, String dataSetId, Date fromDate, Date toDate, int startIndex, int limit)
 }
