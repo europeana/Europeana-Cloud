@@ -116,7 +116,7 @@ public class SolrDAO
 
 
 	/**
-	 * Removes representation.
+	 * Removes representation version.
 	 * 
 	 * @param versionId
 	 * @throws java.io.IOException if there is a I/O error in Solr server
@@ -127,6 +127,20 @@ public class SolrDAO
 	{
 		server.deleteById(versionId);
 		server.commit();
+	}
+	
+	/**
+	 * Removes representation with all history (all versions)
+	 * 
+	 * @param cloudId
+	 * @param schema
+	 * @throws SolrServerException
+	 * @throws IOException 
+	 */
+	public void removeRepresentation(String cloudId, String schema) 
+			throws SolrServerException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+		
 	}
 
 
