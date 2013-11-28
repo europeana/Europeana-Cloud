@@ -1,23 +1,15 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
 import java.util.Arrays;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,7 +55,7 @@ public class SwiftContentDAOTest
 		assertEquals(md5Hex, DigestUtils.md5Hex(os.toByteArray()));
 	}
 
-        
+    @Test
 	public void shouldRetrieveRangeOfBytes()
 		throws Exception
 	{
