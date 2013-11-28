@@ -25,9 +25,11 @@ import static org.junit.Assert.*;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
+import java.io.ByteArrayInputStream;
 
 /**
  * DataSetResourceTest
@@ -119,10 +121,10 @@ public class DataSetResourceTest extends JerseyTest {
         // given data set with assigned record representations
         String dataSetId = "dataset";
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
-        Representation r1_1 = recordService.createRepresentation("1", "dc", dataProvider.getId());
-        Representation r1_2 = recordService.createRepresentation("1", "dc", dataProvider.getId());
-        Representation r2_1 = recordService.createRepresentation("2", "dc", dataProvider.getId());
-        Representation r2_2 = recordService.createRepresentation("2", "dc", dataProvider.getId());
+        Representation r1_1 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
+        Representation r1_2 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
+        Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
+        Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getRecordId(), r1_1.getSchema(), null);
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getRecordId(), r2_1.getSchema(), r2_1.getVersion());
 
@@ -145,4 +147,14 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(r1_2, r1FromDataset);
         assertEquals(r2_1, r2FromDataset);
     }
+	
+	private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
+		Representation r = recordService.createRepresentation(cloudId, schema, providerId);
+		byte[] dummyContent = {1, 2, 3};
+		File f = new File("content.xml", "application/xml", null, null, 0, null);
+		recordService.
+				putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
+
+		return recordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+	}
 }

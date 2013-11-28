@@ -85,7 +85,7 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
 
 	@Override
 	public void run(RunNotifier rn) {
-		super.run(rn);
+		
 		rn.addListener(new RunListener() {
 
 			@Override
@@ -95,5 +95,6 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
 			}
 
 		});
+		super.run(rn);
 	}
 }
