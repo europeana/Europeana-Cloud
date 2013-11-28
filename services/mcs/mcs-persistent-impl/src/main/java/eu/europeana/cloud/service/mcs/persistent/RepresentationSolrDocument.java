@@ -14,25 +14,25 @@ import org.apache.solr.client.solrj.beans.Field;
  */
 public class RepresentationSolrDocument {
 
-	@Field("cloud_id")
+	@Field(SolrFields.cloudId)
 	private String cloudId;
 
-	@Field("version_id")
+	@Field(SolrFields.version)
 	private String version;
 
-	@Field
+	@Field(SolrFields.schema)
 	private String schema;
 
-	@Field("provider_id")
+	@Field(SolrFields.providerId)
 	private String providerId;
 
-	@Field("creation_date")
+	@Field(SolrFields.creationDate)
 	private Date creationDate;
 
-	@Field
+	@Field(SolrFields.persistent)
 	private boolean persistent;
 
-	@Field("data_sets")
+	@Field(SolrFields.dataSets)
 	private Collection<String> dataSets = new ArrayList<>();
 
 
