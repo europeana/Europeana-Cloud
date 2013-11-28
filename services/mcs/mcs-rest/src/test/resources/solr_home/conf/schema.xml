@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="representations" version="1.5">
+	<types>
+		<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+
+		<fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
+
+		<fieldType name="tdate" class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
+
+		<fieldType name="text_shingles" class="solr.TextField" positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<filter class="solr.ShingleFilterFactory" maxShingleSize="3" outputUnigrams="true"/>
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+			</analyzer>
+		</fieldType>
+
+		<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+	</types>
+
+	<fields>	
+	
+		<field name="cloud_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
+		<field name="schema" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="version_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="provider_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="persistent" type="boolean" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="creation_date" type="date" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="data_sets" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+	</fields>
+
+	<uniqueKey>version_id</uniqueKey>
+
+</schema>

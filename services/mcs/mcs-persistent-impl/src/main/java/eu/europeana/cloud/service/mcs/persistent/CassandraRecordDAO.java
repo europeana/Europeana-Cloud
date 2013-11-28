@@ -47,6 +47,8 @@ public class CassandraRecordDAO {
 	private PreparedStatement getRepresentationVersionStatement;
 
 	private PreparedStatement listRepresentationVersionsStatement;
+	
+		private PreparedStatement listRepresentationVersionsAllSchemasStatement;
 
 	private PreparedStatement persistRepresentationStatement;
 
@@ -71,6 +73,8 @@ public class CassandraRecordDAO {
 				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
 		listRepresentationVersionsStatement = s.prepare(
 				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version_id DESC;");
+		listRepresentationVersionsAllSchemasStatement = s.prepare(
+				"SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ?;");
 		persistRepresentationStatement = s.prepare(
 				"UPDATE representation_versions SET persistent = TRUE, creation_date = ? WHERE cloud_id = ? AND schema_id=? AND version_id = ?;");
 		insertFileStatement = s.prepare(
@@ -121,7 +125,7 @@ public class CassandraRecordDAO {
 		}
 		return new Record(cloudId, representations);
 	}
-
+	
 
 	public void deleteRecord(String cloudId) {
 		connectionProvider.getSession().execute(deleteRecordStatement.bind(cloudId, cloudId));
@@ -223,6 +227,23 @@ public class CassandraRecordDAO {
 	 */
 	public List<Representation> listRepresentationVersions(String cloudId, String schema) {
 		BoundStatement boundStatement = listRepresentationVersionsStatement.bind(cloudId, schema);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
+		for (Row row : rs) {
+			result.add(mapToRepresentation(row));
+		}
+		return result;
+	}
+	
+		/**
+	 * Returns all versions of all representations (persistent or not) for a cloud id.
+	 *
+	 * @param cloudId
+	 * @param schema
+	 * @return
+	 */
+	public List<Representation> listRepresentationVersions(String cloudId) {
+		BoundStatement boundStatement = listRepresentationVersionsAllSchemasStatement.bind(cloudId);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 		List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
 		for (Row row : rs) {

@@ -9,8 +9,8 @@
 
 	<context:annotation-config />
 	
-	<bean id="connector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider" destroy-method="disconnect"/>
+	<bean id="connector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider"/>
 
-        <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
+	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
 
 </beans>

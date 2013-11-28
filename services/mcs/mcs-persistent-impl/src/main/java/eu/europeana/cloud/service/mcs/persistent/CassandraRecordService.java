@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -44,7 +45,7 @@ public class CassandraRecordService implements RecordService {
 	private ContentDAO contentDAO;
 
 	@Autowired
-	private CassandraDataSetDAO dataSetDAO;
+	private SolrDAO solrDAO;
 
 	@Autowired
 	private CassandraDataProviderDAO dataProviderDAO;
@@ -60,8 +61,13 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public void deleteRecord(String globalId)
 			throws RecordNotExistsException {
-		Record r = recordDAO.getRecord(globalId);
-		for (Representation rep : r.getRepresentations()) {
+		List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(globalId);
+		for (Representation rep : allRecordRepresentationsInAllVersions) {
+			try {
+				solrDAO.removeRepresentation(globalId, rep.getSchema());
+			} catch (SolrServerException | IOException ex) {
+				log.error("Could not remove representation from solr!", ex);
+			}
 			for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
 				for (File f : repVersion.getFiles()) {
 					try {
@@ -82,6 +88,11 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public void deleteRepresentation(String globalId, String schema)
 			throws RepresentationNotExistsException {
+		try {
+				solrDAO.removeRepresentation(globalId, schema);
+			} catch (SolrServerException | IOException ex) {
+				log.error("Could not remove representation from solr!", ex);
+			}
 		for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
 			for (File f : rep.getFiles()) {
 				try {
@@ -105,6 +116,7 @@ public class CassandraRecordService implements RecordService {
 		if (dataProviderDAO.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
+		// TODO: put into solr dao
 		return recordDAO.createRepresentation(globalId, representationName, providerId, now);
 	}
 
@@ -143,6 +155,12 @@ public class CassandraRecordService implements RecordService {
 		if (rep.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
 		}
+		try {
+			solrDAO.removeRepresentation(version);
+		} catch (SolrServerException | IOException ex) {
+			log.error("Could not remove representation from solr!", ex);
+		}
+
 		for (File f : rep.getFiles()) {
 			try {
 				contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
@@ -173,6 +191,7 @@ public class CassandraRecordService implements RecordService {
 		} else if (recordFiles.isEmpty()) {
 			throw new CannotPersistEmptyRepresentationException();
 		}
+// TODO: persist in solr dao
 		recordDAO.persistRepresentation(globalId, schema, version,now);
 		rep.setPersistent(true);
 		rep.setCreationDate(now);
@@ -277,6 +296,7 @@ public class CassandraRecordService implements RecordService {
 		if (srcRep == null) {
 			throw new RepresentationNotExistsException();
 		}
+		// TODO put into solr dao
 		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
