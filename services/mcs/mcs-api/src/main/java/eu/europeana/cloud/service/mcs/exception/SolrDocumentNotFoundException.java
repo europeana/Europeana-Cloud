@@ -4,8 +4,8 @@ public class SolrDocumentNotFoundException
 	extends Exception
 {
 
-	public SolrDocumentNotFoundException(String versionId)
+	public SolrDocumentNotFoundException(String query)
 	{
-		super(String.format("Solr document not found for %s", versionId));
+		super(String.format("Solr document not found for query %s", query));
 	}
 }

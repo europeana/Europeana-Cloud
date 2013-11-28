@@ -93,7 +93,7 @@ public class SolrDAO
 		SolrQuery q = new SolrQuery(SolrFields.version + ":" + versionId);
 		List<RepresentationSolrDocument> result = server.query(q).getBeans(RepresentationSolrDocument.class);
 		if (result.isEmpty())
-			throw new SolrDocumentNotFoundException(versionId);
+			throw new SolrDocumentNotFoundException(q.toString());
 		return result.get(0);
 	}
 
@@ -136,13 +136,13 @@ public class SolrDAO
 	 * 
 	 * @param cloudId
 	 * @param schema
-	 * @throws SolrServerException
-	 * @throws IOException 
+	 * @throws SolrServerException if Solr server error occured
+	 * @throws IOException if there is a I/O error in Solr server
 	 */
 	public void removeRepresentation(String cloudId, String schema) 
 			throws SolrServerException, IOException {
-		throw new UnsupportedOperationException("not implemented");
-		
+            server.deleteByQuery(SolrFields.cloudId + ":" + cloudId + " AND " + SolrFields.schema + ":"+schema);
+            server.commit();
 	}
 
 
@@ -153,7 +153,7 @@ public class SolrDAO
 	 * @param dataSetId
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
-	 * @throws eu.europeana.cloud.service.mcs.exception.SolrDocumentNotFoundException
+	 * @throws eu.europeana.cloud.service.mcs.exception.SolrDocumentNotFoundException  if document can't be found in Solr index
 	 */
 	public void removeAssignment(String versionId, String dataSetId)
 		throws SolrServerException, IOException, SolrDocumentNotFoundException

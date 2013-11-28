@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.SolrDocumentNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import org.apache.solr.common.SolrException;
@@ -130,4 +131,46 @@ public class SolrDAOTest
 		assertEquals(updatedDoc.getDataSets().size(), 2);
 	}
 
+    
+        @Test
+        public void shouldRemoveAllRepresentationVersions() throws Exception {
+                //create versions
+                String schema = "commonSchema";
+                String cloudId = "commonCloudId";
+                Representation rep1 = new Representation(cloudId, schema, "v1.1", null, null, "dataProvider", null,
+				true, new Date());
+                Representation rep2 = new Representation(cloudId, schema, "v1.2", null, null, "dataProvider", null,
+				true, new Date());
+                Representation rep3 = new Representation(cloudId, schema, "v1.3", null, null, "dataProvider", null,
+				true, new Date());
+		solrDAO.insertRepresentation(rep1, null);
+                solrDAO.insertRepresentation(rep2, null);
+                solrDAO.insertRepresentation(rep3, null);
+                solrDAO.removeRepresentation(cloudId, schema);
+                
+                
+                SolrDocumentNotFoundException ex = null;
+		try {
+                        solrDAO.getDocumentById(rep1.getVersion());
+		}
+		catch (SolrDocumentNotFoundException e) {
+			ex = e;
+		}
+                assertNotNull(ex);
+                ex =null;
+                try {
+                        solrDAO.getDocumentById(rep2.getVersion());
+		}
+		catch (SolrDocumentNotFoundException e) {
+			ex = e;
+		}
+                assertNotNull(ex);
+                try {
+                        solrDAO.getDocumentById(rep3.getVersion());
+		}
+		catch (SolrDocumentNotFoundException e) {
+			ex = e;
+		}
+                assertNotNull(ex);
+        }
 }
