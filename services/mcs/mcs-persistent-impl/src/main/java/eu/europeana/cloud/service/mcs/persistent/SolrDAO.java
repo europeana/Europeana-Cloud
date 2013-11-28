@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -51,9 +52,12 @@ public class SolrDAO
 		throws IOException, SolrServerException, SolrDocumentNotFoundException
 	{
 		RepresentationSolrDocument prevRepr = getDocumentById(prevVersion);
-		prevRepr.getDataSets().removeAll(dataSetIds);
+                prevRepr.getDataSets().removeAll(dataSetIds);
+                Collection<String> newVerDataSets = new HashSet<>();
+                newVerDataSets.addAll(dataSetIds);
+                
 		server.addBean(prevRepr);
-		insertRepresentation(rep, dataSetIds);
+		insertRepresentation(rep, newVerDataSets);
 	}
 
 
@@ -72,8 +76,21 @@ public class SolrDAO
 	public void insertRepresentation(Representation rep, Collection<String> dataSetIds)
 		throws IOException, SolrServerException
 	{
+                Collection<String> existingDataSets = new HashSet<>();
+                try{
+                    existingDataSets.addAll(getDocumentById(rep.getVersion()).getDataSets());
+                } catch(SolrDocumentNotFoundException ex){
+                    //document does not exist - so insert it
+                }
+                
+                if(dataSetIds!=null){
+                    if(!dataSetIds.isEmpty()){
+                        existingDataSets.addAll(dataSetIds);
+                    }
+                }
+                    
 		RepresentationSolrDocument document = new RepresentationSolrDocument(rep.getRecordId(), rep.getVersion(),
-				rep.getSchema(), rep.getDataProvider(), rep.getCreationDate(), rep.isPersistent(), dataSetIds);
+				rep.getSchema(), rep.getDataProvider(), rep.getCreationDate(), rep.isPersistent(), existingDataSets);
 		server.addBean(document);
 		server.commit();
 	}
