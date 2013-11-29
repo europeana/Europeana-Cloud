@@ -12,12 +12,15 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
 import org.apache.solr.client.solrj.SolrServerException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -257,6 +260,10 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
 			throws FileNotExistsException {
+	    File file = getFile(globalId, schema, version, fileName);
+	    if (rangeStart > file.getContentLength() - 1){
+	        throw new WrongContentRangeException("Start range must be less than file length");
+	    }
 		try {
 			contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
 		} catch (IOException ex) {

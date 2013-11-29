@@ -66,10 +66,13 @@ public class InMemoryContentDAO {
             throw new FileNotExistsException();
         }
         if (rangeStart != -1) {
-            if (rangeStart > data.length - 1 || rangeEnd > data.length - 1) {
+            if (rangeStart > data.length - 1) {
                 throw new WrongContentRangeException("Cannot satisfy requested range - data length is " + data.length);
             }
             if (rangeEnd == -1) {
+                rangeEnd = data.length - 1;
+            }
+            if (rangeEnd > data.length - 1){
                 rangeEnd = data.length - 1;
             }
             data = Arrays.copyOfRange(data, (int) rangeStart, (int) rangeEnd + 1);

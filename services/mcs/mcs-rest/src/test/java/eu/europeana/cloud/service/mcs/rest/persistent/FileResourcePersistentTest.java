@@ -3,18 +3,16 @@ package eu.europeana.cloud.service.mcs.rest.persistent;
 import javax.ws.rs.core.Application;
 
 import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import eu.europeana.cloud.service.mcs.rest.FileResourceTest;
 import eu.europeana.cloud.service.mcs.rest.JerseyConfig;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraParamertizedTestRunner;
 
 /**
  * FileResourceTest
  */
-@RunWith(CassandraTestRunner.class)
+@RunWith(CassandraParamertizedTestRunner.class)
 public class FileResourcePersistentTest extends FileResourceTest {
 
 	@Override
@@ -26,12 +24,6 @@ public class FileResourcePersistentTest extends FileResourceTest {
 	@After
 	@Override
 	public void cleanUp() {
-	}
-	
-	@Test
-	@Ignore
-    public void shouldReturnErrorWhenRequestedRangeNotSatisfiable(){
-	    
 	}
 
 }

@@ -19,6 +19,9 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -27,8 +30,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
@@ -45,6 +50,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 /**
  * FileResourceTest
  */
+@RunWith(JUnitParamsRunner.class)
 public class FileResourceTest extends JerseyTest {
 
     private RecordService recordService;
@@ -117,7 +123,8 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldReturnContentWithinRange()
+    @Parameters({"1,2", "0,0", "0,1", "3,3", "0,3", "3,4"})
+    public void shouldReturnContentWithinRange(Integer rangeStart, Integer rangeEnd)
             throws IOException {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
@@ -125,17 +132,16 @@ public class FileResourceTest extends JerseyTest {
                 content));
 
         // when part of file is requested (2 bytes with 1 byte offset)
-        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=1-2").get();
+        Response getFileResponse = fileWebTarget.request().header("Range", String.format("bytes=%d-%d", rangeStart, rangeEnd)).get();
         assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), getFileResponse.getStatus());
 
         // then retrieved content should consist of second and third byte of inserted byte array
         InputStream responseStream = getFileResponse.readEntity(InputStream.class);
         byte[] responseContent = ByteStreams.toByteArray(responseStream);
-        byte[] expectedResponseContent = copyOfRange(content, 1, 2);
+        byte[] expectedResponseContent = copyOfRange(content, rangeStart, rangeEnd);
         assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
-
-
+    
     /**
      * Copy the specified range of array to a new array. This method works similar to
      * {@link Arrays#copyOfRange(byte[], int, int)}, but final index is inclusive.
@@ -143,6 +149,9 @@ public class FileResourceTest extends JerseyTest {
      * @see Arrays#copyOfRange(boolean[], int, int)
      */
     private byte[] copyOfRange(byte[] originalArray, int start, int end) {
+        if (end > originalArray.length - 1){
+            end = originalArray.length - 1;
+        }
         return Arrays.copyOfRange(originalArray, start, end + 1);
     }
 
@@ -156,7 +165,7 @@ public class FileResourceTest extends JerseyTest {
                 content));
 
         // when unsatisfiable content range is requested
-        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=1-5").get();
+        Response getFileResponse = fileWebTarget.request().header("Range", "bytes=4-5").get();
 
         // then should response that requested range is not satisfiable
         assertEquals(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE.getStatusCode(), getFileResponse.getStatus());
