@@ -158,6 +158,10 @@ public class FileResource {
         return Response.noContent().build();
     }
 
+    /**
+     * Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1,  
+     * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>.
+     */
     static class ContentRange {
 
         long start, end;

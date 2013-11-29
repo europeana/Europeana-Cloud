@@ -11,11 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Repository;
+
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
@@ -71,7 +72,7 @@ public class InMemoryContentDAO {
             if (rangeEnd == -1) {
                 rangeEnd = data.length - 1;
             }
-            data = Arrays.copyOfRange(data, (int) rangeStart, (int) rangeEnd);
+            data = Arrays.copyOfRange(data, (int) rangeStart, (int) rangeEnd + 1);
         }
         os.write(data);
     }

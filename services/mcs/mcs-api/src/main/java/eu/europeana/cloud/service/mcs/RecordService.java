@@ -21,67 +21,86 @@ import java.util.List;
  */
 public interface RecordService {
 
-	Record getRecord(String globalId)
-			throws RecordNotExistsException;
+    Record getRecord(String globalId)
+            throws RecordNotExistsException;
 
 
-	void deleteRecord(String globalId)
-			throws RecordNotExistsException;
-
-//==
-
-	Representation getRepresentation(String globalId, String schema)
-			throws RepresentationNotExistsException;
+    void deleteRecord(String globalId)
+            throws RecordNotExistsException;
 
 
-	Representation getRepresentation(String globalId, String schema, String version)
-			throws RepresentationNotExistsException;
+    //==
+
+    Representation getRepresentation(String globalId, String schema)
+            throws RepresentationNotExistsException;
 
 
-	List<Representation> listRepresentationVersions(String globalId, String schema)
-			throws RepresentationNotExistsException;
+    Representation getRepresentation(String globalId, String schema, String version)
+            throws RepresentationNotExistsException;
 
 
-	void deleteRepresentation(String globalId, String schema)
-			throws RepresentationNotExistsException;
+    List<Representation> listRepresentationVersions(String globalId, String schema)
+            throws RepresentationNotExistsException;
 
 
-	void deleteRepresentation(String globalId, String schema, String version)
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException;
+    void deleteRepresentation(String globalId, String schema)
+            throws RepresentationNotExistsException;
 
 
-	Representation createRepresentation(String globalId, String schema, String providerId)
-			throws RecordNotExistsException, ProviderNotExistsException;
+    void deleteRepresentation(String globalId, String schema, String version)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException;
 
 
-	//==
-	Representation persistRepresentation(String globalId, String schema, String version)
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException;
+    Representation createRepresentation(String globalId, String schema, String providerId)
+            throws RecordNotExistsException, ProviderNotExistsException;
 
 
-	Representation copyRepresentation(String globalId, String schema, String version)
-			throws RecordNotExistsException, RepresentationNotExistsException;
+    //==
+    Representation persistRepresentation(String globalId, String schema, String version)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            CannotPersistEmptyRepresentationException;
 
 
-	boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-			throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException;
+    Representation copyRepresentation(String globalId, String schema, String version)
+            throws RecordNotExistsException, RepresentationNotExistsException;
 
 
-	void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
-			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException;
+    boolean putContent(String globalId, String schema, String version, File file, InputStream content)
+            throws RepresentationNotExistsException, FileAlreadyExistsException,
+            CannotModifyPersistentRepresentationException;
 
+
+    /**
+     * Copy a range of the file content to the output stream. File is identified by global identifier, schema,
+     * version number and file name. Range start and range end starts at zero. 
+     * 
+     * @param globalId record identifier
+     * @param schema record schema
+     * @param version version number
+     * @param fileName file name
+     * @param rangeStart initial index of the range, inclusive 
+     * @param rangeEnd final index of the range, inclusive
+     * @param outputStream output stream
+     * @throws RepresentationNotExistsException if representation for given record identifier and schema identifier does not exist
+     * @throws FileNotExistsException if file with given name does not exist
+     * @throws WrongContentRangeException if range is invalid
+     */
+    void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd,
+            OutputStream outputStream)
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException;
 
 	File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
 			throws
 			RepresentationNotExistsException, FileNotExistsException;
-
+	
 	String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
-			throws RepresentationNotExistsException, FileNotExistsException;
+	        throws RepresentationNotExistsException, FileNotExistsException;
+
+    void deleteContent(String globalId, String schema, String version, String fileName)
+            throws RepresentationNotExistsException, FileNotExistsException,
+            CannotModifyPersistentRepresentationException;
 
 
-	void deleteContent(String globalId, String schema, String version, String fileName)
-			throws RepresentationNotExistsException, FileNotExistsException, CannotModifyPersistentRepresentationException;
-
-
-	ResultSlice<Representation> search(String providerId, String representationName, String dataSetId, String thresholdParam, int limit);
+    ResultSlice<Representation> search(String providerId, String representationName, String dataSetId,
+            String thresholdParam, int limit);
 }
