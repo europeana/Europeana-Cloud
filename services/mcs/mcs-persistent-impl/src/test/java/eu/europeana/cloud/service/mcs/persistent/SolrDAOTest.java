@@ -8,13 +8,15 @@ import java.util.Arrays;
 import java.util.Date;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/solrTestContext.xml"})
@@ -192,5 +194,6 @@ public class SolrDAOTest {
 		assertEquals(repNewDocument.getDataSets(), Arrays.asList("ds2", "ds3", "ds4"));
 
 	}
+
 
 }

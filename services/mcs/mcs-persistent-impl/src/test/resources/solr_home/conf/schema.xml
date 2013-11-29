@@ -23,14 +23,13 @@
 		<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
 	</types>
 
-	<fields>	
-	
+	<fields>		
 		<field name="cloud_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
 		<field name="schema" type="string" indexed="true" stored="true" required="true" multiValued="false" />
 		<field name="version_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
 		<field name="provider_id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
 		<field name="persistent" type="boolean" indexed="true" stored="true" required="true" multiValued="false" />
-		<field name="creation_date" type="date" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="creation_date" type="TrieDateField" indexed="true" stored="true" required="true" multiValued="false" />
 		<field name="data_sets" type="string" indexed="true" stored="true" required="false" multiValued="true" />
 	</fields>
 
