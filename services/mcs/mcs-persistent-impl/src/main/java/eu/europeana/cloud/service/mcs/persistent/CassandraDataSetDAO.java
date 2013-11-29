@@ -4,10 +4,12 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ public class CassandraDataSetDAO {
 
 	private PreparedStatement listDataSetsStatement;
 
+	private PreparedStatement getDataSetsForRepresentationStatement;
+
 
 	@PostConstruct
 	private void prepareStatements() {
@@ -65,6 +69,9 @@ public class CassandraDataSetDAO {
 
 		listDataSetsStatement = connectionProvider.getSession().prepare(
 				"SELECT data_sets FROM data_providers WHERE provider_id = ?;");
+
+		getDataSetsForRepresentationStatement = connectionProvider.getSession().prepare(
+				"SELECT provider_dataset_id, version_id FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ?;");
 	}
 
 
@@ -108,6 +115,20 @@ public class CassandraDataSetDAO {
 		}
 		BoundStatement boundStatement = addAssignmentStatement.bind(providerDataSetId, recordId, schema, versionId, now);
 		connectionProvider.getSession().execute(boundStatement);
+	}
+
+
+	public Collection<String> getDataSetAssignments(String cloudId, String schemaId, String version) {
+		BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		List<String> ids = new ArrayList<>();
+		for (Row r : rs) {
+			String version_id = r.getString("version_id");
+			if (Objects.equal(version, version_id)) {
+				ids.add(r.getString("provider_dataset_id"));
+			}
+		}
+		return ids;
 	}
 
 

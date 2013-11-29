@@ -12,19 +12,17 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CassandraRecordService implements RecordService {
 
-	private final static org.slf4j.Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
+	private final static Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
 	@Autowired
 	private CassandraRecordDAO recordDAO;
@@ -116,8 +114,13 @@ public class CassandraRecordService implements RecordService {
 		if (dataProviderDAO.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
-		// TODO: put into solr dao
-		return recordDAO.createRepresentation(globalId, representationName, providerId, now);
+		Representation rep = recordDAO.createRepresentation(globalId, representationName, providerId, now);
+		try {
+			solrDAO.insertRepresentation(rep, null);
+		} catch (IOException | SolrServerException ex) {
+			log.error("Could not remove representation from solr!", ex);
+		}
+		return rep;
 	}
 
 
@@ -191,8 +194,11 @@ public class CassandraRecordService implements RecordService {
 		} else if (recordFiles.isEmpty()) {
 			throw new CannotPersistEmptyRepresentationException();
 		}
-// TODO: persist in solr dao
-		recordDAO.persistRepresentation(globalId, schema, version,now);
+
+//		Representation previousPersistentRepresentation = recordDAO.getLatestPersistentRepresentation(globalId, schema);
+		// TODO: persist representation in solr: get latest represention i rewrite data set assignments
+		recordDAO.persistRepresentation(globalId, schema, version, now);
+
 		rep.setPersistent(true);
 		rep.setCreationDate(now);
 		return rep;
@@ -296,8 +302,13 @@ public class CassandraRecordService implements RecordService {
 		if (srcRep == null) {
 			throw new RepresentationNotExistsException();
 		}
-		// TODO put into solr dao
+
 		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
+		try {
+			solrDAO.insertRepresentation(copiedRep, null);
+		} catch (IOException | SolrServerException ex) {
+			log.error("Could not remove representation from solr!", ex);
+		}
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
 			try {

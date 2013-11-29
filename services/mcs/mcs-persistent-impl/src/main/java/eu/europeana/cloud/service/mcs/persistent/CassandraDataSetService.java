@@ -10,13 +10,10 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -106,15 +103,11 @@ public class CassandraDataSetService implements DataSetService {
 			if (rep == null) {
 				throw new RepresentationNotExistsException();
 			} 
-//			else if (!rep.isPersistent()) {
-//				throw new CannotPersistEmptyRepresentationException(String.
-//						format("Cannot assign representation %s of record %s in version %s to dataset because this "
-//								+ "version is not persistent.", schema, recordId, version));
-//			}
 		}
 
 		// now - when everything is validated - add assignment
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
+		// TODO: add asignment in SOLR
 	}
 
 
@@ -133,6 +126,7 @@ public class CassandraDataSetService implements DataSetService {
 		}
 
 		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+		// TODO: remove asignment in SOLR
 	}
 
 
@@ -178,6 +172,7 @@ public class CassandraDataSetService implements DataSetService {
 	public void deleteDataSet(String providerId, String dataSetId)
 			throws DataSetNotExistsException {
 		dataSetDAO.deleteDataSet(providerId, dataSetId);
+		// TODO: remove asignments in SOLR
 	}
 
 
