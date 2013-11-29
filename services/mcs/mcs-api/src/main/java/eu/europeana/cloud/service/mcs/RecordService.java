@@ -89,7 +89,7 @@ public interface RecordService {
             OutputStream outputStream)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException;
 
-	File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
+	File getFile(String globalId, String schema, String version, String fileName)
 			throws
 			RepresentationNotExistsException, FileNotExistsException;
 	

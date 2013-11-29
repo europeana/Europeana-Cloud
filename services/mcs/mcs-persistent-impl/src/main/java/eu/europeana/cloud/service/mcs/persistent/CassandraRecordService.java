@@ -347,7 +347,7 @@ public class CassandraRecordService implements RecordService {
 
 
 	@Override
-	public File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
+	public File getFile(String globalId, String schema, String version, String fileName)
 			throws RepresentationNotExistsException, FileNotExistsException {
 		final Representation rep = getRepresentation(globalId, schema, version);
 		for (File f : rep.getFiles()) {
