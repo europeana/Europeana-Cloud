@@ -12,10 +12,11 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.solr.client.solrj.SolrServerException;
 import static org.hamcrest.Matchers.is;
+import org.junit.After;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +30,14 @@ public class SolrDAOSearchTest {
 	@Autowired
 	private SolrDAO solrDAO;
 
+	@Autowired
+	private SolrConnectionProvider connectionProvider;
 
-	@Before
-	public void insertSampleData()
+
+	@After
+	public void deleteData()
 			throws IOException, SolrServerException {
-
+		connectionProvider.getSolrServer().deleteByQuery("*:*");
 	}
 
 
@@ -47,7 +51,7 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations
 				= solrDAO.search(RepresentationSearchParams.builder().setSchema("dc").build(), 0, 10);
-		assertSameSet(Arrays.asList(r1, r2), foundRepresentations);
+		assertSameContent(Arrays.asList(r1, r2), foundRepresentations);
 	}
 
 
@@ -61,13 +65,13 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations = solrDAO.search(RepresentationSearchParams.builder().
 				setDataProvider("dp1").build(), 0, 10);
-		assertSameSet(Arrays.asList(r1, r4), foundRepresentations);
+		assertSameContent(Arrays.asList(r1, r4), foundRepresentations);
 	}
 
 
 	@Test
 	public void searchBySchemaAndProvider()
-			throws IOException, SolrServerException {
+			throws Exception {
 		Representation r1 = insertRepresentation("c1", "dc", "v1", "dp1", true, new Date());
 		Representation r2 = insertRepresentation("c1", "dc", "v2", "dp", true, new Date());
 		Representation r3 = insertRepresentation("c1", "jpg", "v3", "dp", true, new Date());
@@ -75,7 +79,26 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations = solrDAO.
 				search(RepresentationSearchParams.builder().setDataProvider("dp1").setSchema("dc").build(), 0, 10);
-		assertSameSet(Arrays.asList(r1), foundRepresentations);
+		assertSameContent(Arrays.asList(r1), foundRepresentations);
+	}
+
+
+	@Test
+	public void searchByPersistent()
+			throws Exception {
+		Representation r1 = insertRepresentation("c1", "dc", "v1", "dp1", true, new Date());
+		Representation r2 = insertRepresentation("c1", "dc", "v2", "dp", false, new Date());
+
+		List<Representation> onlyPersistent = solrDAO.
+				search(RepresentationSearchParams.builder().setSchema("dc").setPersistent(Boolean.TRUE).build(), 0, 10);
+		assertSameContent(Arrays.asList(r1), onlyPersistent);
+		List<Representation> onlyNotPersistent = solrDAO.
+				search(RepresentationSearchParams.builder().setSchema("dc").setPersistent(Boolean.FALSE).build(), 0, 10);
+		assertSameContent(Arrays.asList(r2), onlyNotPersistent);
+		List<Representation> regardlessPersistence = solrDAO.
+				search(RepresentationSearchParams.builder().setSchema("dc").build(), 0, 10);
+		assertSameContent(Arrays.asList(r1, r2), regardlessPersistence);
+
 	}
 
 
@@ -96,14 +119,39 @@ public class SolrDAOSearchTest {
 						.setFromDate(r2.getCreationDate())
 						.setToDate(r3.getCreationDate())
 						.build(), 0, 10);
-		assertSameSet(Arrays.asList(r2, r3), foundRepresentations);
+		assertSameContent(foundRepresentations, Arrays.asList(r2, r3));
 	}
 
 
-	private <T> void assertSameSet(Collection<? extends T> c1, Collection<? extends T> c2) {
-		Set<T> c1Set = new HashSet<>(c1);
-		Set<T> c2Set = new HashSet<>(c2);
-		assertThat(c1Set, is(c2Set));
+	@Test
+	public void shouldIterateThroughAllRepresentations()
+			throws Exception {
+		int count = 50;
+		Set<Representation> generatedRepresentations = new HashSet<>(count, 1f);
+		for (int i = 0; i < count; i++) {
+			generatedRepresentations.
+					add(insertRepresentation("id", "dc", UUID.randomUUID().toString(), "dp", true, new Date()));
+		}
+		RepresentationSearchParams searchParams = RepresentationSearchParams.builder().setSchema("dc").build();
+		Set<Representation> foundRepresentations = new HashSet<>(count, 1f);
+		boolean hasNext = true;
+		int offset = 0;
+		int pageLimit = 8;
+		while (hasNext) {
+			List<Representation> searchResults = solrDAO.search(searchParams, offset, pageLimit);;
+			foundRepresentations.addAll(searchResults);
+			hasNext = !searchResults.isEmpty();
+			offset += pageLimit;
+		}
+		assertThat(foundRepresentations.size(), is(count));
+		assertThat(foundRepresentations, is(generatedRepresentations));
+	}
+
+
+	private <T> void assertSameContent(Collection<? extends T> actual, Collection<? extends T> expected) {
+		Set<T> actualSet = new HashSet<>(actual);
+		Set<T> expectedSet = new HashSet<>(expected);
+		assertThat(actualSet, is(expectedSet));
 	}
 
 
