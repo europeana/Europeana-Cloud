@@ -1,15 +1,5 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -24,9 +14,15 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * InMemoryContentServiceImpl
@@ -265,5 +261,19 @@ public class InMemoryRecordService implements RecordService {
 		}
 		result = result.subList(0, Math.min(limit, result.size()));
 		return new ResultSlice<>(null, result);
+	}
+
+
+	@Override
+	public File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
+			throws RepresentationNotExistsException, FileNotExistsException {
+		final Representation rep = getRepresentation(globalId, schema, version);
+		for (File f : rep.getFiles()) {
+			if (f.getFileName().equals(fileName)) {
+				return f;
+			}
+		}
+
+		throw new FileNotExistsException();
 	}
 }

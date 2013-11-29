@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.mcs;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -16,6 +12,9 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Service for manipulating representations and their content.
@@ -71,6 +70,10 @@ public interface RecordService {
 	void getContent(String globalId, String schema, String version, String fileName, long rangeStart, long rangeEnd, OutputStream os)
 			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException;
 
+
+	File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
+			throws
+			RepresentationNotExistsException, FileNotExistsException;
 
 	String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
 			throws RepresentationNotExistsException, FileNotExistsException;

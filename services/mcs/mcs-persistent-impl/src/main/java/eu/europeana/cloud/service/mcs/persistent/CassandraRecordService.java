@@ -87,10 +87,10 @@ public class CassandraRecordService implements RecordService {
 	public void deleteRepresentation(String globalId, String schema)
 			throws RepresentationNotExistsException {
 		try {
-				solrDAO.removeRepresentation(globalId, schema);
-			} catch (SolrServerException | IOException ex) {
-				log.error("Could not remove representation from solr!", ex);
-			}
+			solrDAO.removeRepresentation(globalId, schema);
+		} catch (SolrServerException | IOException ex) {
+			log.error("Could not remove representation from solr!", ex);
+		}
 		for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
 			for (File f : rep.getFiles()) {
 				try {
@@ -195,12 +195,17 @@ public class CassandraRecordService implements RecordService {
 			throw new CannotPersistEmptyRepresentationException();
 		}
 
-//		Representation previousPersistentRepresentation = recordDAO.getLatestPersistentRepresentation(globalId, schema);
-		// TODO: persist representation in solr: get latest represention i rewrite data set assignments
 		recordDAO.persistRepresentation(globalId, schema, version, now);
 
 		rep.setPersistent(true);
 		rep.setCreationDate(now);
+
+		try {
+			solrDAO.insertRepresentation(rep, null);
+		} catch (IOException | SolrServerException ex) {
+			log.error("Could not remove representation from solr!", ex);
+		}
+
 		return rep;
 	}
 
@@ -307,7 +312,7 @@ public class CassandraRecordService implements RecordService {
 		try {
 			solrDAO.insertRepresentation(copiedRep, null);
 		} catch (IOException | SolrServerException ex) {
-			log.error("Could not remove representation from solr!", ex);
+			log.error("Could not insert representation from solr!", ex);
 		}
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
@@ -338,6 +343,20 @@ public class CassandraRecordService implements RecordService {
 
 	private String generateKeyForFile(String recordId, String repName, String version, String fileName) {
 		return recordId + "|" + repName + "|" + version + "|" + fileName;
+	}
+
+
+	@Override
+	public File getFile(String globalId, String schema, String version, String fileName, OutputStream os)
+			throws RepresentationNotExistsException, FileNotExistsException {
+		final Representation rep = getRepresentation(globalId, schema, version);
+		for (File f : rep.getFiles()) {
+			if (f.getFileName().equals(fileName)) {
+				return f;
+			}
+		}
+
+		throw new FileNotExistsException();
 	}
 
 }
