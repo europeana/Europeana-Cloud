@@ -10,15 +10,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 /**
+ * Result slice for methods that would return possibly huge collections of objects that must be divided into paged to
+ * handle them.
  *
- * @author sielski
+ * @param <T> Class of returned objects.
  */
 @XmlRootElement
-@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class})
+@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class}) // references to all classes that might be used as generics parameters
 public class ResultSlice<T> {
 
+	/**
+	 * Reference to next slice of result.
+	 */
 	private String nextSlice;
 
+	/**
+	 * List of results in this slice.
+	 */
 	private List<T> results = new ArrayList<T>();
 
 
@@ -30,8 +38,6 @@ public class ResultSlice<T> {
 
 	public ResultSlice() {
 	}
-	
-	
 
 
 	public String getNextSlice() {
@@ -52,7 +58,5 @@ public class ResultSlice<T> {
 	public void setResults(List<T> results) {
 		this.results = results;
 	}
-	
-	
 
 }

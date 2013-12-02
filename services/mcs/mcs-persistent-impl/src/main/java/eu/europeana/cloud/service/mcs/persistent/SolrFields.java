@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-public class SolrFields {
+class SolrFields {
 
     public final static String cloudId = "cloud_id";
 

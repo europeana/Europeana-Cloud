@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import java.io.IOException;
@@ -138,7 +139,7 @@ public class SolrDAOSearchTest {
 		int offset = 0;
 		int pageLimit = 8;
 		while (hasNext) {
-			List<Representation> searchResults = solrDAO.search(searchParams, offset, pageLimit);;
+			List<Representation> searchResults = solrDAO.search(searchParams, offset, pageLimit);
 			foundRepresentations.addAll(searchResults);
 			hasNext = !searchResults.isEmpty();
 			offset += pageLimit;

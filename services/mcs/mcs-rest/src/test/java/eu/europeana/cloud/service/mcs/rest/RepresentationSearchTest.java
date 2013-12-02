@@ -1,30 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-
-
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.runner.RunWith;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -34,8 +10,29 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.context.ApplicationContext;
 
 /**
  * FileResourceTest
@@ -149,47 +146,56 @@ public class RepresentationSearchTest extends JerseyTest {
     public void shouldNotSearchForEmptyParameters()
             throws IOException {
         Response searchResponse = representationSearchWebTarget.request().get();
-        assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
-    }
+		assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
+	}
 
 
-    @Test
-    public void shouldNotSearchWhenDataSetIsWithoutProvider()
-            throws IOException {
-        Response searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_DATASET, "ds").request().get();
-        assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
-
-        searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_DATASET, "p1")
-                .queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
-        assertEquals("Unexpected status code", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
-    }
+	@Test
+	public void shouldParseIsoDatesInSearch() {
+		representationSearchWebTarget = representationSearchWebTarget
+				.queryParam(ParamConstants.F_DATE_FROM, "1995-12-31T23:59:59.999Z")
+				.queryParam(ParamConstants.F_DATE_UNTIL, "2004-02-12T15:19:21+02:00");
+		Response searchResponse = representationSearchWebTarget.request().get();
+		assertEquals("Unexpected status code ", Response.Status.OK.getStatusCode(), searchResponse.getStatus());
+	}
 
 
-    @SuppressWarnings("unused")
-    private List<Map<String, String>> searchParams() {
-        Map<String, String> allQueryParams = ImmutableMap.of(
-                ParamConstants.F_SCHEMA, "s1",
-                ParamConstants.F_PROVIDER, "p1",
-                ParamConstants.F_DATASET, "ds");
-        // all possible param configurations
-        Set<Set<String>> paramSubsets = Sets.powerSet(allQueryParams.keySet());
-        List<Map<String, String>> allParamConfigs = new ArrayList<>(paramSubsets.size());
-        for (Set<String> paramSubset : paramSubsets) {
-            // param set must not be empty
-            if (paramSubset.isEmpty()) {
-                continue;
+	@Test
+	public void shouldFailIfNoIsoDatesInSearch() {
+		representationSearchWebTarget = representationSearchWebTarget
+				.queryParam(ParamConstants.F_DATE_FROM, "31-12-1995");
+		Response searchResponse = representationSearchWebTarget.request().get();
+		assertEquals("Unexpected status code ", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
+	}
+
+
+	@SuppressWarnings("unused")
+	private List<Map<String, String>> searchParams() {
+		Map<String, String> allQueryParams = new HashMap<>();
+		allQueryParams.put(ParamConstants.F_SCHEMA, "s1");
+		allQueryParams.put(ParamConstants.F_PROVIDER, "p1");
+		allQueryParams.put(ParamConstants.F_DATE_FROM, "1995-12-31T23:59:59.999Z");
+		allQueryParams.put(ParamConstants.F_PERSISTENT, "TRUE");
+		allQueryParams.put(ParamConstants.F_DATE_UNTIL, "2004-02-12T15:19:21+02:00");
+		allQueryParams.put(ParamConstants.F_DATASET, "ds");
+
+		// all possible param configurations
+		Set<Set<String>> paramSubsets = Sets.powerSet(allQueryParams.keySet());
+		List<Map<String, String>> allParamConfigs = new ArrayList<>(paramSubsets.size());
+		for (Set<String> paramSubset : paramSubsets) {
+			// param set must not be empty
+			if (paramSubset.isEmpty()) {
+				continue;
             }
-            // param set containing data set without provider is wrong - it must be ignored;
-            if (paramSubset.contains(ParamConstants.F_DATASET) && !paramSubset.contains(ParamConstants.F_PROVIDER)) {
-                continue;
-            }
+         
             allParamConfigs.add(Maps.asMap(paramSubset, Functions.forMap(allQueryParams)));
         }
         return allParamConfigs;
     }
 
 
-    @Test
+	@Test
+	@Ignore("Too long and too unimportant")
     @Parameters(method = "searchParams")
     public void shouldSearchForAllParamConfigurations(Map<String, String> searchParams) {
         for (Map.Entry<String, String> param : searchParams.entrySet()) {

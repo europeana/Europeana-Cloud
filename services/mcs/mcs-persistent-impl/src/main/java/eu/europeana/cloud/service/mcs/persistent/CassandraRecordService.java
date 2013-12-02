@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
@@ -13,14 +14,13 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.solr.client.solrj.SolrServerException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -222,7 +222,7 @@ public class CassandraRecordService implements RecordService {
 
 	@Override
 	public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-			throws FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
+			throws CannotModifyPersistentRepresentationException {
 		DateTime now = new DateTime();
 		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
@@ -343,7 +343,7 @@ public class CassandraRecordService implements RecordService {
 
 
 	@Override
-	public ResultSlice<Representation> search(String providerId, String schema, String dataSetId, String thresholdParam, int limit) {
+	public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 

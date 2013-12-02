@@ -5,31 +5,58 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Representation
+ * Representation of a record in specific version.
  */
 @XmlRootElement
 public class Representation {
 
+	/**
+	 * Identifier (cloud id) ov a record this object is representation of.
+	 */
 	private String recordId;
 
+	/**
+	 * Schema of this representation.
+	 */
 	private String schema;
 
+	/**
+	 * Identifier of a version of this representation.
+	 */
 	private String version;
 
+	/**
+	 * Uri to the history of all versions of this representation.
+	 */
 	private URI allVersionsUri;
 
+	/**
+	 * Self uri.
+	 */
 	private URI uri;
 
+	/**
+	 * Data provider of this version of representation.
+	 */
 	private String dataProvider;
 
+	/**
+	 * A list of files which constitute this representation.
+	 */
 	private List<File> files = new ArrayList<File>(0);
 
+	/**
+	 * If this is temporary representation version: date of this object creation; If this is persistent representation
+	 * version: date of making this object persistent.
+	 */
 	private Date creationDate;
 
+	/**
+	 * Indicator whether this is persistent representation version (true) or temporary (false).
+	 */
 	private boolean persistent;
 
 

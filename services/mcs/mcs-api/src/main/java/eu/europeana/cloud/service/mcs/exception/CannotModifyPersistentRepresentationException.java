@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
 /**
- * RecordNotExistsException
+ * Thrown whren there was attempt to modify persistent representation version.
  */
 public class CannotModifyPersistentRepresentationException extends RuntimeException {
 

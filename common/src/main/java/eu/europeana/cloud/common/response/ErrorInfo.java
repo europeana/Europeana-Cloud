@@ -3,13 +3,19 @@ package eu.europeana.cloud.common.response;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * ErrorInfo
+ * Rest response that is returned if some error occured.
  */
 @XmlRootElement
 public class ErrorInfo {
 
+	/**
+	 * Code of error. This is specific for a particular rest api.
+	 */
     private String errorCode;
 
+	/**
+	 * Details message for error.
+	 */
     private String details;
 
 

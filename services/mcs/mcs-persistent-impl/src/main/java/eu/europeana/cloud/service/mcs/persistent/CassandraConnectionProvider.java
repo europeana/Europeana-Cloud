@@ -1,19 +1,17 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import javax.annotation.PreDestroy;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.ShutdownFuture;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
- * CassandraConnectionProvider
+ * Connector to Cassandra cluster.
  */
 @Service
 public class CassandraConnectionProvider {
@@ -25,6 +23,13 @@ public class CassandraConnectionProvider {
     private final Session session;
 
 
+	/**
+	 * Constructor.
+	 *
+	 * @param host cassandra node host
+	 * @param port cassandra node cql service port
+	 * @param keyspaceName name of keyspace
+	 */
     public CassandraConnectionProvider(String host, int port, String keyspaceName) {
         cluster = Cluster.builder().addContactPoint(host).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
@@ -43,6 +48,11 @@ public class CassandraConnectionProvider {
     }
 
 
+	/**
+	 * Returns session to cassandra cluster.
+	 *
+	 * @return
+	 */
     public Session getSession() {
         return session;
     }

@@ -17,8 +17,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- *
- * @author sielski
+ * Implementation of data set service using Cassandra database.
  */
 public class CassandraDataSetService implements DataSetService {
 
@@ -32,18 +31,24 @@ public class CassandraDataSetService implements DataSetService {
 	private CassandraDataProviderDAO dataProviderDAO;
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
-	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit) throws DataSetNotExistsException {
+	public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
+			throws DataSetNotExistsException {
 		// check if dataset exists
 		DataSet ds;
 		try {
 			ds = dataSetDAO.getDataSet(providerId, dataSetId);
 		} catch (ProviderNotExistsException ex) {
-				throw new DataSetNotExistsException("No such provider: " + providerId);
+			throw new DataSetNotExistsException("No such provider: " + providerId);
 		}
 		if (ds == null) {
 			throw new DataSetNotExistsException();
 		}
+
+		// now - decode parameters encoded in thresholdParam
 		String thresholdCloudId = null;
 		String thresholdSchemaId = null;
 		if (thresholdParam != null) {
@@ -55,27 +60,36 @@ public class CassandraDataSetService implements DataSetService {
 			thresholdCloudId = thresholdCloudIdAndSchema.get(0);
 			thresholdSchemaId = thresholdCloudIdAndSchema.get(1);
 		}
+
+		// get representation stubs from data set
 		List<Representation> representationStubs = dataSetDAO.
 				listDataSet(providerId, dataSetId, thresholdCloudId, thresholdSchemaId, limit + 1);
+
+		// if this is not last slice of result - add reference to next one by encoding parameters in thresholdParam
 		String nextResultToken = null;
 		if (representationStubs.size() == limit + 1) {
 			Representation nextResult = representationStubs.get(limit);
 			nextResultToken = encodeParams(nextResult.getRecordId(), nextResult.getSchema());
 			representationStubs.remove(limit);
 		}
-		// replace representation stubs to real representations
+
+		// replace representation stubs with real representations
 		List<Representation> representations = new ArrayList<>(representationStubs.size());
-		for (Representation stub:representationStubs) {
+		for (Representation stub : representationStubs) {
 			if (stub.getVersion() == null) {
 				representations.add(recordDAO.getLatestPersistentRepresentation(stub.getRecordId(), stub.getSchema()));
 			} else {
-				representations.add(recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion()));
+				representations.
+						add(recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion()));
 			}
 		}
 		return new ResultSlice(nextResultToken, representations);
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
 			throws DataSetNotExistsException, RepresentationNotExistsException {
@@ -102,7 +116,7 @@ public class CassandraDataSetService implements DataSetService {
 
 			if (rep == null) {
 				throw new RepresentationNotExistsException();
-			} 
+			}
 		}
 
 		// now - when everything is validated - add assignment
@@ -111,6 +125,9 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
 			throws DataSetNotExistsException {
@@ -130,6 +147,9 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public DataSet createDataSet(String providerId, String dataSetId, String description)
 			throws ProviderNotExistsException, DataSetAlreadyExistsException {
@@ -137,17 +157,20 @@ public class CassandraDataSetService implements DataSetService {
 		if (dataProviderDAO.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
-		
+
 		// check if dataset exists
 		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 		if (ds != null) {
 			throw new DataSetAlreadyExistsException();
 		}
-		
+
 		return dataSetDAO.createDataSet(providerId, dataSetId, description);
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
 			throws ProviderNotExistsException {
@@ -168,6 +191,9 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public void deleteDataSet(String providerId, String dataSetId)
 			throws DataSetNotExistsException {

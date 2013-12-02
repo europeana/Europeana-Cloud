@@ -2,9 +2,12 @@ package eu.europeana.cloud.common.model;
 
 import java.net.URI;
 import java.util.Objects;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Represents data provider.
+ *
+ */
 @XmlRootElement
 public class DataProvider {
 

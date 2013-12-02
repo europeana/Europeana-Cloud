@@ -1,21 +1,19 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.response.ResultSlice;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
- * CassandraDataProviderService
+ * Data provider service using Cassandra as database.
  */
 @Service
 public class CassandraDataProviderService implements DataProviderService {
@@ -30,6 +28,9 @@ public class CassandraDataProviderService implements DataProviderService {
 	private CassandraRecordDAO recordDAO;
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
 		String nextProvider = null;
@@ -42,6 +43,9 @@ public class CassandraDataProviderService implements DataProviderService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public DataProvider getProvider(String providerId)
 			throws ProviderNotExistsException {
@@ -54,6 +58,9 @@ public class CassandraDataProviderService implements DataProviderService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public DataProvider createProvider(String providerId, DataProviderProperties properties)
 			throws ProviderAlreadyExistsException {
@@ -65,6 +72,9 @@ public class CassandraDataProviderService implements DataProviderService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public DataProvider updateProvider(String providerId, DataProviderProperties properties)
 			throws ProviderNotExistsException {
@@ -76,6 +86,9 @@ public class CassandraDataProviderService implements DataProviderService {
 	}
 
 
+	/**
+	 * @inheritDoc
+	 */
 	@Override
 	public void deleteProvider(String providerId)
 			throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {

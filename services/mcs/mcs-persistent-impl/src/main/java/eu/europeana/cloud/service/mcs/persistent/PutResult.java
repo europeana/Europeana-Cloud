@@ -1,7 +1,7 @@
 
 package eu.europeana.cloud.service.mcs.persistent;
 
-public class PutResult {
+class PutResult {
 
     private final String md5;
     private final Long contentLength;

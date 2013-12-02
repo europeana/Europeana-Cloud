@@ -1,24 +1,42 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs;
 
 import java.util.Date;
 import java.util.Objects;
 
 /**
- *
- * @author sielski
+ * Parameter Object grouping parameters used to search representations. Instances of this class are immutable and must
+ * be created with {@link Builder}.
  */
 public class RepresentationSearchParams {
 
+	/**
+	 * Representation schema.
+	 */
 	private final String schema;
 
+	/**
+	 * Representation version provider id.
+	 */
 	private final String dataProvider;
 
+	/**
+	 * Representation version state.
+	 */
 	private final Boolean persistent;
 
+	/**
+	 * Identifier of data set.
+	 */
 	private final String dataSetId;
 
+	/**
+	 * Start of representation version creation date range.
+	 */
 	private final Date fromDate;
 
+	/**
+	 * End of representation version creation date range.
+	 */
 	private final Date toDate;
 
 
@@ -62,6 +80,11 @@ public class RepresentationSearchParams {
 	}
 
 
+	/**
+	 * Shortcut to {@link Builder#Builder()}. Returns new instance of {@link Builder}.
+	 *
+	 * @return
+	 */
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -110,6 +133,9 @@ public class RepresentationSearchParams {
 		return true;
 	}
 
+	/**
+	 * Builder class - to create immutable instances of {@link RepresentationSearchParams}.
+	 */
 	public static class Builder {
 
 		private String schema;
@@ -165,6 +191,11 @@ public class RepresentationSearchParams {
 		}
 
 
+		/**
+		 * Builds new instance of {@link RepresentationSearchParams} with specified parameters.
+		 *
+		 * @return
+		 */
 		public RepresentationSearchParams build() {
 			return new RepresentationSearchParams(schema, dataProvider, persistent, dataSetId, fromDate, toDate);
 		}

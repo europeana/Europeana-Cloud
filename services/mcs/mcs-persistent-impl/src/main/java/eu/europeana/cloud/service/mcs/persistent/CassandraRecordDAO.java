@@ -9,8 +9,6 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +29,7 @@ public class CassandraRecordDAO {
 
 	private final static Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
+	// json serializer/deserializer
 	private final Gson gson = new Gson();
 
 	@Autowired
@@ -47,8 +46,8 @@ public class CassandraRecordDAO {
 	private PreparedStatement getRepresentationVersionStatement;
 
 	private PreparedStatement listRepresentationVersionsStatement;
-	
-		private PreparedStatement listRepresentationVersionsAllSchemasStatement;
+
+	private PreparedStatement listRepresentationVersionsAllSchemasStatement;
 
 	private PreparedStatement persistRepresentationStatement;
 

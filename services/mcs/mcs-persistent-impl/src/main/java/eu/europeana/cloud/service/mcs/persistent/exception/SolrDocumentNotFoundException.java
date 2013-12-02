@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.exception;
+package eu.europeana.cloud.service.mcs.persistent.exception;
 
 public class SolrDocumentNotFoundException
 	extends Exception

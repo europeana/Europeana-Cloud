@@ -4,6 +4,10 @@ import java.net.URI;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Data set.
+ *
+ */
 @XmlRootElement
 public class DataSet {
 
@@ -13,8 +17,7 @@ public class DataSet {
     private String id;
 
     /**
-     * Provider identifier.
-     */
+     * Provider identifier (owner of this data set).     */
     private String providerId;
 
     /**

@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.SolrDocumentNotFoundException;
+import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

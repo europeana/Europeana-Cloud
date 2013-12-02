@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.common.response.ResultSlice;
-import java.util.List;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;

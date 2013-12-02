@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
@@ -139,7 +140,7 @@ public class InMemoryRecordService implements RecordService {
 
 	@Override
 	public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-			throws FileAlreadyExistsException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
@@ -229,10 +230,13 @@ public class InMemoryRecordService implements RecordService {
 
 
 	@Override
-	public ResultSlice<Representation> search(String providerId, String schema, String dataSetId, String thresholdParam, int limit) {
+	public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
 		if (thresholdParam != null) {
 			throw new UnsupportedOperationException("Paging with threshold is not supported");
 		}
+		String providerId = searchParams.getDataProvider();
+		String schema = searchParams.getSchema();
+		String dataSetId = searchParams.getDataSetId();
 		List<Representation> result;
 		if (providerId != null && dataSetId != null) {
 			// get all for dataset then filter for schema

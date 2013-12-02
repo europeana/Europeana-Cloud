@@ -2,17 +2,22 @@ package eu.europeana.cloud.common.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Record
+ * Record with its representations.
  */
 @XmlRootElement
 public class Record {
 
+	/**
+	 * Identifier (cloud id) of a record.
+	 */
 	private String id;
 
+	/**
+	 * List of representations of this record.
+	 */
 	private List<Representation> representations;
 
 	public Record() {

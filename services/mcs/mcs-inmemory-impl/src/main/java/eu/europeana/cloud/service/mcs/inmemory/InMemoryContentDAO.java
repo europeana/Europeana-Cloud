@@ -1,5 +1,10 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,16 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.stereotype.Repository;
-
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * InMemoryContentDAO
@@ -26,11 +22,11 @@ import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 @Repository
 public class InMemoryContentDAO {
 
-    private Map<String, byte[]> content = new HashMap<>();
+	private final Map<String, byte[]> content = new HashMap<>();
 
 
     public void putContent(String globalId, String schema, String version, File file, InputStream data)
-            throws IOException, FileAlreadyExistsException {
+            throws IOException {
         DigestInputStream md5DigestInputStream = md5InputStream(data);
         byte[] fileContent = ByteStreams.toByteArray(md5DigestInputStream);
         String actualContentMd5Hex = BaseEncoding.base16().lowerCase().encode(
