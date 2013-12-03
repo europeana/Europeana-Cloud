@@ -33,6 +33,7 @@
 	</bean>
 	<bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider"/>
 	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
+		<bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
 
 	<!--spy on everything-->
 	<mockito:spy beanName="cassandraConnectionProvider" />
@@ -45,7 +46,7 @@
 	<mockito:spy beanName="swiftContentDAO" />
 	<mockito:spy beanName="swiftConnectionProvider" />
 	<mockito:spy beanName="sorlConnector" />
-
+	<mockito:spy beanName="solrRepresentationIndexer" />
 	<mockito:spy beanName="solrDAO" />
 
 </beans>

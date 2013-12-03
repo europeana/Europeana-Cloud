@@ -6,7 +6,7 @@ import java.util.Objects;
  * Globally unique data set id. Data set id is unique only for a certain provider id, so the combination of those two
  * identifiers is globally unique.
  */
-class CompoundDataSetId {
+public class CompoundDataSetId {
 
 	/**
 	 * Data set id (unique for provider).

@@ -118,14 +118,16 @@ public class CassandraDataSetDAO {
 	}
 
 
-	public Collection<String> getDataSetAssignments(String cloudId, String schemaId, String version) {
+	public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version) {
 		BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-		List<String> ids = new ArrayList<>();
+		List<CompoundDataSetId> ids = new ArrayList<>();
 		for (Row r : rs) {
-			String version_id = r.getString("version_id");
-			if (Objects.equal(version, version_id)) {
-				ids.add(r.getString("provider_dataset_id"));
+			UUID version_id = r.getUUID("version_id");
+			String versionIdString = version_id == null ? null : version_id.toString();
+			if (Objects.equal(version, versionIdString)) {
+				String providerDataSetId = r.getString("provider_dataset_id");
+				ids.add(createCompoundDataSetId(providerDataSetId));
 			}
 		}
 		return ids;
@@ -218,6 +220,15 @@ public class CassandraDataSetDAO {
 
 	private String createProviderDataSetId(String providerId, String dataSetId) {
 		return providerId + "\n" + dataSetId;
+	}
+
+
+	private CompoundDataSetId createCompoundDataSetId(String providerDataSetId) {
+		String[] values = providerDataSetId.split("\n");
+		if (values.length != 2) {
+			throw new IllegalArgumentException("Cannot construct proper compound data set id from value: " + providerDataSetId);
+		}
+		return new CompoundDataSetId(values[0], values[1]);
 	}
 
 

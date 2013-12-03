@@ -30,6 +30,9 @@ public class CassandraDataSetService implements DataSetService {
 	@Autowired
 	private CassandraDataProviderDAO dataProviderDAO;
 
+	@Autowired
+	private SolrRepresentationIndexer representationIndexer;
+
 
 	/**
 	 * @inheritDoc
@@ -106,13 +109,14 @@ public class CassandraDataSetService implements DataSetService {
 		}
 
 		// check if representation exists
+		Representation rep;
 		if (version == null) {
-			Representation rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
+			rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
 			if (rep == null) {
 				throw new RepresentationNotExistsException();
 			}
 		} else {
-			Representation rep = recordDAO.getRepresentation(recordId, schema, version);
+			rep = recordDAO.getRepresentation(recordId, schema, version);
 
 			if (rep == null) {
 				throw new RepresentationNotExistsException();
@@ -121,7 +125,8 @@ public class CassandraDataSetService implements DataSetService {
 
 		// now - when everything is validated - add assignment
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
-		// TODO: add asignment in SOLR
+
+		representationIndexer.addAssignment(rep.getVersion(), new CompoundDataSetId(providerId, dataSetId));
 	}
 
 
@@ -143,7 +148,8 @@ public class CassandraDataSetService implements DataSetService {
 		}
 
 		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
-		// TODO: remove asignment in SOLR
+
+		representationIndexer.removeAssignment(recordId, schema, new CompoundDataSetId(providerId, dataSetId));
 	}
 
 
@@ -198,7 +204,8 @@ public class CassandraDataSetService implements DataSetService {
 	public void deleteDataSet(String providerId, String dataSetId)
 			throws DataSetNotExistsException {
 		dataSetDAO.deleteDataSet(providerId, dataSetId);
-		// TODO: remove asignments in SOLR
+
+		representationIndexer.removeAssignmentsFromDataSet(new CompoundDataSetId(providerId, dataSetId));
 	}
 
 

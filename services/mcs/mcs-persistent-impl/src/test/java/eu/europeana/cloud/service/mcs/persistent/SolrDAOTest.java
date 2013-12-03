@@ -84,7 +84,7 @@ public class SolrDAOTest {
 		RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
 		assertEquals(rep.getVersion(), doc.getVersion());
 
-		solrDAO.removeRepresentation(rep.getVersion());
+		solrDAO.removeRepresentationVersion(rep.getVersion());
 
 		//try to access removed doc
 		SolrDocumentNotFoundException ex = null;
@@ -117,7 +117,7 @@ public class SolrDAOTest {
 		RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
 		TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
 
-		//add assigment to representation
+		//remove assigment to representation
 		solrDAO.removeAssignment(rep.getVersion(), dataSet2);
 		RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
 		TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.

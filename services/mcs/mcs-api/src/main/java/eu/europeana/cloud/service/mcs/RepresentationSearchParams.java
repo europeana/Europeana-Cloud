@@ -10,6 +10,11 @@ import java.util.Objects;
 public class RepresentationSearchParams {
 
 	/**
+	 * Record id.
+	 */
+	private final String recordId;
+
+	/**
 	 * Representation schema.
 	 */
 	private final String schema;
@@ -45,8 +50,9 @@ public class RepresentationSearchParams {
 	private final Date toDate;
 
 
-	private RepresentationSearchParams(String schema, String dataProvider, Boolean persistent, String dataSetId,
+	private RepresentationSearchParams(String recordId, String schema, String dataProvider, Boolean persistent, String dataSetId,
 			String dataSetProviderId, Date fromDate, Date toDate) {
+		this.recordId = recordId;
 		this.schema = schema;
 		this.dataProvider = dataProvider;
 		this.persistent = persistent;
@@ -87,6 +93,13 @@ public class RepresentationSearchParams {
 	}
 
 
+	public String getRecordId() {
+		return recordId;
+	}
+
+
+
+
 	public String getDataSetProviderId() {
 		return dataSetProviderId;
 	}
@@ -104,14 +117,15 @@ public class RepresentationSearchParams {
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 59 * hash + Objects.hashCode(this.schema);
-		hash = 59 * hash + Objects.hashCode(this.dataProvider);
-		hash = 59 * hash + Objects.hashCode(this.persistent);
-		hash = 59 * hash + Objects.hashCode(this.dataSetId);
-		hash = 59 * hash + Objects.hashCode(this.dataSetProviderId);
-		hash = 59 * hash + Objects.hashCode(this.fromDate);
-		hash = 59 * hash + Objects.hashCode(this.toDate);
+		int hash = 3;
+		hash = 11 * hash + Objects.hashCode(this.recordId);
+		hash = 11 * hash + Objects.hashCode(this.schema);
+		hash = 11 * hash + Objects.hashCode(this.dataProvider);
+		hash = 11 * hash + Objects.hashCode(this.persistent);
+		hash = 11 * hash + Objects.hashCode(this.dataSetId);
+		hash = 11 * hash + Objects.hashCode(this.dataSetProviderId);
+		hash = 11 * hash + Objects.hashCode(this.fromDate);
+		hash = 11 * hash + Objects.hashCode(this.toDate);
 		return hash;
 	}
 
@@ -125,6 +139,9 @@ public class RepresentationSearchParams {
 			return false;
 		}
 		final RepresentationSearchParams other = (RepresentationSearchParams) obj;
+		if (!Objects.equals(this.recordId, other.recordId)) {
+			return false;
+		}
 		if (!Objects.equals(this.schema, other.schema)) {
 			return false;
 		}
@@ -152,13 +169,15 @@ public class RepresentationSearchParams {
 
 	@Override
 	public String toString() {
-		return "RepresentationSearchParams{" + "schema=" + schema + ", dataProvider=" + dataProvider + ", persistent=" + persistent + ", dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + ", fromDate=" + fromDate + ", toDate=" + toDate + '}';
+		return "RepresentationSearchParams{" + "recordId=" + recordId + ", schema=" + schema + ", dataProvider=" + dataProvider + ", persistent=" + persistent + ", dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + ", fromDate=" + fromDate + ", toDate=" + toDate + '}';
 	}
 
 	/**
 	 * Builder class - to create immutable instances of {@link RepresentationSearchParams}.
 	 */
 	public static class Builder {
+
+		private String recordId;
 
 		private String schema;
 
@@ -197,6 +216,12 @@ public class RepresentationSearchParams {
 		}
 
 
+		public Builder setRecordId(String recordId) {
+			this.recordId = recordId;
+			return this;
+		}
+
+
 		public Builder setDataSetId(String dataSetId) {
 			this.dataSetId = dataSetId;
 			return this;
@@ -227,7 +252,7 @@ public class RepresentationSearchParams {
 		 * @return
 		 */
 		public RepresentationSearchParams build() {
-			return new RepresentationSearchParams(schema, dataProvider, persistent, dataSetId, dataSetProviderId, fromDate, toDate);
+			return new RepresentationSearchParams(recordId, schema, dataProvider, persistent, dataSetId, dataSetProviderId, fromDate, toDate);
 		}
 
 	}

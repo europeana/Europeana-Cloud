@@ -21,7 +21,6 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -37,7 +36,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CassandraRecordService implements RecordService {
 
-	private final static Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
+	private final static Logger log = LoggerFactory.getLogger(CassandraRecordService.class);
 
 	@Autowired
 	private CassandraRecordDAO recordDAO;
@@ -51,6 +50,8 @@ public class CassandraRecordService implements RecordService {
 	@Autowired
 	private CassandraDataProviderDAO dataProviderDAO;
 
+	@Autowired
+	private SolrRepresentationIndexer representationIndexer;
 
 	@Override
 	public Record getRecord(String globalId)
@@ -63,22 +64,15 @@ public class CassandraRecordService implements RecordService {
 	public void deleteRecord(String globalId)
 			throws RecordNotExistsException {
 		List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(globalId);
-		for (Representation rep : allRecordRepresentationsInAllVersions) {
-			try {
-				solrDAO.removeRepresentation(globalId, rep.getSchema());
-			} catch (SolrServerException | IOException ex) {
-				log.error("Could not remove representation from solr!", ex);
-			}
-			for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
-				for (File f : repVersion.getFiles()) {
-					try {
-						contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(), repVersion.
-								getVersion(), f.getFileName()));
-					} catch (FileNotExistsException ex) {
-						log.
-								warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
-										getFileName(), globalId, rep.getSchema(), rep.getVersion());
-					}
+		representationIndexer.removeRecordRepresentations(globalId);
+		for (Representation repVersion : allRecordRepresentationsInAllVersions) {
+			for (File f : repVersion.getFiles()) {
+				try {
+					contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(), repVersion.
+							getVersion(), f.getFileName()));
+				} catch (FileNotExistsException ex) {
+					log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+							f.getFileName(), globalId, repVersion.getSchema(), repVersion.getVersion());
 				}
 			}
 		}
@@ -89,19 +83,14 @@ public class CassandraRecordService implements RecordService {
 	@Override
 	public void deleteRepresentation(String globalId, String schema)
 			throws RepresentationNotExistsException {
-		try {
-			solrDAO.removeRepresentation(globalId, schema);
-		} catch (SolrServerException | IOException ex) {
-			log.error("Could not remove representation from solr!", ex);
-		}
+		representationIndexer.removeRepresentation(globalId, schema);
 		for (Representation rep : recordDAO.listRepresentationVersions(globalId, schema)) {
 			for (File f : rep.getFiles()) {
 				try {
 					contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
 				} catch (FileNotExistsException ex) {
-					log.
-							warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
-									getFileName(), globalId, rep.getSchema(), rep.getVersion());
+					log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+							f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
 				}
 			}
 		}
@@ -118,11 +107,7 @@ public class CassandraRecordService implements RecordService {
 			throw new ProviderNotExistsException();
 		}
 		Representation rep = recordDAO.createRepresentation(globalId, representationName, providerId, now);
-		try {
-			solrDAO.insertRepresentation(rep, null);
-		} catch (IOException | SolrServerException ex) {
-			log.error("Could not remove representation from solr!", ex);
-		}
+		representationIndexer.insertRepresentation(rep);
 		return rep;
 	}
 
@@ -161,19 +146,14 @@ public class CassandraRecordService implements RecordService {
 		if (rep.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
 		}
-		try {
-			solrDAO.removeRepresentation(version);
-		} catch (SolrServerException | IOException ex) {
-			log.error("Could not remove representation from solr!", ex);
-		}
+		representationIndexer.removeRepresentationVersion(version);
 
 		for (File f : rep.getFiles()) {
 			try {
 				contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
 			} catch (FileNotExistsException ex) {
-				log.
-						warn("File {} was found in representation {}-{}-{} but no content of such file was found", f.
-								getFileName(), globalId, rep.getSchema(), rep.getVersion());
+				log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+						f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
 			}
 		}
 		recordDAO.deleteRepresentation(globalId, schema, version);
@@ -203,11 +183,7 @@ public class CassandraRecordService implements RecordService {
 		rep.setPersistent(true);
 		rep.setCreationDate(now);
 
-		try {
-			solrDAO.insertRepresentation(rep, null);
-		} catch (IOException | SolrServerException ex) {
-			log.error("Could not remove representation from solr!", ex);
-		}
+		representationIndexer.insertRepresentation(rep);
 
 		return rep;
 	}
@@ -316,11 +292,7 @@ public class CassandraRecordService implements RecordService {
 		}
 
 		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now);
-		try {
-			solrDAO.insertRepresentation(copiedRep, null);
-		} catch (IOException | SolrServerException ex) {
-			log.error("Could not insert representation from solr!", ex);
-		}
+		representationIndexer.insertRepresentation(copiedRep);
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
 			try {

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,40 @@ public class SolrDAOSearchTest {
 		List<Representation> foundRepresentations
 				= solrDAO.search(RepresentationSearchParams.builder().setSchema("dc").build(), 0, 10);
 		TestUtil.assertSameContent(Arrays.asList(r1, r2), foundRepresentations);
+	}
+
+
+	@Test
+	public void searchByDataSet()
+			throws IOException, SolrServerException, SolrDocumentNotFoundException {
+		// insert some representations
+		Representation r1 = insertRepresentation("c1", "dc", "v1", "dp", true, new Date());
+		Representation r2 = insertRepresentation("c1", "dc", "v2", "dp", true, new Date());
+		Representation r3 = insertRepresentation("c1", "jpg", "v3", "dp", true, new Date());
+		Representation r4 = insertRepresentation("c1", "jpg", "v4", "dp", true, new Date());
+
+		// assign them to different sets
+		solrDAO.addAssignment("v1", new CompoundDataSetId("dataSetProvider", "DS1"));
+		solrDAO.addAssignment("v2", new CompoundDataSetId("dataSetProvider", "DS2"));
+		solrDAO.addAssignment("v3", new CompoundDataSetId("anotherDataSetProvider", "DS1"));
+
+		// search by data set provider and data set id
+		TestUtil.assertSameContent(
+				Arrays.asList(r1),
+				solrDAO.search(RepresentationSearchParams.builder()
+						.setDataSetProviderId("dataSetProvider").setDataSetId("DS1").build(), 0, 10));
+
+		// search by data set provider
+		TestUtil.assertSameContent(
+				Arrays.asList(r1, r2),
+				solrDAO.search(RepresentationSearchParams.builder()
+						.setDataSetProviderId("dataSetProvider").build(), 0, 10));
+
+		// search by data set id
+		TestUtil.assertSameContent(
+				Arrays.asList(r1, r3),
+				solrDAO.search(RepresentationSearchParams.builder()
+						.setDataSetId("DS1").build(), 0, 10));
 	}
 
 

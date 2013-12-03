@@ -234,7 +234,8 @@ public class CassandraRecordDAO {
 		return result;
 	}
 	
-		/**
+
+	/**
 	 * Returns all versions of all representations (persistent or not) for a cloud id.
 	 *
 	 * @param cloudId
