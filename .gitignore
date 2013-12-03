@@ -11,4 +11,4 @@
 /services/mcs/mcs-rest/target/
 /services/mcs/nbactions.xml
 
-/services/mcs/mcs-rest/nb-configuration.xml
+nb-configuration.xml

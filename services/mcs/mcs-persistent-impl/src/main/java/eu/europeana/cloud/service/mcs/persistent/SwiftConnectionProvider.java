@@ -8,52 +8,68 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SwiftConnectionProvider
-{
+/**
+ * Manage connection for Openstack Swift using jClouds library.
+ */
+public class SwiftConnectionProvider {
 
-	private final static Logger log = LoggerFactory.getLogger(SwiftConnectionProvider.class);
-	private final BlobStoreContext context;
-	private final String container;
-	private final BlobStore blobStore;
-
-
-	public SwiftConnectionProvider(String provider, String container, String endpoint, String user, String password)
-	{
-		this.container = container;
-		Properties properties = new Properties();
-		properties.setProperty("swift.endpoint", endpoint);
-		context = ContextBuilder.newBuilder(provider) //put "swift" in config
-				.overrides(properties).credentials(user, password).buildView(BlobStoreContext.class);
-		blobStore = context.getBlobStore();
-		if (!blobStore.containerExists(container)) {
-			blobStore.createContainerInLocation(null, container);
-		}
-		log.info("Connected to swift");
-	}
+    private final static Logger log = LoggerFactory.getLogger(SwiftConnectionProvider.class);
+    private final BlobStoreContext context;
+    private final String container;
+    private final BlobStore blobStore;
 
 
-	@PreDestroy
-	public void closeConnections()
-	{
-		log.info("Shutting down swift connection");
-	}
+    /**
+     * Class constructor. Establish connection to Openstack Swift endpoint using provided configuration.
+     * 
+     * @param provider
+     *            provider name. Pass "transient" if you want to use in-memory implementation for tests, and "swift" for
+     *            accessing live Openstack Swift.
+     * @param container
+     *            name of the Swift container (namespace)
+     * @param endpoint
+     *            Swift endpoint URL
+     * @param user
+     *            user name
+     * @param password
+     *            user password
+     */
+    public SwiftConnectionProvider(String provider, String container, String endpoint, String user, String password) {
+        this.container = container;
+        Properties properties = new Properties();
+        properties.setProperty("swift.endpoint", endpoint);
+        context = ContextBuilder.newBuilder(provider) //put "swift" in config
+                .overrides(properties).credentials(user, password).buildView(BlobStoreContext.class);
+        blobStore = context.getBlobStore();
+        if (!blobStore.containerExists(container)) {
+            blobStore.createContainerInLocation(null, container);
+        }
+        log.info("Connected to swift");
+    }
 
 
-	public BlobStoreContext getContext()
-	{
-		return context;
-	}
+    /**
+     * Close connection on container destroy.
+     */
+    @PreDestroy
+    public void closeConnections() {
+        log.info("Shutting down swift connection");
+        context.close();
+    }
 
 
-	public String getContainer()
-	{
-		return container;
-	}
+    public BlobStoreContext getContext() {
+        return context;
+    }
 
 
-	public BlobStore getBlobStore()
-	{
-		return blobStore;
-	}
+    public String getContainer() {
+        return container;
+    }
+
+
+    public BlobStore getBlobStore() {
+        return blobStore;
+    }
 
 }

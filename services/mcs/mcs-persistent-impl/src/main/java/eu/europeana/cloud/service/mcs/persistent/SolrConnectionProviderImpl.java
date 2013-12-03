@@ -1,4 +1,3 @@
-
 package eu.europeana.cloud.service.mcs.persistent;
 
 import javax.annotation.PreDestroy;
@@ -6,9 +5,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.springframework.stereotype.Service;
 
-
 /**
- * Establishes connection to Solr server.
+ * Establishes connection to the Solr server.
  */
 @Service
 public class SolrConnectionProviderImpl implements SolrConnectionProvider {
@@ -17,6 +15,7 @@ public class SolrConnectionProviderImpl implements SolrConnectionProvider {
      * Instance used for connecting with Solr server.
      */
     private SolrServer solrServer;
+
 
     /**
      * Class constructor. Expects Solr server URL.
@@ -28,11 +27,9 @@ public class SolrConnectionProviderImpl implements SolrConnectionProvider {
         this.solrServer = new HttpSolrServer(solrUrl);
     }
 
-    
+
     /**
-     * Return solr server instance.
-     * 
-     * @return instance of Solr server
+     * {@inheritDoc}
      */
     @Override
     public SolrServer getSolrServer() {
@@ -43,7 +40,7 @@ public class SolrConnectionProviderImpl implements SolrConnectionProvider {
     /**
      * Disconnects from Solr server.
      */
-	@PreDestroy
+    @PreDestroy
     public void disconnect() {
         solrServer.shutdown();
         solrServer = null;
