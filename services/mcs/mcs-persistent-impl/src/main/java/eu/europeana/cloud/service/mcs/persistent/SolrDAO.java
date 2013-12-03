@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
-import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import com.google.common.base.Joiner;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
- * @author sielski
  */
 public class SolrDAO {
 
@@ -51,15 +50,17 @@ public class SolrDAO {
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
 	 */
-	public void insertRepresentation(String prevVersion, Representation rep, Collection<String> dataSetIds)
+	public void insertRepresentation(String prevVersion, Representation rep, Collection<CompoundDataSetId> dataSetIds)
 			throws IOException, SolrServerException, SolrDocumentNotFoundException {
+		// remove data set assignments from previous version of representation
 		RepresentationSolrDocument prevRepr = getDocumentById(prevVersion);
-		prevRepr.getDataSets().removeAll(dataSetIds);
-		Collection<String> newVerDataSets = new HashSet<>();
-		newVerDataSets.addAll(dataSetIds);
-
+		for (CompoundDataSetId compoundDataSetId : dataSetIds) {
+			prevRepr.getDataSets().remove(serialize(compoundDataSetId));
+		}
 		server.addBean(prevRepr);
-		insertRepresentation(rep, newVerDataSets);
+
+		// now, insert (or update) representation and add new data set assignments
+		insertRepresentation(rep, dataSetIds);
 	}
 
 
@@ -75,7 +76,7 @@ public class SolrDAO {
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 */
-	public void insertRepresentation(Representation rep, Collection<String> dataSetIds)
+	public void insertRepresentation(Representation rep, Collection<CompoundDataSetId> dataSetIds)
 			throws IOException, SolrServerException {
 		Collection<String> existingDataSets = new HashSet<>();
 		try {
@@ -85,8 +86,8 @@ public class SolrDAO {
 		}
 
 		if (dataSetIds != null) {
-			if (!dataSetIds.isEmpty()) {
-				existingDataSets.addAll(dataSetIds);
+			for (CompoundDataSetId compoundDataSetId : dataSetIds) {
+				existingDataSets.add(serialize(compoundDataSetId));
 			}
 		}
 
@@ -119,16 +120,16 @@ public class SolrDAO {
 	/**
 	 * Adds data set to representation.
 	 *
-	 * @param versionId
-	 * @param dataSetId
+	 * @param versionId representation version id
+	 * @param dataSetId compound data set id
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
 	 */
-	public void addAssignment(String versionId, String dataSetId)
+	public void addAssignment(String versionId, CompoundDataSetId dataSetId)
 			throws SolrServerException, IOException, SolrDocumentNotFoundException {
 		RepresentationSolrDocument document = getDocumentById(versionId);
-		document.getDataSets().add(dataSetId);
+		document.getDataSets().add(serialize(dataSetId));
 		server.addBean(document);
 		server.commit();
 	}
@@ -170,13 +171,12 @@ public class SolrDAO {
 	 * @param dataSetId
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
-	 * @throws eu.europeana.cloud.service.mcs.exception.SolrDocumentNotFoundException if document can't be found in Solr
-	 * index
+	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
 	 */
-	public void removeAssignment(String versionId, String dataSetId)
+	public void removeAssignment(String versionId, CompoundDataSetId dataSetId)
 			throws SolrServerException, IOException, SolrDocumentNotFoundException {
 		RepresentationSolrDocument document = getDocumentById(versionId);
-		document.getDataSets().remove(dataSetId);
+		document.getDataSets().remove(serialize(dataSetId));
 		server.addBean(document);
 		server.commit();
 	}
@@ -244,6 +244,20 @@ public class SolrDAO {
 				document.getProviderId(), new ArrayList<File>(), document.isPersistent(), document.getCreationDate());
 	}
 
+
+	protected CompoundDataSetId deserialize(String serializedValue) {
+		String[] values = serializedValue.split("\n");
+		if (values.length != 2) {
+			throw new IllegalArgumentException("Cannot construct proper compound data set id from value: " + serializedValue);
+		}
+		return new CompoundDataSetId(values[0], values[1]);
+	}
+
+
+	protected String serialize(CompoundDataSetId dataSetId) {
+		return dataSetId.getDataSetProviderId() + "\n" + dataSetId.getDataSetId();
+	}
+
 	private static final class Param {
 
 		private final String field, value;
@@ -259,6 +273,5 @@ public class SolrDAO {
 			this.field = field;
 			this.value = value;
 		}
-
 	}
 }

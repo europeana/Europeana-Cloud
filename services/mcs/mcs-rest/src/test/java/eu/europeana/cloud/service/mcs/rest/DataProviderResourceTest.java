@@ -21,7 +21,6 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
-import org.junit.Ignore;
 
 /**
  * DataProviderResourceTest
@@ -63,22 +62,23 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldPutProvider() {
+	public void shouldUpdateProvider() {
         // given certain provider data
-        DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
-        properties.setRemarks("Remarks");
         String providerName = "provident";
+		dataProviderService.createProvider(providerName, new DataProviderProperties());
 
-        // when you put the provider into storage
-        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-        Response putResponse = providentWebTarget.request().put(Entity.json(properties));
-        assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
+		// when the provider is updated
+		DataProviderProperties properties = new DataProviderProperties();
+		properties.setOrganisationName("Organizacja");
+		properties.setRemarks("Remarks");
+		WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
+		Response putResponse = providentWebTarget.request().put(Entity.json(properties));
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
 
-        // then the inserted provider should be in service
-        DataProvider provider = dataProviderService.getProvider(providerName);
-        assertEquals(providerName, provider.getId());
-        assertEquals(properties, provider.getProperties());
+		// then the inserted provider should be in service
+		DataProvider provider = dataProviderService.getProvider(providerName);
+		assertEquals(providerName, provider.getId());
+		assertEquals(properties, provider.getProperties());
     }
 
 

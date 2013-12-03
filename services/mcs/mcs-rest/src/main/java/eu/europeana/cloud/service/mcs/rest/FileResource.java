@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -119,10 +118,9 @@ public class FileResource {
         if (contentRange.isSpecified()) {
             status = Response.Status.PARTIAL_CONTENT;
         } else {
-            status = Response.Status.OK;
-            final Representation rep = recordService.getRepresentation(globalId, schema, version);
-            final File requestedFile = getByName(fileName, rep);
-
+			status = Response.Status.OK;
+			final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+            
             if (requestedFile == null) {
                 throw new FileNotExistsException();
             }
@@ -139,16 +137,6 @@ public class FileResource {
         };
 
         return Response.status(status).entity(output).tag(md5).build();
-    }
-
-
-    private File getByName(String fileName, Representation rep) {
-        for (File f : rep.getFiles()) {
-            if (f.getFileName().equals(fileName)) {
-                return f;
-            }
-        }
-        return null;
     }
 
 

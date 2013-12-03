@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.util.List;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
@@ -19,7 +17,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
-import org.junit.Ignore;
+import javax.ws.rs.client.Entity;
 
 /**
  * DataProviderResourceTest
@@ -66,7 +64,27 @@ public class DataProvidersResourceTest extends JerseyTest {
 
         // then you should get empty list
         assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
-    }
+	}
+
+
+	@Test
+	public void shouldCreateProvider() {
+		// given certain provider data
+		DataProviderProperties properties = new DataProviderProperties();
+		properties.setOrganisationName("Organizacja");
+		properties.setRemarks("Remarks");
+		String providerName = "provident";
+
+		// when you put the provider into storage
+		WebTarget providentWebTarget = dataProvidersWebTarget.queryParam(ParamConstants.F_PROVIDER, providerName);
+		Response putResponse = providentWebTarget.request().post(Entity.json(properties));
+		assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
+
+		// then the inserted provider should be in service
+		DataProvider provider = dataProviderService.getProvider(providerName);
+		assertEquals(providerName, provider.getId());
+		assertEquals(properties, provider.getProperties());
+	}
 
 
     @Test

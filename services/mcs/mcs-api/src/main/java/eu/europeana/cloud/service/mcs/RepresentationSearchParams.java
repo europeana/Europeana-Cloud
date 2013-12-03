@@ -30,6 +30,11 @@ public class RepresentationSearchParams {
 	private final String dataSetId;
 
 	/**
+	 * Identifier of owner (provider) of data set.
+	 */
+	private final String dataSetProviderId;
+
+	/**
 	 * Start of representation version creation date range.
 	 */
 	private final Date fromDate;
@@ -40,11 +45,13 @@ public class RepresentationSearchParams {
 	private final Date toDate;
 
 
-	private RepresentationSearchParams(String schema, String dataProvider, Boolean persistent, String dataSetId, Date fromDate, Date toDate) {
+	private RepresentationSearchParams(String schema, String dataProvider, Boolean persistent, String dataSetId,
+			String dataSetProviderId, Date fromDate, Date toDate) {
 		this.schema = schema;
 		this.dataProvider = dataProvider;
 		this.persistent = persistent;
 		this.dataSetId = dataSetId;
+		this.dataSetProviderId = dataSetProviderId;
 		this.fromDate = fromDate;
 		this.toDate = toDate;
 	}
@@ -80,6 +87,11 @@ public class RepresentationSearchParams {
 	}
 
 
+	public String getDataSetProviderId() {
+		return dataSetProviderId;
+	}
+
+
 	/**
 	 * Shortcut to {@link Builder#Builder()}. Returns new instance of {@link Builder}.
 	 *
@@ -93,12 +105,13 @@ public class RepresentationSearchParams {
 	@Override
 	public int hashCode() {
 		int hash = 7;
-		hash = 89 * hash + Objects.hashCode(this.schema);
-		hash = 89 * hash + Objects.hashCode(this.dataProvider);
-		hash = 89 * hash + Objects.hashCode(this.persistent);
-		hash = 89 * hash + Objects.hashCode(this.dataSetId);
-		hash = 89 * hash + Objects.hashCode(this.fromDate);
-		hash = 89 * hash + Objects.hashCode(this.toDate);
+		hash = 59 * hash + Objects.hashCode(this.schema);
+		hash = 59 * hash + Objects.hashCode(this.dataProvider);
+		hash = 59 * hash + Objects.hashCode(this.persistent);
+		hash = 59 * hash + Objects.hashCode(this.dataSetId);
+		hash = 59 * hash + Objects.hashCode(this.dataSetProviderId);
+		hash = 59 * hash + Objects.hashCode(this.fromDate);
+		hash = 59 * hash + Objects.hashCode(this.toDate);
 		return hash;
 	}
 
@@ -124,6 +137,9 @@ public class RepresentationSearchParams {
 		if (!Objects.equals(this.dataSetId, other.dataSetId)) {
 			return false;
 		}
+		if (!Objects.equals(this.dataSetProviderId, other.dataSetProviderId)) {
+			return false;
+		}
 		if (!Objects.equals(this.fromDate, other.fromDate)) {
 			return false;
 		}
@@ -131,6 +147,12 @@ public class RepresentationSearchParams {
 			return false;
 		}
 		return true;
+	}
+
+
+	@Override
+	public String toString() {
+		return "RepresentationSearchParams{" + "schema=" + schema + ", dataProvider=" + dataProvider + ", persistent=" + persistent + ", dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + ", fromDate=" + fromDate + ", toDate=" + toDate + '}';
 	}
 
 	/**
@@ -145,6 +167,8 @@ public class RepresentationSearchParams {
 		private Boolean persistent;
 
 		private String dataSetId;
+
+		private String dataSetProviderId;
 
 		private Date fromDate;
 
@@ -179,6 +203,12 @@ public class RepresentationSearchParams {
 		}
 
 
+		public Builder setDataSetProviderId(String dataSetProviderId) {
+			this.dataSetProviderId = dataSetProviderId;
+			return this;
+		}
+
+
 		public Builder setFromDate(Date fromDate) {
 			this.fromDate = fromDate;
 			return this;
@@ -197,7 +227,7 @@ public class RepresentationSearchParams {
 		 * @return
 		 */
 		public RepresentationSearchParams build() {
-			return new RepresentationSearchParams(schema, dataProvider, persistent, dataSetId, fromDate, toDate);
+			return new RepresentationSearchParams(schema, dataProvider, persistent, dataSetId, dataSetProviderId, fromDate, toDate);
 		}
 
 	}

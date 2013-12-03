@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import java.io.IOException;
@@ -9,9 +11,7 @@ import java.util.Date;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class SolrDAOTest {
 
 	@Autowired
-	SolrDAO solrDAO;
+	private SolrDAO solrDAO;
 
 
 	@Test
@@ -31,16 +31,15 @@ public class SolrDAOTest {
 			throws Exception {
 		Representation rep = new Representation("cloud1", "schema1", "version1", null, null, "dataProvider", null,
 				true, new Date());
-		ArrayList<String> dataSets = new ArrayList();
-		dataSets.add("dataSet1");
-		dataSets.add("dataSet2");
+		ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+		dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
+		dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
 		solrDAO.insertRepresentation(rep, dataSets);
 		RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
 		assertEquals(rep.getVersion(), doc.getVersion());
 		assertEquals(rep.getSchema(), doc.getSchema());
 		assertEquals(rep.getDataProvider(), doc.getProviderId());
 		assertEquals(rep.getCreationDate(), doc.getCreationDate());
-		assertTrue(doc.getDataSets().containsAll(dataSets));
 	}
 
 
@@ -58,21 +57,20 @@ public class SolrDAOTest {
 			throws Exception {
 		Representation rep = new Representation("cloud2", "schema1", "version2", null, null, "dataProvider", null,
 				true, new Date());
-		ArrayList<String> dataSets = new ArrayList();
-		dataSets.add("dataSet1");
-		dataSets.add("dataSet2");
+		ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+		dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
+		dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
 
 		//insert representation with 2 datasets
 		solrDAO.insertRepresentation(rep, dataSets);
 		RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
-		assertTrue(doc.getDataSets().containsAll(dataSets));
+		TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
 
 		//add assigment to representation
-		String dataSet = "dataSet3";
-		solrDAO.addAssignment(rep.getVersion(), dataSet);
+		solrDAO.addAssignment(rep.getVersion(), new CompoundDataSetId("provider", "dataSet3"));
 		RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
-		assertTrue(updatedDoc.getDataSets().containsAll(dataSets));
-		assertTrue(updatedDoc.getDataSets().contains(dataSet));
+		dataSets.add(new CompoundDataSetId("provider", "dataSet3"));
+		TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.transform(dataSets, serialize));
 	}
 
 
@@ -102,13 +100,14 @@ public class SolrDAOTest {
 	@Test
 	public void shouldRemoveAssignment()
 			throws Exception {
-		String dataSet1 = "dataSet1";
-		String dataSet2 = "dataSet2";
-		String dataSet3 = "dataSet3";
+		CompoundDataSetId dataSet1 = new CompoundDataSetId("provider", "dataSet1");
+		CompoundDataSetId dataSet2 = new CompoundDataSetId("provider", "dataSet2");
+		CompoundDataSetId dataSet3 = new CompoundDataSetId("provider", "dataSet3");
 
 		Representation rep = new Representation("cloud2", "schema1", "version123", null, null, "dataProvider", null,
 				true, new Date());
-		ArrayList<String> dataSets = new ArrayList();
+		ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+
 		dataSets.add(dataSet1);
 		dataSets.add(dataSet2);
 		dataSets.add(dataSet3);
@@ -116,84 +115,101 @@ public class SolrDAOTest {
 		//insert representation with 2 datasets
 		solrDAO.insertRepresentation(rep, dataSets);
 		RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
-		assertTrue(doc.getDataSets().containsAll(dataSets));
+		TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
 
 		//add assigment to representation
 		solrDAO.removeAssignment(rep.getVersion(), dataSet2);
 		RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
-		assertTrue(updatedDoc.getDataSets().contains(dataSet1));
-		assertTrue(updatedDoc.getDataSets().contains(dataSet3));
-		assertFalse(updatedDoc.getDataSets().contains(dataSet2));
-		assertEquals(updatedDoc.getDataSets().size(), 2);
+		TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.
+				transform(Arrays.asList(dataSet1, dataSet3), serialize));
 	}
 
-    
-        @Test
-        public void shouldRemoveAllRepresentationVersions() throws Exception {
-                //create versions
-                String schema = "commonSchema";
-                String cloudId = "commonCloudId";
-                Representation rep1 = new Representation(cloudId, schema, "v1.1", null, null, "dataProvider", null,
+
+	@Test
+	public void shouldRemoveAllRepresentationVersions()
+			throws Exception {
+		//create versions
+		String schema = "commonSchema";
+		String cloudId = "commonCloudId";
+		Representation rep1 = new Representation(cloudId, schema, "v1.1", null, null, "dataProvider", null,
 				true, new Date());
-                Representation rep2 = new Representation(cloudId, schema, "v1.2", null, null, "dataProvider", null,
+		Representation rep2 = new Representation(cloudId, schema, "v1.2", null, null, "dataProvider", null,
 				true, new Date());
-                Representation rep3 = new Representation(cloudId, schema, "v1.3", null, null, "dataProvider", null,
+		Representation rep3 = new Representation(cloudId, schema, "v1.3", null, null, "dataProvider", null,
 				true, new Date());
 		solrDAO.insertRepresentation(rep1, null);
-                solrDAO.insertRepresentation(rep2, null);
-                solrDAO.insertRepresentation(rep3, null);
-                solrDAO.removeRepresentation(cloudId, schema);
-                
-                
-                SolrDocumentNotFoundException ex = null;
+		solrDAO.insertRepresentation(rep2, null);
+		solrDAO.insertRepresentation(rep3, null);
+		solrDAO.removeRepresentation(cloudId, schema);
+
+		SolrDocumentNotFoundException ex = null;
 		try {
-                        solrDAO.getDocumentById(rep1.getVersion());
-		}
-		catch (SolrDocumentNotFoundException e) {
+			solrDAO.getDocumentById(rep1.getVersion());
+		} catch (SolrDocumentNotFoundException e) {
 			ex = e;
 		}
-                assertNotNull(ex);
-                ex =null;
-                try {
-                        solrDAO.getDocumentById(rep2.getVersion());
-		}
-		catch (SolrDocumentNotFoundException e) {
+		assertNotNull(ex);
+		ex = null;
+		try {
+			solrDAO.getDocumentById(rep2.getVersion());
+		} catch (SolrDocumentNotFoundException e) {
 			ex = e;
 		}
-                assertNotNull(ex);
-                try {
-                        solrDAO.getDocumentById(rep3.getVersion());
-		}
-		catch (SolrDocumentNotFoundException e) {
+		assertNotNull(ex);
+		try {
+			solrDAO.getDocumentById(rep3.getVersion());
+		} catch (SolrDocumentNotFoundException e) {
 			ex = e;
 		}
-                assertNotNull(ex);
-        }
+		assertNotNull(ex);
+	}
+
 
 	@Test
 	public void shouldRewriteRepresentationsOnNewVersion()
 			throws IOException, SolrServerException, SolrDocumentNotFoundException {
+		CompoundDataSetId ds1 = new CompoundDataSetId("provider", "dataSet1");
+		CompoundDataSetId ds2 = new CompoundDataSetId("provider", "dataSet2");
+		CompoundDataSetId ds3 = new CompoundDataSetId("provider", "dataSet3");
+		CompoundDataSetId ds4 = new CompoundDataSetId("provider", "dataSet3");
+
 		// insert persistent representation with 2 data sets
 		Representation rep = new Representation("1", "dc", "v1", null, null, "dataProvider", null,
 				true, new Date());
-		solrDAO.insertRepresentation(rep, Arrays.asList("ds1", "ds2"));
+		solrDAO.insertRepresentation(rep, Arrays.asList(ds1, ds2));
 
 		// insert new temporary version of representation with 2 other data sets
 		Representation repNew = new Representation("1", "dc", "v2", null, null, "dataProvider", null,
 				false, new Date());
-		solrDAO.insertRepresentation(repNew, Arrays.asList("ds3", "ds4"));
+		solrDAO.insertRepresentation(repNew, Arrays.asList(ds3, ds4));
 
 		// now, persist the most recent version. Rewrite dataset ds2 to the newer version
 		repNew.setPersistent(true);
-		solrDAO.insertRepresentation(rep.getVersion(), repNew, Arrays.asList("ds2"));
+		solrDAO.insertRepresentation(rep.getVersion(), repNew, Arrays.asList(ds2));
 
 		// then: old representation should contain only ds1, new: ds2, ds3 and ds4
 		RepresentationSolrDocument repDocument = solrDAO.getDocumentById(rep.getVersion());
 		RepresentationSolrDocument repNewDocument = solrDAO.getDocumentById(repNew.getVersion());
-		assertEquals(repDocument.getDataSets(), Arrays.asList("ds1"));
-		assertEquals(repNewDocument.getDataSets(), Arrays.asList("ds2", "ds3", "ds4"));
-
+		TestUtil.assertSameContent(repDocument.getDataSets(), Lists.transform(Arrays.asList(ds1), serialize));
+		TestUtil.assertSameContent(repNewDocument.getDataSets(), Lists.
+				transform(Arrays.asList(ds2, ds3, ds4), serialize));
 	}
 
+	private final Function<String, CompoundDataSetId> deserialize = new Function<String, CompoundDataSetId>() {
+
+		@Override
+		public CompoundDataSetId apply(String input) {
+			return solrDAO.deserialize(input);
+		}
+	};
+
+	private final Function<CompoundDataSetId, String> serialize = new Function<CompoundDataSetId, String>() {
+
+		@Override
+		public String apply(CompoundDataSetId input) {
+			return solrDAO.serialize(input);
+		}
+
+	};
 
 }

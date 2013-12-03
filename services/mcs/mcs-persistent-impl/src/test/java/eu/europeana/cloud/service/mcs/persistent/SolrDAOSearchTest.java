@@ -1,13 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -52,7 +51,7 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations
 				= solrDAO.search(RepresentationSearchParams.builder().setSchema("dc").build(), 0, 10);
-		assertSameContent(Arrays.asList(r1, r2), foundRepresentations);
+		TestUtil.assertSameContent(Arrays.asList(r1, r2), foundRepresentations);
 	}
 
 
@@ -66,7 +65,7 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations = solrDAO.search(RepresentationSearchParams.builder().
 				setDataProvider("dp1").build(), 0, 10);
-		assertSameContent(Arrays.asList(r1, r4), foundRepresentations);
+		TestUtil.assertSameContent(Arrays.asList(r1, r4), foundRepresentations);
 	}
 
 
@@ -80,7 +79,7 @@ public class SolrDAOSearchTest {
 
 		List<Representation> foundRepresentations = solrDAO.
 				search(RepresentationSearchParams.builder().setDataProvider("dp1").setSchema("dc").build(), 0, 10);
-		assertSameContent(Arrays.asList(r1), foundRepresentations);
+		TestUtil.assertSameContent(Arrays.asList(r1), foundRepresentations);
 	}
 
 
@@ -92,13 +91,13 @@ public class SolrDAOSearchTest {
 
 		List<Representation> onlyPersistent = solrDAO.
 				search(RepresentationSearchParams.builder().setSchema("dc").setPersistent(Boolean.TRUE).build(), 0, 10);
-		assertSameContent(Arrays.asList(r1), onlyPersistent);
+		TestUtil.assertSameContent(Arrays.asList(r1), onlyPersistent);
 		List<Representation> onlyNotPersistent = solrDAO.
 				search(RepresentationSearchParams.builder().setSchema("dc").setPersistent(Boolean.FALSE).build(), 0, 10);
-		assertSameContent(Arrays.asList(r2), onlyNotPersistent);
+		TestUtil.assertSameContent(Arrays.asList(r2), onlyNotPersistent);
 		List<Representation> regardlessPersistence = solrDAO.
 				search(RepresentationSearchParams.builder().setSchema("dc").build(), 0, 10);
-		assertSameContent(Arrays.asList(r1, r2), regardlessPersistence);
+		TestUtil.assertSameContent(Arrays.asList(r1, r2), regardlessPersistence);
 
 	}
 
@@ -120,7 +119,7 @@ public class SolrDAOSearchTest {
 						.setFromDate(r2.getCreationDate())
 						.setToDate(r3.getCreationDate())
 						.build(), 0, 10);
-		assertSameContent(foundRepresentations, Arrays.asList(r2, r3));
+		TestUtil.assertSameContent(foundRepresentations, Arrays.asList(r2, r3));
 	}
 
 
@@ -146,13 +145,6 @@ public class SolrDAOSearchTest {
 		}
 		assertThat(foundRepresentations.size(), is(count));
 		assertThat(foundRepresentations, is(generatedRepresentations));
-	}
-
-
-	private <T> void assertSameContent(Collection<? extends T> actual, Collection<? extends T> expected) {
-		Set<T> actualSet = new HashSet<>(actual);
-		Set<T> expectedSet = new HashSet<>(expected);
-		assertThat(actualSet, is(expectedSet));
 	}
 
 
