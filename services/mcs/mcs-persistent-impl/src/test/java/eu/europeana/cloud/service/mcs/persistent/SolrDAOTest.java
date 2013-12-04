@@ -185,7 +185,8 @@ public class SolrDAOTest {
 
 		// now, persist the most recent version. Rewrite dataset ds2 to the newer version
 		repNew.setPersistent(true);
-		solrDAO.insertRepresentation(rep.getVersion(), repNew, Arrays.asList(ds2));
+		solrDAO.removeAssignment(rep.getVersion(), ds2);
+		solrDAO.insertRepresentation(repNew, Arrays.asList(ds2));
 
 		// then: old representation should contain only ds1, new: ds2, ds3 and ds4
 		RepresentationSolrDocument repDocument = solrDAO.getDocumentById(rep.getVersion());

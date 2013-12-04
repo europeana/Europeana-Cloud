@@ -18,6 +18,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
@@ -36,6 +37,8 @@ public class SolrDAO {
 
 	private SolrServer server;
 
+	protected static final String CDSID_SEPARATOR = "\n";
+
 
 	@PostConstruct
 	public void init() {
@@ -44,44 +47,18 @@ public class SolrDAO {
 
 
 	/**
-	 * Removes dataset assigments from the previous representation version. Then inserts a new representation or updates
-	 * a previously added.
+	 * Inserts or updates a representation (update might mean only setting persistent to true and changing date). If
+	 * representation is inserted, it will be assigned to provided list of data sets. If representation is updated, its
+	 * prevoiusly assigned data set will remain and provided list of data sets will be also added.
 	 *
-	 * @param prevVersion name of the previous version of representation
-	 * @param rep representation to be inserted/updated
-	 * @param dataSetIds list of dataset ids
-	 * @throws java.io.IOException if there is a I/O error in Solr server
-	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
-	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
-	 */
-	public void insertRepresentation(String prevVersion, Representation rep, Collection<CompoundDataSetId> dataSetIds)
-			throws IOException, SolrServerException, SolrDocumentNotFoundException {
-		// remove data set assignments from previous version of representation
-		RepresentationSolrDocument prevRepr = getDocumentById(prevVersion);
-		for (CompoundDataSetId compoundDataSetId : dataSetIds) {
-			prevRepr.getDataSets().remove(serialize(compoundDataSetId));
-		}
-		server.addBean(prevRepr);
-
-		// now, insert (or update) representation and add new data set assignments
-		insertRepresentation(rep, dataSetIds);
-	}
-
-
-	/**
-	 * Inserts a new representation or updates a previously added (update might mean only setting persistent to true).
-	 * Sometimes such insertion involves dataset assignment changes - to indicate the most recent version in data set.
-	 * If this is the case, the list of data sets to which the representation should be assigned to is provided into
-	 * this method (if this is update, previously assigned data sets will remain). Moreover, those datasets should be
-	 * removed from previous persistent version of this representation.
-	 *
-	 * @param rep
+	 * @param rep representation to be added or updated
 	 * @param dataSetIds list of dataset ids
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 */
 	public void insertRepresentation(Representation rep, Collection<CompoundDataSetId> dataSetIds)
 			throws IOException, SolrServerException {
+		// collect list of previously assigned data sets
 		Collection<String> existingDataSets = new HashSet<>();
 		try {
 			existingDataSets.addAll(getDocumentById(rep.getVersion()).getDataSets());
@@ -168,6 +145,13 @@ public class SolrDAO {
 	}
 
 
+	/**
+	 * Removes all record representations with all history (all versions).
+	 *
+	 * @param cloudId
+	 * @throws SolrServerException
+	 * @throws IOException
+	 */
 	public void removeRecordRepresentation(String cloudId)
 			throws SolrServerException, IOException {
 		server.deleteByQuery(SolrFields.cloudId + ":" + cloudId);
@@ -178,8 +162,9 @@ public class SolrDAO {
 	/**
 	 * Removes data set from representation.
 	 *
-	 * @param versionId
-	 * @param dataSetId
+	 * @param recordId record id
+	 * @param schema representation schema
+	 * @param dataSetIds list of data sets to be removed from representation
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
@@ -209,6 +194,13 @@ public class SolrDAO {
 	}
 
 
+	/**
+	 * Removes data set assignments from ALL representation. This method is to be used if whole data set is removed.
+	 *
+	 * @param dataSetId data set id
+	 * @throws java.io.IOException if there is a I/O error in Solr server
+	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
+	 */
 	public void removeAssignmentFromDataSet(CompoundDataSetId dataSetId)
 			throws SolrServerException, IOException {
 		RepresentationSearchParams params = RepresentationSearchParams.builder()
@@ -230,10 +222,10 @@ public class SolrDAO {
 
 
 	/**
-	 * Removes data set from representation.
+	 * Removes data set assignment from representation version.
 	 *
-	 * @param versionId
-	 * @param dataSetId
+	 * @param versionId version of represenation
+	 * @param dataSetId data set id
 	 * @throws java.io.IOException if there is a I/O error in Solr server
 	 * @throws org.apache.solr.client.solrj.SolrServerException if Solr server error occured
 	 * @throws SolrDocumentNotFoundException if document can't be found in Solr index
@@ -247,6 +239,14 @@ public class SolrDAO {
 	}
 
 
+	/**
+	 * Searches for representation versions that satisfy query parameters.
+	 *
+	 * @param searchParams parameters of representation versions to be found.
+	 * @param startIndex offeset of returned list of representations.
+	 * @param limit maximum length of returned list.
+	 * @return
+	 */
 	public List<Representation> search(RepresentationSearchParams searchParams, int startIndex, int limit) {
 		String queryString = generateQueryString(searchParams);
 		SolrQuery query = new SolrQuery(queryString);
@@ -266,31 +266,43 @@ public class SolrDAO {
 	}
 
 
+	/**
+	 * Generates solr query string from parameters.
+	 *
+	 * @param params query parameters.
+	 * @return
+	 */
 	private String generateQueryString(RepresentationSearchParams params) {
 		List<Param> queryParams = new ArrayList<>();
 		if (params.getSchema() != null) {
-			queryParams.add(new Param(SolrFields.schema, params.getSchema()));
+			String encodedValue = ClientUtils.escapeQueryChars(params.getSchema());
+			queryParams.add(new Param(SolrFields.schema, encodedValue));
 		}
 		if (params.getRecordId() != null) {
-			queryParams.add(new Param(SolrFields.cloudId, params.getRecordId()));
+			String encodedValue = ClientUtils.escapeQueryChars(params.getRecordId());
+			queryParams.add(new Param(SolrFields.cloudId, encodedValue));
 		}
 		if (params.getDataProvider() != null) {
-			queryParams.add(new Param(SolrFields.providerId, params.getDataProvider()));
+			String encodedValue = ClientUtils.escapeQueryChars(params.getDataProvider());
+			queryParams.add(new Param(SolrFields.providerId, encodedValue));
 		}
 		if (params.getDataSetId() != null && params.getDataSetProviderId() != null) {
 			CompoundDataSetId compoundDataSetId = new CompoundDataSetId(params.getDataSetProviderId(), params.
 					getDataSetId());
-			queryParams.add(new Param(SolrFields.dataSets, serialize(compoundDataSetId)));
+			String encodedValue = ClientUtils.escapeQueryChars(serialize(compoundDataSetId));
+			queryParams.add(new Param(SolrFields.dataSets, encodedValue));
 		} else if (params.getDataSetId() != null) {
-			queryParams.add(new Param(SolrFields.dataSets, "*" + params.getDataSetId()));
+			String encodedValue = ClientUtils.escapeQueryChars(CDSID_SEPARATOR + params.getDataSetId());
+			queryParams.add(new Param(SolrFields.dataSets, "*" + encodedValue));
 		} else if (params.getDataSetProviderId() != null) {
-			queryParams.add(new Param(SolrFields.dataSets, params.getDataSetProviderId() + "*"));
-
+			String encodedValue = ClientUtils.escapeQueryChars(params.getDataSetProviderId() + CDSID_SEPARATOR);
+			queryParams.add(new Param(SolrFields.dataSets, encodedValue + "*"));
 		}
 		if (params.isPersistent() != null) {
 			queryParams.add(new Param(SolrFields.persistent, params.isPersistent().toString()));
 		}
 
+		// if start of end of creation date range is specified - add range parameter
 		boolean anyDateIsSpecified = params.getFromDate() != null || params.getToDate() != null;
 		if (anyDateIsSpecified) {
 			DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
@@ -314,6 +326,12 @@ public class SolrDAO {
 	}
 
 
+	/**
+	 * Maps solr document bean into representation class object.
+	 *
+	 * @param document
+	 * @return
+	 */
 	private Representation map(RepresentationSolrDocument document) {
 		return new Representation(document.getCloudId(), document.getSchema(), document.getVersion(), null, null,
 				document.getProviderId(), new ArrayList<File>(), document.isPersistent(), document.getCreationDate());
@@ -321,7 +339,7 @@ public class SolrDAO {
 
 
 	protected CompoundDataSetId deserialize(String serializedValue) {
-		String[] values = serializedValue.split("_");
+		String[] values = serializedValue.split(CDSID_SEPARATOR);
 		if (values.length != 2) {
 			throw new IllegalArgumentException("Cannot construct proper compound data set id from value: " + serializedValue);
 		}
@@ -330,9 +348,12 @@ public class SolrDAO {
 
 
 	protected String serialize(CompoundDataSetId dataSetId) {
-		return dataSetId.getDataSetProviderId() + "_" + dataSetId.getDataSetId();
+		return dataSetId.getDataSetProviderId() + CDSID_SEPARATOR + dataSetId.getDataSetId();
 	}
 
+	/**
+	 * Represents solr query parameter: field name and expected value.
+	 */
 	private static final class Param {
 
 		private final String field, value;

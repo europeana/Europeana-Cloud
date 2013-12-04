@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.Representation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -7,8 +8,11 @@ import java.util.Objects;
 import org.apache.solr.client.solrj.beans.Field;
 
 /**
- *
- * @author sielski
+ * Bean representing Representation + its data set assignments for SOLR indexing purposes (to be used only in
+ * communication with solr index). All fields have the same meaning as in {@link Representation} class and
+ * {@link #dataSets} contain a collection of data sets which this representation is currently assigned to. Because data
+ * set has unique identivier only with provider id, those two identifiers must be somehow combined into one string
+ * element in this data sets collection.
  */
 public class RepresentationSolrDocument {
 
@@ -170,4 +174,11 @@ public class RepresentationSolrDocument {
 		}
 		return true;
 	}
+
+
+	@Override
+	public String toString() {
+		return "RepresentationSolrDocument{" + "cloudId=" + cloudId + ", version=" + version + ", schema=" + schema + ", providerId=" + providerId + ", creationDate=" + creationDate + ", persistent=" + persistent + ", dataSets=" + dataSets + '}';
+	}
+
 }

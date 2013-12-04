@@ -69,6 +69,8 @@ public class SolrDAOSearchTest {
 		solrDAO.addAssignment("v1", new CompoundDataSetId("dataSetProvider", "DS1"));
 		solrDAO.addAssignment("v2", new CompoundDataSetId("dataSetProvider", "DS2"));
 		solrDAO.addAssignment("v3", new CompoundDataSetId("anotherDataSetProvider", "DS1"));
+		solrDAO.addAssignment("v4", new CompoundDataSetId("anotherDataSet", "ProviderDS1"));
+
 
 		// search by data set provider and data set id
 		TestUtil.assertSameContent(
