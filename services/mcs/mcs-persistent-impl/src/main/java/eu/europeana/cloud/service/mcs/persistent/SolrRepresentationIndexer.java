@@ -10,8 +10,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
-@Async
+/**
+ * Receives information about modifications in record representations and their data set assignments and sends them to
+ * index. All public methods are asynchronous.
+ *
+ * This class requires task executor in spring configuration with id: solrIndexerExecutor.
+ *
+ * In future, implementation should be changed to use more reliable (probably persistent) queuing technology (i.e. jms
+ * or RabbitMQ).
+ */
+@Component
+@Async("solrIndexerExecutor")
 public class SolrRepresentationIndexer {
 
 	private final static Logger log = LoggerFactory.getLogger(SolrRepresentationIndexer.class);

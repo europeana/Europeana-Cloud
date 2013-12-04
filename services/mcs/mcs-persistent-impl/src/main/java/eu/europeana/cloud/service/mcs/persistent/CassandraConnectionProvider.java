@@ -8,12 +8,12 @@ import com.datastax.driver.core.ShutdownFuture;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Connector to Cassandra cluster.
  */
-@Service
+@Component
 public class CassandraConnectionProvider {
 
     private final static Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);

@@ -23,10 +23,12 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 /**
  * Provides DAO operations for Solr.
  */
+@Repository
 public class SolrDAO {
 
 	@Autowired
