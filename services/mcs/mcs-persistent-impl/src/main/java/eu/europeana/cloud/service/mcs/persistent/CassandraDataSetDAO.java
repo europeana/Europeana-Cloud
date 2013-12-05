@@ -21,8 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- *
- * @author sielski
+ * Data set repository that uses Cassandra nosql database.
  */
 @Repository
 public class CassandraDataSetDAO {
@@ -79,11 +78,13 @@ public class CassandraDataSetDAO {
 	 * Returns stubs of representations assigned to a data set. Stubs contain cloud id and schema of the representation,
 	 * may also contain version (if a certain version is in a data set).
 	 *
-	 * @param providerId
-	 * @param dataSetId
-	 * @param thresholdCloudId
-	 * @param thresholdSchema
-	 * @param limit
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 * @param thresholdCloudId parameter used to pagination, returned representations wil have cloudId >=
+	 * thresholdCloudId. Might be null.
+	 * @param thresholdSchema parameter used to pagination, returned representations wil have schema >= thresholdSchema.
+	 * Might be null.
+	 * @param limit maximum size of returned list
 	 * @return
 	 */
 	public List<Representation> listDataSet(String providerId, String dataSetId, String thresholdCloudId, String thresholdSchema, int limit) {
@@ -106,6 +107,17 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Adds representation to a data set. Might add representation in latest persistent or specified version. Does not
+	 * do any kind of parameter validation - specified data set and representation version must exist before invoking
+	 * this method.
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 * @param recordId record id
+	 * @param schema representation schema
+	 * @param version representation version (might be null if newest version is to be assigned)
+	 */
 	public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version) {
 		Date now = new Date();
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
@@ -118,6 +130,14 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Returns data sets to which representation (in specified or latest version) is assigned to.
+	 *
+	 * @param cloudId record id
+	 * @param schemaId representation schema
+	 * @param version representation version (might be null)
+	 * @return list of data set ids
+	 */
 	public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version) {
 		BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -134,6 +154,15 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Returns data set from specified provider with specified id. Throws exception when provider does not exist.
+	 * Returns null if provider exists but does not have data set with specified id.
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 * @return data set
+	 * @throws ProviderNotExistsException specified data provider does not exist.
+	 */
 	public DataSet getDataSet(String providerId, String dataSetId)
 			throws ProviderNotExistsException {
 		BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
@@ -154,6 +183,14 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Removes representation from data set (regardless representation version).
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 * @param recordId record's id
+	 * @param schema representation's schema
+	 */
 	public void removeAssignment(String providerId, String dataSetId, String recordId, String schema) {
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
 		BoundStatement boundStatement = removeAssignmentStatement.bind(providerDataSetId, recordId, schema);
@@ -161,6 +198,15 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Creates or updates data set for a provider. Data provider with specified must exist before this method is
+	 * invoked.
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 * @param description description of data set.
+	 * @return created (or updated) data set.
+	 */
 	public DataSet createDataSet(String providerId, String dataSetId, String description) {
 		BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
 		connectionProvider.getSession().execute(boundStatement);
@@ -173,6 +219,15 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Lists all data sets for a provider.
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param thresholdDatasetId parameter used to pagination, returned representations wil have dataSetId >=
+	 * thresholdDatasetId. Might be null.
+	 * @param limit max size of returned data set list.
+	 * @return list of data sets.
+	 */
 	public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
 		BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
 		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -200,6 +255,12 @@ public class CassandraDataSetDAO {
 	}
 
 
+	/**
+	 * Deletes data set with all its assignments.
+	 *
+	 * @param providerId data set owner's (provider's) id
+	 * @param dataSetId data set id
+	 */
 	public void deleteDataSet(String providerId, String dataSetId) {
 		// remove all assignments
 		String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
@@ -232,13 +293,6 @@ public class CassandraDataSetDAO {
 	}
 
 
-//	private DataSet mapRowToDataSet(Row row) {
-//		DataSet ds = new DataSet();
-//		ds.setId(row.getString("dataset_id"));
-//		ds.setProviderId(row.getString("provider_id"));
-//		ds.setDescription(row.getString("description"));
-//		return ds;
-//	}
 	private Representation mapRowToRepresentationStub(Row row) {
 		Representation representation = new Representation();
 		representation.setRecordId(row.getString("cloud_id"));

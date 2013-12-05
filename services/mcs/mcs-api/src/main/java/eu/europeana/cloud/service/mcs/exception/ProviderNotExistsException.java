@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * ProviderNotExistsException
+ * Thrown when there is attempt to get data provider which does not exist.
  */
 public class ProviderNotExistsException extends RuntimeException {
 

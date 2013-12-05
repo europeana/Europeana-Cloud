@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * FileHashMismatchException
+ * Thrown when declared file's hash is different than actual hash.
  */
 public class FileContentHashMismatchException extends RuntimeException {
 

@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * DataSetNotExistsException
+ * Thrown when there is attempt to get data set which does not exist.
  */
 public class DataSetNotExistsException extends RuntimeException {
 

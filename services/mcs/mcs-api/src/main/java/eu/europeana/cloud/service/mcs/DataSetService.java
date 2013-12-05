@@ -60,6 +60,16 @@ public interface DataSetService {
 			throws DataSetNotExistsException;
 
 
+	/**
+	 * Creates a new data set for specified provider.
+	 *
+	 * @param providerId owner of data set
+	 * @param dataSetId identifier of newly created data set
+	 * @param description description of newly created data set (may be any text)
+	 * @return created data set.
+	 * @throws ProviderNotExistsException no such data provider exists
+	 * @throws DataSetAlreadyExistsException data set with this identifer has already been created for this provider
+	 */
 	DataSet createDataSet(String providerId, String dataSetId, String description)
 			throws ProviderNotExistsException, DataSetAlreadyExistsException;
 

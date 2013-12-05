@@ -1,8 +1,9 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * RecordNotExistsException
+ * NOT USED ANYMORE. TO BE REMOVED.
  */
+@Deprecated
 public class RepresentationAlreadyInSetException extends RuntimeException {
 
     public RepresentationAlreadyInSetException(String message) {
