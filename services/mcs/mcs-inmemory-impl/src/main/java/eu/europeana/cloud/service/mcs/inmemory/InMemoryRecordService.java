@@ -256,7 +256,7 @@ public class InMemoryRecordService implements RecordService {
 					}
 				}
 			} catch (DataSetNotExistsException ex) {
-				result = Collections.EMPTY_LIST;
+				result = Collections.emptyList();
 			}
 			result = toReturn;
 		} else {
