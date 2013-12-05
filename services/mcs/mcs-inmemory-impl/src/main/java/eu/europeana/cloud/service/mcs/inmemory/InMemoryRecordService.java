@@ -215,7 +215,6 @@ public class InMemoryRecordService implements RecordService {
 		Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
 		for (File srcFile : srcRep.getFiles()) {
 			File copiedFile = new File(srcFile);
-			copyRepresentation(globalId, schema, version);
 			try {
 				contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(),
 						globalId, schema, copiedRep.getVersion(), copiedFile.getFileName());
