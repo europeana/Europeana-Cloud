@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 
 @Provider
-public class DataSetAlreadyExistsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<DataSetAlreadyExistsException> {
+public class DataSetAlreadyExistsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<DataSetAlreadyExistsException> {
 }

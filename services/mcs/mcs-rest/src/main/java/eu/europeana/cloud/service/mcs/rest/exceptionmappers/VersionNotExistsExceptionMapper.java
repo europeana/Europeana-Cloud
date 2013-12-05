@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 
 @Provider
-public class VersionNotExistsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<VersionNotExistsException> {
+public class VersionNotExistsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<VersionNotExistsException> {
 }

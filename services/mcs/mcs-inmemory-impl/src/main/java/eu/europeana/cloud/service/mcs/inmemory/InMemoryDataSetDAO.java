@@ -12,7 +12,6 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**

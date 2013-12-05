@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
@@ -123,7 +120,7 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
-    @Parameters({"1,2", "0,0", "0,1", "3,3", "0,3", "3,4"})
+    @Parameters({ "1,2", "0,0", "0,1", "3,3", "0,3", "3,4" })
     public void shouldReturnContentWithinRange(Integer rangeStart, Integer rangeEnd)
             throws IOException {
         // given particular content in service
@@ -132,7 +129,8 @@ public class FileResourceTest extends JerseyTest {
                 content));
 
         // when part of file is requested (2 bytes with 1 byte offset)
-        Response getFileResponse = fileWebTarget.request().header("Range", String.format("bytes=%d-%d", rangeStart, rangeEnd)).get();
+        Response getFileResponse = fileWebTarget.request()
+                .header("Range", String.format("bytes=%d-%d", rangeStart, rangeEnd)).get();
         assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), getFileResponse.getStatus());
 
         // then retrieved content should consist of second and third byte of inserted byte array
@@ -141,7 +139,8 @@ public class FileResourceTest extends JerseyTest {
         byte[] expectedResponseContent = copyOfRange(content, rangeStart, rangeEnd);
         assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
-    
+
+
     /**
      * Copy the specified range of array to a new array. This method works similar to
      * {@link Arrays#copyOfRange(byte[], int, int)}, but final index is inclusive.
@@ -149,7 +148,7 @@ public class FileResourceTest extends JerseyTest {
      * @see Arrays#copyOfRange(boolean[], int, int)
      */
     private byte[] copyOfRange(byte[] originalArray, int start, int end) {
-        if (end > originalArray.length - 1){
+        if (end > originalArray.length - 1) {
             end = originalArray.length - 1;
         }
         return Arrays.copyOfRange(originalArray, start, end + 1);

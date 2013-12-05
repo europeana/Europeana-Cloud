@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 
 @Provider
-public class ProviderHasRecordsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<ProviderHasRecordsException> {
+public class ProviderHasRecordsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<ProviderHasRecordsException> {
 }

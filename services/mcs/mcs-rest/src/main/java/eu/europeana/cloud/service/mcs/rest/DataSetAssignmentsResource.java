@@ -1,16 +1,12 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+
+import javax.ws.rs.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 import eu.europeana.cloud.service.mcs.DataSetService;
 
 /**
@@ -31,9 +27,7 @@ public class DataSetAssignmentsResource {
 
 
     @POST
-    public void addAssignment(
-            @FormParam(F_GID) String recordId,
-            @FormParam(F_SCHEMA) String schema,
+    public void addAssignment(@FormParam(F_GID) String recordId, @FormParam(F_SCHEMA) String schema,
             @FormParam(F_VER) String representationVersion) {
         ParamUtil.require(F_GID, recordId);
         ParamUtil.require(F_SCHEMA, schema);
@@ -42,9 +36,7 @@ public class DataSetAssignmentsResource {
 
 
     @DELETE
-    public void removeAssignment(
-            @QueryParam(F_GID) String recordId,
-            @QueryParam(F_SCHEMA) String schema) {
+    public void removeAssignment(@QueryParam(F_GID) String recordId, @QueryParam(F_SCHEMA) String schema) {
         ParamUtil.require(F_GID, recordId);
         ParamUtil.require(F_SCHEMA, schema);
         dataSetService.removeAssignment(providerId, dataSetId, recordId, schema);

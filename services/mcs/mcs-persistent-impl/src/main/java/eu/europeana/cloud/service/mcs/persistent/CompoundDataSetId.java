@@ -8,64 +8,64 @@ import java.util.Objects;
  */
 public class CompoundDataSetId {
 
-	/**
-	 * Data set id (unique for provider).
-	 */
-	private final String dataSetId;
+    /**
+     * Data set id (unique for provider).
+     */
+    private final String dataSetId;
 
-	/**
-	 * Data set's owner (provider) id.
-	 */
-	private final String dataSetProviderId;
-
-
-	public CompoundDataSetId(String dataSetProviderId, String dataSetId) {
-		this.dataSetId = dataSetId;
-		this.dataSetProviderId = dataSetProviderId;
-	}
+    /**
+     * Data set's owner (provider) id.
+     */
+    private final String dataSetProviderId;
 
 
-	public String getDataSetId() {
-		return dataSetId;
-	}
+    public CompoundDataSetId(String dataSetProviderId, String dataSetId) {
+        this.dataSetId = dataSetId;
+        this.dataSetProviderId = dataSetProviderId;
+    }
 
 
-	public String getDataSetProviderId() {
-		return dataSetProviderId;
-	}
+    public String getDataSetId() {
+        return dataSetId;
+    }
 
 
-	@Override
-	public int hashCode() {
-		int hash = 7;
-		hash = 89 * hash + Objects.hashCode(this.dataSetId);
-		hash = 89 * hash + Objects.hashCode(this.dataSetProviderId);
-		return hash;
-	}
+    public String getDataSetProviderId() {
+        return dataSetProviderId;
+    }
 
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final CompoundDataSetId other = (CompoundDataSetId) obj;
-		if (!Objects.equals(this.dataSetId, other.dataSetId)) {
-			return false;
-		}
-		if (!Objects.equals(this.dataSetProviderId, other.dataSetProviderId)) {
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.dataSetId);
+        hash = 89 * hash + Objects.hashCode(this.dataSetProviderId);
+        return hash;
+    }
 
 
-	@Override
-	public String toString() {
-		return "CompoundDataSetId{" + "dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + '}';
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CompoundDataSetId other = (CompoundDataSetId) obj;
+        if (!Objects.equals(this.dataSetId, other.dataSetId)) {
+            return false;
+        }
+        if (!Objects.equals(this.dataSetProviderId, other.dataSetProviderId)) {
+            return false;
+        }
+        return true;
+    }
+
+
+    @Override
+    public String toString() {
+        return "CompoundDataSetId{" + "dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + '}';
+    }
 
 }

@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.util.Properties;
+
 import javax.annotation.PreDestroy;
+
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;

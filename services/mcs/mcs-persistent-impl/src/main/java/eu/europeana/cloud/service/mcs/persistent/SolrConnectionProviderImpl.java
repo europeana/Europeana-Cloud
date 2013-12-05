@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import javax.annotation.PreDestroy;
+
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.springframework.stereotype.Component;

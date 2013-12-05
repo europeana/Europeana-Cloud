@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 
 @Provider
-public class DataSetNotExistsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<DataSetNotExistsException> {
+public class DataSetNotExistsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<DataSetNotExistsException> {
 }

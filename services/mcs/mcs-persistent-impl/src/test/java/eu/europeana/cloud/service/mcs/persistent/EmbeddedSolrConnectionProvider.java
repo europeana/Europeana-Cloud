@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.io.File;
+
 import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -19,6 +21,7 @@ public class EmbeddedSolrConnectionProvider implements SolrConnectionProvider {
      */
     private SolrServer solrServer;
 
+
     public EmbeddedSolrConnectionProvider() {
         File solrConfig = FileUtils.toFile(this.getClass().getResource("/solr_home/solr.xml"));
         File solrHome = FileUtils.toFile(this.getClass().getResource("/solr_home/"));
@@ -27,9 +30,10 @@ public class EmbeddedSolrConnectionProvider implements SolrConnectionProvider {
         solrServer = new EmbeddedSolrServer(container, "");
     }
 
+
     /**
      * Return solr server instance.
-     *
+     * 
      * @return instance of Solr server
      */
     @Override
@@ -37,10 +41,11 @@ public class EmbeddedSolrConnectionProvider implements SolrConnectionProvider {
         return solrServer;
     }
 
+
     /**
      * Disconnects from Solr server.
      */
-	@PreDestroy
+    @PreDestroy
     public void disconnect() {
         solrServer.shutdown();
         solrServer = null;

@@ -1,22 +1,25 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.CountingInputStream;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.jclouds.blobstore.options.GetOptions;
+
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.io.Payload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CountingInputStream;
+
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * Provides DAO operations for Openstack Swift.

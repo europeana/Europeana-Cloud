@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import static org.junit.Assert.assertEquals;
+
 import java.net.URI;
 import java.util.List;
 
@@ -16,16 +19,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-import static org.junit.Assert.*;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 
 /**
@@ -58,14 +58,14 @@ public class DataSetsResourceTest extends JerseyTest {
     }
 
 
-	@After
-	public void cleanUp() {
-		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
-				dataSetService.deleteDataSet(prov.getId(), ds.getId());
-			}
-			dataProviderService.deleteProvider(prov.getId());
-		}
+    @After
+    public void cleanUp() {
+        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
+            for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
+                dataSetService.deleteDataSet(prov.getId(), ds.getId());
+            }
+            dataProviderService.deleteProvider(prov.getId());
+        }
     }
 
 
@@ -78,14 +78,13 @@ public class DataSetsResourceTest extends JerseyTest {
         // when you add data set for a provider
         dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId());
         Response createResponse = dataSetsWebTarget.request().post(
-                Entity.form(new Form(F_DATASET, datasetId).param(F_DESCRIPTION, description)));
+            Entity.form(new Form(F_DATASET, datasetId).param(F_DESCRIPTION, description)));
 
         // then location of dataset should be given in response
         assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
 
         URI expectedObjectUri = dataSetsWebTarget.path("{" + P_DATASET + "}")
-                .resolveTemplate(P_PROVIDER, dataProvider.getId())
-                .resolveTemplate(P_DATASET, datasetId).getUri();
+                .resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, datasetId).getUri();
         assertEquals(expectedObjectUri, createResponse.getLocation());
 
         // and then this set should be visible in service
@@ -104,8 +103,7 @@ public class DataSetsResourceTest extends JerseyTest {
 
         // when you try to add data set without id
         dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId());
-        Response createResponse = dataSetsWebTarget.request().post(
-                Entity.form(new Form(F_DESCRIPTION, description)));
+        Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DESCRIPTION, description)));
 
         // then you should get error
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), createResponse.getStatus());

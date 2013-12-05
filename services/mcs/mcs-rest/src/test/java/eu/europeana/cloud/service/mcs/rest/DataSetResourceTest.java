@@ -1,5 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import javax.ws.rs.Path;
@@ -7,7 +12,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.test.JerseyTest;
@@ -16,20 +20,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
+import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-import static org.junit.Assert.*;
-
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
-import java.io.ByteArrayInputStream;
 
 /**
  * DataSetResourceTest
@@ -68,13 +64,13 @@ public class DataSetResourceTest extends JerseyTest {
 
     @After
     public void cleanUp() {
-		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
-				dataSetService.deleteDataSet(prov.getId(), ds.getId());
-			}
-			dataProviderService.deleteProvider(prov.getId());
-		}
-	}
+        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
+            for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
+                dataSetService.deleteDataSet(prov.getId(), ds.getId());
+            }
+            dataProviderService.deleteProvider(prov.getId());
+        }
+    }
 
 
     @Test
@@ -83,7 +79,8 @@ public class DataSetResourceTest extends JerseyTest {
         String description = "dataset description";
 
         // when you add data set for a provider 
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+            P_DATASET, dataSetId);
         Response createResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
         assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
 
@@ -106,13 +103,16 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+            P_DATASET, dataSetId);
         Response deleteResponse = dataSetWebTarget.request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
 
         // than deleted dataset should not be in service and non-deleted should remain
-        assertTrue("Expecting no dataset for provier service", dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
-        assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults().size());
+        assertTrue("Expecting no dataset for provier service",
+            dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
+        assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults()
+                .size());
     }
 
 
@@ -126,10 +126,12 @@ public class DataSetResourceTest extends JerseyTest {
         Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getRecordId(), r1_1.getSchema(), null);
-        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getRecordId(), r2_1.getSchema(), r2_1.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getRecordId(), r2_1.getSchema(),
+            r2_1.getVersion());
 
         // when you list dataset contents
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(P_DATASET, dataSetId);
+        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
+            P_DATASET, dataSetId);
         Response listDataset = dataSetWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
         List<Representation> dataSetContents = listDataset.readEntity(ResultSlice.class).getResults();
@@ -147,14 +149,14 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(r1_2, r1FromDataset);
         assertEquals(r2_1, r2FromDataset);
     }
-	
-	private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
-		Representation r = recordService.createRepresentation(cloudId, schema, providerId);
-		byte[] dummyContent = {1, 2, 3};
-		File f = new File("content.xml", "application/xml", null, null, 0, null);
-		recordService.
-				putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
-		return recordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
-	}
+
+    private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
+        Representation r = recordService.createRepresentation(cloudId, schema, providerId);
+        byte[] dummyContent = { 1, 2, 3 };
+        File f = new File("content.xml", "application/xml", null, null, 0, null);
+        recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
+
+        return recordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+    }
 }
