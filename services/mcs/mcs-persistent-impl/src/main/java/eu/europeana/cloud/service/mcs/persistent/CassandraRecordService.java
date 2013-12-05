@@ -1,12 +1,26 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -15,18 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
-import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-
 /**
- * 
- * @author sielski
+ * Implementation of record service using Cassandra as storage.
  */
 @Service
 public class CassandraRecordService implements RecordService {
@@ -49,6 +53,9 @@ public class CassandraRecordService implements RecordService {
     private SolrRepresentationIndexer representationIndexer;
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Record getRecord(String globalId)
             throws RecordNotExistsException {
@@ -56,6 +63,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void deleteRecord(String globalId)
             throws RecordNotExistsException {
@@ -76,6 +86,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void deleteRepresentation(String globalId, String schema)
             throws RepresentationNotExistsException {
@@ -94,6 +107,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
             throws ProviderNotExistsException {
@@ -108,6 +124,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Representation getRepresentation(String globalId, String schema)
             throws RepresentationNotExistsException {
@@ -120,6 +139,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Representation getRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException {
@@ -132,6 +154,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void deleteRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
@@ -156,6 +181,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Representation persistRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
@@ -186,6 +214,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String schema)
             throws RepresentationNotExistsException {
@@ -193,6 +224,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
             throws CannotModifyPersistentRepresentationException {
@@ -230,6 +264,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void getContent(String globalId, String schema, String version, String fileName, long rangeStart,
             long rangeEnd, OutputStream os)
@@ -246,6 +283,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
             throws FileNotExistsException, RepresentationNotExistsException {
@@ -268,6 +308,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void deleteContent(String globalId, String schema, String version, String fileName)
             throws FileNotExistsException, CannotModifyPersistentRepresentationException {
@@ -280,6 +323,9 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public Representation copyRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException {
@@ -298,10 +344,10 @@ public class CassandraRecordService implements RecordService {
                     generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
             } catch (FileNotExistsException ex) {
                 log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                        srcFile.getFileName(), globalId, schema, version);
+                    srcFile.getFileName(), globalId, schema, version);
             } catch (FileAlreadyExistsException ex) {
                 log.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
-                        schema, copiedRep.getVersion());
+                    schema, copiedRep.getVersion());
             }
             recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
         }
@@ -310,17 +356,30 @@ public class CassandraRecordService implements RecordService {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
-        throw new UnsupportedOperationException("Not implemented");
+        int startFrom = 0;
+        try {
+            startFrom = Integer.parseInt(thresholdParam);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Wrong threshold param for searching");
+        }
+        List<Representation> foundRepresenations = solrDAO.search(searchParams, startFrom, limit + 1);
+        String nextResultToken = null;
+        if (foundRepresenations.size() == limit + 1) {
+            nextResultToken = Integer.toString(startFrom + limit + 1);
+            foundRepresenations.remove(limit);
+        }
+        return new ResultSlice<>(nextResultToken, foundRepresenations);
     }
 
 
-    private String generateKeyForFile(String recordId, String repName, String version, String fileName) {
-        return recordId + "|" + repName + "|" + version + "|" + fileName;
-    }
-
-
+    /**
+     * @inheritDoc
+     */
     @Override
     public File getFile(String globalId, String schema, String version, String fileName)
             throws RepresentationNotExistsException, FileNotExistsException {
@@ -332,6 +391,20 @@ public class CassandraRecordService implements RecordService {
         }
 
         throw new FileNotExistsException();
+    }
+
+
+    /**
+     * Generates unique key for file content.
+     * 
+     * @param recordId
+     * @param repName
+     * @param version
+     * @param fileName
+     * @return
+     */
+    private String generateKeyForFile(String recordId, String repName, String version, String fileName) {
+        return recordId + "|" + repName + "|" + version + "|" + fileName;
     }
 
 }

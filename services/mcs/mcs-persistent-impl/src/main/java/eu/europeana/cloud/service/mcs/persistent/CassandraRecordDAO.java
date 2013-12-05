@@ -1,24 +1,27 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import java.util.*;
-
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.google.gson.Gson;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.datastax.driver.core.*;
-import com.google.gson.Gson;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-
 /**
- * 
- * @author sielski
+ * Repository for records, their representations and versions. Uses Cassandra as storage.
  */
 @Repository
 public class CassandraRecordDAO {
@@ -115,22 +118,57 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Deletes record with all representations and all versions. If such record doesn't exist - nothing happens.
+     * 
+     * @param cloudId
+     *            indentifier of record to be deleted.
+     */
     public void deleteRecord(String cloudId) {
         connectionProvider.getSession().execute(deleteRecordStatement.bind(cloudId, cloudId));
     }
 
 
+    /**
+     * Deletes representation with all versions. If such represenation doesn't exist - nothing happens.
+     * 
+     * @param cloudId
+     *            identifier of record
+     * @param schema
+     *            schema of representation to be deleted.
+     */
     public void deleteRepresentation(String cloudId, String schema) {
         connectionProvider.getSession().execute(deleteRepresentationStatement.bind(cloudId, schema, cloudId, schema));
     }
 
 
+    /**
+     * Deletes record's representation in specified version. If such version doesn't exist - nothing happens. This
+     * method doesn't check any constraints e.g. can delete persistent version.
+     * 
+     * @param cloudId
+     *            identifier of record
+     * @param schema
+     *            schema of representation
+     * @param version
+     *            version of representation
+     */
     public void deleteRepresentation(String cloudId, String schema, String version) {
         connectionProvider.getSession().execute(
             deleteRepresentationVersionStatement.bind(cloudId, schema, UUID.fromString(version), cloudId, schema));
     }
 
 
+    /**
+     * Returns latest persistent version of record's representation. If there is no such representation or no version of
+     * this representation is persistent - will return null.
+     * 
+     * @param cloudId
+     *            identifier of record
+     * @param schema
+     *            schema of representation
+     * @return latest persistent version of a representation or null if such doesn't exist.
+     */
     public Representation getLatestPersistentRepresentation(String cloudId, String schema) {
         List<Representation> allRepresentations = this.listRepresentationVersions(cloudId, schema);
 
@@ -145,6 +183,19 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Creates new temporary version for a specific record's representation.
+     * 
+     * @param cloudId
+     *            identifier of record
+     * @param schema
+     *            schema of representation
+     * @param providerId
+     *            representation version provider
+     * @param creationTime
+     *            creation date
+     * @return
+     */
     public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime) {
         if (cloudId == null || schema == null || providerId == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
@@ -153,7 +204,7 @@ public class CassandraRecordDAO {
 
         // insert representation into representation table.
         BoundStatement boundStatement = insertRepresentationStatement.bind(cloudId, schema, version, providerId, false,
-                creationTime);
+            creationTime);
         connectionProvider.getSession().execute(boundStatement);
         return new Representation(cloudId, schema, version.toString(), null, null, providerId, new ArrayList<File>(0),
                 false, creationTime);
@@ -165,7 +216,7 @@ public class CassandraRecordDAO {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
         BoundStatement boundStatement = getRepresentationVersionStatement.bind(cloudId, schema,
-                UUID.fromString(version));
+            UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row row = rs.one();
         if (row == null) {
@@ -245,7 +296,7 @@ public class CassandraRecordDAO {
 
     public void addOrReplaceFileInRepresentation(String cloudId, String schema, String version, File file) {
         BoundStatement boundStatement = insertFileStatement.bind(file.getFileName(), serializeFile(file), cloudId,
-                schema, UUID.fromString(version));
+            schema, UUID.fromString(version));
         connectionProvider.getSession().execute(boundStatement);
     }
 
