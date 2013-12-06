@@ -1,21 +1,14 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 /**
  * ParamUtil
  */
 final class ParamUtil {
-
-    /**
-     * Default number of elements returned on lists TODO: externalize configuration
-     */
-    public static final int DEFAULT_LIST_LIMIT = 100;
-
 
     /**
      * Checks if parameter value is not null. If it is, WebApplicationException is thrown with 400 HTTP code and
@@ -31,11 +24,6 @@ final class ParamUtil {
             ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), parameterName + " is a required parameter");
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
-    }
-
-
-    static int numberOfElements() {
-        return DEFAULT_LIST_LIMIT;
     }
 
 

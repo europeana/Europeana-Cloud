@@ -1,24 +1,31 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-
-import java.util.Date;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATE_FROM;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATE_UNTIL;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PERSISTENT;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_START_FROM;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import java.util.Date;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * RepresentationSearchResource
@@ -29,6 +36,9 @@ public class RepresentationSearchResource {
 
     @Autowired
     private RecordService recordService;
+
+    @Value("${numberOfElementsOnPage}")
+    private int numberOfElementsOnPage;
 
     // ISO8601 standard
     private static final DateTimeFormatter dateFormat = ISODateTimeFormat.dateOptionalTimeParser();
@@ -79,7 +89,7 @@ public class RepresentationSearchResource {
                 .setSchema(representationName).setToDate(creationDateUntilParsed).build();
 
         // invoke record service method
-        return recordService.search(params, startFrom, ParamUtil.numberOfElements());
+        return recordService.search(params, startFrom, numberOfElementsOnPage);
     }
 
 

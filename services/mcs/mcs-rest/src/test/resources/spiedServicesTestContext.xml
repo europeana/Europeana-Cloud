@@ -7,18 +7,20 @@
 						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils"/>
+	<bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils"/>
 
-    <context:component-scan
-            base-package="eu.europeana.cloud.service.mcs.rest"/>
+	<context:component-scan
+		base-package="eu.europeana.cloud.service.mcs.rest"/>
 
-    <bean id="recordService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordService"/>
-    <bean id="dataSetService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetService"/>
-    <bean id="dataProvidersService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProvidersService"/>
-    <bean id="recordDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordDAO"/>
-    <bean id="contentDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentDAO"/>
-    <bean id="dataSetDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetDAO"/>
-    <bean id="dataProviderDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProviderDAO"/>
+	<import resource="classpath:config.xml" />
+	
+	<bean id="recordService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordService"/>
+	<bean id="dataSetService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetService"/>
+	<bean id="dataProvidersService" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProvidersService"/>
+	<bean id="recordDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordDAO"/>
+	<bean id="contentDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentDAO"/>
+	<bean id="dataSetDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetDAO"/>
+	<bean id="dataProviderDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProviderDAO"/>
 
     <mockito:spy beanName="recordService"/>
     <mockito:spy beanName="dataSetService"/>

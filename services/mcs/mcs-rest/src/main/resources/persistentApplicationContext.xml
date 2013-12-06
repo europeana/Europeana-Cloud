@@ -10,8 +10,13 @@
                                                 http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
     <context:annotation-config/>
+	<import resource="classpath:config.xml" />
+	
+	<context:component-scan
+		base-package="eu.europeana.cloud.service.mcs.rest"/>
+	<context:annotation-config/>
 
-    <task:annotation-driven/>
+	<task:annotation-driven/>
     <!--async configuration for solr indexer - in queue, single thread in executor--> 
     <task:executor id="solrIndexerExecutor" pool-size="1"/>
 

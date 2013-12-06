@@ -23,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets")
@@ -40,12 +41,15 @@ public class DataSetsResource {
     @PathParam(P_PROVIDER)
     private String providerId;
 
+    @Value("${numberOfElementsOnPage}")
+    private int numberOfElementsOnPage;
+
 
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom)
             throws ProviderNotExistsException {
-        return dataSetService.getDataSets(providerId, startFrom, ParamUtil.numberOfElements());
+        return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
 
