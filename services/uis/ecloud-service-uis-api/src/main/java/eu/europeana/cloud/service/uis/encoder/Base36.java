@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.uis.encoder;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,9 +22,10 @@ public final class Base36 {
 	public static final char[] DICTIONARY = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C',
 			'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Z' };
 
-	private Base36(){
-		
+	private Base36() {
+
 	}
+
 	/**
 	 * Encode a given string according to a custom Base50 implementation
 	 * 
@@ -32,10 +34,28 @@ public final class Base36 {
 	 * @return A 7 character encoded version of the String representation
 	 */
 	public static String encode(String str) {
+
+		return encode(new BigInteger(convertToNum(str)));
+
+	}
+
+	/**
+	 * Timestamp based randomization
+	 * 
+	 * @param A
+	 *            string to perform generation
+	 * @return A 7 character encoded version of the String representation
+	 */
+	public static String timeEncode(String str) {
+		return encode(new BigInteger(convertToNum(new Date().getTime())));
+
+	}
+
+	private static String encode(BigInteger remaining) {
 		List<Character> result = new ArrayList<>();
 		BigInteger base = new BigInteger("" + DICTIONARY.length);
 		int exponent = 1;
-		BigInteger remaining = new BigInteger(convertToNum(str));
+
 		while (true) {
 			BigInteger power = base.pow(exponent);
 			BigInteger modulo = remaining.mod(power);
@@ -52,21 +72,29 @@ public final class Base36 {
 		for (int i = result.size() - 1; i > -1; i--) {
 			sb.append(result.get(i));
 		}
-		if (sb.length() < 7) {
-			char[] cArr = new char[7 - sb.length()];
+		if (sb.length() < 11) {
+			char[] cArr = new char[11 - sb.length()];
 			Arrays.fill(cArr, (char) 48);
 			sb.append(cArr);
 			return sb.reverse().toString();
 		}
-		return sb.substring(0, 7);
+		return sb.substring(0, 11);
 	}
 
 	private static String convertToNum(String str) {
 		StringBuffer sb = new StringBuffer();
 		for (char c : str.toCharArray()) {
-			sb.append((c*((int)(Math.random()*100))));
+			sb.append((c * ((int) (Math.random() * 100))));
 		}
 		return sb.toString();
 	}
-	
+
+	private static String convertToNum(long lng) {
+		StringBuffer sb = new StringBuffer();
+		for (char c : Long.toString(lng).toCharArray()) {
+			sb.append((c * ((int) (Math.random() * 100))));
+		}
+		return sb.toString();
+
+	}
 }

@@ -24,13 +24,12 @@ public interface UniqueIdentifierService {
     /**
      * Create a Unique Identifier from the given providerId and recordId
      * 
-     * @param providerId
-     * @param recordId
+     * @param recordInfo providerId and optionally recordId
      * @return The unique identifier for this record
      * @throws DatabaseConnectionException
      * @throws RecordExistsException
      */
-    CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+    CloudId createGlobalId(String... recordInfo) throws DatabaseConnectionException,
             RecordExistsException;
 
     /**
@@ -98,7 +97,7 @@ public interface UniqueIdentifierService {
      * @throws IdHasBeenMappedException
      */
     void createIdMapping(String globalId, String providerId, String recordId)
-            throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException;
+            throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException;
 
     /**
      * Remove the mapping between the providerId/recordId and the global identifier The mapping is

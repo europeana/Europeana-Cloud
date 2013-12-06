@@ -33,8 +33,10 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	private InMemoryLocalIdDao localIdDao = new InMemoryLocalIdDao();
 
 	@Override
-	public CloudId createGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+	public CloudId createGlobalId(String ... recordInfo) throws DatabaseConnectionException,
 			RecordExistsException {
+		String providerId = recordInfo[0];
+		String recordId = recordInfo.length>1?recordInfo[1]: Base36.timeEncode(providerId);
 		String globalId = Base36.encode(String.format("/%s/%s", providerId, recordId));
 		if (localIdDao.searchActive(providerId, recordId).size() > 0) {
 			throw new RecordExistsException();
@@ -105,7 +107,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 	@Override
 	public void createIdMapping(String globalId, String providerId, String recordId)
-			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException {
+			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (localIds.size() != 0) {
 			throw new IdHasBeenMappedException();

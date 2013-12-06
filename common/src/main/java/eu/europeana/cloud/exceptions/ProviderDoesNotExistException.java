@@ -7,4 +7,9 @@ package eu.europeana.cloud.exceptions;
  */
 public class ProviderDoesNotExistException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 468350985177621312L;
+
 }

@@ -7,4 +7,9 @@ package eu.europeana.cloud.exceptions;
  */
 public class GlobalIdDoesNotExistException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -881851449536503512L;
+
 }

@@ -7,4 +7,9 @@ package eu.europeana.cloud.exceptions;
  */
 public class DatabaseConnectionException extends RuntimeException{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2743985314014225235L;
+
 }

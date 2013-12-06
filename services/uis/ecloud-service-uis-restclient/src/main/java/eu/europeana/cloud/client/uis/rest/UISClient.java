@@ -1,5 +1,6 @@
 package eu.europeana.cloud.client.uis.rest;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -35,9 +36,9 @@ public class UISClient {
 	 */
 	public CloudId createCloudId(String providerId, String recordId) throws CloudException {
 		
-		Response resp = client.target(urlProvider.createUrl(RelativeUrls.CREATERECORDID.getUrl()))
-				.queryParam(RelativeUrls.CREATERECORDID.getParamNames().get(0), providerId)
-				.queryParam(RelativeUrls.CREATERECORDID.getParamNames().get(1), recordId).request().get();
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.CREATECLOUDID.getUrl()))
+				.queryParam(RelativeUrls.CREATECLOUDID.getParamNames().get(0), providerId)
+				.queryParam(RelativeUrls.CREATECLOUDID.getParamNames().get(1), recordId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
@@ -47,6 +48,25 @@ public class UISClient {
 		}
 	}
 
+	/**
+	 * Invoke the creation of a new CloudId REST call
+	 * @param providerId The provider Id
+	 * @return The newly generated CloudId
+	 * @throws CloudException The generic cloud exception wrapper
+	 */
+	public CloudId createCloudId(String providerId) throws CloudException {
+		
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.CREATECLOUDIDNOLOCAL.getUrl()))
+				.queryParam(RelativeUrls.CREATECLOUDIDNOLOCAL.getParamNames().get(0), providerId)
+				.request().get();
+
+		if (resp.getStatus() == Status.OK.getStatusCode()) {
+			return resp.readEntity(CloudId.class);
+		} else {
+			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+		}
+	}
 	/**
 	 * Invoke the retrieval of a cloud identifier
 	 * @param providerId The provider Id

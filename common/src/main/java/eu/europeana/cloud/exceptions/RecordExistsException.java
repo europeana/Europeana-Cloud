@@ -7,4 +7,9 @@ package eu.europeana.cloud.exceptions;
  */
 public class RecordExistsException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3302765474657090505L;
+
 }

@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
@@ -20,10 +21,10 @@ import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
 import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.CloudIdList;
 import eu.europeana.cloud.service.uis.LocalIdList;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 
 /**
  * Implementation of the Unique Identifier Service. Accessible path /uniqueid
@@ -44,10 +45,10 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	private static final String START = "start";
 	private static final String TO="to";
 	@GET
-	@Path("createRecordId")
+	@Path("createCloudIdLocal")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
-	public Response createGlobalId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
+	public Response createGlobalId(@QueryParam(PROVIDERID) String providerId,@QueryParam(RECORDID) String recordId) {
 		try {
 			return Response.ok().entity(uniqueIdentifierService.createGlobalId(providerId, recordId)).build();
 		} catch (DatabaseConnectionException e) {
@@ -60,6 +61,24 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 		}
 	}
 
+	@GET
+	@Path("createCloudIdNoLocal")
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	@Override
+	public Response createGlobalId(@QueryParam(PROVIDERID) String providerId) {
+		
+		try {
+			return Response.ok().entity(uniqueIdentifierService.createGlobalId(providerId)).build();
+		} catch (DatabaseConnectionException e) {
+			return Response.status(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getHttpCode())
+					.entity(IdentifierErrorInfo.DATABASE_CONNECTION_ERROR.getErrorInfo("", "", e.getMessage())).build();
+
+		} catch (RecordExistsException e) {
+			return Response.status(IdentifierErrorInfo.RECORD_EXISTS.getHttpCode())
+					.entity(IdentifierErrorInfo.RECORD_EXISTS.getErrorInfo(providerId,"auto-generated")).build();
+		}
+	}
+	
 	@GET
 	@Path("getGlobalId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })

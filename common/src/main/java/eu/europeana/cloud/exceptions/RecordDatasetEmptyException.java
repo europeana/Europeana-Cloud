@@ -7,4 +7,9 @@ package eu.europeana.cloud.exceptions;
  */
 public class RecordDatasetEmptyException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7827869940617107588L;
+
 }

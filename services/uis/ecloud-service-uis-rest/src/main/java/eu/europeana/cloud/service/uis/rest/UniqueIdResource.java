@@ -83,4 +83,12 @@ public interface UniqueIdResource {
      * @return JSON/XML acknowledgement or Error Message
      */
     Response deleteGlobalId(String globalId);
+    
+    /**
+     * Invoke the unique identifier creation REST call HTTP call: GET
+     * 
+     * @param providerId
+     * @return JSON/XML response with the unique Identifier or Error Message
+     */
+	Response createGlobalId(String providerId);
 }
