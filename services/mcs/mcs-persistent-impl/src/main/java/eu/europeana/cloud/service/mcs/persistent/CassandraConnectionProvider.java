@@ -30,9 +30,13 @@ public class CassandraConnectionProvider {
      *            cassandra node cql service port
      * @param keyspaceName
      *            name of keyspace
+     * @param userName
+     *            user name
+     * @param password
+     *            password
      */
-    public CassandraConnectionProvider(String host, int port, String keyspaceName) {
-        cluster = Cluster.builder().addContactPoint(host).withPort(port).build();
+    public CassandraConnectionProvider(String host, int port, String keyspaceName, String userName, String password) {
+        cluster = Cluster.builder().addContactPoint(host).withCredentials(userName, password).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
         log.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {

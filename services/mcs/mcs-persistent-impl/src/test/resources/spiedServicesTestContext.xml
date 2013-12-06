@@ -21,6 +21,8 @@
         <constructor-arg name="host" type="java.lang.String" value="localhost"/>
         <constructor-arg name="port" type="int" value="9142"/>
         <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
+        <constructor-arg name="userName" type="java.lang.String" value="user"/>
+        <constructor-arg name="password" type="java.lang.String" value="password"/>
     </bean>
     <bean id="cassandraDataProviderService"
           class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderService"/>
