@@ -1,16 +1,20 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.util.Properties;
+
 import javax.annotation.PreDestroy;
+
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Manage connection for Openstack Swift using jClouds library.
  */
+@Component
 public class SwiftConnectionProvider {
 
     private final static Logger log = LoggerFactory.getLogger(SwiftConnectionProvider.class);

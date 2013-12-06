@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +16,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -21,11 +23,11 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
+
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -61,10 +63,8 @@ public class FilesResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(
-                ParamConstants.P_GID, rep.getRecordId(),
-                ParamConstants.P_SCHEMA, rep.getSchema(),
-                ParamConstants.P_VER, rep.getVersion());
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_GID, rep.getRecordId(),
+                ParamConstants.P_SCHEMA, rep.getSchema(), ParamConstants.P_VER, rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
@@ -97,9 +97,9 @@ public class FilesResourceTest extends JerseyTest {
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
@@ -111,7 +111,8 @@ public class FilesResourceTest extends JerseyTest {
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(), contentBos);
+        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+            contentBos);
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
         assertArrayEquals(content, contentBos.toByteArray());

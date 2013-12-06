@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * ProviderNotExistsException
+ * Thrown whene there is attempt to create a provider that already exists.
  */
 public class ProviderAlreadyExistsException extends RuntimeException {
 

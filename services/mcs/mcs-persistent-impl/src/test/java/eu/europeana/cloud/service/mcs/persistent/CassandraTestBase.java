@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.io.IOException;
+
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
-
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -67,7 +67,9 @@ public abstract class CassandraTestBase {
     public void truncateAll() {
         LOGGER.info("Truncating all tables");
         Session session = getSession();
-        ResultSet rs = session.execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" + KEYSPACE + "';");
+        ResultSet rs = session
+                .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" + KEYSPACE
+                        + "';");
         for (Row r : rs.all()) {
             String tableName = r.getString("columnfamily_name");
             LOGGER.info("Truncating table: " + tableName);

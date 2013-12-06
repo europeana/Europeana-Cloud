@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 @Provider
-public class FileNotExistsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<FileNotExistsException> {
+public class FileNotExistsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<FileNotExistsException> {
 }

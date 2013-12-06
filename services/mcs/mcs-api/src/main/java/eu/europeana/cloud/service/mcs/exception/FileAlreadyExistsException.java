@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * RecordNotExistsException
+ * Thrown whene there is attempt to create a file which is already attached to a specific representation version.
  */
 public class FileAlreadyExistsException extends RuntimeException {
 

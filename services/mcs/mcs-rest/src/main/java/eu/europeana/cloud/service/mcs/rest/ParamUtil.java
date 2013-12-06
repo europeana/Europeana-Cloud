@@ -10,19 +10,21 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
  * ParamUtil
  */
 final class ParamUtil {
-	
-	/**
-	 * Default number of elements returned on lists
-	 * TODO: externalize configuration
-	 */
-	public static final int DEFAULT_LIST_LIMIT = 100;
 
     /**
-     * Checks if parameter value is not null. If it is, WebApplicationException is thrown with 400 HTTP code and suitable
-     * message in response body indicating name of form parameter name that is required.
+     * Default number of elements returned on lists TODO: externalize configuration
+     */
+    public static final int DEFAULT_LIST_LIMIT = 100;
+
+
+    /**
+     * Checks if parameter value is not null. If it is, WebApplicationException is thrown with 400 HTTP code and
+     * suitable message in response body indicating name of form parameter name that is required.
      * 
-     * @param parameterName form parameter name 
-     * @param parameterValue form parameter value
+     * @param parameterName
+     *            form parameter name
+     * @param parameterValue
+     *            form parameter value
      */
     static void require(String parameterName, Object parameterValue) {
         if (parameterValue == null) {
@@ -30,10 +32,12 @@ final class ParamUtil {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
     }
-	
-	static int numberOfElements() {
-		return DEFAULT_LIST_LIMIT;
-	}
+
+
+    static int numberOfElements() {
+        return DEFAULT_LIST_LIMIT;
+    }
+
 
     private ParamUtil() {
     }

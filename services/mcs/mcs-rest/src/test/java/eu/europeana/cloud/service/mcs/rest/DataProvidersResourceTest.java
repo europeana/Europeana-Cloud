@@ -1,13 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
@@ -17,7 +20,6 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
-import javax.ws.rs.client.Entity;
 
 /**
  * DataProviderResourceTest
@@ -45,12 +47,12 @@ public class DataProvidersResourceTest extends JerseyTest {
     }
 
 
-	@After
-	public void cleanUp() {
-		for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-			dataProviderService.deleteProvider(prov.getId());
-		}
-	}
+    @After
+    public void cleanUp() {
+        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
+            dataProviderService.deleteProvider(prov.getId());
+        }
+    }
 
 
     @Test
@@ -60,31 +62,31 @@ public class DataProvidersResourceTest extends JerseyTest {
         // when you list all providers 
         Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
-        ResultSlice<DataProvider> dataProviders= listDataProvidersResponse.readEntity(ResultSlice.class);
+        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
 
         // then you should get empty list
         assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
-	}
+    }
 
 
-	@Test
-	public void shouldCreateProvider() {
-		// given certain provider data
-		DataProviderProperties properties = new DataProviderProperties();
-		properties.setOrganisationName("Organizacja");
-		properties.setRemarks("Remarks");
-		String providerName = "provident";
+    @Test
+    public void shouldCreateProvider() {
+        // given certain provider data
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        String providerName = "provident";
 
-		// when you put the provider into storage
-		WebTarget providentWebTarget = dataProvidersWebTarget.queryParam(ParamConstants.F_PROVIDER, providerName);
-		Response putResponse = providentWebTarget.request().post(Entity.json(properties));
-		assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
+        // when you put the provider into storage
+        WebTarget providentWebTarget = dataProvidersWebTarget.queryParam(ParamConstants.F_PROVIDER, providerName);
+        Response putResponse = providentWebTarget.request().post(Entity.json(properties));
+        assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
 
-		// then the inserted provider should be in service
-		DataProvider provider = dataProviderService.getProvider(providerName);
-		assertEquals(providerName, provider.getId());
-		assertEquals(properties, provider.getProperties());
-	}
+        // then the inserted provider should be in service
+        DataProvider provider = dataProviderService.getProvider(providerName);
+        assertEquals(providerName, provider.getId());
+        assertEquals(properties, provider.getProperties());
+    }
 
 
     @Test
@@ -97,7 +99,7 @@ public class DataProvidersResourceTest extends JerseyTest {
         Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
         ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
-		
+
         // then there should be exacly one provider, the same as inserted
         assertEquals("Expected single data provider on list", 1, dataProviders.getResults().size());
         assertEquals("Wrong provider identifier", providerName, dataProviders.getResults().get(0).getId());

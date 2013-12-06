@@ -1,17 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -47,7 +38,7 @@ public class RepresentationResource {
 
 
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Representation getRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException {
         Representation info = recordService.getRepresentation(globalId, schema);
@@ -66,8 +57,7 @@ public class RepresentationResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response createRepresentation(
-            @FormParam(F_PROVIDER) String providerId)
+    public Response createRepresentation(@FormParam(F_PROVIDER) String providerId)
             throws RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, schema, providerId);

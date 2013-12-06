@@ -15,15 +15,15 @@ import eu.europeana.cloud.test.CassandraParamertizedTestRunner;
 @RunWith(CassandraParamertizedTestRunner.class)
 public class FileResourcePersistentTest extends FileResourceTest {
 
-	@Override
-	public Application configure() {
-		return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
-	}
-	
+    @Override
+    public Application configure() {
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
+    }
 
-	@After
-	@Override
-	public void cleanUp() {
-	}
+
+    @After
+    @Override
+    public void cleanUp() {
+    }
 
 }

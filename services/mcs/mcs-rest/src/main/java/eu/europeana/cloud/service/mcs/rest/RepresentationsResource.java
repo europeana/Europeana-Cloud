@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
+
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -14,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.RecordService;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 
 /**
  * RepresentationsResource
@@ -36,7 +37,7 @@ public class RepresentationsResource {
 
 
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public List<Representation> getRepresentations()
             throws RecordNotExistsException {
         List<Representation> representationInfos = recordService.getRecord(globalId).getRepresentations();

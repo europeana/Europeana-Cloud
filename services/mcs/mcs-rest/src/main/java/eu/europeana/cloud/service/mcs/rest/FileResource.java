@@ -1,38 +1,23 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import eu.europeana.cloud.service.mcs.exception.*;
 
 /**
  * FilesResource
@@ -67,9 +52,7 @@ public class FileResource {
 
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response sendFile(
-            @FormDataParam(F_FILE_MIME) String mimeType,
-            @FormDataParam(F_FILE_DATA) InputStream data)
+    public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
             throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
 
@@ -86,8 +69,8 @@ public class FileResource {
 
 
     /**
-     * Use this method to retrieve content of a file which is a part of a specified record representation. 
-     * Basic support for retrieving only a part of content is implemented using HTTP Range header:
+     * Use this method to retrieve content of a file which is a part of a specified record representation. Basic support
+     * for retrieving only a part of content is implemented using HTTP Range header:
      * <ul>
      * <li><b>Range: bytes=10-15</b> - retrieve bytes from 10 to 15 of content
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
@@ -98,12 +81,12 @@ public class FileResource {
      * @throws RecordNotExistsException
      * @throws RepresentationNotExistsException
      * @throws VersionNotExistsException
-     * @throws FileNotExistsException 
+     * @throws FileNotExistsException
      */
     @GET
-    public Response getFile(
-            @HeaderParam(HEADER_RANGE) String range)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException {
+    public Response getFile(@HeaderParam(HEADER_RANGE) String range)
+            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
+            FileNotExistsException {
         // extract range
         final ContentRange contentRange;
         if (range == null) {
@@ -118,9 +101,9 @@ public class FileResource {
         if (contentRange.isSpecified()) {
             status = Response.Status.PARTIAL_CONTENT;
         } else {
-			status = Response.Status.OK;
-			final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
-            
+            status = Response.Status.OK;
+            final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+
             if (requestedFile == null) {
                 throw new FileNotExistsException();
             }
@@ -132,7 +115,8 @@ public class FileResource {
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end, output);
+                recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
+                    output);
             }
         };
 
@@ -146,9 +130,10 @@ public class FileResource {
         return Response.noContent().build();
     }
 
+
     /**
-     * Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1,  
-     * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>.
+     * Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1, <a
+     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>.
      */
     static class ContentRange {
 
@@ -185,7 +170,7 @@ public class FileResource {
             } else {
                 throw new WrongContentRangeException("Expected range header format is: " + bytesPattern.pattern());
             }
-            
+
             if (end != -1 && end < start) {
                 throw new WrongContentRangeException("Range end must not be smaller than range start");
             }

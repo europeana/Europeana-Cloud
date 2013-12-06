@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 
 @Provider
-public class ProviderHasDataSetsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<ProviderHasDataSetsException> {
+public class ProviderHasDataSetsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<ProviderHasDataSetsException> {
 }

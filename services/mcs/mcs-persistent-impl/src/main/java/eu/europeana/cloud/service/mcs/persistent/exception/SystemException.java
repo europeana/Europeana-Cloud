@@ -1,21 +1,21 @@
 package eu.europeana.cloud.service.mcs.persistent.exception;
 
 /**
- *
- * @author sielski
+ * Exception that might be thrown by any service implementing persistent MCS service, indicating some problem with
+ * external system (e.g. Casssandra or Swift connection problem).
  */
 public class SystemException extends RuntimeException {
 
-	public SystemException() {
-	}
+    public SystemException() {
+    }
 
 
-	public SystemException(Throwable cause) {
-		super(cause);
-	}
+    public SystemException(Throwable cause) {
+        super(cause);
+    }
 
 
-	public SystemException(String message) {
-		super(message);
-	}
+    public SystemException(String message) {
+        super(message);
+    }
 }

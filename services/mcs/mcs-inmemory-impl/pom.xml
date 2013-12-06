@@ -1,54 +1,54 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>eu.europeana.cloud</groupId>
-		<artifactId>ecloud-service-mcs</artifactId>
-		<version>0.1-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>eu.europeana.cloud</groupId>
+        <artifactId>ecloud-service-mcs</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
 
-	<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
-	<packaging>jar</packaging>
-	<name>Europeana Cloud: Metadata and Content Service In-Memory Implementation</name>
+    <artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
+    <packaging>jar</packaging>
+    <name>Europeana Cloud: Metadata and Content Service In-Memory Implementation</name>
 
-	<properties>
-		<version.org.glassfish.jersey.test-framework>${version.jersey}</version.org.glassfish.jersey.test-framework>
-		
-	</properties>
+    <properties>
+        <version.org.glassfish.jersey.test-framework>${version.jersey}</version.org.glassfish.jersey.test-framework>
 
-	<dependencies>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    </properties>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<scope>compile</scope>
-			<exclusions>
-				<!--without jcl - because we use log4j through slf4j -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<dependency>
-			<artifactId>guava</artifactId>
-			<groupId>com.google.guava</groupId>
-			<type>jar</type>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>compile</scope>
+            <exclusions>
+                <!--without jcl - because we use log4j through slf4j -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <artifactId>guava</artifactId>
+            <groupId>com.google.guava</groupId>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
 
 
 </project>

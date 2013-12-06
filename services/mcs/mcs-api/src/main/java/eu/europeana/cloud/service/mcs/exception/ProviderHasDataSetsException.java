@@ -1,7 +1,8 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * ProviderNotExistsException
+ * Thrown if there is attempt to delete a data provider which has some data sets. In order to delete data provider, all
+ * his data sets must be implicitly removed first.
  */
 public class ProviderHasDataSetsException extends RuntimeException {
 

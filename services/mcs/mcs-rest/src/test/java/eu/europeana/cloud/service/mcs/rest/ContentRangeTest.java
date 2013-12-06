@@ -1,12 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import java.math.BigInteger;
+
 import org.junit.Test;
-//import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+
+//import static junitparams.JUnitParamsRunner.$;
+
 //import static org.mockito.Mockito.times;
 
 /**

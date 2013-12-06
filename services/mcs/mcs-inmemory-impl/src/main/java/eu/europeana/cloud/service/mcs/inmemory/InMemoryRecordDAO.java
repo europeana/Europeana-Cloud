@@ -1,23 +1,13 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.stereotype.Repository;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 
 /**
  * InMemoryRecordDAO
@@ -107,8 +97,8 @@ public class InMemoryRecordDAO {
 
 
     public void deleteRepresentation(String globalId, String schema)
-            throws  RepresentationNotExistsException {
-        Map<String, List< Representation>> representations = records.get(globalId);
+            throws RepresentationNotExistsException {
+        Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException();
         }
@@ -143,7 +133,8 @@ public class InMemoryRecordDAO {
         return rep;
     }
 
-// persistentVersion: \d+
+
+    // persistentVersion: \d+
     // tempVersion: \d+[.]PRE-\d+
 
     private String generateNewVersionNumber(List<Representation> versions, boolean persistent) {
@@ -193,7 +184,8 @@ public class InMemoryRecordDAO {
 
 
     public void deleteRepresentation(String globalId, String schema, String version)
-            throws RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, VersionNotExistsException,
+            CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException(globalId);
@@ -224,7 +216,8 @@ public class InMemoryRecordDAO {
 
 
     public Representation persistRepresentation(String globalId, String schema, String version)
-            throws RepresentationNotExistsException, VersionNotExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, VersionNotExistsException,
+            CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException(globalId);
@@ -237,7 +230,8 @@ public class InMemoryRecordDAO {
         if (repVersion == null) {
             throw new VersionNotExistsException();
         } else if (repVersion.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException("Representation " + globalId + " - " + schema + " - " + version + " is already persistent");
+            throw new CannotModifyPersistentRepresentationException("Representation " + globalId + " - " + schema
+                    + " - " + version + " is already persistent");
         }
         String newVersion = generateNewVersionNumber(representationVersions, true);
         repVersion.setVersion(newVersion);
@@ -269,7 +263,8 @@ public class InMemoryRecordDAO {
 
 
     public Representation addOrReplaceFileInRepresentation(String globalId, String schema, String version, File file)
-            throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, FileAlreadyExistsException,
+            CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException(globalId);
@@ -302,7 +297,8 @@ public class InMemoryRecordDAO {
 
 
     public Representation removeFileFromRepresentation(String globalId, String schema, String version, String fileName)
-            throws RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, VersionNotExistsException, FileNotExistsException,
+            CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException(globalId);

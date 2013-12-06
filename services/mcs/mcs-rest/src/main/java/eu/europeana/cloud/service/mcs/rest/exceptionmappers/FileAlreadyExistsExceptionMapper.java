@@ -6,6 +6,6 @@ import javax.ws.rs.ext.Provider;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 
 @Provider
-public class FileAlreadyExistsExceptionMapper extends UnitedExceptionMapper
-        implements ExceptionMapper<FileAlreadyExistsException> {
+public class FileAlreadyExistsExceptionMapper extends UnitedExceptionMapper implements
+        ExceptionMapper<FileAlreadyExistsException> {
 }

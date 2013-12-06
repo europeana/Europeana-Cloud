@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -17,9 +15,8 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.RecordService;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 
 /**
  * RecordsResource
@@ -41,7 +38,7 @@ public class RecordsResource {
 
 
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Record getRecord()
             throws RecordNotExistsException {
         Record record = recordService.getRecord(globalId);
@@ -60,7 +57,8 @@ public class RecordsResource {
 
     /**
      * Removes unimportant (at this point) information from record to reduce response size.
-     * @param record 
+     * 
+     * @param record
      */
     private void prepare(Record record) {
         EnrichUriUtil.enrich(uriInfo, record);

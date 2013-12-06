@@ -1,14 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
@@ -62,23 +64,23 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-	public void shouldUpdateProvider() {
+    public void shouldUpdateProvider() {
         // given certain provider data
         String providerName = "provident";
-		dataProviderService.createProvider(providerName, new DataProviderProperties());
+        dataProviderService.createProvider(providerName, new DataProviderProperties());
 
-		// when the provider is updated
-		DataProviderProperties properties = new DataProviderProperties();
-		properties.setOrganisationName("Organizacja");
-		properties.setRemarks("Remarks");
-		WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-		Response putResponse = providentWebTarget.request().put(Entity.json(properties));
-		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
+        // when the provider is updated
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
+        Response putResponse = providentWebTarget.request().put(Entity.json(properties));
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
 
-		// then the inserted provider should be in service
-		DataProvider provider = dataProviderService.getProvider(providerName);
-		assertEquals(providerName, provider.getId());
-		assertEquals(properties, provider.getProperties());
+        // then the inserted provider should be in service
+        DataProvider provider = dataProviderService.getProvider(providerName);
+        assertEquals(providerName, provider.getId());
+        assertEquals(properties, provider.getProperties());
     }
 
 
@@ -116,6 +118,7 @@ public class DataProviderResourceTest extends JerseyTest {
         ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
         assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
     }
+
 
     @Test
     public void shouldDeleteProvider() {
