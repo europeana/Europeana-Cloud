@@ -41,7 +41,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 
 	private static final String PROVIDERID="providerId";
 	private static final String RECORDID="recordId";
-	private static final String GLOBALID="globalId";
+	private static final String GLOBALID="cloudId";
 	private static final String START = "start";
 	private static final String TO="to";
 	@GET
@@ -80,7 +80,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	}
 	
 	@GET
-	@Path("getGlobalId")
+	@Path("getCloudId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getGlobalId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId) {
@@ -138,7 +138,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	}
 
 	@GET
-	@Path("getGlobalIdsByProvider")
+	@Path("getCloudIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getGlobalIdsByProvider(@QueryParam(PROVIDERID) String providerId,
@@ -156,7 +156,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 		} catch(RecordDatasetEmptyException e){
 			return Response.status(IdentifierErrorInfo.RECORDSET_EMPTY.getHttpCode())
 					.entity(IdentifierErrorInfo.RECORDSET_EMPTY.getErrorInfo(providerId)).build();
-		}
+	 	}
 	}
 
 	@GET
@@ -208,7 +208,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	}
 
 	@DELETE
-	@Path("deleteGlobalId")
+	@Path("deleteCloudId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response deleteGlobalId(@QueryParam(GLOBALID) String globalId) {

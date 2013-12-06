@@ -66,7 +66,7 @@ public enum RelativeUrls {
 
 		@Override
 		public String getUrl() {
-			return "getGlobalId";
+			return "getCloudId";
 		}
 	}, GETLOCALIDS {
 		@Override
@@ -124,7 +124,7 @@ public enum RelativeUrls {
 
 		@Override
 		public String getUrl() {
-			return "getGlobalIdsByProvider";
+			return "getCloudIdsByProvider";
 		}
 	}, CREATEMAPPING {
 		@Override
@@ -181,13 +181,13 @@ public enum RelativeUrls {
 
 		@Override
 		public String getUrl() {
-			return "deleteGlobalId";
+			return "deleteCloudId";
 		}
 	};
 
 	private static final String PROVIDER_ID="providerId";
 	private static final String RECORD_ID="recordId";
-	private static final String GLOBAL_ID="globalId";
+	private static final String GLOBAL_ID="cloudId";
 	private static final String TO = "to";
 	
 	/**
