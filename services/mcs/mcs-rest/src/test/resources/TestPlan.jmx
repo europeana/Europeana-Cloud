@@ -55,6 +55,16 @@
             <stringProp name="Argument.desc">Timeout constatn delay offset (in milliseconds)</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="uploadedFileDirectory" elementType="Argument">
+            <stringProp name="Argument.name">uploadedFileDirectory</stringProp>
+            <stringProp name="Argument.value">${__BeanShell(import org.apache.jmeter.services.FileServer; FileServer.getFileServer().getBaseDir();)}${__BeanShell(File.separator,)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="uloadedFileName" elementType="Argument">
+            <stringProp name="Argument.name">uloadedFileName</stringProp>
+            <stringProp name="Argument.value">example_metadata.xml</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
@@ -846,8 +856,8 @@
             <boolProp name="HTTPSampler.DO_MULTIPART_POST">true</boolProp>
             <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
               <collectionProp name="HTTPFileArgs.files">
-                <elementProp name="/home/marcinm/workspaces/eCloud/Europeana-Cloud/services/mcs/mcs-rest/src/test/resources/example_metadata.xml" elementType="HTTPFileArg">
-                  <stringProp name="File.path">/home/marcinm/workspaces/eCloud/Europeana-Cloud/services/mcs/mcs-rest/src/test/resources/example_metadata.xml</stringProp>
+                <elementProp name="${uploadedFileDirectory}${uloadedFileName}" elementType="HTTPFileArg">
+                  <stringProp name="File.path">${uploadedFileDirectory}${uloadedFileName}</stringProp>
                   <stringProp name="File.paramname">data</stringProp>
                   <stringProp name="File.mimetype">application/octet-stream</stringProp>
                 </elementProp>
