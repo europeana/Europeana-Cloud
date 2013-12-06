@@ -1,2 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context antiJARLocking="true" path="/ContentServiceApi"/>
+<Context antiJARLocking="true" path="/ContentServiceApi">
+    <ResourceLink
+        name="mcs/cassandra/host"
+        global="mcs/cassandra/host"
+        type="java.lang.String"/>
+    
+    <ResourceLink 
+        name="mcs/cassandra/port"
+        global="mcs/cassandra/port"
+        type="java.lang.Integer" />
+    
+    <ResourceLink
+        name="mcs/cassandra/keyspace"
+        global="mcs/cassandra/keyspace"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="mcs/cassandra/user"
+        global="mcs/cassandra/user"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="mcs/cassandra/password"
+        global="mcs/cassandra/password"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="mcs/solr/url"
+        global="mcs/solr/url"
+        type="java.lang.String"/>
+
+    <ResourceLink
+        name="mcs/swift/provider"
+        global="mcs/swift/provider"
+        type="java.lang.String"/>
+
+    <ResourceLink
+        name="mcs/swift/container"
+        global="mcs/swift/container"
+        type="java.lang.String"/>
+    <ResourceLink
+        name="mcs/swift/endpoint"
+        global="mcs/swift/endpoint"
+        type="java.lang.String"/>
+    <ResourceLink
+        name="mcs/swift/user"
+        global="mcs/swift/user"
+        type="java.lang.String"/>
+    <ResourceLink
+        name="mcs/swift/password"
+        global="mcs/swift/password"
+        type="java.lang.String"/>
+               
+</Context>
