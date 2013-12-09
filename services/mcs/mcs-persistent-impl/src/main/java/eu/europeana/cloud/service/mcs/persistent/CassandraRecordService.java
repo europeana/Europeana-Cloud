@@ -270,7 +270,7 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void getContent(String globalId, String schema, String version, String fileName, long rangeStart,
             long rangeEnd, OutputStream os)
-            throws FileNotExistsException {
+            throws FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException {
         File file = getFile(globalId, schema, version, fileName);
         if (rangeStart > file.getContentLength() - 1) {
             throw new WrongContentRangeException("Start range must be less than file length");

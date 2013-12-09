@@ -1,16 +1,29 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_VER;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * RepresentationResource
@@ -70,7 +83,7 @@ public class RepresentationVersionResource {
     @Path("/persist")
     public Response persistRepresentation()
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            CannotModifyPersistentRepresentationException {
+            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
         Representation persistentVersion = recordService.persistRepresentation(globalId, schema, version);
         prepare(persistentVersion);
         return Response.created(persistentVersion.getUri()).build();

@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_START_FROM;
 import javax.ws.rs.Consumes;
@@ -49,7 +50,8 @@ public class DataProvidersResource {
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response updateProvider(DataProviderProperties dataProviderProperties,
-            @QueryParam(F_PROVIDER) String providerId) {
+            @QueryParam(F_PROVIDER) String providerId)
+            throws ProviderAlreadyExistsException {
         DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
         EnrichUriUtil.enrich(uriInfo, provider);
         return Response.created(provider.getUri()).build();

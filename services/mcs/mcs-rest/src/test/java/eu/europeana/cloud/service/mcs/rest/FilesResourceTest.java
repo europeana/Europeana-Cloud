@@ -1,39 +1,33 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
-
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 
 /**
  * FileResourceTest
@@ -52,7 +46,8 @@ public class FilesResourceTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         providerService = applicationContext.getBean(DataProviderService.class);
@@ -64,13 +59,14 @@ public class FilesResourceTest extends JerseyTest {
         file.setMimeType("mime/fileSpecialMime");
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_GID, rep.getRecordId(),
-                ParamConstants.P_SCHEMA, rep.getSchema(), ParamConstants.P_VER, rep.getVersion());
+            ParamConstants.P_SCHEMA, rep.getSchema(), ParamConstants.P_VER, rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         providerService.deleteProvider("1");
         recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
     }
@@ -90,7 +86,7 @@ public class FilesResourceTest extends JerseyTest {
 
     @Test
     public void shouldUploadDataWithPost()
-            throws IOException {
+            throws Exception {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);

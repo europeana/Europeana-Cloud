@@ -1,33 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.Lists;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -37,6 +10,30 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.springframework.context.ApplicationContext;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationsResourceTest extends JerseyTest {
@@ -75,7 +72,8 @@ public class RepresentationsResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void getRepresentations(MediaType mediaType) {
+    public void getRepresentations(MediaType mediaType)
+            throws Exception {
         Record expected = new Record(record);
         Representation expectedRepresentation = expected.getRepresentations().get(0);
         expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
@@ -96,7 +94,8 @@ public class RepresentationsResourceTest extends JerseyTest {
 
 
     @Test
-    public void getRepresentationsReturns404IfRecordDoesNotExists() {
+    public void getRepresentationsReturns404IfRecordDoesNotExists()
+            throws Exception {
         Throwable exception = new RecordNotExistsException();
         when(recordService.getRecord(globalId)).thenThrow(exception);
 

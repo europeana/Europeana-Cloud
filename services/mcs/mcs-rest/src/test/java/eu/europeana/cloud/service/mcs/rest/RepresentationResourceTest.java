@@ -1,31 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -37,6 +11,30 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.springframework.context.ApplicationContext;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationResourceTest extends JerseyTest {
@@ -79,7 +77,8 @@ public class RepresentationResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void getRepresentation(MediaType mediaType) {
+    public void getRepresentation(MediaType mediaType)
+            throws Exception {
         Representation expected = new Representation(representation);
         expected.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
         expected.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(), globalId, schema));
@@ -108,15 +107,21 @@ public class RepresentationResourceTest extends JerseyTest {
 
 
     @SuppressWarnings("unused")
-    private Object[] errors() {
-        return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()),
-            $(new RecordNotExistsException(), McsErrorCode.RECORD_NOT_EXISTS.toString()));
+    private Object[] recordErrors() {
+        return $($(new RecordNotExistsException(), McsErrorCode.RECORD_NOT_EXISTS.toString()));
+    }
+
+
+    @SuppressWarnings("unused")
+    private Object[] representationErrors() {
+        return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()));
     }
 
 
     @Test
-    @Parameters(method = "errors")
-    public void getRepresentationReturns404IfRepresentationOrRecordDoesNotExists(Throwable exception, String errorCode) {
+    @Parameters(method = "representationErrors")
+    public void getRepresentationReturns404IfRepresentationOrRecordDoesNotExists(Throwable exception, String errorCode)
+            throws Exception {
         when(recordService.getRepresentation(globalId, schema)).thenThrow(exception);
 
         Response response = target().path(URITools.getRepresentationPath(globalId, schema).toString())
@@ -131,7 +136,8 @@ public class RepresentationResourceTest extends JerseyTest {
 
 
     @Test
-    public void deleteRecord() {
+    public void deleteRecord()
+            throws Exception {
         Response response = target().path(URITools.getRepresentationPath(globalId, schema).toString()).request()
                 .delete();
 
@@ -142,7 +148,7 @@ public class RepresentationResourceTest extends JerseyTest {
 
 
     @Test
-    @Parameters(method = "errors")
+    @Parameters(method = "representationErrors")
     public void deleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
             String errorCode)
             throws Exception {
@@ -160,12 +166,13 @@ public class RepresentationResourceTest extends JerseyTest {
 
 
     @Test
-    public void createRepresentation() {
+    public void createRepresentation()
+            throws Exception {
         when(recordService.createRepresentation(globalId, schema, providerID)).thenReturn(
             new Representation(representation));
 
         Response response = target(URITools.getRepresentationPath(globalId, schema).toString()).request().post(
-                Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
         assertThat(response.getStatus(), is(201));
         assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
@@ -175,7 +182,7 @@ public class RepresentationResourceTest extends JerseyTest {
 
 
     @Test
-    @Parameters(method = "errors")
+    @Parameters(method = "recordErrors")
     public void createRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
             String errorCode)
             throws Exception {

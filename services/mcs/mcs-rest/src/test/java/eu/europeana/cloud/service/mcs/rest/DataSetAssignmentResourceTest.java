@@ -1,33 +1,37 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_GID;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_VER;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
-
-import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 
 /**
  * DataSetAssignmentResourceTest
@@ -56,7 +60,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
@@ -69,7 +74,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
                 dataSetService.deleteDataSet(prov.getId(), ds.getId());
@@ -81,7 +87,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
     @Test
     @Ignore("Now, there secont assignment the same representation to data set does not raise error, it just overrides previous version")
-    public void shouldReturnErrorWhenRepresentationIsAssignedTwice() {
+    public void shouldReturnErrorWhenRepresentationIsAssignedTwice()
+            throws Exception {
         // given that representation is already assigned to set
         dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(),
             rep.getVersion());
@@ -103,7 +110,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldAddAssignmentForLatestVersion() {
+    public void shouldAddAssignmentForLatestVersion()
+            throws Exception {
         // given representation and data set in data service
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), new File("terefere", "xml",
                 null, null, -1, null), new ByteArrayInputStream("buf".getBytes()));
@@ -118,7 +126,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
         // then we get representation in latest version
         Representation latestRepresentation = recordService.createRepresentation("globalId", dataSet.getId(),
-                dataProvider.getId());
+            dataProvider.getId());
         recordService.putContent(latestRepresentation.getRecordId(), latestRepresentation.getSchema(),
             latestRepresentation.getVersion(), new File("terefere", "xml", null, null, -1, null),
             new ByteArrayInputStream("buf".getBytes()));
@@ -126,17 +134,18 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
             latestRepresentation.getSchema(), latestRepresentation.getVersion());
 
         List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null,
-                10000).getResults();
+            10000).getResults();
         assertEquals(1, representations.size());
         assertEquals(latestRepresentation, representations.get(0));
     }
 
 
     @Test
-    public void shouldAddAssignmentForSpecificVersion() {
+    public void shouldAddAssignmentForSpecificVersion()
+            throws Exception {
         // given representation and data set in data service
         Representation latestRepresentation = recordService.createRepresentation("globalId", dataSet.getId(),
-                dataProvider.getId());
+            dataProvider.getId());
 
         // when representation is assigned to data set in specific version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
@@ -148,14 +157,15 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
         // then we get specified version in dataset
         List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null,
-                10000).getResults();
+            10000).getResults();
         assertEquals(1, representations.size());
         assertEquals(rep, representations.get(0));
     }
 
 
     @Test
-    public void shouldRemoveAssignment() {
+    public void shouldRemoveAssignment()
+            throws Exception {
         // given assignment in data set
         dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(),
             rep.getVersion());

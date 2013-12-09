@@ -1,25 +1,24 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 
 /**
  * DataProviderResourceTest
@@ -48,7 +47,8 @@ public class DataProvidersResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             dataProviderService.deleteProvider(prov.getId());
         }
@@ -70,7 +70,8 @@ public class DataProvidersResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldCreateProvider() {
+    public void shouldCreateProvider()
+            throws ProviderNotExistsException {
         // given certain provider data
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");
@@ -90,7 +91,8 @@ public class DataProvidersResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldReturnInsertedProviderOnList() {
+    public void shouldReturnInsertedProviderOnList()
+            throws ProviderAlreadyExistsException {
         // given one provider in service
         String providerName = "provident";
         dataProviderService.createProvider(providerName, new DataProviderProperties());

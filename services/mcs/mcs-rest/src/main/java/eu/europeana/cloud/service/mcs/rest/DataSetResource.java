@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
@@ -59,13 +60,15 @@ public class DataSetResource {
 
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public ResultSlice<Representation> getDataSetContents(@QueryParam(F_START_FROM) String startFrom) {
+    public ResultSlice<Representation> getDataSetContents(@QueryParam(F_START_FROM) String startFrom)
+            throws DataSetNotExistsException {
         return dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
     }
 
 
     @PUT
-    public Response createDataSet(@FormParam(F_DESCRIPTION) String description) {
+    public Response createDataSet(@FormParam(F_DESCRIPTION) String description)
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(uriInfo, dataSet);
         return Response.created(dataSet.getUri()).build();

@@ -1,43 +1,39 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.ImmutableList;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.springframework.context.ApplicationContext;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationVersionsResourceTest extends JerseyTest {
@@ -51,7 +47,7 @@ public class RepresentationVersionsResourceTest extends JerseyTest {
     private static final String LIST_VERSIONS_PATH = URITools.getListVersionsPath(GLOBAL_ID, SCHEMA).toString();
     static final private List<Representation> REPRESENTATIONS = ImmutableList.of(new Representation(GLOBAL_ID, SCHEMA,
             VERSION, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-            "2013-01-01", 12345, null)), true, new Date()));
+                    "2013-01-01", 12345, null)), true, new Date()));
 
 
     @Override
@@ -79,7 +75,8 @@ public class RepresentationVersionsResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void testListVersions(MediaType mediaType) {
+    public void testListVersions(MediaType mediaType)
+            throws Exception {
         List<Representation> expected = copy(REPRESENTATIONS);
         Representation expectedRepresentation = expected.get(0);
         URITools.enrich(expectedRepresentation, getBaseUri());
@@ -108,14 +105,14 @@ public class RepresentationVersionsResourceTest extends JerseyTest {
 
     @SuppressWarnings("unused")
     private Object[] errors() {
-        return $($(new RecordNotExistsException(), McsErrorCode.RECORD_NOT_EXISTS.toString()),
-            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()));
+        return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()));
     }
 
 
     @Test
     @Parameters(method = "errors")
-    public void testListVersionsReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception, String errorCode) {
+    public void testListVersionsReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception, String errorCode)
+            throws Exception {
         when(recordService.listRepresentationVersions(GLOBAL_ID, SCHEMA)).thenThrow(exception);
 
         Response response = target().path(LIST_VERSIONS_PATH).request(MediaType.APPLICATION_XML).get();

@@ -1,5 +1,19 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,17 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
-import eu.europeana.cloud.service.mcs.exception.*;
 
 /**
  * InMemoryContentServiceImpl
@@ -215,8 +220,7 @@ public class InMemoryRecordService implements RecordService {
                 contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(), globalId, schema,
                     copiedRep.getVersion(), copiedFile.getFileName());
                 recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
-            } catch (FileNotExistsException | FileAlreadyExistsException
-                    | CannotModifyPersistentRepresentationException ex) {
+            } catch (FileNotExistsException | CannotModifyPersistentRepresentationException ex) {
                 // should not happen
             }
         }
@@ -244,7 +248,7 @@ public class InMemoryRecordService implements RecordService {
                         Representation realContent;
                         try {
                             realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(),
-                                    stub.getVersion());
+                                stub.getVersion());
                             toReturn.add(realContent);
                         } catch (RepresentationNotExistsException ex) {
                             // ignore

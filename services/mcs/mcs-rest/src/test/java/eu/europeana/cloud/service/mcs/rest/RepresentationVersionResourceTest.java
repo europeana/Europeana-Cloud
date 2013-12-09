@@ -1,43 +1,41 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.util.Arrays;
-import java.util.Date;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-
-import com.google.common.collect.ObjectArrays;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotModifyPersistentRepresentationExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
+import java.util.Arrays;
+import java.util.Date;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.springframework.context.ApplicationContext;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationVersionResourceTest extends JerseyTest {
@@ -85,7 +83,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void testGetRepresentationVersion(MediaType mediaType) {
+    public void testGetRepresentationVersion(MediaType mediaType)
+            throws Exception {
         Representation expected = new Representation(representation);
         URITools.enrich(expected, getBaseUri());
         when(recordService.getRepresentation(globalId, schema, version)).thenReturn(new Representation(representation));
@@ -104,13 +103,14 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void testGetLatestRepresentationVersion(MediaType mediaType) {
+    public void testGetLatestRepresentationVersion(MediaType mediaType)
+            throws Exception {
         when(recordService.getRepresentation(globalId, schema)).thenReturn(new Representation(representation));
 
         client().property(ClientProperties.FOLLOW_REDIRECTS, false);
         Response response = target(
             URITools.getVersionPath(globalId, schema, ParamConstants.LATEST_VERSION_KEYWORD).toString()).request(
-                mediaType).get();
+            mediaType).get();
 
         assertThat(response.getStatus(), is(307));
         assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
@@ -120,16 +120,15 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 
     private Object[] errors() {
-        return $($(new RecordNotExistsException(), McsErrorCode.RECORD_NOT_EXISTS.toString(), 404),
-            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
-            $(new VersionNotExistsException(), McsErrorCode.VERSION_NOT_EXISTS.toString(), 404));
+        return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404));
     }
 
 
     @Test
     @Parameters(method = "errors")
     public void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
-            Throwable exception, String errorCode, int statusCode) {
+            Throwable exception, String errorCode, int statusCode)
+            throws Exception {
         when(recordService.getRepresentation(globalId, schema, version)).thenThrow(exception);
 
         Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString())
@@ -153,7 +152,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 
     @Test
-    public void testDeleteRepresentation() {
+    public void testDeleteRepresentation()
+            throws Exception {
         Response response = target().path(URITools.getVersionPath(globalId, schema, version).toString()).request()
                 .delete();
 
@@ -182,7 +182,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
 
     @Test
-    public void testPersistRepresentation() {
+    public void testPersistRepresentation()
+            throws Exception {
         when(recordService.persistRepresentation(globalId, schema, version)).thenReturn(
             new Representation(representation));
 
@@ -199,7 +200,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @Test
     @Parameters(method = "persistErrors")
     public void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
-            int statusCode) {
+            int statusCode)
+            throws Exception {
         when(recordService.persistRepresentation(globalId, schema, version)).thenThrow(exception);
 
         Response response = target().path(persistPath).request()
@@ -215,14 +217,16 @@ public class RepresentationVersionResourceTest extends JerseyTest {
 
     @SuppressWarnings("unused")
     private Object[] persistErrors() {
-        return $(ObjectArrays.concat(
-            (Object) $(new CannotModifyPersistentRepresentationException(),
-                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405), errors()));
+        return $(
+            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
+            $(new CannotModifyPersistentRepresentationException(),
+                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405));
     }
 
 
     @Test
-    public void testCopyRepresentation() {
+    public void testCopyRepresentation()
+            throws Exception {
         when(recordService.copyRepresentation(globalId, schema, version))
                 .thenReturn(new Representation(representation));
 
@@ -239,7 +243,8 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     @Test
     @Parameters(method = "errors")
     public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(Throwable exception,
-            String errorCode, int statusCode) {
+            String errorCode, int statusCode)
+            throws Exception {
         when(recordService.copyRepresentation(globalId, schema, version)).thenThrow(exception);
 
         Response response = target().path(copyPath).request()

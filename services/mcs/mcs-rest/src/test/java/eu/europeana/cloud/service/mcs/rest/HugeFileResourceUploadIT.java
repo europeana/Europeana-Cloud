@@ -1,43 +1,40 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.BaseEncoding;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.io.BaseEncoding;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 
 /**
  * FileResourceTest
@@ -60,7 +57,8 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
 
@@ -69,7 +67,8 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         reset(recordService);
         recordService.deleteRepresentation(recordRepresentation.getRecordId(), recordRepresentation.getSchema());
     }
@@ -91,22 +90,22 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
     @Test
     public void testUploadingHugeFile()
-            throws IOException, NoSuchAlgorithmException {
+            throws Exception {
 
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
             any(InputStream.class));
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
-                ImmutableMap.<String, Object>of(ParamConstants.P_GID, recordRepresentation.getRecordId(),
-                        ParamConstants.P_SCHEMA, recordRepresentation.getSchema(), ParamConstants.P_VER,
-                        recordRepresentation.getVersion(), ParamConstants.P_FILE, "terefere"));
+            ImmutableMap.<String, Object> of(ParamConstants.P_GID, recordRepresentation.getRecordId(),
+                ParamConstants.P_SCHEMA, recordRepresentation.getSchema(), ParamConstants.P_VER,
+                recordRepresentation.getVersion(), ParamConstants.P_FILE, "terefere"));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
 
         FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME,
-                MediaType.APPLICATION_OCTET_STREAM).field(ParamConstants.F_FILE_DATA, inputStream,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            MediaType.APPLICATION_OCTET_STREAM).field(ParamConstants.F_FILE_DATA, inputStream,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         Response response = webTarget.request().put(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());

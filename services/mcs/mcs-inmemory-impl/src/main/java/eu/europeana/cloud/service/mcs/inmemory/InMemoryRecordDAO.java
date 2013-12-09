@@ -1,13 +1,20 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import java.util.*;
-
-import org.springframework.stereotype.Repository;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import org.springframework.stereotype.Repository;
 
 /**
  * InMemoryRecordDAO
@@ -263,8 +270,7 @@ public class InMemoryRecordDAO {
 
 
     public Representation addOrReplaceFileInRepresentation(String globalId, String schema, String version, File file)
-            throws RepresentationNotExistsException, FileAlreadyExistsException,
-            CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         Map<String, List<Representation>> representations = records.get(globalId);
         if (representations == null) {
             throw new RepresentationNotExistsException(globalId);

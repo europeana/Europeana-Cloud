@@ -4,7 +4,7 @@ package eu.europeana.cloud.service.mcs.exception;
  * NOT USED ANYMORE. TO BE REMOVED.
  */
 @Deprecated
-public class RepresentationAlreadyInSetException extends RuntimeException {
+public class RepresentationAlreadyInSetException extends Exception {
 
     public RepresentationAlreadyInSetException(String message) {
         super(message);

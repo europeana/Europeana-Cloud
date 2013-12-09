@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATASET_PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATE_FROM;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATE_UNTIL;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PERSISTENT;
@@ -28,7 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * RepresentationSearchResource
+ * This resource allows to search representation versions by multiple parameters.
  */
 @Path("representations")
 @Component
@@ -44,15 +45,47 @@ public class RepresentationSearchResource {
     private static final DateTimeFormatter dateFormat = ISODateTimeFormat.dateOptionalTimeParser();
 
 
+    /**
+     * Searches for representation versions by multiple parameters. Result is returned in slices which contain fixed
+     * amount of results and reference (token) to next slice of results. To obtain next result slice, all search
+     * parameters in subsequent requests with consecutive result tokens must be the same as in first request. All search
+     * parameters are optional but at least one must be provided. *
+     * 
+     * @param providerId
+     *            Identifier of representation version's provider.
+     * @param dataSetId
+     *            Identifier of data set
+     * @param dataSetProviderId
+     *            Identivier of data set's provider.
+     * @param schema
+     *            schema of representation
+     * @param creationDateFrom
+     *            earliest date of representation version's creation. Must be in ISO8601 format (date with optional
+     *            time): yyyy-MM-dd'T'HH:mm:ss.SSSZZ or yyyy-MM-dd
+     * @param creationDateUntil
+     *            latest * date of representation version's creation. Must be in ISO8601 format (date with optional
+     *            time): yyyy-MM-dd'T'HH:mm:ss.SSSZZ or yyyy-MM-dd
+     * @param persistent
+     *            Indicator if representation version must be persistent.
+     * @param startFrom
+     *            Threshold param to indicate result slice
+     * @return found representation versions (in slices).
+     * @statuscode 400 If no search parameter is provided.
+     * */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public ResultSlice<Representation> searchRepresentations(@QueryParam(F_PROVIDER) String providerId,
-            @QueryParam(F_DATASET) String dataSetId, @QueryParam(F_SCHEMA) String representationName,
-            @QueryParam(F_DATE_FROM) String creationDateFrom, @QueryParam(F_DATE_UNTIL) String creationDateUntil,
-            @QueryParam(F_PERSISTENT) Boolean persistent, @QueryParam(F_START_FROM) String startFrom) {
+    public ResultSlice<Representation> searchRepresentations( //
+            @QueryParam(F_PROVIDER) String providerId, //
+            @QueryParam(F_DATASET) String dataSetId, //
+            @QueryParam(F_DATASET_PROVIDER_ID) String dataSetProviderId, //
+            @QueryParam(F_SCHEMA) String schema, //
+            @QueryParam(F_DATE_FROM) String creationDateFrom, //
+            @QueryParam(F_DATE_UNTIL) String creationDateUntil, //
+            @QueryParam(F_PERSISTENT) Boolean persistent, //
+            @QueryParam(F_START_FROM) String startFrom) {
 
         // at least one parameter must be provided
-        if (allNull(providerId, dataSetId, representationName, creationDateFrom, creationDateUntil, persistent)) {
+        if (allNull(providerId, dataSetId, dataSetProviderId, schema, creationDateFrom, creationDateUntil, persistent)) {
             ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), "At least one parameter must be provided");
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
@@ -84,9 +117,14 @@ public class RepresentationSearchResource {
         }
 
         // create search params object
-        RepresentationSearchParams params = RepresentationSearchParams.builder().setDataProvider(providerId)
-                .setDataSetId(dataSetId).setFromDate(creationDateFromParsed).setPersistent(persistent)
-                .setSchema(representationName).setToDate(creationDateUntilParsed).build();
+        RepresentationSearchParams params = RepresentationSearchParams.builder().setDataProvider(providerId)//
+                .setDataSetId(dataSetId) //
+                .setDataSetProviderId(dataSetProviderId) //
+                .setFromDate(creationDateFromParsed) //
+                .setPersistent(persistent) //
+                .setSchema(schema) //
+                .setToDate(creationDateUntilParsed) //
+                .build();
 
         // invoke record service method
         return recordService.search(params, startFrom, numberOfElementsOnPage);

@@ -1,31 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
-import java.io.IOException;
-import java.util.*;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -33,6 +10,29 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.context.ApplicationContext;
 
 /**
  * FileResourceTest
@@ -56,7 +56,8 @@ public class RepresentationSearchTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         representationSearchWebTarget = target(RepresentationSearchResource.class.getAnnotation(Path.class).value());
@@ -78,7 +79,8 @@ public class RepresentationSearchTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         dataSetService.deleteDataSet("p1", "ds");
         providerService.deleteProvider("p1");
         providerService.deleteProvider("p2");
@@ -155,7 +157,7 @@ public class RepresentationSearchTest extends JerseyTest {
     @Test
     public void shouldParseIsoDatesInSearch() {
         representationSearchWebTarget = representationSearchWebTarget.queryParam(ParamConstants.F_DATE_FROM,
-                "1995-12-31T23:59:59.999Z").queryParam(ParamConstants.F_DATE_UNTIL, "2004-02-12T15:19:21+02:00");
+            "1995-12-31T23:59:59.999Z").queryParam(ParamConstants.F_DATE_UNTIL, "2004-02-12T15:19:21+02:00");
         Response searchResponse = representationSearchWebTarget.request().get();
         assertEquals("Unexpected status code ", Response.Status.OK.getStatusCode(), searchResponse.getStatus());
     }
@@ -164,7 +166,7 @@ public class RepresentationSearchTest extends JerseyTest {
     @Test
     public void shouldFailIfNoIsoDatesInSearch() {
         representationSearchWebTarget = representationSearchWebTarget.queryParam(ParamConstants.F_DATE_FROM,
-                "31-12-1995");
+            "31-12-1995");
         Response searchResponse = representationSearchWebTarget.request().get();
         assertEquals("Unexpected status code ", Response.Status.BAD_REQUEST.getStatusCode(), searchResponse.getStatus());
     }

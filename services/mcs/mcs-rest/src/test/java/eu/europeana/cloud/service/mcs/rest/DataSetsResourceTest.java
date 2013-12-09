@@ -1,24 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-import static org.junit.Assert.assertEquals;
-
-import java.net.URI;
-import java.util.List;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
@@ -26,7 +7,25 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import java.net.URI;
+import java.util.List;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 
 /**
  * DataSetResourceTest
@@ -49,7 +48,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
@@ -59,7 +59,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
                 dataSetService.deleteDataSet(prov.getId(), ds.getId());
@@ -70,7 +71,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldCreateDataset() {
+    public void shouldCreateDataset()
+            throws Exception {
         //given
         String datasetId = "dataset";
         String description = "dataset description";
@@ -113,7 +115,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldNotCreateTwoDatasetsWithSameId() {
+    public void shouldNotCreateTwoDatasetsWithSameId()
+            throws Exception {
         // given that there is a dataset with certain id
         String dataSetId = "dataset";
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");

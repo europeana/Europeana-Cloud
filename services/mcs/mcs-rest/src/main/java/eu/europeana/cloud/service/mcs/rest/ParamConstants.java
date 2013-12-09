@@ -34,6 +34,8 @@ public interface ParamConstants {
     // form parameters' names
     static final String F_DATASET = "dataSetId";
 
+    static final String F_DATASET_PROVIDER_ID = "dataSetProviderId";
+
     static final String F_DESCRIPTION = "description";
 
     static final String F_PROVIDER = "providerId";

@@ -1,31 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static junitparams.JUnitParamsRunner.$;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.net.URI;
-import java.util.Collections;
-import java.util.Date;
-
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.Lists;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -33,6 +8,28 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import java.net.URI;
+import java.util.Collections;
+import java.util.Date;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.springframework.context.ApplicationContext;
 
 @RunWith(JUnitParamsRunner.class)
 public class RecordsResourceTest extends JerseyTest {
@@ -58,7 +55,8 @@ public class RecordsResourceTest extends JerseyTest {
 
     @Test
     @Parameters(method = "mimeTypes")
-    public void getRecord(MediaType mediaType) {
+    public void getRecord(MediaType mediaType)
+            throws Exception {
         String globalId = "global1";
         Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, "DC", "1", null, null,
                 "FBC", Lists.newArrayList(new File("dc.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
@@ -103,7 +101,8 @@ public class RecordsResourceTest extends JerseyTest {
 
 
     @Test
-    public void getRecordReturns404IfRecordDoesNotExists() {
+    public void getRecordReturns404IfRecordDoesNotExists()
+            throws Exception {
         String globalId = "global1";
         Throwable exception = new RecordNotExistsException();
         when(recordService.getRecord(globalId)).thenThrow(exception);
@@ -117,7 +116,8 @@ public class RecordsResourceTest extends JerseyTest {
 
 
     @Test
-    public void deleteRecord() {
+    public void deleteRecord()
+            throws Exception {
         String globalId = "global1";
 
         Response response = target().path("/records/" + globalId).request().delete();

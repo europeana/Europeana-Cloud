@@ -1,40 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -43,6 +11,33 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.context.ApplicationContext;
 
 /**
  * FileResourceTest
@@ -62,7 +57,8 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         providerService = applicationContext.getBean(DataProviderService.class);
@@ -81,7 +77,8 @@ public class FileResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         providerService.deleteProvider("1");
         recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
     }
@@ -101,7 +98,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldReturnContentWithinRangeOffset()
-            throws IOException {
+            throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
@@ -122,7 +119,7 @@ public class FileResourceTest extends JerseyTest {
     @Test
     @Parameters({ "1,2", "0,0", "0,1", "3,3", "0,3", "3,4" })
     public void shouldReturnContentWithinRange(Integer rangeStart, Integer rangeEnd)
-            throws IOException {
+            throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
@@ -157,7 +154,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldReturnErrorWhenRequestedRangeNotSatisfiable()
-            throws IOException {
+            throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
@@ -173,7 +170,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldReturnErrorWhenRequestedRangeNotValid()
-            throws IOException {
+            throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
@@ -195,7 +192,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldOverrideFileOnRepeatedPut()
-            throws IOException {
+            throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
         recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
@@ -223,7 +220,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldDeleteFile()
-            throws IOException {
+            throws Exception {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
@@ -252,7 +249,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldUploadDataWithPut()
-            throws IOException {
+            throws Exception {
         // given particular (random in this case) content
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
@@ -283,7 +280,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Test
     public void shouldRetrieveContent()
-            throws IOException {
+            throws Exception {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);

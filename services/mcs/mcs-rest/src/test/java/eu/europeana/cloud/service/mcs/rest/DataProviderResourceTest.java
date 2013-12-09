@@ -1,20 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -22,7 +7,23 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
 
 /**
  * DataProviderResourceTest
@@ -56,7 +57,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
         for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             dataProviderService.deleteProvider(prov.getId());
         }
@@ -64,7 +66,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldUpdateProvider() {
+    public void shouldUpdateProvider()
+            throws ProviderAlreadyExistsException, ProviderNotExistsException {
         // given certain provider data
         String providerName = "provident";
         dataProviderService.createProvider(providerName, new DataProviderProperties());
@@ -85,7 +88,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldGetProvider() {
+    public void shouldGetProvider()
+            throws ProviderAlreadyExistsException {
         // given certain provider in service
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");
@@ -121,7 +125,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldDeleteProvider() {
+    public void shouldDeleteProvider()
+            throws ProviderAlreadyExistsException {
         // given a certain provider in service
         String providerName = "provident";
         dataProviderService.createProvider(providerName, new DataProviderProperties());

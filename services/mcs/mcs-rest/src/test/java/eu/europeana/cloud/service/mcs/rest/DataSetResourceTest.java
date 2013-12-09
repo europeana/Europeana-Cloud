@@ -1,31 +1,33 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataProviderService;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
-
-import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
 
 /**
  * DataSetResourceTest
@@ -52,7 +54,8 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp()
+            throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
@@ -63,7 +66,8 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @After
-    public void cleanUp() {
+    public void cleanUp()
+            throws Exception {
         for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
             for (DataSet ds : dataSetService.getDataSets(prov.getId(), null, 10000).getResults()) {
                 dataSetService.deleteDataSet(prov.getId(), ds.getId());
@@ -74,7 +78,8 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldCreateDataset() {
+    public void shouldCreateDataset()
+            throws Exception {
         String dataSetId = "dataset";
         String description = "dataset description";
 
@@ -94,7 +99,8 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldDeleteDataset() {
+    public void shouldDeleteDataset()
+            throws Exception {
         // given certain datasets with the same id for different providers
         String dataSetId = "dataset";
         String anotherProvider = "anotherProvider";
@@ -117,7 +123,8 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldListRepresentationsFromDataset() {
+    public void shouldListRepresentationsFromDataset()
+            throws Exception {
         // given data set with assigned record representations
         String dataSetId = "dataset";
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
@@ -151,7 +158,8 @@ public class DataSetResourceTest extends JerseyTest {
     }
 
 
-    private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId) {
+    private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
+            throws Exception {
         Representation r = recordService.createRepresentation(cloudId, schema, providerId);
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);

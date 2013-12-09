@@ -1,23 +1,42 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.*;
-
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_DATA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_MIME;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_FILE;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_VER;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.*;
 
 /**
  * FilesResource
@@ -53,7 +72,8 @@ public class FileResource {
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
+            CannotModifyPersistentRepresentationException {
         ParamUtil.require(F_FILE_DATA, data);
 
         File f = new File();
@@ -86,7 +106,8 @@ public class FileResource {
     @GET
     public Response getFile(@HeaderParam(HEADER_RANGE) String range)
             throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            FileNotExistsException {
+            FileNotExistsException, WrongContentRangeException {
+
         // extract range
         final ContentRange contentRange;
         if (range == null) {
@@ -95,7 +116,7 @@ public class FileResource {
             contentRange = ContentRange.parse(range);
         }
 
-        // TODO: this is some kind of logic here, we do not want this
+        // get file md5 if all file is requested
         String md5 = null;
         Response.Status status;
         if (contentRange.isSpecified()) {
@@ -103,20 +124,25 @@ public class FileResource {
         } else {
             status = Response.Status.OK;
             final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
-
-            if (requestedFile == null) {
-                throw new FileNotExistsException();
-            }
             md5 = requestedFile.getMd5();
         }
 
+        // stream output
         StreamingOutput output = new StreamingOutput() {
 
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
-                recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
-                    output);
+                try {
+                    recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
+                        output);
+                } catch (RepresentationNotExistsException ex) {
+                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                } catch (FileNotExistsException ex) {
+                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                } catch (WrongContentRangeException ex) {
+                    throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
+                }
             }
         };
 
@@ -125,7 +151,9 @@ public class FileResource {
 
 
     @DELETE
-    public Response deleteFile() {
+    public Response deleteFile()
+            throws RepresentationNotExistsException, FileNotExistsException,
+            CannotModifyPersistentRepresentationException {
         recordService.deleteContent(globalId, schema, version, fileName);
         return Response.noContent().build();
     }
@@ -153,7 +181,8 @@ public class FileResource {
         }
 
 
-        static ContentRange parse(String range) {
+        static ContentRange parse(String range)
+                throws WrongContentRangeException {
             long start, end;
             if (range == null) {
                 throw new IllegalArgumentException("Range should not be null");
