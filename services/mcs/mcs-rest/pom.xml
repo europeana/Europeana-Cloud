@@ -35,10 +35,31 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <!--insert configuration here-->
-                </configuration>
-            </plugin>
+				<configuration>
+					<statusCodes>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException</document>
+							<defaultMessage>Requested representation (or representation version) does not exist.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>500</httpCode>
+							<document>always</document>
+							<defaultMessage>The service call has not succeeded because of server side error.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>200</httpCode>
+							<document>get</document>
+							<defaultMessage>Service call has completed successfully, the requested entity is returned in response</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>204</httpCode>
+							<document>delete</document>
+							<defaultMessage>Object deleted.</defaultMessage>
+						</statusCode>
+					</statusCodes>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
     <dependencies>

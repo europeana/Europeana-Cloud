@@ -3,9 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_MIME;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
@@ -48,11 +46,13 @@ public class FilesResource {
     private String version;
 
 
+    // the same as method in FileResource. Duplicated code.
+
+    @Deprecated
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            CannotModifyPersistentRepresentationException {
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         ParamUtil.require(F_FILE_DATA, data);
 
         File f = new File();

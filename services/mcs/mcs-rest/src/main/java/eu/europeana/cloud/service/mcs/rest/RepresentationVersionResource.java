@@ -19,14 +19,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * RepresentationResource
+ * Resource to manage representation versions.
  */
 @Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}")
 @Component
@@ -38,9 +37,6 @@ public class RepresentationVersionResource {
     @Context
     private UriInfo uriInfo;
 
-    @Context
-    private Request request;
-
     @PathParam(P_GID)
     private String globalId;
 
@@ -51,10 +47,20 @@ public class RepresentationVersionResource {
     private String version;
 
 
+    /**
+     * Returns representation in specified version. If Version = LATEST, will redirect to actual latest persistent
+     * version at the moment of invoking this method. *
+     * 
+     * @return
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @statuscode 307 if requested version is "LATEST" - redirect to latest persistent version.
+     * */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response getRepresentationVersion()
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws RepresentationNotExistsException {
+        // handle "LATEST" keyword
         if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
             Representation representationInfo = recordService.getRepresentation(globalId, schema);
             EnrichUriUtil.enrich(uriInfo, representationInfo);
@@ -70,20 +76,38 @@ public class RepresentationVersionResource {
     }
 
 
+    /**
+     * Deletes representation version.
+     * 
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException
+     *             representation in specified version is persitent and as such cannot be removed.
+     */
     @DELETE
-    public Response deleteRepresentation()
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            CannotModifyPersistentRepresentationException {
+    public void deleteRepresentation()
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         recordService.deleteRepresentation(globalId, schema, version);
-        return Response.noContent().build();
     }
 
 
+    /**
+     * Persists temporary representation.
+     * 
+     * @return
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException
+     *             representation version is already persistent.
+     * @throws CannotPersistEmptyRepresentationException
+     *             representation version has no file attached and as such cannot be made persistent.
+     * @statuscode 201 representation is made persistent.
+     */
     @POST
     @Path("/persist")
     public Response persistRepresentation()
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            CannotPersistEmptyRepresentationException {
         Representation persistentVersion = recordService.persistRepresentation(globalId, schema, version);
         prepare(persistentVersion);
         return Response.created(persistentVersion.getUri()).build();

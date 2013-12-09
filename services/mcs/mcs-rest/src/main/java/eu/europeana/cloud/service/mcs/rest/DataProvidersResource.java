@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Resource for DataProviders
+ * Resource for DataProviders.
  * 
  */
 @Path("/data-providers")
@@ -39,6 +39,13 @@ public class DataProvidersResource {
     private int numberOfElementsOnPage;
 
 
+    /**
+     * Lists all providers. Result is returned in slices.
+     * 
+     * @param startFrom
+     *            reference to next slice of result.
+     * @return slice of result.
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<DataProvider> getProviders(@QueryParam(F_START_FROM) String startFrom) {
@@ -46,10 +53,22 @@ public class DataProvidersResource {
     }
 
 
+    /**
+     * Creates a new data provider. Response contains uri to created resource in as uri location. *
+     * 
+     * @param dataProviderProperties
+     *            data provider properties.
+     * @param providerId
+     *            data provider id (required)
+     * @return
+     * @throws ProviderAlreadyExistsException
+     *             provider already exists.
+     * @statuscode 201 object has been created.
+     */
     @POST
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public Response updateProvider(DataProviderProperties dataProviderProperties,
+    public Response createProvider(DataProviderProperties dataProviderProperties,
             @QueryParam(F_PROVIDER) String providerId)
             throws ProviderAlreadyExistsException {
         DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);

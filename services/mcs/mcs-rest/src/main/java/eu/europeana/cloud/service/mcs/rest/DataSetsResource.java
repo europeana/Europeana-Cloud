@@ -26,6 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Resource to get and create data set.
+ */
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets")
 @Component
 public class DataSetsResource {
@@ -45,6 +48,15 @@ public class DataSetsResource {
     private int numberOfElementsOnPage;
 
 
+    /**
+     * Returns all data sets for a provider. Result is returned in slices.
+     * 
+     * @param startFrom
+     *            reference to next slice of result. If not provided, first slice of result will be returned.
+     * @return slice of data sets for given provider.
+     * @throws ProviderNotExistsException
+     *             data provider does not exist.
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom)
@@ -53,6 +65,20 @@ public class DataSetsResource {
     }
 
 
+    /**
+     * Creates data set. Response contains uri to created resource in as uri location.
+     * 
+     * @param dataSetId
+     *            identifier of data set (required).
+     * @param description
+     *            description of data set.
+     * @return
+     * @throws ProviderNotExistsException
+     *             data provider does not exist
+     * @throws DataSetAlreadyExistsException
+     *             data set with provided id already exists for this provider.
+     * @statuscode 201 object has been created.
+     */
     @POST
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {

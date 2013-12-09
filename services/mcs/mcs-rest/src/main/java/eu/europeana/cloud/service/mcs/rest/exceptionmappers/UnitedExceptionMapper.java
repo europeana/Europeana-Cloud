@@ -1,9 +1,22 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
-import javax.ws.rs.core.Response;
-
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import javax.ws.rs.core.Response;
 
 /**
  * AllExceptionMapper

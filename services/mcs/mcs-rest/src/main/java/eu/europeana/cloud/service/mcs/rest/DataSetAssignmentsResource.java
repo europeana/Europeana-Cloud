@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * DataSetAssignmentsResource
+ * Resource to assign and unassign representations to/from data sets.
  */
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/assignments")
 @Component
@@ -34,6 +34,21 @@ public class DataSetAssignmentsResource {
     private DataSetService dataSetService;
 
 
+    /**
+     * Assigns representation into a data set.
+     * 
+     * @param recordId
+     *            cloud id of record (required)
+     * @param schema
+     *            schema of representation (required)
+     * @param representationVersion
+     *            version of representation. If not provided, latest persistent version will be assigned to data set.
+     * @throws DataSetNotExistsException
+     *             no such data set exists
+     * @throws RepresentationNotExistsException
+     *             no such representation exists.
+     * @statuscode 204 object assigned.
+     */
     @POST
     public void addAssignment(@FormParam(F_GID) String recordId, @FormParam(F_SCHEMA) String schema,
             @FormParam(F_VER) String representationVersion)
@@ -44,6 +59,16 @@ public class DataSetAssignmentsResource {
     }
 
 
+    /**
+     * Unassigns representation from data set. If representation was not assigned to data set, nothing happens. *
+     * 
+     * @param recordId
+     *            cloud id of record (required)
+     * @param schema
+     *            schema of representation (required)
+     * @throws DataSetNotExistsException
+     *             no such data set exists
+     */
     @DELETE
     public void removeAssignment(@QueryParam(F_GID) String recordId, @QueryParam(F_SCHEMA) String schema)
             throws DataSetNotExistsException {

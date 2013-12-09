@@ -29,6 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Resource to manage data sets.
+ */
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}")
 @Component
 public class DataSetResource {
@@ -51,6 +54,14 @@ public class DataSetResource {
     private int numberOfElementsOnPage;
 
 
+    /**
+     * Deletes data set.
+     * 
+     * @throws ProviderNotExistsException
+     *             provider not exists
+     * @throws DataSetNotExistsException
+     *             data set not exists.
+     */
     @DELETE
     public void deleteDataSet()
             throws ProviderNotExistsException, DataSetNotExistsException {
@@ -58,6 +69,15 @@ public class DataSetResource {
     }
 
 
+    /**
+     * Lists representation versions from data set. Result is returned in slices.
+     * 
+     * @param startFrom
+     *            reference to next slice of result. If not provided, first slice of result will be returned.
+     * @return * slice of representation version list.
+     * @throws DataSetNotExistsException
+     *             no such data set exists.
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<Representation> getDataSetContents(@QueryParam(F_START_FROM) String startFrom)

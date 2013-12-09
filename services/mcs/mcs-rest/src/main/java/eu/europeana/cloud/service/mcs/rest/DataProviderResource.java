@@ -16,13 +16,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Resource for DataProviders.
+ * Resource for DataProvider.
  * 
  */
 @Path("/data-providers/{" + P_PROVIDER + "}")
@@ -39,6 +38,13 @@ public class DataProviderResource {
     private UriInfo uriInfo;
 
 
+    /**
+     * Gets provider.
+     * 
+     * @return Data provider.
+     * @throws ProviderNotExistsException
+     *             resource that represents requested data provider does not exist.
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public DataProvider getProvider()
@@ -47,16 +53,36 @@ public class DataProviderResource {
     }
 
 
+    /**
+     * Updates data provider information. *
+     * 
+     * @param dataProviderProperties
+     *            data provider properties.
+     * @throws ProviderNotExistsException
+     *             no such provider exists.
+     * @statuscode 204 object has been updated.
+     */
     @PUT
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public Response updateProvider(DataProviderProperties dataProviderProperties)
+    public void updateProvider(DataProviderProperties dataProviderProperties)
             throws ProviderNotExistsException {
         DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);
         EnrichUriUtil.enrich(uriInfo, provider);
-        return Response.noContent().build();
     }
 
 
+    /**
+     * Deletes data provider.
+     * 
+     * @throws ProviderNotExistsException
+     *             no such provider exists
+     * @throws ProviderHasDataSetsException
+     *             data provider cannot be deleted because he has data sets. All objects created by data provider must
+     *             be deleted before data provider can be deleted.
+     * @throws ProviderHasRecordsException
+     *             data provider cannot be deleted because he created some representation versions. All objects created
+     *             by data provider must be deleted before data provider can be deleted.
+     */
     @DELETE
     public void deleteProvider()
             throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {

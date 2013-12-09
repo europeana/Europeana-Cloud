@@ -4,9 +4,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_MIME;
@@ -30,7 +28,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
@@ -39,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * FilesResource
+ * Resource to manage representation version's files with their content.
  */
 @Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}/files/{" + P_FILE + "}")
 @Component
@@ -50,9 +47,6 @@ public class FileResource {
 
     @Context
     private UriInfo uriInfo;
-
-    @Context
-    private Request request;
 
     @PathParam(P_GID)
     private String globalId;
@@ -69,11 +63,27 @@ public class FileResource {
     static final String HEADER_RANGE = "Range";
 
 
+    /**
+     * Upload file operation. Adds or updates file in representation version. MD5 of uploaded data is returned as tag. *
+     * 
+     * @param mimeType
+     *            mime type of file
+     * @param data
+     *            binary stream of file content (required)
+     * @return
+     * @throws IOException
+     *             io exception
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException
+     *             specified representation version is persistent and modyfying its files is not allowed.
+     * @statuscode 204 object has been updated.
+     * @statuscode 201 object has been created.
+     */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws IOException, RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            CannotModifyPersistentRepresentationException {
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         ParamUtil.require(F_FILE_DATA, data);
 
         File f = new File();
@@ -89,8 +99,9 @@ public class FileResource {
 
 
     /**
-     * Use this method to retrieve content of a file which is a part of a specified record representation. Basic support
-     * for retrieving only a part of content is implemented using HTTP Range header:
+     * Returns file content. Basic support for HTTP "Range" header is implemented for retrieving only a part of content
+     * is implemented (Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1, <a
+     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>). For instance: *
      * <ul>
      * <li><b>Range: bytes=10-15</b> - retrieve bytes from 10 to 15 of content
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
@@ -98,15 +109,15 @@ public class FileResource {
      * 
      * @param range
      * @return
-     * @throws RecordNotExistsException
      * @throws RepresentationNotExistsException
-     * @throws VersionNotExistsException
+     *             representation does not exist in specified version.
+     * @throws WrongContentRangeException
+     *             wrong value in "Range" header
      * @throws FileNotExistsException
      */
     @GET
     public Response getFile(@HeaderParam(HEADER_RANGE) String range)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            FileNotExistsException, WrongContentRangeException {
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
         // extract range
         final ContentRange contentRange;
@@ -150,12 +161,21 @@ public class FileResource {
     }
 
 
+    /**
+     * Deletes file from representation version.
+     * 
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @throws FileNotExistsException
+     *             representation version does not have file with specified name.
+     * @throws CannotModifyPersistentRepresentationException
+     *             specified representation version is persistent and deleting its files is not allowed.
+     */
     @DELETE
-    public Response deleteFile()
+    public void deleteFile()
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException {
         recordService.deleteContent(globalId, schema, version, fileName);
-        return Response.noContent().build();
     }
 
 
