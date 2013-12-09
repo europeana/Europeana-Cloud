@@ -78,9 +78,10 @@ public class RepresentationResource {
      * 
      * @param providerId
      *            provider of this representation versio.
-     * @return * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
-     * @throws ProviderNotExistsException
-     *             no provider with given id exists
+     * @return
+     * @throws RecordNotExistsException
+     *             provided id is not known to Unique Identifier Service. * @throws ProviderNotExistsException no
+     *             provider with given id exists
      * @statuscode 201 object has been created.
      * */
     @POST

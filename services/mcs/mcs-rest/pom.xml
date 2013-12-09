@@ -38,10 +38,81 @@
 				<configuration>
 					<statusCodes>
 						<statusCode>
+							<httpCode>405</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException</document>
+							<defaultMessage>Cannot modify persistent representation version.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>405</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException</document>
+							<defaultMessage>Cannot persist representation version which does not have any file.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException</document>
+							<defaultMessage>Cannot create data set because it already exists.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException</document>
+							<defaultMessage>Requested data set not exists</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException</document>
+							<defaultMessage>Cannot add file to representation version because it already exists.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>422</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException</document>
+							<defaultMessage>Cannot process entity because content md5 and tag are not the same</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileNotExistsException</document>
+							<defaultMessage>Requested file does not exist</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>405</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException</document>
+							<defaultMessage>Cannot delete provider because it has data sets assigned.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>405</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException</document>
+							<defaultMessage>Cannot delete provider because there are representation versions in system created by this data provider.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException</document>
+							<defaultMessage>Requested data provider does not exist.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.RecordNotExistsException</document>
+							<defaultMessage>Used cloud id is not registered in Unique Identifier Service</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException</document>
+							<defaultMessage>Representation is already assigned into this data set.</defaultMessage>
+						</statusCode>
+						<statusCode>
 							<httpCode>404</httpCode>
 							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException</document>
 							<defaultMessage>Requested representation (or representation version) does not exist.</defaultMessage>
 						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.VersionNotExistsException</document>
+							<defaultMessage>Requested representation version does not exist.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>416</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.WrongContentRangeException</document>
+							<defaultMessage>Requested content range is beyond actual content.</defaultMessage>
+						</statusCode>
+
 						<statusCode>
 							<httpCode>500</httpCode>
 							<document>always</document>

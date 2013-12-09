@@ -211,7 +211,7 @@ public class InMemoryRecordService implements RecordService {
 
     @Override
     public Representation copyRepresentation(String globalId, String schema, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException {
+            throws RepresentationNotExistsException, VersionNotExistsException {
         Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
         Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
         for (File srcFile : srcRep.getFiles()) {

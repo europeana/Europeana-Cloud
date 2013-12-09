@@ -1,14 +1,19 @@
 package eu.europeana.cloud.service.mcs;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Service for manipulating representations and their content.
@@ -180,13 +185,11 @@ public interface RecordService {
      * @param version
      *            version of the representation which will be the base of the new version.
      * @return copied representation
-     * @throws RecordNotExistsException
-     *             provided id of a record is not registered in eCloud system.
      * @throws RepresentationNotExistsException
      *             representation does not exist in specified version.
      */
     Representation copyRepresentation(String globalId, String schema, String version)
-            throws RecordNotExistsException, RepresentationNotExistsException;
+            throws RepresentationNotExistsException;
 
 
     /**

@@ -4,10 +4,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_VER;
@@ -114,11 +111,18 @@ public class RepresentationVersionResource {
     }
 
 
+    /**
+     * Copies all information with all files and their content from one representation version to a new temporary one. *
+     * 
+     * @return
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version.
+     * @statuscode 201 representation has been copied to a new one.
+     * */
     @POST
     @Path("/copy")
     public Response copyRepresentation()
-            throws RecordNotExistsException, RepresentationNotExistsException, VersionNotExistsException,
-            ProviderNotExistsException {
+            throws RepresentationNotExistsException {
         Representation copiedRep = recordService.copyRepresentation(globalId, schema, version);
         prepare(copiedRep);
         return Response.created(copiedRep.getUri()).build();
