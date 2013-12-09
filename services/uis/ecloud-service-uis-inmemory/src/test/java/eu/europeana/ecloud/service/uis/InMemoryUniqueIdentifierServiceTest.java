@@ -9,15 +9,15 @@ import org.junit.Test;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
-import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
-import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
-import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordExistsException;
-import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.InMemoryUniqueIdentifierService;
 import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 
 /**
  * Unit test for the In Memory i0mplementation of the database

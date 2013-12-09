@@ -5,9 +5,9 @@ import java.util.List;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.InMemoryCloudObject;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 
 public class InMemoryCloudIdDao implements Dao<CloudId, List<CloudId>> {
 

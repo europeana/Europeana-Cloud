@@ -2,6 +2,15 @@ package eu.europeana.cloud.service.uis.rest;
 
 import javax.ws.rs.core.Response;
 
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+
 /**
  * UniqueId REST API implementation
  * 
@@ -15,8 +24,10 @@ public interface UniqueIdResource {
      * @param providerId
      * @param recordId
      * @return JSON/XML response with the unique Identifier or Error Message
+     * @throws RecordExistsException 
+     * @throws DatabaseConnectionException 
      */
-    Response createCloudId(String providerId, String recordId);
+    Response createCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordExistsException;
 
     /**
      * Invoke the unique Identifier search according to providerId/recordId combo REST call HTTP
@@ -25,16 +36,20 @@ public interface UniqueIdResource {
      * @param providerId
      * @param recordId
      * @return JSON/XML response with the unique Identifier or Error Message
+     * @throws RecordDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response getCloudId(String providerId, String recordId);
+    Response getCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordDoesNotExistException;
 
     /**
      * Invoke the retrieval of providerId/recordId REST call HTTP call: GET
      * 
      * @param cloudId
      * @return JSON/XML response with the list of local ids organized by provider or Error Message
+     * @throws CloudIdDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response getLocalIds(String cloudId);
+    Response getLocalIds(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException;
 
     /**
      * Invoke the retrieval of recordId based on a providerId REST call HTTP call: GET
@@ -43,8 +58,10 @@ public interface UniqueIdResource {
      * @param start
      * @param to
      * @return JSON/XML response with the list of local ids of that provider or Error Message
+     * @throws ProviderDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response getLocalIdsByProvider(String providerId, String start, int to);
+    Response getLocalIdsByProvider(String providerId, String start, int to) throws DatabaseConnectionException, ProviderDoesNotExistException;
 
     /**
      * Invoke the retrieval of all unique identifiers for a giver provider HTTP call: GET
@@ -53,8 +70,11 @@ public interface UniqueIdResource {
      * @param start
      * @param to
      * @return JSON/XML response with the list of unique ids of that provider or Error Message
+     * @throws RecordDatasetEmptyException 
+     * @throws ProviderDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response getCloudIdsByProvider(String providerId, String start, int to);
+    Response getCloudIdsByProvider(String providerId, String start, int to) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
      * Create the mapping between an existing unique identifier and a providerId/recordId combo HTTP
@@ -64,8 +84,12 @@ public interface UniqueIdResource {
      * @param providerId
      * @param recordId
      * @return JSON/XML acknowledgement or Error Message
+     * @throws ProviderDoesNotExistException 
+     * @throws IdHasBeenMappedException 
+     * @throws CloudIdDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response createIdMapping(String cloudId, String providerId, String recordId);
+    Response createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException;
 
     /**
      * Remove the mapping between a providerId/recordId and a unique identifier HTTP call: DELETE
@@ -73,22 +97,29 @@ public interface UniqueIdResource {
      * @param providerId
      * @param recordId
      * @return JSON/XML acknowledgement or Error Message
+     * @throws RecordIdDoesNotExistException 
+     * @throws ProviderDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response removeIdMapping(String providerId, String recordId);
+    Response removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException;
 
     /**
      * Remove the unique identifier and all of its mappings HTTP call: DELETE
      * 
      * @param cloudId
      * @return JSON/XML acknowledgement or Error Message
+     * @throws CloudIdDoesNotExistException 
+     * @throws DatabaseConnectionException 
      */
-    Response deleteCloudId(String cloudId);
+    Response deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException;
     
     /**
      * Invoke the unique identifier creation REST call HTTP call: GET
      * 
      * @param providerId
      * @return JSON/XML response with the unique Identifier or Error Message
+     * @throws RecordExistsException 
+     * @throws DatabaseConnectionException 
      */
-	Response createCloudId(String providerId);
+	Response createCloudId(String providerId) throws DatabaseConnectionException, RecordExistsException;
 }

@@ -5,12 +5,14 @@ import java.util.List;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
-import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.InMemoryCloudObject;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 
@@ -32,7 +34,9 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 				}
 			}
 			if (retCloudIds.isEmpty()) {
-				throw new ProviderDoesNotExistException();
+				throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+						IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+						IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(args[0])));
 			}
 		}
 
@@ -85,7 +89,9 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 			i++;
 		}
 		if (providerDoesNotExist) {
-			throw new ProviderDoesNotExistException();
+			throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
 		}
 		int k = 0;
 		for (InMemoryCloudObject obj : cloudIds.subList(index, cloudIds.size())) {
@@ -108,7 +114,9 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 
 		}
 		if (cIds.size() == 0) {
-			throw new RecordDatasetEmptyException();
+			throw new RecordDatasetEmptyException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
+					IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(providerId)));
 		}
 		return cIds;
 
@@ -162,10 +170,14 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 		}
 		
 		if(objNew.getProviderId()==null){
-			throw new ProviderDoesNotExistException();
+			throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(args[0])));
 		}
 		if(objNew.getRecordId()==null){
-			throw new RecordIdDoesNotExistException();
+			throw new RecordIdDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(args[1])));
 		}
 	}
 

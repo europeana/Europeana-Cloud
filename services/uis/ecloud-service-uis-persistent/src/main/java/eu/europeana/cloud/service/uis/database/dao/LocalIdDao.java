@@ -11,11 +11,13 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Dao providing access to the search based on record id and provider id
@@ -68,7 +70,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			}
 			return createCloudIdsFromRs(rs);
 		} catch (NoHostAvailableException e) {
-			throw new DatabaseConnectionException();
+			throw new DatabaseConnectionException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
 		}
 	}
 
@@ -100,7 +104,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			PreparedStatement statement = dbService.getSession().prepare(insertStatement);
 			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
-			throw new DatabaseConnectionException();
+			throw new DatabaseConnectionException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
 		}
 
 		return searchActive(args);
@@ -112,7 +118,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			PreparedStatement statement = dbService.getSession().prepare(deleteStatement);
 			dbService.getSession().execute(statement.bind(args[0], args[1]));
 		} catch (NoHostAvailableException e) {
-			throw new DatabaseConnectionException();
+			throw new DatabaseConnectionException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
 		}
 	}
 
@@ -122,7 +130,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			PreparedStatement statement = dbService.getSession().prepare(updateStatement);
 			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
-			throw new DatabaseConnectionException();
+			throw new DatabaseConnectionException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
 		}
 	}
 

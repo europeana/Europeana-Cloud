@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 /**
  * Generic interface for Database Access. 
  * 

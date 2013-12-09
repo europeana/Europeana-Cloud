@@ -4,14 +4,14 @@ import java.util.List;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
-import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
-import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
-import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordExistsException;
-import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 
 /**
  * Unique Identifier Service Interface This service specifies the available methods for the

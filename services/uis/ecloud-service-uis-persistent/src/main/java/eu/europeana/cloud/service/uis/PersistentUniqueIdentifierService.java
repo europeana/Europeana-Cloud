@@ -7,17 +7,19 @@ import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
-import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
-import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
-import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordExistsException;
-import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Cassandra implementation of the Unique Identifier Service
@@ -38,7 +40,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	/**
 	 * Initialization of the service with its DAOs
 	 * @param cloudIdDao The cloud identifier Dao
-	 * @param localIdDao The local identifieir Dao
+	 * @param localIdDao The local identifier Dao
 	 */
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao, LocalIdDao localIdDao) {
 		this.cloudIdDao = cloudIdDao;
@@ -57,7 +59,9 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 //		}
 		String recordId = recordInfo.length>1?recordInfo[1]: Base36.timeEncode(providerId);
 		if (localIdDao.searchActive(providerId, recordId).size() > 0) {
-			throw new RecordExistsException();
+			throw new RecordExistsException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
+					IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId)));
 		}
 		String id = Base36.encode("/" + providerId + "/" + recordId);
 		List<CloudId> cloudIds = cloudIdDao.insert(id, providerId, recordId);
@@ -76,23 +80,27 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 			RecordDoesNotExistException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.size() == 0) {
-			throw new RecordDoesNotExistException();
+			throw new RecordDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)));
 		}
 		return cloudIds.get(0);
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByCloudId(String globalId) throws DatabaseConnectionException,
+	public List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException {
-		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
-			throw new CloudIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
 		}
 		List<LocalId> localIds = new ArrayList<>();
-		for (CloudId cloudId : cloudIds) {
-			if (localIdDao.searchActive(cloudId.getLocalId().getProviderId(), cloudId.getLocalId().getRecordId())
+		for (CloudId cId : cloudIds) {
+			if (localIdDao.searchActive(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId())
 					.size() > 0) {
-				localIds.add(cloudId.getLocalId());
+				localIds.add(cId.getLocalId());
 			}
 		}
 		return localIds;
@@ -134,22 +142,27 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public void createIdMapping(String globalId, String providerId, String recordId)
+	public void createIdMapping(String cloudId, String providerId, String recordId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
 //		if(!proxy.checkProvider(providerId)){
 //			throw new ProviderDoesNotExistException();
 //		}
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
-		if (localIds.size() != 0) {
-			throw new IdHasBeenMappedException();
-		}
-		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
-			throw new CloudIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
 		}
+		if (localIds.size() != 0) {
+			throw new IdHasBeenMappedException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),
+					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(providerId,recordId,cloudId)));
+		}
+		
 
-		localIdDao.insert(providerId, recordId, globalId);
-		cloudIdDao.insert(globalId, providerId, recordId);
+		localIdDao.insert(providerId, recordId, cloudId);
+		cloudIdDao.insert(cloudId, providerId, recordId);
 	}
 
 	@Override
@@ -163,15 +176,17 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public void deleteCloudId(String globalId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
+	public void deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 
-		if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
-			throw new CloudIdDoesNotExistException();
+		if (!(cloudIdDao.searchActive(cloudId).size() > 0)) {
+			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
 		}
-		List<CloudId> localIds = cloudIdDao.searchAll(globalId);
+		List<CloudId> localIds = cloudIdDao.searchAll(cloudId);
 		for (CloudId cId : localIds) {
 			localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-			cloudIdDao.delete(globalId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+			cloudIdDao.delete(cloudId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 		}
 
 	}

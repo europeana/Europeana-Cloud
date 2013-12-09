@@ -17,15 +17,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
-import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
-import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
-import eu.europeana.cloud.exceptions.RecordExistsException;
 import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/default-context.xml" })
