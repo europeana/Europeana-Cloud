@@ -5,7 +5,7 @@ import java.util.List;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
@@ -15,7 +15,7 @@ import eu.europeana.cloud.exceptions.RecordIdDoesNotExistException;
 
 /**
  * Unique Identifier Service Interface This service specifies the available methods for the
- * successful generation and linking of records with a Global eCloud Identifier
+ * successful generation and linking of records with a Cloud eCloud Identifier
  * 
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 17, 2013
@@ -29,7 +29,7 @@ public interface UniqueIdentifierService {
      * @throws DatabaseConnectionException
      * @throws RecordExistsException
      */
-    CloudId createGlobalId(String... recordInfo) throws DatabaseConnectionException,
+    CloudId createCloudId(String... recordInfo) throws DatabaseConnectionException,
             RecordExistsException;
 
     /**
@@ -41,20 +41,20 @@ public interface UniqueIdentifierService {
      * @throws DatabaseConnectionException
      * @throws RecordDoesNotExistException
      */
-    CloudId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+    CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
             RecordDoesNotExistException;
 
     /**
      * Search all the records that are linked to a unique identifier
      * 
-     * @param globalId
+     * @param cloudId
      * @return A list of providerIds with the records that have been linked to the unique identifier
      *         provided
      * @throws DatabaseConnectionException
-     * @throws GlobalIdDoesNotExistException
+     * @throws CloudIdDoesNotExistException
      */
-    List<LocalId> getLocalIdsByGlobalId(String globalId) throws DatabaseConnectionException,
-            GlobalIdDoesNotExistException;
+    List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
+            CloudIdDoesNotExistException;
 
     /**
      * Retrieve the recordIds for a given provider, supporting pagination. If no pagination is
@@ -71,36 +71,36 @@ public interface UniqueIdentifierService {
             throws DatabaseConnectionException, ProviderDoesNotExistException;
 
     /**
-     * Retrieve the globalIds for a given provider, supporting pagination. If no pagination is
-     * provided then the globalIds retrieved are 10000 starting from record 0
+     * Retrieve the cloudIds for a given provider, supporting pagination. If no pagination is
+     * provided then the cloudIds retrieved are 10000 starting from record 0
      * 
      * @param providerId
      * @param start
      * @param end
-     * @return A list of globalIds for a provider bound to 10000 results
+     * @return A list of cloudIds for a provider bound to 10000 results
      * @throws DatabaseConnectionException
      * @throws ProviderDoesNotExistException
      * @throws RecordDatasetEmptyException
      */
-    List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
+    List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
             throws DatabaseConnectionException, ProviderDoesNotExistException,
             RecordDatasetEmptyException;
 
     /**
-     * Create a mapping between a new providerId and recordId and an existing global identifier
+     * Create a mapping between a new providerId and recordId and an existing cloud identifier
      * 
-     * @param globalId
+     * @param cloudId
      * @param providerId
      * @param recordId
      * @throws DatabaseConnectionException
-     * @throws GlobalIdDoesNotExistException
+     * @throws CloudIdDoesNotExistException
      * @throws IdHasBeenMappedException
      */
-    void createIdMapping(String globalId, String providerId, String recordId)
-            throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException;
+    void createIdMapping(String cloudId, String providerId, String recordId)
+            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException;
 
     /**
-     * Remove the mapping between the providerId/recordId and the global identifier The mapping is
+     * Remove the mapping between the providerId/recordId and the cloud identifier The mapping is
      * soft-deleted
      * 
      * @param providerId
@@ -113,14 +113,14 @@ public interface UniqueIdentifierService {
             ProviderDoesNotExistException, RecordIdDoesNotExistException;
 
     /**
-     * Delete a global Identifier and all of its relevant mappings. Everything is soft-deleted
+     * Delete a cloud Identifier and all of its relevant mappings. Everything is soft-deleted
      * 
-     * @param globalId
+     * @param cloudId
      * @throws DatabaseConnectionException
-     * @throws GlobalIdDoesNotExistException
+     * @throws CloudIdDoesNotExistException
      */
-    void deleteGlobalId(String globalId) throws DatabaseConnectionException,
-            GlobalIdDoesNotExistException;
+    void deleteCloudId(String cloudId) throws DatabaseConnectionException,
+            CloudIdDoesNotExistException;
     
     /**
      * Expose information about the database host entry;

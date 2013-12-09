@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.RecordDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordExistsException;
@@ -53,43 +53,43 @@ public class PersistentUniqueIdentifierServiceTest {
 
 	@Test(expected = RecordExistsException.class)
 	public void testCreateAndRetrieve() {
-		CloudId gId = service.createGlobalId("test", "test");
-		CloudId gIdRet = service.getGlobalId("test", "test");
+		CloudId gId = service.createCloudId("test", "test");
+		CloudId gIdRet = service.getCloudId("test", "test");
 		assertEquals(gId, gIdRet);
-		service.createGlobalId("test", "test");
+		service.createCloudId("test", "test");
 	}
 
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testRecordDoesNotExist() {
-		service.getGlobalId("test2", "test2");
+		service.getCloudId("test2", "test2");
 	}
 
-	@Test(expected = GlobalIdDoesNotExistException.class)
-	public void testGetLocalIdsByGlobalId() {
-		List<LocalId> gid = service.getLocalIdsByGlobalId(Base36.encode("/test11/test11"));
-		CloudId gId = service.createGlobalId("test11", "test11");
-		gid = service.getLocalIdsByGlobalId(gId.getId());
+	@Test(expected = CloudIdDoesNotExistException.class)
+	public void testGetLocalIdsByCloudId() {
+		List<LocalId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
+		CloudId gId = service.createCloudId("test11", "test11");
+		gid = service.getLocalIdsByCloudId(gId.getId());
 		assertEquals(gid.size(), 1);
 	}
 
 	@Test
-	public void testGetGlobalIdsByProvider() {
-		service.createGlobalId("test3", "test3");
-		List<CloudId> cIds = service.getGlobalIdsByProvider("test3", null, 10000);
+	public void testGetCloudIdsByProvider() {
+		service.createCloudId("test3", "test3");
+		List<CloudId> cIds = service.getCloudIdsByProvider("test3", null, 10000);
 		assertEquals(cIds.size(), 1);
-		cIds = service.getGlobalIdsByProvider("test3", "test3", 1);
+		cIds = service.getCloudIdsByProvider("test3", "test3", 1);
 		assertEquals(cIds.size(), 1);
 	}
 
 	// @Test (expected = RecordDatasetEmptyException.class)
-	// public void testGetGlobalIdsByProviderDatasetEmtpy(){
-	// service.createGlobalId("test4", "test4");
-	// service.getGlobalIdsByProvider("test4", "test5", 1);
+	// public void testGetCloudIdsByProviderDatasetEmtpy(){
+	// service.createCloudId("test4", "test4");
+	// service.getCloudIdsByProvider("test4", "test5", 1);
 	// }
 
 	@Test
 	public void testGetLocalIdsByProviderId() {
-		service.createGlobalId("test5", "test5");
+		service.createCloudId("test5", "test5");
 		List<LocalId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
 		assertEquals(cIds.size(), 1);
 		cIds = service.getLocalIdsByProvider("test5", null, 10000);
@@ -100,52 +100,52 @@ public class PersistentUniqueIdentifierServiceTest {
 
 	// @Test (expected = RecordDatasetEmptyException.class)
 	// public void testGetLocalIdsByProviderDatasetEmtpy(){
-	// service.createGlobalId("test6", "test6");
+	// service.createCloudId("test6", "test6");
 	// service.getLocalIdsByProvider("test6", "test7", 1);
 	// }
 
 	@Test(expected = IdHasBeenMappedException.class)
 	public void testCreateIdMapping() {
-		CloudId gid = service.createGlobalId("test12", "test12");
+		CloudId gid = service.createCloudId("test12", "test12");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 	}
 
-	@Test(expected = GlobalIdDoesNotExistException.class)
-	public void testCreateIdMappingGlobalIdDoesNotExist() {
-		service.createGlobalId("test14", "test14");
+	@Test(expected = CloudIdDoesNotExistException.class)
+	public void testCreateIdMappingCloudIdDoesNotExist() {
+		service.createCloudId("test14", "test14");
 		service.createIdMapping("test15", "test16", "test17");
 	}
 
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testRemoveIdMapping() {
-		service.createGlobalId("test16", "test16");
+		service.createCloudId("test16", "test16");
 		service.removeIdMapping("test16", "test16");
-		service.getGlobalId("test16", "test16");
+		service.getCloudId("test16", "test16");
 	}
 
 	// @Test (expected = ProviderDoesNotExistException.class)
 	// public void testRemoveIdMappingProvDoesNotExist(){
-	// service.createGlobalId("test17", "test17");
+	// service.createCloudId("test17", "test17");
 	// service.removeIdMapping("test18", "test18");
 	// }
 	//
 	// @Test (expected = RecordIdDoesNotExistException.class)
 	// public void testRemoveIdMappingRecIdDoesNotExist(){
-	// service.createGlobalId("test19", "test19");
+	// service.createCloudId("test19", "test19");
 	// service.removeIdMapping("test19", "test20");
 	// }
 	//
 	@Test(expected = RecordDoesNotExistException.class)
-	public void testDeleteGlobalId() {
-		CloudId cId = service.createGlobalId("test21", "test21");
-		service.deleteGlobalId(cId.getId());
-		service.getGlobalId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+	public void testDeleteCloudId() {
+		CloudId cId = service.createCloudId("test21", "test21");
+		service.deleteCloudId(cId.getId());
+		service.getCloudId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 	}
 
-	@Test(expected = GlobalIdDoesNotExistException.class)
-	public void testDeleteGlobalIdException() {
-		service.deleteGlobalId("test");
+	@Test(expected = CloudIdDoesNotExistException.class)
+	public void testDeleteCloudIdException() {
+		service.deleteCloudId("test");
 	}
 
 }

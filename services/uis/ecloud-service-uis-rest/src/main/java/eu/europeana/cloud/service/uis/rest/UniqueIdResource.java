@@ -16,7 +16,7 @@ public interface UniqueIdResource {
      * @param recordId
      * @return JSON/XML response with the unique Identifier or Error Message
      */
-    Response createGlobalId(String providerId, String recordId);
+    Response createCloudId(String providerId, String recordId);
 
     /**
      * Invoke the unique Identifier search according to providerId/recordId combo REST call HTTP
@@ -26,15 +26,15 @@ public interface UniqueIdResource {
      * @param recordId
      * @return JSON/XML response with the unique Identifier or Error Message
      */
-    Response getGlobalId(String providerId, String recordId);
+    Response getCloudId(String providerId, String recordId);
 
     /**
      * Invoke the retrieval of providerId/recordId REST call HTTP call: GET
      * 
-     * @param globalId
+     * @param cloudId
      * @return JSON/XML response with the list of local ids organized by provider or Error Message
      */
-    Response getLocalIds(String globalId);
+    Response getLocalIds(String cloudId);
 
     /**
      * Invoke the retrieval of recordId based on a providerId REST call HTTP call: GET
@@ -54,18 +54,18 @@ public interface UniqueIdResource {
      * @param to
      * @return JSON/XML response with the list of unique ids of that provider or Error Message
      */
-    Response getGlobalIdsByProvider(String providerId, String start, int to);
+    Response getCloudIdsByProvider(String providerId, String start, int to);
 
     /**
      * Create the mapping between an existing unique identifier and a providerId/recordId combo HTTP
      * call: GET
      * 
-     * @param globalId
+     * @param cloudId
      * @param providerId
      * @param recordId
      * @return JSON/XML acknowledgement or Error Message
      */
-    Response createIdMapping(String globalId, String providerId, String recordId);
+    Response createIdMapping(String cloudId, String providerId, String recordId);
 
     /**
      * Remove the mapping between a providerId/recordId and a unique identifier HTTP call: DELETE
@@ -79,10 +79,10 @@ public interface UniqueIdResource {
     /**
      * Remove the unique identifier and all of its mappings HTTP call: DELETE
      * 
-     * @param globalId
+     * @param cloudId
      * @return JSON/XML acknowledgement or Error Message
      */
-    Response deleteGlobalId(String globalId);
+    Response deleteCloudId(String cloudId);
     
     /**
      * Invoke the unique identifier creation REST call HTTP call: GET
@@ -90,5 +90,5 @@ public interface UniqueIdResource {
      * @param providerId
      * @return JSON/XML response with the unique Identifier or Error Message
      */
-	Response createGlobalId(String providerId);
+	Response createCloudId(String providerId);
 }

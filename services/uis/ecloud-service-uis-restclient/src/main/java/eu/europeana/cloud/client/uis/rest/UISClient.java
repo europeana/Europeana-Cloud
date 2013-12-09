@@ -1,6 +1,5 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -75,9 +74,9 @@ public class UISClient {
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
 	public CloudId getCloudId(String providerId, String recordId) throws CloudException {
-		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALID.getUrl()))
-				.queryParam(RelativeUrls.GETGLOBALID.getParamNames().get(0), providerId)
-				.queryParam(RelativeUrls.GETGLOBALID.getParamNames().get(1), recordId).request().get();
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETCLOUDID.getUrl()))
+				.queryParam(RelativeUrls.GETCLOUDID.getParamNames().get(0), providerId)
+				.queryParam(RelativeUrls.GETCLOUDID.getParamNames().get(1), recordId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
@@ -132,8 +131,8 @@ public class UISClient {
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
 	public List<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
-		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALIDSBYPROVIDER.getUrl()))
-				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
+				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			CloudIdList cloudIds = resp.readEntity(CloudIdList.class);
@@ -178,10 +177,10 @@ public class UISClient {
 	 */
 	public List<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
 			throws CloudException {
-		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETGLOBALIDSBYPROVIDER.getUrl()))
-				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(0), providerId)
-				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(1), cloudId)
-				.queryParam(RelativeUrls.GETGLOBALIDSBYPROVIDER.getParamNames().get(2), window).request().get();
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
+				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(0), providerId)
+				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(1), cloudId)
+				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(2), window).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			CloudIdList cloudIds = resp.readEntity(CloudIdList.class);
@@ -240,7 +239,7 @@ public class UISClient {
 	 * @throws CloudException The generic cloud exception wrapper
 	 */
 	public boolean deleteCloudId(String cloudId) throws CloudException {
-		Response resp = client.target(urlProvider.createUrl(RelativeUrls.DELETEGLOBALID.getUrl()))
+		Response resp = client.target(urlProvider.createUrl(RelativeUrls.DELETECLOUDID.getUrl()))
 				.queryParam(RelativeUrls.REMOVEMAPPINGBYLOCALID.getParamNames().get(0), cloudId).request().delete();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;

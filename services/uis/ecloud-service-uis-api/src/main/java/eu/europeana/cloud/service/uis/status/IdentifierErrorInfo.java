@@ -81,11 +81,11 @@ public enum IdentifierErrorInfo {
     /**
      * The supplied unique identifier does not exist - HTTP code: 404
      */
-    GLOBALID_DOES_NOT_EXIST {
+    CLOUDID_DOES_NOT_EXIST {
         @Override
         public ErrorInfo getErrorInfo(String... args) {
-            return new ErrorInfo("GLOBALID_DOES_NOT_EXIST", String.format(
-                    "The supplied global identifier %s does not exist", args[0]));
+            return new ErrorInfo("CLOUDID_DOES_NOT_EXIST", String.format(
+                    "The supplied cloud identifier %s does not exist", args[0]));
         }
         @Override
         public Status getHttpCode() {
@@ -152,7 +152,7 @@ public enum IdentifierErrorInfo {
             return new ErrorInfo(
                     "ID_HAS_BEEN_MAPPED",
                     String.format(
-                            "The supplied %s id for provider %s has already been assigned to the global identifier %s",
+                            "The supplied %s id for provider %s has already been assigned to the cloud identifier %s",
                             args[0], args[1], args[2]));
         }
         @Override

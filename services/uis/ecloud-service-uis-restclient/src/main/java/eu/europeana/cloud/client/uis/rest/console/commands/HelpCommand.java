@@ -10,6 +10,8 @@ public class HelpCommand extends Command {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Supported operations are:\n");
 		sb.append("createCloudId\t\t\tproviderId [recordId]: Create a new cloud id\n");
+		sb.append("createBatchCloudId\t\t\tfile: Create batch cloud ids from a file. The file should provider a line per provider and record id spaced delimited\n");
+		sb.append("createBatchCloudIdWithGeneration\t\t\tproviderId # of CloudIds: Create batch cloud ids for a provider.\n");
 		sb.append("createMapping\t\t\tcloudId providerId recordId: Create a mapping between a cloudId and a record Id\n");
 		sb.append("deleteCloudId\t\t\tcloudId: Delete a cloudId\n");
 		sb.append("getCloudId\t\t\tproviderId recordId: Retrieve a cloudId from a recordId\n");

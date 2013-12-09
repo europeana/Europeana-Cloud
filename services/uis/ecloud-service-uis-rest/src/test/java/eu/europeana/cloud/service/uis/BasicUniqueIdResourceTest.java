@@ -25,7 +25,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
@@ -68,15 +68,15 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * Test to create a global Id
+	 * Test to create a cloud Id
 	 */
 	@Test
-	public void testCreateGlobalId() {
+	public void testCreateCloudId() {
 
-		CloudId originalGid = createGlobalId(providerId, recordId);
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenReturn(originalGid);
+		CloudId originalGid = createCloudId(providerId, recordId);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
 		// Create a single object test
-		Response response = target("/uniqueId/createRecordId").queryParam(providerId, providerId)
+		Response response = target("/uniqueId/createCloudIdLocal").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(response.getStatus(), is(200));
 		CloudId retrieveCreate = response.readEntity(CloudId.class);
@@ -90,12 +90,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the database exception
 	 */
 	@Test
-	public void testCreateGlobalIdDbException() {
+	public void testCreateCloudIdDbException() {
 		Throwable databaseException = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenThrow(databaseException);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(databaseException);
 
-		Response resp = target("/uniqueId/createRecordId").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/createCloudIdLocal").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -110,15 +110,15 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * Test the a global id already exists for the record id
+	 * Test the a cloud id already exists for the record id
 	 */
 	@Test
-	public void testCreateGlobalIdRecordExistsException() {
+	public void testCreateCloudIdRecordExistsException() {
 		Throwable exception = new RecordExistsException();
 
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenThrow(exception);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/createRecordId").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/createCloudIdLocal").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(409));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -132,11 +132,11 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the retrieval of a cloud id
 	 */
 	@Test
-	public void testGetGlobalId() {
-		CloudId originalGid = createGlobalId(providerId, recordId);
-		when(uniqueIdentifierService.getGlobalId(providerId, recordId)).thenReturn(originalGid);
+	public void testGetCloudId() {
+		CloudId originalGid = createCloudId(providerId, recordId);
+		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenReturn(originalGid);
 		// Retrieve the single object by provider and recordId
-		Response response = target("/uniqueId/getGlobalId").queryParam(providerId, providerId)
+		Response response = target("/uniqueId/getCloudId").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request().get();
 
 		assertThat(response.getStatus(), is(200));
@@ -150,12 +150,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the database exception
 	 */
 	@Test
-	public void testGetGlobalIdDBException() {
+	public void testGetCloudIdDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.getGlobalId(providerId, recordId)).thenThrow(exception);
+		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getGlobalId").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getCloudId").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -173,12 +173,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the exception that a gloabl id does not exist for this record id
 	 */
 	@Test
-	public void testGetGlobalIdRecordDoesNotExistException() {
+	public void testGetCloudIdRecordDoesNotExistException() {
 		Throwable exception = new RecordDoesNotExistException();
 
-		when(uniqueIdentifierService.getGlobalId(providerId, recordId)).thenThrow(exception);
+		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getGlobalId").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getCloudId").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -189,17 +189,17 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * Test the retrieval of local ids by a global id
+	 * Test the retrieval of local ids by a cloud id
 	 */
 	@Test
 	public void testGetLocalIds() {
 		LocalIdList lidListWrapper = new LocalIdList();
 		List<LocalId> localIdList = new ArrayList<>();
 		localIdList.add(createLocalId(providerId, recordId));
-		String globalId = createGlobalId(providerId, recordId).getId();
+		String cloudId = createCloudId(providerId, recordId).getId();
 		lidListWrapper.setList(localIdList);
-		when(uniqueIdentifierService.getLocalIdsByGlobalId(globalId)).thenReturn(localIdList);
-		Response response = target("/uniqueId/getLocalIds").queryParam("globalId", globalId).request().get();
+		when(uniqueIdentifierService.getLocalIdsByCloudId(cloudId)).thenReturn(localIdList);
+		Response response = target("/uniqueId/getLocalIds").queryParam("cloudId", cloudId).request().get();
 		assertThat(response.getStatus(), is(200));
 		LocalIdList retList = response.readEntity(LocalIdList.class);
 		assertThat(retList.getList().size(), is(lidListWrapper.getList().size()));
@@ -214,9 +214,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testGetLocalIdsDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.getLocalIdsByGlobalId("globalId")).thenThrow(exception);
+		when(uniqueIdentifierService.getLocalIdsByCloudId("cloudId")).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getLocalIds").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/getLocalIds").queryParam("cloudId", "cloudId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -231,21 +231,21 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * Test that a global id does not exist
+	 * Test that a cloud id does not exist
 	 */
 	@Test
-	public void testGetLocalIdsGlobalIdDoesNotExistException() {
-		Throwable exception = new GlobalIdDoesNotExistException();
+	public void testGetLocalIdsCloudIdDoesNotExistException() {
+		Throwable exception = new CloudIdDoesNotExistException();
 
-		when(uniqueIdentifierService.getLocalIdsByGlobalId("globalId")).thenThrow(exception);
+		when(uniqueIdentifierService.getLocalIdsByCloudId("cloudId")).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getLocalIds").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/getLocalIds").queryParam("cloudId", "cloudId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
-				IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId").getErrorCode());
-		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId")
+				IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")
 				.getDetails());
 	}
 
@@ -314,21 +314,21 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * The the retrieval of cloud ids based on a provider
 	 */
 	@Test
-	public void testGetGlobalIdsByProvider() {
-		CloudIdList globalIdListWrapper = new CloudIdList();
-		List<CloudId> globalIdList = new ArrayList<>();
-		globalIdList.add(createGlobalId(providerId, recordId));
-		globalIdListWrapper.setList(globalIdList);
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenReturn(globalIdList);
-		Response response = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
+	public void testGetCloudIdsByProvider() {
+		CloudIdList cloudIdListWrapper = new CloudIdList();
+		List<CloudId> cloudIdList = new ArrayList<>();
+		cloudIdList.add(createCloudId(providerId, recordId));
+		cloudIdListWrapper.setList(cloudIdList);
+		when(uniqueIdentifierService.getCloudIdsByProvider(providerId, recordId, 10000)).thenReturn(cloudIdList);
+		Response response = target("/uniqueId/getCloudIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request().get();
 		assertThat(response.getStatus(), is(200));
 		CloudIdList retList = response.readEntity(CloudIdList.class);
-		assertThat(retList.getList().size(), is(globalIdListWrapper.getList().size()));
-		assertEquals(retList.getList().get(0).getId(), globalIdListWrapper.getList().get(0).getId());
-		assertEquals(retList.getList().get(0).getLocalId().getProviderId(), globalIdListWrapper.getList().get(0)
+		assertThat(retList.getList().size(), is(cloudIdListWrapper.getList().size()));
+		assertEquals(retList.getList().get(0).getId(), cloudIdListWrapper.getList().get(0).getId());
+		assertEquals(retList.getList().get(0).getLocalId().getProviderId(), cloudIdListWrapper.getList().get(0)
 				.getLocalId().getProviderId());
-		assertEquals(retList.getList().get(0).getLocalId().getRecordId(), globalIdListWrapper.getList().get(0)
+		assertEquals(retList.getList().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getList().get(0)
 				.getLocalId().getRecordId());
 	}
 
@@ -336,12 +336,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the database exception
 	 */
 	@Test
-	public void testGetGlobalIdsByProviderDBException() {
+	public void testGetCloudIdsByProviderDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getCloudIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getCloudIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -359,12 +359,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the exception of cloud ids when a provider does not exist
 	 */
 	@Test
-	public void testGetGlobalIdsByProviderProviderDoesNotExistException() {
+	public void testGetCloudIdsByProviderProviderDoesNotExistException() {
 		Throwable exception = new ProviderDoesNotExistException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getCloudIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getCloudIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -378,12 +378,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the retrieval of an empty dataset based on provider search
 	 */
 	@Test
-	public void testGetGlobalIdsByProviderRecordDatasetEmptyException() {
+	public void testGetCloudIdsByProviderRecordDatasetEmptyException() {
 		Throwable exception = new RecordDatasetEmptyException();
 
-		when(uniqueIdentifierService.getGlobalIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
+		when(uniqueIdentifierService.getCloudIdsByProvider(providerId, recordId, 10000)).thenThrow(exception);
 
-		Response resp = target("/uniqueId/getGlobalIdsByProvider").queryParam(providerId, providerId)
+		Response resp = target("/uniqueId/getCloudIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -398,12 +398,12 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 */
 	@Test
 	public void testCreateMapping() {
-		CloudId gid = createGlobalId(providerId, recordId);
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenReturn(gid);
+		CloudId gid = createCloudId(providerId, recordId);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(gid);
 		// Create a single object test
 		target("/uniqueId/createRecordId").queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
-		Response res = target("/uniqueId/createMapping").queryParam("globalId", gid.getId())
+		Response res = target("/uniqueId/createMapping").queryParam("cloudId", gid.getId())
 				.queryParam(providerId, providerId + "1").queryParam(recordId, recordId + "1").request().get();
 		assertThat(res.getStatus(), is(200));
 	}
@@ -415,9 +415,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testCreateMappingDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		doThrow(exception).when(uniqueIdentifierService).createIdMapping("globalId", providerId, recordId);
+		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", providerId, recordId);
 
-		Response resp = target("/uniqueId/createMapping").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/createMapping").queryParam("cloudId", "cloudId")
 				.queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
@@ -436,19 +436,19 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the exception of a a missing cloud id between the mapping of a cloud id and a record id
 	 */
 	@Test
-	public void testCreateMappingGlobalIdException() {
-		Throwable exception = new GlobalIdDoesNotExistException();
+	public void testCreateMappingCloudIdException() {
+		Throwable exception = new CloudIdDoesNotExistException();
 
-		doThrow(exception).when(uniqueIdentifierService).createIdMapping("globalId", providerId, recordId);
+		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", providerId, recordId);
 
-		Response resp = target("/uniqueId/createMapping").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/createMapping").queryParam("cloudId", "cloudId")
 				.queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
-				IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId").getErrorCode());
-		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId")
+				IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")
 				.getDetails());
 	}
 
@@ -459,17 +459,17 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testCreateMappingIdHasBeenMmapped() {
 		Throwable exception = new IdHasBeenMappedException();
 
-		doThrow(exception).when(uniqueIdentifierService).createIdMapping("globalId", providerId, recordId);
+		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", providerId, recordId);
 
-		Response resp = target("/uniqueId/createMapping").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/createMapping").queryParam("cloudId", "cloudId")
 				.queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(409));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
-				IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getErrorInfo(recordId, providerId, "globalId").getErrorCode());
+				IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getErrorInfo(recordId, providerId, "cloudId").getErrorCode());
 		StringUtils.equals(errorInfo.getDetails(),
-				IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getErrorInfo(recordId, providerId, "globalId").getDetails());
+				IdentifierErrorInfo.ID_HAS_BEEN_MAPPED.getErrorInfo(recordId, providerId, "cloudId").getDetails());
 	}
 
 	/**
@@ -477,8 +477,8 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 */
 	@Test
 	public void testRemoveMapping() {
-		CloudId gid = createGlobalId(providerId, recordId);
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenReturn(gid);
+		CloudId gid = createCloudId(providerId, recordId);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(gid);
 		target("/uniqueId/createRecordId").queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		Response res = target("/uniqueId/removeMappingByLocalId").queryParam(providerId, providerId)
@@ -553,11 +553,11 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 */
 	@Test
 	public void testDeleteCloudId() {
-		CloudId gid = createGlobalId(providerId, recordId);
-		when(uniqueIdentifierService.createGlobalId(providerId, recordId)).thenReturn(gid);
+		CloudId gid = createCloudId(providerId, recordId);
+		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(gid);
 		target("/uniqueId/createRecordId").queryParam(providerId, providerId).queryParam(recordId, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
-		Response res = target("/uniqueId/deleteGlobalId").queryParam(providerId, providerId)
+		Response res = target("/uniqueId/deleteCloudId").queryParam(providerId, providerId)
 				.queryParam(recordId, recordId).request().delete();
 		assertThat(res.getStatus(), is(200));
 	}
@@ -569,9 +569,9 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testDeleteCloudIdDBException() {
 		Throwable exception = new DatabaseConnectionException();
 
-		doThrow(exception).when(uniqueIdentifierService).deleteGlobalId("globalId");
+		doThrow(exception).when(uniqueIdentifierService).deleteCloudId("cloudId");
 
-		Response resp = target("/uniqueId/deleteGlobalId").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/deleteCloudId").queryParam("cloudId", "cloudId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -589,18 +589,18 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the exception of the removal of a cloud id when a cloud id does not exist
 	 */
 	@Test
-	public void testDeleteCloudIdGlobalIdDoesNotExistException() {
-		Throwable exception = new GlobalIdDoesNotExistException();
+	public void testDeleteCloudIdCloudIdDoesNotExistException() {
+		Throwable exception = new CloudIdDoesNotExistException();
 
-		doThrow(exception).when(uniqueIdentifierService).deleteGlobalId("globalId");
+		doThrow(exception).when(uniqueIdentifierService).deleteCloudId("cloudId");
 
-		Response resp = target("/uniqueId/deleteGlobalId").queryParam("globalId", "globalId")
+		Response resp = target("/uniqueId/deleteCloudId").queryParam("cloudId", "cloudId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).delete();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
-				IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId").getErrorCode());
-		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.GLOBALID_DOES_NOT_EXIST.getErrorInfo("globalId")
+				IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
+		StringUtils.equals(errorInfo.getDetails(), IdentifierErrorInfo.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")
 				.getDetails());
 	}
 
@@ -611,10 +611,10 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		return localId;
 	}
 
-	private static CloudId createGlobalId(String providerId, String recordId) {
-		CloudId globalId = new CloudId();
-		globalId.setLocalId(createLocalId(providerId, recordId));
-		globalId.setId(Base36.encode("/" + providerId + "/" + recordId));
-		return globalId;
+	private static CloudId createCloudId(String providerId, String recordId) {
+		CloudId cloudId = new CloudId();
+		cloudId.setLocalId(createLocalId(providerId, recordId));
+		cloudId.setId(Base36.encode("/" + providerId + "/" + recordId));
+		return cloudId;
 	}
 }

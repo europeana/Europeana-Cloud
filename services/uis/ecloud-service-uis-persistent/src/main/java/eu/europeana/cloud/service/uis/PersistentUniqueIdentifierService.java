@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.uis;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
@@ -50,7 +49,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public CloudId createGlobalId(String ... recordInfo) throws DatabaseConnectionException,
+	public CloudId createCloudId(String ... recordInfo) throws DatabaseConnectionException,
 			RecordExistsException, ProviderDoesNotExistException {
 		String providerId = recordInfo[0];
 //		if(!proxy.checkProvider(providerId)){
@@ -73,7 +72,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public CloudId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+	public CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordDoesNotExistException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.size() == 0) {
@@ -83,11 +82,11 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByGlobalId(String globalId) throws DatabaseConnectionException,
-			GlobalIdDoesNotExistException {
+	public List<LocalId> getLocalIdsByCloudId(String globalId) throws DatabaseConnectionException,
+			CloudIdDoesNotExistException {
 		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
 		if (cloudIds.size() == 0) {
-			throw new GlobalIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException();
 		}
 		List<LocalId> localIds = new ArrayList<>();
 		for (CloudId cloudId : cloudIds) {
@@ -121,7 +120,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
+	public List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 
 //		if(!proxy.checkProvider(providerId)){
@@ -136,7 +135,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public void createIdMapping(String globalId, String providerId, String recordId)
-			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
+			throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
 //		if(!proxy.checkProvider(providerId)){
 //			throw new ProviderDoesNotExistException();
 //		}
@@ -146,7 +145,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 		}
 		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
 		if (cloudIds.size() == 0) {
-			throw new GlobalIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException();
 		}
 
 		localIdDao.insert(providerId, recordId, globalId);
@@ -164,10 +163,10 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 	}
 
 	@Override
-	public void deleteGlobalId(String globalId) throws DatabaseConnectionException, GlobalIdDoesNotExistException {
+	public void deleteCloudId(String globalId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 
 		if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
-			throw new GlobalIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException();
 		}
 		List<CloudId> localIds = cloudIdDao.searchAll(globalId);
 		for (CloudId cId : localIds) {

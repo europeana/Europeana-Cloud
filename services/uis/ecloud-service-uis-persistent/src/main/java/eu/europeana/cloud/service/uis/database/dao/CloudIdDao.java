@@ -12,7 +12,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 
@@ -52,7 +52,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 			PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
 			ResultSet rs = dbService.getSession().execute(statement.bind(args[0]));
 			if (!rs.iterator().hasNext()) {
-				throw new GlobalIdDoesNotExistException();
+				throw new CloudIdDoesNotExistException();
 			}
 			while (!rs.isFullyFetched()&&!rs.isExhausted()) {
 				rs.fetchMoreResults();

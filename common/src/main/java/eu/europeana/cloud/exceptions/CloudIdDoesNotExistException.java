@@ -5,7 +5,7 @@ package eu.europeana.cloud.exceptions;
  * @author Yorgos.Mamakis@ kb.nl
  *
  */
-public class GlobalIdDoesNotExistException extends RuntimeException {
+public class CloudIdDoesNotExistException extends RuntimeException {
 
 	/**
 	 * 

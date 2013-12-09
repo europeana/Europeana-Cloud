@@ -7,6 +7,8 @@ import java.util.Scanner;
 import javax.naming.directory.InvalidAttributesException;
 
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchCommand;
+import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchWithGenerationCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateMappingCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.DeleteCloudIdCommand;
@@ -90,6 +92,8 @@ public class App implements Runnable {
 				put("getRecordIdsByProvider", new GetRecordIdsByProviderCommand());
 				put("getRecordIdsByProviderWithPagination", new GetRecordIdsByProviderWithPaginationCommand());
 				put("getRecordIds", new GetRecordIdsCommand());
+				put("createBatchCloudId",new CreateCloudIdBatchCommand());
+				put("createBatchCloudWithGeneration", new CreateCloudIdBatchWithGenerationCommand());
 				put("removeMappingByLocalId", new RemoveMappingByLocalIdCommand());
 				put("testOneProviderRW", new TestReadWriteOneProviderCommand());
 				put("testManyProvidersRW", new TestReadWriteManyProvidersCommand());

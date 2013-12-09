@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.exceptions.DatabaseConnectionException;
-import eu.europeana.cloud.exceptions.GlobalIdDoesNotExistException;
+import eu.europeana.cloud.exceptions.CloudIdDoesNotExistException;
 import eu.europeana.cloud.exceptions.IdHasBeenMappedException;
 import eu.europeana.cloud.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.exceptions.RecordDatasetEmptyException;
@@ -33,20 +33,20 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	private InMemoryLocalIdDao localIdDao = new InMemoryLocalIdDao();
 
 	@Override
-	public CloudId createGlobalId(String ... recordInfo) throws DatabaseConnectionException,
+	public CloudId createCloudId(String ... recordInfo) throws DatabaseConnectionException,
 			RecordExistsException {
 		String providerId = recordInfo[0];
 		String recordId = recordInfo.length>1?recordInfo[1]: Base36.timeEncode(providerId);
-		String globalId = Base36.encode(String.format("/%s/%s", providerId, recordId));
+		String cloudId = Base36.encode(String.format("/%s/%s", providerId, recordId));
 		if (localIdDao.searchActive(providerId, recordId).size() > 0) {
 			throw new RecordExistsException();
 		}
-		localIdDao.insert(globalId, providerId, recordId);
-		return cloudIdDao.insert(globalId, providerId, recordId).get(0);
+		localIdDao.insert(cloudId, providerId, recordId);
+		return cloudIdDao.insert(cloudId, providerId, recordId).get(0);
 	}
 
 	@Override
-	public CloudId getGlobalId(String providerId, String recordId) throws DatabaseConnectionException,
+	public CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordDoesNotExistException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.size() == 0) {
@@ -56,17 +56,17 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByGlobalId(String globalId) throws DatabaseConnectionException,
-			GlobalIdDoesNotExistException {
-		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+	public List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
+			CloudIdDoesNotExistException {
+		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
-			throw new GlobalIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException();
 		}
 		List<LocalId> localIds = new ArrayList<>();
-		for (CloudId cloudId : cloudIds) {
-			if (localIdDao.searchActive(cloudId.getLocalId().getProviderId(), cloudId.getLocalId().getRecordId())
+		for (CloudId cId : cloudIds) {
+			if (localIdDao.searchActive(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId())
 					.size() > 0) {
-				localIds.add(cloudId.getLocalId());
+				localIds.add(cId.getLocalId());
 			}
 		}
 		return localIds;
@@ -89,7 +89,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public List<CloudId> getGlobalIdsByProvider(String providerId, String start, int end)
+	public List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds;
 
@@ -106,19 +106,19 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public void createIdMapping(String globalId, String providerId, String recordId)
-			throws DatabaseConnectionException, GlobalIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
+	public void createIdMapping(String cloudId, String providerId, String recordId)
+			throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (localIds.size() != 0) {
 			throw new IdHasBeenMappedException();
 		}
-		List<CloudId> cloudIds = cloudIdDao.searchActive(globalId);
+		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
-			throw new GlobalIdDoesNotExistException();
+			throw new CloudIdDoesNotExistException();
 		}
 
-		localIdDao.insert(globalId, providerId, recordId);
-		cloudIdDao.insert(globalId, providerId, recordId);
+		localIdDao.insert(cloudId, providerId, recordId);
+		cloudIdDao.insert(cloudId, providerId, recordId);
 	}
 
 	@Override
@@ -130,14 +130,14 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public void deleteGlobalId(String globalId) throws DatabaseConnectionException, GlobalIdDoesNotExistException {
-		if (!(cloudIdDao.searchActive(globalId).size() > 0)) {
-			throw new GlobalIdDoesNotExistException();
+	public void deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
+		if (!(cloudIdDao.searchActive(cloudId).size() > 0)) {
+			throw new CloudIdDoesNotExistException();
 		}
-		List<CloudId> localIds = cloudIdDao.searchActive(globalId);
+		List<CloudId> localIds = cloudIdDao.searchActive(cloudId);
 		for (CloudId cId : localIds) {
 			localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-			cloudIdDao.delete(globalId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
+			cloudIdDao.delete(cloudId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 		}
 	}
 

@@ -49,7 +49,7 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "createCloudIdNoLocal";
 		}
-	},	GETGLOBALID {
+	},	GETCLOUDID {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -77,7 +77,7 @@ public enum RelativeUrls {
 				private static final long serialVersionUID = 3452383847573071930L;
 
 			{
-				add(GLOBAL_ID);
+				add(CLOUD_ID);
 			}
 			};
 		}
@@ -106,7 +106,7 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "getLocalIdsByProvider";
 		}
-	}, GETGLOBALIDSBYPROVIDER {
+	}, GETCLOUDIDSBYPROVIDER {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -116,7 +116,7 @@ public enum RelativeUrls {
 
 			{
 				add(PROVIDER_ID);
-				add(GLOBAL_ID);
+				add(CLOUD_ID);
 				add(TO);
 			}
 			};
@@ -135,7 +135,7 @@ public enum RelativeUrls {
 				private static final long serialVersionUID = 501580880647046185L;
 
 			{
-				add(GLOBAL_ID);
+				add(CLOUD_ID);
 				add(PROVIDER_ID);
 				add(RECORD_ID);
 			}
@@ -165,7 +165,7 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "removeMappingByLocalId";
 		}
-	}, DELETEGLOBALID {
+	}, DELETECLOUDID {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -174,7 +174,7 @@ public enum RelativeUrls {
 				private static final long serialVersionUID = 7715313142197545810L;
 
 			{
-				add(GLOBAL_ID);
+				add(CLOUD_ID);
 			}
 			};
 		}
@@ -187,7 +187,7 @@ public enum RelativeUrls {
 
 	private static final String PROVIDER_ID="providerId";
 	private static final String RECORD_ID="recordId";
-	private static final String GLOBAL_ID="cloudId";
+	private static final String CLOUD_ID="cloudId";
 	private static final String TO = "to";
 	
 	/**
