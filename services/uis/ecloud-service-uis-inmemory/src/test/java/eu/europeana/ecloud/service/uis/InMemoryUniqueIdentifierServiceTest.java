@@ -40,7 +40,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test the creation and retrieval of an object and the exception that a record exists
 	 */
 	@Test (expected = RecordExistsException.class)
-	public void testCreateAndRetrieve(){
+	public void testCreateAndRetrieve()throws Exception{
 		CloudId gId = service.createCloudId("test", "test");
 		CloudId gIdRet = service.getCloudId("test", "test");
 		assertEquals(gId,gIdRet);
@@ -52,7 +52,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test that a record does not exist
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
-	public void testRecordDoesNotExist(){
+	public void testRecordDoesNotExist()throws Exception{
 		service.getCloudId("test2", "test2");
 		service.reset();
 	}
@@ -61,7 +61,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test CloudId retrieval and exception if it does not exist
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
-	public void testGetLocalIdsByCloudId(){
+	public void testGetLocalIdsByCloudId()throws Exception{
 		List<LocalId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
 		CloudId gId = service.createCloudId("test11", "test11");
 		gid = service.getLocalIdsByCloudId(gId.getId());
@@ -73,7 +73,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test retrieval by a provider id and exception if it does not exist
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
-	public void testGetCloudIdsByProvider(){
+	public void testGetCloudIdsByProvider()throws Exception{
 		service.createCloudId("test3", "test3");
 		List<CloudId> cIds = service.getCloudIdsByProvider("test3", "test3", 1);
 		assertEquals(cIds.size(),1);
@@ -88,7 +88,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test if a dataset is empty
 	 */
 	@Test (expected = RecordDatasetEmptyException.class)
-	public void testGetCloudIdsByProviderDatasetEmtpy(){
+	public void testGetCloudIdsByProviderDatasetEmtpy()throws Exception{
 		service.createCloudId("test4", "test4");
 		service.getCloudIdsByProvider("test4", "test5", 1);
 		service.reset();
@@ -98,7 +98,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test localId retrieval and exception if the database does not exist
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
-	public void testGetLocalIdsByProviderId(){
+	public void testGetLocalIdsByProviderId()throws Exception{
 		service.createCloudId("test5", "test5");
 		List<LocalId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
 		assertEquals(cIds.size(),1);
@@ -112,7 +112,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test if a dataset is empty
 	 */
 	@Test (expected = RecordDatasetEmptyException.class)
-	public void testGetLocalIdsByProviderDatasetEmtpy(){
+	public void testGetLocalIdsByProviderDatasetEmtpy()throws Exception{
 		service.createCloudId("test6", "test6");
 		service.getLocalIdsByProvider("test6", "test7", 1);
 		service.reset();
@@ -122,7 +122,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test Create mapping and exception if the record Id is already mapped
 	 */
 	@Test (expected = IdHasBeenMappedException.class)
-	public void testCreateIdMapping(){
+	public void testCreateIdMapping()throws Exception{
 		CloudId gid = service.createCloudId("test12", "test12");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 		service.createIdMapping(gid.getId(), "test12", "test13");
@@ -133,7 +133,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test create mapping if the cloud Id does not exist
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
-	public void testCreateIdMappingCloudIdDoesNotExist(){
+	public void testCreateIdMappingCloudIdDoesNotExist() throws Exception{
 		service.createCloudId("test14", "test14");
 		service.createIdMapping("test15", "test16", "test17");
 		service.reset();
@@ -143,7 +143,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test mapping removal
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
-	public void testRemoveIdMapping(){
+	public void testRemoveIdMapping()throws Exception{
 		service.createCloudId("test16", "test16");
 		service.removeIdMapping("test16", "test16");
 		service.getCloudId("test16", "test16");
@@ -154,7 +154,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test mapping removal provider does not exist
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
-	public void testRemoveIdMappingProvDoesNotExist(){
+	public void testRemoveIdMappingProvDoesNotExist()throws Exception{
 		service.createCloudId("test17", "test17");
 		service.removeIdMapping("test18", "test18");
 		service.reset();
@@ -164,7 +164,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test mapping removal record does not exist
 	 */
 	@Test (expected = RecordIdDoesNotExistException.class)
-	public void testRemoveIdMappingRecIdDoesNotExist(){
+	public void testRemoveIdMappingRecIdDoesNotExist()throws Exception{
 		service.createCloudId("test19", "test19");
 		service.removeIdMapping("test19", "test20");
 		service.reset();
@@ -174,7 +174,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test cloud id deletion
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
-	public void testDeleteCloudId(){
+	public void testDeleteCloudId()throws Exception{
 		CloudId cId = service.createCloudId("test21", "test21");
 		service.deleteCloudId(cId.getId());
 		service.getCloudId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
@@ -185,7 +185,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 * Test cloud id deletion exception
 	 */
 	@Test (expected = CloudIdDoesNotExistException.class)
-	public void testDeleteCloudIdException(){
+	public void testDeleteCloudIdException()throws Exception{
 		service.deleteCloudId("test");
 		service.reset();
 	}

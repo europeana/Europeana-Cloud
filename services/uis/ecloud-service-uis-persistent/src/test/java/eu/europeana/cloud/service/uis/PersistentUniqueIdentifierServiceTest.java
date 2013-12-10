@@ -52,7 +52,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	}
 
 	@Test(expected = RecordExistsException.class)
-	public void testCreateAndRetrieve() {
+	public void testCreateAndRetrieve() throws Exception{
 		CloudId gId = service.createCloudId("test", "test");
 		CloudId gIdRet = service.getCloudId("test", "test");
 		assertEquals(gId, gIdRet);
@@ -60,12 +60,12 @@ public class PersistentUniqueIdentifierServiceTest {
 	}
 
 	@Test(expected = RecordDoesNotExistException.class)
-	public void testRecordDoesNotExist() {
+	public void testRecordDoesNotExist() throws Exception{
 		service.getCloudId("test2", "test2");
 	}
 
 	@Test(expected = CloudIdDoesNotExistException.class)
-	public void testGetLocalIdsByCloudId() {
+	public void testGetLocalIdsByCloudId() throws Exception{
 		List<LocalId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
 		CloudId gId = service.createCloudId("test11", "test11");
 		gid = service.getLocalIdsByCloudId(gId.getId());
@@ -73,7 +73,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	}
 
 	@Test
-	public void testGetCloudIdsByProvider() {
+	public void testGetCloudIdsByProvider()throws Exception {
 		service.createCloudId("test3", "test3");
 		List<CloudId> cIds = service.getCloudIdsByProvider("test3", null, 10000);
 		assertEquals(cIds.size(), 1);
@@ -88,7 +88,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	// }
 
 	@Test
-	public void testGetLocalIdsByProviderId() {
+	public void testGetLocalIdsByProviderId() throws Exception{
 		service.createCloudId("test5", "test5");
 		List<LocalId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
 		assertEquals(cIds.size(), 1);
@@ -105,20 +105,20 @@ public class PersistentUniqueIdentifierServiceTest {
 	// }
 
 	@Test(expected = IdHasBeenMappedException.class)
-	public void testCreateIdMapping() {
+	public void testCreateIdMapping()throws Exception {
 		CloudId gid = service.createCloudId("test12", "test12");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 	}
 
 	@Test(expected = CloudIdDoesNotExistException.class)
-	public void testCreateIdMappingCloudIdDoesNotExist() {
+	public void testCreateIdMappingCloudIdDoesNotExist()throws Exception {
 		service.createCloudId("test14", "test14");
 		service.createIdMapping("test15", "test16", "test17");
 	}
 
 	@Test(expected = RecordDoesNotExistException.class)
-	public void testRemoveIdMapping() {
+	public void testRemoveIdMapping() throws Exception{
 		service.createCloudId("test16", "test16");
 		service.removeIdMapping("test16", "test16");
 		service.getCloudId("test16", "test16");
@@ -137,14 +137,14 @@ public class PersistentUniqueIdentifierServiceTest {
 	// }
 	//
 	@Test(expected = RecordDoesNotExistException.class)
-	public void testDeleteCloudId() {
+	public void testDeleteCloudId() throws Exception{
 		CloudId cId = service.createCloudId("test21", "test21");
 		service.deleteCloudId(cId.getId());
 		service.getCloudId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 	}
 
 	@Test(expected = CloudIdDoesNotExistException.class)
-	public void testDeleteCloudIdException() {
+	public void testDeleteCloudIdException()throws Exception {
 		service.deleteCloudId("test");
 	}
 

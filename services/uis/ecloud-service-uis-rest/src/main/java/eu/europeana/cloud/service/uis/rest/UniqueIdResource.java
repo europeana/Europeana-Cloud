@@ -26,8 +26,11 @@ public interface UniqueIdResource {
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordExistsException 
      * @throws DatabaseConnectionException 
+     * @throws CloudIdDoesNotExistException 
+     * @throws RecordDatasetEmptyException 
+     * @throws ProviderDoesNotExistException 
      */
-    Response createCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordExistsException;
+    Response createCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException;
 
     /**
      * Invoke the unique Identifier search according to providerId/recordId combo REST call HTTP
@@ -38,8 +41,10 @@ public interface UniqueIdResource {
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordDoesNotExistException 
      * @throws DatabaseConnectionException 
+     * @throws RecordDatasetEmptyException 
+     * @throws ProviderDoesNotExistException 
      */
-    Response getCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordDoesNotExistException;
+    Response getCloudId(String providerId, String recordId) throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
      * Invoke the retrieval of providerId/recordId REST call HTTP call: GET
@@ -48,8 +53,10 @@ public interface UniqueIdResource {
      * @return JSON/XML response with the list of local ids organized by provider or Error Message
      * @throws CloudIdDoesNotExistException 
      * @throws DatabaseConnectionException 
+     * @throws RecordDatasetEmptyException 
+     * @throws ProviderDoesNotExistException 
      */
-    Response getLocalIds(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException;
+    Response getLocalIds(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
      * Invoke the retrieval of recordId based on a providerId REST call HTTP call: GET
@@ -60,8 +67,9 @@ public interface UniqueIdResource {
      * @return JSON/XML response with the list of local ids of that provider or Error Message
      * @throws ProviderDoesNotExistException 
      * @throws DatabaseConnectionException 
+     * @throws RecordDatasetEmptyException 
      */
-    Response getLocalIdsByProvider(String providerId, String start, int to) throws DatabaseConnectionException, ProviderDoesNotExistException;
+    Response getLocalIdsByProvider(String providerId, String start, int to) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
      * Invoke the retrieval of all unique identifiers for a giver provider HTTP call: GET
@@ -88,8 +96,9 @@ public interface UniqueIdResource {
      * @throws IdHasBeenMappedException 
      * @throws CloudIdDoesNotExistException 
      * @throws DatabaseConnectionException 
+     * @throws RecordDatasetEmptyException 
      */
-    Response createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException;
+    Response createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
      * Remove the mapping between a providerId/recordId and a unique identifier HTTP call: DELETE
@@ -110,8 +119,10 @@ public interface UniqueIdResource {
      * @return JSON/XML acknowledgement or Error Message
      * @throws CloudIdDoesNotExistException 
      * @throws DatabaseConnectionException 
+     * @throws RecordIdDoesNotExistException 
+     * @throws ProviderDoesNotExistException 
      */
-    Response deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException;
+    Response deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordIdDoesNotExistException;
     
     /**
      * Invoke the unique identifier creation REST call HTTP call: GET
@@ -120,6 +131,9 @@ public interface UniqueIdResource {
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordExistsException 
      * @throws DatabaseConnectionException 
+     * @throws CloudIdDoesNotExistException 
+     * @throws RecordDatasetEmptyException 
+     * @throws ProviderDoesNotExistException 
      */
-	Response createCloudId(String providerId) throws DatabaseConnectionException, RecordExistsException;
+	Response createCloudId(String providerId) throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException;
 }

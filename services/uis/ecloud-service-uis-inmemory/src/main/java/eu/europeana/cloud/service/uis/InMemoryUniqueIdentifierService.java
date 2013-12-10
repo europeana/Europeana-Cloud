@@ -35,7 +35,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	private InMemoryLocalIdDao localIdDao = new InMemoryLocalIdDao();
 
 	@Override
-	public CloudId createCloudId(String... recordInfo) throws DatabaseConnectionException, RecordExistsException {
+	public CloudId createCloudId(String... recordInfo) throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException {
 		String providerId = recordInfo[0];
 		String recordId = recordInfo.length > 1 ? recordInfo[1] : Base36.timeEncode(providerId);
 		String cloudId = Base36.encode(String.format("/%s/%s", providerId, recordId));
@@ -50,7 +50,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 	@Override
 	public CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
-			RecordDoesNotExistException {
+			RecordDoesNotExistException, ProviderDoesNotExistException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.size() == 0) {
 			throw new RecordDoesNotExistException(new IdentifierErrorInfo(
@@ -62,7 +62,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 	@Override
 	public List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
-			CloudIdDoesNotExistException {
+			CloudIdDoesNotExistException, ProviderDoesNotExistException {
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
@@ -80,7 +80,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 	@Override
 	public List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
-			throws DatabaseConnectionException, ProviderDoesNotExistException {
+			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = null;
 		if (start == null) {
 			cloudIds = localIdDao.searchActive(providerId);
@@ -142,7 +142,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public void deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
+	public void deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
 		if (!(cloudIdDao.searchActive(cloudId).size() > 0)) {
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),

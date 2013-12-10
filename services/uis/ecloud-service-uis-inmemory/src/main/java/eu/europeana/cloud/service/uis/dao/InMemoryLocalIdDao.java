@@ -19,7 +19,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	private static List<InMemoryCloudObject> cloudIds = new ArrayList<>();
 
 	@Override
-	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException {
+	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException,ProviderDoesNotExistException {
 		List<CloudId> retCloudIds = new ArrayList<>();
 		if (args.length == 1) {
 			for (InMemoryCloudObject obj : cloudIds) {
@@ -59,7 +59,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException {
+	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException {
 		return searchById(false, args);
 	}
 
@@ -74,7 +74,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	 *            The provider Identifier to search on
 	 * @return A list of Cloud Identifiers that conforms to the search criteria
 	 */
-	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
+	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) throws ProviderDoesNotExistException,RecordDatasetEmptyException{
 		List<CloudId> cIds = new ArrayList<>();
 		int index = 0;
 		int i = 0;
@@ -146,7 +146,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public void delete(String... args) throws DatabaseConnectionException {
+	public void delete(String... args) throws DatabaseConnectionException,ProviderDoesNotExistException,RecordIdDoesNotExistException {
 		InMemoryCloudObject objNew = new InMemoryCloudObject();
 		boolean deleted = false;
 		int i = 0;

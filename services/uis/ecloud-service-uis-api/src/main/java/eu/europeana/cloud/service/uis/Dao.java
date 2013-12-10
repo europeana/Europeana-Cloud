@@ -2,7 +2,11 @@ package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 /**
  * Generic interface for Database Access. 
  * 
@@ -19,31 +23,42 @@ public interface Dao <T , V extends List<T>>{
 	 * @param args The search criteria
 	 * @return A List of objects T
 	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException 
+	 * @throws CloudIdDoesNotExistException 
+	 * @throws RecordDatasetEmptyException 
 	 */
-	V searchById(boolean deleted, String... args) throws DatabaseConnectionException;
+	V searchById(boolean deleted, String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, CloudIdDoesNotExistException, RecordDatasetEmptyException;
 	
 	/**
 	 * Convenience method that searches for records where deleted=false
 	 * @param args The search criteria
 	 * @return A List of objects T
 	 * @throws DatabaseConnectionException
+	 * @throws ProviderDoesNotExistException 
+	 * @throws CloudIdDoesNotExistException 
+	 * @throws RecordDatasetEmptyException 
 	 */
-	V searchActive (String... args) throws DatabaseConnectionException;
+	V searchActive (String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, CloudIdDoesNotExistException, RecordDatasetEmptyException;
 	
 	/**
 	 * Insert a new record T
 	 * @param args The values of T
 	 * @return The updated list of objects T after inserting the new record
 	 * @throws DatabaseConnectionException
+	 * @throws CloudIdDoesNotExistException 
+	 * @throws RecordDatasetEmptyException 
+	 * @throws ProviderDoesNotExistException 
 	 */
-	V insert (String... args) throws DatabaseConnectionException;
+	V insert (String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 	
 	/**
 	 * Delete (soft) a record of type T
 	 * @param args The criteria with which removal will be executed
 	 * @throws DatabaseConnectionException
+	 * @throws RecordIdDoesNotExistException 
+	 * @throws ProviderDoesNotExistException 
 	 */
-	void delete(String... args) throws DatabaseConnectionException;
+	void delete(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException;
 	
 	/**
 	 * Update a record T based on specific criteria

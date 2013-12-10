@@ -77,7 +77,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException {
+	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		return searchById(false, args);
 	}
 
@@ -98,7 +98,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
+	public List<CloudId> insert(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		try {
 
 			PreparedStatement statement = dbService.getSession().prepare(insertStatement);

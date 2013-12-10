@@ -49,7 +49,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException {
+	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 		try {
 			PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
 			ResultSet rs = dbService.getSession().execute(statement.bind(args[0]));
@@ -83,7 +83,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException {
+	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 		return searchById(false, args[0]);
 	}
 
@@ -114,7 +114,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> insert(String... args) throws DatabaseConnectionException {
+	public List<CloudId> insert(String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 		try {
 			PreparedStatement statement = dbService.getSession().prepare(insertStatement);
 			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));

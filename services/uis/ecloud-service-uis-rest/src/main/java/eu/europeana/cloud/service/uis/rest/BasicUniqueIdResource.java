@@ -51,7 +51,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Override
 	@ReturnType("eu.europeana.cloud.common.model.CloudId")
 	public Response createCloudId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId)
-			throws DatabaseConnectionException, RecordExistsException {
+			throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException {
 		return Response.ok().entity(uniqueIdentifierService.createCloudId(providerId, recordId)).build();
 	}
 
@@ -60,7 +60,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response createCloudId(@QueryParam(PROVIDERID) String providerId) throws DatabaseConnectionException,
-			RecordExistsException {
+			RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException {
 
 		return Response.ok().entity(uniqueIdentifierService.createCloudId(providerId)).build();
 	}
@@ -70,7 +70,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getCloudId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId)
-			throws DatabaseConnectionException, RecordDoesNotExistException {
+			throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
 	}
 
@@ -79,7 +79,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response getLocalIds(@QueryParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
-			CloudIdDoesNotExistException {
+			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		LocalIdList pList = new LocalIdList();
 		pList.setList(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
 		return Response.ok(pList).build();
@@ -91,7 +91,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Override
 	public Response getLocalIdsByProvider(@QueryParam(PROVIDERID) String providerId, @QueryParam(START) String start,
 			@QueryParam(TO) @DefaultValue("10000") int to) throws DatabaseConnectionException,
-			ProviderDoesNotExistException {
+			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		LocalIdList pList = new LocalIdList();
 		pList.setList(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
 		return Response.ok(pList).build();
@@ -116,7 +116,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Override
 	public Response createIdMapping(@QueryParam(CLOUDID) String cloudId, @QueryParam(PROVIDERID) String providerId,
 			@QueryParam(RECORDID) String recordId) throws DatabaseConnectionException, CloudIdDoesNotExistException,
-			IdHasBeenMappedException, ProviderDoesNotExistException {
+			IdHasBeenMappedException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		uniqueIdentifierService.createIdMapping(cloudId, providerId, recordId);
 		return Response.ok("Mapping created succesfully").build();
 	}
@@ -136,7 +136,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
 	public Response deleteCloudId(@QueryParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
-			CloudIdDoesNotExistException {
+			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
 		uniqueIdentifierService.deleteCloudId(cloudId);
 		return Response.ok("CloudId marked as deleted").build();
 	}

@@ -52,7 +52,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public CloudId createCloudId(String ... recordInfo) throws DatabaseConnectionException,
-			RecordExistsException, ProviderDoesNotExistException {
+			RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException {
 		String providerId = recordInfo[0];
 //		if(!proxy.checkProvider(providerId)){
 //			throw new ProviderDoesNotExistException();
@@ -77,7 +77,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
-			RecordDoesNotExistException {
+			RecordDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.size() == 0) {
 			throw new RecordDoesNotExistException(new IdentifierErrorInfo(
@@ -89,7 +89,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
-			CloudIdDoesNotExistException {
+			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
@@ -143,7 +143,7 @@ public class PersistentUniqueIdentifierService implements UniqueIdentifierServic
 
 	@Override
 	public void createIdMapping(String cloudId, String providerId, String recordId)
-			throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException {
+			throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException, RecordDatasetEmptyException {
 //		if(!proxy.checkProvider(providerId)){
 //			throw new ProviderDoesNotExistException();
 //		}
