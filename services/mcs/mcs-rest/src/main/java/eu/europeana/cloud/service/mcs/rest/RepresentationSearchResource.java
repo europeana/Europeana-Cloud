@@ -14,7 +14,9 @@ import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_SCHEMA;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_START_FROM;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+
 import java.util.Date;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -22,6 +24,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,27 +96,13 @@ public class RepresentationSearchResource {
         // parse creation date from
         Date creationDateFromParsed = null;
         if (creationDateFrom != null) {
-            try {
-                creationDateFromParsed = dateFormat.parseDateTime(creationDateFrom).toDate();
-            } catch (IllegalArgumentException ex) {
-                ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), F_DATE_FROM
-                        + " paremeter has wrong format: " + ex.getMessage());
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo)
-                        .build());
-            }
+            creationDateFromParsed = parseDate(creationDateFrom, F_DATE_FROM);
         }
 
         // parse creation date until
         Date creationDateUntilParsed = null;
         if (creationDateUntil != null) {
-            try {
-                creationDateFromParsed = dateFormat.parseDateTime(creationDateUntil).toDate();
-            } catch (IllegalArgumentException ex) {
-                ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), F_DATE_UNTIL
-                        + " paremeter has wrong format: " + ex.getMessage());
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo)
-                        .build());
-            }
+            creationDateUntilParsed = parseDate(creationDateUntil, F_DATE_UNTIL);
         }
 
         // create search params object
@@ -128,6 +117,32 @@ public class RepresentationSearchResource {
 
         // invoke record service method
         return recordService.search(params, startFrom, numberOfElementsOnPage);
+    }
+
+
+    /**
+     * Parses a date-time from the given text, returning as a Date. Uses
+     * {@link ISODateTimeFormat#dateOptionalTimeParser} as a parser.
+     * 
+     * @param date
+     *            a string to parse
+     * @param dateParamName a name of the parameter which hold a date
+     * @return the parsed date-time
+     * @throws WebApplicationException if the given date cannot be parsed
+     */
+    private Date parseDate(String date, String dateParamName) {
+        Date dateParsed = null;
+        if (date != null) {
+            try {
+                dateParsed = dateFormat.parseDateTime(date).toDate();
+            } catch (IllegalArgumentException ex) {
+                ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), dateParamName
+                        + " parameter has wrong format: " + ex.getMessage());
+                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo)
+                        .build());
+            }
+        }
+        return dateParsed;
     }
 
 
