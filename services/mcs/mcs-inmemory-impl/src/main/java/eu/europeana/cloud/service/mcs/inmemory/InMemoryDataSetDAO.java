@@ -1,18 +1,16 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Repository;
-
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.stereotype.Repository;
 
 /**
  * InMemoryDataSetDAO
@@ -119,6 +117,17 @@ public class InMemoryDataSetDAO {
         providerSets.put(dataSetId, dataSet);
         dataSetsAssignments.put(dataSet, new ArrayList<Representation>());
         return dataSet;
+    }
+
+
+    public DataSet updateDataSet(String providerId, String dataSetId, String description)
+            throws DataSetNotExistsException {
+        DataSet dataSetToUpdate = getDataSet(providerId, dataSetId);
+        if (dataSetToUpdate == null) {
+            throw new DataSetNotExistsException();
+        }
+        dataSetToUpdate.setDescription(description);
+        return dataSetToUpdate;
     }
 
 

@@ -46,9 +46,27 @@ public class FilesResource {
     private String version;
 
 
-    // the same as method in FileResource. Duplicated code.
-
-    @Deprecated
+    /**
+     * Adds a new file to representation version. File name will be assigned automatically by service and URI to created
+     * resource will be returned in response as content location. Consumes multipart content - form data:
+     * <ul>
+     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_MIME} - file mime type</li>
+     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_DATA} - binary stream of file content
+     * (required)</li>
+     * </ul>
+     * *
+     * 
+     * @param mimeType
+     *            mime type of file
+     * @param data
+     *            binary stream of file content (required)
+     * @return empty response with tag (content md5) and URI to created resource in content location.
+     * @throws IOException
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified version
+     * @throws CannotModifyPersistentRepresentationException
+     *             specified representation version is persistent and modyfying its files is not allowed.
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)

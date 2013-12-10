@@ -78,16 +78,18 @@ public class DataSetResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldCreateDataset()
+    public void shouldUpdateDataset()
             throws Exception {
+        // given certain data set in service
         String dataSetId = "dataset";
         String description = "dataset description";
+        dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
 
         // when you add data set for a provider 
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
             P_DATASET, dataSetId);
-        Response createResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
-        assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
+        Response updateResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), updateResponse.getStatus());
 
         // ten this set should be visible in service
         List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults();

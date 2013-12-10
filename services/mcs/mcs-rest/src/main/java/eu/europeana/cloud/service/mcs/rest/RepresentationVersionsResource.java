@@ -39,9 +39,9 @@ public class RepresentationVersionsResource {
     /**
      * Lists all versions of record represenation. Temporary versions will be included in returned list.
      * 
-     * @return
+     * @return list of all representation versions
      * @throws RepresentationNotExistsException
-     *             representation does not exist.
+     *             representation does not * exist.
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })

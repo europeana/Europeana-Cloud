@@ -46,7 +46,7 @@ public class RepresentationResource {
     /**
      * Returns latest persistent version of representation.
      * 
-     * @return
+     * @return requested representation in latest persistent version.
      * @throws RepresentationNotExistsException
      *             representation does not exist or no persistent version of this representation exists.
      */
@@ -78,10 +78,11 @@ public class RepresentationResource {
      * 
      * @param providerId
      *            provider of this representation versio.
-     * @return
+     * @return created representation.
      * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier Service. * @throws ProviderNotExistsException no
-     *             provider with given id exists
+     *             provided id is not known to Unique Identifier Service.
+     * @throws ProviderNotExistsException
+     *             no provider with given id exists
      * @statuscode 201 object has been created.
      * */
     @POST

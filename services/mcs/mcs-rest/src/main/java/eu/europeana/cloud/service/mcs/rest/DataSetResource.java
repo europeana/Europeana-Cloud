@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
@@ -21,7 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +71,7 @@ public class DataSetResource {
      * 
      * @param startFrom
      *            reference to next slice of result. If not provided, first slice of result will be returned.
-     * @return * slice of representation version list.
+     * @return slice of representation version list.
      * @throws DataSetNotExistsException
      *             no such data set exists.
      */
@@ -86,11 +83,18 @@ public class DataSetResource {
     }
 
 
+    /**
+     * Updates description of data set. *
+     * 
+     * @param description
+     *            description of data set
+     * @throws DataSetNotExistsException
+     *             no such data set exists.
+     * @statuscode 204 object has been updated.
+     */
     @PUT
-    public Response createDataSet(@FormParam(F_DESCRIPTION) String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException {
-        DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
-        EnrichUriUtil.enrich(uriInfo, dataSet);
-        return Response.created(dataSet.getUri()).build();
+    public void updateDataSet(@FormParam(F_DESCRIPTION) String description)
+            throws DataSetNotExistsException {
+        dataSetService.updateDataSet(providerId, dataSetId, description);
     }
 }

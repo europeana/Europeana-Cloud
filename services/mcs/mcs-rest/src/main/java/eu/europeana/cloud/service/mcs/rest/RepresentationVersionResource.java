@@ -48,9 +48,9 @@ public class RepresentationVersionResource {
      * Returns representation in specified version. If Version = LATEST, will redirect to actual latest persistent
      * version at the moment of invoking this method. *
      * 
-     * @return
+     * @return representation in requested version WITH LIST OF FILES IN THIS REPRESENTATION
      * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     *             representation does not * exist in specified version.
      * @statuscode 307 if requested version is "LATEST" - redirect to latest persistent version.
      * */
     @GET
@@ -91,9 +91,9 @@ public class RepresentationVersionResource {
     /**
      * Persists temporary representation.
      * 
-     * @return
+     * @return URI to persisted representation in content-location
      * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     *             * representation does not exist in specified version.
      * @throws CannotModifyPersistentRepresentationException
      *             representation version is already persistent.
      * @throws CannotPersistEmptyRepresentationException
@@ -114,9 +114,9 @@ public class RepresentationVersionResource {
     /**
      * Copies all information with all files and their content from one representation version to a new temporary one. *
      * 
-     * @return
+     * @return uri to created representation in content-location
      * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     *             * representation does not exist in specified version.
      * @statuscode 201 representation has been copied to a new one.
      * */
     @POST

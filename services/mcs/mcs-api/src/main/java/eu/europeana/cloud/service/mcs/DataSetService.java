@@ -97,6 +97,22 @@ public interface DataSetService {
 
 
     /**
+     * Updates description of data set.
+     * 
+     * @param providerId
+     *            owner of data set
+     * @param dataSetId
+     *            identifier of newly created data set
+     * @param description
+     *            new description of data set (may be any text)
+     * @return updated data set
+     * @throws DataSetNotExistsException
+     */
+    DataSet updateDataSet(String providerId, String dataSetId, String description)
+            throws DataSetNotExistsException;
+
+
+    /**
      * Returns all data sets for particular data provider (in slices).
      * 
      * @param providerId

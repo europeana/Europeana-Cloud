@@ -66,23 +66,24 @@ public class DataSetsResource {
 
 
     /**
-     * Creates data set. Response contains uri to created resource in as uri location.
+     * Creates new data set. *
      * 
      * @param dataSetId
      *            identifier of data set (required).
      * @param description
      *            description of data set.
-     * @return
+     * @return URI to newly created data set in content-location.
      * @throws ProviderNotExistsException
-     *             data provider does not exist
-     * @throws DataSetAlreadyExistsException
-     *             data set with provided id already exists for this provider.
-     * @statuscode 201 object has been created.
+     *             data provider * does not exist.
+     * @throws eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
+     *             data set with this id already exists
+     * @statuscode 204 object has been updated.
      */
     @POST
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
         ParamUtil.require(F_DATASET, dataSetId);
+
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(uriInfo, dataSet);
         return Response.created(dataSet.getUri()).build();
