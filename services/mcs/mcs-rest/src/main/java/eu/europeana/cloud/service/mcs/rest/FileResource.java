@@ -64,15 +64,19 @@ public class FileResource {
 
 
     /**
-     * Upload file operation. Adds or updates file in representation version. MD5 of uploaded data is returned as tag. *
+     * Upload file operation. Adds or updates file in representation version. MD5 of uploaded data is returned as tag.
+     * Consumes multipart content - form data:
+     * <ul>
+     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_MIME} - file mime type</li>
+     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_DATA} - binary stream of file content
+     * (required)</li>
+     * </ul>
      * 
      * @param mimeType
      *            mime type of file
      * @param data
      *            binary stream of file content (required)
-     * @return
-     * @throws IOException
-     *             io exception
+     * @return uri of uploaded content file in content-location * @throws IOException io exception
      * @throws RepresentationNotExistsException
      *             representation does not exist in specified version.
      * @throws CannotModifyPersistentRepresentationException
@@ -127,7 +131,7 @@ public class FileResource {
             contentRange = ContentRange.parse(range);
         }
 
-        // get file md5 if all file is requested
+        // get file md5 if complete file is requested
         String md5 = null;
         Response.Status status;
         if (contentRange.isSpecified()) {

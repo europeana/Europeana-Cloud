@@ -10,6 +10,7 @@ import java.util.Date;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class SolrDAOTest {
 
     @Autowired
     private SolrDAO solrDAO;
+
+    @Autowired
+    private SolrConnectionProvider connectionProvider;
 
 
     @Test
@@ -196,6 +200,14 @@ public class SolrDAOTest {
         TestUtil.assertSameContent(repDocument.getDataSets(), Lists.transform(Arrays.asList(ds1), serialize));
         TestUtil.assertSameContent(repNewDocument.getDataSets(),
             Lists.transform(Arrays.asList(ds2, ds3, ds4), serialize));
+    }
+
+
+    @After
+    public void deleteData()
+            throws IOException, SolrServerException {
+        connectionProvider.getSolrServer().deleteByQuery("*:*");
+        connectionProvider.getSolrServer().commit();
     }
 
 

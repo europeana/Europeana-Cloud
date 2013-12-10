@@ -1,21 +1,24 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import java.util.*;
-
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.google.common.base.Objects;
-
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.UUID;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -54,7 +57,7 @@ public class CassandraDataSetDAO {
         addAssignmentStatement = connectionProvider
                 .getSession()
                 .prepare(
-                        "INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) VALUES (?,?,?,?,?);");
+                    "INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) VALUES (?,?,?,?,?);");
 
         removeAssignmentStatement = connectionProvider.getSession().prepare(
             "DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
@@ -65,7 +68,7 @@ public class CassandraDataSetDAO {
         listDataSetRepresentationsStatement = connectionProvider
                 .getSession()
                 .prepare(
-                        "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
+                    "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
 
         listDataSetsStatement = connectionProvider.getSession().prepare(
             "SELECT data_sets FROM data_providers WHERE provider_id = ?;");
@@ -103,7 +106,7 @@ public class CassandraDataSetDAO {
         }
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(providerDataSetId, thresholdCloudId,
-                thresholdSchema, limit);
+            thresholdSchema, limit);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<Representation> representationStubs = new ArrayList<>(limit);
         for (Row row : rs) {
@@ -222,8 +225,8 @@ public class CassandraDataSetDAO {
 
 
     /**
-     * Creates or updates data set for a provider. Data provider with specified must exist before this method is
-     * invoked.
+     * Creates or updates data set for a provider. Data provider with specified id must exist before this method is
+     * invoked. *
      * 
      * @param providerId
      *            data set owner's (provider's) id
@@ -301,7 +304,7 @@ public class CassandraDataSetDAO {
             String cloudId = row.getString("cloud_id");
             String schemaId = row.getString("schema_id");
             connectionProvider.getSession().execute(
-                    removeAssignmentStatement.bind(providerDataSetId, cloudId, schemaId));
+                removeAssignmentStatement.bind(providerDataSetId, cloudId, schemaId));
         }
 
         // remove dataset itself

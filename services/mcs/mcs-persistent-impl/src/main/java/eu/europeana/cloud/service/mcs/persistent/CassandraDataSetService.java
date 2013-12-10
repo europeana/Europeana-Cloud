@@ -69,7 +69,7 @@ public class CassandraDataSetService implements DataSetService {
 
         // get representation stubs from data set
         List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId, thresholdCloudId,
-                thresholdSchemaId, limit + 1);
+            thresholdSchemaId, limit + 1);
 
         // if this is not last slice of result - add reference to next one by encoding parameters in thresholdParam
         String nextResultToken = null;
@@ -173,6 +173,26 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetAlreadyExistsException();
         }
 
+        return dataSetDAO.createDataSet(providerId, dataSetId, description);
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public DataSet updateDataSet(String providerId, String dataSetId, String description)
+            throws DataSetNotExistsException {
+        DataSet ds;
+        try {
+            ds = dataSetDAO.getDataSet(providerId, dataSetId);
+        } catch (ProviderNotExistsException ex) {
+            throw new DataSetNotExistsException("Cannot find provider with id: " + providerId);
+        }
+        if (ds == null) {
+            throw new DataSetNotExistsException("Provider " + providerId + " does not have data set with id "
+                    + dataSetId);
+        }
         return dataSetDAO.createDataSet(providerId, dataSetId, description);
     }
 

@@ -35,9 +35,9 @@ public class RepresentationsResource {
     /**
      * Returns list of all latest persistent versions of record representation.
      * 
-     * @return
+     * @return list of representations
      * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier Service.
+     *             provided id is not known to Unique Identifier * Service.
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })

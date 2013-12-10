@@ -1,11 +1,5 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -14,6 +8,10 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * InMemoryDataSetService
@@ -98,5 +96,12 @@ public class InMemoryDataSetService implements DataSetService {
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
         dataSetDAO.deleteDataSet(providerId, dataSetId);
+    }
+
+
+    @Override
+    public DataSet updateDataSet(String providerId, String dataSetId, String description)
+            throws DataSetNotExistsException {
+        return dataSetDAO.updateDataSet(providerId, dataSetId, description);
     }
 }

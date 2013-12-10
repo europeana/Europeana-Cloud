@@ -18,7 +18,11 @@ public class UrlProvider {
 			e.printStackTrace();
 		}
 	}
-	
+
+        public UrlProvider(String serviceUrl) {
+            baseUrl = serviceUrl;
+        }
+
 	public String createUrl(String url){
 		return baseUrl+"/"+url;
 	}
