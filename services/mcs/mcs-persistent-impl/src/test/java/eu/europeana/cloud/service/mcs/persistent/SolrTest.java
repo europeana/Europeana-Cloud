@@ -4,13 +4,16 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +48,11 @@ public class SolrTest {
     }
 
 
-    public void cleanUp() {
+    @After
+    public void cleanUp()
+            throws SolrServerException, IOException {
+        server.deleteByQuery("*:*");
+        server.commit();
         server.shutdown();
     }
 

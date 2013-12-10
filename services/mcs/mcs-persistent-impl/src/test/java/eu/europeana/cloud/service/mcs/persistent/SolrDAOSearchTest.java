@@ -34,6 +34,7 @@ public class SolrDAOSearchTest {
     public void deleteData()
             throws IOException, SolrServerException {
         connectionProvider.getSolrServer().deleteByQuery("*:*");
+        connectionProvider.getSolrServer().commit();
     }
 
 
@@ -143,8 +144,8 @@ public class SolrDAOSearchTest {
         c.set(2002, 05, 15, 15, 15);
         Representation r4 = insertRepresentation("c1", "dc", "v4", "dp1", true, c.getTime());
         List<Representation> foundRepresentations = solrDAO.search(
-                RepresentationSearchParams.builder().setFromDate(r2.getCreationDate()).setToDate(r3.getCreationDate())
-                        .build(), 0, 10);
+            RepresentationSearchParams.builder().setFromDate(r2.getCreationDate()).setToDate(r3.getCreationDate())
+                    .build(), 0, 10);
         TestUtil.assertSameContent(foundRepresentations, Arrays.asList(r2, r3));
     }
 
@@ -156,7 +157,7 @@ public class SolrDAOSearchTest {
         Set<Representation> generatedRepresentations = new HashSet<>(count, 1f);
         for (int i = 0; i < count; i++) {
             generatedRepresentations.add(insertRepresentation("id", "dc", UUID.randomUUID().toString(), "dp", true,
-                    new Date()));
+                new Date()));
         }
         RepresentationSearchParams searchParams = RepresentationSearchParams.builder().setSchema("dc").build();
         Set<Representation> foundRepresentations = new HashSet<>(count, 1f);
