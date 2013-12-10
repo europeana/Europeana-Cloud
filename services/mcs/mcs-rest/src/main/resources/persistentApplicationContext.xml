@@ -14,7 +14,6 @@
 	
 	<context:component-scan
 		base-package="eu.europeana.cloud.service.mcs.rest"/>
-	<context:annotation-config/>
 
 	<task:annotation-driven/>
     <!--async configuration for solr indexer - in queue, single thread in executor--> 

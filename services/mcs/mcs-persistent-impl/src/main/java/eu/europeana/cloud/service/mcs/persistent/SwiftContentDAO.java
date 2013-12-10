@@ -1,25 +1,23 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CountingInputStream;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import org.jclouds.blobstore.BlobStore;
+import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.io.Payload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.CountingInputStream;
-
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
 /**
  * Provides DAO operations for Openstack Swift.
@@ -45,14 +43,14 @@ public class SwiftContentDAO implements ContentDAO {
      */
     @Override
     public PutResult putContent(String fileName, InputStream data)
-            throws IOException {
+            throws IOException, ContainerNotFoundException {
 
         BlobStore blobStore = connectionProvider.getBlobStore();
         String container = connectionProvider.getContainer();
         CountingInputStream countingInputStream = new CountingInputStream(data);
         DigestInputStream md5DigestInputStream = md5InputStream(countingInputStream);
         Blob blob = blobStore.blobBuilder(fileName).name(fileName).payload(md5DigestInputStream).build();
-        blobStore.putBlob(container, blob);
+        String containerMd5 = blobStore.putBlob(container, blob);
         String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
         Long contentLength = countingInputStream.getCount();
         return new PutResult(md5, contentLength);
@@ -77,7 +75,7 @@ public class SwiftContentDAO implements ContentDAO {
      */
     @Override
     public void getContent(String fileName, long start, long end, OutputStream os)
-            throws IOException, FileNotExistsException {
+            throws IOException, FileNotExistsException, ContainerNotFoundException {
         BlobStore blobStore = connectionProvider.getBlobStore();
         String container = connectionProvider.getContainer();
 

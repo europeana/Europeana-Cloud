@@ -5,6 +5,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
@@ -103,7 +105,8 @@ public class CassandraRecordDAO {
      * @param cloudId
      * @return
      */
-    public Record getRecord(String cloudId) {
+    public Record getRecord(String cloudId)
+            throws NoHostAvailableException, QueryExecutionException {
         ResultSet rs = connectionProvider.getSession().execute(getAllRepresentationsForRecordStatement.bind(cloudId));
         List<Representation> representations = new ArrayList<>();
         String prevSchema = null;
@@ -124,7 +127,8 @@ public class CassandraRecordDAO {
      * @param cloudId
      *            indentifier of record to be deleted.
      */
-    public void deleteRecord(String cloudId) {
+    public void deleteRecord(String cloudId)
+            throws NoHostAvailableException, QueryExecutionException {
         connectionProvider.getSession().execute(deleteRecordStatement.bind(cloudId, cloudId));
     }
 
@@ -137,7 +141,8 @@ public class CassandraRecordDAO {
      * @param schema
      *            schema of representation to be deleted.
      */
-    public void deleteRepresentation(String cloudId, String schema) {
+    public void deleteRepresentation(String cloudId, String schema)
+            throws NoHostAvailableException, QueryExecutionException {
         connectionProvider.getSession().execute(deleteRepresentationStatement.bind(cloudId, schema, cloudId, schema));
     }
 
@@ -153,7 +158,8 @@ public class CassandraRecordDAO {
      * @param version
      *            version of representation
      */
-    public void deleteRepresentation(String cloudId, String schema, String version) {
+    public void deleteRepresentation(String cloudId, String schema, String version)
+            throws NoHostAvailableException, QueryExecutionException {
         connectionProvider.getSession().execute(
             deleteRepresentationVersionStatement.bind(cloudId, schema, UUID.fromString(version), cloudId, schema));
     }
@@ -196,7 +202,8 @@ public class CassandraRecordDAO {
      *            creation date
      * @return
      */
-    public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime) {
+    public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime)
+            throws NoHostAvailableException, QueryExecutionException {
         if (cloudId == null || schema == null || providerId == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
@@ -211,7 +218,8 @@ public class CassandraRecordDAO {
     }
 
 
-    public Representation getRepresentation(String cloudId, String schema, String version) {
+    public Representation getRepresentation(String cloudId, String schema, String version)
+            throws NoHostAvailableException, QueryExecutionException {
         if (cloudId == null || schema == null || version == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
@@ -238,7 +246,8 @@ public class CassandraRecordDAO {
      * @param version
      * @return
      */
-    public List<File> getFilesForRepresentation(String cloudId, String schema, String version) {
+    public List<File> getFilesForRepresentation(String cloudId, String schema, String version)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getFilesStatement.bind(cloudId, schema, UUID.fromString(version));
         Row row = connectionProvider.getSession().execute(boundStatement).one();
         if (row == null) {
@@ -250,7 +259,8 @@ public class CassandraRecordDAO {
     }
 
 
-    public void persistRepresentation(String cloudId, String schema, String version, Date creationTime) {
+    public void persistRepresentation(String cloudId, String schema, String version, Date creationTime)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = persistRepresentationStatement.bind(creationTime, cloudId, schema,
             UUID.fromString(version));
         connectionProvider.getSession().execute(boundStatement);
@@ -265,7 +275,8 @@ public class CassandraRecordDAO {
      * @param schema
      * @return
      */
-    public List<Representation> listRepresentationVersions(String cloudId, String schema) {
+    public List<Representation> listRepresentationVersions(String cloudId, String schema)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listRepresentationVersionsStatement.bind(cloudId, schema);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
@@ -283,7 +294,8 @@ public class CassandraRecordDAO {
      * @param schema
      * @return
      */
-    public List<Representation> listRepresentationVersions(String cloudId) {
+    public List<Representation> listRepresentationVersions(String cloudId)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listRepresentationVersionsAllSchemasStatement.bind(cloudId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
@@ -294,20 +306,23 @@ public class CassandraRecordDAO {
     }
 
 
-    public void addOrReplaceFileInRepresentation(String cloudId, String schema, String version, File file) {
+    public void addOrReplaceFileInRepresentation(String cloudId, String schema, String version, File file)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = insertFileStatement.bind(file.getFileName(), serializeFile(file), cloudId,
             schema, UUID.fromString(version));
         connectionProvider.getSession().execute(boundStatement);
     }
 
 
-    public void removeFileFromRepresentation(String cloudId, String schema, String version, String fileName) {
+    public void removeFileFromRepresentation(String cloudId, String schema, String version, String fileName)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = removeFileStatement.bind(fileName, cloudId, schema, UUID.fromString(version));
         connectionProvider.getSession().execute(boundStatement);
     }
 
 
-    public boolean providerHasRepresentations(String providerId) {
+    public boolean providerHasRepresentations(String providerId)
+            throws NoHostAvailableException, QueryExecutionException {
         Row row = connectionProvider.getSession().execute(singleRecordIdForProviderStatement.bind(providerId)).one();
         return row != null;
     }

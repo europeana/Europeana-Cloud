@@ -1,22 +1,24 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -66,7 +68,8 @@ public class CassandraDataProviderDAO {
      *            max size of returned list.
      * @return a sublist of all providers.
      */
-    public List<DataProvider> getProviders(String thresholdProviderId, int limit) {
+    public List<DataProvider> getProviders(String thresholdProviderId, int limit)
+            throws NoHostAvailableException, QueryExecutionException {
         if (thresholdProviderId == null) {
             thresholdProviderId = "";
         }
@@ -87,7 +90,8 @@ public class CassandraDataProviderDAO {
      *            id of provider.
      * @return data provider
      */
-    public DataProvider getProvider(String providerId) {
+    public DataProvider getProvider(String providerId)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getProviderStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row result = rs.one();
@@ -105,7 +109,8 @@ public class CassandraDataProviderDAO {
      * @param providerId
      *            id of provider.
      */
-    public void deleteProvider(String providerId) {
+    public void deleteProvider(String providerId)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
         connectionProvider.getSession().execute(boundStatement);
     }
@@ -127,7 +132,7 @@ public class CassandraDataProviderDAO {
      */
     @Deprecated
     public DataProvider createProvider(String providerId, DataProviderProperties properties)
-            throws ProviderAlreadyExistsException {
+            throws ProviderAlreadyExistsException, NoHostAvailableException, QueryExecutionException {
         Date now = new Date();
         BoundStatement boundStatement = insertNewProviderStatement.bind(providerId, propertiesToMap(properties), now);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -151,12 +156,14 @@ public class CassandraDataProviderDAO {
      *            administrative properties of data provider
      * @return created data provider object
      */
-    public DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties) {
+    public DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties)
+            throws NoHostAvailableException, QueryExecutionException {
         return createOrUpdateProvider(providerId, properties, new Date());
     }
 
 
-    private DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties, Date date) {
+    private DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties, Date date)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = updateProviderStatement.bind(providerId, propertiesToMap(properties), date);
         connectionProvider.getSession().execute(boundStatement);
         DataProvider dp = new DataProvider();

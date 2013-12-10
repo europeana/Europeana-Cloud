@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import java.util.Properties;
-
 import javax.annotation.PreDestroy;
-
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
@@ -56,7 +54,7 @@ public class SwiftConnectionProvider {
      * Close connection on container destroy.
      */
     @PreDestroy
-    public void closeConnections() {
+    private void closeConnections() {
         log.info("Shutting down swift connection");
         context.close();
     }

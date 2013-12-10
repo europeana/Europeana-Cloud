@@ -4,6 +4,8 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
@@ -97,7 +99,8 @@ public class CassandraDataSetDAO {
      * @return
      */
     public List<Representation> listDataSet(String providerId, String dataSetId, String thresholdCloudId,
-            String thresholdSchema, int limit) {
+            String thresholdSchema, int limit)
+            throws NoHostAvailableException, QueryExecutionException {
         if (thresholdCloudId == null) {
             thresholdCloudId = "";
         }
@@ -133,7 +136,8 @@ public class CassandraDataSetDAO {
      * @param version
      *            representation version (might be null if newest version is to be assigned)
      */
-    public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version) {
+    public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
+            throws NoHostAvailableException, QueryExecutionException {
         Date now = new Date();
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         UUID versionId = null;
@@ -157,7 +161,8 @@ public class CassandraDataSetDAO {
      *            representation version (might be null)
      * @return list of data set ids
      */
-    public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version) {
+    public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<CompoundDataSetId> ids = new ArrayList<>();
@@ -186,7 +191,7 @@ public class CassandraDataSetDAO {
      *             specified data provider does not exist.
      */
     public DataSet getDataSet(String providerId, String dataSetId)
-            throws ProviderNotExistsException {
+            throws ProviderNotExistsException, NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row row = rs.one();
@@ -217,7 +222,8 @@ public class CassandraDataSetDAO {
      * @param schema
      *            representation's schema
      */
-    public void removeAssignment(String providerId, String dataSetId, String recordId, String schema) {
+    public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
+            throws NoHostAvailableException, QueryExecutionException {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = removeAssignmentStatement.bind(providerDataSetId, recordId, schema);
         connectionProvider.getSession().execute(boundStatement);
@@ -236,7 +242,8 @@ public class CassandraDataSetDAO {
      *            description of data set.
      * @return created (or updated) data set.
      */
-    public DataSet createDataSet(String providerId, String dataSetId, String description) {
+    public DataSet createDataSet(String providerId, String dataSetId, String description)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
         connectionProvider.getSession().execute(boundStatement);
 
@@ -260,7 +267,8 @@ public class CassandraDataSetDAO {
      *            max size of returned data set list.
      * @return list of data sets.
      */
-    public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
+    public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
+            throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row row = rs.one();
@@ -295,7 +303,8 @@ public class CassandraDataSetDAO {
      * @param dataSetId
      *            data set id
      */
-    public void deleteDataSet(String providerId, String dataSetId) {
+    public void deleteDataSet(String providerId, String dataSetId)
+            throws NoHostAvailableException, QueryExecutionException {
         // remove all assignments
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = listDataSetAssignmentsNoPaging.bind(providerDataSetId);

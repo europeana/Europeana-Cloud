@@ -41,7 +41,7 @@ public class CassandraRecordService implements RecordService {
     private CassandraRecordDAO recordDAO;
 
     @Autowired
-    private ContentDAO contentDAO;
+    private SwiftContentDAO contentDAO;
 
     @Autowired
     private SolrDAO solrDAO;
