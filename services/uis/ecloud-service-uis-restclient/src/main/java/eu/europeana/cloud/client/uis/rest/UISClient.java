@@ -24,7 +24,6 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
