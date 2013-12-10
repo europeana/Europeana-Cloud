@@ -15,6 +15,17 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.uis.CloudIdList;
 import eu.europeana.cloud.service.uis.LocalIdList;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.GenericException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * The REST API client for the Unique Identifier Service
@@ -43,7 +54,7 @@ public class UISClient {
 			return resp.readEntity(CloudId.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -63,7 +74,7 @@ public class UISClient {
 			return resp.readEntity(CloudId.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 	/**
@@ -82,7 +93,7 @@ public class UISClient {
 			return resp.readEntity(CloudId.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -101,7 +112,7 @@ public class UISClient {
 			return cloudIds.getList();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -120,7 +131,7 @@ public class UISClient {
 			return localIds.getList();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -139,7 +150,7 @@ public class UISClient {
 			return cloudIds.getList();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -163,7 +174,7 @@ public class UISClient {
 			return localIds.getList();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -187,7 +198,7 @@ public class UISClient {
 			return cloudIds.getList();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 
@@ -208,7 +219,7 @@ public class UISClient {
 			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 
 	}
@@ -228,7 +239,7 @@ public class UISClient {
 			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
 	}
 	
@@ -245,7 +256,32 @@ public class UISClient {
 			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw new CloudException(errorInfo.getErrorCode() + ":" + errorInfo.getDetails());
+			throw generateException(errorInfo);
 		}
+	}
+	
+	public CloudException generateException(ErrorInfo e){
+		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
+		switch (error) {
+		case CLOUDID_DOES_NOT_EXIST:
+			return new CloudException(e.getErrorCode(), new CloudIdDoesNotExistException(e.getDetails()));
+		case DATABASE_CONNECTION_ERROR:
+			return new CloudException(e.getErrorCode(), new DatabaseConnectionException(e.getDetails()));
+		case ID_HAS_BEEN_MAPPED:
+			return new CloudException(e.getErrorCode(), new IdHasBeenMappedException(e.getDetails()));
+		case PROVIDER_DOES_NOT_EXIST:
+			return new CloudException(e.getErrorCode(), new ProviderDoesNotExistException(e.getDetails()));
+		case RECORD_DOES_NOT_EXIST:
+			return new CloudException(e.getErrorCode(), new RecordDoesNotExistException(e.getDetails()));
+		case RECORD_EXISTS:
+			return new CloudException(e.getErrorCode(), new RecordExistsException(e.getDetails()));
+		case RECORDID_DOES_NOT_EXIST:
+			return new CloudException(e.getErrorCode(), new RecordIdDoesNotExistException(e.getDetails()));
+		case RECORDSET_EMPTY:
+			return new CloudException(e.getErrorCode(), new RecordDatasetEmptyException(e.getDetails()));
+		default:
+			return new CloudException(e.getErrorCode(), new GenericException(e.getDetails()));
+		}
+		
 	}
 }

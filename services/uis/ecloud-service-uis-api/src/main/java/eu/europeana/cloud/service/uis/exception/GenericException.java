@@ -10,6 +10,10 @@ public class GenericException extends Exception {
 	private static final long serialVersionUID = -6146223626718871100L;
 	private IdentifierErrorInfo errorInfo;
 	
+	public GenericException(String message){
+		super(message);
+	}
+	
 	public GenericException (IdentifierErrorInfo errorInfo){
 		super();
 		this.errorInfo = errorInfo;

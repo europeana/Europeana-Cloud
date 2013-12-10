@@ -9,6 +9,10 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class RecordDatasetEmptyException extends GenericException {
 
+	public RecordDatasetEmptyException(String message){
+		super(message);
+	}
+	
 	public RecordDatasetEmptyException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}

@@ -14,6 +14,7 @@ import org.junit.Test;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.exception.GenericException;
 
 public class UISClientTest {
 	
@@ -44,7 +45,7 @@ public class UISClientTest {
 	@Test
 	public void testCreateCloudIdException(){
 		try {
-			when(client.createCloudId("test", "test")).thenThrow(new CloudException("test"));
+			when(client.createCloudId("test", "test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.createCloudId("test", "test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -72,7 +73,7 @@ public class UISClientTest {
 	@Test
 	public void testGetCloudIdException(){
 		try {
-			when(client.getCloudId("test", "test")).thenThrow(new CloudException("test"));
+			when(client.getCloudId("test", "test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getCloudId("test", "test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -103,7 +104,7 @@ public class UISClientTest {
 	@Test
 	public void testGetRecordIdException(){
 		try {
-			when(client.getRecordId("test")).thenThrow(new CloudException("test"));
+			when(client.getRecordId("test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getRecordId("test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -135,7 +136,7 @@ public class UISClientTest {
 	@Test
 	public void testGetCloudIdsException(){
 		try {
-			when(client.getCloudIdsByProvider("test")).thenThrow(new CloudException("test"));
+			when(client.getCloudIdsByProvider("test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getCloudIdsByProvider("test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -166,7 +167,7 @@ public class UISClientTest {
 	@Test
 	public void testGetRecordIdsByProviderException(){
 		try {
-			when(client.getRecordIdsByProvider("test")).thenThrow(new CloudException("test"));
+			when(client.getRecordIdsByProvider("test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getRecordIdsByProvider("test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -197,7 +198,7 @@ public class UISClientTest {
 	@Test
 	public void testGetRecordIdsByProviderExceptionWithPagination(){
 		try {
-			when(client.getRecordIdsByProviderWithPagination("test","test",1)).thenThrow(new CloudException("test"));
+			when(client.getRecordIdsByProviderWithPagination("test","test",1)).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getRecordIdsByProviderWithPagination("test","test",1);	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -228,7 +229,7 @@ public class UISClientTest {
 	@Test
 	public void testGetCloudIdsByProviderExceptionWithPagination(){
 		try {
-			when(client.getCloudIdsByProviderWithPagination("test","test",1)).thenThrow(new CloudException("test"));
+			when(client.getCloudIdsByProviderWithPagination("test","test",1)).thenThrow(new CloudException("test", new GenericException("test")));
 			client.getCloudIdsByProviderWithPagination("test","test",1);	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -254,7 +255,7 @@ public class UISClientTest {
 	@Test
 	public void testCreateMappingException(){
 		try {
-			when(client.createMapping("test","test","test")).thenThrow(new CloudException("test"));
+			when(client.createMapping("test","test","test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.createMapping("test","test","test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -280,7 +281,7 @@ public class UISClientTest {
 	@Test
 	public void testRemoveMappingException(){
 		try {
-			when(client.removeMappingByLocalId("test","test")).thenThrow(new CloudException("test"));
+			when(client.removeMappingByLocalId("test","test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.removeMappingByLocalId("test","test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));
@@ -306,7 +307,7 @@ public class UISClientTest {
 	@Test
 	public void testDeleteCloudIdException(){
 		try {
-			when(client.deleteCloudId("test")).thenThrow(new CloudException("test"));
+			when(client.deleteCloudId("test")).thenThrow(new CloudException("test", new GenericException("test")));
 			client.deleteCloudId("test");	
 		} catch (Exception e) {
 			assertTrue(e.getClass().isAssignableFrom(CloudException.class));

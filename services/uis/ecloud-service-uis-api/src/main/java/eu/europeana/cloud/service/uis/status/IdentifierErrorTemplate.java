@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.uis.status;
 import javax.ws.rs.core.Response.Status;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.uis.exception.GenericException;
 
 /**
  * Status Messages returned by all methods
@@ -25,6 +26,7 @@ public enum IdentifierErrorTemplate {
 		public Status getHttpCode() {
 			return Status.INTERNAL_SERVER_ERROR;
 		}
+		
 	},
 
 	/**
@@ -175,4 +177,5 @@ public enum IdentifierErrorTemplate {
 	 * @return The relevant HTTP Code
 	 */
 	public abstract Status getHttpCode();
+	
 }

@@ -9,6 +9,10 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class DatabaseConnectionException extends GenericException{
 
+	public DatabaseConnectionException(String message){
+		super (message);
+	}
+	
 	public DatabaseConnectionException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}

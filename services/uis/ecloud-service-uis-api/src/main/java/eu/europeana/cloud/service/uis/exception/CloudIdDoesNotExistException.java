@@ -9,6 +9,9 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class CloudIdDoesNotExistException extends GenericException {
 
+	public CloudIdDoesNotExistException(String message){
+		super(message);
+	}
 	public CloudIdDoesNotExistException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}
