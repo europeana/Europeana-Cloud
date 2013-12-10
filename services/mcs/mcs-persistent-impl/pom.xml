@@ -50,7 +50,6 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>2.0.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>com.eaio.uuid</groupId>
@@ -63,9 +62,9 @@
             <version>1.6.0</version>
         </dependency>
         <dependency>
-            <groupId>org.jclouds</groupId>
-            <artifactId>jclouds-allblobstore</artifactId>
-            <version>1.6.0</version>
+            <groupId>org.jclouds.api</groupId>
+            <artifactId>swift</artifactId>
+          <version>1.6.0</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -85,21 +84,8 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.3</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-            <version>${version.spring-framework}</version>
-            <exclusions>
-                <!--without jcl - because we use log4j through slf4j -->
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
 
         <!--logging -->
         <dependency>
@@ -123,8 +109,22 @@
             <artifactId>log4j</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.psnc-dl.cassandraunit</groupId>
+		<!--tests-->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+			<version>${version.spring-framework}</version>
+			<exclusions>
+				<!--without jcl - because we use log4j through slf4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.github.psnc-dl.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
             <version>2.0.1.0</version>
             <scope>test</scope>
