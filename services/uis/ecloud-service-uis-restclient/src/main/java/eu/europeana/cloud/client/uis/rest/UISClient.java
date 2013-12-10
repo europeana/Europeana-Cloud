@@ -35,8 +35,16 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 public class UISClient {
 
 	private static Client client = JerseyClientBuilder.newClient();
-	private static UrlProvider urlProvider = new UrlProvider();
+	private static UrlProvider urlProvider;
 	
+        public UISClient(){
+            urlProvider = new UrlProvider();
+        }
+        
+        public UISClient(String uisUrl){
+            urlProvider = new UrlProvider(uisUrl);
+        }
+        
 	/**
 	 * Invoke the creation of a new CloudId REST call
 	 * @param providerId The provider Id
