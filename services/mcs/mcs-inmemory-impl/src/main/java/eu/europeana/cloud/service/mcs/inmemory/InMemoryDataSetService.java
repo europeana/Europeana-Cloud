@@ -8,8 +8,10 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +29,39 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Autowired
     private InMemoryDataProviderDAO dataProviderDao;
+    
+    InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO,
+            InMemoryDataProviderDAO dataProviderDao) {
+        super();
+        this.dataSetDAO = dataSetDAO;
+        this.recordDAO = recordDAO;
+        this.dataProviderDao = dataProviderDao;
+    }
+    
+    public InMemoryDataSetService() {
+        super();
+    }
 
 
     @Override
     public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
             throws DataSetNotExistsException {
+        int treshold = 0;
         if (thresholdParam != null) {
-            throw new UnsupportedOperationException("Paging with threshold is not supported");
+            treshold = parseInteger(thresholdParam);
         }
-        List<Representation> listOfStubs = dataSetDAO.listDataSet(providerId, dataSetId);
-        listOfStubs = listOfStubs.subList(0, Math.min(limit, listOfStubs.size()));
+        List<Representation> listOfAllStubs = dataSetDAO.listDataSet(providerId, dataSetId);
+        if (listOfAllStubs.size() != 0 && treshold >= listOfAllStubs.size()) {
+            throw new IllegalArgumentException("Illegal threshold param value: '" + thresholdParam + "'.");
+        }
+        int newOffset = -1;
+        List<Representation> listOfStubs = listOfAllStubs;
+        if (limit > 0) {
+            listOfStubs = listOfAllStubs.subList(treshold, Math.min(treshold + limit, listOfAllStubs.size()));
+            if (listOfAllStubs.size() > treshold + limit) {
+                newOffset = treshold + limit;
+            }
+        }
         List<Representation> toReturn = new ArrayList<>(listOfStubs.size());
         for (Representation stub : listOfStubs) {
             Representation realContent;
@@ -48,7 +73,18 @@ public class InMemoryDataSetService implements DataSetService {
             }
             toReturn.add(realContent);
         }
-        return new ResultSlice<>(null, toReturn);
+        return newOffset == -1 ? new ResultSlice<>(null, toReturn) : new ResultSlice<>(Integer.toString(newOffset), toReturn);
+    }
+
+
+    private int parseInteger(String thresholdParam) {
+        int offset = 0;
+        try {
+            offset = Integer.parseInt(thresholdParam);                
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '" + thresholdParam + "'. ");
+        }
+        return offset;
     }
 
 
