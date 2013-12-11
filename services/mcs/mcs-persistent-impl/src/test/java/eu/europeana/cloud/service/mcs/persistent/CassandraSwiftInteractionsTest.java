@@ -1,28 +1,24 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-
 /**
  * 
- * @author sielski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
@@ -67,14 +63,14 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
         // when content is put 
         try {
             cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f,
-                    new ByteArrayInputStream(dummyContent));
+                new ByteArrayInputStream(dummyContent));
         } catch (MockException e) {
             // it's expected
         }
 
         // then - no file should be present
         Representation fetched = cassandraRecordService.getRepresentation(r.getRecordId(), r.getSchema(),
-                r.getVersion());
+            r.getVersion());
         Assert.assertTrue(fetched.getFiles().isEmpty());
     }
 
