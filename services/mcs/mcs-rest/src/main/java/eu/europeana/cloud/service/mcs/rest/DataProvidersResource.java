@@ -60,8 +60,9 @@ public class DataProvidersResource {
      *            data provider properties.
      * @param providerId
      *            data provider id (required)
-     * @return URI to created resource in content location * @throws ProviderAlreadyExistsException provider already
-     *         exists.
+     * @return URI to created resource in content location
+     * @throws ProviderAlreadyExistsException
+     *             provider already * exists.
      * @statuscode 201 object has been created.
      */
     @POST

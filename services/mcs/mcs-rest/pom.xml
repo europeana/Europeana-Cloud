@@ -12,9 +12,30 @@
 	<packaging>war</packaging>
 	<name>Europeana Cloud: Metadata and Content Service REST</name>
 
-	<properties>
-		<version.org.glassfish.jersey.test-framework>${version.jersey}</version.org.glassfish.jersey.test-framework>
-	</properties>
+	<profiles>
+		<profile>
+			<id>inmemory</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.config.file>inmemoryApplicationContext.xml</spring.config.file>
+			</properties>
+		</profile>
+		<profile>
+			<id>persistent</id>
+			<properties>
+				<spring.config.file>persistentApplicationContext.xml</spring.config.file>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 	<build>
 		<testResources>
@@ -132,6 +153,22 @@
 							<defaultMessage>Object deleted.</defaultMessage>
 						</statusCode>
 					</statusCodes>
+				</configuration>
+			</plugin>
+			<!--needed to enable filtering on web.xml where spring config file is configured-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<filtering>true</filtering>
+							<directory>src/main/webapp</directory>
+							<includes>
+								<include>**/web.xml</include>
+							</includes>
+						</resource>
+					</webResources>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -252,13 +289,13 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
 			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-			<version>${version.org.glassfish.jersey.test-framework}</version>
+			<version>${version.jersey}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework</groupId>
 			<artifactId>jersey-test-framework-core</artifactId>
-			<version>${version.org.glassfish.jersey.test-framework}</version>
+			<version>${version.jersey}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -274,12 +311,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-solrj</artifactId>
-			<version>4.5.1</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>

@@ -76,9 +76,10 @@ public class FileResource {
      *            mime type of file
      * @param data
      *            binary stream of file content (required)
-     * @return uri of uploaded content file in content-location * @throws IOException io exception
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     * @return uri of uploaded content file in content-location
+     * @throws IOException
+     *             io exception * @throws RepresentationNotExistsException representation does not exist in specified
+     *             version.
      * @throws CannotModifyPersistentRepresentationException
      *             specified representation version is persistent and modyfying its files is not allowed.
      * @statuscode 204 object has been updated.
