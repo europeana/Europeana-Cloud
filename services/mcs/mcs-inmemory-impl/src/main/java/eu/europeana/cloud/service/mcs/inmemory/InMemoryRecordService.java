@@ -1,5 +1,16 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -14,15 +25,6 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * InMemoryContentServiceImpl
@@ -41,6 +43,20 @@ public class InMemoryRecordService implements RecordService {
 
     @Autowired
     private InMemoryDataProviderDAO dataProviderDAO;
+    
+
+    public InMemoryRecordService() {
+        super();
+    }
+    
+    InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
+            InMemoryDataProviderDAO dataProviderDAO) {
+        super();
+        this.recordDAO = recordDAO;
+        this.contentDAO = contentDAO;
+        this.dataSetDAO = dataSetDAO;
+        this.dataProviderDAO = dataProviderDAO;
+    }
 
 
     @Override
@@ -231,13 +247,14 @@ public class InMemoryRecordService implements RecordService {
 
     @Override
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
+        int threshold = 0;
         if (thresholdParam != null) {
-            throw new UnsupportedOperationException("Paging with threshold is not supported");
+            threshold = parseInteger(thresholdParam);
         }
         String providerId = searchParams.getDataProvider();
         String schema = searchParams.getSchema();
         String dataSetId = searchParams.getDataSetId();
-        List<Representation> result;
+        List<Representation> allRecords;
         if (providerId != null && dataSetId != null) {
             // get all for dataset then filter for schema
             List<Representation> toReturn = new ArrayList<>();
@@ -257,14 +274,39 @@ public class InMemoryRecordService implements RecordService {
                     }
                 }
             } catch (DataSetNotExistsException ex) {
-                result = Collections.emptyList();
+                allRecords = Collections.emptyList();
             }
-            result = toReturn;
+            allRecords = toReturn;
         } else {
-            result = recordDAO.findRepresentations(providerId, schema);
+            allRecords = recordDAO.findRepresentations(providerId, schema);
         }
-        result = result.subList(0, Math.min(limit, result.size()));
-        return new ResultSlice<>(null, result);
+        if (allRecords.size() != 0 && threshold >= allRecords.size()) {
+            throw new IllegalArgumentException("Illegal threshold param value: '" + thresholdParam + "'.");
+        }
+        return prepareResultSlice(limit, threshold, allRecords);
+    }
+
+    private ResultSlice<Representation> prepareResultSlice(int limit, int threshold, List<Representation> allRecords) {
+        List<Representation> result = allRecords;
+        String nextSlice = null;
+        if (limit > 0){
+            int offset = threshold + limit;
+            result = allRecords.subList(threshold, Math.min(offset, allRecords.size()));
+            if (offset < allRecords.size()){
+                nextSlice = Integer.toString(offset);
+            }
+        }
+        return new ResultSlice<>(nextSlice, result);
+    }
+    
+    private int parseInteger(String thresholdParam) {
+        int offset = 0;
+        try {
+            offset = Integer.parseInt(thresholdParam);                
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '" + thresholdParam + "'. ");
+        }
+        return offset;
     }
 
 
