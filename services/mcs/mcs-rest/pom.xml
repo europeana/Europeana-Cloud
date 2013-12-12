@@ -123,6 +123,11 @@
 							<defaultMessage>Representation is already assigned into this data set.</defaultMessage>
 						</statusCode>
 						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException</document>
+							<defaultMessage>Data provider with specified id already exists.</defaultMessage>
+						</statusCode>
+						<statusCode>
 							<httpCode>404</httpCode>
 							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException</document>
 							<defaultMessage>Requested representation (or representation version) does not exist.</defaultMessage>

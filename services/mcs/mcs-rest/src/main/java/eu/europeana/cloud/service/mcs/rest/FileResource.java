@@ -78,8 +78,9 @@ public class FileResource {
      *            binary stream of file content (required)
      * @return uri of uploaded content file in content-location
      * @throws IOException
-     *             io exception * @throws RepresentationNotExistsException representation does not exist in specified
-     *             version.
+     *             io exception
+     * @throws RepresentationNotExistsException
+     *             representation does not exist in specified * version.
      * @throws CannotModifyPersistentRepresentationException
      *             specified representation version is persistent and modyfying its files is not allowed.
      * @statuscode 204 object has been updated.
@@ -113,9 +114,9 @@ public class FileResource {
      * </ul>
      * 
      * @param range
-     * @return
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     *            range of bytes to return (optional)
+     * @return file content * @throws RepresentationNotExistsException representation does not exist in specified
+     *         version.
      * @throws WrongContentRangeException
      *             wrong value in "Range" header
      * @throws FileNotExistsException

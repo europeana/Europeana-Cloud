@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -63,6 +64,11 @@ public class UnitedExceptionMapper {
     }
 
 
+    public Response toResponse(ProviderAlreadyExistsException exception) {
+        return buildResponse(Response.Status.CONFLICT, McsErrorCode.PROVIDER_ALREADY_EXISTS, exception);
+    }
+
+
     public Response toResponse(ProviderHasRecordsException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.PROVIDER_HAS_RECORDS, exception);
     }
@@ -100,6 +106,11 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(WrongContentRangeException exception) {
         return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.OTHER, exception);
+    }
+
+
+    public Response toResponse(RuntimeException exception) {
+        return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
 
 
