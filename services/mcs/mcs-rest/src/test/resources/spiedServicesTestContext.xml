@@ -28,5 +28,8 @@
     <mockito:spy beanName="recordDAO"/>
     <mockito:spy beanName="contentDAO"/>
     <mockito:spy beanName="dataSetDAO"/>
-    <mockito:spy beanName="dataProviderDAO"/>
+    <mockito:spy beanName="dataProviderDAO"/> 
+    
+    <!--mock UISClient-->
+    <mockito:mock id ="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandler"/>
 </beans>

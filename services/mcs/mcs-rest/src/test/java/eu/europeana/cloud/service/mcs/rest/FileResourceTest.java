@@ -10,6 +10,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,6 +38,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -55,6 +57,8 @@ public class FileResourceTest extends JerseyTest {
 
     private WebTarget fileWebTarget;
 
+    private UISClientHandler uisHandler;
+
 
     @Before
     public void mockUp()
@@ -62,7 +66,10 @@ public class FileResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         providerService = applicationContext.getBean(DataProviderService.class);
-
+        
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        
         providerService.createProvider("1", new DataProviderProperties());
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();

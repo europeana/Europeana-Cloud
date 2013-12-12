@@ -48,6 +48,7 @@ public class RecordsResourceTest extends JerseyTest {
     @Before
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+//        uisClient = applicationContext.getBean(null)
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -85,6 +86,7 @@ public class RecordsResourceTest extends JerseyTest {
         verifyNoMoreInteractions(recordService);
     }
 
+    
 
     @Test
     public void getRecordReturns406ForUnsupportedFormat() {

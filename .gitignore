@@ -9,6 +9,6 @@
 /services/mcs/mcs-inmemory-impl/target/
 /services/mcs/mcs-persistent-impl/target/
 /services/mcs/mcs-rest/target/
-/services/mcs/nbactions.xml
 
 nb-configuration.xml
+nbactions.xml

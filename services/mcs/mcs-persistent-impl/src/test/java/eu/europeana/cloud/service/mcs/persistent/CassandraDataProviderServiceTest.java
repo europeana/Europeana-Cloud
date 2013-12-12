@@ -19,6 +19,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.*;
+import org.mockito.Mockito;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
@@ -33,7 +34,9 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
     @Autowired
     private CassandraDataSetService cassandraDataSetService;
 
-
+    @Autowired
+    private UISClientHandler uisHandler;
+    
     @Test
     public void shouldCreateAndGetProvider()
             throws ProviderAlreadyExistsException, ProviderNotExistsException {
@@ -71,7 +74,9 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
     @Test(expected = ProviderHasRecordsException.class)
     public void shouldFailWhenDeletingProviderWithRecords()
             throws ProviderNotExistsException, ProviderAlreadyExistsException, ProviderHasDataSetsException,
-            ProviderHasRecordsException {
+            ProviderHasRecordsException, RecordNotExistsException {
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        
         DataProvider dp = cassandraDataProviderService
                 .createProvider("provident", createRandomDataProviderProperties());
         cassandraRecordService.createRepresentation("global", "dc", dp.getId());

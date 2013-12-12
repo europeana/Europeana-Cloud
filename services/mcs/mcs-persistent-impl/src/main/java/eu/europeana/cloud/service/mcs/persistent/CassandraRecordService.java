@@ -52,14 +52,20 @@ public class CassandraRecordService implements RecordService {
     @Autowired
     private SolrRepresentationIndexer representationIndexer;
 
-
+    @Autowired
+    private UISClientHandler uis;
+    
     /**
      * @inheritDoc
      */
     @Override
-    public Record getRecord(String globalId)
+    public Record getRecord(String cloudId)
             throws RecordNotExistsException {
-        return recordDAO.getRecord(globalId);
+        Record record = null;
+            if(uis.recordExistInUIS(cloudId)){
+                record = recordDAO.getRecord(cloudId);
+            } else throw new RecordNotExistsException(cloudId);
+        return record;
     }
 
 
@@ -67,22 +73,24 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public void deleteRecord(String globalId)
+    public void deleteRecord(String cloudId)
             throws RecordNotExistsException {
-        List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(globalId);
-        representationIndexer.removeRecordRepresentations(globalId);
-        for (Representation repVersion : allRecordRepresentationsInAllVersions) {
-            for (File f : repVersion.getFiles()) {
-                try {
-                    contentDAO.deleteContent(generateKeyForFile(globalId, repVersion.getSchema(),
-                        repVersion.getVersion(), f.getFileName()));
-                } catch (FileNotExistsException ex) {
-                    log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                        f.getFileName(), globalId, repVersion.getSchema(), repVersion.getVersion());
+        if (uis.recordExistInUIS(cloudId)) {
+            List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
+            representationIndexer.removeRecordRepresentations(cloudId);
+            for (Representation repVersion : allRecordRepresentationsInAllVersions) {
+                for (File f : repVersion.getFiles()) {
+                    try {
+                        contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getSchema(),
+                                repVersion.getVersion(), f.getFileName()));
+                    } catch (FileNotExistsException ex) {
+                        log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                                f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
+                    }
                 }
             }
-        }
-        recordDAO.deleteRecord(globalId);
+            recordDAO.deleteRecord(cloudId);
+        } else throw new RecordNotExistsException(cloudId);
     }
 
 
@@ -111,16 +119,21 @@ public class CassandraRecordService implements RecordService {
      * @inheritDoc
      */
     @Override
-    public Representation createRepresentation(String globalId, String representationName, String providerId)
-            throws ProviderNotExistsException {
-        Date now = new Date();
-        // check if data provider exists
-        if (dataProviderDAO.getProvider(providerId) == null) {
-            throw new ProviderNotExistsException();
-        }
-        Representation rep = recordDAO.createRepresentation(globalId, representationName, providerId, now);
-        representationIndexer.insertRepresentation(rep);
-        return rep;
+    public Representation createRepresentation(String cloudId, String representationName, String providerId)
+            throws ProviderNotExistsException, RecordNotExistsException {
+            if (uis.recordExistInUIS(cloudId)) 
+            {
+                Date now = new Date();
+                // check if data provider exists
+                if (dataProviderDAO.getProvider(providerId) == null) {
+                    throw new ProviderNotExistsException();
+                }
+                Representation rep = recordDAO.createRepresentation(cloudId, representationName, providerId, now);
+                representationIndexer.insertRepresentation(rep);
+                return rep;
+            } 
+            else throw new RecordNotExistsException(cloudId);
+       
     }
 
 

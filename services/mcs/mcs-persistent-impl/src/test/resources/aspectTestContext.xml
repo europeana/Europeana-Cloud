@@ -28,6 +28,7 @@
 	<mockito:mock id="cassandraDataProviderDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderDAO"/>
 	<mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
 	<mockito:mock id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordDAO"/>
-	<mockito:mock id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO"/>
-
+        <mockito:mock id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO"/>
+        <mockito:mock id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandler"/>
+        
 </beans>

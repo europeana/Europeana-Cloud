@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -46,7 +48,8 @@ public class DataSetResourceTest extends JerseyTest {
 
     private DataProvider dataProvider;
 
-
+    private UISClientHandler uisHandler;
+    
     @Override
     public Application configure() {
         return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
@@ -57,6 +60,8 @@ public class DataSetResourceTest extends JerseyTest {
     public void mockUp()
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);

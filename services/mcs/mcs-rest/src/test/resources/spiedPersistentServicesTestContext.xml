@@ -63,5 +63,7 @@
     <mockito:spy beanName="sorlConnector"/>
     <mockito:spy beanName="solrDAO"/>
     <mockito:spy beanName="solrRepresentationIndexer"/>
-
+    
+    <!--mock UISClient-->
+    <mockito:mock id ="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandler"/>
 </beans>

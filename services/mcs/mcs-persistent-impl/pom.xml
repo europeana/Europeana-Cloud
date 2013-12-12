@@ -32,7 +32,13 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
-		</dependency>
+                </dependency>
+                
+                <dependency>
+                    <groupId>eu.europeana.cloud</groupId>
+                    <artifactId>ecloud-service-uis-restclient</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
