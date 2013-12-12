@@ -33,7 +33,7 @@
           </elementProp>
           <elementProp name="requests" elementType="Argument">
             <stringProp name="Argument.name">requests</stringProp>
-            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.desc">Number of requests</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -57,7 +57,7 @@
           </elementProp>
           <elementProp name="datasets" elementType="Argument">
             <stringProp name="Argument.name">datasets</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">2</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -159,8 +159,8 @@
             <stringProp name="CounterConfig.start">1</stringProp>
             <stringProp name="CounterConfig.end"></stringProp>
             <stringProp name="CounterConfig.incr">1</stringProp>
-            <stringProp name="CounterConfig.name">datasetCounter</stringProp>
-            <stringProp name="CounterConfig.format">000000</stringProp>
+            <stringProp name="CounterConfig.name">datasetId</stringProp>
+            <stringProp name="CounterConfig.format">dataset000000</stringProp>
             <boolProp name="CounterConfig.per_user">false</boolProp>
           </CounterConfig>
           <hashTree/>
@@ -169,7 +169,7 @@
               <collectionProp name="Arguments.arguments">
                 <elementProp name="dataSetId" elementType="HTTPArgument">
                   <boolProp name="HTTPArgument.always_encode">true</boolProp>
-                  <stringProp name="Argument.value">dataset${datasetCounter}</stringProp>
+                  <stringProp name="Argument.value">${datasetId}</stringProp>
                   <stringProp name="Argument.metadata">=</stringProp>
                   <boolProp name="HTTPArgument.use_equals">true</boolProp>
                   <stringProp name="Argument.name">dataSetId</stringProp>
@@ -331,8 +331,8 @@
             <stringProp name="CounterConfig.start">1</stringProp>
             <stringProp name="CounterConfig.end"></stringProp>
             <stringProp name="CounterConfig.incr">1</stringProp>
-            <stringProp name="CounterConfig.name">datasetCounter</stringProp>
-            <stringProp name="CounterConfig.format">000000</stringProp>
+            <stringProp name="CounterConfig.name">datasetId</stringProp>
+            <stringProp name="CounterConfig.format">dataset000000</stringProp>
             <boolProp name="CounterConfig.per_user">false</boolProp>
           </CounterConfig>
           <hashTree/>
@@ -373,7 +373,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${providerId}/data-sets/dataset${datasetCounter}/assignments</stringProp>
+              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${providerId}/data-sets/${datasetId}/assignments</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -436,8 +436,8 @@
             <stringProp name="CounterConfig.start">1</stringProp>
             <stringProp name="CounterConfig.end"></stringProp>
             <stringProp name="CounterConfig.incr">1</stringProp>
-            <stringProp name="CounterConfig.name">datasetCounter</stringProp>
-            <stringProp name="CounterConfig.format">000000</stringProp>
+            <stringProp name="CounterConfig.name">datasetId</stringProp>
+            <stringProp name="CounterConfig.format">dataset000000</stringProp>
             <boolProp name="CounterConfig.per_user">false</boolProp>
           </CounterConfig>
           <hashTree/>
@@ -456,7 +456,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${providerId}/data-sets/dataset${datasetCounter}/assignments?recordId=${__regexFunction(.*?/records/(.*?)/representations/(.*)/versions/(.*),$1$,,,,,verURI)}&amp;schema=${__regexFunction(.*?/records/(.*?)/representations/(.*)/versions/(.*),$2$,,,,,verURI)}</stringProp>
+              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${providerId}/data-sets/${datasetId}/assignments?recordId=${__regexFunction(.*?/records/(.*?)/representations/(.*)/versions/(.*),$1$,,,,,verURI)}&amp;schema=${__regexFunction(.*?/records/(.*?)/representations/(.*)/versions/(.*),$2$,,,,,verURI)}</stringProp>
               <stringProp name="HTTPSampler.method">DELETE</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -515,6 +515,15 @@
           <stringProp name="LoopController.loops">${datasets}</stringProp>
         </LoopController>
         <hashTree>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
+            <stringProp name="CounterConfig.start">1</stringProp>
+            <stringProp name="CounterConfig.end"></stringProp>
+            <stringProp name="CounterConfig.incr">1</stringProp>
+            <stringProp name="CounterConfig.name">datasetId</stringProp>
+            <stringProp name="CounterConfig.format">dataset000000</stringProp>
+            <boolProp name="CounterConfig.per_user">false</boolProp>
+          </CounterConfig>
+          <hashTree/>
           <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
             <boolProp name="LoopController.continue_forever">true</boolProp>
             <stringProp name="LoopController.loops">${requests}</stringProp>
@@ -556,6 +565,40 @@
               </ResponseAssertion>
               <hashTree/>
             </hashTree>
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Delete dataset" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain"></stringProp>
+            <stringProp name="HTTPSampler.port"></stringProp>
+            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+            <stringProp name="HTTPSampler.protocol"></stringProp>
+            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+            <stringProp name="HTTPSampler.path">${app-name}/data-providers/${providerId}/data-sets/${datasetId}</stringProp>
+            <stringProp name="HTTPSampler.method">DELETE</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <boolProp name="HTTPSampler.monitor">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="49590">204</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">true</boolProp>
+              <intProp name="Assertion.test_type">1</intProp>
+            </ResponseAssertion>
+            <hashTree/>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers"/>
+            </HeaderManager>
+            <hashTree/>
           </hashTree>
         </hashTree>
       </hashTree>
