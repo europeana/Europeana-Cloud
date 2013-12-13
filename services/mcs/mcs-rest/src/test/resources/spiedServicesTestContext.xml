@@ -21,7 +21,8 @@
 	<bean id="contentDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentDAO"/>
 	<bean id="dataSetDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetDAO"/>
 	<bean id="dataProviderDAO" class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataProviderDAO"/>
-
+        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
+            
     <mockito:spy beanName="recordService"/>
     <mockito:spy beanName="dataSetService"/>
     <mockito:spy beanName="dataProvidersService"/>
@@ -30,6 +31,4 @@
     <mockito:spy beanName="dataSetDAO"/>
     <mockito:spy beanName="dataProviderDAO"/> 
     
-    <!--mock UISClient-->
-    <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.rest.persistent.AlwaysSuccessfulUISClientHandler"/>
 </beans>

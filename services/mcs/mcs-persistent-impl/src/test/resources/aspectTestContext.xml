@@ -14,7 +14,7 @@
 	<context:annotation-config/>
         <aop:aspectj-autoproxy/>
         
-        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.AlwaysSuccessfulUISClientHandler"/>
+        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
 	<bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 	
 	<bean id="cassandraDataProviderService"

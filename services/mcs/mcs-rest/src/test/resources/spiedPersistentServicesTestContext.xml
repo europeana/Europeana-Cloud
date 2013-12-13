@@ -48,7 +48,7 @@
     <bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider"/>
     <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-
+    <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
 
     <!--spy on everything-->
     <mockito:spy beanName="cassandraConnectionProvider"/>
@@ -64,6 +64,5 @@
     <mockito:spy beanName="solrDAO"/>
     <mockito:spy beanName="solrRepresentationIndexer"/>
     
-    <!--mock UISClient-->
-    <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.rest.persistent.AlwaysSuccessfulUISClientHandler"/>
+    
 </beans>
