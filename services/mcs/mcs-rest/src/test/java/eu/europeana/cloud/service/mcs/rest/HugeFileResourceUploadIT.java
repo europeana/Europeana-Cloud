@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
@@ -37,13 +36,11 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 
 /**
- * FileResourceTest
+ * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
 public class HugeFileResourceUploadIT extends JerseyTest {
 
     private static RecordService recordService;
-
-    private Representation recordRepresentation;
 
     private static final int HUGE_FILE_SIZE = 1 << 30;
 
@@ -61,8 +58,6 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-
-        recordRepresentation = recordService.createRepresentation("1", "1", "1");
     }
 
 
@@ -70,7 +65,6 @@ public class HugeFileResourceUploadIT extends JerseyTest {
     public void cleanUp()
             throws Exception {
         reset(recordService);
-        recordService.deleteRepresentation(recordRepresentation.getRecordId(), recordRepresentation.getSchema());
     }
 
 
@@ -91,14 +85,18 @@ public class HugeFileResourceUploadIT extends JerseyTest {
     @Test
     public void testUploadingHugeFile()
             throws Exception {
+        String globalId = "globalId", schema = "schema", version = "v1";
 
+        // mock answers
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
             any(InputStream.class));
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
-            ImmutableMap.<String, Object> of(ParamConstants.P_GID, recordRepresentation.getRecordId(),
-                ParamConstants.P_SCHEMA, recordRepresentation.getSchema(), ParamConstants.P_VER,
-                recordRepresentation.getVersion(), ParamConstants.P_FILE, "terefere"));
+            ImmutableMap.<String, Object> of( //
+                ParamConstants.P_GID, globalId, //
+                ParamConstants.P_SCHEMA, schema, //
+                ParamConstants.P_VER, version, //
+                ParamConstants.P_FILE, "terefere"));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);

@@ -30,6 +30,11 @@ public class ServiceExceptionTranslator {
 
     @AfterThrowing(pointcut = "isService() && inMCSPersistentPackage()", throwing = "ex")
     public void wrapException(RuntimeException ex) {
+        // if exception is already our generic system exception - let it be and do nothing
+        if (ex instanceof SystemException) {
+            return;
+        }
+        // else - wrap it into our exception
         SystemException wrappedException = new SystemException(ex.getMessage(), ex);
         wrappedException.setStackTrace(ex.getStackTrace());
         throw wrappedException;

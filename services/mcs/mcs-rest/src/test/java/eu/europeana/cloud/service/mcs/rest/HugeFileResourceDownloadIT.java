@@ -2,13 +2,12 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
@@ -23,6 +22,7 @@ import org.junit.Test;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import org.mockito.invocation.InvocationOnMock;
@@ -30,13 +30,11 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 
 /**
- * FileResourceTest
+ * This tests checks if content is streamed (not put entirely into memory) when downloading file.
  */
 public class HugeFileResourceDownloadIT extends JerseyTest {
 
     private static RecordService recordService;
-
-    private Representation recordRepresentation;
 
     private static final int HUGE_FILE_SIZE = 1 << 30;
 
@@ -46,11 +44,6 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-        MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
-        doAnswer(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
-            anyLong(), anyLong(), any(OutputStream.class));
-
-        recordRepresentation = recordService.createRepresentation("1", "1", "1");
     }
 
 
@@ -58,7 +51,6 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
     public void cleanUp()
             throws Exception {
         reset(recordService);
-        recordService.deleteRepresentation(recordRepresentation.getRecordId(), recordRepresentation.getSchema());
     }
 
 
@@ -78,22 +70,27 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
     public void shouldHandleHugeFile()
             throws Exception {
         // given representation with file in service
-        File f = new File();
-        f.setFileName("terefere");
-        InputStream dummyInputStream = new ByteArrayInputStream(new byte[] { 1, 2, 3 });
-        recordService.putContent(recordRepresentation.getRecordId(), recordRepresentation.getSchema(),
-            recordRepresentation.getVersion(), f, dummyInputStream);
+        String globalId = "globalId", schema = "schema", version = "v1";
+        MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
+        File file = new File("fileName", "mime", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
+
+        // mock answers:
+        doAnswer(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
+            anyLong(), anyLong(), any(OutputStream.class));
+        Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
 
         // when we download mocked content of resource
-        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
-            ImmutableMap.<String, Object> of(ParamConstants.P_GID, recordRepresentation.getRecordId(),
-                ParamConstants.P_SCHEMA, recordRepresentation.getSchema(), ParamConstants.P_VER,
-                recordRepresentation.getVersion(), ParamConstants.P_FILE, f.getFileName()));
+        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()) //
+                .resolveTemplates(ImmutableMap.<String, Object> of( //
+                    ParamConstants.P_GID, globalId, //
+                    ParamConstants.P_SCHEMA, schema, //
+                    ParamConstants.P_VER, version, //
+                    ParamConstants.P_FILE, file.getFileName()));
 
         Response response = webTarget.request().get();
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());
 
-        // then - we should be able to get full content and the content should have expected size 
+        // then - we should be able to get full content and the content should have expected size
         InputStream responseStream = response.readEntity(InputStream.class);
         int totalBytesInResponse = getBytesCount(responseStream);
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, totalBytesInResponse);
