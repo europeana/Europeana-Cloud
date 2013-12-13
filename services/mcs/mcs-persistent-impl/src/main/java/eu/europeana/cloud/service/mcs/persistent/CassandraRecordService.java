@@ -64,7 +64,9 @@ public class CassandraRecordService implements RecordService {
         Record record = null;
             if(uis.recordExistInUIS(cloudId)){
                 record = recordDAO.getRecord(cloudId);
-            } else throw new RecordNotExistsException(cloudId);
+            } else {
+                throw new RecordNotExistsException(cloudId);
+            }
         return record;
     }
 
@@ -90,7 +92,9 @@ public class CassandraRecordService implements RecordService {
                 }
             }
             recordDAO.deleteRecord(cloudId);
-        } else throw new RecordNotExistsException(cloudId);
+        } else {
+            throw new RecordNotExistsException(cloudId);
+        }
     }
 
 
@@ -132,8 +136,9 @@ public class CassandraRecordService implements RecordService {
                 representationIndexer.insertRepresentation(rep);
                 return rep;
             } 
-            else throw new RecordNotExistsException(cloudId);
-       
+            else {
+                throw new RecordNotExistsException(cloudId);
+            }
     }
 
 

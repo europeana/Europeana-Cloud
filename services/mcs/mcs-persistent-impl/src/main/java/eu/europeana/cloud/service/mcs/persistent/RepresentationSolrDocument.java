@@ -18,25 +18,25 @@ import eu.europeana.cloud.common.model.Representation;
  */
 public class RepresentationSolrDocument {
 
-    @Field(SolrFields.cloudId)
+    @Field(SolrFields.CLOUD_ID)
     private String cloudId;
 
-    @Field(SolrFields.version)
+    @Field(SolrFields.VERSION)
     private String version;
 
-    @Field(SolrFields.schema)
+    @Field(SolrFields.SCHEMA)
     private String schema;
 
-    @Field(SolrFields.providerId)
+    @Field(SolrFields.PROVIDER_ID)
     private String providerId;
 
-    @Field(SolrFields.creationDate)
+    @Field(SolrFields.CREATION_DATE)
     private Date creationDate;
 
-    @Field(SolrFields.persistent)
+    @Field(SolrFields.PERSISTENT)
     private boolean persistent;
 
-    @Field(SolrFields.dataSets)
+    @Field(SolrFields.DATA_SETS)
     private Collection<String> dataSets = new ArrayList<>();
 
 

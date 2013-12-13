@@ -33,9 +33,11 @@ public class UISClientHandler {
                             break;
                         }
                     }
-                    if(result==false)
+                    if(!result)
                         throw new RecordNotExistsException(cloudId);
-                } else throw new RecordNotExistsException(cloudId);
+                } else {
+                    throw new RecordNotExistsException(cloudId);
+                }
             }
         } catch (CloudException ex) {
             if(ex.getCause() instanceof RecordDoesNotExistException) {

@@ -41,7 +41,7 @@ public class CassandraDataProviderService implements DataProviderService {
             nextProvider = providers.get(limit).getId();
             providers.remove(limit);
         }
-        return new ResultSlice(nextProvider, providers);
+        return new ResultSlice<DataProvider>(nextProvider, providers);
     }
 
 

@@ -167,8 +167,8 @@ public class CassandraDataSetDAO {
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         List<CompoundDataSetId> ids = new ArrayList<>();
         for (Row r : rs) {
-            UUID version_id = r.getUUID("version_id");
-            String versionIdString = version_id == null ? null : version_id.toString();
+            UUID versionId = r.getUUID("version_id");
+            String versionIdString = versionId == null ? null : versionId.toString();
             if (Objects.equal(version, versionIdString)) {
                 String providerDataSetId = r.getString("provider_dataset_id");
                 ids.add(createCompoundDataSetId(providerDataSetId));

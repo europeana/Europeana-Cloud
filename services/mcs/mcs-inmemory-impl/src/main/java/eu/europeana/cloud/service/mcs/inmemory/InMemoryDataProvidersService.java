@@ -34,7 +34,7 @@ public class InMemoryDataProvidersService implements DataProviderService {
             throw new UnsupportedOperationException("Paging with threshold provider id is not supported");
         }
         List<DataProvider> providers = dataProviderDAO.getProviders(limit);
-        return new ResultSlice(null, providers);
+        return new ResultSlice<DataProvider>(null, providers);
     }
 
 

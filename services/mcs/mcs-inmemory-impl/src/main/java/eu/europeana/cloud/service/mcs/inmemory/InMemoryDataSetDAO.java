@@ -30,8 +30,7 @@ public class InMemoryDataSetDAO {
         if (dataSet == null) {
             throw new DataSetNotExistsException();
         }
-        List<Representation> listOfStubs = dataSetsAssignments.get(dataSet);
-        return listOfStubs;
+        return dataSetsAssignments.get(dataSet);
     }
 
 

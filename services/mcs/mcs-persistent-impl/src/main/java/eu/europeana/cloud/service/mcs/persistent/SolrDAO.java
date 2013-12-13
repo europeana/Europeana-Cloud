@@ -99,7 +99,7 @@ public class SolrDAO {
      */
     public RepresentationSolrDocument getDocumentById(String versionId)
             throws SolrServerException, SolrDocumentNotFoundException {
-        SolrQuery q = new SolrQuery(SolrFields.version + ":" + versionId);
+        SolrQuery q = new SolrQuery(SolrFields.VERSION + ":" + versionId);
         List<RepresentationSolrDocument> result = server.query(q).getBeans(RepresentationSolrDocument.class);
         if (result.isEmpty()) {
             throw new SolrDocumentNotFoundException(q.toString());
@@ -159,7 +159,7 @@ public class SolrDAO {
      */
     public void removeRepresentation(String cloudId, String schema)
             throws SolrServerException, IOException {
-        server.deleteByQuery(SolrFields.cloudId + ":" + cloudId + " AND " + SolrFields.schema + ":" + schema);
+        server.deleteByQuery(SolrFields.CLOUD_ID + ":" + cloudId + " AND " + SolrFields.SCHEMA + ":" + schema);
         server.commit();
     }
 
@@ -173,7 +173,7 @@ public class SolrDAO {
      */
     public void removeRecordRepresentation(String cloudId)
             throws SolrServerException, IOException {
-        server.deleteByQuery(SolrFields.cloudId + ":" + cloudId);
+        server.deleteByQuery(SolrFields.CLOUD_ID + ":" + cloudId);
         server.commit();
     }
 
@@ -312,30 +312,30 @@ public class SolrDAO {
         List<Param> queryParams = new ArrayList<>();
         if (params.getSchema() != null) {
             String encodedValue = ClientUtils.escapeQueryChars(params.getSchema());
-            queryParams.add(new Param(SolrFields.schema, encodedValue));
+            queryParams.add(new Param(SolrFields.SCHEMA, encodedValue));
         }
         if (params.getRecordId() != null) {
             String encodedValue = ClientUtils.escapeQueryChars(params.getRecordId());
-            queryParams.add(new Param(SolrFields.cloudId, encodedValue));
+            queryParams.add(new Param(SolrFields.CLOUD_ID, encodedValue));
         }
         if (params.getDataProvider() != null) {
             String encodedValue = ClientUtils.escapeQueryChars(params.getDataProvider());
-            queryParams.add(new Param(SolrFields.providerId, encodedValue));
+            queryParams.add(new Param(SolrFields.PROVIDER_ID, encodedValue));
         }
         if (params.getDataSetId() != null && params.getDataSetProviderId() != null) {
             CompoundDataSetId compoundDataSetId = new CompoundDataSetId(params.getDataSetProviderId(),
                     params.getDataSetId());
             String encodedValue = ClientUtils.escapeQueryChars(serialize(compoundDataSetId));
-            queryParams.add(new Param(SolrFields.dataSets, encodedValue));
+            queryParams.add(new Param(SolrFields.DATA_SETS, encodedValue));
         } else if (params.getDataSetId() != null) {
             String encodedValue = ClientUtils.escapeQueryChars(CDSID_SEPARATOR + params.getDataSetId());
-            queryParams.add(new Param(SolrFields.dataSets, "*" + encodedValue));
+            queryParams.add(new Param(SolrFields.DATA_SETS, "*" + encodedValue));
         } else if (params.getDataSetProviderId() != null) {
             String encodedValue = ClientUtils.escapeQueryChars(params.getDataSetProviderId() + CDSID_SEPARATOR);
-            queryParams.add(new Param(SolrFields.dataSets, encodedValue + "*"));
+            queryParams.add(new Param(SolrFields.DATA_SETS, encodedValue + "*"));
         }
         if (params.isPersistent() != null) {
-            queryParams.add(new Param(SolrFields.persistent, params.isPersistent().toString()));
+            queryParams.add(new Param(SolrFields.PERSISTENT, params.isPersistent().toString()));
         }
 
         // if start of end of creation date range is specified - add range parameter
@@ -356,7 +356,7 @@ public class SolrDAO {
                 toDate = new DateTime(params.getToDate()).withZone(DateTimeZone.UTC).toString(fmt);
             }
             String dateRangeParam = String.format("[%s TO %s]", fromDate, toDate);
-            queryParams.add(new Param(SolrFields.creationDate, dateRangeParam));
+            queryParams.add(new Param(SolrFields.CREATION_DATE, dateRangeParam));
         }
         return Joiner.on(" AND ").join(queryParams);
     }

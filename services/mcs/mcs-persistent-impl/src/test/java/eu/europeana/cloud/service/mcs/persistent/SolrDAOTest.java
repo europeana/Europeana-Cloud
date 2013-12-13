@@ -39,7 +39,7 @@ public class SolrDAOTest {
             throws Exception {
         Representation rep = new Representation("cloud1", "schema1", "version1", null, null, "dataProvider", null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
         dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
         dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
         solrDAO.insertRepresentation(rep, dataSets);
@@ -65,7 +65,7 @@ public class SolrDAOTest {
             throws Exception {
         Representation rep = new Representation("cloud2", "schema1", "version2", null, null, "dataProvider", null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
         dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
         dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
 
@@ -114,7 +114,7 @@ public class SolrDAOTest {
 
         Representation rep = new Representation("cloud2", "schema1", "version123", null, null, "dataProvider", null,
                 true, new Date());
-        ArrayList<CompoundDataSetId> dataSets = new ArrayList();
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
 
         dataSets.add(dataSet1);
         dataSets.add(dataSet2);

@@ -1,8 +1,16 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
+
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -11,11 +19,6 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -88,7 +91,7 @@ public class CassandraDataSetService implements DataSetService {
                         .add(recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion()));
             }
         }
-        return new ResultSlice(nextResultToken, representations);
+        return new ResultSlice<Representation>(nextResultToken, representations);
     }
 
 
@@ -214,7 +217,7 @@ public class CassandraDataSetService implements DataSetService {
             nextDataSet = nextResult.getId();
             dataSets.remove(limit);
         }
-        return new ResultSlice(nextDataSet, dataSets);
+        return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
 
 

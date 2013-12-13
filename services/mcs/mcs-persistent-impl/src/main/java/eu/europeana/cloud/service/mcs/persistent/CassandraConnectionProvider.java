@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import javax.annotation.PreDestroy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.ShutdownFuture;
-import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Connector to Cassandra cluster.
@@ -72,7 +73,7 @@ public class CassandraConnectionProvider {
     @PreDestroy
     private void closeConnections() {
         log.info("Cluster is shutting down.");
-        ShutdownFuture shutdownFuture = cluster.shutdown();
+        cluster.shutdown();
     }
 
 
