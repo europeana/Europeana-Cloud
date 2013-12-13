@@ -33,8 +33,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSetsResource {
 
-    private static final Logger log = LoggerFactory.getLogger(DataSetsResource.class);
-
     @Autowired
     private DataSetService dataSetService;
 

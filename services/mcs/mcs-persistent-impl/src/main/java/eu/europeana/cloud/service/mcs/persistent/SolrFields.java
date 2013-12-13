@@ -4,6 +4,10 @@ package eu.europeana.cloud.service.mcs.persistent;
  * Constants for solr document field names.
  */
 class SolrFields {
+    
+    private SolrFields() {
+        // This class should not have a public or default constructor
+    }
 
     public final static String CLOUD_ID = "cloud_id";
 

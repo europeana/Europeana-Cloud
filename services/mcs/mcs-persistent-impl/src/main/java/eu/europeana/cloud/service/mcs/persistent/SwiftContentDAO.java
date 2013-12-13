@@ -44,13 +44,12 @@ public class SwiftContentDAO implements ContentDAO {
     @Override
     public PutResult putContent(String fileName, InputStream data)
             throws IOException, ContainerNotFoundException {
-
         BlobStore blobStore = connectionProvider.getBlobStore();
         String container = connectionProvider.getContainer();
         CountingInputStream countingInputStream = new CountingInputStream(data);
         DigestInputStream md5DigestInputStream = md5InputStream(countingInputStream);
         Blob blob = blobStore.blobBuilder(fileName).name(fileName).payload(md5DigestInputStream).build();
-        String containerMd5 = blobStore.putBlob(container, blob);
+        blobStore.putBlob(container, blob);
         String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
         Long contentLength = countingInputStream.getCount();
         return new PutResult(md5, contentLength);

@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -13,10 +10,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 
 /**
  * Resource representing records.
@@ -24,8 +25,6 @@ import org.springframework.stereotype.Component;
 @Path("/records/{" + P_GID + "}")
 @Component
 public class RecordsResource {
-
-    private static final Logger log = LoggerFactory.getLogger(RecordsResource.class);
 
     @Autowired
     private RecordService recordService;
