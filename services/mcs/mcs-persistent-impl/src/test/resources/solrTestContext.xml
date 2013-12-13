@@ -9,7 +9,7 @@
 
     <context:annotation-config/>
 
-    <bean id="connector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider"/>
+    <bean id="connector" class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider"/>
 
     <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
 

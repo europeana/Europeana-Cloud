@@ -23,7 +23,7 @@
         <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
 
 	
-	<mockito:mock id="sorlConnector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider"/>
+	<mockito:mock id="sorlConnector" class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider"/>
 	<mockito:mock id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
 	<mockito:mock id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
 	<mockito:mock id="cassandraConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.CassandraConnectionProvider" />

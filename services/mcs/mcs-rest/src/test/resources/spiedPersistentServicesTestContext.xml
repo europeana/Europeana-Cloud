@@ -45,7 +45,7 @@
         <constructor-arg name="user" type="java.lang.String" value="test_user"/>
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
-    <bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.EmbeddedSolrConnectionProvider"/>
+    <bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider"/>
     <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
 

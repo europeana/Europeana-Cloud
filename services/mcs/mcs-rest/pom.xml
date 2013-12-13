@@ -21,6 +21,13 @@
 			<properties>
 				<spring.config.file>inmemoryApplicationContext.xml</spring.config.file>
 			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
 		</profile>
 		<profile>
 			<id>persistent</id>
@@ -38,12 +45,6 @@
 	</profiles>
 
 	<build>
-		<testResources>
-			<testResource>
-				<directory>src/test/resources</directory>
-				<filtering>true</filtering>
-			</testResource>
-		</testResources>
 		<plugins>
 			<!--configuration of miredot - REST API documentation generator.-->
 			<plugin>
@@ -195,6 +196,7 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>

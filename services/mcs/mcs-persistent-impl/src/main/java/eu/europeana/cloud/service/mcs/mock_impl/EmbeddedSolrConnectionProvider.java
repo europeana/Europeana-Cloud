@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.mock_impl;
 
+import eu.europeana.cloud.service.mcs.persistent.SolrConnectionProvider;
 import java.io.File;
 
 import javax.annotation.PreDestroy;
