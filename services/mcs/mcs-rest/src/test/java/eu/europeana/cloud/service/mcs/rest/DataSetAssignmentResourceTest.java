@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_GID;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_SCHEMA;
 import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_VER;
@@ -32,7 +31,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -53,9 +51,9 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     private DataSet dataSet;
 
     private Representation rep;
-    
-    private UISClientHandler uisHandler;
 
+
+    //    private UISClientHandlerImpl uisHandler;
 
     @Override
     public Application configure() {
@@ -70,8 +68,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
-        uisHandler = applicationContext.getBean(UISClientHandler.class);
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
+        //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataSetAssignmentWebTarget = target(DataSetAssignmentsResource.class.getAnnotation(Path.class).value());
         dataProvider = dataProviderService.createProvider("provident", new DataProviderProperties());
         dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataset", "description");

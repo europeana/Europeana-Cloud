@@ -54,7 +54,8 @@ public class CassandraRecordService implements RecordService {
 
     @Autowired
     private UISClientHandler uis;
-    
+
+
     /**
      * @inheritDoc
      */
@@ -84,10 +85,10 @@ public class CassandraRecordService implements RecordService {
                 for (File f : repVersion.getFiles()) {
                     try {
                         contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getSchema(),
-                                repVersion.getVersion(), f.getFileName()));
+                            repVersion.getVersion(), f.getFileName()));
                     } catch (FileNotExistsException ex) {
                         log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                                f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
+                            f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
                     }
                 }
             }

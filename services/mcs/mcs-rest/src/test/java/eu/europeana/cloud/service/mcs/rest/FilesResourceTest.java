@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
@@ -28,7 +27,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -45,8 +43,9 @@ public class FilesResourceTest extends JerseyTest {
     private File file;
 
     private WebTarget filesWebTarget;
-    
-    private UISClientHandler uisHandler;
+
+
+    //    private UISClientHandlerImpl uisHandler;
 
     @Before
     public void mockUp()
@@ -55,16 +54,15 @@ public class FilesResourceTest extends JerseyTest {
         recordService = applicationContext.getBean(RecordService.class);
         providerService = applicationContext.getBean(DataProviderService.class);
 
-        uisHandler = applicationContext.getBean(UISClientHandler.class);
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
-        
+        //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
+        //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+
         providerService.createProvider("1", new DataProviderProperties());
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_GID, rep.getRecordId(),
             ParamConstants.P_SCHEMA, rep.getSchema(), ParamConstants.P_VER, rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);

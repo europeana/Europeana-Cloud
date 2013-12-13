@@ -29,11 +29,11 @@ import org.mockito.Mockito;
 import static org.junit.Assert.*;
 
 /**
- *
+ * 
  * @author sielski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
+@ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
 public class CassandraRecordServiceTest extends CassandraTestBase {
 
     @Autowired
@@ -45,8 +45,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     @Autowired
     private UISClientHandler uisHandler;
 
-    
     private static final String providerId = "provider";
+
 
     @Before
     public void prepareData()
@@ -67,6 +67,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(rFetched, is(r));
     }
 
+
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowExpWhileCreatingRepresentationIfNoRecordInUis()
             throws Exception {
@@ -74,6 +75,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISThrowRecordNotExist();
         Representation r = cassandraRecordService.createRepresentation("globalId", "dc", providerId);
     }
+
 
     @Test(expected = SystemException.class)
     public void shouldThrowSystemExpWhileCreatingRepresentationIfUisFails()
@@ -83,6 +85,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation("globalId", "dc", providerId);
     }
 
+
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowExpWhileGettingRecordIfNoRecordInUis()
             throws Exception {
@@ -90,6 +93,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISThrowRecordNotExist();
         cassandraRecordService.getRecord("globalId");
     }
+
 
     @Test(expected = SystemException.class)
     public void shouldThrowSystemExpWhileGettingRecordIfUisFails()
@@ -99,6 +103,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Record record = cassandraRecordService.getRecord("globalId");
     }
 
+
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowExpWhileDeletingRecordIfNoRecordInUis()
             throws Exception {
@@ -106,6 +111,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISThrowRecordNotExist();
         cassandraRecordService.deleteRecord("globalId");
     }
+
 
     @Test(expected = SystemException.class)
     public void shouldThrowSystemExpWhileDeletingRecordIfUisFails()
@@ -115,6 +121,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRecord("globalId");
     }
 
+
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldNotGetRepresentationIfNoPersistentExists()
             throws Exception {
@@ -122,6 +129,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation("globalId", "dc", providerId);
         Representation rFetched = cassandraRecordService.getRepresentation("globalId", "dc");
     }
+
 
     @Test
     public void shouldGetLatestPersistentRepresentation()
@@ -137,12 +145,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(rFetched, is(r4));
     }
 
+
     @Test(expected = ProviderNotExistsException.class)
     public void shouldNotCreateRepresentationForNotExistingProvider()
             throws Exception {
         makeUISSuccess();
         cassandraRecordService.createRepresentation("globalId", "dc", "not-existing");
     }
+
 
     @Test
     public void shouldListAllRepresentationVersionsInOrder()
@@ -158,9 +168,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         r4.setFiles(Collections.EMPTY_LIST);
 
         List<Representation> representationVersions = cassandraRecordService.listRepresentationVersions("globalId",
-                "dc");
+            "dc");
         assertThat(representationVersions, is(Arrays.asList(r5, r4, r3, r2, r1)));
     }
+
 
     @Test
     public void shouldReturnWholeRecord()
@@ -190,6 +201,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(fetchedRepresentations, is(expectedRepresentations));
     }
 
+
     @Test
     public void shouldDeleteRepresentationInSpecifiedVersion()
             throws Exception {
@@ -204,9 +216,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         r2.setFiles(Collections.EMPTY_LIST);
 
         List<Representation> representationVersions = cassandraRecordService.listRepresentationVersions("globalId",
-                "dc");
+            "dc");
         assertThat(representationVersions, is(Arrays.asList(r3, r2)));
     }
+
 
     @Test
     public void shouldDeleteAllRepresentationVersions()
@@ -220,6 +233,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         assertTrue(cassandraRecordService.listRepresentationVersions("globalId", "dc").isEmpty());
     }
+
 
     @Test
     public void shouldDeleteAllRecord()
@@ -238,6 +252,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertTrue(cassandraRecordService.listRepresentationVersions("globalId", "dc").isEmpty());
     }
 
+
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotDeletePersistentRepresentation()
             throws Exception {
@@ -246,16 +261,18 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
     }
 
+
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotAddFileToPersistentRepresentation()
             throws Exception {
         makeUISSuccess();
         Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
-        byte[] dummyContent = {1, 2, 3};
+        byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f, new ByteArrayInputStream(
                 dummyContent));
     }
+
 
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotRemoveFileFromPersistentRepresentation()
@@ -267,6 +284,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteContent(r.getRecordId(), r.getSchema(), r.getVersion(), f.getFileName());
     }
 
+
     @Test(expected = CannotPersistEmptyRepresentationException.class)
     public void shouldNotPersistRepresentationWithoutFile()
             throws Exception {
@@ -275,13 +293,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
     }
 
+
     @Test
     public void shouldPutAndGetFile()
             throws Exception {
         makeUISSuccess();
         Representation r = cassandraRecordService.createRepresentation("globalId", "edm", providerId);
 
-        byte[] dummyContent = {1, 2, 3};
+        byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f, new ByteArrayInputStream(
                 dummyContent));
@@ -296,13 +315,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(fetchedFile.getMd5(), is(contentMd5));
     }
 
+
     @Test
     public void shouldGetContent()
             throws Exception {
         makeUISSuccess();
         Representation r = cassandraRecordService.createRepresentation("globalId", "edm", providerId);
 
-        byte[] dummyContent = {1, 2, 3};
+        byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f, new ByteArrayInputStream(
                 dummyContent));
@@ -312,6 +332,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(baos.toByteArray(), is(dummyContent));
     }
 
+
     @Test
     public void shouldRemoveFile()
             throws Exception {
@@ -319,7 +340,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         //given
         Representation r = cassandraRecordService.createRepresentation("globalId", "edm", providerId);
 
-        byte[] dummyContent = {1, 2, 3};
+        byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f, new ByteArrayInputStream(
                 dummyContent));
@@ -331,6 +352,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         r = cassandraRecordService.getRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
         assertTrue(r.getFiles().isEmpty());
     }
+
 
     public void shouldCopyRepresentation()
             throws Exception {
@@ -345,33 +367,40 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             cassandraRecordService
                     .getContent(r.getRecordId(), r.getSchema(), r.getVersion(), f.getFileName(), rContent);
             cassandraRecordService.getContent(copy.getRecordId(), copy.getSchema(), copy.getVersion(), f.getFileName(),
-                    copyContent);
+                copyContent);
             assertThat(rContent.toByteArray(), is(copyContent.toByteArray()));
         }
     }
+
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
             throws Exception {
         makeUISSuccess();
         Representation r = cassandraRecordService.createRepresentation(cloudId, schema, providerId);
-        byte[] dummyContent = {1, 2, 3};
+        byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
         return cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
     }
 
-    private void makeUISSuccess() throws RecordNotExistsException {
+
+    private void makeUISSuccess()
+            throws RecordNotExistsException {
         Mockito.reset(uisHandler);
         Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
     }
 
-    private void makeUISThrowRecordNotExist() throws RecordNotExistsException {
+
+    private void makeUISThrowRecordNotExist()
+            throws RecordNotExistsException {
         Mockito.reset(uisHandler);
         Mockito.doThrow(RecordNotExistsException.class).when(uisHandler).recordExistInUIS(Mockito.anyString());
     }
 
-    private void makeUISThrowSystemException() throws RecordNotExistsException {
+
+    private void makeUISThrowSystemException()
+            throws RecordNotExistsException {
         Mockito.reset(uisHandler);
         Mockito.doThrow(SystemException.class).when(uisHandler).recordExistInUIS(Mockito.anyString());
     }

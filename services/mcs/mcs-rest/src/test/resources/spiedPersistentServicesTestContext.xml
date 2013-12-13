@@ -65,5 +65,5 @@
     <mockito:spy beanName="solrRepresentationIndexer"/>
     
     <!--mock UISClient-->
-    <mockito:mock id ="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandler"/>
+    <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.rest.persistent.AlwaysSuccessfulUISClientHandler"/>
 </beans>

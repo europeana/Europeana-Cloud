@@ -35,7 +35,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 
     @Autowired
     private UISClientHandler uisHandler;
-    
+
     private static final String providerId = "provider";
 
 

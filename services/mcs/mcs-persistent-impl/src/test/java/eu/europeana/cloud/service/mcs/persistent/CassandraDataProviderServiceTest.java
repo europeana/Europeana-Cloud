@@ -36,7 +36,8 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
     @Autowired
     private UISClientHandler uisHandler;
-    
+
+
     @Test
     public void shouldCreateAndGetProvider()
             throws ProviderAlreadyExistsException, ProviderNotExistsException {
@@ -76,7 +77,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
             throws ProviderNotExistsException, ProviderAlreadyExistsException, ProviderHasDataSetsException,
             ProviderHasRecordsException, RecordNotExistsException {
         Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
-        
+
         DataProvider dp = cassandraDataProviderService
                 .createProvider("provident", createRandomDataProviderProperties());
         cassandraRecordService.createRepresentation("global", "dc", dp.getId());
@@ -128,7 +129,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
         // insert random providers
         for (int provId = 0; provId < providerCount; provId++) {
             DataProvider prov = cassandraDataProviderService.createProvider("dp_" + provId,
-                    createRandomDataProviderProperties());
+                createRandomDataProviderProperties());
             insertedProviderIds.add(prov.getId());
         }
 

@@ -12,13 +12,15 @@
 						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
 	<context:annotation-config/>
-	<aop:aspectj-autoproxy/>
+        <aop:aspectj-autoproxy/>
+        
+        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.AlwaysSuccessfulUISClientHandler"/>
 	<bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 	
 	<bean id="cassandraDataProviderService"
 		  class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderService"/>
 	<bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
-	<bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
+        <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
 
 	
 	<mockito:mock id="sorlConnector" class="eu.europeana.cloud.service.mcs.persistent.EmbeddedSolrConnectionProvider"/>
@@ -29,6 +31,4 @@
 	<mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
 	<mockito:mock id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordDAO"/>
         <mockito:mock id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO"/>
-        <mockito:mock id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandler"/>
-        
 </beans>
