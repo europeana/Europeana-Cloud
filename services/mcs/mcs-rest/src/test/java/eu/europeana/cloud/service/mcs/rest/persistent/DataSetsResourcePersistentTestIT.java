@@ -5,16 +5,15 @@ import javax.ws.rs.core.Application;
 import org.junit.After;
 import org.junit.runner.RunWith;
 
-import eu.europeana.cloud.service.mcs.rest.DataProviderResourceTest;
+import eu.europeana.cloud.service.mcs.rest.DataSetsResourceTest;
 import eu.europeana.cloud.service.mcs.rest.JerseyConfig;
 import eu.europeana.cloud.test.CassandraTestRunner;
 
 /**
- * 
- * @author sielski
+ * DataSetResourceTest
  */
 @RunWith(CassandraTestRunner.class)
-public class DataProviderResourcePersistentTest extends DataProviderResourceTest {
+public class DataSetsResourcePersistentTestIT extends DataSetsResourceTest {
 
     @After
     @Override

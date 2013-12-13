@@ -5,15 +5,16 @@ import javax.ws.rs.core.Application;
 import org.junit.After;
 import org.junit.runner.RunWith;
 
-import eu.europeana.cloud.service.mcs.rest.DataSetResourceTest;
+import eu.europeana.cloud.service.mcs.rest.DataProviderResourceTest;
 import eu.europeana.cloud.service.mcs.rest.JerseyConfig;
 import eu.europeana.cloud.test.CassandraTestRunner;
 
 /**
- * DataSetResourceTest
+ * 
+ * @author sielski
  */
 @RunWith(CassandraTestRunner.class)
-public class DataSetResourcePersistentTest extends DataSetResourceTest {
+public class DataProviderResourcePersistentTestIT extends DataProviderResourceTest {
 
     @After
     @Override
@@ -25,5 +26,4 @@ public class DataSetResourcePersistentTest extends DataSetResourceTest {
     public Application configure() {
         return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
-
 }

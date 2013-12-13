@@ -13,7 +13,7 @@ import eu.europeana.cloud.test.CassandraParamertizedTestRunner;
  * FileResourceTest
  */
 @RunWith(CassandraParamertizedTestRunner.class)
-public class FileResourcePersistentTest extends FileResourceTest {
+public class FileResourcePersistentTestIT extends FileResourceTest {
 
     @Override
     public Application configure() {
