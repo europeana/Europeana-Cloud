@@ -69,32 +69,57 @@ public class CassandraRecordDAO {
 
         insertRepresentationStatement = s
                 .prepare("INSERT INTO representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) VALUES (?,?,?,?,?,?);");
+        insertRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         getRepresentationVersionStatement = s
                 .prepare("SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        getRepresentationVersionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         listRepresentationVersionsStatement = s
                 .prepare("SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ORDER BY schema_id DESC, version_id DESC;");
+        listRepresentationVersionsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         listRepresentationVersionsAllSchemasStatement = s
                 .prepare("SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ?;");
+        listRepresentationVersionsAllSchemasStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         persistRepresentationStatement = s
                 .prepare("UPDATE representation_versions SET persistent = TRUE, creation_date = ? WHERE cloud_id = ? AND schema_id=? AND version_id = ?;");
+        persistRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         insertFileStatement = s
                 .prepare("UPDATE representation_versions SET files[?] = ? WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        insertFileStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         removeFileStatement = s
                 .prepare("DELETE files[?] FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        removeFileStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         getFilesStatement = s
                 .prepare("SELECT files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        getFilesStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         getAllRepresentationsForRecordStatement = s
                 .prepare("SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date FROM representation_versions WHERE cloud_id = ? ORDER BY schema_id DESC, version_id DESC;");
+        getAllRepresentationsForRecordStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         deleteRecordStatement = s.prepare("BEGIN BATCH " + "DELETE FROM representation_versions WHERE cloud_id = ? "
                 + "DELETE FROM data_set_assignments WHERE cloud_id = ? " + "APPLY BATCH;");
+        deleteRecordStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         deleteRepresentationStatement = s.prepare("BEGIN BATCH "
                 + "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? "
                 + "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? " + "APPLY BATCH;");
+        deleteRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         deleteRepresentationVersionStatement = s.prepare("BEGIN BATCH "
                 + "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ? "
                 + "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? " + "APPLY BATCH;");
+        deleteRepresentationVersionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         singleRecordIdForProviderStatement = s
                 .prepare("SELECT cloud_id FROM representation_versions WHERE provider_id = ? LIMIT 1;");
+        singleRecordIdForProviderStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
 

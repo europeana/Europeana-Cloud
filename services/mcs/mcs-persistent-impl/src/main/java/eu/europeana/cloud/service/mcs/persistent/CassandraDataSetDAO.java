@@ -52,31 +52,39 @@ public class CassandraDataSetDAO {
     private void prepareStatements() {
         createDataSetStatement = connectionProvider.getSession().prepare(
             "UPDATE data_providers SET data_sets[?] = ? WHERE provider_id = ?;");
+        createDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteDataSetStatement = connectionProvider.getSession().prepare(
             "DELETE data_sets[?] FROM data_providers WHERE provider_id = ?;");
+        deleteDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         addAssignmentStatement = connectionProvider
                 .getSession()
                 .prepare(
                     "INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) VALUES (?,?,?,?,?);");
+        addAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeAssignmentStatement = connectionProvider.getSession().prepare(
             "DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
+        removeAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetAssignmentsNoPaging = connectionProvider.getSession().prepare(
             "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ?;");
+        listDataSetAssignmentsNoPaging.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetRepresentationsStatement = connectionProvider
                 .getSession()
                 .prepare(
                     "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
+        listDataSetRepresentationsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetsStatement = connectionProvider.getSession().prepare(
             "SELECT data_sets FROM data_providers WHERE provider_id = ?;");
+        listDataSetsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetsForRepresentationStatement = connectionProvider.getSession().prepare(
             "SELECT provider_dataset_id, version_id FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ?;");
+        getDataSetsForRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
 

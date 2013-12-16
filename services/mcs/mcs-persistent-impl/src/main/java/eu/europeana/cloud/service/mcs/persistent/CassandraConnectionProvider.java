@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
@@ -22,6 +23,8 @@ public class CassandraConnectionProvider {
     private final Cluster cluster;
 
     private final Session session;
+
+    private final ConsistencyLevel consistencyLevel = ConsistencyLevel.QUORUM;
 
 
     /**
@@ -84,5 +87,15 @@ public class CassandraConnectionProvider {
      */
     public Session getSession() {
         return session;
+    }
+
+
+    /**
+     * Returns the default consistency level;
+     * 
+     * @return the consistencyLevel
+     */
+    public ConsistencyLevel getConsistencyLevel() {
+        return consistencyLevel;
     }
 }
