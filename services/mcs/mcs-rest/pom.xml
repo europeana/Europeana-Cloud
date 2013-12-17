@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -19,7 +19,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<spring.config.file>inmemoryApplicationContext.xml</spring.config.file>
+				<spring.config.dir>inmemory</spring.config.dir>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -32,7 +32,7 @@
 		<profile>
 			<id>persistent</id>
 			<properties>
-				<spring.config.file>persistentApplicationContext.xml</spring.config.file>
+				<spring.config.dir>persistent</spring.config.dir>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -45,8 +45,38 @@
 	</profiles>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>persistent/</exclude>
+					<exclude>inmemory/</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
-			<!--configuration of miredot - REST API documentation generator.-->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources/${spring.config.dir}</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!--configuration of miredot - REST API documentation generator. -->
 			<plugin>
 				<groupId>com.qmino</groupId>
 				<artifactId>miredot-maven-plugin</artifactId>
@@ -65,93 +95,119 @@
 					<statusCodes>
 						<statusCode>
 							<httpCode>405</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException</document>
 							<defaultMessage>Cannot modify persistent representation version.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>405</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException</document>
-							<defaultMessage>Cannot persist representation version which does not have any file.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException</document>
+							<defaultMessage>Cannot persist representation version which does
+								not have any file.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException</document>
 							<defaultMessage>Cannot create data set because it already exists.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException</document>
 							<defaultMessage>Requested data set not exists</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException</document>
-							<defaultMessage>Cannot add file to representation version because it already exists.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException</document>
+							<defaultMessage>Cannot add file to representation version because
+								it already exists.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>422</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException</document>
-							<defaultMessage>Cannot process entity because content md5 and tag are not the same</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException</document>
+							<defaultMessage>Cannot process entity because content md5 and tag
+								are not the same</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.FileNotExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.FileNotExistsException</document>
 							<defaultMessage>Requested file does not exist</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>405</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException</document>
-							<defaultMessage>Cannot delete provider because it has data sets assigned.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException</document>
+							<defaultMessage>Cannot delete provider because it has data sets
+								assigned.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>405</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException</document>
-							<defaultMessage>Cannot delete provider because there are representation versions in system created by this data provider.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException</document>
+							<defaultMessage>Cannot delete provider because there are
+								representation versions in system created by this data provider.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException</document>
 							<defaultMessage>Requested data provider does not exist.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.RecordNotExistsException</document>
-							<defaultMessage>Used cloud id is not registered in Unique Identifier Service</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.RecordNotExistsException</document>
+							<defaultMessage>Used cloud id is not registered in Unique
+								Identifier Service</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException</document>
-							<defaultMessage>Representation is already assigned into this data set.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException</document>
+							<defaultMessage>Representation is already assigned into this data
+								set.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException</document>
 							<defaultMessage>Data provider with specified id already exists.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException</document>
-							<defaultMessage>Requested representation (or representation version) does not exist.</defaultMessage>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException</document>
+							<defaultMessage>Requested representation (or representation
+								version) does not exist.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.VersionNotExistsException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.VersionNotExistsException</document>
 							<defaultMessage>Requested representation version does not exist.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>416</httpCode>
-							<document>explicit: eu.europeana.cloud.service.mcs.exception.WrongContentRangeException</document>
+							<document>explicit:
+								eu.europeana.cloud.service.mcs.exception.WrongContentRangeException</document>
 							<defaultMessage>Requested content range is beyond actual content.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>500</httpCode>
 							<document>always</document>
-							<defaultMessage>The service call has not succeeded because of server side error.</defaultMessage>
+							<defaultMessage>The service call has not succeeded because of
+								server side error.</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>200</httpCode>
 							<document>get</document>
-							<defaultMessage>Service call has completed successfully, the requested entity is returned in response</defaultMessage>
+							<defaultMessage>Service call has completed successfully, the
+								requested entity is returned in response</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>204</httpCode>
@@ -161,7 +217,8 @@
 					</statusCodes>
 				</configuration>
 			</plugin>
-			<!--needed to enable filtering on web.xml where spring config file is configured-->
+			<!--needed to enable filtering on web.xml where spring config file is 
+				configured -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>

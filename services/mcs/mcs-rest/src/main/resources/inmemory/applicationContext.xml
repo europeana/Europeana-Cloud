@@ -13,9 +13,6 @@
 	
 	<import resource="classpath:config.xml" />
 
-	<aop:aspectj-autoproxy/>
-	<bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
-	
 	<context:component-scan
 		base-package="eu.europeana.cloud.service.mcs.inmemory, eu.europeana.cloud.service.mcs.rest"/>
 
