@@ -25,7 +25,7 @@ public abstract class CassandraTestBase {
     // config:
     public static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
 
-    public static final int PORT = 9142;
+    public static final int PORT = 19142;
 
     public static final String KEYSPACE = "ecloud_test";
 
