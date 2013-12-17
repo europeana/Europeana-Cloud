@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.mock_impl;
 
-import eu.europeana.cloud.service.mcs.persistent.SolrConnectionProvider;
 import java.io.File;
+import java.net.URL;
 
 import javax.annotation.PreDestroy;
 
@@ -10,6 +10,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.springframework.stereotype.Service;
+
+import eu.europeana.cloud.service.mcs.persistent.SolrConnectionProvider;
 
 /**
  * Establishes connection to embedded Solr.
@@ -24,11 +26,27 @@ public class EmbeddedSolrConnectionProvider implements SolrConnectionProvider {
 
 
     public EmbeddedSolrConnectionProvider() {
-        File solrConfig = FileUtils.toFile(this.getClass().getResource("/solr_home/solr.xml"));
-        File solrHome = FileUtils.toFile(this.getClass().getResource("/solr_home/"));
+        File solrConfig = findFile("/solr_home/solr.xml");
+        File solrHome = findFile("/solr_home/");
 
         CoreContainer container = CoreContainer.createAndLoad(solrHome.getAbsolutePath(), solrConfig);
         solrServer = new EmbeddedSolrServer(container, "");
+    }
+
+
+    private File findFile(String filePath) {
+        URL resource = this.getClass().getResource(filePath);
+        if (resource == null) {
+            throw new IllegalStateException("File " + filePath + " not found!");
+        }
+        File file = FileUtils.toFile(resource);
+        if (file == null) {
+            throw new IllegalStateException("File " + resource + " not found!");
+        }
+        if (!file.exists()) {
+            throw new IllegalStateException("File " + file + " does not exist!");
+        }
+        return file;
     }
 
 
