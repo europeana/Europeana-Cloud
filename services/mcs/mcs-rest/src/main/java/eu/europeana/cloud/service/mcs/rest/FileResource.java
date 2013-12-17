@@ -193,7 +193,7 @@ public class FileResource {
 
         long start, end;
 
-        private static final Pattern bytesPattern = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
+        private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
 
 
         ContentRange(long start, long end) {
@@ -213,7 +213,7 @@ public class FileResource {
             if (range == null) {
                 throw new IllegalArgumentException("Range should not be null");
             }
-            Matcher rangeMatcher = bytesPattern.matcher(range);
+            Matcher rangeMatcher = BYTES_PATTERN.matcher(range);
             if (rangeMatcher.matches()) {
                 try {
                     start = Long.parseLong(rangeMatcher.group("start"));
@@ -223,7 +223,7 @@ public class FileResource {
                     throw new WrongContentRangeException("Cannot parse range: " + ex.getMessage());
                 }
             } else {
-                throw new WrongContentRangeException("Expected range header format is: " + bytesPattern.pattern());
+                throw new WrongContentRangeException("Expected range header format is: " + BYTES_PATTERN.pattern());
             }
 
             if (end != -1 && end < start) {
