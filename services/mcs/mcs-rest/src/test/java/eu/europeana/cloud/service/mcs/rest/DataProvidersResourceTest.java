@@ -23,8 +23,6 @@ import org.springframework.context.ApplicationContext;
 /**
  * DataProviderResourceTest
  */
-//@Ignore
-
 public class DataProvidersResourceTest extends JerseyTest {
 
     private DataProviderService dataProviderService;
