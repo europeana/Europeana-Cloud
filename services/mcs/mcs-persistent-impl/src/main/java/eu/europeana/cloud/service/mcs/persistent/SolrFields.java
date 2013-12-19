@@ -9,17 +9,17 @@ class SolrFields {
         // This class should not have a public or default constructor
     }
 
-    public final static String CLOUD_ID = "cloud_id";
+    public static final String CLOUD_ID = "cloud_id";
 
-    public final static String VERSION = "version_id";
+    public static final String VERSION = "version_id";
 
-    public final static String SCHEMA = "schema";
+    public static final String SCHEMA = "schema";
 
-    public final static String PROVIDER_ID = "provider_id";
+    public static final String PROVIDER_ID = "provider_id";
 
-    public final static String CREATION_DATE = "creation_date";
+    public static final String CREATION_DATE = "creation_date";
 
-    public final static String PERSISTENT = "persistent";
+    public static final String PERSISTENT = "persistent";
 
-    public final static String DATA_SETS = "data_sets";
+    public static final String DATA_SETS = "data_sets";
 }

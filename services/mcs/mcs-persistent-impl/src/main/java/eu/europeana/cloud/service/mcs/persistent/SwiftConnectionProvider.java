@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SwiftConnectionProvider {
 
-    private final static Logger log = LoggerFactory.getLogger(SwiftConnectionProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftConnectionProvider.class);
     private final BlobStoreContext context;
     private final String container;
     private final BlobStore blobStore;
@@ -46,7 +46,7 @@ public class SwiftConnectionProvider {
         if (!blobStore.containerExists(container)) {
             blobStore.createContainerInLocation(null, container);
         }
-        log.info("Connected to swift");
+        LOGGER.info("Connected to swift");
     }
 
 
@@ -55,7 +55,7 @@ public class SwiftConnectionProvider {
      */
     @PreDestroy
     private void closeConnections() {
-        log.info("Shutting down swift connection");
+        LOGGER.info("Shutting down swift connection");
         context.close();
     }
 

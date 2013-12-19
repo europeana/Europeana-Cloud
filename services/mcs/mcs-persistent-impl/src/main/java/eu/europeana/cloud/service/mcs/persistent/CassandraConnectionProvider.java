@@ -17,7 +17,7 @@ import com.datastax.driver.core.Session;
 @Component
 public class CassandraConnectionProvider {
 
-    private final static Logger log = LoggerFactory.getLogger(CassandraConnectionProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
     private final Cluster cluster;
 
@@ -37,9 +37,9 @@ public class CassandraConnectionProvider {
     public CassandraConnectionProvider(String host, int port, String keyspaceName) {
         cluster = Cluster.builder().addContactPoint(host).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
-        log.info("Connected to cluster: {}", metadata.getClusterName());
+        LOGGER.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {
-            log.info("Datatacenter: {}; Host: {}; Rack: {}", h.getDatacenter(), h.getAddress(), h.getRack());
+            LOGGER.info("Datatacenter: {}; Host: {}; Rack: {}", h.getDatacenter(), h.getAddress(), h.getRack());
         }
         session = cluster.connect(keyspaceName);
     }
@@ -62,9 +62,9 @@ public class CassandraConnectionProvider {
     public CassandraConnectionProvider(String host, int port, String keyspaceName, String userName, String password) {
         cluster = Cluster.builder().addContactPoint(host).withCredentials(userName, password).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
-        log.info("Connected to cluster: {}", metadata.getClusterName());
+        LOGGER.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {
-            log.info("Datatacenter: {}; Host: {}; Rack: {}", h.getDatacenter(), h.getAddress(), h.getRack());
+            LOGGER.info("Datatacenter: {}; Host: {}; Rack: {}", h.getDatacenter(), h.getAddress(), h.getRack());
         }
         session = cluster.connect(keyspaceName);
     }
@@ -72,7 +72,7 @@ public class CassandraConnectionProvider {
 
     @PreDestroy
     private void closeConnections() {
-        log.info("Cluster is shutting down.");
+        LOGGER.info("Cluster is shutting down.");
         cluster.shutdown();
     }
 

@@ -1,13 +1,15 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import java.util.Iterator;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class UISClientHandlerImpl implements UISClientHandler {
 
@@ -42,7 +44,7 @@ public class UISClientHandlerImpl implements UISClientHandler {
                     break;
                 }
             }
-            if (result == false) {
+            if (!result) {
                 throw new IllegalStateException(String.format("Cloud id %s not on the list returned by UIS", cloudId));
             }
         } catch (CloudException ex) {

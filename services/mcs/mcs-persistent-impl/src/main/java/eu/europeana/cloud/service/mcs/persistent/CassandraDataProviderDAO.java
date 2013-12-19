@@ -1,14 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -16,9 +7,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
+
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -93,7 +97,7 @@ public class CassandraDataProviderDAO {
     public DataProvider getProvider(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getProviderStatement.bind(providerId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement); //NOSONAR
         Row result = rs.one();
         if (result == null) {
             return null;

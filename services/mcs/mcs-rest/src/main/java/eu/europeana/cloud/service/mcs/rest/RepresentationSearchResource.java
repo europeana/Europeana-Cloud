@@ -45,7 +45,7 @@ public class RepresentationSearchResource {
     private int numberOfElementsOnPage;
 
     // ISO8601 standard
-    private static final DateTimeFormatter dateFormat = ISODateTimeFormat.dateOptionalTimeParser();
+    private static final DateTimeFormatter DATE_FORMAT = ISODateTimeFormat.dateOptionalTimeParser();
 
 
     /**
@@ -134,7 +134,7 @@ public class RepresentationSearchResource {
         Date dateParsed = null;
         if (date != null) {
             try {
-                dateParsed = dateFormat.parseDateTime(date).toDate();
+                dateParsed = DATE_FORMAT.parseDateTime(date).toDate();
             } catch (IllegalArgumentException ex) {
                 ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), dateParamName
                         + " parameter has wrong format: " + ex.getMessage());

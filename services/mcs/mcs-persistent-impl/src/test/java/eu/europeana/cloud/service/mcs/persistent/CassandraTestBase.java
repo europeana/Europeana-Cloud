@@ -25,7 +25,7 @@ public abstract class CassandraTestBase {
     // config:
     public static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
 
-    public static final int PORT = 9142;
+    public static final int PORT = 19142;
 
     public static final String KEYSPACE = "ecloud_test";
 
@@ -36,16 +36,22 @@ public abstract class CassandraTestBase {
         synchronized (CassandraTestBase.class) {
             if (!serverRunning) {
                 try {
-                    LOGGER.info("Starting embedded Cassandra");
+                    LOGGER.info("Starting embedded Cassandra...");
                     EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
-                    cluster = Cluster.builder().addContactPoint("localhost").withPort(PORT).build();
-                    initKeyspace();
-                    serverRunning = true;
                 } catch (Exception e) {
                     LOGGER.error("Cannot start embedded Cassandra!", e);
-                    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
                     throw new RuntimeException("Cannot start embedded Cassandra!", e);
                 }
+                cluster = Cluster.builder().addContactPoint("localhost").withPort(PORT).build();
+                try {
+                    LOGGER.info("Initializing keyspace...");
+                    initKeyspace();
+                } catch (IOException e) {
+                    LOGGER.error("Cannot initialize keyspace!", e);
+                    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+                    throw new RuntimeException("Cannot initialize keyspace!", e);
+                }
+                serverRunning = true;
             }
         }
     }

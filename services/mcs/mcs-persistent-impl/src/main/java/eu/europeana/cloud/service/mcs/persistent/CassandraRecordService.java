@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CassandraRecordService implements RecordService {
 
-    private final static Logger log = LoggerFactory.getLogger(CassandraRecordService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
 
     @Autowired
     private CassandraRecordDAO recordDAO;
@@ -87,7 +87,7 @@ public class CassandraRecordService implements RecordService {
                         contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getSchema(),
                             repVersion.getVersion(), f.getFileName()));
                     } catch (FileNotExistsException ex) {
-                        log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                        LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                             f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
                     }
                 }
@@ -111,7 +111,7 @@ public class CassandraRecordService implements RecordService {
                 try {
                     contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
                 } catch (FileNotExistsException ex) {
-                    log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                    LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                         f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
                 }
             }
@@ -192,7 +192,7 @@ public class CassandraRecordService implements RecordService {
             try {
                 contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
             } catch (FileNotExistsException ex) {
-                log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                     f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
             }
         }
@@ -362,10 +362,10 @@ public class CassandraRecordService implements RecordService {
                 contentDAO.copyContent(generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
                     generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
             } catch (FileNotExistsException ex) {
-                log.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
+                LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                     srcFile.getFileName(), globalId, schema, version);
             } catch (FileAlreadyExistsException ex) {
-                log.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
+                LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
                     schema, copiedRep.getVersion());
             }
             recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
