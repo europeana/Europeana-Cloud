@@ -27,6 +27,12 @@ import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 
+/**
+ * Persistent Unique Identifier Service Unit tests
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/default-context.xml" })
 @TestExecutionListeners({ CassandraUnitTestExecutionListener.class })
@@ -36,12 +42,14 @@ public class PersistentUniqueIdentifierServiceTest {
 	private PersistentUniqueIdentifierService service;
 	private static DatabaseService dbService;
 
+	/**
+	 * Prepare method
+	 */
 	@Before
 	public void prepare() {
 		System.setProperty("storage-config", "src/test/resources");
 		try {
-			dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE,
-					System.getProperty("storage-config") + "/cassandra-uis.cql");
+			dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE,"","");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -51,6 +59,10 @@ public class PersistentUniqueIdentifierServiceTest {
 
 	}
 
+	/**
+	 * Test RecordExistsException
+	 * @throws Exception
+	 */
 	@Test(expected = RecordExistsException.class)
 	public void testCreateAndRetrieve() throws Exception{
 		CloudId gId = service.createCloudId("test", "test");
@@ -59,11 +71,19 @@ public class PersistentUniqueIdentifierServiceTest {
 		service.createCloudId("test", "test");
 	}
 
+	/**
+	 * Test RecordDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testRecordDoesNotExist() throws Exception{
 		service.getCloudId("test2", "test2");
 	}
 
+	/**
+	 * Test CloudIdDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testGetLocalIdsByCloudId() throws Exception{
 		List<LocalId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
@@ -72,6 +92,10 @@ public class PersistentUniqueIdentifierServiceTest {
 		assertEquals(gid.size(), 1);
 	}
 
+	/**
+	 * Test CloudIds by provider
+	 * @throws Exception
+	 */
 	@Test
 	public void testGetCloudIdsByProvider()throws Exception {
 		service.createCloudId("test3", "test3");
@@ -81,12 +105,17 @@ public class PersistentUniqueIdentifierServiceTest {
 		assertEquals(cIds.size(), 1);
 	}
 
+	
 	// @Test (expected = RecordDatasetEmptyException.class)
 	// public void testGetCloudIdsByProviderDatasetEmtpy(){
 	// service.createCloudId("test4", "test4");
 	// service.getCloudIdsByProvider("test4", "test5", 1);
 	// }
 
+	/**
+	 * Test LocalIds by provider
+	 * @throws Exception
+	 */
 	@Test
 	public void testGetLocalIdsByProviderId() throws Exception{
 		service.createCloudId("test5", "test5");
@@ -98,12 +127,17 @@ public class PersistentUniqueIdentifierServiceTest {
 		cIds = service.getLocalIdsByProvider("test10", "test", 1);
 	}
 
+	
 	// @Test (expected = RecordDatasetEmptyException.class)
 	// public void testGetLocalIdsByProviderDatasetEmtpy(){
 	// service.createCloudId("test6", "test6");
 	// service.getLocalIdsByProvider("test6", "test7", 1);
 	// }
 
+	/**
+	 * Test IdHasBeenMappedException
+	 * @throws Exception
+	 */
 	@Test(expected = IdHasBeenMappedException.class)
 	public void testCreateIdMapping()throws Exception {
 		CloudId gid = service.createCloudId("test12", "test12");
@@ -111,12 +145,20 @@ public class PersistentUniqueIdentifierServiceTest {
 		service.createIdMapping(gid.getId(), "test12", "test13");
 	}
 
+	/**
+	 * Test CloudIdDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testCreateIdMappingCloudIdDoesNotExist()throws Exception {
 		service.createCloudId("test14", "test14");
 		service.createIdMapping("test15", "test16", "test17");
 	}
 
+	/**
+	 * Test RecordDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testRemoveIdMapping() throws Exception{
 		service.createCloudId("test16", "test16");
@@ -136,6 +178,11 @@ public class PersistentUniqueIdentifierServiceTest {
 	// service.removeIdMapping("test19", "test20");
 	// }
 	//
+	
+	/**
+	 * Test RecordDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testDeleteCloudId() throws Exception{
 		CloudId cId = service.createCloudId("test21", "test21");
@@ -143,6 +190,10 @@ public class PersistentUniqueIdentifierServiceTest {
 		service.getCloudId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 	}
 
+	/**
+	 * Test CloudIdDoesNotExistException
+	 * @throws Exception
+	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testDeleteCloudIdException()throws Exception {
 		service.deleteCloudId("test");

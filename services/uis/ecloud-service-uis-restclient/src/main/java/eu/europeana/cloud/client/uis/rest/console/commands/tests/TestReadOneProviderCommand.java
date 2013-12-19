@@ -13,6 +13,12 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 
+/**
+ * Test read Ids from one provider
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestReadOneProviderCommand extends Command {
 
 	@Override

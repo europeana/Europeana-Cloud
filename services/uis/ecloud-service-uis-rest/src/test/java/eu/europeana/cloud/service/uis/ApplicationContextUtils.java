@@ -15,6 +15,9 @@ public class ApplicationContextUtils implements ApplicationContextAware {
 	 */
     private static ApplicationContext applicationContext;
 
+    /**
+     * @return The ApplicationContext instance
+     */
     public static ApplicationContext getApplicationContext() {
         return applicationContext;
     }

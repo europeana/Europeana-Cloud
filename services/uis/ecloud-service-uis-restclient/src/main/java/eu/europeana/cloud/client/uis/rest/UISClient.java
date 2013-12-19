@@ -36,10 +36,17 @@ public class UISClient {
 	private static Client client = JerseyClientBuilder.newClient();
 	private static UrlProvider urlProvider;
 	
+        /**
+         * Creates a new instance of this class.
+         */
         public UISClient(){
             urlProvider = new UrlProvider();
         }
         
+        /**
+         * Creates a new instance of this class.
+         * @param uisUrl
+         */
         public UISClient(String uisUrl){
             urlProvider = new UrlProvider(uisUrl);
         }
@@ -267,6 +274,11 @@ public class UISClient {
 		}
 	}
 	
+	/**
+	 * Generates the exception to be returned to the client
+	 * @param e The error info that was generated
+	 * @return A CloudException that wraps the original exception
+	 */
 	public CloudException generateException(ErrorInfo e){
 		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
 		switch (error) {

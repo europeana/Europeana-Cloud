@@ -86,6 +86,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test to create a cloud Id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateCloudId() throws Exception{
@@ -105,6 +106,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateCloudIdDbException() throws Exception{
@@ -131,6 +133,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the a cloud id already exists for the record id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateCloudIdRecordExistsException() throws Exception{
@@ -152,6 +155,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the retrieval of a cloud id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudId() throws Exception{
@@ -170,6 +174,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdDBException() throws Exception{
@@ -196,6 +201,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the exception that a gloabl id does not exist for this record id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdRecordDoesNotExistException() throws Exception{
@@ -217,6 +223,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the retrieval of local ids by a cloud id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIds() throws Exception{
@@ -236,6 +243,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIdsDBException() throws Exception {
@@ -262,6 +270,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test that a cloud id does not exist
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIdsCloudIdDoesNotExistException() throws Exception {
@@ -283,6 +292,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the retrieval of local Ids by a provider
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIdsByProvider()throws Exception {
@@ -302,6 +312,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIdsByProviderDBException() throws Exception{
@@ -328,6 +339,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the exception that a provider does not exist
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetLocalIdsByProviderProviderDoesNotExistException() throws Exception{
@@ -349,6 +361,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * The the retrieval of cloud ids based on a provider
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdsByProvider() throws Exception{
@@ -371,6 +384,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdsByProviderDBException() throws Exception{
@@ -397,6 +411,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the exception of cloud ids when a provider does not exist
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdsByProviderProviderDoesNotExistException() throws Exception{
@@ -418,6 +433,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the retrieval of an empty dataset based on provider search
+	 * @throws Exception 
 	 */
 	@Test
 	public void testGetCloudIdsByProviderRecordDatasetEmptyException() throws Exception{
@@ -439,6 +455,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the creation of a mapping between a cloud id and a record id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateMapping() throws Exception{
@@ -454,6 +471,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateMappingDBException() throws Exception{
@@ -482,6 +500,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	/**
 	 * Test the exception of a a missing cloud id between the mapping of a cloud
 	 * id and a record id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateMappingCloudIdException() throws Exception{
@@ -504,6 +523,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the exception when a recordd id is mapped twice
+	 * @throws Exception 
 	 */
 	@Test
 	public void testCreateMappingIdHasBeenMmapped() throws Exception{
@@ -528,6 +548,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the removal of a mapping between a cloud id and a record id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testRemoveMapping() throws Exception{
@@ -543,6 +564,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testRemoveMappingDBException() throws Exception{
@@ -570,6 +592,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	/**
 	 * Test the exception when the provider used for the removal of a mapping is
 	 * non existent
+	 * @throws Exception 
 	 */
 	@Test
 	public void testRemoveMappingProviderDoesNotExistException()throws Exception {
@@ -591,6 +614,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the exception when a record to be removed does not exist
+	 * @throws Exception 
 	 */
 	@Test
 	public void testRemoveMappingRecordIdDoesNotExistException()throws Exception {
@@ -612,6 +636,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the deletion of a cloud id
+	 * @throws Exception 
 	 */
 	@Test
 	public void testDeleteCloudId() throws Exception{
@@ -626,6 +651,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 	/**
 	 * Test the database exception
+	 * @throws Exception 
 	 */
 	@Test
 	public void testDeleteCloudIdDBException() throws Exception{
@@ -653,6 +679,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	/**
 	 * Test the exception of the removal of a cloud id when a cloud id does not
 	 * exist
+	 * @throws Exception 
 	 */
 	@Test
 	public void testDeleteCloudIdCloudIdDoesNotExistException() throws Exception{

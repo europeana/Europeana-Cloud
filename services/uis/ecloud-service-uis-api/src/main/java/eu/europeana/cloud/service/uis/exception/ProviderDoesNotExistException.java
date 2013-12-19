@@ -9,10 +9,18 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class ProviderDoesNotExistException extends GenericException {
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param message
+	 */
 	public ProviderDoesNotExistException(String message){
 		super(message);
 	}
 	
+	/**
+	 * Creates a new instance of this class.
+	 * @param errorInfo
+	 */
 	public ProviderDoesNotExistException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}

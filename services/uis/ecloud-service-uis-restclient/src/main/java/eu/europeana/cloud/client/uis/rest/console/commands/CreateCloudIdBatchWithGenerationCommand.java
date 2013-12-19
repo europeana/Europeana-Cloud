@@ -14,6 +14,12 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
+/**
+ * Create Batch Cloud Ids without a fiel
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class CreateCloudIdBatchWithGenerationCommand extends Command {
 
 	@Override

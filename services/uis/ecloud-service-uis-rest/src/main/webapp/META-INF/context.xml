@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" path="/">
+	
+<!--Below are references to global resources that should be defined in Tomcat's server.xml to be available and used
+	by application. Define those variables in GlobalNamingResources section of mentioned file, e.g.:
+	
+	  <GlobalNamingResources>
+	
+	      <Environment name="uis/cassandra/host" value="CASSANDRA_HOST"
+				   type="java.lang.String" override="false"/>
+	[...]-->
+	
+    <ResourceLink
+        name="uis/cassandra/host"
+        global="uis/cassandra/host"
+        type="java.lang.String"/>
+    
+    <ResourceLink 
+        name="uis/cassandra/port"
+        global="uis/cassandra/port"
+        type="java.lang.Integer" />
+    
+    <ResourceLink
+        name="uis/cassandra/keyspace"
+        global="uis/cassandra/keyspace"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="uis/cassandra/user"
+        global="uis/cassandra/user"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="uis/cassandra/password"
+        global="uis/cassandra/password"
+        type="java.lang.String"/>
+</Context>

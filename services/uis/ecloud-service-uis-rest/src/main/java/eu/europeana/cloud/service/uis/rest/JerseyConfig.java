@@ -13,8 +13,17 @@ import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistExceptionMappe
 import eu.europeana.cloud.service.uis.exception.RecordExistsExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistExceptionMapper;
 
+/**
+ * Jersey Configuration for Excpetion Mappers and Resources
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class JerseyConfig extends ResourceConfig {
 
+	/**
+	 * Creates a new instance of this class.
+	 */
 	public JerseyConfig(){
 		super();
         register(RequestContextFilter.class);

@@ -20,7 +20,9 @@ public class DatabaseService {
 	private Session session;
 	private String host;
 	private String port;
+	
 	private String keyspaceName;
+
 	/**
 	 * Initialization of the database connection
 	 * 
@@ -30,14 +32,23 @@ public class DatabaseService {
 	 *            The port to connect to
 	 * @param keyspaceName
 	 *            The keyspace to connect to
+
+	 * @param username
+	 *            The username
+	 * @param password
+	 *            The password
+	 * @throws IOException
 	 */
-	public DatabaseService(String host, String port, String keyspaceName,String path) throws IOException {
+	public DatabaseService(String host, String port, String keyspaceName,
+			String username, String password) throws IOException {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port)).build();
+		Cluster cluster = new Cluster.Builder().addContactPoints(host)
+				.withPort(Integer.parseInt(port))
+				.withCredentials(username, password).build();
 		session = cluster.connect();
-		List<String> cql = FileUtils.readLines(new File(path));
+		List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
 		int i = 0;
 		for (String query : cql) {
 			if (i < 2) {
@@ -54,10 +65,6 @@ public class DatabaseService {
 	 * Expose a singleton instance connection to a database on the requested
 	 * host and keyspace
 	 * 
-	 * @param host
-	 *            The host to connect to
-	 * @param keyspaceName
-	 *            The keyspace to connect to
 	 * @return A session to a Cassandra connection
 	 */
 	public Session getSession() {
@@ -67,7 +74,7 @@ public class DatabaseService {
 	/**
 	 * Expose the contact server IP address
 	 * 
-	 * @return
+	 * @return The host name
 	 */
 	public String getHost() {
 		return host;
@@ -76,7 +83,7 @@ public class DatabaseService {
 	/**
 	 * Expose the contact server port
 	 * 
-	 * @return
+	 * @return The host port
 	 */
 	public String getPort() {
 		return port;
@@ -85,10 +92,11 @@ public class DatabaseService {
 	/**
 	 * Expose the keyspace
 	 * 
-	 * @return
+	 * @return The keyspace name
 	 */
 	public String getKeyspaceName() {
 		return keyspaceName;
 	}
 
+	
 }

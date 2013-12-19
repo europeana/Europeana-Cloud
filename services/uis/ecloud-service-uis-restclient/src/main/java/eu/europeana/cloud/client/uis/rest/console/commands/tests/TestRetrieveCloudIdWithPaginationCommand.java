@@ -14,12 +14,18 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
+/**
+ * Test retrieve cloud Id with pagination
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestRetrieveCloudIdWithPaginationCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, String... input) throws InvalidAttributesException {
 		try {
-			List<String> ids = FileUtils.readLines(new File("tests1IdRW"));
+			List<String> ids = FileUtils.readLines(new File(input[1]));
 			String[] columns = ids.get(0).split(" ");
 			List<CloudId> cloudIds = client.getCloudIdsByProvider(columns[1]);
 			int window = Integer.parseInt(input[0]);

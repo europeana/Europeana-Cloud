@@ -16,6 +16,12 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
+/**
+ * Test read write ids for many providers
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestReadWriteManyProvidersCommand extends Command {
 
 	@Override

@@ -3,6 +3,12 @@ package eu.europeana.cloud.client.uis.rest.console.commands;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 
+/**
+ * Help message
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class HelpCommand extends Command {
 
 	@Override

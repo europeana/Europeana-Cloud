@@ -16,12 +16,18 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
+/**
+ * Test Read Write one provider with Id
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestReadWriteOneProviderWithIdCommand extends Command{
 
 	@Override
 	public void execute(UISClient client, String... input) throws InvalidAttributesException {
-		String providerId = "testProvider";
-		String recordId = "testRecord";
+		String providerId = input[1];
+		String recordId = input[2];
 		try {
 			long i=0;
 			List<String> str = new ArrayList<>();
@@ -36,7 +42,7 @@ public class TestReadWriteOneProviderWithIdCommand extends Command{
 			long end = new Date().getTime() - start;
 			System.out.println("Adding "+ input[0]+" records took " + end + " ms");
 			System.out.println("Average: " + (Double.parseDouble(input[0])/end) *1000 +" records per second");
-			IOUtils.writeLines(str, "\n", new FileOutputStream(new File("tests1IdRW")));
+			IOUtils.writeLines(str, "\n", new FileOutputStream(new File(input[3])));
 		} catch (CloudException | IOException e) {
 			e.printStackTrace();
 		}

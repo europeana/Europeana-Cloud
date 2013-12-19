@@ -103,6 +103,7 @@ public interface UniqueIdentifierService {
      * @throws DatabaseConnectionException
      * @throws CloudIdDoesNotExistException
      * @throws IdHasBeenMappedException
+     * @throws ProviderDoesNotExistException 
      * @throws RecordDatasetEmptyException 
      */
     void createIdMapping(String cloudId, String providerId, String recordId)

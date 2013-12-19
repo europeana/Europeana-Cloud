@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
   http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/jee
+  http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
 	<context:annotation-config />
-	<bean id="applicationProperties"
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="classpath:service.properties" />
-	</bean>
 	<bean id="uniqueIdService"
 		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">
 		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
@@ -25,10 +24,22 @@
 	</bean>
 
 	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
-		<constructor-arg name="host" value="${db.host}" />
-		<constructor-arg name="port" value="${db.port}" />
-		<constructor-arg name="keyspaceName" value="${db.keyspace}" />
-		<constructor-arg name="path" value="src/main/resources/cassandra-uis.cql" />
+		<constructor-arg name="host">
+			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
+		</constructor-arg>
+		<constructor-arg name="port">
+			<jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>
+		</constructor-arg>
+		<constructor-arg name="keyspaceName">
+			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
+		</constructor-arg>
+		<constructor-arg name="username">
+			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
+		</constructor-arg>
+		<constructor-arg name="password">
+			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
+		</constructor-arg>
+		
 	</bean>
 
 

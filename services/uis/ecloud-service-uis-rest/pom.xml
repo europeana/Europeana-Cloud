@@ -129,75 +129,113 @@
 			<version>3.1.0</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
+		<dependency>
+			<groupId>com.qmino</groupId>
+			<artifactId>miredot-annotations</artifactId>
+			<version>1.2</version>
+		</dependency>
 	</dependencies>
-	 <build>
-        <plugins>
-            <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-maven-plugin</artifactId>
-                <version>1.2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <licence> <!-- MireDot free open source license, valid until 2014-12-12 -->
-                        UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNC0xMi0xMnx0cnVlI01DMENGR0hUL0l4bnF0eXZZcGgyWGh6aDczaDRPTFdnQWhVQWtDM0VLc3cvWVpObWhwQ3dWaFJZRDloS215WT0=
-                    </licence>
-                     <statusCodes>
-                        <statusCode>
-                            <httpCode>200</httpCode>
-                            <document>always</document>
-                            <defaultMessage>The service call has completed successfully.</defaultMessage>
-                        </statusCode>
-                        <statusCode>
-                            <httpCode>404</httpCode>
-                            <document></document>
-                            <defaultMessage>Not Found</defaultMessage>
-                        </statusCode>
-                        <statusCode>
-                            <httpCode>409</httpCode>
-                            <document>explicit: eu.europeana.cloud.service.uis.exception.RecordExistsException</document> 
-                        </statusCode>
-                        <statusCode>
-                            <httpCode>500</httpCode>
-                            <document>always</document>
-                            <defaultMessage>Internal server exception. The service call did not succeed.</defaultMessage>
-                        </statusCode>
-                    </statusCodes>
-                    <issueHandling>
-                        <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-                        <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                        <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-                        <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                        <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                        <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-                        <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-                        <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
-                    </issueHandling>
-                    <visibility>
-                        <GETTER>PUBLIC_ONLY</GETTER>
-                        <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-                        <SETTER>NON_PRIVATE</SETTER>
-                        <CREATOR>PUBLIC_ONLY</CREATOR>
-                        <FIELD>PUBLIC_ONLY</FIELD>
-                    </visibility>
-                    <title>
-                        <strategy>tag: summary</strategy>
-                        <strategy>tag: title</strategy>
-                        <strategy>firstsentence</strategy>
-                    </title>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-   
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<filtering>true</filtering>
+							<directory>src/main/webapp</directory>
+							<includes>
+								<include>**/web.xml</include>
+							</includes>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.qmino</groupId>
+				<artifactId>miredot-maven-plugin</artifactId>
+				<version>1.2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>restdoc</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<licence> <!-- MireDot free open source license, valid until 2014-12-12 -->
+						UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNC0xMi0xMnx0cnVlI01DMENGR0hUL0l4bnF0eXZZcGgyWGh6aDczaDRPTFdnQWhVQWtDM0VLc3cvWVpObWhwQ3dWaFJZRDloS215WT0=
+					</licence>
+					<statusCodes>
+						<statusCode>
+							<httpCode>200</httpCode>
+							<document>always</document>
+							<defaultMessage>The service call has completed successfully.</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document></document>
+							<defaultMessage>Not Found</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit:
+								eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
+						</statusCode>
+						<statusCode>
+							<httpCode>500</httpCode>
+							<document>always</document>
+							<defaultMessage>Internal server exception. The service call did
+								not succeed.</defaultMessage>
+						</statusCode>
+					</statusCodes>
+					<issueHandling>
+						<JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
+						<JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+						<JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
+						<JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
+						<JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
+						<JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
+						<JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
+						<REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
+					</issueHandling>
+					<visibility>
+						<GETTER>PUBLIC_ONLY</GETTER>
+						<IS_GETTER>PUBLIC_ONLY</IS_GETTER>
+						<SETTER>NON_PRIVATE</SETTER>
+						<CREATOR>PUBLIC_ONLY</CREATOR>
+						<FIELD>PUBLIC_ONLY</FIELD>
+					</visibility>
+					<title>
+						<strategy>tag: summary</strategy>
+						<strategy>tag: title</strategy>
+						<strategy>firstsentence</strategy>
+					</title>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

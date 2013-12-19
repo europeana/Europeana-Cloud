@@ -13,12 +13,18 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 
+/**
+ * Test Delete Identifiers
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestDeleteCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, String... input) throws InvalidAttributesException {
 		try {
-			List<String> ids = FileUtils.readLines(new File("tests1IdRW"));
+			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();
 			System.out.println("Starting test at: " + now.toString());
 			for (String id : ids) {

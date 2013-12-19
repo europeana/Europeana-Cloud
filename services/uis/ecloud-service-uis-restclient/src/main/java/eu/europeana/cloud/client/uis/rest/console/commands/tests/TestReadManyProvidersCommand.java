@@ -13,12 +13,19 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 
+/**
+ * Test read ids for many providers
+ * 
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestReadManyProvidersCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, String... input) throws InvalidAttributesException {
 		try {
-			List<String> ids = FileUtils.readLines(new File("testsManyIdRW"));
+			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();
 			System.out.println("Starting test at: " + now.toString());
 			for(String id:ids){

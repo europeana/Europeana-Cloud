@@ -10,6 +10,7 @@ import java.util.List;
  */
 public enum RelativeUrls {
 
+	/** RelativeUrls CREATECLOUDID */
 	CREATECLOUDID {
 		@Override
 		public List<String> getParamNames() {
@@ -30,7 +31,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "createCloudIdLocal";
 		}
-	}, CREATECLOUDIDNOLOCAL {
+	}, /** RelativeUrls CREATECLOUDIDNOLOCAL */
+	CREATECLOUDIDNOLOCAL {
 		@Override
 		public List<String> getParamNames() {
 			
@@ -49,7 +51,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "createCloudIdNoLocal";
 		}
-	},	GETCLOUDID {
+	},	/** RelativeUrls GETCLOUDID */
+	GETCLOUDID {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -68,7 +71,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "getCloudId";
 		}
-	}, GETLOCALIDS {
+	}, /** RelativeUrls GETLOCALIDS */
+	GETLOCALIDS {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -86,7 +90,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "getLocalIds";
 		}
-	}, GETLOCALIDSBYPROVIDER {
+	}, /** RelativeUrls GETLOCALIDSBYPROVIDER */
+	GETLOCALIDSBYPROVIDER {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -106,7 +111,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "getLocalIdsByProvider";
 		}
-	}, GETCLOUDIDSBYPROVIDER {
+	}, /** RelativeUrls GETCLOUDIDSBYPROVIDER */
+	GETCLOUDIDSBYPROVIDER {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -126,7 +132,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "getCloudIdsByProvider";
 		}
-	}, CREATEMAPPING {
+	}, /** RelativeUrls CREATEMAPPING */
+	CREATEMAPPING {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -146,7 +153,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "createMapping";
 		}
-	}, REMOVEMAPPINGBYLOCALID {
+	}, /** RelativeUrls REMOVEMAPPINGBYLOCALID */
+	REMOVEMAPPINGBYLOCALID {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**
@@ -165,7 +173,8 @@ public enum RelativeUrls {
 		public String getUrl() {
 			return "removeMappingByLocalId";
 		}
-	}, DELETECLOUDID {
+	}, /** RelativeUrls DELETECLOUDID */
+	DELETECLOUDID {
 		@Override
 		public List<String> getParamNames() {
 			return new ArrayList<String>(){/**

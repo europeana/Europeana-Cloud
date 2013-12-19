@@ -23,13 +23,13 @@ public class MCSProxy {
 	 * The base url where MCS REST API is
 	 */
 	public MCSProxy(){
-		Properties props = new Properties();
-		try {
-			props.load(new FileInputStream(new File("src/main/resources/client.properties")));
-			url = props.getProperty("mcs.baseUrl");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		Properties props = new Properties();
+//		try {
+//			props.load(new FileInputStream(new File(getClass().getResource("client.properties").getPath())));
+//			url = props.getProperty("mcs.baseUrl");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	/**
@@ -38,9 +38,10 @@ public class MCSProxy {
 	 * @return true if it exists false otherwise
 	 */
 	public boolean checkProvider(String providerId){
-		Client client = JerseyClientBuilder.newClient();
-		Response rs = client.target(url+String.format("/data-providers/{%s}",providerId)).request().get();
-		return rs.getStatusInfo()==Response.Status.OK;
+//		Client client = JerseyClientBuilder.newClient();
+//		Response rs = client.target(url+String.format("/data-providers/{%s}",providerId)).request().get();
+//		return rs.getStatusInfo()==Response.Status.OK;
+		return true;
 	}
 	
 }

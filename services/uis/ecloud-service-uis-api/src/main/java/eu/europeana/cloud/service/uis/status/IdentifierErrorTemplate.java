@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis.status;
 import javax.ws.rs.core.Response.Status;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.uis.exception.GenericException;
 
 /**
  * Status Messages returned by all methods
@@ -161,6 +160,11 @@ public enum IdentifierErrorTemplate {
 		}
 	};
 
+	/**
+	 * Generate the error message for each case
+	 * @param args
+	 * @return The generated error message
+	 */
 	public abstract ErrorInfo getErrorInfo(String... args);
 
 	/**

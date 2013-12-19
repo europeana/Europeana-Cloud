@@ -9,10 +9,18 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class RecordDoesNotExistException extends GenericException{
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param message
+	 */
 	public RecordDoesNotExistException(String message){
 		super(message);
 	}
 	
+	/**
+	 * Creates a new instance of this class.
+	 * @param errorInfo
+	 */
 	public RecordDoesNotExistException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}

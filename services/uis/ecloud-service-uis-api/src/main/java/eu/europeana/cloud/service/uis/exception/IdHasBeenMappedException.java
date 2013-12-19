@@ -11,10 +11,18 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
  */
 public class IdHasBeenMappedException extends GenericException {
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param message
+	 */
 	public IdHasBeenMappedException(String message){
 		super(message);
 	}
 	
+	/**
+	 * Creates a new instance of this class.
+	 * @param errorInfo
+	 */
 	public IdHasBeenMappedException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);
 	}

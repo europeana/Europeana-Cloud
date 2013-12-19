@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.uis.database.dao;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.datastax.driver.core.PreparedStatement;
@@ -65,7 +64,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 				statement = dbService.getSession().prepare(searchByRecordIdStatement);
 				rs = dbService.getSession().execute(statement.bind(args[0], args[1], deleted));
 			}
-			while (!rs.isFullyFetched()) {
+			while (rs!=null && !rs.isFullyFetched()) {
 				rs.fetchMoreResults();
 			}
 			return createCloudIdsFromRs(rs);

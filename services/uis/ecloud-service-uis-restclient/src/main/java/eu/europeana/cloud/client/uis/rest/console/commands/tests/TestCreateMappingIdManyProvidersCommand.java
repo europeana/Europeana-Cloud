@@ -16,12 +16,18 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
+/**
+ * Test Create id mappings with multiple providers
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class TestCreateMappingIdManyProvidersCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, String... input) throws InvalidAttributesException {
-		String providerId = "testProviderMany";
-		String recordId = "testRecordMany";
+		String providerId = input[1];
+		String recordId = input[2];
 		
 		try {
 			CloudId cId = client.createCloudId(providerId+Math.random(),recordId+Math.random());
@@ -38,7 +44,7 @@ public class TestCreateMappingIdManyProvidersCommand extends Command {
 			long end = new Date().getTime() - start;
 			System.out.println("Adding "+ input[0]+" records took " + end + " ms");
 			System.out.println("Average: " + (Double.parseDouble(input[0])/end) *1000 +" records per second");
-			IOUtils.writeLines(str, "\n", new FileOutputStream(new File("testsManyW")));
+			IOUtils.writeLines(str, "\n", new FileOutputStream(new File(input[3])));
 		} catch (CloudException | IOException e) {
 			e.printStackTrace();
 		}

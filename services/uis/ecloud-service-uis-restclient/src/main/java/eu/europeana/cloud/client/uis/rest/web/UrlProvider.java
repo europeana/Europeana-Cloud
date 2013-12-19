@@ -4,11 +4,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+/**
+ * URL provider for UIS client
+ * 
+ * @author Yorgos.Mamakis@ kb.nl
+ * @since Dec 17, 2013
+ */
 public class UrlProvider {
 
 
 	private static String baseUrl;
 
+	/**
+	 * Creates a new instance of this class.
+	 */
 	public UrlProvider(){
 		Properties props = new Properties();
 		try {
@@ -19,10 +28,19 @@ public class UrlProvider {
 		}
 	}
 
-        public UrlProvider(String serviceUrl) {
+        /**
+         * Creates a new instance of this class.
+         * @param serviceUrl
+         */
+        public UrlProvider(final String serviceUrl) {
             baseUrl = serviceUrl;
         }
 
+	/**
+	 * Return the host url for the service
+	 * @param url
+	 * @return The host url for the service
+	 */
 	public String createUrl(String url){
 		return baseUrl+"/"+url;
 	}

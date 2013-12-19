@@ -59,6 +59,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("createCloudIdNoLocal")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
+	@ReturnType("eu.europeana.cloud.common.model.CloudId")
 	public Response createCloudId(@QueryParam(PROVIDERID) String providerId) throws DatabaseConnectionException,
 			RecordExistsException, ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException {
 
@@ -69,6 +70,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getCloudId")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
+	@ReturnType("eu.europeana.cloud.common.model.CloudId")
 	public Response getCloudId(@QueryParam(PROVIDERID) String providerId, @QueryParam(RECORDID) String recordId)
 			throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
@@ -78,6 +80,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getLocalIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
+	@ReturnType("eu.europeana.cloud.service.uis.LocalIdList")
 	public Response getLocalIds(@QueryParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 		LocalIdList pList = new LocalIdList();
@@ -89,6 +92,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getLocalIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
+	@ReturnType("eu.europeana.cloud.service.uis.LocalIdList")
 	public Response getLocalIdsByProvider(@QueryParam(PROVIDERID) String providerId, @QueryParam(START) String start,
 			@QueryParam(TO) @DefaultValue("10000") int to) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
@@ -102,6 +106,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@Path("getCloudIdsByProvider")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Override
+	@ReturnType("eu.europeana.cloud.service.uis.CloudIdList")
 	public Response getCloudIdsByProvider(@QueryParam(PROVIDERID) String providerId, @QueryParam(START) String start,
 			@QueryParam(TO) @DefaultValue("10000") int to) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
