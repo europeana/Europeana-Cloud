@@ -53,18 +53,18 @@ public final class Base36 {
 
 	}
 
-	private static String encode(BigInteger remaining) {
+	private static String encode(BigInteger given) {
 		List<Character> result = new ArrayList<>();
 		BigInteger base = new BigInteger("" + DICTIONARY.length);
 		int exponent = 1;
-
+		BigInteger remaining = given;
 		while (true) {
 			BigInteger power = base.pow(exponent);
 			BigInteger modulo = remaining.mod(power);
 			BigInteger powerMinusOne = base.pow(exponent - 1);
 			BigInteger times = modulo.divide(powerMinusOne);
 			result.add(DICTIONARY[times.intValue()]);
-			remaining.subtract(modulo);
+			remaining = remaining.subtract(modulo);
 			if (remaining.equals(BigInteger.ZERO)) {
 				break;
 			}

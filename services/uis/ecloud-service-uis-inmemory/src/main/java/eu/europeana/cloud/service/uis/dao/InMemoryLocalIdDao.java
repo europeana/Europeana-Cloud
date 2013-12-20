@@ -13,7 +13,13 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-
+/**
+ * In Memory implementation of the Local Id DAO
+ * 
+ * 
+ * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
+ * @since Dec 20, 2013
+ */
 public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private static List<InMemoryCloudObject> cloudIds = new ArrayList<>();
@@ -73,6 +79,8 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	 * @param providerId
 	 *            The provider Identifier to search on
 	 * @return A list of Cloud Identifiers that conforms to the search criteria
+	 * @throws ProviderDoesNotExistException 
+	 * @throws RecordDatasetEmptyException 
 	 */
 	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) throws ProviderDoesNotExistException,RecordDatasetEmptyException{
 		List<CloudId> cIds = new ArrayList<>();
@@ -206,6 +214,9 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 		return "";
 	}
 
+	/**
+	 * Clear our LocalId cache
+	 */
 	public void reset() {
 		cloudIds = new ArrayList<>();
 	}

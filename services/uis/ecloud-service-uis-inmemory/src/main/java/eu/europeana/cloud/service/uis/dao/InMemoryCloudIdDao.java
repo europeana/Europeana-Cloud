@@ -8,7 +8,13 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.InMemoryCloudObject;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-
+/**
+ * In Memory Cloud Id implementation
+ * 
+ * 
+ * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
+ * @since Dec 20, 2013
+ */
 public class InMemoryCloudIdDao implements Dao<CloudId, List<CloudId>> {
 
 	private static List<InMemoryCloudObject> cloudIds = new ArrayList<>();
@@ -109,6 +115,9 @@ public class InMemoryCloudIdDao implements Dao<CloudId, List<CloudId>> {
 		return "";
 	}
 
+	/**
+	 * Method that empties the Cloud Id cache
+	 */
 	public void reset(){
 		cloudIds = new ArrayList<>();
 	}

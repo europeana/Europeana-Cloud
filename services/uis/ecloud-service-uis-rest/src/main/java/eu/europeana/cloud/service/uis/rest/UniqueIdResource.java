@@ -21,8 +21,8 @@ public interface UniqueIdResource {
     /**
      * Invoke the unique identifier creation REST call HTTP call: GET
      * 
-     * @param providerId
-     * @param recordId
+     * @param providerId Provider Identifier
+     * @param recordId Record Identifier
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordExistsException 
      * @throws DatabaseConnectionException 
@@ -36,8 +36,8 @@ public interface UniqueIdResource {
      * Invoke the unique Identifier search according to providerId/recordId combo REST call HTTP
      * call: GET
      * 
-     * @param providerId
-     * @param recordId
+     * @param providerId Provider Identifier
+     * @param recordId Record Identifier
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordDoesNotExistException 
      * @throws DatabaseConnectionException 
@@ -49,7 +49,7 @@ public interface UniqueIdResource {
     /**
      * Invoke the retrieval of providerId/recordId REST call HTTP call: GET
      * 
-     * @param cloudId
+     * @param cloudId Cloud Identifier
      * @return JSON/XML response with the list of local ids organized by provider or Error Message
      * @throws CloudIdDoesNotExistException 
      * @throws DatabaseConnectionException 
@@ -61,9 +61,9 @@ public interface UniqueIdResource {
     /**
      * Invoke the retrieval of recordId based on a providerId REST call HTTP call: GET
      * 
-     * @param providerId
-     * @param start
-     * @param to
+     * @param providerId Provider Identifier
+     * @param start Record to start pagination from
+     * @param to Number of record to retrieve
      * @return JSON/XML response with the list of local ids of that provider or Error Message
      * @throws ProviderDoesNotExistException 
      * @throws DatabaseConnectionException 
@@ -74,9 +74,9 @@ public interface UniqueIdResource {
     /**
      * Invoke the retrieval of all unique identifiers for a giver provider HTTP call: GET
      * 
-     * @param providerId
-     * @param start
-     * @param to
+     * @param providerId Provider Identifier
+     * @param start Record to start pagination from
+     * @param to Number of records to retrieve
      * @return JSON/XML response with the list of unique ids of that provider or Error Message
      * @throws RecordDatasetEmptyException 
      * @throws ProviderDoesNotExistException 
@@ -88,9 +88,9 @@ public interface UniqueIdResource {
      * Create the mapping between an existing unique identifier and a providerId/recordId combo HTTP
      * call: GET
      * 
-     * @param cloudId
-     * @param providerId
-     * @param recordId
+     * @param cloudId Cloud identifier
+     * @param providerId Provider Identifier 
+     * @param recordId Record Identifier
      * @return JSON/XML acknowledgement or Error Message
      * @throws ProviderDoesNotExistException 
      * @throws IdHasBeenMappedException 
@@ -103,8 +103,8 @@ public interface UniqueIdResource {
     /**
      * Remove the mapping between a providerId/recordId and a unique identifier HTTP call: DELETE
      * 
-     * @param providerId
-     * @param recordId
+     * @param providerId Provider Identifier
+     * @param recordId Record Identifier
      * @return JSON/XML acknowledgement or Error Message
      * @throws RecordIdDoesNotExistException 
      * @throws ProviderDoesNotExistException 
@@ -115,7 +115,7 @@ public interface UniqueIdResource {
     /**
      * Remove the unique identifier and all of its mappings HTTP call: DELETE
      * 
-     * @param cloudId
+     * @param cloudId Cloud Identifier
      * @return JSON/XML acknowledgement or Error Message
      * @throws CloudIdDoesNotExistException 
      * @throws DatabaseConnectionException 
@@ -127,7 +127,7 @@ public interface UniqueIdResource {
     /**
      * Invoke the unique identifier creation REST call HTTP call: GET
      * 
-     * @param providerId
+     * @param providerId Provider Identifier
      * @return JSON/XML response with the unique Identifier or Error Message
      * @throws RecordExistsException 
      * @throws DatabaseConnectionException 

@@ -196,13 +196,33 @@
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document></document>
-							<defaultMessage>Not Found</defaultMessage>
+							<document>explicit: eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
+							</document>
+							<defaultMessage>Cloud Id Not Found</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit: eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException
+							</document>
+							<defaultMessage>The supplied provider does not exist</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
 							<document>explicit:
 								eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
+								<defaultMessage>The record already exists</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>404</httpCode>
+							<document>explicit:
+								eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
+								<defaultMessage>The recordId does not exist</defaultMessage>
+						</statusCode>
+						<statusCode>
+							<httpCode>409</httpCode>
+							<document>explicit:
+								eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException</document>
+								<defaultMessage>The record Id for that provider has already been mapped to a cloud Id</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>500</httpCode>
@@ -224,7 +244,7 @@
 					<visibility>
 						<GETTER>PUBLIC_ONLY</GETTER>
 						<IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-						<SETTER>NON_PRIVATE</SETTER>
+						<SETTER>PUBLIC_ONLY</SETTER>
 						<CREATOR>PUBLIC_ONLY</CREATOR>
 						<FIELD>PUBLIC_ONLY</FIELD>
 					</visibility>

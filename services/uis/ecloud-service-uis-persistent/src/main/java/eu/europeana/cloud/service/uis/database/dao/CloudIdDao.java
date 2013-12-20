@@ -30,7 +30,6 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	private String port;
 	private DatabaseService dbService;
 	private static String insertStatement = "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)";
-	//private static String searchStatement = "SELECT * FROM Cloud_Id WHERE cloud_id=? AND deleted=?";
 	private static String searchStatementNonActive = "SELECT * FROM Cloud_Id WHERE cloud_id=?";
 	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?";
 

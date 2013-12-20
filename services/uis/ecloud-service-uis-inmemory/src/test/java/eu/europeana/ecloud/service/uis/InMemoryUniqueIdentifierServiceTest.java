@@ -38,6 +38,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test the creation and retrieval of an object and the exception that a record exists
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordExistsException.class)
 	public void testCreateAndRetrieve()throws Exception{
@@ -50,6 +51,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test that a record does not exist
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testRecordDoesNotExist()throws Exception{
@@ -59,6 +61,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test CloudId retrieval and exception if it does not exist
+	 * @throws Exception 
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testGetLocalIdsByCloudId()throws Exception{
@@ -71,6 +74,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test retrieval by a provider id and exception if it does not exist
+	 * @throws Exception 
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testGetCloudIdsByProvider()throws Exception{
@@ -86,6 +90,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test if a dataset is empty
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordDatasetEmptyException.class)
 	public void testGetCloudIdsByProviderDatasetEmtpy()throws Exception{
@@ -96,6 +101,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test localId retrieval and exception if the database does not exist
+	 * @throws Exception 
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testGetLocalIdsByProviderId()throws Exception{
@@ -110,6 +116,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	}
 	/**
 	 * Test if a dataset is empty
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordDatasetEmptyException.class)
 	public void testGetLocalIdsByProviderDatasetEmtpy()throws Exception{
@@ -120,6 +127,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test Create mapping and exception if the record Id is already mapped
+	 * @throws Exception 
 	 */
 	@Test (expected = IdHasBeenMappedException.class)
 	public void testCreateIdMapping()throws Exception{
@@ -131,6 +139,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test create mapping if the cloud Id does not exist
+	 * @throws Exception 
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testCreateIdMappingCloudIdDoesNotExist() throws Exception{
@@ -141,6 +150,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test mapping removal
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testRemoveIdMapping()throws Exception{
@@ -152,6 +162,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test mapping removal provider does not exist
+	 * @throws Exception 
 	 */
 	@Test (expected = ProviderDoesNotExistException.class)
 	public void testRemoveIdMappingProvDoesNotExist()throws Exception{
@@ -162,6 +173,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test mapping removal record does not exist
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordIdDoesNotExistException.class)
 	public void testRemoveIdMappingRecIdDoesNotExist()throws Exception{
@@ -172,6 +184,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test cloud id deletion
+	 * @throws Exception 
 	 */
 	@Test (expected = RecordDoesNotExistException.class)
 	public void testDeleteCloudId()throws Exception{
@@ -183,6 +196,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	
 	/**
 	 * Test cloud id deletion exception
+	 * @throws Exception 
 	 */
 	@Test (expected = CloudIdDoesNotExistException.class)
 	public void testDeleteCloudIdException()throws Exception{
