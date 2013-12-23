@@ -17,5 +17,6 @@
         <module>mcs-inmemory-impl</module>
         <module>mcs-persistent-impl</module>
         <module>mcs-rest</module>
-  </modules>
+        <module>mcs-cleaner</module>
+    </modules>
 </project>
