@@ -18,12 +18,14 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import org.springframework.context.annotation.Scope;
 
 /**
  * Resource representing records.
  */
 @Path("/records/{" + P_GID + "}")
 @Component
+@Scope("request")
 public class RecordsResource {
 
     @Autowired

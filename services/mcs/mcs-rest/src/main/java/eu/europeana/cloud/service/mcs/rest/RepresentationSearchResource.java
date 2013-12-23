@@ -29,6 +29,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("representations")
 @Component
+@Scope("request")
 public class RepresentationSearchResource {
 
     @Autowired
@@ -126,9 +128,11 @@ public class RepresentationSearchResource {
      * 
      * @param date
      *            a string to parse
-     * @param dateParamName a name of the parameter which hold a date
+     * @param dateParamName
+     *            a name of the parameter which hold a date
      * @return the parsed date-time
-     * @throws WebApplicationException if the given date cannot be parsed
+     * @throws WebApplicationException
+     *             if the given date cannot be parsed
      */
     private Date parseDate(String date, String dateParamName) {
         Date dateParsed = null;

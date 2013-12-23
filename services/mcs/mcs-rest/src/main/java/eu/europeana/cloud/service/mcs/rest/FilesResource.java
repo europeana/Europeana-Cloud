@@ -20,7 +20,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,10 +31,13 @@ import org.springframework.stereotype.Component;
  */
 @Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}/files")
 @Component
+@Scope("request")
 public class FilesResource {
 
     @Autowired
     private RecordService recordService;
+
+    //    private EnrichUriUtilComponent enricher;
 
     @Context
     private UriInfo uriInfo;
@@ -44,6 +50,8 @@ public class FilesResource {
 
     @PathParam(P_VER)
     private String version;
+
+    private final static Logger logger = LoggerFactory.getLogger("RequestsLogger");
 
 
     /**
@@ -79,6 +87,9 @@ public class FilesResource {
         recordService.putContent(globalId, schema, version, f, data);
 
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
+        long threadId = Thread.currentThread().getId();
+        logger.debug(String.format("Thread: #%d, File added [%s, %s, %s], uri: %s ", threadId, globalId, schema,
+            version, f.getContentUri()));
         return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }

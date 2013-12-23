@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}")
 @Component
+@Scope("request")
 public class RepresentationResource {
 
     @Autowired

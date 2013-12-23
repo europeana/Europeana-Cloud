@@ -26,12 +26,14 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import org.springframework.context.annotation.Scope;
 
 /**
  * Resource to get and create data set.
  */
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets")
 @Component
+@Scope("request")
 public class DataSetsResource {
 
     @Autowired
