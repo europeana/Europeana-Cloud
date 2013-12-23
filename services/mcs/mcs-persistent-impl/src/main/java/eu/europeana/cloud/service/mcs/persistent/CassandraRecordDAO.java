@@ -132,7 +132,9 @@ public class CassandraRecordDAO {
      */
     public Record getRecord(String cloudId)
             throws NoHostAvailableException, QueryExecutionException {
-        ResultSet rs = connectionProvider.getSession().execute(getAllRepresentationsForRecordStatement.bind(cloudId));
+        final BoundStatement boundStatement = getAllRepresentationsForRecordStatement.bind(cloudId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<Representation> representations = new ArrayList<>();
         String prevSchema = null;
         for (Row row : rs) {
@@ -154,7 +156,9 @@ public class CassandraRecordDAO {
      */
     public void deleteRecord(String cloudId)
             throws NoHostAvailableException, QueryExecutionException {
-        connectionProvider.getSession().execute(deleteRecordStatement.bind(cloudId, cloudId));
+        BoundStatement boundStatement = deleteRecordStatement.bind(cloudId, cloudId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -168,7 +172,9 @@ public class CassandraRecordDAO {
      */
     public void deleteRepresentation(String cloudId, String schema)
             throws NoHostAvailableException, QueryExecutionException {
-        connectionProvider.getSession().execute(deleteRepresentationStatement.bind(cloudId, schema, cloudId, schema));
+        BoundStatement boundStatement = deleteRepresentationStatement.bind(cloudId, schema, cloudId, schema);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -185,8 +191,10 @@ public class CassandraRecordDAO {
      */
     public void deleteRepresentation(String cloudId, String schema, String version)
             throws NoHostAvailableException, QueryExecutionException {
-        connectionProvider.getSession().execute(
-            deleteRepresentationVersionStatement.bind(cloudId, schema, UUID.fromString(version), cloudId, schema));
+        BoundStatement boundStatement = deleteRepresentationVersionStatement.bind(cloudId, schema,
+            UUID.fromString(version), cloudId, schema);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -237,7 +245,8 @@ public class CassandraRecordDAO {
         // insert representation into representation table.
         BoundStatement boundStatement = insertRepresentationStatement.bind(cloudId, schema, version, providerId, false,
             creationTime);
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         return new Representation(cloudId, schema, version.toString(), null, null, providerId, new ArrayList<File>(0),
                 false, creationTime);
     }
@@ -251,6 +260,9 @@ public class CassandraRecordDAO {
         BoundStatement boundStatement = getRepresentationVersionStatement.bind(cloudId, schema,
             UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+
         Row row = rs.one();
         if (row == null) {
             return null;
@@ -274,7 +286,9 @@ public class CassandraRecordDAO {
     public List<File> getFilesForRepresentation(String cloudId, String schema, String version)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getFilesStatement.bind(cloudId, schema, UUID.fromString(version));
-        Row row = connectionProvider.getSession().execute(boundStatement).one();
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        Row row = rs.one();
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         if (row == null) {
             return null;
         } else {
@@ -288,7 +302,8 @@ public class CassandraRecordDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = persistRepresentationStatement.bind(creationTime, cloudId, schema,
             UUID.fromString(version));
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -304,6 +319,7 @@ public class CassandraRecordDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listRepresentationVersionsStatement.bind(cloudId, schema);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
         for (Row row : rs) {
             result.add(mapToRepresentation(row));
@@ -323,6 +339,7 @@ public class CassandraRecordDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listRepresentationVersionsAllSchemasStatement.bind(cloudId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
         for (Row row : rs) {
             result.add(mapToRepresentation(row));
@@ -335,20 +352,25 @@ public class CassandraRecordDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = insertFileStatement.bind(file.getFileName(), serializeFile(file), cloudId,
             schema, UUID.fromString(version));
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
     public void removeFileFromRepresentation(String cloudId, String schema, String version, String fileName)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = removeFileStatement.bind(fileName, cloudId, schema, UUID.fromString(version));
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
     public boolean providerHasRepresentations(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
-        Row row = connectionProvider.getSession().execute(singleRecordIdForProviderStatement.bind(providerId)).one();
+        BoundStatement boundStatement = singleRecordIdForProviderStatement.bind(providerId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        Row row = rs.one();
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         return row != null;
     }
 

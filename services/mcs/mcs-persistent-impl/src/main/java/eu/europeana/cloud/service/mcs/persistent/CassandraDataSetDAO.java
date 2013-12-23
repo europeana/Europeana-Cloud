@@ -123,6 +123,7 @@ public class CassandraDataSetDAO {
         BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(providerDataSetId, thresholdCloudId,
             thresholdSchema, limit);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<Representation> representationStubs = new ArrayList<>(limit);
         for (Row row : rs) {
             Representation stub = mapRowToRepresentationStub(row);
@@ -158,7 +159,8 @@ public class CassandraDataSetDAO {
         }
         BoundStatement boundStatement = addAssignmentStatement
                 .bind(providerDataSetId, recordId, schema, versionId, now);
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -177,6 +179,7 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getDataSetsForRepresentationStatement.bind(cloudId, schemaId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<CompoundDataSetId> ids = new ArrayList<>();
         for (Row r : rs) {
             UUID versionId = r.getUUID("version_id");
@@ -206,6 +209,7 @@ public class CassandraDataSetDAO {
             throws  NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         Row row = rs.one();
         if (row == null) {
             return null;
@@ -238,7 +242,8 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = removeAssignmentStatement.bind(providerDataSetId, recordId, schema);
-        connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
 
@@ -257,8 +262,8 @@ public class CassandraDataSetDAO {
     public DataSet createDataSet(String providerId, String dataSetId, String description)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
-        connectionProvider.getSession().execute(boundStatement);
-
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         DataSet ds = new DataSet();
         ds.setId(dataSetId);
         ds.setDescription(description);
@@ -283,6 +288,7 @@ public class CassandraDataSetDAO {
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         Row row = rs.one();
         if (row == null) {
             return null;
@@ -321,6 +327,7 @@ public class CassandraDataSetDAO {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = listDataSetAssignmentsNoPaging.bind(providerDataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         for (Row row : rs) {
             String cloudId = row.getString("cloud_id");
             String schemaId = row.getString("schema_id");
