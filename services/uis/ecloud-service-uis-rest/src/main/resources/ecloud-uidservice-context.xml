@@ -14,6 +14,7 @@
 		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">
 		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
 		<constructor-arg name="localIdDao" ref="localIdDao" />
+		<constructor-arg name="dataProviderDao" ref="dataProviderDao"/>
 	</bean>
 	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
 		<constructor-arg name="dbService" ref="dbService" />
@@ -21,6 +22,10 @@
 
 	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.database.dao.LocalIdDao">
 		<constructor-arg name="dbService" ref="dbService" />
+	</bean>
+	
+	<bean id="dataProviderDao" class="eu.europeana.cloud.uis.database.dao.CassandraDataProviderDAO">
+		<constructor-arg name="dbService" ref="dbService"/>
 	</bean>
 
 	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
@@ -42,7 +47,18 @@
 		
 	</bean>
 
-
+<bean id="mappings"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<value>
+				numberOfElementsOnPage=100
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
+	<bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProviderResources"/>
+	
 	<bean id="uniqueIdResource"
 		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />
 </beans>

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.exception;
 
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.common.exceptions.GenericException;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 
 /**
  * Exception thrown when a record already exists in the database 

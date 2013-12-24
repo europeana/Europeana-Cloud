@@ -1,19 +1,20 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * InMemoryDataSetService
@@ -106,7 +107,7 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Override
     public DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException {
+            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
         // only to check if dataprovider exists
         dataProviderDao.getProvider(providerId);
 
@@ -116,7 +117,7 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Override
     public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         if (thresholdDatasetId != null) {
             throw new UnsupportedOperationException("Paging with threshold is not supported");
         }

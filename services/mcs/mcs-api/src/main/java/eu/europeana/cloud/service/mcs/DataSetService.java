@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**
@@ -93,7 +93,7 @@ public interface DataSetService {
      *             data set with this identifer has already been created for this provider
      */
     DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException;
+            throws ProviderDoesNotExistException, DataSetAlreadyExistsException;
 
 
     /**
@@ -127,7 +127,7 @@ public interface DataSetService {
      *             no such data provider exists.
      */
     public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
-            throws ProviderNotExistsException;
+            throws ProviderDoesNotExistException;
 
 
     /**

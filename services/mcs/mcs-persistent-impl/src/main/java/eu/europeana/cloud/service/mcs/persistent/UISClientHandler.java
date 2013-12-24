@@ -11,4 +11,6 @@ public interface UISClientHandler {
      */
     boolean recordExistInUIS(String cloudId);
 
+    boolean providerExistsInUIS(String providerId);
+    
 }

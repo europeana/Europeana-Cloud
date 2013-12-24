@@ -1,19 +1,16 @@
-package eu.europeana.cloud.service.mcs.inmemory;
+package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 /**
  * InMemoryContentServiceImpl
@@ -21,8 +18,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 @Service
 public class InMemoryDataProvidersService implements DataProviderService {
 
-    @Autowired
-    private InMemoryDataSetDAO dataSetDAO;
 
     @Autowired
     private InMemoryDataProviderDAO dataProviderDAO;
@@ -40,7 +35,7 @@ public class InMemoryDataProvidersService implements DataProviderService {
 
     @Override
     public DataProvider getProvider(String id)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         return dataProviderDAO.getProvider(id);
     }
 
@@ -52,20 +47,10 @@ public class InMemoryDataProvidersService implements DataProviderService {
     }
 
 
-    @Override
-    public void deleteProvider(String providerId)
-            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
-        List<DataSet> providerDataSets = dataSetDAO.getDataSets(providerId);
-        if (providerDataSets != null && !providerDataSets.isEmpty()) {
-            throw new ProviderHasDataSetsException();
-        }
-        dataProviderDAO.deleteProvider(providerId);
-    }
-
 
     @Override
     public DataProvider updateProvider(String providerId, DataProviderProperties properties)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         return dataProviderDAO.updateProvider(providerId, properties);
     }
 }

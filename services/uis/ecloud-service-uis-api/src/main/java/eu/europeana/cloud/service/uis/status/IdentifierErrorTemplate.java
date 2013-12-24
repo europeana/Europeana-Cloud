@@ -108,6 +108,21 @@ public enum IdentifierErrorTemplate {
 			return Status.NOT_FOUND;
 		}
 	},
+	
+	PROVIDER_ALREADY_EXISTS {
+
+		@Override
+		public ErrorInfo getErrorInfo(String... args) {
+			return new ErrorInfo("PROVIDER_ALREADY_EXISTS",String.format("The procidet with identifier %s already exists", args[0]));
+		}
+
+		@Override
+		public Status getHttpCode() {
+			// return null;
+			return Status.CONFLICT;
+		}
+		
+	},
 
 	/**
 	 * The record id does not exist - HTTP code: 404

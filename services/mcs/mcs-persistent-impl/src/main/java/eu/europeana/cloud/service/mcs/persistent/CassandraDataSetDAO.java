@@ -1,15 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
-import com.google.common.base.Objects;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -18,9 +8,23 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.UUID;
+
 import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
+import com.google.common.base.Objects;
+
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -199,12 +203,12 @@ public class CassandraDataSetDAO {
      *             specified data provider does not exist.
      */
     public DataSet getDataSet(String providerId, String dataSetId)
-            throws ProviderNotExistsException, NoHostAvailableException, QueryExecutionException {
+            throws ProviderDoesNotExistException, NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row row = rs.one();
         if (row == null) {
-            throw new ProviderNotExistsException();
+            throw new ProviderDoesNotExistException(String.format("Provider with id %s does not exist",providerId));
         }
         Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
         if (!datasets.containsKey(dataSetId)) {

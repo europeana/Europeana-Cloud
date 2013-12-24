@@ -1,18 +1,18 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.uis;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Data provider service using Cassandra as database.
@@ -23,11 +23,6 @@ public class CassandraDataProviderService implements DataProviderService {
     @Autowired
     private CassandraDataProviderDAO dataProviderDAO;
 
-    @Autowired
-    private CassandraDataSetDAO dataSetDAO;
-
-    @Autowired
-    private CassandraRecordDAO recordDAO;
 
 
     /**
@@ -50,10 +45,12 @@ public class CassandraDataProviderService implements DataProviderService {
      */
     @Override
     public DataProvider getProvider(String providerId)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         DataProvider dp = dataProviderDAO.getProvider(providerId);
         if (dp == null) {
-            throw new ProviderNotExistsException();
+        	throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         } else {
             return dp;
         }
@@ -68,7 +65,9 @@ public class CassandraDataProviderService implements DataProviderService {
             throws ProviderAlreadyExistsException {
         DataProvider dp = dataProviderDAO.getProvider(providerId);
         if (dp != null) {
-            throw new ProviderAlreadyExistsException();
+        	throw new ProviderAlreadyExistsException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getErrorInfo(providerId)));
         }
         return dataProviderDAO.createOrUpdateProvider(providerId, properties);
     }
@@ -79,29 +78,15 @@ public class CassandraDataProviderService implements DataProviderService {
      */
     @Override
     public DataProvider updateProvider(String providerId, DataProviderProperties properties)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         DataProvider dp = dataProviderDAO.getProvider(providerId);
         if (dp == null) {
-            throw new ProviderNotExistsException();
+        	throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
         return dataProviderDAO.createOrUpdateProvider(providerId, properties);
     }
 
 
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public void deleteProvider(String providerId)
-            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
-        boolean providerHasDataSets = !dataSetDAO.getDataSets(providerId, null, 1).isEmpty();
-        if (providerHasDataSets) {
-            throw new ProviderHasDataSetsException();
-        }
-        boolean providerHasRepresentation = recordDAO.providerHasRepresentations(providerId);
-        if (providerHasRepresentation) {
-            throw new ProviderHasRecordsException();
-        }
-        dataProviderDAO.deleteProvider(providerId);
-    }
 }

@@ -1,30 +1,31 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.uis;
 
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.rest.DataProviderResource;
+import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
+import eu.europeana.cloud.service.uis.rest.JerseyConfig;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import eu.europeana.cloud.common.web.ParamConstants;
 /**
  * DataProviderResourceTest
  */
@@ -32,7 +33,6 @@ public class DataProviderResourceTest extends JerseyTest {
 
     private DataProviderService dataProviderService;
 
-    private DataSetService dataSetService;
 
     private WebTarget dataProvidersWebTarget;
 
@@ -49,25 +49,18 @@ public class DataProviderResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
-        dataSetService = applicationContext.getBean(DataSetService.class);
 
         dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
         dataProviderWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
     }
 
 
-    @After
-    public void cleanUp()
-            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException {
-        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-            dataProviderService.deleteProvider(prov.getId());
-        }
-    }
+    
 
 
     @Test
     public void shouldUpdateProvider()
-            throws ProviderAlreadyExistsException, ProviderNotExistsException {
+            throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
         // given certain provider data
         String providerName = "provident";
         dataProviderService.createProvider(providerName, new DataProviderProperties());
@@ -120,25 +113,9 @@ public class DataProviderResourceTest extends JerseyTest {
         // then you should get error that such does not exist
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
         ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
-        assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), deleteErrorInfo.getErrorCode());
+        assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo().getErrorCode(),deleteErrorInfo.getErrorCode());
     }
 
 
-    @Test
-    public void shouldDeleteProvider()
-            throws ProviderAlreadyExistsException {
-        // given a certain provider in service
-        String providerName = "provident";
-        dataProviderService.createProvider(providerName, new DataProviderProperties());
-
-        // when you delete it
-        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-        Response deleteResponse = providentWebTarget.request().delete();
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
-
-        // then it should not be in service anymore
-        Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
-        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
-        assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
-    }
+  
 }

@@ -14,4 +14,9 @@ public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
     public boolean recordExistInUIS(String cloudId) {
         return true;
     }
+
+	@Override
+	public boolean providerExistsInUIS(String providerId) {
+		return true;
+	}
 }

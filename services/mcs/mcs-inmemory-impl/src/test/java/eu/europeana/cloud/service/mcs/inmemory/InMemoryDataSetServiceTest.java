@@ -27,6 +27,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 @RunWith(JUnitParamsRunner.class)
 public class InMemoryDataSetServiceTest {

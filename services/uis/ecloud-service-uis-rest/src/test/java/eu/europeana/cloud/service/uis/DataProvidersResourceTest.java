@@ -1,25 +1,27 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.uis;
 
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
+import eu.europeana.cloud.service.uis.rest.JerseyConfig;
 /**
  * DataProviderResourceTest
  */
@@ -44,13 +46,7 @@ public class DataProvidersResourceTest extends JerseyTest {
     }
 
 
-    @After
-    public void cleanUp()
-            throws Exception {
-        for (DataProvider prov : dataProviderService.getProviders(null, 10000).getResults()) {
-            dataProviderService.deleteProvider(prov.getId());
-        }
-    }
+   
 
 
     @Test
@@ -69,7 +65,7 @@ public class DataProvidersResourceTest extends JerseyTest {
 
     @Test
     public void shouldCreateProvider()
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         // given certain provider data
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");

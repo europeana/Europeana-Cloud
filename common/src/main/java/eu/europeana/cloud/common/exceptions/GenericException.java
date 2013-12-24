@@ -1,6 +1,7 @@
-package eu.europeana.cloud.service.uis.exception;
+package eu.europeana.cloud.common.exceptions;
 
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+
 
 /**
  * Generic Exception

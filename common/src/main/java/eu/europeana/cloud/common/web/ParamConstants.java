@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.common.web;
 
 /**
  * PathConstants

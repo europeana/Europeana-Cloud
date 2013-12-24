@@ -1,5 +1,10 @@
 package eu.europeana.cloud.service.mcs;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -7,13 +12,9 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 
 /**
  * Service for manipulating representations and their content.
@@ -147,7 +148,7 @@ public interface RecordService {
      *             there is no such provider
      */
     Representation createRepresentation(String globalId, String schema, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException;
+            throws RecordNotExistsException, ProviderDoesNotExistException;
 
 
     /**

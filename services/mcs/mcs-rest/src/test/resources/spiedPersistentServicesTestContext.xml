@@ -28,9 +28,7 @@
         <constructor-arg name="port" type="int" value="19142"/>
         <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
     </bean>
-    <bean id="cassandraDataProviderService"
-          class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderService"/>
-    <bean id="cassandraDataProviderDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderDAO"/>
+   
 
     <bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
     <bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
@@ -52,8 +50,7 @@
 
     <!--spy on everything-->
     <mockito:spy beanName="cassandraConnectionProvider"/>
-    <mockito:spy beanName="cassandraDataProviderService"/>
-    <mockito:spy beanName="cassandraDataProviderDAO"/>
+    
     <mockito:spy beanName="cassandraDataSetService"/>
     <mockito:spy beanName="cassandraDataSetDAO"/>
     <mockito:spy beanName="cassandraRecordService"/>

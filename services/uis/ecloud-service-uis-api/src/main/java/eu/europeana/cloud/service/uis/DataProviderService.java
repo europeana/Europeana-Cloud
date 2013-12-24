@@ -1,12 +1,10 @@
-package eu.europeana.cloud.service.mcs;
+package eu.europeana.cloud.service.uis;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasDataSetsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderHasRecordsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 /**
  * Service for data provider operations.
@@ -37,7 +35,7 @@ public interface DataProviderService {
      *             if threre is no provider with such id.
      */
     DataProvider getProvider(String providerId)
-            throws ProviderNotExistsException;
+            throws ProviderDoesNotExistException;
 
 
     /**
@@ -63,24 +61,12 @@ public interface DataProviderService {
      * @param properties
      *            new properties of provider.
      * @return updated provider.
-     * @throws eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException
+     * @throws eu.europeana.cloud.common.exceptions.mcs.exception.ProviderNotExistsException
      *             if threre is no provider with such id.
      */
     DataProvider updateProvider(String providerId, DataProviderProperties properties)
-            throws ProviderNotExistsException;
+            throws ProviderDoesNotExistException;
 
 
-    /**
-     * Deletes data provider. Data provider must not have any data sets or record representations to be deleted.
-     * 
-     * @param providerId
-     * @throws ProviderNotExistsException
-     *             if such data provider not exists.
-     * @throws ProviderHasDataSetsException
-     *             if provider cannot be deleted because it has data sets.
-     * @throws ProviderHasRecordsException
-     *             if provider cannot be deleted because it has record representations.
-     */
-    void deleteProvider(String providerId)
-            throws ProviderNotExistsException, ProviderHasDataSetsException, ProviderHasRecordsException;
+  
 }

@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -20,11 +21,11 @@ import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * InMemoryContentServiceImpl
@@ -104,7 +105,7 @@ public class InMemoryRecordService implements RecordService {
 
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException {
+            throws RecordNotExistsException, ProviderDoesNotExistException {
         dataProviderDAO.getProvider(providerId);
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }

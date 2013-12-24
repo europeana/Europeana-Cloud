@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 
 /**
@@ -98,5 +99,7 @@ public class DatabaseService {
 		return keyspaceName;
 	}
 
-	
+	public ConsistencyLevel getConsistencyLevel(){
+		return ConsistencyLevel.QUORUM;
+	}
 }

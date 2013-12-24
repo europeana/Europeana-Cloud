@@ -3,17 +3,19 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_GID;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_SCHEMA;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_VER;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.F_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

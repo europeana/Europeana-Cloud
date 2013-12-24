@@ -15,11 +15,7 @@ import eu.europeana.cloud.test.CassandraTestRunner;
 @RunWith(CassandraTestRunner.class)
 public class DataSetResourcePersistentTestIT extends DataSetResourceTest {
 
-    @After
-    @Override
-    public void cleanUp() {
-    }
-
+   
 
     @Override
     public Application configure() {

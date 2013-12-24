@@ -6,18 +6,20 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_DATA;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_FILE;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_FILE;
+import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -69,8 +72,8 @@ public class FileResource {
      * Upload file operation. Adds or updates file in representation version. MD5 of uploaded data is returned as tag.
      * Consumes multipart content - form data:
      * <ul>
-     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_MIME} - file mime type</li>
-     * <li>{@value eu.europeana.cloud.service.mcs.rest.ParamConstants#F_FILE_DATA} - binary stream of file content
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content
      * (required)</li>
      * </ul>
      * 

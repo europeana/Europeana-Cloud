@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
 
 class URITools {
 

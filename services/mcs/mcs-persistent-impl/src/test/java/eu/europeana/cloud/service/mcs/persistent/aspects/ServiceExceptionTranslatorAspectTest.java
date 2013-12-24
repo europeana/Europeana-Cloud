@@ -1,15 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.aspects;
 
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.ReadTimeoutException;
-import eu.europeana.cloud.service.mcs.DataProviderService;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.util.HashMap;
+
 import org.jclouds.blobstore.ContainerNotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,6 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
+
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
+import eu.europeana.cloud.service.uis.DataProviderService;
+
 /**
  *
  */
@@ -26,14 +29,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(value = { "classpath:/aspectTestContext.xml" })
 public class ServiceExceptionTranslatorAspectTest {
 
-    @Autowired
-    private CassandraDataProviderDAO cassandraDataProviderDAO;
+   
 
     @Autowired
     private CassandraDataSetDAO cassandraDataSetDAO;
 
-    @Autowired
-    private CassandraDataProviderDAO dataProviderDAO;
+ 
 
     @Autowired
     private RecordService cassandraRecordService;
@@ -42,15 +43,14 @@ public class ServiceExceptionTranslatorAspectTest {
     private DataSetService dataSetService;
 
     @Autowired
-    private DataProviderService dataProviderService;
+    private UISClientHandler uis;
 
 
     @Test
     public void shouldTranslateExceptionInRecordService()
             throws Exception {
         // prepare failure
-        Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(cassandraDataProviderDAO)
-                .getProvider(Mockito.anyString());
+        Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(uis.providerExistsInUIS("prov"));
 
         // execute method to throw prepared exception and catch it
         try {
@@ -85,11 +85,11 @@ public class ServiceExceptionTranslatorAspectTest {
     public void shouldTranslateExceptionInDataProviderService()
             throws Exception {
         // prepare failure
-        Mockito.doThrow(new ContainerNotFoundException()).when(dataProviderDAO).getProvider(Mockito.anyString());
+        Mockito.doThrow(new ContainerNotFoundException()).when(uis).providerExistsInUIS(Mockito.anyString());
 
         // execute method to throw prepared exception and catch it
         try {
-            dataProviderService.getProvider("id");
+            uis.providerExistsInUIS("prov");
         } catch (SystemException e) {
             // our wrapper should be caused by original exception
             Assert.assertTrue(e.getCause() instanceof ContainerNotFoundException);

@@ -21,7 +21,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.uis.encoder.Base36;
@@ -31,7 +33,6 @@ import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedExceptionMapper;
-import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyExceptionMapper;
@@ -42,7 +43,6 @@ import eu.europeana.cloud.service.uis.exception.RecordExistsExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**

@@ -1,10 +1,14 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.uis;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.Test;
@@ -15,32 +19,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.io.BaseEncoding;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.*;
-import org.mockito.Mockito;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
-public class CassandraDataProviderServiceTest extends CassandraTestBase {
+public class CassandraDataProviderServiceTest {
 
     @Autowired
     private CassandraDataProviderService cassandraDataProviderService;
 
-    @Autowired
-    private CassandraRecordService cassandraRecordService;
-
-    @Autowired
-    private CassandraDataSetService cassandraDataSetService;
-
-    @Autowired
-    private UISClientHandler uisHandler;
-
 
     @Test
     public void shouldCreateAndGetProvider()
-            throws ProviderAlreadyExistsException, ProviderNotExistsException {
+            throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
         DataProvider dp = cassandraDataProviderService
                 .createProvider("provident", createRandomDataProviderProperties());
 
@@ -49,52 +44,17 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
     }
 
 
-    @Test(expected = ProviderNotExistsException.class)
-    public void shouldDeleteProvider()
-            throws ProviderAlreadyExistsException, ProviderNotExistsException, ProviderHasDataSetsException,
-            ProviderHasRecordsException {
-        // given particular provider in service;
-        DataProvider dp = cassandraDataProviderService
-                .createProvider("provident", createRandomDataProviderProperties());
-
-        // when this provider is deleted
-        cassandraDataProviderService.deleteProvider(dp.getId());
-
-        // then it should no more be available in service
-        cassandraDataProviderService.getProvider(dp.getId());
-    }
+    
 
 
-    @Test(expected = ProviderNotExistsException.class)
+    @Test(expected = ProviderDoesNotExistException.class)
     public void shouldFailWhenFetchingNonExistingProvider()
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         cassandraDataProviderService.getProvider("provident");
     }
 
 
-    @Test(expected = ProviderHasRecordsException.class)
-    public void shouldFailWhenDeletingProviderWithRecords()
-            throws ProviderNotExistsException, ProviderAlreadyExistsException, ProviderHasDataSetsException,
-            ProviderHasRecordsException, RecordNotExistsException {
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
-
-        DataProvider dp = cassandraDataProviderService
-                .createProvider("provident", createRandomDataProviderProperties());
-        cassandraRecordService.createRepresentation("global", "dc", dp.getId());
-        cassandraDataProviderService.deleteProvider(dp.getId());
-    }
-
-
-    @Test(expected = ProviderHasDataSetsException.class)
-    public void shouldFailWhenDeletingProviderWithDataSets()
-            throws ProviderAlreadyExistsException, ProviderNotExistsException, ProviderHasDataSetsException,
-            DataSetAlreadyExistsException, ProviderHasRecordsException {
-        DataProvider dp = cassandraDataProviderService
-                .createProvider("provident", createRandomDataProviderProperties());
-        cassandraDataSetService.createDataSet(dp.getId(), "ds", "description");
-        cassandraDataProviderService.deleteProvider(dp.getId());
-    }
-
+  
 
     @Test
     public void shouldReturnEmptyArrayWhenNoProviderAdded() {

@@ -2,6 +2,9 @@ package eu.europeana.cloud.service.uis.exception;
 
 import javax.ws.rs.core.Response;
 
+import eu.europeana.cloud.common.exceptions.GenericException;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+
 /**
  * Generic class exposing the exceptions
  * 
@@ -67,6 +70,9 @@ public class UISExceptionMapper {
 		return buildResponse(e);
 	}
 	
+	public Response toResponse(ProviderAlreadyExistsException e){
+		return buildResponse(e);
+	}
 	private static Response buildResponse(GenericException e){
 		return Response.status(e.getErrorInfo().getHttpCode()).entity(e.getErrorInfo().getErrorInfo()).build();
 	}

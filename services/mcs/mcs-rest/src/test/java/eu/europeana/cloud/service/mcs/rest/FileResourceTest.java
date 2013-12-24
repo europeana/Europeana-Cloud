@@ -3,36 +3,44 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
+
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.uis.DataProviderService;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -47,7 +55,7 @@ public class FileResourceTest extends JerseyTest {
 
     private RecordService recordService;
 
-    private DataProviderService providerService;
+  //  private DataProviderService providerService;
 
     private Representation rep;
 
@@ -63,12 +71,10 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
-        providerService = applicationContext.getBean(DataProviderService.class);
 
         //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
         //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
 
-        providerService.createProvider("1", new DataProviderProperties());
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");
@@ -84,7 +90,6 @@ public class FileResourceTest extends JerseyTest {
     @After
     public void cleanUp()
             throws Exception {
-        providerService.deleteProvider("1");
         recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
     }
 

@@ -9,12 +9,12 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
@@ -56,9 +56,9 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 						IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
 						IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(args[0])));
 			}
-			while (!rs.isFullyFetched()&&!rs.isExhausted()) {
-				rs.fetchMoreResults();
-			}
+//			while (!rs.isFullyFetched()&&!rs.isExhausted()) {
+//				rs.fetchMoreResults();
+//			}
 			List<CloudId> cloudIds = new ArrayList<>();
 			for (Row row : rs.all()) {
 				if (row.getBool("deleted") == deleted) {

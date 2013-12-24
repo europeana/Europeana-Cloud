@@ -3,13 +3,16 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataProviderService;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.uis.DataProviderService;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,16 +21,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -42,7 +50,7 @@ public class RepresentationSearchTest extends JerseyTest {
 
     private RecordService recordService;
 
-    private DataProviderService providerService;
+   // private DataProviderService providerService;
 
     private DataSetService dataSetService;
 
@@ -61,11 +69,8 @@ public class RepresentationSearchTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
         representationSearchWebTarget = target(RepresentationSearchResource.class.getAnnotation(Path.class).value());
-        providerService = applicationContext.getBean(DataProviderService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
 
-        providerService.createProvider("p1", new DataProviderProperties());
-        providerService.createProvider("p2", new DataProviderProperties());
         dataSetService.createDataSet("p1", "ds", "descr");
 
         s1_p1 = recordService.createRepresentation("cloud_1", "s1", "p1");
@@ -82,8 +87,6 @@ public class RepresentationSearchTest extends JerseyTest {
     public void cleanUp()
             throws Exception {
         dataSetService.deleteDataSet("p1", "ds");
-        providerService.deleteProvider("p1");
-        providerService.deleteProvider("p2");
 
         recordService.deleteRecord("cloud_1");
         recordService.deleteRecord("cloud_2");

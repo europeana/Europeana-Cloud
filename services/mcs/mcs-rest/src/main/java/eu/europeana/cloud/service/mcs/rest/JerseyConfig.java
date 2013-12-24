@@ -6,15 +6,12 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetNotExistsExce
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.GenericExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderAlreadyExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderHasDataSetsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderHasRecordsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationAlreadyInSetExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.WrongContentRangeExceptionMapper;
+
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -40,15 +37,11 @@ public class JerseyConfig extends ResourceConfig {
         register(DataSetNotExistsExceptionMapper.class);
         register(FileAlreadyExistsExceptionMapper.class);
         register(FileNotExistsExceptionMapper.class);
-        register(ProviderHasDataSetsExceptionMapper.class);
-        register(ProviderHasRecordsExceptionMapper.class);
-        register(ProviderNotExistsExceptionMapper.class);
         register(RecordNotExistsExceptionMapper.class);
         register(RepresentationNotExistsExceptionMapper.class);
         register(VersionNotExistsExceptionMapper.class);
         register(RepresentationAlreadyInSetExceptionMapper.class);
         register(WrongContentRangeExceptionMapper.class);
-        register(ProviderAlreadyExistsExceptionMapper.class);
         register(GenericExceptionMapper.class);
 
         // resources
@@ -60,8 +53,6 @@ public class JerseyConfig extends ResourceConfig {
         register(RepresentationSearchResource.class);
         register(FilesResource.class);
         register(FileResource.class);
-        register(DataProviderResource.class);
-        register(DataProvidersResource.class);
         register(DataSetResource.class);
         register(DataSetsResource.class);
         register(DataSetAssignmentsResource.class);

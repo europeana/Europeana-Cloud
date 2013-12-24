@@ -5,22 +5,22 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import eu.europeana.cloud.service.uis.util.MCSProxy;
 
 /**
  * Cassandra implementation of the Unique Identifier Service
@@ -34,13 +34,12 @@ public class PersistentUniqueIdentifierService implements
 
 	private CloudIdDao cloudIdDao;
 	private LocalIdDao localIdDao;
-
+	private CassandraDataProviderDAO dataProviderDao;
 	private String host;
 	private String keyspace;
 	private String port;
 
-	private static MCSProxy proxy = new MCSProxy();
-
+	
 	/**
 	 * Initialization of the service with its DAOs
 	 * 
@@ -50,9 +49,10 @@ public class PersistentUniqueIdentifierService implements
 	 *            The local identifier Dao
 	 */
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,
-			LocalIdDao localIdDao) {
+			LocalIdDao localIdDao,CassandraDataProviderDAO dataProviderDao) {
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
+		this.dataProviderDao = dataProviderDao;
 		this.host = cloudIdDao.getHost();
 		this.keyspace = cloudIdDao.getKeyspace();
 		this.port = cloudIdDao.getPort();
@@ -64,7 +64,7 @@ public class PersistentUniqueIdentifierService implements
 			ProviderDoesNotExistException, RecordDatasetEmptyException,
 			CloudIdDoesNotExistException {
 		String providerId = recordInfo[0];
-		if (!proxy.checkProvider(providerId)) {
+		if(dataProviderDao.getProvider(providerId)==null){
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -137,7 +137,7 @@ public class PersistentUniqueIdentifierService implements
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 
-		if (!proxy.checkProvider(providerId)) {
+		if(dataProviderDao.getProvider(providerId)==null){
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -164,7 +164,7 @@ public class PersistentUniqueIdentifierService implements
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 
-		if (!proxy.checkProvider(providerId)) {
+		if(dataProviderDao.getProvider(providerId)==null){
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -185,7 +185,7 @@ public class PersistentUniqueIdentifierService implements
 			String recordId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
-		if (!proxy.checkProvider(providerId)) {
+		if(dataProviderDao.getProvider(providerId)==null){
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -218,7 +218,7 @@ public class PersistentUniqueIdentifierService implements
 	public void removeIdMapping(String providerId, String recordId)
 			throws DatabaseConnectionException, ProviderDoesNotExistException,
 			RecordIdDoesNotExistException {
-		if (!proxy.checkProvider(providerId)) {
+		if(dataProviderDao.getProvider(providerId)==null){
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST

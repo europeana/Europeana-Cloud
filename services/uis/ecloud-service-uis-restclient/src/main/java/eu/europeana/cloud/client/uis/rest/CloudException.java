@@ -1,6 +1,6 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import eu.europeana.cloud.service.uis.exception.GenericException;
+import eu.europeana.cloud.common.exceptions.GenericException;
 
 /**
  * Generic Cloud Exception

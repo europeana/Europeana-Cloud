@@ -8,14 +8,14 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.Dao;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
@@ -64,9 +64,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 				statement = dbService.getSession().prepare(searchByRecordIdStatement);
 				rs = dbService.getSession().execute(statement.bind(args[0], args[1], deleted));
 			}
-			while (rs!=null && !rs.isFullyFetched()) {
-				rs.fetchMoreResults();
-			}
+//			while (rs!=null && !rs.isFullyFetched()) {
+//				rs.fetchMoreResults();
+//			}
 			return createCloudIdsFromRs(rs);
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
@@ -90,9 +90,9 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
 		PreparedStatement statement = dbService.getSession().prepare(searchByProviderPaginatedStatement);
 		ResultSet rs = dbService.getSession().execute(statement.bind(providerId, start, end));
-		while (!rs.isFullyFetched()) {
-			rs.fetchMoreResults();
-		}
+//		while (!rs.isFullyFetched()) {
+//			rs.fetchMoreResults();
+//		}
 		return createCloudIdsFromRs(rs);
 	}
 
@@ -159,6 +159,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 				cloudIds.add(cloudId);
 			}
 		}
+		
 		return cloudIds;
 	}
 

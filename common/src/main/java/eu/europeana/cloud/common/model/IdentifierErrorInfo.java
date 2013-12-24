@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.status;
+package eu.europeana.cloud.common.model;
 
 import javax.ws.rs.core.Response.Status;
 

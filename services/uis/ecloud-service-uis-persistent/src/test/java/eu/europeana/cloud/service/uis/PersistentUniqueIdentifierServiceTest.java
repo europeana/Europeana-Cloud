@@ -19,6 +19,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
+import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
 import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
@@ -55,7 +56,8 @@ public class PersistentUniqueIdentifierServiceTest {
 		}
 		CloudIdDao cloudIdDao = new CloudIdDao(dbService);
 		LocalIdDao localIdDao = new LocalIdDao(dbService);
-		service = new PersistentUniqueIdentifierService(cloudIdDao, localIdDao);
+		CassandraDataProviderDAO dataProviderDao = new CassandraDataProviderDAO(dbService);
+		service = new PersistentUniqueIdentifierService(cloudIdDao, localIdDao, dataProviderDao);
 
 	}
 

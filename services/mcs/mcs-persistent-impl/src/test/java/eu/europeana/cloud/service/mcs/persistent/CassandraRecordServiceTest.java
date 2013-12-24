@@ -1,32 +1,36 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.hash.Hashing;
 
-import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import org.mockito.Mockito;
-import static org.junit.Assert.*;
 
 /**
  * 
@@ -39,8 +43,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     @Autowired
     private CassandraRecordService cassandraRecordService;
 
-    @Autowired
-    private CassandraDataProviderService cassandraDataProviderService;
+   
 
     @Autowired
     private UISClientHandler uisHandler;
@@ -48,12 +51,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     private static final String providerId = "provider";
 
 
-    @Before
-    public void prepareData()
-            throws Exception {
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
-        cassandraDataProviderService.createProvider(providerId, new DataProviderProperties());
-    }
+   
 
 
     @Test
@@ -146,10 +144,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
 
-    @Test(expected = ProviderNotExistsException.class)
+    @Test(expected = ProviderDoesNotExistException.class)
     public void shouldNotCreateRepresentationForNotExistingProvider()
             throws Exception {
-        makeUISSuccess();
+        makeUISFailure();
         cassandraRecordService.createRepresentation("globalId", "dc", "not-existing");
     }
 
@@ -390,7 +388,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Mockito.reset(uisHandler);
         Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
     }
-
+    private void makeUISFailure()
+            throws RecordNotExistsException {
+        Mockito.reset(uisHandler);
+        Mockito.doReturn(false).when(uisHandler).recordExistInUIS(Mockito.anyString());
+    }
 
     private void makeUISThrowRecordNotExist()
             throws RecordNotExistsException {

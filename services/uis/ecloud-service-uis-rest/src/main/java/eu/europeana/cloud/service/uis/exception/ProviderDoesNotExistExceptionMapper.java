@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis.exception;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+
 /**
  * ProviderDoesNotExist exception mapper
  * 

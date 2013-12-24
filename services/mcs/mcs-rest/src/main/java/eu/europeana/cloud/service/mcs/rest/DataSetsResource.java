@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DATASET;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_DESCRIPTION;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -19,14 +19,14 @@ import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import org.springframework.context.annotation.Scope;
 
 /**
  * Resource to get and create data set.
@@ -61,7 +61,7 @@ public class DataSetsResource {
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom)
-            throws ProviderNotExistsException {
+            throws ProviderDoesNotExistException {
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
@@ -82,7 +82,7 @@ public class DataSetsResource {
      */
     @POST
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException {
+            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
         ParamUtil.require(F_DATASET, dataSetId);
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);

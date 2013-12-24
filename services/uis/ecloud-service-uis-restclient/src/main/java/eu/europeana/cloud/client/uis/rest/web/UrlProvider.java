@@ -41,8 +41,11 @@ public class UrlProvider {
 	 * @param url
 	 * @return The host url for the service
 	 */
-	public String createUrl(String url){
-		return baseUrl+"/"+url;
+	public String getUidUrl(String url){
+		return baseUrl+"/uniqueId/"+url;
 	}
 	
+	public String getPidUrl(String url){
+		return baseUrl+"/data-providers/"+url;
+	}
 }

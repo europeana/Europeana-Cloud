@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.uis.database.dao;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,7 +22,10 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.service.uis.database.DatabaseService;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -30,8 +33,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException;
 @Repository
 public class CassandraDataProviderDAO {
 
-    @Autowired
-    private CassandraConnectionProvider connectionProvider;
+    private DatabaseService dbService;
 
     private PreparedStatement insertNewProviderStatement;
 
@@ -43,28 +45,31 @@ public class CassandraDataProviderDAO {
 
     private PreparedStatement getAllProvidersStatement;
 
+    public CassandraDataProviderDAO(DatabaseService dbService){
+    	this.dbService = dbService;
+    }
 
     @PostConstruct
     private void prepareStatements() {
-        insertNewProviderStatement = connectionProvider.getSession().prepare(
+        insertNewProviderStatement = dbService.getSession().prepare(
             "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?) IF NOT EXISTS;");
-        insertNewProviderStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        insertNewProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateProviderStatement = connectionProvider.getSession().prepare(
+        updateProviderStatement = dbService.getSession().prepare(
             "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?);");
-        updateProviderStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        updateProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        getProviderStatement = connectionProvider.getSession().prepare(
+        getProviderStatement = dbService.getSession().prepare(
             "SELECT provider_id, properties FROM data_providers WHERE provider_id = ?;");
-        getProviderStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        deleteProviderStatement = connectionProvider.getSession().prepare(
+        deleteProviderStatement = dbService.getSession().prepare(
             "DELETE FROM data_providers WHERE provider_id = ?;");
-        deleteProviderStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        getAllProvidersStatement = connectionProvider.getSession().prepare(
+        getAllProvidersStatement = dbService.getSession().prepare(
             "SELECT provider_id, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
-        getAllProvidersStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
 
@@ -83,7 +88,7 @@ public class CassandraDataProviderDAO {
             thresholdProviderId = "";
         }
         BoundStatement boundStatement = getAllProvidersStatement.bind(thresholdProviderId, limit);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = dbService.getSession().execute(boundStatement);
         List<DataProvider> dataProviders = new ArrayList<>();
         for (Row row : rs) {
             dataProviders.add(map(row));
@@ -102,7 +107,7 @@ public class CassandraDataProviderDAO {
     public DataProvider getProvider(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = getProviderStatement.bind(providerId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement); //NOSONAR
+        ResultSet rs = dbService.getSession().execute(boundStatement); //NOSONAR
         Row result = rs.one();
         if (result == null) {
             return null;
@@ -121,7 +126,7 @@ public class CassandraDataProviderDAO {
     public void deleteProvider(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
-        connectionProvider.getSession().execute(boundStatement);
+        dbService.getSession().execute(boundStatement);
     }
 
 
@@ -144,10 +149,12 @@ public class CassandraDataProviderDAO {
             throws ProviderAlreadyExistsException, NoHostAvailableException, QueryExecutionException {
         Date now = new Date();
         BoundStatement boundStatement = insertNewProviderStatement.bind(providerId, propertiesToMap(properties), now);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        ResultSet rs = dbService.getSession().execute(boundStatement);
         boolean applied = rs.one().getBool("[applied]");
         if (!applied) {
-            throw new ProviderAlreadyExistsException();
+        	throw new ProviderAlreadyExistsException(new IdentifierErrorInfo(
+					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),
+					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getErrorInfo(providerId)));
         }
         DataProvider dp = new DataProvider();
         dp.setId(providerId);
@@ -174,7 +181,7 @@ public class CassandraDataProviderDAO {
     private DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties, Date date)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = updateProviderStatement.bind(providerId, propertiesToMap(properties), date);
-        connectionProvider.getSession().execute(boundStatement);
+        dbService.getSession().execute(boundStatement);
         DataProvider dp = new DataProvider();
         dp.setId(providerId);
         dp.setProperties(properties);

@@ -1,13 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.F_PROVIDER;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_GID;
-import static eu.europeana.cloud.service.mcs.rest.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -20,9 +16,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**
  * Resource to manage representations.
@@ -90,7 +93,7 @@ public class RepresentationResource {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRepresentation(@FormParam(F_PROVIDER) String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException {
+            throws RecordNotExistsException, ProviderDoesNotExistException {
         ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, schema, providerId);
         EnrichUriUtil.enrich(uriInfo, version);
