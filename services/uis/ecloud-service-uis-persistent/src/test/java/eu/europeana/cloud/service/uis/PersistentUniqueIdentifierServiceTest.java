@@ -11,11 +11,15 @@ import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
@@ -35,38 +39,39 @@ import eu.europeana.cloud.service.uis.exception.RecordExistsException;
  * @since Dec 17, 2013
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/default-context.xml" })
-@TestExecutionListeners({ CassandraUnitTestExecutionListener.class })
-@CassandraDataSet(keyspace = Cassandra.KEYSPACE)
-@EmbeddedCassandra(host = Cassandra.HOST, port = Cassandra.PORT)
-public class PersistentUniqueIdentifierServiceTest {
+@ContextConfiguration(locations = { "classpath:/default-context.xml" })
+public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
+	@Autowired
 	private PersistentUniqueIdentifierService service;
-	private static DatabaseService dbService;
-
-	/**
-	 * Prepare method
-	 */
+	@Autowired
+	private DatabaseService dbService;
+	@Autowired
+	private CassandraDataProviderDAO dataProviderDao;
+	
+	@Autowired
+	private LocalIdDao localIdDao;
+	
+	@Autowired
+	private CloudIdDao cloudIdDao;
+	
 	@Before
-	public void prepare() {
-		System.setProperty("storage-config", "src/test/resources");
-		try {
-			dbService = new DatabaseService(Cassandra.HOST, Integer.toString(Cassandra.PORT), Cassandra.KEYSPACE,"","");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		CloudIdDao cloudIdDao = new CloudIdDao(dbService);
-		LocalIdDao localIdDao = new LocalIdDao(dbService);
-		CassandraDataProviderDAO dataProviderDao = new CassandraDataProviderDAO(dbService);
-		service = new PersistentUniqueIdentifierService(cloudIdDao, localIdDao, dataProviderDao);
-
+	public void prepare(){
+		ApplicationContext context = new ClassPathXmlApplicationContext("default-context.xml");
+		dbService = (DatabaseService) context.getBean("dbService");
+		service = (PersistentUniqueIdentifierService) context.getBean("service");
+		dataProviderDao = (CassandraDataProviderDAO) context.getBean("dataProviderDao");
+		localIdDao = (LocalIdDao) context.getBean("localIdDao");
+		cloudIdDao = (CloudIdDao) context.getBean("cloudIdDao");
+				
 	}
-
+	
 	/**
 	 * Test RecordExistsException
 	 * @throws Exception
 	 */
 	@Test(expected = RecordExistsException.class)
 	public void testCreateAndRetrieve() throws Exception{
+		dataProviderDao.createOrUpdateProvider("test", new DataProviderProperties());
 		CloudId gId = service.createCloudId("test", "test");
 		CloudId gIdRet = service.getCloudId("test", "test");
 		assertEquals(gId, gIdRet);
@@ -100,6 +105,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test
 	public void testGetCloudIdsByProvider()throws Exception {
+		dataProviderDao.createOrUpdateProvider("test3", new DataProviderProperties());
 		service.createCloudId("test3", "test3");
 		List<CloudId> cIds = service.getCloudIdsByProvider("test3", null, 10000);
 		assertEquals(cIds.size(), 1);
@@ -120,13 +126,13 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test
 	public void testGetLocalIdsByProviderId() throws Exception{
+		dataProviderDao.createOrUpdateProvider("test5", new DataProviderProperties());
 		service.createCloudId("test5", "test5");
 		List<LocalId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
 		assertEquals(cIds.size(), 1);
 		cIds = service.getLocalIdsByProvider("test5", null, 10000);
 		assertEquals(cIds.size(), 1);
-		cIds = service.getLocalIdsByProvider("test10", null, 10000);
-		cIds = service.getLocalIdsByProvider("test10", "test", 1);
+		
 	}
 
 	
@@ -142,6 +148,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test(expected = IdHasBeenMappedException.class)
 	public void testCreateIdMapping()throws Exception {
+		dataProviderDao.createOrUpdateProvider("test12", new DataProviderProperties());
 		CloudId gid = service.createCloudId("test12", "test12");
 		service.createIdMapping(gid.getId(), "test12", "test13");
 		service.createIdMapping(gid.getId(), "test12", "test13");
@@ -153,6 +160,8 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testCreateIdMappingCloudIdDoesNotExist()throws Exception {
+		dataProviderDao.createOrUpdateProvider("test14", new DataProviderProperties());
+		dataProviderDao.createOrUpdateProvider("test16", new DataProviderProperties());
 		service.createCloudId("test14", "test14");
 		service.createIdMapping("test15", "test16", "test17");
 	}
@@ -163,6 +172,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testRemoveIdMapping() throws Exception{
+		dataProviderDao.createOrUpdateProvider("test16", new DataProviderProperties());
 		service.createCloudId("test16", "test16");
 		service.removeIdMapping("test16", "test16");
 		service.getCloudId("test16", "test16");
@@ -187,6 +197,7 @@ public class PersistentUniqueIdentifierServiceTest {
 	 */
 	@Test(expected = RecordDoesNotExistException.class)
 	public void testDeleteCloudId() throws Exception{
+		dataProviderDao.createOrUpdateProvider("test21", new DataProviderProperties());
 		CloudId cId = service.createCloudId("test21", "test21");
 		service.deleteCloudId(cId.getId());
 		service.getCloudId(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());

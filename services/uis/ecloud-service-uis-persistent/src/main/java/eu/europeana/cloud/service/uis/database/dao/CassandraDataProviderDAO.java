@@ -47,9 +47,10 @@ public class CassandraDataProviderDAO {
 
     public CassandraDataProviderDAO(DatabaseService dbService){
     	this.dbService = dbService;
+    	prepareStatements();
     }
 
-    @PostConstruct
+    
     private void prepareStatements() {
         insertNewProviderStatement = dbService.getSession().prepare(
             "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?) IF NOT EXISTS;");
@@ -209,7 +210,7 @@ public class CassandraDataProviderDAO {
             if (m.getName().startsWith("get")) {
                 Object value;
                 try {
-                    value = (Object) m.invoke(properties);
+                    value = m.invoke(properties);
                     if (value != null) {
                         map.put(m.getName().substring(3), value.toString());
                     }

@@ -54,6 +54,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
             throws Exception {
         // prepare failure
         Mockito.doThrow(new MockException()).when(swiftContentDAO).putContent(anyString(), any(InputStream.class));
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         // given representation
         byte[] dummyContent = { 1, 2, 3 };

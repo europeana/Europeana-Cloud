@@ -16,6 +16,8 @@
 		<constructor-arg name="localIdDao" ref="localIdDao" />
 		<constructor-arg name="dataProviderDao" ref="dataProviderDao"/>
 	</bean>
+	
+	<bean id="dataProviderService" class="eu.europeana.cloud.service.uis.CassandraDataProviderService"/>
 	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
 		<constructor-arg name="dbService" ref="dbService" />
 	</bean>
@@ -27,7 +29,7 @@
 	<bean id="dataProviderDao" class="eu.europeana.cloud.uis.database.dao.CassandraDataProviderDAO">
 		<constructor-arg name="dbService" ref="dbService"/>
 	</bean>
-
+	
 	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
 		<constructor-arg name="host">
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>

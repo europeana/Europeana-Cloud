@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.cassandraunit.spring.CassandraDataSet;
+import org.cassandraunit.spring.CassandraUnitTestExecutionListener;
+import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.io.BaseEncoding;
@@ -23,11 +27,12 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
-public class CassandraDataProviderServiceTest {
+@ContextConfiguration(value = { "classpath:/default-context.xml" })
+public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
     @Autowired
     private CassandraDataProviderService cassandraDataProviderService;

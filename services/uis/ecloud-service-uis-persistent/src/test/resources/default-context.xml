@@ -1,5 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						">
 
+	<context:annotation-config/>
+	<bean id="cassandraDataProviderService"
+		class="eu.europeana.cloud.service.uis.CassandraDataProviderService" />
+	<bean id="dataProviderDao"
+		class="eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO">
+		<constructor-arg name="dbService" ref="dbService" />
+	</bean>
+	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
+		<constructor-arg name="host" value="localhost" />
+		<constructor-arg name="port" value="9142" />
+		<constructor-arg name="keyspaceName" value="uis_test4" />
+		<constructor-arg name="username" value="" />
+		<constructor-arg name="password" value="" />
+	</bean>
+	<bean id="service"
+		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">
+		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+		<constructor-arg name="localIdDao" ref="localIdDao" />
+		<constructor-arg name="dataProviderDao" ref="dataProviderDao" />
+	</bean>
+	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
+		<constructor-arg name="dbService" ref="dbService" />
+	</bean>
+
+	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.database.dao.LocalIdDao">
+		<constructor-arg name="dbService" ref="dbService" />
+	</bean>
 </beans>

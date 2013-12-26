@@ -14,7 +14,7 @@
 	<context:annotation-config/>
         <aop:aspectj-autoproxy/>
         
-        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
+<!--         <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/> -->
 	<bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 	
 	
@@ -29,4 +29,5 @@
 	<mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
 	<mockito:mock id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordDAO"/>
         <mockito:mock id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO"/>
+        <mockito:mock id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler" />
 </beans>

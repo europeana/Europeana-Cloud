@@ -203,12 +203,12 @@ public class CassandraDataSetDAO {
      *             specified data provider does not exist.
      */
     public DataSet getDataSet(String providerId, String dataSetId)
-            throws ProviderDoesNotExistException, NoHostAvailableException, QueryExecutionException {
+            throws  NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         Row row = rs.one();
         if (row == null) {
-            throw new ProviderDoesNotExistException(String.format("Provider with id %s does not exist",providerId));
+            return null;
         }
         Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
         if (!datasets.containsKey(dataSetId)) {

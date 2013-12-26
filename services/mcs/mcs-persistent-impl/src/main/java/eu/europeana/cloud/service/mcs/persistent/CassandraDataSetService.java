@@ -45,12 +45,13 @@ public class CassandraDataSetService implements DataSetService {
     public ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
             throws DataSetNotExistsException {
         // check if dataset exists
-        DataSet ds;
-        try {
-            ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        } catch (ProviderDoesNotExistException ex) {
-            throw new DataSetNotExistsException("No such provider: " + providerId);
-        }
+    	if(!uis.providerExistsInUIS(providerId)){
+    		throw new DataSetNotExistsException(String.format("Provider with id %s does not exist",providerId));
+    	}
+    	
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+       
+           
         if (ds == null) {
             throw new DataSetNotExistsException();
         }
@@ -100,14 +101,12 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException {
-
+    	if(!uis.providerExistsInUIS(providerId)){
+    		throw new DataSetNotExistsException(String.format("Provider with id %s does not exist",providerId));
+    	}
         // check if dataset exists
-        DataSet ds;
-        try {
-            ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        } catch (ProviderDoesNotExistException ex) {
-            throw new DataSetNotExistsException("No such provider: " + providerId);
-        }
+        DataSet ds= dataSetDAO.getDataSet(providerId, dataSetId);
+        
         if (ds == null) {
             throw new DataSetNotExistsException();
         }
@@ -140,13 +139,13 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
             throws DataSetNotExistsException {
+    	
         // check if dataset exists
-        DataSet ds;
-        try {
-            ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        } catch (ProviderDoesNotExistException ex) {
-            throw new DataSetNotExistsException("No such provider: " + providerId);
-        }
+    	if(!uis.providerExistsInUIS(providerId)){
+    		throw new DataSetNotExistsException(String.format("Provider with id %s does not exist",providerId));
+    	}
+        // check if dataset exists
+        DataSet ds= dataSetDAO.getDataSet(providerId, dataSetId);
         if (ds == null) {
             throw new DataSetNotExistsException();
         }
@@ -163,7 +162,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public DataSet createDataSet(String providerId, String dataSetId, String description)
             throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
-        if(uis.providerExistsInUIS(providerId)){
+        if(!uis.providerExistsInUIS(providerId)){
         	throw new ProviderDoesNotExistException(String.format("Provider with id %s does not exist",providerId));
         }
     	
@@ -184,12 +183,11 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public DataSet updateDataSet(String providerId, String dataSetId, String description)
             throws DataSetNotExistsException {
-        DataSet ds;
-        try {
-            ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        } catch (ProviderDoesNotExistException ex) {
-            throw new DataSetNotExistsException("Cannot find provider with id: " + providerId);
-        }
+    	if(!uis.providerExistsInUIS(providerId)){
+    		throw new DataSetNotExistsException(String.format("Provider with id %s does not exist",providerId));
+    	}
+        // check if dataset exists
+        DataSet ds= dataSetDAO.getDataSet(providerId, dataSetId);
         if (ds == null) {
             throw new DataSetNotExistsException("Provider " + providerId + " does not have data set with id "
                     + dataSetId);
@@ -205,7 +203,7 @@ public class CassandraDataSetService implements DataSetService {
     public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
             throws ProviderDoesNotExistException {
         // check if data provider exists
-    	 if(uis.providerExistsInUIS(providerId)){
+    	 if(!uis.providerExistsInUIS(providerId)){
          	throw new ProviderDoesNotExistException(String.format("Provider with id %s does not exist",providerId));
          }
 

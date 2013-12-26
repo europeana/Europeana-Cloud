@@ -50,7 +50,7 @@ public class ServiceExceptionTranslatorAspectTest {
     public void shouldTranslateExceptionInRecordService()
             throws Exception {
         // prepare failure
-        Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(uis.providerExistsInUIS("prov"));
+        Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(uis).providerExistsInUIS("prov");
 
         // execute method to throw prepared exception and catch it
         try {
@@ -75,7 +75,7 @@ public class ServiceExceptionTranslatorAspectTest {
             dataSetService.updateDataSet("prov", "ds", "");
         } catch (SystemException e) {
             // our wrapper should be caused by original exception
-            Assert.assertTrue(e.getCause() instanceof ReadTimeoutException);
+            Assert.assertTrue(e.getCause() instanceof NoHostAvailableException);
         }
 
     }
@@ -90,9 +90,9 @@ public class ServiceExceptionTranslatorAspectTest {
         // execute method to throw prepared exception and catch it
         try {
             uis.providerExistsInUIS("prov");
-        } catch (SystemException e) {
+        } catch (ContainerNotFoundException e) {
             // our wrapper should be caused by original exception
-            Assert.assertTrue(e.getCause() instanceof ContainerNotFoundException);
+            Assert.assertTrue(e instanceof ContainerNotFoundException);
         }
     }
 }

@@ -58,7 +58,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldCreateDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given properties of data set
         String dsName = "ds";
         String description = "description of data set";
@@ -76,7 +77,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test(expected = DataSetNotExistsException.class)
     public void shouldNotAssignToNotExistingDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given all objects exist except for dataset
         Representation r = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
@@ -89,7 +91,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldNotAssignNotExistingRepresentation()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given all objects exist except for representation
         DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds", "description of this set");
 
@@ -102,7 +105,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldAssignRepresentationsToDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given particular data set and representations
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -127,7 +131,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldRemoveAssignmentsFromDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given some representations in data set
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -152,7 +157,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldDeleteDataSetWithAssignments()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given particular data set and representations in it
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -182,7 +188,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldAssignMostRecentVersionToDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given data set and multiple versions of the same representation
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -203,7 +210,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldCreateAndGetDataSet()
             throws Exception {
-    	makeUISSuccess();
+    	reset();
+        makeUISProviderSuccess();
         // given
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
@@ -220,7 +228,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test
     public void shouldReturnPagedDataSets()
             throws Exception {
+    	reset();
     	makeUISSuccess();
+        makeUISProviderSuccess();
         int dataSetCount = 1000;
         List<String> insertedDataSetIds = new ArrayList<>(dataSetCount);
 
@@ -252,7 +262,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test(expected = ProviderDoesNotExistException.class)
     public void shouldThrowExceptionWhenListingDatasetsOfNotExistingProvider()
             throws Exception {
-    	makeUISFailure();
+    	reset();
+        makeUISProviderFailure();
         cassandraDataSetService.getDataSets("not-existing-provider", null, 10000);
     }
 
@@ -260,7 +271,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Test(expected = ProviderDoesNotExistException.class)
     public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider()
             throws Exception {
-    	makeUISFailure();
+    	reset();
+        makeUISProviderFailure();
         cassandraDataSetService.createDataSet("not-existing-provider", "ds", "description");
     }
 
@@ -269,6 +281,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     public void shouldNotCreateTwoDatasetsWithSameNameForProvider()
             throws Exception {
         String dsName = "ds";
+        reset();
+        makeUISProviderSuccess();
         cassandraDataSetService.createDataSet(providerId, dsName, "description");
         cassandraDataSetService.createDataSet(providerId, dsName, "description of another");
     }
@@ -276,7 +290,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
             throws Exception {
+    	reset();
     	makeUISSuccess();
+    	makeUISProviderSuccess();
         Representation r = cassandraRecordService.createRepresentation(cloudId, schema, providerId);
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
@@ -284,16 +300,28 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         return cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
     }
 
-    private void makeUISSuccess()
-            throws RecordNotExistsException {
-        Mockito.reset(uisHandler);
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
-    }
-    private void makeUISFailure()
-            throws RecordNotExistsException {
-        Mockito.reset(uisHandler);
-        Mockito.doReturn(false).when(uisHandler).providerExistsInUIS(Mockito.anyString());
-    }
+    private void makeUISProviderSuccess() {
+		Mockito.doReturn(true).when(uisHandler)
+				.providerExistsInUIS(Mockito.anyString());
+	}
 
-  
+	private void makeUISProviderFailure() {
+		Mockito.doReturn(false).when(uisHandler)
+				.providerExistsInUIS(Mockito.anyString());
+	}
+
+	private void makeUISSuccess() throws RecordNotExistsException {
+
+		Mockito.doReturn(true).when(uisHandler)
+				.recordExistInUIS(Mockito.anyString());
+	}
+
+	private void makeUISFailure() throws RecordNotExistsException {
+		Mockito.doReturn(false).when(uisHandler)
+				.recordExistInUIS(Mockito.anyString());
+	}
+	
+	private void reset(){
+		Mockito.reset(uisHandler);
+	}
 }

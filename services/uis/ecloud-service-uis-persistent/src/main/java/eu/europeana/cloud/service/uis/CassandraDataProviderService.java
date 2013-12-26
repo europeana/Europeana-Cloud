@@ -21,7 +21,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 public class CassandraDataProviderService implements DataProviderService {
 
     @Autowired
-    private CassandraDataProviderDAO dataProviderDAO;
+    private CassandraDataProviderDAO dataProviderDao;
 
 
 
@@ -31,7 +31,7 @@ public class CassandraDataProviderService implements DataProviderService {
     @Override
     public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
         String nextProvider = null;
-        List<DataProvider> providers = dataProviderDAO.getProviders(thresholdProviderId, limit + 1);
+        List<DataProvider> providers = dataProviderDao.getProviders(thresholdProviderId, limit + 1);
         if (providers.size() == limit + 1) {
             nextProvider = providers.get(limit).getId();
             providers.remove(limit);
@@ -46,7 +46,7 @@ public class CassandraDataProviderService implements DataProviderService {
     @Override
     public DataProvider getProvider(String providerId)
             throws ProviderDoesNotExistException {
-        DataProvider dp = dataProviderDAO.getProvider(providerId);
+        DataProvider dp = dataProviderDao.getProvider(providerId);
         if (dp == null) {
         	throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
@@ -63,13 +63,13 @@ public class CassandraDataProviderService implements DataProviderService {
     @Override
     public DataProvider createProvider(String providerId, DataProviderProperties properties)
             throws ProviderAlreadyExistsException {
-        DataProvider dp = dataProviderDAO.getProvider(providerId);
+        DataProvider dp = dataProviderDao.getProvider(providerId);
         if (dp != null) {
         	throw new ProviderAlreadyExistsException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getErrorInfo(providerId)));
         }
-        return dataProviderDAO.createOrUpdateProvider(providerId, properties);
+        return dataProviderDao.createOrUpdateProvider(providerId, properties);
     }
 
 
@@ -79,13 +79,13 @@ public class CassandraDataProviderService implements DataProviderService {
     @Override
     public DataProvider updateProvider(String providerId, DataProviderProperties properties)
             throws ProviderDoesNotExistException {
-        DataProvider dp = dataProviderDAO.getProvider(providerId);
+        DataProvider dp = dataProviderDao.getProvider(providerId);
         if (dp == null) {
         	throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
-        return dataProviderDAO.createOrUpdateProvider(providerId, properties);
+        return dataProviderDao.createOrUpdateProvider(providerId, properties);
     }
 
 

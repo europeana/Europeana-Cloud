@@ -122,7 +122,7 @@ public class CassandraRecordService implements RecordService {
 
 		Date now = new Date();
 		// check if data provider exists
-		if (uis.providerExistsInUIS(providerId)) {
+		if (!uis.providerExistsInUIS(providerId)) {
 			throw new ProviderDoesNotExistException(String.format("Provider with id %s does not exist", providerId));
 		}
 		if (uis.recordExistInUIS(cloudId)) {

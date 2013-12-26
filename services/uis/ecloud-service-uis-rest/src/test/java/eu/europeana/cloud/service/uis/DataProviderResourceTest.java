@@ -13,6 +13,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -41,7 +42,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:/ecloud-uidservice-context-test.xml");
     }
 
 
@@ -49,7 +50,7 @@ public class DataProviderResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
-
+        Mockito.reset(dataProviderService);
         dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
         dataProviderWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
     }
