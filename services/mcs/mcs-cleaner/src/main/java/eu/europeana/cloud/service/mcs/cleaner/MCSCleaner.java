@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
-
+import javax.ws.rs.core.Response;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -12,6 +12,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
 /**
@@ -48,22 +49,34 @@ public final class MCSCleaner {
         String solrUrl = args[0];
         String mcsUrl = args[1];
 
-        logger.info("Solr URL: " + solrUrl);
-        logger.info("MCS URL: " + mcsUrl);
-
         SolrServer solrServer = new HttpSolrServer(solrUrl);
         try {
-            SolrQuery query = new SolrQuery("*:*");
-            query.addFacetField("cloud_id").setRows(0);
-            FacetField facets = solrServer.query(query).getFacetField("cloud_id");
-            List<FacetField.Count> values = facets.getValues();
-            for (FacetField.Count field : values) {
-                idList.add(field.getName());
-            }
+            SolrQuery query = new SolrQuery("*:*").addFacetField("cloud_id").setRows(0).setFacet(true)
+                    .setFacetLimit(100);
 
+            int resultCount = 1;
+            int offset = 0;
+            while (resultCount != 0) {
+                query.set("facet.offset", offset);
+
+                QueryResponse response = solrServer.query(query);
+
+                FacetField facets = response.getFacetField("cloud_id");
+                resultCount = facets.getValueCount();
+                offset += resultCount;
+
+                List<FacetField.Count> values = facets.getValues();
+                for (FacetField.Count field : values) {
+                    idList.add(field.getName());
+                }
+            }
+            logger.info(idList.size() + " records to delete");
             for (String id : idList) {
-                logger.info("Deleting " + id);
-                client.target(mcsUrl + id).request().delete();
+                logger.debug("Deleting " + id);
+                Response response = client.target(mcsUrl + "records/" + id).request().delete();
+                if (response.getStatus() != 204) {
+                    logger.error("Cannot remove record " + id + " " + response.toString());
+                }
             }
         } catch (SolrServerException ex) {
             logger.error(ex);
