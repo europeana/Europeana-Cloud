@@ -261,6 +261,9 @@ public class CassandraDataSetDAO {
      */
     public DataSet createDataSet(String providerId, String dataSetId, String description)
             throws NoHostAvailableException, QueryExecutionException {
+        if (description == null) {
+            description = "";
+        }
         BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
