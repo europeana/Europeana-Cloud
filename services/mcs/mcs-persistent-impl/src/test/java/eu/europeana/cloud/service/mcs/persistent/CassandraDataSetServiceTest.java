@@ -74,6 +74,22 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     }
 
 
+    @Test
+    public void shouldCreateDataSetWithEmptyDescription()
+            throws Exception {
+        // given properties of data set
+        String dsName = "ds_empty_description";
+        String description = null;
+
+        // when new data set is created
+        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, description);
+
+        ResultSlice<DataSet> dataSets = cassandraDataSetService.getDataSets(providerId, null, 50);
+        List<DataSet> results = dataSets.getResults();
+        assertTrue(results.contains(ds));
+    }
+
+
     @Test(expected = DataSetNotExistsException.class)
     public void shouldNotAssignToNotExistingDataSet()
             throws Exception {
@@ -84,7 +100,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
         // when trying to add assignment - error is expected
         cassandraDataSetService.addAssignment(providerId, "not-existing", r.getRecordId(), r.getSchema(),
-                r.getVersion());
+            r.getVersion());
     }
 
 
@@ -122,7 +138,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
         // then those representations should be returned when listing assignments
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-                ds.getId(), null, 10000).getResults();
+            ds.getId(), null, 10000).getResults();
 
         assertThat(new HashSet<>(assignedRepresentations), is(new HashSet<>(Arrays.asList(r1, r2))));
     }
@@ -149,7 +165,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
         // then only one representation should remain assigned in data set
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-                ds.getId(), null, 10000).getResults();
+            ds.getId(), null, 10000).getResults();
         assertThat(assignedRepresentations, is(Arrays.asList(r2)));
     }
 
@@ -179,7 +195,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         // and, even after recreating data set with the same name, nothing is assigned to it
         ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-                ds.getId(), null, 10000).getResults();
+            ds.getId(), null, 10000).getResults();
         assertTrue(assignedRepresentations.isEmpty());
 
     }
@@ -202,7 +218,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
         // then the most recent version should be returned
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-                ds.getId(), null, 10000).getResults();
+            ds.getId(), null, 10000).getResults();
         assertThat(assignedRepresentations, is(Arrays.asList(r3)));
     }
 

@@ -34,9 +34,6 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
     @Autowired
     private SwiftContentDAO swiftContentDAO;
 
-    @Autowired
-    private UISClientHandler uisHandler;
-
     private static final String providerId = "provider";
 
 
@@ -54,8 +51,6 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
             throws Exception {
         // prepare failure
         Mockito.doThrow(new MockException()).when(swiftContentDAO).putContent(anyString(), any(InputStream.class));
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         // given representation
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
