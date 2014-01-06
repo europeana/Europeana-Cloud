@@ -11,6 +11,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class RecordDatasetEmptyException extends GenericException {
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param e
+	 */
 	public RecordDatasetEmptyException(ErrorInfo e){
 		super(e);
 	}

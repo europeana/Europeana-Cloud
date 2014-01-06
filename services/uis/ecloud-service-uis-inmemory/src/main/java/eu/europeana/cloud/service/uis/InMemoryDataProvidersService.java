@@ -23,6 +23,15 @@ public class InMemoryDataProvidersService implements DataProviderService {
     private InMemoryDataProviderDAO dataProviderDAO;
 
 
+    /**
+     * 
+     * Creates a new instance of this class.
+     * @param dataProviderDAO
+     */
+    public InMemoryDataProvidersService(InMemoryDataProviderDAO dataProviderDAO){
+    	this.dataProviderDAO = dataProviderDAO;
+    }
+    
     @Override
     public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
         if (thresholdProviderId != null) {

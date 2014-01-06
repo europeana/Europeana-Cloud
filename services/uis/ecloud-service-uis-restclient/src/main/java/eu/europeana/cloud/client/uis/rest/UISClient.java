@@ -24,6 +24,7 @@ import eu.europeana.cloud.service.uis.LocalIdList;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
@@ -323,6 +324,16 @@ public class UISClient {
 		}
 	}
 
+	/**
+	 * Create a data provider
+	 * 
+	 * @param providerId
+	 *            The data provider Id
+	 * @param dp
+	 *            The data provider properties
+	 * @return A URL that points to the data provider
+	 * @throws CloudException
+	 */
 	public String createProvider(String providerId, DataProviderProperties dp) throws CloudException {
 		Response resp = client.target(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.CREATEPROVIDER.getParamNames().get(0), providerId).request()
@@ -335,6 +346,16 @@ public class UISClient {
 		}
 	}
 
+	/**
+	 * Update a Data Provider
+	 * 
+	 * @param providerId
+	 *            The provider to update
+	 * @param dp
+	 *            The data provider properties
+	 * @return True if successful, false else
+	 * @throws CloudException
+	 */
 	public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
 		Response resp = client
 				.target(urlProvider.getPidUrl(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl())))
@@ -347,6 +368,15 @@ public class UISClient {
 		}
 	}
 
+	/**
+	 * Get data providers
+	 * 
+	 * @param startFrom
+	 *            The record to start from
+	 * @return A predefined number of data providers
+	 * @throws CloudException
+	 */
+	@SuppressWarnings("unchecked")
 	public ResultSlice<DataProvider> getDataProviders(String startFrom) throws CloudException {
 		Response resp = client.target(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.RETRIEVEPROVIDERS.getParamNames().get(0), startFrom).request().get();
@@ -358,6 +388,12 @@ public class UISClient {
 		}
 	}
 
+	/**
+	 * Retrieve a selected data provider
+	 * @param providerId The provider id to retrieve
+	 * @return The Data provider that corresponds to the selected id
+	 * @throws CloudException
+	 */
 	public DataProvider getDataProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl())).path(providerId)
 				.request().get();
@@ -387,6 +423,8 @@ public class UISClient {
 			return new CloudException(e.getErrorCode(), new IdHasBeenMappedException(e));
 		case PROVIDER_DOES_NOT_EXIST:
 			return new CloudException(e.getErrorCode(), new ProviderDoesNotExistException(e));
+		case PROVIDER_ALREADY_EXISTS:
+			return new CloudException(e.getErrorCode(), new ProviderAlreadyExistsException(e));
 		case RECORD_DOES_NOT_EXIST:
 			return new CloudException(e.getErrorCode(), new RecordDoesNotExistException(e));
 		case RECORD_EXISTS:

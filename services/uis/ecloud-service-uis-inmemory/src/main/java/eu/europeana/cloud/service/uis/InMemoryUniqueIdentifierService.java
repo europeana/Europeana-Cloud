@@ -170,6 +170,9 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 		return "testport";
 	}
 
+	/**
+	 * Empty daos
+	 */
 	public void reset() {
 		localIdDao.reset();
 		cloudIdDao.reset();

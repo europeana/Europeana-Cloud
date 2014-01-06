@@ -31,7 +31,7 @@ public interface DataProviderService {
      * @param providerId
      *            provider id.
      * @return data provider with given id.
-     * @throws ProviderNotExistsException
+     * @throws ProviderDoesNotExistException
      *             if threre is no provider with such id.
      */
     DataProvider getProvider(String providerId)
@@ -46,7 +46,7 @@ public interface DataProviderService {
      * @param properties
      *            properties of provider.
      * @return created provider.
-     * @throws eu.europeana.cloud.service.mcs.exception.ProviderAlreadyExistsException
+     * @throws ProviderAlreadyExistsException
      *             provider with this id already exists
      */
     DataProvider createProvider(String providerId, DataProviderProperties properties)
@@ -61,7 +61,7 @@ public interface DataProviderService {
      * @param properties
      *            new properties of provider.
      * @return updated provider.
-     * @throws eu.europeana.cloud.common.exceptions.mcs.exception.ProviderNotExistsException
+     * @throws ProviderDoesNotExistException
      *             if threre is no provider with such id.
      */
     DataProvider updateProvider(String providerId, DataProviderProperties properties)

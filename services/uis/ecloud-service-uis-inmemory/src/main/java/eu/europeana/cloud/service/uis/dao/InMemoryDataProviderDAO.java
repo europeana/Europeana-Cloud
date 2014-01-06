@@ -23,11 +23,22 @@ public class InMemoryDataProviderDAO {
 
 	private Map<String, DataProvider> providers = new HashMap<>();
 
+	/**
+	 * Get a predefined number ofproviders
+	 * @param limit The number of providers to retrieve
+	 * @return A List of data providers
+	 */
 	public List<DataProvider> getProviders(int limit) {
 		Collection<DataProvider> providerList = providers.values();
 		return new ArrayList<>(providerList).subList(0, Math.min(limit, providerList.size()));
 	}
 
+	/**
+	 * Get a data provider with the selected id
+	 * @param id The id to search for
+	 * @return The data provider with the provided id
+	 * @throws ProviderDoesNotExistException
+	 */
 	public DataProvider getProvider(String id) throws ProviderDoesNotExistException {
 		DataProvider provider = providers.get(id);
 		if (provider == null) {
@@ -39,6 +50,13 @@ public class InMemoryDataProviderDAO {
 		return provider;
 	}
 
+	/**
+	 * Create a new data provider
+	 * @param providerId The data provider Id
+	 * @param properties The properties of the data provider
+	 * @return The newly created Data Provider
+	 * @throws ProviderAlreadyExistsException
+	 */
 	public DataProvider createProvider(String providerId, DataProviderProperties properties)
 			throws ProviderAlreadyExistsException {
 		if (providers.containsKey(providerId)) {
@@ -53,6 +71,13 @@ public class InMemoryDataProviderDAO {
 		return provider;
 	}
 
+	/**
+	 * Update a data provider 
+	 * @param providerId The provider Id to search for
+	 * @param properties The properties of the data provider to update
+	 * @return The updated data provider
+	 * @throws ProviderDoesNotExistException
+	 */
 	public DataProvider updateProvider(String providerId, DataProviderProperties properties)
 			throws ProviderDoesNotExistException {
 		DataProvider dp = providers.get(providerId);

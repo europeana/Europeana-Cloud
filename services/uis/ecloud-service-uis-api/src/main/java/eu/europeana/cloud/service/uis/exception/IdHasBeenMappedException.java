@@ -13,6 +13,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class IdHasBeenMappedException extends GenericException {
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param e
+	 */
 	public IdHasBeenMappedException(ErrorInfo e){
 		super(e);
 	}

@@ -11,6 +11,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class DatabaseConnectionException extends GenericException{
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param e
+	 */
 	public DatabaseConnectionException(ErrorInfo e){
 		super(e);
 	}

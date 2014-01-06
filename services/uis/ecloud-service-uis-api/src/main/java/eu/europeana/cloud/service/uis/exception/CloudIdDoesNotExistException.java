@@ -11,6 +11,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class CloudIdDoesNotExistException extends GenericException {
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param e
+	 */
 	public CloudIdDoesNotExistException(ErrorInfo e){
 		super(e);
 	}

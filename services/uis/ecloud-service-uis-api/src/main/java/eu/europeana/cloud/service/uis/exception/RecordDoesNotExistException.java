@@ -11,6 +11,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class RecordDoesNotExistException extends GenericException{
 	
+	/**
+	 * Creates a new instance of this class.
+	 * @param errorInfo
+	 */
 	public RecordDoesNotExistException(ErrorInfo errorInfo) {
 		super(errorInfo);
 	}
