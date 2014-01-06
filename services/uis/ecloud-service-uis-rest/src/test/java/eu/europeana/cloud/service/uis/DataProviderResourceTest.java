@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.net.MalformedURLException;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -19,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
@@ -61,23 +64,34 @@ public class DataProviderResourceTest extends JerseyTest {
 
     @Test
     public void shouldUpdateProvider()
-            throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
+            throws ProviderAlreadyExistsException, ProviderDoesNotExistException, MalformedURLException {
         // given certain provider data
         String providerName = "provident";
-        dataProviderService.createProvider(providerName, new DataProviderProperties());
+        
+        DataProvider dp = new DataProvider();
+        dp.setId(providerName);
+        
+        
+        
+        //dataProviderService.createProvider(providerName, new DataProviderProperties());
 
         // when the provider is updated
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");
         properties.setRemarks("Remarks");
+        dp.setProperties(properties);
+        Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
+        
         WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
+        
         Response putResponse = providentWebTarget.request().put(Entity.json(properties));
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
-
+        dp.setProperties(properties);
+        Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
         // then the inserted provider should be in service
-        DataProvider provider = dataProviderService.getProvider(providerName);
-        assertEquals(providerName, provider.getId());
-        assertEquals(properties, provider.getProperties());
+        DataProvider retProvider = dataProviderService.getProvider(providerName);
+        assertEquals(providerName, retProvider.getId());
+        assertEquals(properties, retProvider.getProperties());
     }
 
 
@@ -89,6 +103,12 @@ public class DataProviderResourceTest extends JerseyTest {
         properties.setOrganisationName("Organizacja");
         properties.setRemarks("Remarks");
         String providerName = "provident";
+        
+        DataProvider dp = new DataProvider();
+        dp.setId(providerName);
+        
+        dp.setProperties(properties);
+        Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
         dataProviderService.createProvider(providerName, properties);
 
         // when you get provider by rest api
@@ -104,9 +124,11 @@ public class DataProviderResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldReturn404OnNotExistingProvider() {
+    public void shouldReturn404OnNotExistingProvider() throws ProviderDoesNotExistException {
         // given there is no provider in service
-
+    	Mockito.when(dataProviderService.getProvider("provident")).thenThrow( new ProviderDoesNotExistException(new IdentifierErrorInfo(
+				IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+				IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("provident"))));
         // when you get certain provider
         WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, "provident");
         Response getResponse = providentWebTarget.request().get();

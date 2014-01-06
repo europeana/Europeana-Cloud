@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -49,9 +51,10 @@ public class DataSetResourceTest extends JerseyTest {
 
     private WebTarget dataSetAssignmentWebTarget;
 
-    private DataProvider dataProvider;
+    private DataProvider dataProvider = new DataProvider();
 
 
+    private InMemoryDataProviderDAO dataProviderDAO;
     //    private UISClientHandler uisHandler;
 
     @Override
@@ -64,8 +67,9 @@ public class DataSetResourceTest extends JerseyTest {
     public void mockUp()
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-        //         uisHandler = applicationContext.UISClientHandlerImpltHandler.class);
-        //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        dataProvider.setId("testprov");
+        dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
+        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("testprov");
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
         dataSetWebTarget = target(DataSetResource.class.getAnnotation(Path.class).value());
@@ -104,6 +108,9 @@ public class DataSetResourceTest extends JerseyTest {
         String dataSetId = "dataset";
         String anotherProvider = "anotherProvider";
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
+        DataProvider another = new DataProvider();
+        another.setId(anotherProvider);
+        Mockito.doReturn(another).when(dataProviderDAO).getProvider("anotherProvider");
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider

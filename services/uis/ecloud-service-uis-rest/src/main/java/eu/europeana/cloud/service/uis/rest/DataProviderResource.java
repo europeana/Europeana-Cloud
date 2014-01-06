@@ -23,7 +23,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
  * Resource for DataProvider.
  * 
  */
-@Path("/data-providers/{" + P_PROVIDER + "}")
+@Path("/uniqueId/data-providers/{" + P_PROVIDER + "}")
 @Component
 @Scope("request")
 public class DataProviderResource {
@@ -66,8 +66,8 @@ public class DataProviderResource {
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public void updateProvider(DataProviderProperties dataProviderProperties)
             throws ProviderDoesNotExistException {
-        providerService.updateProvider(providerId, dataProviderProperties);
-        //EnrichUriUtil.enrich(uriInfo, provider);
+        DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);
+        EnrichUriUtil.enrich(uriInfo, provider);
     }
 
 

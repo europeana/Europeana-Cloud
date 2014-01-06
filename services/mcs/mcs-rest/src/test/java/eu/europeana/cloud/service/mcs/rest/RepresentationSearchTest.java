@@ -1,17 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.uis.DataProviderService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,15 +22,25 @@ import junitparams.Parameters;
 
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * FileResourceTest
@@ -70,7 +70,13 @@ public class RepresentationSearchTest extends JerseyTest {
         recordService = applicationContext.getBean(RecordService.class);
         representationSearchWebTarget = target(RepresentationSearchResource.class.getAnnotation(Path.class).value());
         dataSetService = applicationContext.getBean(DataSetService.class);
-
+        DataProvider dp = new DataProvider();
+        dp.setId("p1");
+        DataProvider dp2 = new DataProvider();
+        dp.setId("p2");
+        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
+        Mockito.doReturn(dp).when(dataProviderDAO).getProvider("p1");
+        Mockito.doReturn(dp2).when(dataProviderDAO).getProvider("p2");
         dataSetService.createDataSet("p1", "ds", "descr");
 
         s1_p1 = recordService.createRepresentation("cloud_1", "s1", "p1");

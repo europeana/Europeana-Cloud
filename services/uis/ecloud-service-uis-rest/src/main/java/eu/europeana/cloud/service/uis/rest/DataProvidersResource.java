@@ -28,7 +28,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
  * Resource for DataProviders.
  * 
  */
-@Path("/data-providers")
+@Path("/uniqueId/data-providers")
 @Component
 @Scope("request")
 public class DataProvidersResource {
@@ -74,7 +74,7 @@ public class DataProvidersResource {
 	public Response createProvider(DataProviderProperties dataProviderProperties,
 			@QueryParam(F_PROVIDER) String providerId) throws ProviderAlreadyExistsException {
 		DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
-		//EnrichUriUtil.enrich(uriInfo, provider);
+		EnrichUriUtil.enrich(uriInfo, provider);
 		return Response.created(provider.getUri()).build();
 	}
 }

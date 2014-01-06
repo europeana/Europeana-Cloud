@@ -16,6 +16,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -36,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -51,7 +53,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
     private WebTarget dataSetAssignmentWebTarget;
 
-    private DataProvider dataProvider;
+    private DataProvider dataProvider = new DataProvider();
 
     private DataSet dataSet;
 
@@ -75,6 +77,10 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
         //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataSetAssignmentWebTarget = target(DataSetAssignmentsResource.class.getAnnotation(Path.class).value());
+        dataProvider.setId("dataProv");
+       
+        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
+        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("dataProv");
         dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataset", "description");
         rep = recordService.createRepresentation("globalId", dataSet.getId(), dataProvider.getId());
     }

@@ -24,12 +24,14 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * DataSetResourceTest
@@ -42,7 +44,7 @@ public class DataSetsResourceTest extends JerseyTest {
 
     private WebTarget dataSetsWebTarget;
 
-  //  private DataProvider dataProvider;
+   private DataProvider dataProvider = new DataProvider();
 
 
     @Override
@@ -55,6 +57,9 @@ public class DataSetsResourceTest extends JerseyTest {
     public void mockUp()
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+        dataProvider.setId("provId");
+        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
+        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("provId");
         dataSetService = applicationContext.getBean(DataSetService.class);
         dataSetsWebTarget = target(DataSetsResource.class.getAnnotation(Path.class).value());
     }
@@ -116,7 +121,7 @@ public class DataSetsResourceTest extends JerseyTest {
         // given that there is a dataset with certain id
         String dataSetId = "dataset";
         dataSetService.createDataSet("provId", dataSetId, "");
-
+       
         // when you try to add a dataset for the same provider with this id
         dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, "provId");
         Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, dataSetId)));
@@ -130,8 +135,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
     @Test
     public void shouldNotCreateDatasetForNotexistingProvider() throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
-        // given non existing data provider
-    	Mockito.when(dataSetService.createDataSet("notexisting", "dataset", "")).thenThrow(new ProviderDoesNotExistException(""));
+        
+    	Mockito.doThrow(new ProviderDoesNotExistException("")).when(dataSetService).createDataSet("notexisting", "dataset", "");
         // when you try to add dataset to this not existing provider
         dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, "notexisting");
         Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, "dataset")));

@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.uis.exception;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
@@ -73,7 +76,7 @@ public class UISExceptionMapper {
 	public Response toResponse(ProviderAlreadyExistsException e){
 		return buildResponse(e);
 	}
-	private static Response buildResponse(GenericException e){
+	private Response buildResponse(GenericException e){
 		return Response.status(e.getErrorInfo().getHttpCode()).entity(e.getErrorInfo().getErrorInfo()).build();
 	}
 }

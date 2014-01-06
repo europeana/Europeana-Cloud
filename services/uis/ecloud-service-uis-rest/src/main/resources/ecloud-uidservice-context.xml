@@ -26,7 +26,7 @@
 		<constructor-arg name="dbService" ref="dbService" />
 	</bean>
 	
-	<bean id="dataProviderDao" class="eu.europeana.cloud.uis.database.dao.CassandraDataProviderDAO">
+	<bean id="dataProviderDao" class="eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO">
 		<constructor-arg name="dbService" ref="dbService"/>
 	</bean>
 	
@@ -59,7 +59,7 @@
 	</bean>
 	
 	<bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
-	<bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProviderResources"/>
+	<bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
 	
 	<bean id="uniqueIdResource"
 		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />

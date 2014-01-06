@@ -34,7 +34,7 @@ public class DataProvidersResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:/ecloud-uidservice-context-test.xml");
     }
 
 

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -10,6 +11,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +36,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -62,7 +65,12 @@ public class FilesResourceTest extends JerseyTest {
 
         //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
         //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
-
+        DataProvider dp = new DataProvider();
+        dp.setId("1");
+       
+        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
+        Mockito.doReturn(dp).when(dataProviderDAO).getProvider("1");
+      
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");

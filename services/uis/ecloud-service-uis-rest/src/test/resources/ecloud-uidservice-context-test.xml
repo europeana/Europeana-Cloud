@@ -13,8 +13,17 @@
 		<constructor-arg
 			value="eu.europeana.cloud.service.uis.UniqueIdentifierService" />
 	</bean>
-	<bean id="dataProviderService" name="dataProviderService" class="org.mockito.Mockito" factory-method="mock" />
-		
+	<bean id="dataProviderService" name="dataProviderService" class="org.mockito.Mockito" factory-method="mock" >
+	<constructor-arg
+			value="eu.europeana.cloud.service.uis.DataProviderService" />
 	</bean>
-	
+		
+	<bean id="mappings"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<value>
+				numberOfElementsOnPage=100
+			</value>
+		</property>
+	</bean>
 </beans>
