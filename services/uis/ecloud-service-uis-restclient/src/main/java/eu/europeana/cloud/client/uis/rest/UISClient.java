@@ -380,23 +380,23 @@ public class UISClient {
 		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
 		switch (error) {
 		case CLOUDID_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new CloudIdDoesNotExistException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new CloudIdDoesNotExistException(e));
 		case DATABASE_CONNECTION_ERROR:
-			return new CloudException(e.getErrorCode(), new DatabaseConnectionException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new DatabaseConnectionException(e));
 		case ID_HAS_BEEN_MAPPED:
-			return new CloudException(e.getErrorCode(), new IdHasBeenMappedException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new IdHasBeenMappedException(e));
 		case PROVIDER_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new ProviderDoesNotExistException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new ProviderDoesNotExistException(e));
 		case RECORD_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new RecordDoesNotExistException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new RecordDoesNotExistException(e));
 		case RECORD_EXISTS:
-			return new CloudException(e.getErrorCode(), new RecordExistsException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new RecordExistsException(e));
 		case RECORDID_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new RecordIdDoesNotExistException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new RecordIdDoesNotExistException(e));
 		case RECORDSET_EMPTY:
-			return new CloudException(e.getErrorCode(), new RecordDatasetEmptyException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new RecordDatasetEmptyException(e));
 		default:
-			return new CloudException(e.getErrorCode(), new GenericException(e.getDetails()));
+			return new CloudException(e.getErrorCode(), new GenericException(e));
 		}
 
 	}

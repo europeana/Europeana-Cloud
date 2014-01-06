@@ -66,6 +66,7 @@ public class ServiceExceptionTranslatorAspectTest {
     @Test
     public void shouldTranslateExceptionInDataSetService()
             throws Exception {
+    	Mockito.doReturn(true).when(uis).providerExistsInUIS(Mockito.anyString());
         // prepare failure
         Mockito.doThrow(new ReadTimeoutException(ConsistencyLevel.ALL, 1, 1, false)).when(cassandraDataSetDAO)
                 .getDataSet(Mockito.anyString(), Mockito.anyString());
@@ -75,7 +76,7 @@ public class ServiceExceptionTranslatorAspectTest {
             dataSetService.updateDataSet("prov", "ds", "");
         } catch (SystemException e) {
             // our wrapper should be caused by original exception
-            Assert.assertTrue(e.getCause() instanceof NoHostAvailableException);
+            Assert.assertTrue(e.getCause() instanceof ReadTimeoutException);
         }
 
     }

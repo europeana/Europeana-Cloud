@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Database connection exception
@@ -10,12 +11,8 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
  */
 public class DatabaseConnectionException extends GenericException{
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param message
-	 */
-	public DatabaseConnectionException(String message){
-		super (message);
+	public DatabaseConnectionException(ErrorInfo e){
+		super(e);
 	}
 	
 	/**

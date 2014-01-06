@@ -37,6 +37,7 @@ public class JerseyConfig extends ResourceConfig {
 		register(RecordExistsExceptionMapper.class);
 		register(RecordIdDoesNotExistExceptionMapper.class);
 		register(BasicUniqueIdResource.class);
-		
+		register(DataProviderResource.class);
+		register(DataProvidersResource.class);
 	}
 }

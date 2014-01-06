@@ -80,7 +80,7 @@ public class DataProviderResourceTest extends JerseyTest {
         properties.setOrganisationName("Organizacja");
         properties.setRemarks("Remarks");
         dp.setProperties(properties);
-        Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
+        Mockito.when(dataProviderService.updateProvider(providerName, properties)).thenReturn(dp);
         
         WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
         
@@ -97,7 +97,7 @@ public class DataProviderResourceTest extends JerseyTest {
 
     @Test
     public void shouldGetProvider()
-            throws ProviderAlreadyExistsException {
+            throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
         // given certain provider in service
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");
@@ -108,8 +108,8 @@ public class DataProviderResourceTest extends JerseyTest {
         dp.setId(providerName);
         
         dp.setProperties(properties);
-        Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
-        dataProviderService.createProvider(providerName, properties);
+        Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
+        //dataProviderService.createProvider(providerName, properties);
 
         // when you get provider by rest api
         WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
@@ -136,7 +136,7 @@ public class DataProviderResourceTest extends JerseyTest {
         // then you should get error that such does not exist
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
         ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
-        assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo().getErrorCode(),deleteErrorInfo.getErrorCode());
+        assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("provident").getErrorCode(),deleteErrorInfo.getErrorCode());
     }
 
 

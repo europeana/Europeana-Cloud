@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * This exception is thrown when the dataset is empty
@@ -10,12 +11,8 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
  */
 public class RecordDatasetEmptyException extends GenericException {
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param message
-	 */
-	public RecordDatasetEmptyException(String message){
-		super(message);
+	public RecordDatasetEmptyException(ErrorInfo e){
+		super(e);
 	}
 	
 	/**

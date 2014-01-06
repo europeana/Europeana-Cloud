@@ -106,7 +106,6 @@ public class UnitedExceptionMapper {
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
 
-
     private static Response buildResponse(Response.Status httpStatus, McsErrorCode errorCode, Exception e) {
         return buildResponse(httpStatus.getStatusCode(), errorCode, e);
     }

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.exceptions;
 
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Exception thrown when the provider Id does not exist
@@ -9,12 +10,9 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
  */
 public class ProviderDoesNotExistException extends GenericException {
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param message
-	 */
-	public ProviderDoesNotExistException(String message){
-		super(message);
+
+	public ProviderDoesNotExistException(ErrorInfo e){
+		super(e);
 	}
 	
 	/**

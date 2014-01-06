@@ -31,9 +31,10 @@ public class InMemoryDataProviderDAO {
 	public DataProvider getProvider(String id) throws ProviderDoesNotExistException {
 		DataProvider provider = providers.get(id);
 		if (provider == null) {
-			throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+			ProviderDoesNotExistException e = new ProviderDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(id)));
+			throw e;
 		}
 		return provider;
 	}

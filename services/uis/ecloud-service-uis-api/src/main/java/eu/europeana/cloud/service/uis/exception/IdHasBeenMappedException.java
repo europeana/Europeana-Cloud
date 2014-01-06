@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Exception thrown when the providerId/recordId combo has already been mapped
@@ -12,12 +13,8 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
  */
 public class IdHasBeenMappedException extends GenericException {
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param message
-	 */
-	public IdHasBeenMappedException(String message){
-		super(message);
+	public IdHasBeenMappedException(ErrorInfo e){
+		super(e);
 	}
 	
 	/**

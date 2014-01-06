@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Exception thrown when a record already exists in the database 
@@ -12,11 +13,12 @@ public class RecordExistsException extends GenericException {
 
 	/**
 	 * Creates a new instance of this class.
-	 * @param message
+	 * @param errorInfo
 	 */
-	public RecordExistsException(String message){
-		super(message);
+	public RecordExistsException(ErrorInfo errorInfo) {
+		super(errorInfo);
 	}
+
 	
 	/**
 	 * Creates a new instance of this class.

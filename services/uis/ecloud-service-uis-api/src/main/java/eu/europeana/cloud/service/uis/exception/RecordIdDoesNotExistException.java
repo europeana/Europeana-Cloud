@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Exception thrown when the record id does not exist
@@ -12,10 +13,10 @@ public class RecordIdDoesNotExistException extends GenericException {
 
 	/**
 	 * Creates a new instance of this class.
-	 * @param message
+	 * @param errorInfo
 	 */
-	public RecordIdDoesNotExistException(String message){
-		super(message);
+	public RecordIdDoesNotExistException(ErrorInfo errorInfo) {
+		super(errorInfo);
 	}
 	
 	/**

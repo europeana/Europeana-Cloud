@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.exception;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * The unique identifier does not exist exception
@@ -10,13 +11,10 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
  */
 public class CloudIdDoesNotExistException extends GenericException {
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param message
-	 */
-	public CloudIdDoesNotExistException(String message){
-		super(message);
+	public CloudIdDoesNotExistException(ErrorInfo e){
+		super(e);
 	}
+	
 	/**
 	 * Creates a new instance of this class.
 	 * @param errorInfo
