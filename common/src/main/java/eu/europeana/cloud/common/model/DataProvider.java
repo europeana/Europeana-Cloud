@@ -14,12 +14,12 @@ public class DataProvider {
     /**
      * The provider id.
      */
-    String id;
+    private String id;
 
     /**
      * Data provider properties.
      */
-    DataProviderProperties properties;
+    private DataProviderProperties properties;
 
     /**
      * Resource URI.
