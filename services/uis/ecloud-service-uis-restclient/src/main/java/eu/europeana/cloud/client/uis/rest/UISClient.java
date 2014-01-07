@@ -19,8 +19,6 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.CloudIdList;
-import eu.europeana.cloud.service.uis.LocalIdList;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -138,13 +136,14 @@ public class UISClient {
 	 * @throws CloudException
 	 *             The generic cloud exception wrapper
 	 */
+	@SuppressWarnings("unchecked")
 	public List<CloudId> getRecordId(String globalId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDS.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDS.getParamNames().get(0), globalId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			CloudIdList cloudIds = resp.readEntity(CloudIdList.class);
-			return cloudIds.getList();
+			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
+			return cloudIds.getResults();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -160,13 +159,14 @@ public class UISClient {
 	 * @throws CloudException
 	 *             The generic cloud exception wrapper
 	 */
+	@SuppressWarnings("unchecked")
 	public List<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			LocalIdList localIds = resp.readEntity(LocalIdList.class);
-			return localIds.getList();
+			ResultSlice<LocalId> localIds = resp.readEntity(ResultSlice.class);
+			return localIds.getResults();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -182,13 +182,14 @@ public class UISClient {
 	 * @throws CloudException
 	 *             The generic cloud exception wrapper
 	 */
+	@SuppressWarnings("unchecked")
 	public List<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			CloudIdList cloudIds = resp.readEntity(CloudIdList.class);
-			return cloudIds.getList();
+			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
+			return cloudIds.getResults();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -208,6 +209,7 @@ public class UISClient {
 	 * @throws CloudException
 	 *             The generic cloud exception wrapper
 	 */
+	@SuppressWarnings("unchecked")
 	public List<LocalId> getRecordIdsByProviderWithPagination(String providerId, String recordId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
@@ -216,8 +218,8 @@ public class UISClient {
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(2), window).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			LocalIdList localIds = resp.readEntity(LocalIdList.class);
-			return localIds.getList();
+			ResultSlice<LocalId> localIds = resp.readEntity(ResultSlice.class);
+			return localIds.getResults();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -237,6 +239,7 @@ public class UISClient {
 	 * @throws CloudException
 	 *             The generic cloud exception wrapper
 	 */
+	@SuppressWarnings("unchecked")
 	public List<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
@@ -245,8 +248,8 @@ public class UISClient {
 				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(2), window).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			CloudIdList cloudIds = resp.readEntity(CloudIdList.class);
-			return cloudIds.getList();
+			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
+			return cloudIds.getResults();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);

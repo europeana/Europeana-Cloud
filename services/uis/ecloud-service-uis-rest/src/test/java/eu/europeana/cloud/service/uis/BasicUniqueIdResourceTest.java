@@ -26,6 +26,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
@@ -225,20 +226,21 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the retrieval of local ids by a cloud id
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLocalIds() throws Exception{
-		LocalIdList lidListWrapper = new LocalIdList();
+		ResultSlice<LocalId> lidListWrapper = new ResultSlice<>();
 		List<LocalId> localIdList = new ArrayList<>();
 		localIdList.add(createLocalId(providerId, recordId));
 		String cloudId = createCloudId(providerId, recordId).getId();
-		lidListWrapper.setList(localIdList);
+		lidListWrapper.setResults(localIdList);
 		when(uniqueIdentifierService.getLocalIdsByCloudId(cloudId)).thenReturn(localIdList);
 		Response response = target("/uniqueId/getLocalIds").queryParam("cloudId", cloudId).request().get();
 		assertThat(response.getStatus(), is(200));
-		LocalIdList retList = response.readEntity(LocalIdList.class);
-		assertThat(retList.getList().size(), is(lidListWrapper.getList().size()));
-		assertEquals(retList.getList().get(0).getProviderId(), lidListWrapper.getList().get(0).getProviderId());
-		assertEquals(retList.getList().get(0).getRecordId(), lidListWrapper.getList().get(0).getRecordId());
+		ResultSlice<LocalId> retList = response.readEntity(ResultSlice.class);
+		assertThat(retList.getResults().size(), is(lidListWrapper.getResults().size()));
+		assertEquals(retList.getResults().get(0).getProviderId(), lidListWrapper.getResults().get(0).getProviderId());
+		assertEquals(retList.getResults().get(0).getRecordId(), lidListWrapper.getResults().get(0).getRecordId());
 	}
 
 	/**
@@ -294,20 +296,21 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * Test the retrieval of local Ids by a provider
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetLocalIdsByProvider()throws Exception {
-		LocalIdList lidListWrapper = new LocalIdList();
+		ResultSlice<LocalId> lidListWrapper = new ResultSlice<>();
 		List<LocalId> localIdList = new ArrayList<>();
 		localIdList.add(createLocalId(providerId, recordId));
-		lidListWrapper.setList(localIdList);
+		lidListWrapper.setResults(localIdList);
 		when(uniqueIdentifierService.getLocalIdsByProvider(providerId, recordId, 10000)).thenReturn(localIdList);
 		Response response = target("/uniqueId/getLocalIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request().get();
 		assertThat(response.getStatus(), is(200));
-		LocalIdList retList = response.readEntity(LocalIdList.class);
-		assertThat(retList.getList().size(), is(lidListWrapper.getList().size()));
-		assertEquals(retList.getList().get(0).getProviderId(), lidListWrapper.getList().get(0).getProviderId());
-		assertEquals(retList.getList().get(0).getRecordId(), lidListWrapper.getList().get(0).getRecordId());
+		ResultSlice<LocalId> retList = response.readEntity(ResultSlice.class);
+		assertThat(retList.getResults().size(), is(lidListWrapper.getResults().size()));
+		assertEquals(retList.getResults().get(0).getProviderId(), lidListWrapper.getResults().get(0).getProviderId());
+		assertEquals(retList.getResults().get(0).getRecordId(), lidListWrapper.getResults().get(0).getRecordId());
 	}
 
 	/**
@@ -363,22 +366,23 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	 * The the retrieval of cloud ids based on a provider
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetCloudIdsByProvider() throws Exception{
-		CloudIdList cloudIdListWrapper = new CloudIdList();
+		ResultSlice<CloudId> cloudIdListWrapper = new ResultSlice<>();
 		List<CloudId> cloudIdList = new ArrayList<>();
 		cloudIdList.add(createCloudId(providerId, recordId));
-		cloudIdListWrapper.setList(cloudIdList);
+		cloudIdListWrapper.setResults(cloudIdList);
 		when(uniqueIdentifierService.getCloudIdsByProvider(providerId, recordId, 10000)).thenReturn(cloudIdList);
 		Response response = target("/uniqueId/getCloudIdsByProvider").queryParam(providerId, providerId)
 				.queryParam("start", recordId).request().get();
 		assertThat(response.getStatus(), is(200));
-		CloudIdList retList = response.readEntity(CloudIdList.class);
-		assertThat(retList.getList().size(), is(cloudIdListWrapper.getList().size()));
-		assertEquals(retList.getList().get(0).getId(), cloudIdListWrapper.getList().get(0).getId());
-		assertEquals(retList.getList().get(0).getLocalId().getProviderId(), cloudIdListWrapper.getList().get(0)
+		ResultSlice<CloudId> retList = response.readEntity(ResultSlice.class);
+		assertThat(retList.getResults().size(), is(cloudIdListWrapper.getResults().size()));
+		assertEquals(retList.getResults().get(0).getId(), cloudIdListWrapper.getResults().get(0).getId());
+		assertEquals(retList.getResults().get(0).getLocalId().getProviderId(), cloudIdListWrapper.getResults().get(0)
 				.getLocalId().getProviderId());
-		assertEquals(retList.getList().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getList().get(0)
+		assertEquals(retList.getResults().get(0).getLocalId().getRecordId(), cloudIdListWrapper.getResults().get(0)
 				.getLocalId().getRecordId());
 	}
 

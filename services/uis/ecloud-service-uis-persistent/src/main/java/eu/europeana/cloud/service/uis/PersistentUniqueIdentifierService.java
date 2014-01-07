@@ -47,6 +47,7 @@ public class PersistentUniqueIdentifierService implements
 	 *            The cloud identifier Dao
 	 * @param localIdDao
 	 *            The local identifier Dao
+	 * @param dataProviderDao 
 	 */
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,
 			LocalIdDao localIdDao,CassandraDataProviderDAO dataProviderDao) {
