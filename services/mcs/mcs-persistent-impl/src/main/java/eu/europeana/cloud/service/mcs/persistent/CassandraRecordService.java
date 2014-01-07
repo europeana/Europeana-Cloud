@@ -66,6 +66,9 @@ public class CassandraRecordService implements RecordService {
         Record record = null;
         if (uis.recordExistInUIS(cloudId)) {
             record = recordDAO.getRecord(cloudId);
+            if (record.getRepresentations().isEmpty()) {
+                throw new RecordNotExistsException(cloudId);
+            }
         } else {
             throw new RecordNotExistsException(cloudId);
         }
