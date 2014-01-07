@@ -11,7 +11,7 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.InMemoryDataProvidersService;
+import eu.europeana.cloud.service.uis.InMemoryDataProviderService;
 import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
@@ -30,7 +30,7 @@ public class InMemoryDataProvidersServiceTest {
 
 	}
 
-	private InMemoryDataProvidersService service;
+	private InMemoryDataProviderService service;
 	private final static String PROVIDERID = "providerId";
 	private final static String ORGANIZATIONNAME = "org";
 	private final static String OFFICIALADDRESS = "address";
@@ -46,7 +46,7 @@ public class InMemoryDataProvidersServiceTest {
 	 */
 	@Before
 	public void prepare() {
-		service = new InMemoryDataProvidersService(new InMemoryDataProviderDAO());
+		service = new InMemoryDataProviderService(new InMemoryDataProviderDAO());
 	}
 
 	/**

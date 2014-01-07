@@ -20,6 +20,7 @@ public class CloudId {
 	 */
 	private LocalId localId;
 
+	
 	public String getId() {
 		return id;
 	}

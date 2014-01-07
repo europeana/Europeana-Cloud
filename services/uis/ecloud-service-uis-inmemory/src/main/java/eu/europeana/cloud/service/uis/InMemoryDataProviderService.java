@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  * InMemoryContentServiceImpl
  */
 @Service
-public class InMemoryDataProvidersService implements DataProviderService {
+public class InMemoryDataProviderService implements DataProviderService {
 
 
     @Autowired
@@ -28,7 +28,7 @@ public class InMemoryDataProvidersService implements DataProviderService {
      * Creates a new instance of this class.
      * @param dataProviderDAO
      */
-    public InMemoryDataProvidersService(InMemoryDataProviderDAO dataProviderDAO){
+    public InMemoryDataProviderService(InMemoryDataProviderDAO dataProviderDAO){
     	this.dataProviderDAO = dataProviderDAO;
     }
     
