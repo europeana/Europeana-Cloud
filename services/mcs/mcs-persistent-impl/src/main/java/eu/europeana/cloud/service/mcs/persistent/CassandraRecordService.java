@@ -39,7 +39,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 @Service
 public class CassandraRecordService implements RecordService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
 
     @Autowired
     private CassandraRecordDAO recordDAO;
@@ -388,10 +388,12 @@ public class CassandraRecordService implements RecordService {
     @Override
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
         int startFrom = 0;
-        try {
-            startFrom = Integer.parseInt(thresholdParam);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Wrong threshold param for searching");
+        if (thresholdParam != null) {
+            try {
+                startFrom = Integer.parseInt(thresholdParam);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Wrong threshold param for searching");
+            }
         }
         List<Representation> foundRepresenations = solrDAO.search(searchParams, startFrom, limit + 1);
         String nextResultToken = null;
