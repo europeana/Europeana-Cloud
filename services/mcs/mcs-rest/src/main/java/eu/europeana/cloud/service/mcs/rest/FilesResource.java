@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
@@ -29,6 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
 /**
  * FilesResource
  */
@@ -39,8 +40,6 @@ public class FilesResource {
 
     @Autowired
     private RecordService recordService;
-
-    //    private EnrichUriUtilComponent enricher;
 
     @Context
     private UriInfo uriInfo;
@@ -54,7 +53,7 @@ public class FilesResource {
     @PathParam(P_VER)
     private String version;
 
-    private final static Logger logger = LoggerFactory.getLogger("RequestsLogger");
+    private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
 
 
     /**
@@ -62,8 +61,7 @@ public class FilesResource {
      * resource will be returned in response as content location. Consumes multipart content - form data:
      * <ul>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content
-     * (required)</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
      * </ul>
      * *
      * 
@@ -90,9 +88,7 @@ public class FilesResource {
         recordService.putContent(globalId, schema, version, f, data);
 
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
-        long threadId = Thread.currentThread().getId();
-        logger.debug(String.format("Thread: #%d, File added [%s, %s, %s], uri: %s ", threadId, globalId, schema,
-            version, f.getContentUri()));
+        LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ", globalId, schema, version, f.getContentUri()));
         return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }

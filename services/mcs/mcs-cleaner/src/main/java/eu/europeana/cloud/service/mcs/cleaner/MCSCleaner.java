@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.mcs.cleaner;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.client.Client;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -16,10 +18,15 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
  * Removes all records from Metadata & Content service.
  * 
  */
-public class MCSCleaner {
+public final class MCSCleaner {
 
     private static Logger logger = Logger.getLogger(MCSCleaner.class);
     private static Client client = JerseyClientBuilder.newClient();
+
+
+    private MCSCleaner() {
+        // Utility classes should not have a public or default constructor
+    }
 
 
     /**
@@ -41,8 +48,8 @@ public class MCSCleaner {
         String solrUrl = args[0];
         String mcsUrl = args[1];
 
-        System.out.println(solrUrl);
-        System.out.println(mcsUrl);
+        logger.info("Solr URL: " + solrUrl);
+        logger.info("MCS URL: " + mcsUrl);
 
         SolrServer solrServer = new HttpSolrServer(solrUrl);
         try {

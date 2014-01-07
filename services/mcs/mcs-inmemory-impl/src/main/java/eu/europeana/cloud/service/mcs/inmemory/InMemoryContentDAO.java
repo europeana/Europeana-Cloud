@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,7 +9,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.stereotype.Repository;
+
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * InMemoryContentDAO
@@ -32,11 +35,6 @@ public class InMemoryContentDAO {
         String actualContentMd5Hex = BaseEncoding.base16().lowerCase()
                 .encode(md5DigestInputStream.getMessageDigest().digest());
         int actualContentLength = fileContent.length;
-
-        //        if (file.getMd5() != null && !file.getMd5().equals(actualContentMd5Hex)) {
-        //            throw new FileContentHashMismatchException(String.format(
-        //                    "Declared content hash was: %s, actual: %s.", file.getMd5(), actualContentMd5Hex));
-        //        }
 
         file.setContentLength(actualContentLength);
         file.setMd5(actualContentMd5Hex);
