@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.UUID;
-
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -21,16 +7,25 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
-
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 /**
  * Data set repository that uses Cassandra nosql database.
  */
 @Repository
 public class CassandraDataSetDAO {
+
+    // separator between provider id and dataset id in serialized compund dataset id
+    protected static final String CDSID_SEPARATOR = "\n";
 
     @Autowired
     private CassandraConnectionProvider connectionProvider;
@@ -49,45 +44,71 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement listDataSetsStatement;
 
+    private PreparedStatement getDataSetStatement;
+
     private PreparedStatement getDataSetsForRepresentationStatement;
 
 
     @PostConstruct
     private void prepareStatements() {
-        createDataSetStatement = connectionProvider.getSession().prepare(
-            "UPDATE data_providers SET data_sets[?] = ? WHERE provider_id = ?;");
+        createDataSetStatement = connectionProvider.getSession().prepare( //
+            "INSERT INTO " //
+                    + "data_sets(provider_id, dataset_id, description, creation_date) " //
+                    + "VALUES (?,?,?,?);");
         createDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        deleteDataSetStatement = connectionProvider.getSession().prepare(
-            "DELETE data_sets[?] FROM data_providers WHERE provider_id = ?;");
+        deleteDataSetStatement = connectionProvider.getSession().prepare( //
+            "DELETE FROM " //
+                    + "data_sets " //
+                    + "WHERE provider_id = ? AND dataset_id = ?;");
         deleteDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        addAssignmentStatement = connectionProvider
-                .getSession()
-                .prepare(
-                    "INSERT INTO data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) VALUES (?,?,?,?,?);");
+        addAssignmentStatement = connectionProvider.getSession().prepare( //
+            "INSERT INTO " //
+                    + "data_set_assignments (provider_dataset_id, cloud_id, schema_id, version_id, creation_date) " //
+                    + "VALUES (?,?,?,?,?);");
         addAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        removeAssignmentStatement = connectionProvider.getSession().prepare(
-            "DELETE FROM data_set_assignments WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
+        removeAssignmentStatement = connectionProvider.getSession().prepare( //
+            "DELETE FROM " //
+                    + "data_set_assignments " //
+                    + "WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
         removeAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        listDataSetAssignmentsNoPaging = connectionProvider.getSession().prepare(
-            "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ?;");
+        listDataSetAssignmentsNoPaging = connectionProvider.getSession().prepare( //
+            "SELECT " //
+                    + "cloud_id, schema_id " //
+                    + "FROM data_set_assignments " //
+                    + "WHERE provider_dataset_id = ?;");
         listDataSetAssignmentsNoPaging.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        listDataSetRepresentationsStatement = connectionProvider
-                .getSession()
-                .prepare(
-                    "SELECT * FROM data_set_assignments WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? LIMIT ? ALLOW FILTERING;");
+        listDataSetRepresentationsStatement = connectionProvider.getSession().prepare( //
+            "SELECT " //
+                    + "cloud_id, schema_id, version_id  " //
+                    + "FROM data_set_assignments " //
+                    + "WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? "
+                    + "LIMIT ? ALLOW FILTERING;");
         listDataSetRepresentationsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        listDataSetsStatement = connectionProvider.getSession().prepare(
-            "SELECT data_sets FROM data_providers WHERE provider_id = ?;");
+        listDataSetsStatement = connectionProvider.getSession().prepare(//
+            "SELECT "//
+                    + "provider_id, dataset_id, description "//
+                    + "FROM data_sets "//
+                    + "WHERE provider_id = ? AND dataset_id >= ? LIMIT ?;");
         listDataSetsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        getDataSetsForRepresentationStatement = connectionProvider.getSession().prepare(
-            "SELECT provider_dataset_id, version_id FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ?;");
+        getDataSetStatement = connectionProvider.getSession().prepare(//
+            "SELECT "//
+                    + "provider_id, dataset_id, description "//
+                    + "FROM data_sets "//
+                    + "WHERE provider_id = ? AND dataset_id = ?;");
+        getDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getDataSetsForRepresentationStatement = connectionProvider.getSession().prepare(//
+            "SELECT "//
+                    + "provider_dataset_id, version_id "//
+                    + "FROM data_set_assignments "//
+                    + "WHERE cloud_id = ? AND schema_id = ?;");
         getDataSetsForRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
@@ -202,26 +223,20 @@ public class CassandraDataSetDAO {
      * @param dataSetId
      *            data set id
      * @return data set
-     * @throws ProviderNotExistsException
-     *             specified data provider does not exist.
      */
     public DataSet getDataSet(String providerId, String dataSetId)
-            throws  NoHostAvailableException, QueryExecutionException {
-        BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
+            throws NoHostAvailableException, QueryExecutionException {
+        BoundStatement boundStatement = getDataSetStatement.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         Row row = rs.one();
         if (row == null) {
             return null;
         }
-        Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
-        if (!datasets.containsKey(dataSetId)) {
-            return null;
-        }
         DataSet ds = new DataSet();
         ds.setProviderId(providerId);
         ds.setId(dataSetId);
-        ds.setDescription(datasets.get(dataSetId));
+        ds.setDescription(row.getString("description"));
         return ds;
     }
 
@@ -248,8 +263,7 @@ public class CassandraDataSetDAO {
 
 
     /**
-     * Creates or updates data set for a provider. Data provider with specified id must exist before this method is
-     * invoked. *
+     * Creates or updates data set for a provider.
      * 
      * @param providerId
      *            data set owner's (provider's) id
@@ -257,14 +271,13 @@ public class CassandraDataSetDAO {
      *            data set id
      * @param description
      *            description of data set.
+     * @param creationTime
+     *            creation date
      * @return created (or updated) data set.
      */
-    public DataSet createDataSet(String providerId, String dataSetId, String description)
+    public DataSet createDataSet(String providerId, String dataSetId, String description, Date creationTime)
             throws NoHostAvailableException, QueryExecutionException {
-        if (description == null) {
-            description = "";
-        }
-        BoundStatement boundStatement = createDataSetStatement.bind(dataSetId, description, providerId);
+        BoundStatement boundStatement = createDataSetStatement.bind(providerId, dataSetId, description, creationTime);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         DataSet ds = new DataSet();
@@ -289,29 +302,22 @@ public class CassandraDataSetDAO {
      */
     public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
             throws NoHostAvailableException, QueryExecutionException {
-        BoundStatement boundStatement = listDataSetsStatement.bind(providerId);
+        if (thresholdDatasetId == null) {
+            thresholdDatasetId = "";
+        }
+        BoundStatement boundStatement = listDataSetsStatement.bind(providerId, thresholdDatasetId, limit);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        Row row = rs.one();
-        if (row == null) {
-            return null;
-        }
-        Map<String, String> datasets = row.getMap("data_sets", String.class, String.class);
-        NavigableMap<String, String> sortedDatasets = new TreeMap(datasets);
-        if (thresholdDatasetId != null) {
-            sortedDatasets = sortedDatasets.tailMap(thresholdDatasetId, true);
-        }
-        List<DataSet> result = new ArrayList<>(Math.min(limit, sortedDatasets.size()));
-        for (Map.Entry<String, String> entry : sortedDatasets.entrySet()) {
-            if (result.size() >= limit) {
-                break;
-            }
+
+        List<DataSet> result = new ArrayList<>(limit);
+        for (Row row : rs) {
             DataSet ds = new DataSet();
             ds.setProviderId(providerId);
-            ds.setId(entry.getKey());
-            ds.setDescription(entry.getValue());
+            ds.setId(row.getString("dataset_id"));
+            ds.setDescription(row.getString("description"));
             result.add(ds);
         }
+
         return result;
     }
 
@@ -339,18 +345,18 @@ public class CassandraDataSetDAO {
         }
 
         // remove dataset itself
-        boundStatement = deleteDataSetStatement.bind(dataSetId, providerId);
+        boundStatement = deleteDataSetStatement.bind(providerId, dataSetId);
         connectionProvider.getSession().execute(boundStatement);
     }
 
 
     private String createProviderDataSetId(String providerId, String dataSetId) {
-        return providerId + "\n" + dataSetId;
+        return providerId + CDSID_SEPARATOR + dataSetId;
     }
 
 
     private CompoundDataSetId createCompoundDataSetId(String providerDataSetId) {
-        String[] values = providerDataSetId.split("\n");
+        String[] values = providerDataSetId.split(CDSID_SEPARATOR);
         if (values.length != 2) {
             throw new IllegalArgumentException("Cannot construct proper compound data set id from value: "
                     + providerDataSetId);

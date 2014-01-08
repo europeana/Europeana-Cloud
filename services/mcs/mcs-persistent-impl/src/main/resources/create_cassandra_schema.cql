@@ -12,11 +12,12 @@
    USE ecloud_test; 
 */
 
-CREATE TABLE data_providers (
-	provider_id varchar PRIMARY KEY,
-	properties map<varchar, text>, /* properties such as organization name, website url etc. */
-	data_sets map<varchar, varchar>, /* identifier -> description of data set */
-	creation_date timestamp	
+CREATE TABLE data_sets (
+	provider_id varchar,
+	dataset_id varchar,
+	description text,
+	creation_date timestamp, 
+	PRIMARY KEY (provider_id, dataset_id)
 );
 
 CREATE TABLE data_set_assignments (

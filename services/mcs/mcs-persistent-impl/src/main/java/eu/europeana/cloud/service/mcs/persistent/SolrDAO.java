@@ -1,13 +1,19 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
-
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -20,16 +26,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
-import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
-import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-
 /**
  * Provides DAO operations for Solr.
  */
@@ -41,6 +37,7 @@ public class SolrDAO {
 
     private SolrServer server;
 
+    // separator between provider id and dataset id in serialized compund dataset id
     protected static final String CDSID_SEPARATOR = "\n";
 
 
