@@ -44,9 +44,6 @@
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/password"/>
 		</constructor-arg>
 	</bean>
-	<bean id="cassandraDataProviderService"
-		  class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderService"/>
-	<bean id="cassandraDataProviderDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataProviderDAO"/>
 
 	<bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
 	<bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
