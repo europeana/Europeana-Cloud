@@ -11,9 +11,7 @@ public class QueryTracer {
 
 
     static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
-                    .getAchievedConsistencyLevel());
-        }
+        logger.debug("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
+                .getAchievedConsistencyLevel());
     }
 }
