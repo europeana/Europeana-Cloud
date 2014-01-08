@@ -1,5 +1,9 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.solr;
 
+import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.solr.RepresentationSolrDocument;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -21,6 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.persistent.TestUtil;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 
 @RunWith(SpringJUnit4ClassRunner.class)

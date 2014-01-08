@@ -9,7 +9,7 @@
 
     <context:annotation-config/>
      
-    <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandlerImpl"/>
+    <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <mockito:mock id ="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient"/>
 
 </beans>

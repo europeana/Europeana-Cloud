@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.solr;
 
+import eu.europeana.cloud.service.mcs.persistent.solr.RepresentationSolrDocument;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 

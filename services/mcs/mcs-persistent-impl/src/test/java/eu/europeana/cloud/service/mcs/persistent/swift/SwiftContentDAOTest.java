@@ -1,5 +1,7 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.swift;
 
+import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;

@@ -17,8 +17,8 @@ import com.datastax.driver.core.exceptions.ReadTimeoutException;
 
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.DataProviderService;
 

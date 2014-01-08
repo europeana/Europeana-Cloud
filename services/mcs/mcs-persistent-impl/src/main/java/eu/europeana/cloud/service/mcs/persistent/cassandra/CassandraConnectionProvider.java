@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
 import javax.annotation.PreDestroy;
 

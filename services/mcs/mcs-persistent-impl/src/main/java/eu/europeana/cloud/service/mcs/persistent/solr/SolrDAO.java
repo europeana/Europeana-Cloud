@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.solr;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -6,6 +6,7 @@ import com.google.common.collect.Collections2;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.IOException;

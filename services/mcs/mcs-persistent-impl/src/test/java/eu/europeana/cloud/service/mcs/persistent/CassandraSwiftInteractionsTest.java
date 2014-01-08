@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 

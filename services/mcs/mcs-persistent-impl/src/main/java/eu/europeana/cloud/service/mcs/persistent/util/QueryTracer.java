@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.util;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.ResultSet;
@@ -10,7 +10,7 @@ public class QueryTracer {
     private final static Logger logger = LoggerFactory.getLogger(QueryTracer.class);
 
 
-    static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
+    public static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
         logger.debug("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
                 .getAchievedConsistencyLevel());
     }

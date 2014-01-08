@@ -11,7 +11,7 @@ import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.service.mcs.persistent.SolrConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProvider;
 
 /**
  * Establishes connection to embedded Solr.

@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
+import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

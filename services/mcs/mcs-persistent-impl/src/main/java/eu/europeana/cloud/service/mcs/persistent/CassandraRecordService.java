@@ -1,5 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

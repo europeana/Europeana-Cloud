@@ -23,7 +23,7 @@
 <!--         <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/> -->
 <!--      <bean id="uisClientHandler" class = "eu.europeana.cloud.service.mcs.persistent.UISClientHandlerImpl"/>
  -->
- <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.UISClientHandlerImpl"/>
+ <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
 	<mockito:mock id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient" />       
     <mockito:spy beanName="recordService"/>
     <mockito:spy beanName="dataSetService"/>

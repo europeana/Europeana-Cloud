@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
+import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -9,6 +10,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

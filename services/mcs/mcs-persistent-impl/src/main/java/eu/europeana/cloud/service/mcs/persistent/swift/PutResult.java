@@ -1,10 +1,10 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.swift;
 
 /**
  * Control information about BLOB: number of bytes and md5 digest.
  * 
  */
-class PutResult {
+public class PutResult {
 
     private final String md5;
 

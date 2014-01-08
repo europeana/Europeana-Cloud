@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent;
+package eu.europeana.cloud.service.mcs.persistent.swift;
 
 import java.io.IOException;
 import java.io.InputStream;

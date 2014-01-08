@@ -26,7 +26,7 @@
 
 	<!--connection provider - with options the same as in embedded cassandra-->
 	<bean id="cassandraConnectionProvider"
-		  class="eu.europeana.cloud.service.mcs.persistent.CassandraConnectionProvider">
+		  class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
         
 		<constructor-arg name="host">
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/host"/>
@@ -46,13 +46,13 @@
 	</bean>
 
 	<bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
-	<bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetDAO"/>
+	<bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
 
 	<bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
-	<bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordDAO"/>
-	<bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.SwiftContentDAO"/>
+	<bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
+	<bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
     
-	<bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.SwiftConnectionProvider">
+	<bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
 		<constructor-arg name="provider" >
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/provider"/>
 		</constructor-arg>
@@ -70,14 +70,14 @@
 		</constructor-arg>
 	</bean>    
     
-	<bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.persistent.SolrConnectionProviderImpl">
+	<bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProviderImpl">
 		<constructor-arg name="solrUrl">
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/solr/url"/>
 		</constructor-arg>
 	</bean>
     
     
-	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.SolrDAO"/>
-        <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
+	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
+	<bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+	<bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
 </beans>

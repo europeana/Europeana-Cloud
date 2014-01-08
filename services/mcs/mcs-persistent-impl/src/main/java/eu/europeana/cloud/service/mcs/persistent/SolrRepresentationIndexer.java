@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import java.io.IOException;
