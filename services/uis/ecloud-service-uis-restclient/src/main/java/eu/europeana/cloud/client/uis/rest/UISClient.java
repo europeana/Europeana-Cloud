@@ -98,8 +98,13 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			try{
+				ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+				throw generateException(errorInfo);
+			}
+			catch(Exception e){
+				throw e;
+			}
 		}
 	}
 
@@ -341,7 +346,7 @@ public class UISClient {
 		Response resp = client.target(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.CREATEPROVIDER.getParamNames().get(0), providerId).request()
 				.post(Entity.json(dp));
-		if (resp.getStatus() == Status.OK.getStatusCode()) {
+		if (resp.getStatus() == Status.CREATED.getStatusCode()) {
 			return resp.toString();
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -361,9 +366,9 @@ public class UISClient {
 	 */
 	public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
 		Response resp = client
-				.target(urlProvider.getPidUrl(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl())))
+				.target(urlProvider.getPidUrl(urlProvider.getPidUrl("/"+RelativeUrls.CREATEPROVIDER.getUrl())))
 				.path(providerId).request().post(Entity.json(dp));
-		if (resp.getStatus() == Status.OK.getStatusCode()) {
+		if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
 			return true;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -398,7 +403,7 @@ public class UISClient {
 	 * @throws CloudException
 	 */
 	public DataProvider getDataProvider(String providerId) throws CloudException {
-		Response resp = client.target(urlProvider.getPidUrl(RelativeUrls.CREATEPROVIDER.getUrl())).path(providerId)
+		Response resp = client.target(urlProvider.getPidUrl("/"+RelativeUrls.CREATEPROVIDER.getUrl())).path(providerId)
 				.request().get();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(DataProvider.class);

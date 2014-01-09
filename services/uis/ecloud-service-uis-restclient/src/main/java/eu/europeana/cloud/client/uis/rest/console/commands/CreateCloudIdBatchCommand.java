@@ -13,6 +13,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Generate Batch Identifiers according to a file
@@ -23,12 +24,12 @@ import eu.europeana.cloud.common.model.CloudId;
 public class CreateCloudIdBatchCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo, String... input) throws InvalidAttributesException {
 		
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
 			List<String> created = new ArrayList<>();
-			
+			client.createProvider(ids.get(0).split(" ")[0], new DataProviderProperties());
 			for (String id : ids){
 				String[] info = id.split(" ");
 				CloudId cId = client.createCloudId(info[0], info[1]);

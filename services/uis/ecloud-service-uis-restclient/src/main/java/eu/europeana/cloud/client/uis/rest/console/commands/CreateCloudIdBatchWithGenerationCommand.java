@@ -13,6 +13,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Create Batch Cloud Ids without a fiel
@@ -23,12 +24,13 @@ import eu.europeana.cloud.common.model.CloudId;
 public class CreateCloudIdBatchWithGenerationCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo, String... input) throws InvalidAttributesException {
 		
 		try {
 			
 			List<String> created = new ArrayList<>();
 			int i=0;
+			client.createProvider(input[0], new DataProviderProperties());
 			while(i<Integer.parseInt(input[1])){
 				
 				CloudId cId = client.createCloudId(input[0]);

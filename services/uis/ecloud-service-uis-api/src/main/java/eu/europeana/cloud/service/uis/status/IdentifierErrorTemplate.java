@@ -113,7 +113,7 @@ public enum IdentifierErrorTemplate {
 
 		@Override
 		public ErrorInfo getErrorInfo(String... args) {
-			return new ErrorInfo("PROVIDER_ALREADY_EXISTS",String.format("The procidet with identifier %s already exists", args[0]));
+			return new ErrorInfo("PROVIDER_ALREADY_EXISTS",String.format("The provider with identifier %s already exists", args[0]));
 		}
 
 		@Override

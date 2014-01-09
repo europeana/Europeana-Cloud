@@ -42,22 +42,17 @@ import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveLoc
  * 
  */
 public class App implements Runnable {
-	private static UISClient client = new UISClient();
 
+	private String[] input;
+	private int id;
 	@Override
 	public void run() {
-
-		Scanner scanner;
-		while (true) {
-			scanner = new Scanner(System.in);
-			String[] input = scanner.nextLine().split(" ");
+		UISClient client = new UISClient();
+		
 
 			Map<String, Command> commands = populateCommands();
 			boolean supported = true;
-			if (input[0].equalsIgnoreCase("exit")) {
-				scanner.close();
-				break;
-			}
+			
 
 			if (!commands.containsKey(input[0])) {
 				System.out.println("Operation is not supported");
@@ -65,13 +60,13 @@ public class App implements Runnable {
 			}
 			if (supported) {
 				try {
-					commands.get(input[0]).execute(client, input.length > 1 ? subArray(input) : new String[0]);
+					commands.get(input[0]).execute(client, id, input.length > 1 ? subArray(input) : new String[0]);
 				} catch (InvalidAttributesException e) {
 					System.out.println("Wrong number of arguments provided");
 				}
 			}
-			System.out.println("\n");
-		}
+		
+		
 
 	}
 
@@ -121,5 +116,13 @@ public class App implements Runnable {
 		String[] ret = new String[input.length - 1];
 		System.arraycopy(input, 1, ret, 0, ret.length);
 		return ret;
+	}
+	
+	public void setInput(String[] input){
+		this.input=input.clone();
+	}
+	
+	public void setId(int id){
+		this.id = id;
 	}
 }

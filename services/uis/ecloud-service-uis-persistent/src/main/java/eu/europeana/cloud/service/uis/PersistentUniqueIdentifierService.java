@@ -194,7 +194,7 @@ public class PersistentUniqueIdentifierService implements
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
 									.getErrorInfo(providerId)));
 		}
-		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
+		
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.size() == 0) {
 			throw new CloudIdDoesNotExistException(
@@ -204,6 +204,7 @@ public class PersistentUniqueIdentifierService implements
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
 									.getErrorInfo(cloudId)));
 		}
+		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (localIds.size() != 0) {
 			throw new IdHasBeenMappedException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),

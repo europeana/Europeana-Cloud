@@ -17,6 +17,6 @@ public abstract class Command {
 	 * @param input The command line parameters
 	 * @throws InvalidAttributesException 
 	 */
-	public abstract void execute(UISClient client, String... input) throws InvalidAttributesException;
+	public abstract void execute(UISClient client, int threadNo, String... input) throws InvalidAttributesException;
 
 }

@@ -15,6 +15,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Test Read Write one provider
@@ -25,16 +26,18 @@ import eu.europeana.cloud.common.model.CloudId;
 public class TestReadWriteOneProviderCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo,String... input) throws InvalidAttributesException {
 		
-		String providerId = input[1];
+		String providerId = input[1]+threadNo;
 		try {
 			long i=0;
 			List<String> str = new ArrayList<>();
 			Date now = new Date();
 			long start = now.getTime();
 			System.out.println("Test started at: " + now.toString());
+			client.createProvider(providerId, new DataProviderProperties());
 			while(i<Long.parseLong(input[0])){
+				
 				CloudId cId = client.createCloudId(providerId);
 				str.add(String.format("%s %s %s", cId.getId(),cId.getLocalId().getProviderId(),cId.getLocalId().getRecordId()));
 				i++;

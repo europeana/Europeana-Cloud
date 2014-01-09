@@ -7,6 +7,7 @@ import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedExceptionMapper;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistExceptionMapper;
@@ -27,7 +28,7 @@ public class JerseyConfig extends ResourceConfig {
 	public JerseyConfig(){
 		super();
         register(RequestContextFilter.class);
-        register(LoggingFilter.class);
+        
 		register(CloudIdDoesNotExistExceptionMapper.class);
 		register(DatabaseConnectionExceptionMapper.class);
 		register(IdHasBeenMappedExceptionMapper.class);
@@ -36,6 +37,7 @@ public class JerseyConfig extends ResourceConfig {
 		register(RecordDoesNotExistExceptionMapper.class);
 		register(RecordExistsExceptionMapper.class);
 		register(RecordIdDoesNotExistExceptionMapper.class);
+		register(ProviderAlreadyExistsExceptionMapper.class);
 		register(BasicUniqueIdResource.class);
 		register(DataProviderResource.class);
 		register(DataProvidersResource.class);

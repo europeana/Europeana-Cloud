@@ -29,9 +29,12 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	private String keyspaceName;
 	private String port;
 	private DatabaseService dbService;
-	private static String insertStatement = "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)";
-	private static String searchStatementNonActive = "SELECT * FROM Cloud_Id WHERE cloud_id=?";
-	private static String deleteStatement = "UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?";
+	
+	private PreparedStatement insertStatement;
+	
+	private PreparedStatement searchStatementNonActive;
+	
+	private PreparedStatement deleteStatement;
 
 	/**
 	 * The Cloud Id Dao
@@ -44,13 +47,24 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		this.host = dbService.getHost();
 		this.port = dbService.getPort();
 		this.keyspaceName = dbService.getKeyspaceName();
+		prepareStatements();
 	}
 
+	private void prepareStatements(){
+		insertStatement = dbService.getSession().prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)");
+		insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+		
+		searchStatementNonActive = dbService.getSession().prepare( "SELECT * FROM Cloud_Id WHERE cloud_id=?");
+		searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
+		deleteStatement = dbService.getSession().prepare("UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+		deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+	}
+	
+	
 	@Override
 	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 		try {
-			PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
-			ResultSet rs = dbService.getSession().execute(statement.bind(args[0]));
+			ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args[0]));
 			if (!rs.iterator().hasNext()) {
 				throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
 						IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
@@ -95,8 +109,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	 * @throws DatabaseConnectionException
 	 */
 	public List<CloudId> searchAll(String args) throws DatabaseConnectionException {
-		PreparedStatement statement = dbService.getSession().prepare(searchStatementNonActive);
-		ResultSet rs = dbService.getSession().execute(statement.bind(args));
+		ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args));
 		List<Row> results = rs.all();
 		List<CloudId> cloudIds = new ArrayList<>();
 		for (Row row : results) {
@@ -114,21 +127,27 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	@Override
 	public List<CloudId> insert(String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
 		try {
-			PreparedStatement statement = dbService.getSession().prepare(insertStatement);
-			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
+			dbService.getSession().execute(insertStatement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
 		}
-		return searchActive(args[0]);
+		CloudId cId = new CloudId();
+		LocalId lId = new LocalId();
+		lId.setProviderId(args[1]);
+		lId.setRecordId(args[2]);
+		cId.setLocalId(lId);
+		cId.setId(args[0]);
+		List<CloudId> cIds = new ArrayList<CloudId>();
+		cIds.add(cId);
+		return cIds;
 	}
 
 	@Override
 	public void delete(String... args) throws DatabaseConnectionException {
 		try {
-			PreparedStatement statement = dbService.getSession().prepare(deleteStatement);
-			dbService.getSession().execute(statement.bind(args[0], args[1], args[2]));
+			dbService.getSession().execute(deleteStatement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),

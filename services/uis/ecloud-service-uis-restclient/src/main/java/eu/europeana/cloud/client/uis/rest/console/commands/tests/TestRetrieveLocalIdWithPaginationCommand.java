@@ -24,7 +24,7 @@ import eu.europeana.cloud.common.model.LocalId;
 public class TestRetrieveLocalIdWithPaginationCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo,String... input) throws InvalidAttributesException {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[1]));
 			String[] columns = ids.get(0).split(" ");

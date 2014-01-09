@@ -23,7 +23,7 @@ import eu.europeana.cloud.client.uis.rest.console.Command;
 public class TestReadManyProvidersCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo,String... input) throws InvalidAttributesException {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();

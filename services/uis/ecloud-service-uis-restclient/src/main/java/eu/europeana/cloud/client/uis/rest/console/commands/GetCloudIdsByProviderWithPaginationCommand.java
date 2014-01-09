@@ -14,7 +14,7 @@ import eu.europeana.cloud.common.model.CloudId;
  */
 public class GetCloudIdsByProviderWithPaginationCommand extends Command {
 	@Override
-	public void execute(UISClient client,String... input) throws InvalidAttributesException{
+	public void execute(UISClient client,int threadNo,String... input) throws InvalidAttributesException{
 		if(input.length<3){
 			throw new InvalidAttributesException();
 		}

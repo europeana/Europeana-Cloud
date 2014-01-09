@@ -12,7 +12,7 @@ import eu.europeana.cloud.client.uis.rest.console.Command;
 public class HelpCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) {
+	public void execute(UISClient client, int threadNo,String... input) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Supported operations are:\n");
 		sb.append("createCloudId\t\t\tproviderId [recordId]: Create a new cloud id\n");

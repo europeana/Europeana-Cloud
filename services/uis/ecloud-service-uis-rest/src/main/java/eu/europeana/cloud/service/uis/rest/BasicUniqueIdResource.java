@@ -10,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.qmino.miredot.annotations.ReturnType;
@@ -36,6 +37,7 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
  */
 @Component
 @Path("uniqueId")
+@Scope("request")
 public class BasicUniqueIdResource implements UniqueIdResource {
 	@Autowired
 	private UniqueIdentifierService uniqueIdentifierService;

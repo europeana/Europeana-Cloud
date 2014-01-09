@@ -46,6 +46,6 @@ public class UrlProvider {
 	}
 	
 	public String getPidUrl(String url){
-		return baseUrl+"/uniqueId/data-providers/"+url;
+		return baseUrl+"/uniqueId/data-providers"+url;
 	}
 }

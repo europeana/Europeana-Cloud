@@ -23,7 +23,7 @@ import eu.europeana.cloud.common.model.CloudId;
 public class TestRetrieveCloudIdCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
+	public void execute(UISClient client, int threadNo, String... input) throws InvalidAttributesException {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[0]));
 			Date now = new Date();

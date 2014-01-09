@@ -12,7 +12,7 @@ import eu.europeana.cloud.client.uis.rest.console.Command;
 public class RemoveMappingByLocalIdCommand extends Command {
 
 	@Override
-	public void execute(UISClient client,String... input) {
+	public void execute(UISClient client,int threadNo,String... input) {
 		try{
 			System.out.println(client.removeMappingByLocalId(input[0], input[1]));
 		} catch (CloudException e){

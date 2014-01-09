@@ -100,6 +100,6 @@ public class DatabaseService {
 	}
 
 	public ConsistencyLevel getConsistencyLevel(){
-		return ConsistencyLevel.QUORUM;
+		return ConsistencyLevel.ONE;
 	}
 }

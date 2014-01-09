@@ -15,6 +15,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Test Create id mappings with one provider
@@ -25,17 +26,20 @@ import eu.europeana.cloud.common.model.CloudId;
 public class TestCreateMappingIdOneProviderCommand extends Command {
 
 	@Override
-	public void execute(UISClient client, String... input) throws InvalidAttributesException {
-		String providerId = input[1];
+	public void execute(UISClient client, int threadNo,String... input) throws InvalidAttributesException {
+		String providerId = input[1]+threadNo;
 		String recordId = input[2];
 		
 		try {
+			client.createProvider(providerId+"initial1", new DataProviderProperties());
+			client.createProvider(providerId, new DataProviderProperties());
 			CloudId cId = client.createCloudId(providerId+"initial1",recordId+"initial1");
 			long i=0;
 			List<String> str = new ArrayList<>();
 			Date now = new Date();
 			long start = now.getTime();
 			System.out.println("Test started at: " + now.toString());
+			
 			while(i<Long.parseLong(input[0])){
 				client.createMapping(cId.getId(),providerId,recordId+i);
 				str.add(String.format("%s %s %s", cId.getId(),providerId,recordId+i));

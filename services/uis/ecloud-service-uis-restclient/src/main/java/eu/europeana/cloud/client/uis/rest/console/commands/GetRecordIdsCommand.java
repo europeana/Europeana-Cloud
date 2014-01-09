@@ -15,7 +15,7 @@ import eu.europeana.cloud.common.model.CloudId;
 public class GetRecordIdsCommand extends Command {
 
 	@Override
-	public void execute(UISClient client,String... input) throws InvalidAttributesException{
+	public void execute(UISClient client,int threadNo,String... input) throws InvalidAttributesException{
 		if(input.length<1){
 			throw new InvalidAttributesException();
 		}
