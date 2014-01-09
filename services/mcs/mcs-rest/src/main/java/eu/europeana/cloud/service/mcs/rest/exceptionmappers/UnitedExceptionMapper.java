@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
-import javax.ws.rs.core.Response;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -17,6 +15,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 /**
  * AllExceptionMapper
@@ -100,6 +100,11 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(RuntimeException exception) {
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
+    }
+
+
+    public Response toResponse(WebApplicationException exception) {
+        return buildResponse(exception.getResponse().getStatus(), McsErrorCode.OTHER, exception);
     }
 
 

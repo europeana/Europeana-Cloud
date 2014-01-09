@@ -243,23 +243,6 @@
 					</statusCodes>
 				</configuration>
 			</plugin>
-			<!--needed to enable filtering on web.xml where spring config file is 
-				configured -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<configuration>
-					<webResources>
-						<resource>
-							<filtering>true</filtering>
-							<directory>src/main/webapp</directory>
-							<includes>
-								<include>**/web.xml</include>
-							</includes>
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
