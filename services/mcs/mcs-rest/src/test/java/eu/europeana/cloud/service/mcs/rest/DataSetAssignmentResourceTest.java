@@ -1,39 +1,31 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
 import static eu.europeana.cloud.common.web.ParamConstants.F_GID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_SCHEMA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
-import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
-
 import java.io.ByteArrayInputStream;
 import java.util.List;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -45,7 +37,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class DataSetAssignmentResourceTest extends JerseyTest {
 
-   // private DataProviderService dataProviderService;
+    // private DataProviderService dataProviderService;
 
     private DataSetService dataSetService;
 
@@ -78,7 +70,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataSetAssignmentWebTarget = target(DataSetAssignmentsResource.class.getAnnotation(Path.class).value());
         dataProvider.setId("dataProv");
-       
+
         InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
         Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("dataProv");
         dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataset", "description");
@@ -86,11 +78,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     }
 
 
- 
-
-
     @Test
-    @Ignore("Now, there secont assignment the same representation to data set does not raise error, it just overrides previous version")
+    @Ignore("Now, there second assignment the same representation to data set does not raise error, it just overrides previous version")
     public void shouldReturnErrorWhenRepresentationIsAssignedTwice()
             throws Exception {
         // given that representation is already assigned to set

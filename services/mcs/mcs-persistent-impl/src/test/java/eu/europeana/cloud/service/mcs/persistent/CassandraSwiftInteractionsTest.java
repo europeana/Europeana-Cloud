@@ -1,25 +1,20 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 
 /**
  * 
@@ -31,14 +26,10 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
     @Autowired
     private CassandraRecordService cassandraRecordService;
 
-  
     @Autowired
     private SwiftContentDAO swiftContentDAO;
 
     private static final String providerId = "provider";
-
-
-    
 
 
     @After
