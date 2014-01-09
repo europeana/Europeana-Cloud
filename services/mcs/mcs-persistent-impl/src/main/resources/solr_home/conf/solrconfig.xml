@@ -566,7 +566,7 @@
         <listener event="firstSearcher" class="solr.QuerySenderListener">
             <arr name="queries">
                 <lst>
-                    <str name="q">static firstSearcher warming in solrconfig.xml</str>
+                    <str name="q">*:*</str>
                 </lst>
             </arr>
         </listener>
@@ -721,7 +721,6 @@
 		<lst name="defaults">
 			<str name="echoParams">explicit</str>
 			<int name="rows">10</int>
-			<str name="df">text</str>
 		</lst>
 
 		<!-- In addition to defaults, "appends" params can be specified

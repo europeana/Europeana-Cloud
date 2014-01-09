@@ -1,24 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
@@ -28,7 +9,23 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import static org.hamcrest.Matchers.is;
 import org.junit.After;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * 
@@ -266,14 +263,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Collections.sort(insertedDataSetIds);
         Collections.sort(fetchedDataSets);
         assertThat(insertedDataSetIds, is(fetchedDataSets));
-    }
-
-
-    @Test(expected = ProviderDoesNotExistException.class)
-    public void shouldThrowExceptionWhenListingDatasetsOfNotExistingProvider()
-            throws Exception {
-        makeUISProviderFailure();
-        cassandraDataSetService.getDataSets("not-existing-provider", null, 10000);
     }
 
 
