@@ -1,6 +1,5 @@
 package eu.europeana.cloud.client.uis.rest.console;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
 /**

@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 /**
  * In Memory Cloud Id implementation
  * 
- * 
  * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
  * @since Dec 20, 2013
  */

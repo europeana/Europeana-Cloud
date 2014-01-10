@@ -211,6 +211,9 @@ public enum RelativeUrls {
 			return "deleteCloudId";
 		}
 	},
+	/**
+	 * Create provider
+	 */
 	CREATEPROVIDER {
 
 		@Override
@@ -229,6 +232,9 @@ public enum RelativeUrls {
 		}
 
 	},
+	/**
+	 * Retrieve provider
+	 */
 	RETRIEVEPROVIDERS {
 
 		@Override

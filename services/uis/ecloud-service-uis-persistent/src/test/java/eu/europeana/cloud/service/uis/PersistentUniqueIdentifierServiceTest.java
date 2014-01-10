@@ -2,12 +2,8 @@ package eu.europeana.cloud.service.uis;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.util.List;
 
-import org.cassandraunit.spring.CassandraDataSet;
-import org.cassandraunit.spring.CassandraUnitTestExecutionListener;
-import org.cassandraunit.spring.EmbeddedCassandra;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,13 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.database.Cassandra;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
@@ -54,15 +48,18 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 	@Autowired
 	private CloudIdDao cloudIdDao;
 	
+	/**
+	 * Prepare the unit tests
+	 */
 	@Before
 	public void prepare(){
+		@SuppressWarnings("resource")
 		ApplicationContext context = new ClassPathXmlApplicationContext("default-context.xml");
 		dbService = (DatabaseService) context.getBean("dbService");
 		service = (PersistentUniqueIdentifierService) context.getBean("service");
 		dataProviderDao = (CassandraDataProviderDAO) context.getBean("dataProviderDao");
 		localIdDao = (LocalIdDao) context.getBean("localIdDao");
 		cloudIdDao = (CloudIdDao) context.getBean("cloudIdDao");
-				
 	}
 	
 	/**
@@ -113,13 +110,6 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 		assertEquals(cIds.size(), 1);
 	}
 
-	
-	// @Test (expected = RecordDatasetEmptyException.class)
-	// public void testGetCloudIdsByProviderDatasetEmtpy(){
-	// service.createCloudId("test4", "test4");
-	// service.getCloudIdsByProvider("test4", "test5", 1);
-	// }
-
 	/**
 	 * Test LocalIds by provider
 	 * @throws Exception
@@ -134,13 +124,6 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 		assertEquals(cIds.size(), 1);
 		
 	}
-
-	
-	// @Test (expected = RecordDatasetEmptyException.class)
-	// public void testGetLocalIdsByProviderDatasetEmtpy(){
-	// service.createCloudId("test6", "test6");
-	// service.getLocalIdsByProvider("test6", "test7", 1);
-	// }
 
 	/**
 	 * Test IdHasBeenMappedException
@@ -178,19 +161,6 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 		service.getCloudId("test16", "test16");
 	}
 
-	// @Test (expected = ProviderDoesNotExistException.class)
-	// public void testRemoveIdMappingProvDoesNotExist(){
-	// service.createCloudId("test17", "test17");
-	// service.removeIdMapping("test18", "test18");
-	// }
-	//
-	// @Test (expected = RecordIdDoesNotExistException.class)
-	// public void testRemoveIdMappingRecIdDoesNotExist(){
-	// service.createCloudId("test19", "test19");
-	// service.removeIdMapping("test19", "test20");
-	// }
-	//
-	
 	/**
 	 * Test RecordDoesNotExistException
 	 * @throws Exception

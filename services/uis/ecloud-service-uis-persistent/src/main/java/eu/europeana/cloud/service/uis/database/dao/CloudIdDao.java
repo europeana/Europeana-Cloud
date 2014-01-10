@@ -29,11 +29,8 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 	private String keyspaceName;
 	private String port;
 	private DatabaseService dbService;
-	
 	private PreparedStatement insertStatement;
-	
 	private PreparedStatement searchStatementNonActive;
-	
 	private PreparedStatement deleteStatement;
 
 	/**
@@ -50,19 +47,20 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		prepareStatements();
 	}
 
-	private void prepareStatements(){
-		insertStatement = dbService.getSession().prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)");
+	private void prepareStatements() {
+		insertStatement = dbService.getSession().prepare(
+				"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)");
 		insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		
-		searchStatementNonActive = dbService.getSession().prepare( "SELECT * FROM Cloud_Id WHERE cloud_id=?");
+		searchStatementNonActive = dbService.getSession().prepare("SELECT * FROM Cloud_Id WHERE cloud_id=?");
 		searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
-		deleteStatement = dbService.getSession().prepare("UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+		deleteStatement = dbService.getSession().prepare(
+				"UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?");
 		deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 	}
-	
-	
+
 	@Override
-	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException, CloudIdDoesNotExistException {
+	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException,
+			CloudIdDoesNotExistException {
 		try {
 			ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args[0]));
 			if (!rs.iterator().hasNext()) {
@@ -70,9 +68,6 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 						IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
 						IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(args[0])));
 			}
-//			while (!rs.isFullyFetched()&&!rs.isExhausted()) {
-//				rs.fetchMoreResults();
-//			}
 			List<CloudId> cloudIds = new ArrayList<>();
 			for (Row row : rs.all()) {
 				if (row.getBool("deleted") == deleted) {
@@ -90,7 +85,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 	}
 
@@ -131,7 +126,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 		CloudId cId = new CloudId();
 		LocalId lId = new LocalId();
@@ -151,7 +146,7 @@ public class CloudIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 	}
 

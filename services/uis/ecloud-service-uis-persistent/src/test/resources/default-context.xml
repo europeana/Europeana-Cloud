@@ -19,6 +19,7 @@
 		<constructor-arg name="keyspaceName" value="uis_test4" />
 		<constructor-arg name="username" value="" />
 		<constructor-arg name="password" value="" />
+		<constructor-arg name="create" value="true"/>
 	</bean>
 	<bean id="service"
 		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">

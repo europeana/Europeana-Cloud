@@ -108,7 +108,9 @@ public enum IdentifierErrorTemplate {
 			return Status.NOT_FOUND;
 		}
 	},
-	
+	/**
+	 * The provider already exists exception
+	 */
 	PROVIDER_ALREADY_EXISTS {
 
 		@Override

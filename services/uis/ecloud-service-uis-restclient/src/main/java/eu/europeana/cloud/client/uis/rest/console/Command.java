@@ -13,7 +13,8 @@ public abstract class Command {
 
 	/**
 	 * Execution method of the command
-	 * @param client 
+	 * @param client The UISClient to connect to
+	 * @param threadNo The thread identifier
 	 * @param input The command line parameters
 	 * @throws InvalidAttributesException 
 	 */

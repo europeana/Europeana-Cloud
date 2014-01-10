@@ -215,7 +215,7 @@ public class InMemoryLocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	/**
-	 * Clear our LocalId cache
+	 * Clear out LocalId cache
 	 */
 	public void reset() {
 		cloudIds = new ArrayList<>();

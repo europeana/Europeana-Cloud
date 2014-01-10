@@ -40,6 +40,9 @@ public class DataProvidersResourceTest extends JerseyTest {
 		return new JerseyConfig().property("contextConfigLocation", "classpath:/ecloud-uidservice-context-test.xml");
 	}
 
+	/**
+	 * Get the mocks form the application context
+	 */
 	@Before
 	public void mockUp() {
 		ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
@@ -47,6 +50,9 @@ public class DataProvidersResourceTest extends JerseyTest {
 		dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
 	}
 
+	/**
+	 * Test return empty list when provider does not exist
+	 */
 	@Test
 	public void shouldReturnEmptyListOfProvidersIfNoneExists() {
 		// given there is no provider
@@ -55,12 +61,18 @@ public class DataProvidersResourceTest extends JerseyTest {
 		// when you list all providers
 		Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
 		assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
+		@SuppressWarnings("unchecked")
 		ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
 
 		// then you should get empty list
 		assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
 	}
 
+	/**
+	 * Create a new provider
+	 * @throws ProviderDoesNotExistException
+	 * @throws ProviderAlreadyExistsException
+	 */
 	@Test
 	public void shouldCreateProvider() throws ProviderDoesNotExistException, ProviderAlreadyExistsException {
 		// given certain provider data
@@ -84,6 +96,10 @@ public class DataProvidersResourceTest extends JerseyTest {
 		assertEquals(properties, provider.getProperties());
 	}
 
+	/**
+	 * Return a newly created provider
+	 * @throws ProviderAlreadyExistsException
+	 */
 	@Test
 	public void shouldReturnInsertedProviderOnList() throws ProviderAlreadyExistsException {
 		// given one provider in service
@@ -100,9 +116,10 @@ public class DataProvidersResourceTest extends JerseyTest {
 		// when you list all providers
 		Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
 		assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
+		@SuppressWarnings("unchecked")
 		ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
 
-		// then there should be exacly one provider, the same as inserted
+		// then there should be exactly one provider, the same as inserted
 		assertEquals("Expected single data provider on list", 1, dataProviders.getResults().size());
 		assertEquals("Wrong provider identifier", providerName, dataProviders.getResults().get(0).getId());
 	}

@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.datastax.driver.core.BoundStatement;
@@ -22,10 +19,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -45,6 +39,11 @@ public class CassandraDataProviderDAO {
 
     private PreparedStatement getAllProvidersStatement;
 
+    /**
+     * 
+     * Creates a new instance of this class.
+     * @param dbService
+     */
     public CassandraDataProviderDAO(DatabaseService dbService){
     	this.dbService = dbService;
     	prepareStatements();
@@ -82,13 +81,16 @@ public class CassandraDataProviderDAO {
      * @param limit
      *            max size of returned list.
      * @return a sublist of all providers.
+     * @throws NoHostAvailableException 
+     * @throws QueryExecutionException 
      */
     public List<DataProvider> getProviders(String thresholdProviderId, int limit)
             throws NoHostAvailableException, QueryExecutionException {
-        if (thresholdProviderId == null) {
-            thresholdProviderId = "";
+    	String provId = thresholdProviderId;
+        if (provId == null) {
+            provId = "";
         }
-        BoundStatement boundStatement = getAllProvidersStatement.bind(thresholdProviderId, limit);
+        BoundStatement boundStatement = getAllProvidersStatement.bind(provId, limit);
         ResultSet rs = dbService.getSession().execute(boundStatement);
         List<DataProvider> dataProviders = new ArrayList<>();
         for (Row row : rs) {
@@ -104,6 +106,8 @@ public class CassandraDataProviderDAO {
      * @param providerId
      *            id of provider.
      * @return data provider
+     * @throws NoHostAvailableException 
+     * @throws QueryExecutionException 
      */
     public DataProvider getProvider(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
@@ -123,44 +127,13 @@ public class CassandraDataProviderDAO {
      * 
      * @param providerId
      *            id of provider.
+     * @throws NoHostAvailableException 
+     * @throws QueryExecutionException 
      */
     public void deleteProvider(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
         dbService.getSession().execute(boundStatement);
-    }
-
-
-    /**
-     * Creates a new provider with specified id and properties. Will fail if provider with specified id already exists.
-     * Warning: uses costly cassandra transactions.
-     * 
-     * @param providerId
-     *            provider id
-     * @param properties
-     *            administrative properties of data provider
-     * @deprecated This method would not work in Cassandra 2.0.1 because of bug (fixed in 2.0.2) that caused nulls
-     *             inserted into rows instead of maps when using transactions.
-     * @return created data provider object
-     * @throws ProviderAlreadyExistsException
-     *             provider with such id already exists.
-     */
-    @Deprecated
-    public DataProvider createProvider(String providerId, DataProviderProperties properties)
-            throws ProviderAlreadyExistsException, NoHostAvailableException, QueryExecutionException {
-        Date now = new Date();
-        BoundStatement boundStatement = insertNewProviderStatement.bind(providerId, propertiesToMap(properties), now);
-        ResultSet rs = dbService.getSession().execute(boundStatement);
-        boolean applied = rs.one().getBool("[applied]");
-        if (!applied) {
-        	throw new ProviderAlreadyExistsException(new IdentifierErrorInfo(
-					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),
-					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getErrorInfo(providerId)));
-        }
-        DataProvider dp = new DataProvider();
-        dp.setId(providerId);
-        dp.setProperties(properties);
-        return dp;
     }
 
 
@@ -172,6 +145,8 @@ public class CassandraDataProviderDAO {
      * @param properties
      *            administrative properties of data provider
      * @return created data provider object
+     * @throws NoHostAvailableException 
+     * @throws QueryExecutionException 
      */
     public DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties)
             throws NoHostAvailableException, QueryExecutionException {

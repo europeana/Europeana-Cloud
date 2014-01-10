@@ -23,11 +23,6 @@ public class CassandraDataProviderService implements DataProviderService {
     @Autowired
     private CassandraDataProviderDAO dataProviderDao;
 
-
-
-    /**
-     * @inheritDoc
-     */
     @Override
     public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
         String nextProvider = null;
@@ -40,9 +35,6 @@ public class CassandraDataProviderService implements DataProviderService {
     }
 
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public DataProvider getProvider(String providerId)
             throws ProviderDoesNotExistException {
@@ -57,9 +49,6 @@ public class CassandraDataProviderService implements DataProviderService {
     }
 
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public DataProvider createProvider(String providerId, DataProviderProperties properties)
             throws ProviderAlreadyExistsException {
@@ -73,9 +62,6 @@ public class CassandraDataProviderService implements DataProviderService {
     }
 
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public DataProvider updateProvider(String providerId, DataProviderProperties properties)
             throws ProviderDoesNotExistException {

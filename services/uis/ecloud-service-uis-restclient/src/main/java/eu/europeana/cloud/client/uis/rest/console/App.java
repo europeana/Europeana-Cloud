@@ -2,7 +2,6 @@ package eu.europeana.cloud.client.uis.rest.console;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 import javax.naming.directory.InvalidAttributesException;
 
@@ -112,16 +111,23 @@ public class App implements Runnable {
 	}
 
 	private static String[] subArray(String[] input) throws InvalidAttributesException {
-
 		String[] ret = new String[input.length - 1];
 		System.arraycopy(input, 1, ret, 0, ret.length);
 		return ret;
 	}
 	
+	/**
+	 * Inject command line parameters
+	 * @param input
+	 */
 	public void setInput(String[] input){
 		this.input=input.clone();
 	}
 	
+	/**
+	 * Set the thread id
+	 * @param id
+	 */
 	public void setId(int id){
 		this.id = id;
 	}

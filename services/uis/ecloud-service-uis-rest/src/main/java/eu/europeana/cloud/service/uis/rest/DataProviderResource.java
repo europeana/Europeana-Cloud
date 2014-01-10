@@ -42,8 +42,7 @@ public class DataProviderResource {
      * Gets provider.
      * 
      * @return Data provider.
-     * @throws ProviderNotExistsException
-     *             resource that represents requested data provider does not exist.
+     * @throws ProviderDoesNotExistException 
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -58,8 +57,7 @@ public class DataProviderResource {
      * 
      * @param dataProviderProperties
      *            data provider properties.
-     * @throws ProviderNotExistsException
-     *             no such provider exists.
+     * @throws ProviderDoesNotExistException 
      * @statuscode 204 object has been updated.
      */
     @PUT

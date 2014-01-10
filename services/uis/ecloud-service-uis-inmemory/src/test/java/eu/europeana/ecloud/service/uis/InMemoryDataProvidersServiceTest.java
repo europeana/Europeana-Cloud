@@ -122,7 +122,6 @@ public class InMemoryDataProvidersServiceTest {
 	
 	/**
 	 * Test Get Provider with exception
-	 * @throws ProviderDoesNotExistException 
 	 */
 	@Test(expected = UnsupportedOperationException.class)
 	public void testGetProvidersUnsupported() {

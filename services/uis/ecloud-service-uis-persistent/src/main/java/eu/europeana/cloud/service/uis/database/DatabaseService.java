@@ -21,7 +21,7 @@ public class DatabaseService {
 	private Session session;
 	private String host;
 	private String port;
-	
+
 	private String keyspaceName;
 
 	/**
@@ -33,31 +33,32 @@ public class DatabaseService {
 	 *            The port to connect to
 	 * @param keyspaceName
 	 *            The keyspace to connect to
-
+	 * 
 	 * @param username
 	 *            The username
 	 * @param password
 	 *            The password
 	 * @throws IOException
 	 */
-	public DatabaseService(String host, String port, String keyspaceName,
-			String username, String password) throws IOException {
+	public DatabaseService(String host, String port, String keyspaceName, String username, String password,
+			boolean create) throws IOException {
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		Cluster cluster = new Cluster.Builder().addContactPoints(host)
-				.withPort(Integer.parseInt(port))
+		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port))
 				.withCredentials(username, password).build();
-		session = cluster.connect();
-		List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
-		int i = 0;
-		for (String query : cql) {
-			if (i < 2) {
-				session.execute(String.format(query, keyspaceName));
-			} else {
-				session.execute(query);
+		if (create) {
+			session = cluster.connect();
+			List<String> cql = FileUtils.readLines(new File(getClass().getResource("cassandra-uis.cql").getPath()));
+			int i = 0;
+			for (String query : cql) {
+				if (i < 2) {
+					session.execute(String.format(query, keyspaceName));
+				} else {
+					session.execute(query);
+				}
+				i++;
 			}
-			i++;
 		}
 		session = cluster.connect(keyspaceName);
 	}
@@ -99,7 +100,12 @@ public class DatabaseService {
 		return keyspaceName;
 	}
 
-	public ConsistencyLevel getConsistencyLevel(){
-		return ConsistencyLevel.ONE;
+	/**
+	 * Retrieve the consistency level of the queries
+	 * 
+	 * @return QUORUM consistency level
+	 */
+	public ConsistencyLevel getConsistencyLevel() {
+		return ConsistencyLevel.QUORUM;
 	}
 }

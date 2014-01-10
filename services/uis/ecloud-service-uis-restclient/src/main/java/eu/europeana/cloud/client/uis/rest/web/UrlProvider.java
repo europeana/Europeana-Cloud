@@ -37,7 +37,7 @@ public class UrlProvider {
         }
 
 	/**
-	 * Return the host url for the service
+	 * Return the host url for the unique identifier service
 	 * @param url
 	 * @return The host url for the service
 	 */
@@ -45,6 +45,11 @@ public class UrlProvider {
 		return baseUrl+"/uniqueId/"+url;
 	}
 	
+	/**
+	 * Return the host url for the data providers service
+	 * @param url
+	 * @return The host url for the data providers service
+	 */
 	public String getPidUrl(String url){
 		return baseUrl+"/uniqueId/data-providers"+url;
 	}

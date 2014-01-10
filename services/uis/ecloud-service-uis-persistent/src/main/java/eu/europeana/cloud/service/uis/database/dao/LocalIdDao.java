@@ -37,8 +37,6 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	private PreparedStatement searchByProviderStatement; 
 	private PreparedStatement searchByRecordIdStatement;
 	private PreparedStatement searchByProviderPaginatedStatement;
-	
-	
 
 	/**
 	 * The LocalId Dao
@@ -78,9 +76,6 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 			} else if (args.length >= 2) {
 				rs = dbService.getSession().execute(searchByRecordIdStatement.bind(args[0], args[1], deleted));
 			}
-//			while (rs!=null && !rs.isFullyFetched()) {
-//				rs.fetchMoreResults();
-//			}
 			return createCloudIdsFromRs(rs);
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
@@ -103,9 +98,6 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	 */
 	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
 		ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, start, end));
-//		while (!rs.isFullyFetched()) {
-//			rs.fetchMoreResults();
-//		}
 		return createCloudIdsFromRs(rs);
 	}
 

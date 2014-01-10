@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.uis;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.net.MalformedURLException;
 
@@ -12,7 +11,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -23,13 +21,11 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
-import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
 import eu.europeana.cloud.service.uis.rest.JerseyConfig;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import eu.europeana.cloud.common.web.ParamConstants;
 /**
  * DataProviderResourceTest
  */
@@ -37,8 +33,6 @@ public class DataProviderResourceTest extends JerseyTest {
 
     private DataProviderService dataProviderService;
 
-
-    private WebTarget dataProvidersWebTarget;
 
     private WebTarget dataProviderWebTarget;
 
@@ -48,13 +42,15 @@ public class DataProviderResourceTest extends JerseyTest {
         return new JerseyConfig().property("contextConfigLocation", "classpath:/ecloud-uidservice-context-test.xml");
     }
 
-
+    
+    /**
+     * Retrieve the spring enabled mockups from the application context
+     */
     @Before
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProviderService = applicationContext.getBean(DataProviderService.class);
         Mockito.reset(dataProviderService);
-        dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
         dataProviderWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
     }
 
@@ -62,6 +58,12 @@ public class DataProviderResourceTest extends JerseyTest {
     
 
 
+    /**
+     * Update a provider
+     * @throws ProviderAlreadyExistsException
+     * @throws ProviderDoesNotExistException
+     * @throws MalformedURLException
+     */
     @Test
     public void shouldUpdateProvider()
             throws ProviderAlreadyExistsException, ProviderDoesNotExistException, MalformedURLException {
@@ -70,20 +72,13 @@ public class DataProviderResourceTest extends JerseyTest {
         
         DataProvider dp = new DataProvider();
         dp.setId(providerName);
-        
-        
-        
-        //dataProviderService.createProvider(providerName, new DataProviderProperties());
-
         // when the provider is updated
         DataProviderProperties properties = new DataProviderProperties();
         properties.setOrganisationName("Organizacja");
         properties.setRemarks("Remarks");
         dp.setProperties(properties);
         Mockito.when(dataProviderService.updateProvider(providerName, properties)).thenReturn(dp);
-        
         WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-        
         Response putResponse = providentWebTarget.request().put(Entity.json(properties));
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
         dp.setProperties(properties);
@@ -94,7 +89,11 @@ public class DataProviderResourceTest extends JerseyTest {
         assertEquals(properties, retProvider.getProperties());
     }
 
-
+    /**
+     * Get provider Unit tests
+     * @throws ProviderAlreadyExistsException
+     * @throws ProviderDoesNotExistException
+     */
     @Test
     public void shouldGetProvider()
             throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
@@ -123,6 +122,10 @@ public class DataProviderResourceTest extends JerseyTest {
     }
 
 
+    /**
+     * Test Non Existing provider
+     * @throws ProviderDoesNotExistException
+     */
     @Test
     public void shouldReturn404OnNotExistingProvider() throws ProviderDoesNotExistException {
         // given there is no provider in service
