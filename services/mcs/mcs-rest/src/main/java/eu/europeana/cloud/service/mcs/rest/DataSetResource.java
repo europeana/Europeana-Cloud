@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -50,14 +49,12 @@ public class DataSetResource {
     /**
      * Deletes data set.
      * 
-     * @throws ProviderNotExistsException
-     *             provider not exists
      * @throws DataSetNotExistsException
      *             data set not exists.
      */
     @DELETE
     public void deleteDataSet()
-            throws ProviderDoesNotExistException, DataSetNotExistsException {
+            throws DataSetNotExistsException {
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
 

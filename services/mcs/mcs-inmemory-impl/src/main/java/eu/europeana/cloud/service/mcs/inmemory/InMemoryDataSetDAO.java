@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -101,7 +100,7 @@ public class InMemoryDataSetDAO {
 
 
     public DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
+            throws DataSetAlreadyExistsException {
         // only to check if dataprovider exists
 
         if (!dataSets.containsKey(providerId)) {
@@ -132,8 +131,7 @@ public class InMemoryDataSetDAO {
     }
 
 
-    public List<DataSet> getDataSets(String providerId)
-            throws ProviderDoesNotExistException {
+    public List<DataSet> getDataSets(String providerId) {
 
         Map<String, DataSet> datasetsForProvider = dataSets.get(providerId);
         if (datasetsForProvider != null) {

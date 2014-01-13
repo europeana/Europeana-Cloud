@@ -21,9 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
@@ -93,7 +93,7 @@ public class RepresentationResource {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRepresentation(@FormParam(F_PROVIDER) String providerId)
-            throws RecordNotExistsException, ProviderDoesNotExistException {
+            throws RecordNotExistsException, ProviderNotExistsException {
         ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, schema, providerId);
         EnrichUriUtil.enrich(uriInfo, version);

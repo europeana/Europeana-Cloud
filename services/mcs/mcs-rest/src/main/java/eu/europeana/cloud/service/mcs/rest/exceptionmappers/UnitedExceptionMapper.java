@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -9,6 +8,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -63,11 +63,6 @@ public class UnitedExceptionMapper {
     }
 
 
-    public Response toResponse(ProviderDoesNotExistException exception) {
-        return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.PROVIDER_NOT_EXISTS, exception);
-    }
-
-
     public Response toResponse(RecordNotExistsException exception) {
         return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.RECORD_NOT_EXISTS, exception);
     }
@@ -105,6 +100,11 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(WebApplicationException exception) {
         return buildResponse(exception.getResponse().getStatus(), McsErrorCode.OTHER, exception);
+    }
+
+
+    public Response toResponse(ProviderNotExistsException exception) {
+        return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.PROVIDER_NOT_EXISTS, exception);
     }
 
 

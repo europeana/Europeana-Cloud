@@ -20,9 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -32,11 +30,11 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -135,14 +133,12 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public Representation createRepresentation(String cloudId, String representationName, String providerId)
-            throws ProviderDoesNotExistException, RecordNotExistsException {
+            throws ProviderNotExistsException, RecordNotExistsException {
 
         Date now = new Date();
         // check if data provider exists
         if (!uis.providerExistsInUIS(providerId)) {
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
+            throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
         }
         if (uis.recordExistInUIS(cloudId)) {
             Representation rep = recordDAO.createRepresentation(cloudId, representationName, providerId, now);

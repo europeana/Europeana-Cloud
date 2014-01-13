@@ -3,20 +3,18 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -151,12 +149,10 @@ public class CassandraDataSetService implements DataSetService {
      */
     @Override
     public DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
         Date now = new Date();
         if (!uis.providerExistsInUIS(providerId)) {
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
+            throw new ProviderNotExistsException();
         }
 
         // check if dataset exists
@@ -191,8 +187,7 @@ public class CassandraDataSetService implements DataSetService {
      * @inheritDoc
      */
     @Override
-    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
-            throws ProviderDoesNotExistException {
+    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
 
         List<DataSet> dataSets = dataSetDAO.getDataSets(providerId, thresholdDatasetId, limit + 1);
         String nextDataSet = null;

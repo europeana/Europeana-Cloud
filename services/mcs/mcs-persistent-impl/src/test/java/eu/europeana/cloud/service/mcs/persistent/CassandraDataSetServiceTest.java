@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
@@ -266,7 +266,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     }
 
 
-    @Test(expected = ProviderDoesNotExistException.class)
+    @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider()
             throws Exception {
         makeUISProviderFailure();

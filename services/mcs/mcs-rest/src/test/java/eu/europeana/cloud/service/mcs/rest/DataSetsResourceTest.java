@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
@@ -12,9 +10,10 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
 import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.net.URI;
 import java.util.List;
 import javax.ws.rs.Path;
@@ -42,6 +41,8 @@ public class DataSetsResourceTest extends JerseyTest {
 
     private WebTarget dataSetsWebTarget;
 
+    private UISClientHandler uisHandler;
+
     private DataProvider dataProvider = new DataProvider();
 
 
@@ -59,6 +60,7 @@ public class DataSetsResourceTest extends JerseyTest {
         InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
         Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("provId");
         dataSetService = applicationContext.getBean(DataSetService.class);
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetsWebTarget = target(DataSetsResource.class.getAnnotation(Path.class).value());
     }
 
@@ -133,13 +135,10 @@ public class DataSetsResourceTest extends JerseyTest {
 
     @Test
     public void shouldNotCreateDatasetForNotexistingProvider()
-            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
+            throws DataSetAlreadyExistsException, ProviderNotExistsException {
 
-        Mockito.doThrow(
-            new ProviderDoesNotExistException(new IdentifierErrorInfo(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                    .getHttpCode(), IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(""))))
-                .when(dataSetService)
-                .createDataSet(Mockito.eq("notexisting"), Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(false).when(uisHandler).providerExistsInUIS("notexisting");
+
         // when you try to add dataset to this not existing provider
         dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER, "notexisting");
         Response createResponse = dataSetsWebTarget.request().post(Entity.form(new Form(F_DATASET, "dataset")));
@@ -148,5 +147,6 @@ public class DataSetsResourceTest extends JerseyTest {
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), createResponse.getStatus());
         ErrorInfo errorInfo = createResponse.readEntity(ErrorInfo.class);
         assertEquals(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), errorInfo.getErrorCode());
+        Mockito.reset(uisHandler);
     }
 }

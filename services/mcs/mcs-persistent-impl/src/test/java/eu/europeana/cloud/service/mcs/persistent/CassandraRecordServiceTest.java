@@ -22,12 +22,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.hash.Hashing;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
@@ -147,7 +147,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
 
-    @Test(expected = ProviderDoesNotExistException.class)
+    @Test(expected = ProviderNotExistsException.class)
     public void shouldNotCreateRepresentationForNotExistingProvider()
             throws Exception {
         makeUISFailure();

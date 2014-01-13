@@ -22,11 +22,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 
 /**
  * Resource to get and create data set.
@@ -55,13 +55,10 @@ public class DataSetsResource {
      * @param startFrom
      *            reference to next slice of result. If not provided, first slice of result will be returned.
      * @return slice of data sets for given provider.
-     * @throws ProviderNotExistsException
-     *             data provider does not exist.
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom)
-            throws ProviderDoesNotExistException {
+    public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom) {
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
@@ -82,7 +79,7 @@ public class DataSetsResource {
      */
     @POST
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
-            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
         ParamUtil.require(F_DATASET, dataSetId);
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);

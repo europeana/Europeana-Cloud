@@ -60,6 +60,7 @@
     <mockito:spy beanName="sorlConnector"/>
     <mockito:spy beanName="solrDAO"/>
     <mockito:spy beanName="solrRepresentationIndexer"/>
+    <mockito:spy beanName="uisHandler"/>
     
     
 </beans>

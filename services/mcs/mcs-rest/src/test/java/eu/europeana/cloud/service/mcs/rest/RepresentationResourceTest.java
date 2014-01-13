@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -62,7 +61,6 @@ public class RepresentationResourceTest extends JerseyTest {
         return new ResourceConfig().registerClasses(RepresentationResource.class)
                 .registerClasses(RecordNotExistsExceptionMapper.class)
                 .registerClasses(RepresentationNotExistsExceptionMapper.class)
-                .registerClasses(ProviderDoesNotExistException.class)
                 .property("contextConfigLocation", "classpath:testContext.xml");
     }
 

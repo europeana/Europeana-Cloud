@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,7 +12,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
@@ -44,12 +45,13 @@ public class InMemoryRecordService implements RecordService {
 
     @Autowired
     private InMemoryDataProviderDAO dataProviderDAO;
-    
+
 
     public InMemoryRecordService() {
         super();
     }
-    
+
+
     InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
             InMemoryDataProviderDAO dataProviderDAO) {
         super();
@@ -105,8 +107,12 @@ public class InMemoryRecordService implements RecordService {
 
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
-            throws RecordNotExistsException, ProviderDoesNotExistException {
-        dataProviderDAO.getProvider(providerId);
+            throws RecordNotExistsException, ProviderNotExistsException {
+        try {
+            dataProviderDAO.getProvider(providerId);
+        } catch (ProviderDoesNotExistException ex) {
+            throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
+        }
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
 
@@ -287,25 +293,28 @@ public class InMemoryRecordService implements RecordService {
         return prepareResultSlice(limit, threshold, allRecords);
     }
 
+
     private ResultSlice<Representation> prepareResultSlice(int limit, int threshold, List<Representation> allRecords) {
         List<Representation> result = allRecords;
         String nextSlice = null;
-        if (limit > 0){
+        if (limit > 0) {
             int offset = threshold + limit;
             result = allRecords.subList(threshold, Math.min(offset, allRecords.size()));
-            if (offset < allRecords.size()){
+            if (offset < allRecords.size()) {
                 nextSlice = Integer.toString(offset);
             }
         }
         return new ResultSlice<>(nextSlice, result);
     }
-    
+
+
     private int parseInteger(String thresholdParam) {
         int offset = 0;
         try {
-            offset = Integer.parseInt(thresholdParam);                
+            offset = Integer.parseInt(thresholdParam);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '" + thresholdParam + "'. ");
+            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '"
+                    + thresholdParam + "'. ");
         }
         return offset;
     }

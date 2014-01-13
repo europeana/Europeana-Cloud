@@ -9,10 +9,8 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 
 public class UISClientHandlerImpl implements UISClientHandler {
 
@@ -61,17 +59,17 @@ public class UISClientHandlerImpl implements UISClientHandler {
     }
 
 
-	@Override
-	public boolean providerExistsInUIS(String providerId) {
-		try {
-			uisClient.getDataProvider(providerId);
-		} catch (CloudException e) {
-			if(e.getCause() instanceof ProviderDoesNotExistException) {
-				return false;
-			} else {
-				throw new SystemException(e);
-			}
-		}
-		return true;
-	}
+    @Override
+    public boolean providerExistsInUIS(String providerId) {
+        try {
+            uisClient.getDataProvider(providerId);
+        } catch (CloudException e) {
+            if (e.getCause() instanceof ProviderDoesNotExistException) {
+                return false;
+            } else {
+                throw new SystemException(e);
+            }
+        }
+        return true;
+    }
 }

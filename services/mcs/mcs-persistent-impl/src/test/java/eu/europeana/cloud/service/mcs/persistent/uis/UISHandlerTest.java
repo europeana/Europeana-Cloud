@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.exceptions.GenericException;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -44,22 +43,22 @@ public class UISHandlerTest {
     public void shouldThrowExWhenRecordWhenUISFailure()
             throws Exception {
         String cloudId = "cloudId";
-		Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-				new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
-						IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
-								.getErrorInfo("")))));
-		handler.recordExistInUIS(cloudId);
-	}
+        Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
+            new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
+                            .getErrorInfo("")))));
+        handler.recordExistInUIS(cloudId);
+    }
 
 
     @Test
     public void shouldFailIfRecordNotFoundInUIS()
             throws Exception {
         String cloudId = "cloudId";
-		Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-				new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("",""))));
-		assertFalse(handler.recordExistInUIS(cloudId));
-	}
+        Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
+            new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("", ""))));
+        assertFalse(handler.recordExistInUIS(cloudId));
+    }
 
 
     @Test(expected = IllegalStateException.class)

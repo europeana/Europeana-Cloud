@@ -1,18 +1,19 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
@@ -30,7 +31,8 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Autowired
     private InMemoryDataProviderDAO dataProviderDao;
-    
+
+
     InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO,
             InMemoryDataProviderDAO dataProviderDao) {
         super();
@@ -38,7 +40,8 @@ public class InMemoryDataSetService implements DataSetService {
         this.recordDAO = recordDAO;
         this.dataProviderDao = dataProviderDao;
     }
-    
+
+
     public InMemoryDataSetService() {
         super();
     }
@@ -74,16 +77,18 @@ public class InMemoryDataSetService implements DataSetService {
             }
             toReturn.add(realContent);
         }
-        return newOffset == -1 ? new ResultSlice<>(null, toReturn) : new ResultSlice<>(Integer.toString(newOffset), toReturn);
+        return newOffset == -1 ? new ResultSlice<>(null, toReturn) : new ResultSlice<>(Integer.toString(newOffset),
+                toReturn);
     }
 
 
     private int parseInteger(String thresholdParam) {
         int offset = 0;
         try {
-            offset = Integer.parseInt(thresholdParam);                
+            offset = Integer.parseInt(thresholdParam);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '" + thresholdParam + "'. ");
+            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '"
+                    + thresholdParam + "'. ");
         }
         return offset;
     }
@@ -107,22 +112,27 @@ public class InMemoryDataSetService implements DataSetService {
 
     @Override
     public DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderDoesNotExistException, DataSetAlreadyExistsException {
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
+
         // only to check if dataprovider exists
-        dataProviderDao.getProvider(providerId);
+        //TODO: use UISClient here
+        try {
+
+            dataProviderDao.getProvider(providerId);
+        } catch (ProviderDoesNotExistException ex) {
+            throw new ProviderNotExistsException();
+        }
 
         return dataSetDAO.createDataSet(providerId, dataSetId, description);
     }
 
 
     @Override
-    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
-            throws ProviderDoesNotExistException {
+    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
         if (thresholdDatasetId != null) {
             throw new UnsupportedOperationException("Paging with threshold is not supported");
         }
         // only to check if dataprovider exists
-        dataProviderDao.getProvider(providerId);
         List<DataSet> dataSets = dataSetDAO.getDataSets(providerId);
         dataSets = dataSets.subList(0, Math.min(limit, dataSets.size()));
         return new ResultSlice<>(null, dataSets);
