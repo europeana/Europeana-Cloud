@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.uis;
 
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import java.util.Iterator;
 import java.util.List;
 

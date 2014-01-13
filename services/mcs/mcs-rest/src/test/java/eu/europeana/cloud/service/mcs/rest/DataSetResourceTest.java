@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -9,11 +8,10 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -26,7 +24,6 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -41,7 +38,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class DataSetResourceTest extends JerseyTest {
 
-   // private DataProviderService dataProviderService;
+    // private DataProviderService dataProviderService;
 
     private DataSetService dataSetService;
 
@@ -53,9 +50,8 @@ public class DataSetResourceTest extends JerseyTest {
 
     private DataProvider dataProvider = new DataProvider();
 
+    private UISClientHandler uisHandler;
 
-    private InMemoryDataProviderDAO dataProviderDAO;
-    //    private UISClientHandler uisHandler;
 
     @Override
     public Application configure() {
@@ -68,14 +64,13 @@ public class DataSetResourceTest extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProvider.setId("testprov");
-        dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
-        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("testprov");
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
         dataSetWebTarget = target(DataSetResource.class.getAnnotation(Path.class).value());
     }
-
-
 
 
     @Test
@@ -110,7 +105,7 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
         DataProvider another = new DataProvider();
         another.setId(anotherProvider);
-        Mockito.doReturn(another).when(dataProviderDAO).getProvider("anotherProvider");
+        //        Mockito.doReturn(another).when(dataProviderDAO).getProvider("anotherProvider");
         dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
         // when you delete it for one provider

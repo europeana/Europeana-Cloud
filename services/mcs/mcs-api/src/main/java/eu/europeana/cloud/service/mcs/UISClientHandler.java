@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent.uis;
+package eu.europeana.cloud.service.mcs;
 
 public interface UISClientHandler {
 

@@ -17,10 +17,9 @@ import com.datastax.driver.core.exceptions.ReadTimeoutException;
 
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import eu.europeana.cloud.service.uis.DataProviderService;
 
 /**
  *
@@ -29,12 +28,8 @@ import eu.europeana.cloud.service.uis.DataProviderService;
 @ContextConfiguration(value = { "classpath:/aspectTestContext.xml" })
 public class ServiceExceptionTranslatorAspectTest {
 
-   
-
     @Autowired
     private CassandraDataSetDAO cassandraDataSetDAO;
-
- 
 
     @Autowired
     private RecordService cassandraRecordService;
@@ -66,7 +61,7 @@ public class ServiceExceptionTranslatorAspectTest {
     @Test
     public void shouldTranslateExceptionInDataSetService()
             throws Exception {
-    	Mockito.doReturn(true).when(uis).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(true).when(uis).providerExistsInUIS(Mockito.anyString());
         // prepare failure
         Mockito.doThrow(new ReadTimeoutException(ConsistencyLevel.ALL, 1, 1, false)).when(cassandraDataSetDAO)
                 .getDataSet(Mockito.anyString(), Mockito.anyString());

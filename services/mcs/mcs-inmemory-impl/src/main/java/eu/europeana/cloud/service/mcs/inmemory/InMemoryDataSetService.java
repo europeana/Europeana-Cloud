@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,11 +10,11 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * InMemoryDataSetService
@@ -30,15 +29,14 @@ public class InMemoryDataSetService implements DataSetService {
     private InMemoryRecordDAO recordDAO;
 
     @Autowired
-    private InMemoryDataProviderDAO dataProviderDao;
+    private UISClientHandler uisHandler;
 
 
-    InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO,
-            InMemoryDataProviderDAO dataProviderDao) {
+    InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO, UISClientHandler dataProviderDao) {
         super();
         this.dataSetDAO = dataSetDAO;
         this.recordDAO = recordDAO;
-        this.dataProviderDao = dataProviderDao;
+        this.uisHandler = dataProviderDao;
     }
 
 
@@ -115,12 +113,8 @@ public class InMemoryDataSetService implements DataSetService {
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
         // only to check if dataprovider exists
-        //TODO: use UISClient here
-        try {
-
-            dataProviderDao.getProvider(providerId);
-        } catch (ProviderDoesNotExistException ex) {
-            throw new ProviderNotExistsException();
+        if (!uisHandler.providerExistsInUIS(providerId)) {
+            throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
         }
 
         return dataSetDAO.createDataSet(providerId, dataSetId, description);

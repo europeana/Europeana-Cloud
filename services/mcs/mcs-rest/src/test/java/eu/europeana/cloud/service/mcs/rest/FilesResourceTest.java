@@ -4,14 +4,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -46,16 +44,14 @@ public class FilesResourceTest extends JerseyTest {
 
     private RecordService recordService;
 
-    //private DataProviderService providerService;
-
     private Representation rep;
 
     private File file;
 
     private WebTarget filesWebTarget;
 
+    private UISClientHandler uisHandler;
 
-    //    private UISClientHandlerImpl uisHandler;
 
     @Before
     public void mockUp()
@@ -63,14 +59,12 @@ public class FilesResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
 
-        //        uisHandler = applicationContext.getBean(UISClientHandlerImpl.class);
-        //        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         DataProvider dp = new DataProvider();
         dp.setId("1");
-       
-        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
-        Mockito.doReturn(dp).when(dataProviderDAO).getProvider("1");
-      
+
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");

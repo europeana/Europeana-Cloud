@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,6 +17,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -26,7 +26,6 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 
 /**
  * InMemoryContentServiceImpl
@@ -44,7 +43,7 @@ public class InMemoryRecordService implements RecordService {
     private InMemoryDataSetDAO dataSetDAO;
 
     @Autowired
-    private InMemoryDataProviderDAO dataProviderDAO;
+    private UISClientHandler uisHandler;
 
 
     public InMemoryRecordService() {
@@ -53,12 +52,12 @@ public class InMemoryRecordService implements RecordService {
 
 
     InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
-            InMemoryDataProviderDAO dataProviderDAO) {
+            UISClientHandler uisHandler) {
         super();
         this.recordDAO = recordDAO;
         this.contentDAO = contentDAO;
         this.dataSetDAO = dataSetDAO;
-        this.dataProviderDAO = dataProviderDAO;
+        this.uisHandler = uisHandler;
     }
 
 
@@ -108,9 +107,7 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
             throws RecordNotExistsException, ProviderNotExistsException {
-        try {
-            dataProviderDAO.getProvider(providerId);
-        } catch (ProviderDoesNotExistException ex) {
+        if (!uisHandler.providerExistsInUIS(providerId)) {
             throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
         }
         return recordDAO.createRepresentation(globalId, representationName, providerId);

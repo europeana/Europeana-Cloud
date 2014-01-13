@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetExcept
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -55,11 +54,6 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(FileNotExistsException exception) {
         return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.FILE_NOT_EXISTS, exception);
-    }
-
-
-    public Response toResponse(ProviderAlreadyExistsException exception) {
-        return buildResponse(Response.Status.CONFLICT, McsErrorCode.PROVIDER_ALREADY_EXISTS, exception);
     }
 
 

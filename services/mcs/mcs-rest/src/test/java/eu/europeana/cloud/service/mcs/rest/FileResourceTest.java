@@ -30,7 +30,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
@@ -44,9 +43,9 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
+import org.mockito.Mockito;
 
 /**
  * FileResourceTest
@@ -56,14 +55,13 @@ public class FileResourceTest extends JerseyTest {
 
     private RecordService recordService;
 
-  //  private DataProviderService providerService;
-
     private Representation rep;
 
     private File file;
 
     private WebTarget fileWebTarget;
 
+    private UISClientHandler uisHandler;
 
 
     @Before
@@ -71,10 +69,11 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
         DataProvider dataProvider = new DataProvider();
         dataProvider.setId("1");
-        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
-        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("1");
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("1");
+        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");

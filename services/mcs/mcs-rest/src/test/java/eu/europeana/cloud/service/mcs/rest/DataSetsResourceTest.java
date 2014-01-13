@@ -11,9 +11,8 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 import java.net.URI;
 import java.util.List;
 import javax.ws.rs.Path;
@@ -57,8 +56,6 @@ public class DataSetsResourceTest extends JerseyTest {
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProvider.setId("provId");
-        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
-        Mockito.doReturn(dataProvider).when(dataProviderDAO).getProvider("provId");
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetsWebTarget = target(DataSetsResource.class.getAnnotation(Path.class).value());
@@ -68,13 +65,14 @@ public class DataSetsResourceTest extends JerseyTest {
     @After
     public void cleanUp()
             throws Exception {
-
+        Mockito.reset(uisHandler);
     }
 
 
     @Test
     public void shouldCreateDataset()
             throws Exception {
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("provId");
         // given
         String datasetId = "dataset";
         String description = "dataset description";
@@ -102,6 +100,7 @@ public class DataSetsResourceTest extends JerseyTest {
     @Test
     public void shouldRequireDatasetIdParameterOnCreate() {
         // given
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("notexisting");
         String description = "dataset description";
 
         // when you try to add data set without id
@@ -118,6 +117,7 @@ public class DataSetsResourceTest extends JerseyTest {
     @Test
     public void shouldNotCreateTwoDatasetsWithSameId()
             throws Exception {
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("provId");
         // given that there is a dataset with certain id
         String dataSetId = "dataset";
         dataSetService.createDataSet("provId", dataSetId, "");

@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.base.Functions;
@@ -40,7 +39,8 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import org.mockito.Mockito;
 
 /**
  * FileResourceTest
@@ -49,8 +49,6 @@ import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 public class RepresentationSearchTest extends JerseyTest {
 
     private RecordService recordService;
-
-   // private DataProviderService providerService;
 
     private DataSetService dataSetService;
 
@@ -62,6 +60,8 @@ public class RepresentationSearchTest extends JerseyTest {
 
     private Representation s2_p1;
 
+    private UISClientHandler uisHandler;
+
 
     @Before
     public void mockUp()
@@ -70,13 +70,16 @@ public class RepresentationSearchTest extends JerseyTest {
         recordService = applicationContext.getBean(RecordService.class);
         representationSearchWebTarget = target(RepresentationSearchResource.class.getAnnotation(Path.class).value());
         dataSetService = applicationContext.getBean(DataSetService.class);
+        uisHandler = applicationContext.getBean(UISClientHandler.class);
+
         DataProvider dp = new DataProvider();
         dp.setId("p1");
         DataProvider dp2 = new DataProvider();
         dp.setId("p2");
-        InMemoryDataProviderDAO dataProviderDAO = applicationContext.getBean(InMemoryDataProviderDAO.class);
-        Mockito.doReturn(dp).when(dataProviderDAO).getProvider("p1");
-        Mockito.doReturn(dp2).when(dataProviderDAO).getProvider("p2");
+
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("p1");
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("p2");
+
         dataSetService.createDataSet("p1", "ds", "descr");
 
         s1_p1 = recordService.createRepresentation("cloud_1", "s1", "p1");

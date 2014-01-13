@@ -25,9 +25,10 @@ import com.google.common.collect.Lists;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
+import org.mockito.Mockito;
 
 @RunWith(JUnitParamsRunner.class)
 public class InMemoryDataSetServiceTest {
@@ -37,12 +38,16 @@ public class InMemoryDataSetServiceTest {
     private String dataSetId = "Books";
     private List<Representation> representations;
     private InMemoryDataSetService dataSetService;
+    private UISClientHandler uisHandler;
 
 
     @Before
     public void setUp()
             throws Exception {
         datasetDao = mock(InMemoryDataSetDAO.class);
+        uisHandler = mock(UISClientHandler.class);
+        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+
         representations = new ArrayList<>();
         representations = Lists.newArrayList();
         for (int i = 0; i < 5; i++) {
@@ -50,7 +55,7 @@ public class InMemoryDataSetServiceTest {
         }
         when(datasetDao.listDataSet(providerId, dataSetId)).thenReturn(representations);
         InMemoryRecordDAO recordDao = new InMemoryRecordListDAO(representations);
-        dataSetService = new InMemoryDataSetService(datasetDao, recordDao, new InMemoryDataProviderDAO());
+        dataSetService = new InMemoryDataSetService(datasetDao, recordDao, uisHandler);
     }
 
 
@@ -72,7 +77,7 @@ public class InMemoryDataSetServiceTest {
             throws Exception {
         when(datasetDao.listDataSet(providerId, dataSetId)).thenReturn(new ArrayList<Representation>());
         InMemoryRecordDAO recordDao = new InMemoryRecordListDAO(new ArrayList<Representation>());
-        dataSetService = new InMemoryDataSetService(datasetDao, recordDao, new InMemoryDataProviderDAO());
+        dataSetService = new InMemoryDataSetService(datasetDao, recordDao, uisHandler);
 
         ResultSlice<Representation> actual = dataSetService.listDataSet(providerId, dataSetId, null, 100);
 

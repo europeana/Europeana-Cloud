@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.mock_impl;
 
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandler;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 
 public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
 
