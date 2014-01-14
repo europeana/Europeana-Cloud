@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetAlreadyExists
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileNotExistsExceptionMapper;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.GenericExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RuntimeExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.ProviderNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationAlreadyInSetExceptionMapper;
@@ -45,7 +45,7 @@ public class JerseyConfig extends ResourceConfig {
         register(WrongContentRangeExceptionMapper.class);
         register(ProviderNotExistsExceptionMapper.class);
         register(WebApplicationExceptionMapper.class);
-        register(GenericExceptionMapper.class);
+        register(RuntimeExceptionMapper.class);
 
         // resources
         register(RecordsResource.class);
