@@ -15,6 +15,5 @@
 
 	<context:component-scan
 		base-package="eu.europeana.cloud.service.mcs.inmemory, eu.europeana.cloud.service.mcs.rest"/>
-		<bean id="dataProviderDAO" class="eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO"/>
 
 </beans>
