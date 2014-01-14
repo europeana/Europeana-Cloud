@@ -54,7 +54,10 @@
 				</excludes>
 			</resource>
 		</resources>
-		<plugins>
+                <plugins>
+                    <!--
+                    copies spring config file from path defined in profile to resources dir
+                    -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
@@ -75,7 +78,10 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+                        </plugin>
+                        <!--
+                        Unpacks "solr.home" directory from ecloud-service-mcs-persistent-impl jar to test resources dir - for test purposes
+                        -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
