@@ -1,17 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent.uis;
 
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
-import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.exceptions.GenericException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.*;
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.GenericException;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/uisIntegrationTestContext.xml" })
@@ -74,7 +77,7 @@ public class UISHandlerTest {
     public void shouldThrowExWhenGotEmptyListFromUIS()
             throws Exception {
         String cloudId = "cloudId";
-        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(new ArrayList<CloudId>());
+        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(new ResultSlice<CloudId>());
         handler.recordExistInUIS(cloudId);
     }
 
@@ -85,8 +88,10 @@ public class UISHandlerTest {
         String cloudId = "cloudId";
         CloudId cl = new CloudId();
         cl.setId("66666");
-        ArrayList<CloudId> result = new ArrayList<>();
-        result.add(cl);
+        ResultSlice<CloudId> result = new ResultSlice<>();
+        List<CloudId> resultList = new ArrayList<>();
+        resultList.add(cl);
+        result.setResults(resultList);
 
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 
@@ -100,8 +105,10 @@ public class UISHandlerTest {
         String cloudId = "cloudId";
         CloudId cl = new CloudId();
         cl.setId(cloudId);
-        ArrayList<CloudId> result = new ArrayList<>();
-        result.add(cl);
+        ResultSlice<CloudId> result = new ResultSlice<>();
+        List<CloudId> resultList = new ArrayList<>();
+        resultList.add(cl);
+        result.setResults(resultList);
 
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 

@@ -86,7 +86,7 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	@ReturnType("eu.europeana.cloud.common.response.ResultSlice")
 	public Response getLocalIds(@QueryParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-		ResultSlice<LocalId> pList = new ResultSlice<>();
+		ResultSlice<CloudId> pList = new ResultSlice<>();
 		pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
 		return Response.ok(pList).build();
 	}
@@ -99,10 +99,10 @@ public class BasicUniqueIdResource implements UniqueIdResource {
 	public Response getLocalIdsByProvider(@QueryParam(PROVIDERID) String providerId, @QueryParam(START) String start,
 			@QueryParam(TO) @DefaultValue("10000") int to) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
-		ResultSlice<LocalId> pList = new ResultSlice<>();
+		ResultSlice<CloudId> pList = new ResultSlice<>();
 		pList.setResults(uniqueIdentifierService.getLocalIdsByProvider(providerId, start, to));
 		if(pList.getResults().size()==to){
-			pList.setNextSlice(pList.getResults().get(to-1).getRecordId());
+			pList.setNextSlice(pList.getResults().get(to-1).getId());
 		}
 		return Response.ok(pList).build();
 

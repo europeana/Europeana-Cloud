@@ -140,7 +140,7 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public ResultSlice<LocalId> getRecordId(String globalId) throws CloudException {
+	public ResultSlice<CloudId> getRecordId(String globalId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDS.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDS.getParamNames().get(0), globalId).request().get();
 

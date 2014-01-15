@@ -60,7 +60,7 @@ public interface UniqueIdentifierService {
      * @throws ProviderDoesNotExistException 
      * @throws RecordDatasetEmptyException 
      */
-    List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
+    List<CloudId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
             CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**
@@ -75,7 +75,7 @@ public interface UniqueIdentifierService {
      * @throws ProviderDoesNotExistException
      * @throws RecordDatasetEmptyException 
      */
-    List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
+    List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**

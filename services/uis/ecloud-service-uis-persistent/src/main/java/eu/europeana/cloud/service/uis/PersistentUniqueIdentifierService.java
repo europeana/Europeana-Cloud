@@ -110,7 +110,7 @@ public class PersistentUniqueIdentifierService implements
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByCloudId(String cloudId)
+	public List<CloudId> getLocalIdsByCloudId(String cloudId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
@@ -122,11 +122,11 @@ public class PersistentUniqueIdentifierService implements
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
 									.getErrorInfo(cloudId)));
 		}
-		List<LocalId> localIds = new ArrayList<>();
+		List<CloudId> localIds = new ArrayList<>();
 		for (CloudId cId : cloudIds) {
 			if (localIdDao.searchActive(cId.getLocalId().getProviderId(),
 					cId.getLocalId().getRecordId()).size() > 0) {
-				localIds.add(cId.getLocalId());
+				localIds.add(cId);
 			}
 		}
 		return localIds;
@@ -134,7 +134,7 @@ public class PersistentUniqueIdentifierService implements
 	}
 
 	@Override
-	public List<LocalId> getLocalIdsByProvider(String providerId, String start,
+	public List<CloudId> getLocalIdsByProvider(String providerId, String start,
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 
@@ -153,9 +153,9 @@ public class PersistentUniqueIdentifierService implements
 			cloudIds = localIdDao.searchActiveWithPagination(start, end,
 					providerId);
 		}
-		List<LocalId> localIds = new ArrayList<>();
+		List<CloudId> localIds = new ArrayList<>();
 		for (CloudId cloudId : cloudIds) {
-			localIds.add(cloudId.getLocalId());
+			localIds.add(cloudId);
 		}
 		return localIds;
 	}

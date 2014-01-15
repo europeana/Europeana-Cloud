@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.uis;
 
-import eu.europeana.cloud.service.mcs.UISClientHandler;
 import java.util.Iterator;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -10,6 +8,8 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 
@@ -30,15 +30,15 @@ public class UISClientHandlerImpl implements UISClientHandler {
     public boolean recordExistInUIS(String cloudId) {
         boolean result = false;
         try {
-            List<CloudId> records = uisClient.getRecordId(cloudId);
+            ResultSlice<CloudId> records = uisClient.getRecordId(cloudId);
             if (records == null) {
                 throw new IllegalStateException("UIS returned null");
             }
-            if (records.isEmpty()) {
+            if (records.getResults().isEmpty()) {
                 throw new IllegalStateException("UIS returned empty list");
             }
 
-            Iterator<CloudId> iterator = records.iterator();
+            Iterator<CloudId> iterator = records.getResults().iterator();
             while (iterator.hasNext()) {
                 CloudId ci = iterator.next();
                 if (ci.getId().equals(cloudId)) {

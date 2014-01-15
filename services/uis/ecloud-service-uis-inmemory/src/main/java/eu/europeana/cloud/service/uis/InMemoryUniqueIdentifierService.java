@@ -81,24 +81,24 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
     }
 
     @Override
-    public List<LocalId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
+    public List<CloudId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
             CloudIdDoesNotExistException, ProviderDoesNotExistException {
         List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
         if (cloudIds.size() == 0) { throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
                 IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId))); }
-        List<LocalId> localIds = new ArrayList<>();
+        List<CloudId> localIds = new ArrayList<>();
         for (CloudId cId : cloudIds) {
             if (localIdDao.searchActive(cId.getLocalId().getProviderId(),
                     cId.getLocalId().getRecordId()).size() > 0) {
-                localIds.add(cId.getLocalId());
+                localIds.add(cId);
             }
         }
         return localIds;
     }
 
     @Override
-    public List<LocalId> getLocalIdsByProvider(String providerId, String start, int end)
+    public List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
             throws DatabaseConnectionException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         List<CloudId> cloudIds = null;
@@ -107,9 +107,9 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
         } else {
             cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
         }
-        List<LocalId> localIds = new ArrayList<>();
+        List<CloudId> localIds = new ArrayList<>();
         for (CloudId cloudId : cloudIds) {
-            localIds.add(cloudId.getLocalId());
+            localIds.add(cloudId);
         }
         return localIds;
     }

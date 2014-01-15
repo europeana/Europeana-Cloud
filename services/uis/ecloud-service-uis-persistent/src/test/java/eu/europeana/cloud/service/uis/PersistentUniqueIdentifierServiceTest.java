@@ -90,7 +90,7 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 	 */
 	@Test(expected = CloudIdDoesNotExistException.class)
 	public void testGetLocalIdsByCloudId() throws Exception{
-		List<LocalId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
+		List<CloudId> gid = service.getLocalIdsByCloudId(Base36.encode("/test11/test11"));
 		CloudId gId = service.createCloudId("test11", "test11");
 		gid = service.getLocalIdsByCloudId(gId.getId());
 		assertEquals(gid.size(), 1);
@@ -118,7 +118,7 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 	public void testGetLocalIdsByProviderId() throws Exception{
 		dataProviderDao.createOrUpdateProvider("test5", new DataProviderProperties());
 		service.createCloudId("test5", "test5");
-		List<LocalId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
+		List<CloudId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
 		assertEquals(cIds.size(), 1);
 		cIds = service.getLocalIdsByProvider("test5", null, 10000);
 		assertEquals(cIds.size(), 1);
