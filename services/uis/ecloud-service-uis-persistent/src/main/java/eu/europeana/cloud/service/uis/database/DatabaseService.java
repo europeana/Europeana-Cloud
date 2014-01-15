@@ -49,7 +49,7 @@ public class DatabaseService {
 				.withCredentials(username, password).build();
 		if (create) {
 			session = cluster.connect();
-			List<String> cql = FileUtils.readLines(new File(getClass().getResource("cassandra-uis.cql").getPath()));
+			List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
 			int i = 0;
 			for (String query : cql) {
 				if (i < 2) {
