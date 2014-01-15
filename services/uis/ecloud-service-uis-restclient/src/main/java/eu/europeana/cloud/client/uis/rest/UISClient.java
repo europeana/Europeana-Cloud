@@ -1,7 +1,5 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import java.util.List;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -142,13 +140,12 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public List<CloudId> getRecordId(String globalId) throws CloudException {
+	public ResultSlice<LocalId> getRecordId(String globalId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDS.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDS.getParamNames().get(0), globalId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
-			return cloudIds.getResults();
+			return resp.readEntity(ResultSlice.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -165,13 +162,12 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public List<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
+	public ResultSlice<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			ResultSlice<LocalId> localIds = resp.readEntity(ResultSlice.class);
-			return localIds.getResults();
+			return resp.readEntity(ResultSlice.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -188,13 +184,12 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public List<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
+	public ResultSlice<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(0), providerId).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
-			return cloudIds.getResults();
+			return resp.readEntity(ResultSlice.class);
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -215,7 +210,7 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public List<LocalId> getRecordIdsByProviderWithPagination(String providerId, String recordId, int window)
+	public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(String providerId, String recordId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETLOCALIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(0), providerId)
@@ -224,7 +219,7 @@ public class UISClient {
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			ResultSlice<LocalId> localIds = resp.readEntity(ResultSlice.class);
-			return localIds.getResults();
+			return localIds;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);
@@ -245,7 +240,7 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	@SuppressWarnings("unchecked")
-	public List<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
+	public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(String providerId, String cloudId, int window)
 			throws CloudException {
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.GETCLOUDIDSBYPROVIDER.getUrl()))
 				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(0), providerId)
@@ -254,7 +249,7 @@ public class UISClient {
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
-			return cloudIds.getResults();
+			return cloudIds;
 		} else {
 			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 			throw generateException(errorInfo);

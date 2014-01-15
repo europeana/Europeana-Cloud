@@ -21,7 +21,7 @@ public class GetRecordIdsByProviderWithPaginationCommand extends Command {
 			throw new InvalidAttributesException();
 		}
 		try {
-			for (LocalId cId : client.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2]))) {
+			for (LocalId cId : client.getRecordIdsByProviderWithPagination(input[0],input[1],Integer.parseInt(input[2])).getResults()) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

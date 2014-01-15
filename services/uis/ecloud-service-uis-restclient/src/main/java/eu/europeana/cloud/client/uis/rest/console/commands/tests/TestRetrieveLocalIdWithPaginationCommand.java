@@ -28,16 +28,16 @@ public class TestRetrieveLocalIdWithPaginationCommand extends Command {
 		try {
 			List<String> ids = FileUtils.readLines(new File(input[1]));
 			String[] columns = ids.get(0).split(" ");
-			List<CloudId> cloudIds = client.getCloudIdsByProvider(columns[1]);
+			List<CloudId> cloudIds = client.getCloudIdsByProvider(columns[1]).getResults();
 			int window = Integer.parseInt(input[0]);
 			Date now = new Date();
 
 			System.out.println("Starting test at: " + now.toString());
 			List<LocalId> paginated = client.getRecordIdsByProviderWithPagination(columns[1], cloudIds.get(0)
-					.getLocalId().getRecordId(), window);
+					.getLocalId().getRecordId(), window).getResults();
 			while (paginated.size()==window){
 				List<LocalId>paginated2 = client.getRecordIdsByProviderWithPagination(columns[1], paginated.get(19)
-						.getRecordId(), window);
+						.getRecordId(), window).getResults();
 				paginated = paginated2;
 			}
 			long end = new Date().getTime() - now.getTime();

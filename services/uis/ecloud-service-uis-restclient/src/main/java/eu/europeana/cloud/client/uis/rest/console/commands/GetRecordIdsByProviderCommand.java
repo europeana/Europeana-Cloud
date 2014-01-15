@@ -20,7 +20,7 @@ public class GetRecordIdsByProviderCommand extends Command {
 			throw new InvalidAttributesException();
 		}
 		try {
-			for (LocalId cId : client.getRecordIdsByProvider(input[0])) {
+			for (LocalId cId : client.getRecordIdsByProvider(input[0]).getResults()) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

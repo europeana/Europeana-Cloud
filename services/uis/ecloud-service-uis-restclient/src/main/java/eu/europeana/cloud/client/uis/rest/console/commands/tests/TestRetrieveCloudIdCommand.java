@@ -12,7 +12,7 @@ import org.apache.commons.io.FileUtils;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
-import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.LocalId;
 
 /**
  * Test retrieve cloud id command
@@ -30,7 +30,7 @@ public class TestRetrieveCloudIdCommand extends Command {
 			System.out.println("Starting test at: " + now.toString());
 			
 			String[] columns = ids.get(0).split(" ");
-			List<CloudId> cloudIds = client.getRecordId(columns[0]);
+			List<LocalId> cloudIds = client.getRecordId(columns[0]).getResults();
 			
 			long end = new Date().getTime()-now.getTime();
 			System.out.println("Fetching "+ cloudIds.size()+" records took " + end + " ms");

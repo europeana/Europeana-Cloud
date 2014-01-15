@@ -5,7 +5,7 @@ import javax.naming.directory.InvalidAttributesException;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.Command;
-import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.LocalId;
 
 /**
  * Retrieval of record ids from cloud id console command
@@ -20,7 +20,7 @@ public class GetRecordIdsCommand extends Command {
 			throw new InvalidAttributesException();
 		}
 		try {
-			for (CloudId cId : client.getRecordId(input[0])) {
+			for (LocalId cId : client.getRecordId(input[0]).getResults()) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {

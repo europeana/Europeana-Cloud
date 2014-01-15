@@ -29,7 +29,7 @@ public class TestRetrieveCloudIdNoPaginationCommand extends Command {
 			System.out.println("Starting test at: " + now.toString());
 			
 			String[] columns = ids.get(0).split(" ");
-			List<CloudId> cloudIds = client.getCloudIdsByProvider(columns[1]);
+			List<CloudId> cloudIds = client.getCloudIdsByProvider(columns[1]).getResults();
 			
 			long end = new Date().getTime()-now.getTime();
 			System.out.println("Fetching "+ cloudIds.size()+" records took " + end + " ms");

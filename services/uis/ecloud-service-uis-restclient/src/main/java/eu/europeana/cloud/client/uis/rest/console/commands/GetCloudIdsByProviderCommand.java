@@ -20,7 +20,7 @@ public class GetCloudIdsByProviderCommand extends Command {
 			throw new InvalidAttributesException();
 		}
 		try {
-			for (CloudId cId : client.getCloudIdsByProvider(input[0])) {
+			for (CloudId cId : client.getCloudIdsByProvider(input[0]).getResults()) {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {
