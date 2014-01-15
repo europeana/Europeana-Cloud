@@ -16,6 +16,8 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Maps exceptions thrown by services to {@link Response}.
@@ -23,6 +25,8 @@ import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 public class UnitedExceptionMapper {
 
     static final int UNPROCESSABLE_ENTITY = 422;
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
 
 
     /**
@@ -179,6 +183,7 @@ public class UnitedExceptionMapper {
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(RuntimeException exception) {
+        LOGGER.error("Unexpected error occured.", exception);
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
 
