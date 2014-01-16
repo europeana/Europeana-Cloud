@@ -41,8 +41,21 @@
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
-		</profile>
-	</profiles>
+                </profile>
+                <profile> 
+                    <id>standalone</id>
+                    <properties>
+                        <spring.config.dir>standalone</spring.config.dir>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>eu.europeana.cloud</groupId>
+                            <artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                    </dependencies>
+                </profile>
+        </profiles>
 
 	<build>
 		<resources>
@@ -50,7 +63,8 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>persistent/</exclude>
-					<exclude>inmemory/</exclude>
+                                        <exclude>inmemory/</exclude>
+                                        <exclude>standalone/</exclude>
 				</excludes>
 			</resource>
 		</resources>
