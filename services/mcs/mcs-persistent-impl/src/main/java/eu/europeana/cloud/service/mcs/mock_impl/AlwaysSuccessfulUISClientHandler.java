@@ -15,8 +15,9 @@ public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
         return true;
     }
 
-	@Override
-	public boolean providerExistsInUIS(String providerId) {
-		return true;
-	}
+
+    @Override
+    public boolean providerExistsInUIS(String providerId) {
+        return true;
+    }
 }

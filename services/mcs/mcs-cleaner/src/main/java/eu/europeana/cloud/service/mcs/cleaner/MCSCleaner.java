@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -21,6 +22,8 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
  */
 public final class MCSCleaner {
 
+    private static final int STATUS_CODE_NO_CONTENT = 204;
+    private static final int FACET_LIMIT = 100;
     private static Logger logger = Logger.getLogger(MCSCleaner.class);
     private static Client client = JerseyClientBuilder.newClient();
 
@@ -52,7 +55,7 @@ public final class MCSCleaner {
         SolrServer solrServer = new HttpSolrServer(solrUrl);
         try {
             SolrQuery query = new SolrQuery("*:*").addFacetField("cloud_id").setRows(0).setFacet(true)
-                    .setFacetLimit(100);
+                    .setFacetLimit(FACET_LIMIT);
 
             int resultCount = 1;
             int offset = 0;
@@ -74,7 +77,7 @@ public final class MCSCleaner {
             for (String id : idList) {
                 logger.debug("Deleting " + id);
                 Response response = client.target(mcsUrl + "records/" + id).request().delete();
-                if (response.getStatus() != 204) {
+                if (response.getStatus() != STATUS_CODE_NO_CONTENT) {
                     logger.error("Cannot remove record " + id + " " + response.toString());
                 }
             }

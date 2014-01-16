@@ -7,7 +7,7 @@ import java.util.Objects;
  * Parameter Object grouping parameters used to search representations. Instances of this class are immutable and must
  * be created with {@link Builder}.
  */
-public class RepresentationSearchParams {
+public final class RepresentationSearchParams {
 
     /**
      * Record id.

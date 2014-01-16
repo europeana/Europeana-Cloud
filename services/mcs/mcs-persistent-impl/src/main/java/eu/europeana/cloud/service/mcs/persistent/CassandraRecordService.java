@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-import eu.europeana.cloud.service.mcs.UISClientHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,6 +21,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
@@ -34,7 +30,11 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
+import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
+import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -42,7 +42,7 @@ import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 @Service
 public class CassandraRecordService implements RecordService {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
 
     @Autowired
     private CassandraRecordDAO recordDAO;

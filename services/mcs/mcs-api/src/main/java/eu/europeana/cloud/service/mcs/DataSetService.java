@@ -124,7 +124,7 @@ public interface DataSetService {
      *            max number of results in one slice.
      * @return list of data sets as a result slice.
      */
-    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit);
+    ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit);
 
 
     /**
@@ -137,6 +137,6 @@ public interface DataSetService {
      * @throws DataSetNotExistsException
      *             no such data set exists (data provider does not have one or data provider not exist)
      */
-    public void deleteDataSet(String providerId, String dataSetId)
+    void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException;
 }
