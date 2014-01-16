@@ -42,7 +42,7 @@ public class Client {
 				app.setId(i);
 				Thread t = new Thread(app);
 				t.start();
-
+				
 			}
 			System.out.println("\n");
 

@@ -31,7 +31,7 @@ public class TestCreateMappingIdManyProvidersCommand extends Command {
 		String recordId = input[2];
 		
 		try {
-			String newProvId = providerId+Math.random();
+			String newProvId = providerId+Math.random()+"_"+ new Date().getTime();
 			client.createProvider(newProvId, new DataProviderProperties());
 			CloudId cId = client.createCloudId(newProvId,recordId+Math.random());
 			long i=0;
@@ -44,6 +44,9 @@ public class TestCreateMappingIdManyProvidersCommand extends Command {
 				client.createMapping(cId.getId(),newProvId+i,recordId+i);
 				str.add(String.format("%s %s %s", cId.getId(),newProvId+i,recordId+i));
 				i++;
+				if(i%1000==0){
+					System.out.println("Added " + i/1000 +" records");
+				}
 			}
 			long end = new Date().getTime() - start;
 			System.out.println("Adding "+ input[0]+" records took " + end + " ms");

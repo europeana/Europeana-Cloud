@@ -44,6 +44,9 @@ public class TestCreateMappingIdOneProviderCommand extends Command {
 				client.createMapping(cId.getId(),providerId,recordId+i);
 				str.add(String.format("%s %s %s", cId.getId(),providerId,recordId+i));
 				i++;
+				if(i%1000==0){
+					System.out.println("Added " + i/1000 +" records");
+				}
 			}
 			long end = new Date().getTime() - start;
 			System.out.println("Adding "+ input[0]+" records took " + end + " ms");

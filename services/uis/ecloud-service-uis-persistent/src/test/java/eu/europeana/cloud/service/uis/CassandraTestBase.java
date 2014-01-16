@@ -30,7 +30,7 @@ public abstract class CassandraTestBase {
 	public static final String KEYSPACE_SCHEMA_CQL = "cassandra-uis.cql";
 
 	/** CassandraTestBase PORT */
-	public static final int PORT = 9142;
+	public static final int PORT = 29142;
 
 	/** CassandraTestBase KEYSPACE */
 	public static final String KEYSPACE = "uis_test4";

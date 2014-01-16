@@ -39,6 +39,9 @@ public class TestReadWriteManyProvidersCommand extends Command {
 				CloudId cId = client.createCloudId(providerId+threadNo+"_"+i);
 				str.add(String.format("%s %s %s", cId.getId(),cId.getLocalId().getProviderId(),cId.getLocalId().getRecordId()));
 				i++;
+				if(i%1000==0){
+					System.out.println("Added " + i/1000 +" records");
+				}
 			}
 			long end = new Date().getTime() - start;
 			System.out.println("Adding "+ input[0]+" records took " + end + " ms");
