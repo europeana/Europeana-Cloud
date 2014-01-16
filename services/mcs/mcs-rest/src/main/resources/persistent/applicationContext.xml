@@ -79,5 +79,10 @@
     
 	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
 	<bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-	<bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
+        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
+        <bean id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient">
+            <constructor-arg name="uisUrl">
+                <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/uis-url"/>
+            </constructor-arg>   
+        </bean>
 </beans>

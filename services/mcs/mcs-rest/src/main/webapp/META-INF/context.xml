@@ -6,9 +6,9 @@
 	
 	  <GlobalNamingResources>
 	
-	      <Environment name="mcs/cassandra/host" value="CASSANDRA_HOST"
-				   type="java.lang.String" override="false"/>
-	[...]-->
+          <Environment name="mcs/cassandra/host" value="CASSANDRA_HOST"
+                               type="java.lang.String" override="false"/>
+    [...]-->
 	
     <ResourceLink
         name="mcs/cassandra/host"
@@ -62,4 +62,9 @@
         global="mcs/swift/password"
         type="java.lang.String"/>
                
+        <ResourceLink 
+            global="mcs/uis-url" 
+            name="mcs/uis-url" 
+            type="java.lang.String"/>
+        
 </Context>
