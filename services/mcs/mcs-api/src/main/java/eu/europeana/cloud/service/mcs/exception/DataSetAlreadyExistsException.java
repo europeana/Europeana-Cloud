@@ -5,11 +5,20 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class DataSetAlreadyExistsException extends Exception {
 
+    /**
+     * Constructs a DataSetAlreadyExistsException with the specified detail message.
+     * 
+     * @param message
+     *            the detail message
+     */
     public DataSetAlreadyExistsException(String message) {
         super(message);
     }
 
 
+    /**
+     * Constructs a DataSetAlreadyExistsException with no specified detail message.
+     */
     public DataSetAlreadyExistsException() {
     }
 }

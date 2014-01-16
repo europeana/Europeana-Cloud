@@ -5,10 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class FileNotExistsException extends Exception {
 
+    /**
+     * Constructs a FileNotExistsException with no specified detail message.
+     */
     public FileNotExistsException() {
     }
 
 
+    /**
+     * Constructs a FileNotExistsException with the specified detail message.
+     * 
+     * @param message
+     *            the detail message
+     */
     public FileNotExistsException(String message) {
         super(message);
     }

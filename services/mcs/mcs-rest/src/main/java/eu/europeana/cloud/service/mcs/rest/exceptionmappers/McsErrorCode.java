@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
+import eu.europeana.cloud.common.response.ErrorInfo;
+
 /**
- * McsErrorCode
+ * Status codes used to as an error code in {@link ErrorInfo}.
  */
 public enum McsErrorCode {
 

@@ -5,10 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class RecordNotExistsException extends Exception {
 
+    /**
+     * Constructs a RecordNotExistsException with no specified detail message.
+     */
     public RecordNotExistsException() {
     }
 
 
+    /**
+     * Constructs a RecordNotExistsException with the specified record identifier.
+     * 
+     * @param recordId
+     *            the record identifier
+     */
     public RecordNotExistsException(String recordId) {
         super("There is no record with provided global id: " + recordId);
     }

@@ -1,15 +1,24 @@
 package eu.europeana.cloud.service.mcs.exception;
 
 /**
- * Thrown whren there was attempt to modify persistent representation version.
+ * Thrown when there was attempt to modify persistent representation version.
  */
 public class CannotModifyPersistentRepresentationException extends Exception {
 
+    /**
+     * Constructs a CannotModifyPersistentRepresentationException with the specified detail message.
+     * 
+     * @param message
+     *            the detail message
+     */
     public CannotModifyPersistentRepresentationException(String message) {
         super(message);
     }
 
 
+    /**
+     * Constructs a CannotModifyPersistentRepresentationException with no specified detail message.
+     */
     public CannotModifyPersistentRepresentationException() {
     }
 }
