@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentation
  * Maps {@link CannotPersistEmptyRepresentationException} to {@link javax.ws.rs.core.Response}.
  * 
  * @author marcinm@man.poznan.pl
- * @see ExceptionMapper
+ * @see javax.ws.rs.ext.ExceptionMapper
  */
 @Provider
 public class CannotPersistEmptyRepresentationExceptionMapper extends UnitedExceptionMapper implements
