@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSetException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
@@ -155,19 +154,6 @@ public class UnitedExceptionMapper {
      */
     public Response toResponse(FileContentHashMismatchException exception) {
         return buildResponse(UNPROCESSABLE_ENTITY, McsErrorCode.FILE_CONTENT_HASH_MISMATCH, exception);
-    }
-
-
-    /**
-     * Maps {@link RepresentationAlreadyInSetException} to {@link Response}. Returns a response with HTTP status code
-     * 409 - "Conflict" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
-     * @return a response mapped from the supplied exception
-     */
-    public Response toResponse(RepresentationAlreadyInSetException exception) {
-        return buildResponse(Response.Status.CONFLICT, McsErrorCode.REPRESENTATION_ALREADY_IN_SET, exception);
     }
 
 
