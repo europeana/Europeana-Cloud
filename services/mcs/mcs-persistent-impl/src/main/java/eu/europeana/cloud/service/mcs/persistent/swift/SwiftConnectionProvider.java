@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
-import java.util.Properties;
 import javax.annotation.PreDestroy;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
@@ -32,16 +31,14 @@ public class SwiftConnectionProvider {
      * @param endpoint
      *            Swift endpoint URL
      * @param user
-     *            user name
+     *            user identity
      * @param password
      *            user password
      */
     public SwiftConnectionProvider(String provider, String container, String endpoint, String user, String password) {
         this.container = container;
-        Properties properties = new Properties();
-        properties.setProperty("swift.endpoint", endpoint);
-        context = ContextBuilder.newBuilder(provider) //put "swift" in config
-                .overrides(properties).credentials(user, password).buildView(BlobStoreContext.class);
+        context = ContextBuilder.newBuilder(provider).endpoint(endpoint).credentials(user, password).apiVersion("v2.0")
+                .buildView(BlobStoreContext.class);
         blobStore = context.getBlobStore();
         if (!blobStore.containerExists(container)) {
             blobStore.createContainerInLocation(null, container);
