@@ -9,44 +9,20 @@ import java.util.Objects;
  */
 public final class RepresentationSearchParams {
 
-    /**
-     * Record id.
-     */
     private final String recordId;
 
-    /**
-     * Representation schema.
-     */
     private final String schema;
 
-    /**
-     * Representation version provider id.
-     */
     private final String dataProvider;
 
-    /**
-     * Representation version state.
-     */
     private final Boolean persistent;
 
-    /**
-     * Identifier of data set.
-     */
     private final String dataSetId;
 
-    /**
-     * Identifier of owner (provider) of data set.
-     */
     private final String dataSetProviderId;
 
-    /**
-     * Start of representation version creation date range.
-     */
     private final Date fromDate;
 
-    /**
-     * End of representation version creation date range.
-     */
     private final Date toDate;
 
 
@@ -63,41 +39,65 @@ public final class RepresentationSearchParams {
     }
 
 
+    /**
+     * Returns representation schema.
+     */
     public String getSchema() {
         return schema;
     }
 
 
+    /**
+     * Returns representation version provider id.
+     */
     public String getDataProvider() {
         return dataProvider;
     }
 
 
+    /**
+     * Returns {@code true} if representation is persistent.
+     */
     public Boolean isPersistent() {
         return persistent;
     }
 
 
+    /**
+     * Returns identifier of data set.
+     */
     public String getDataSetId() {
         return dataSetId;
     }
 
 
+    /**
+     * Returns start of representation version creation date range.
+     */
     public Date getFromDate() {
         return fromDate;
     }
 
 
+    /**
+     * Returns end of representation version creation date range.
+     */
     public Date getToDate() {
         return toDate;
     }
 
 
+    /**
+     * Returns record identifier.
+     */
     public String getRecordId() {
         return recordId;
     }
 
 
+    /**
+     * Returns identifier of owner (provider) of data set.
+     */
     public String getDataSetProviderId() {
         return dataSetProviderId;
     }
