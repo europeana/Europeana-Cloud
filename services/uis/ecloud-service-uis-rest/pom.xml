@@ -17,6 +17,38 @@
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>inmemory</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.config.dir>inmemory</spring.config.dir>
+			</properties>
+			<dependencies>
+
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-uis-inmemory</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>persistent</id>
+			<properties>
+				<spring.config.dir>persistent</spring.config.dir>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-uis-persistent</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 	<dependencies>
 		<dependency>
@@ -24,11 +56,7 @@
 			<artifactId>ecloud-service-uis-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-uis-inmemory</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-uis-persistent</artifactId>
@@ -136,6 +164,17 @@
 		</dependency>
 	</dependencies>
 	<build>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>persistent/</exclude>
+					<exclude>inmemory/</exclude>
+
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -151,7 +190,7 @@
 							<outputDirectory>${basedir}/target/classes</outputDirectory>
 							<resources>
 								<resource>
-									<directory>src/main/resources</directory>
+									<directory>src/main/resources/${spring.config.dir}</directory>
 								</resource>
 							</resources>
 						</configuration>
@@ -196,13 +235,15 @@
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
+							<document>explicit:
+								eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
 							</document>
 							<defaultMessage>Cloud Id Not Found</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
-							<document>explicit: eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException
+							<document>explicit:
+								eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException
 							</document>
 							<defaultMessage>The supplied provider does not exist</defaultMessage>
 						</statusCode>
@@ -210,19 +251,20 @@
 							<httpCode>409</httpCode>
 							<document>explicit:
 								eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
-								<defaultMessage>The record already exists</defaultMessage>
+							<defaultMessage>The record already exists</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>404</httpCode>
 							<document>explicit:
 								eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
-								<defaultMessage>The recordId does not exist</defaultMessage>
+							<defaultMessage>The recordId does not exist</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
 							<document>explicit:
 								eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException</document>
-								<defaultMessage>The record Id for that provider has already been mapped to a cloud Id</defaultMessage>
+							<defaultMessage>The record Id for that provider has already been
+								mapped to a cloud Id</defaultMessage>
 						</statusCode>
 						<statusCode>
 							<httpCode>500</httpCode>

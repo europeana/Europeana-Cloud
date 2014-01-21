@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/jee
+  http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+  http://www.springframework.org/schema/context
+  http://www.springframework.org/schema/context/spring-context.xsd">
+	<context:annotation-config />
+	<bean id="uniqueIdService"
+		class="eu.europeana.cloud.service.uis.InMemoryUniqueIdentifierService">
+		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+		<constructor-arg name="localIdDao" ref="localIdDao" />
+	</bean>
+
+	<bean id="dataProviderService"
+		class="eu.europeana.cloud.service.uis.InMemoryDataProviderService">
+		<constructor-arg name="dataProviderDAO" ref="dataProviderDAO" />
+	</bean>
+	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao">
+	</bean>
+
+	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao">
+	</bean>
+
+	<bean id="dataProviderDAO"
+		class="eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO">
+	</bean>
+
+
+
+	<bean id="mappings"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<value>
+				numberOfElementsOnPage=100
+			</value>
+		</property>
+	</bean>
+
+	<bean id="dataProvider"
+		class="eu.europeana.cloud.service.uis.rest.DataProviderResource" />
+	<bean id="dataProviders"
+		class="eu.europeana.cloud.service.uis.rest.DataProvidersResource" />
+
+	<bean id="uniqueIdResource"
+		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />
+</beans>

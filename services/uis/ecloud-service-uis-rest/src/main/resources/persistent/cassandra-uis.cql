@@ -1,4 +1,3 @@
-CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
 USE %s;
 CREATE TABLE IF NOT EXISTS data_providers (provider_id varchar PRIMARY KEY,properties map<varchar, text>, data_sets map<varchar, varchar>, creation_date timestamp);
 CREATE TABLE IF NOT EXISTS Cloud_Id(cloud_id varchar, provider_id varchar, record_id varchar, deleted boolean, PRIMARY KEY (cloud_id, provider_id,record_id));

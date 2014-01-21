@@ -19,7 +19,6 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 public class InMemoryDataProviderService implements DataProviderService {
 
 
-    @Autowired
     private InMemoryDataProviderDAO dataProviderDAO;
 
 
