@@ -51,7 +51,7 @@ public class InMemoryRecordService implements RecordService {
     }
 
 
-    InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
+    public InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
             UISClientHandler uisHandler) {
         super();
         this.recordDAO = recordDAO;
