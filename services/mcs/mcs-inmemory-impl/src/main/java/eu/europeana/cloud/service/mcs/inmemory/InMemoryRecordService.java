@@ -34,7 +34,7 @@ import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 public class InMemoryRecordService implements RecordService {
 
     @Autowired
-    private InMemoryRecordDAO recordDAO;
+    private InMemoryRecordDAO  recordDAO;
 
     @Autowired
     private InMemoryContentDAO contentDAO;
@@ -43,16 +43,14 @@ public class InMemoryRecordService implements RecordService {
     private InMemoryDataSetDAO dataSetDAO;
 
     @Autowired
-    private UISClientHandler uisHandler;
-
+    private UISClientHandler   uisHandler;
 
     public InMemoryRecordService() {
         super();
     }
 
-
-    public InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO, InMemoryDataSetDAO dataSetDAO,
-            UISClientHandler uisHandler) {
+    public InMemoryRecordService(InMemoryRecordDAO recordDAO, InMemoryContentDAO contentDAO,
+                                 InMemoryDataSetDAO dataSetDAO, UISClientHandler uisHandler) {
         super();
         this.recordDAO = recordDAO;
         this.contentDAO = contentDAO;
@@ -60,24 +58,21 @@ public class InMemoryRecordService implements RecordService {
         this.uisHandler = uisHandler;
     }
 
-
     @Override
-    public Record getRecord(String globalId)
-            throws RecordNotExistsException {
+    public Record getRecord(String globalId) throws RecordNotExistsException {
         return recordDAO.getRecord(globalId);
     }
 
-
     @Override
-    public void deleteRecord(String globalId)
-            throws RecordNotExistsException {
+    public void deleteRecord(String globalId) throws RecordNotExistsException {
         Record r = recordDAO.getRecord(globalId);
         for (Representation rep : r.getRepresentations()) {
             try {
-                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
+                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId,
+                        rep.getSchema())) {
                     for (File f : repVersion.getFiles()) {
-                        contentDAO.deleteContent(globalId, repVersion.getSchema(), repVersion.getVersion(),
-                            f.getFileName());
+                        contentDAO.deleteContent(globalId, repVersion.getSchema(),
+                                repVersion.getVersion(), f.getFileName());
                     }
                 }
             } catch (RepresentationNotExistsException | FileNotExistsException ex) {
@@ -86,7 +81,6 @@ public class InMemoryRecordService implements RecordService {
         }
         recordDAO.deleteRecord(globalId);
     }
-
 
     @Override
     public void deleteRepresentation(String globalId, String schema)
@@ -103,16 +97,13 @@ public class InMemoryRecordService implements RecordService {
         recordDAO.deleteRepresentation(globalId, schema);
     }
 
-
     @Override
-    public Representation createRepresentation(String globalId, String representationName, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException {
-        if (!uisHandler.providerExistsInUIS(providerId)) {
-            throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
-        }
+    public Representation createRepresentation(String globalId, String representationName,
+            String providerId) throws RecordNotExistsException, ProviderNotExistsException {
+        if (!uisHandler.providerExistsInUIS(providerId)) { throw new ProviderNotExistsException(
+                (String.format("Provider %s does not exist.", providerId))); }
         return recordDAO.createRepresentation(globalId, representationName, providerId);
     }
-
 
     @Override
     public Representation getRepresentation(String globalId, String schema)
@@ -120,13 +111,11 @@ public class InMemoryRecordService implements RecordService {
         return recordDAO.getRepresentation(globalId, schema, null);
     }
 
-
     @Override
     public Representation getRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException {
         return recordDAO.getRepresentation(globalId, schema, version);
     }
-
 
     @Override
     public void deleteRepresentation(String globalId, String schema, String version)
@@ -142,13 +131,20 @@ public class InMemoryRecordService implements RecordService {
         recordDAO.deleteRepresentation(globalId, schema, version);
     }
 
-
     @Override
     public Representation persistRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-        return recordDAO.persistRepresentation(globalId, schema, version);
+        Representation representation = recordDAO.persistRepresentation(globalId, schema, version);
+        for (File file : representation.getFiles()) {
+            try {
+                contentDAO.copyContent(globalId, schema, version, file.getFileName(), globalId, schema,
+                        representation.getVersion(), file.getFileName());
+            } catch (FileNotExistsException e) {
+                throw new CannotModifyPersistentRepresentationException("Could not persist representation!", e);
+            }
+        }
+        return representation;
     }
-
 
     @Override
     public List<Representation> listRepresentationVersions(String globalId, String schema)
@@ -156,14 +152,12 @@ public class InMemoryRecordService implements RecordService {
         return recordDAO.listRepresentationVersions(globalId, schema);
     }
 
-
     @Override
-    public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+    public boolean putContent(String globalId, String schema, String version, File file,
+            InputStream content) throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException {
         Representation representation = recordDAO.getRepresentation(globalId, schema, version);
-        if (representation.isPersistent()) {
-            throw new CannotModifyPersistentRepresentationException();
-        }
+        if (representation.isPersistent()) { throw new CannotModifyPersistentRepresentationException(); }
 
         boolean isCreate = true; // if it is create file operation or update content
         if (file.getFileName() == null) {
@@ -185,11 +179,10 @@ public class InMemoryRecordService implements RecordService {
         return isCreate;
     }
 
-
     @Override
-    public void getContent(String globalId, String schema, String version, String fileName, long rangeStart,
-            long rangeEnd, OutputStream os)
-            throws FileNotExistsException, WrongContentRangeException {
+    public void getContent(String globalId, String schema, String version, String fileName,
+            long rangeStart, long rangeEnd, OutputStream os) throws FileNotExistsException,
+            WrongContentRangeException {
         try {
             contentDAO.getContent(globalId, schema, version, fileName, rangeStart, rangeEnd, os);
         } catch (IOException ex) {
@@ -197,10 +190,9 @@ public class InMemoryRecordService implements RecordService {
         }
     }
 
-
     @Override
-    public String getContent(String globalId, String schema, String version, String fileName, OutputStream os)
-            throws FileNotExistsException, RepresentationNotExistsException {
+    public String getContent(String globalId, String schema, String version, String fileName,
+            OutputStream os) throws FileNotExistsException, RepresentationNotExistsException {
         Representation rep = getRepresentation(globalId, schema, version);
         String md5 = null;
         for (File f : rep.getFiles()) {
@@ -208,9 +200,7 @@ public class InMemoryRecordService implements RecordService {
                 md5 = f.getMd5();
             }
         }
-        if (md5 == null) {
-            throw new FileNotExistsException();
-        }
+        if (md5 == null) { throw new FileNotExistsException(); }
         try {
             contentDAO.getContent(globalId, schema, version, fileName, -1, -1, os);
         } catch (IOException | WrongContentRangeException ex) {
@@ -218,7 +208,6 @@ public class InMemoryRecordService implements RecordService {
         }
         return md5;
     }
-
 
     @Override
     public void deleteContent(String globalId, String schema, String version, String fileName)
@@ -228,29 +217,30 @@ public class InMemoryRecordService implements RecordService {
         contentDAO.deleteContent(globalId, schema, version, fileName);
     }
 
-
     @Override
     public Representation copyRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, VersionNotExistsException {
         Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
-        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider());
+        Representation copiedRep = recordDAO.createRepresentation(globalId, schema,
+                srcRep.getDataProvider());
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
             try {
-                contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(), globalId, schema,
-                    copiedRep.getVersion(), copiedFile.getFileName());
-                recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
+                contentDAO.copyContent(globalId, schema, version, srcFile.getFileName(), globalId,
+                        schema, copiedRep.getVersion(), copiedFile.getFileName());
+                recordDAO.addOrReplaceFileInRepresentation(globalId, schema,
+                        copiedRep.getVersion(), copiedFile);
             } catch (FileNotExistsException | CannotModifyPersistentRepresentationException ex) {
                 // should not happen
             }
         }
-        //get version after all modifications
+        // get version after all modifications
         return recordDAO.getRepresentation(globalId, schema, copiedRep.getVersion());
     }
 
-
     @Override
-    public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
+    public ResultSlice<Representation> search(RepresentationSearchParams searchParams,
+            String thresholdParam, int limit) {
         int threshold = 0;
         if (thresholdParam != null) {
             threshold = parseInteger(thresholdParam);
@@ -263,13 +253,14 @@ public class InMemoryRecordService implements RecordService {
             // get all for dataset then filter for schema
             List<Representation> toReturn = new ArrayList<>();
             try {
-                List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId);
+                List<Representation> representationStubs = dataSetDAO.listDataSet(providerId,
+                        dataSetId);
                 for (Representation stub : representationStubs) {
                     if (schema == null || schema.equals(stub.getSchema())) {
                         Representation realContent;
                         try {
-                            realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(),
-                                stub.getVersion());
+                            realContent = recordDAO.getRepresentation(stub.getRecordId(),
+                                    stub.getSchema(), stub.getVersion());
                             toReturn.add(realContent);
                         } catch (RepresentationNotExistsException ex) {
                             // ignore
@@ -284,14 +275,13 @@ public class InMemoryRecordService implements RecordService {
         } else {
             allRecords = recordDAO.findRepresentations(providerId, schema);
         }
-        if (allRecords.size() != 0 && threshold >= allRecords.size()) {
-            throw new IllegalArgumentException("Illegal threshold param value: '" + thresholdParam + "'.");
-        }
+        if (allRecords.size() != 0 && threshold >= allRecords.size()) { throw new IllegalArgumentException(
+                "Illegal threshold param value: '" + thresholdParam + "'."); }
         return prepareResultSlice(limit, threshold, allRecords);
     }
 
-
-    private ResultSlice<Representation> prepareResultSlice(int limit, int threshold, List<Representation> allRecords) {
+    private ResultSlice<Representation> prepareResultSlice(int limit, int threshold,
+            List<Representation> allRecords) {
         List<Representation> result = allRecords;
         String nextSlice = null;
         if (limit > 0) {
@@ -304,27 +294,24 @@ public class InMemoryRecordService implements RecordService {
         return new ResultSlice<>(nextSlice, result);
     }
 
-
     private int parseInteger(String thresholdParam) {
         int offset = 0;
         try {
             offset = Integer.parseInt(thresholdParam);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Illegal value of threshold. It should be integer, but was '"
-                    + thresholdParam + "'. ");
+            throw new IllegalArgumentException(
+                    "Illegal value of threshold. It should be integer, but was '" + thresholdParam +
+                            "'. ");
         }
         return offset;
     }
-
 
     @Override
     public File getFile(String globalId, String schema, String version, String fileName)
             throws RepresentationNotExistsException, FileNotExistsException {
         final Representation rep = getRepresentation(globalId, schema, version);
         for (File f : rep.getFiles()) {
-            if (f.getFileName().equals(fileName)) {
-                return f;
-            }
+            if (f.getFileName().equals(fileName)) { return f; }
         }
 
         throw new FileNotExistsException();
