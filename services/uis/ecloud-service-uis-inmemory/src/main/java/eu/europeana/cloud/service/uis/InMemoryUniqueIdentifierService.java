@@ -3,12 +3,12 @@ package eu.europeana.cloud.service.uis;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
-import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao;
 import eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
@@ -30,8 +30,18 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  */
 @Service
 public class InMemoryUniqueIdentifierService implements UniqueIdentifierService {
-    private final InMemoryCloudIdDao cloudIdDao;
-    private final InMemoryLocalIdDao localIdDao;
+    @Autowired
+    private InMemoryCloudIdDao cloudIdDao;
+
+    @Autowired
+    private InMemoryLocalIdDao localIdDao;
+
+    /**
+     * Creates a new instance of this class.
+     */
+    public InMemoryUniqueIdentifierService() {
+        // nothing to do
+    }
 
     /**
      * Creates a new instance of this class and intializes the service with given data access
@@ -46,14 +56,6 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
                                            InMemoryLocalIdDao localIdDao) {
         this.cloudIdDao = cloudIdDao;
         this.localIdDao = localIdDao;
-    }
-
-    /**
-     * Creates a new instance of this class and initializes default data access objects.
-     */
-    public InMemoryUniqueIdentifierService() {
-        cloudIdDao = new InMemoryCloudIdDao();
-        localIdDao = new InMemoryLocalIdDao();
     }
 
     @Override

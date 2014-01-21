@@ -17,45 +17,44 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  */
 @Service
 public class InMemoryDataProviderService implements DataProviderService {
-
-
     @Autowired
     private InMemoryDataProviderDAO dataProviderDAO;
 
+    /**
+     * Creates a new instance of this class.
+     */
+    public InMemoryDataProviderService() {
+        // nothing to do
+    }
 
     /**
      * 
      * Creates a new instance of this class.
+     * 
      * @param dataProviderDAO
      */
-    public InMemoryDataProviderService(InMemoryDataProviderDAO dataProviderDAO){
-    	this.dataProviderDAO = dataProviderDAO;
+    public InMemoryDataProviderService(InMemoryDataProviderDAO dataProviderDAO) {
+        this.dataProviderDAO = dataProviderDAO;
     }
-    
+
     @Override
     public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
-        if (thresholdProviderId != null) {
-            throw new UnsupportedOperationException("Paging with threshold provider id is not supported");
-        }
+        if (thresholdProviderId != null) { throw new UnsupportedOperationException(
+                "Paging with threshold provider id is not supported"); }
         List<DataProvider> providers = dataProviderDAO.getProviders(limit);
         return new ResultSlice<DataProvider>(null, providers);
     }
 
-
     @Override
-    public DataProvider getProvider(String id)
-            throws ProviderDoesNotExistException {
+    public DataProvider getProvider(String id) throws ProviderDoesNotExistException {
         return dataProviderDAO.getProvider(id);
     }
-
 
     @Override
     public DataProvider createProvider(String providerId, DataProviderProperties properties)
             throws ProviderAlreadyExistsException {
         return dataProviderDAO.createProvider(providerId, properties);
     }
-
-
 
     @Override
     public DataProvider updateProvider(String providerId, DataProviderProperties properties)

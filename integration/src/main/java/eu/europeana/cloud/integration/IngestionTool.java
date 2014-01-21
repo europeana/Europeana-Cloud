@@ -9,6 +9,9 @@ import org.apache.commons.io.FileUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -19,11 +22,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
-import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.uis.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
@@ -33,7 +32,20 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  * @author Markus Muhr (markus.muhr@kb.nl)
  * @since Jan 20, 2014
  */
+@Component
 public class IngestionTool {
+    @Autowired
+    private DataSetService          dataSetService;
+
+    @Autowired
+    private RecordService           recordService;
+
+    @Autowired
+    private DataProviderService     dataProviderService;
+
+    @Autowired
+    private UniqueIdentifierService uniqueIdentifierService;
+
     /**
      * Available operations for this tool.
      * 
@@ -79,25 +91,19 @@ public class IngestionTool {
     }
 
     @Option(name = "-o", aliases = { "--operation" }, required = true)
-    private Operation               operation;
+    private Operation operation;
 
     @Option(name = "-p", aliases = { "--provider" }, usage = "Provider for which a dataset should be ingested")
-    private String                  providerId;
+    private String    providerId;
 
     @Option(name = "-d", aliases = { "--dataset" }, usage = "Dataset for which the data should be ingested")
-    private String                  dataSetId;
+    private String    dataSetId;
 
     @Option(name = "-s", aliases = { "--schema" }, usage = "Schema specifying the format of the dataset!")
-    private String                  schema;
+    private String    schema;
 
-    @Option(name = "-d", aliases = { "--directory" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
-    private String                  directory;
-
-    private DataSetService          dataSetService          = new CassandraDataSetService();
-    private RecordService           recordService           = new CassandraRecordService();
-    private DataProviderService     dataProviderService     = new CassandraDataProviderService();
-    private UniqueIdentifierService uniqueIdentifierService = new PersistentUniqueIdentifierService(
-                                                                    null, null, null);
+    @Option(name = "-f", aliases = { "--file" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
+    private String    directory;
 
     /**
      * Runs operations for this tool.
@@ -213,7 +219,11 @@ public class IngestionTool {
      * @param args
      */
     public static void main(String[] args) {
-        IngestionTool tool = new IngestionTool();
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "inmemoryIngestionToolContext.xml");
+        IngestionTool tool = context.getBean(IngestionTool.class);
+
+// IngestionTool tool = new IngestionTool();
         CmdLineParser parser = new CmdLineParser(tool);
         try {
             parser.parseArgument(args);
@@ -226,5 +236,7 @@ public class IngestionTool {
             System.err.println(e.getMessage());
             e.printStackTrace(System.err);
         }
+
+        context.close();
     }
 }

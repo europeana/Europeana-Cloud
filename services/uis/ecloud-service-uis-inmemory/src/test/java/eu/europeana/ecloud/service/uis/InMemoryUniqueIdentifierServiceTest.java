@@ -9,8 +9,9 @@ import org.junit.Test;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.InMemoryUniqueIdentifierService;
+import eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao;
+import eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -33,7 +34,7 @@ public class InMemoryUniqueIdentifierServiceTest {
 	 */
 	@Before
 	public void prepare(){
-		service = new InMemoryUniqueIdentifierService();
+		service = new InMemoryUniqueIdentifierService(new InMemoryCloudIdDao(), new InMemoryLocalIdDao());
 	}
 	
 	/**

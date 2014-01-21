@@ -6,8 +6,8 @@ import java.io.ByteArrayOutputStream;
 
 import junit.framework.Assert;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -28,31 +28,27 @@ import eu.europeana.cloud.service.uis.UniqueIdentifierService;
  * @author Markus Muhr (markus.muhr@kb.nl)
  * @since Jan 7, 2014
  */
-public abstract class AbstractIngestionDataSetTest {
+public abstract class IngestionDataSetTest {
     /**
      * service to manipulate data sets
      */
+    @Autowired
     protected DataSetService          dataSetService;
     /**
      * service that deals with records
      */
+    @Autowired
     protected RecordService           recordService;
     /**
      * service that manages providers
      */
+    @Autowired
     protected DataProviderService     dataProviderService;
     /**
      * service to provide cloud identifiers
      */
+    @Autowired
     protected UniqueIdentifierService uniqueIdentifierService;
-
-    /**
-     * Initializes services.
-     * 
-     * @throws Exception
-     */
-    @Before
-    public abstract void setupServices() throws Exception;
 
     /**
      * Ingestion of a data set and reading the results.
