@@ -8,6 +8,7 @@ public class CannotModifyPersistentRepresentationException extends Exception {
      * Constructs a CannotModifyPersistentRepresentationException with no specified detail message.
      */
     public CannotModifyPersistentRepresentationException() {
+        super();
     }
 
     /**
@@ -29,6 +30,6 @@ public class CannotModifyPersistentRepresentationException extends Exception {
      *            exception
      */
     public CannotModifyPersistentRepresentationException(String message, Exception e) {
-        super(message);
+        super(message, e);
     }
 }
