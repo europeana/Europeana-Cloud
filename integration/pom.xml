@@ -12,7 +12,26 @@
 	</parent>
 
 	<artifactId>ecloud-integration</artifactId>
-	<name>Europeana Cloud: Integration Tests</name>
+	<name>Europeana Cloud: Integration Tests and Tools</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>eu.europeana.cloud.integration.IngestionTool</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>

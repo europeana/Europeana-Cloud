@@ -76,6 +76,8 @@ public abstract class AbstractIngestionDataSetTest {
 
         // ingest data set
         for (int i = 0; i < recordsNumber; i++) {
+            ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes());
+
             File file = new File();
             file.setFileName(fileNamePrefix + i);
             file.setMimeType("text");
@@ -85,12 +87,14 @@ public abstract class AbstractIngestionDataSetTest {
             Representation represantation = recordService.createRepresentation(cloudId.getId(),
                     schema, providerId);
             recordService.putContent(cloudId.getId(), represantation.getSchema(),
-                    represantation.getVersion(), file, new ByteArrayInputStream(content.getBytes()));
+                    represantation.getVersion(), file, is);
             recordService.persistRepresentation(cloudId.getId(), schema,
                     represantation.getVersion());
 
             dataSetService.addAssignment(providerId, dataSetId, represantation.getRecordId(),
                     represantation.getSchema(), represantation.getVersion());
+
+            is.close();
         }
 
         // read data set
@@ -106,14 +110,18 @@ public abstract class AbstractIngestionDataSetTest {
 
             byte[] readBytes = os.toByteArray();
             Assert.assertEquals(content, new String(readBytes));
+
+            os.close();
         }
 
         // delete data set
         for (Representation representation : dataset.getResults()) {
-            recordService.deleteRepresentation(representation.getRecordId(), representation.getSchema());
+            recordService.deleteRepresentation(representation.getRecordId(),
+                    representation.getSchema());
             boolean notExists = false;
             try {
-                recordService.getRepresentation(representation.getRecordId(), representation.getSchema());
+                recordService.getRepresentation(representation.getRecordId(),
+                        representation.getSchema());
             } catch (RepresentationNotExistsException e) {
                 notExists = true;
             }
