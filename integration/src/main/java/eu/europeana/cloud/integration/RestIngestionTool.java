@@ -42,11 +42,21 @@ public class RestIngestionTool {
     /**
      * client configuration
      */
-    private Client client;
+    private Client              client;
     /**
      * provides base url for rest api
      */
-    private String baseUrl;
+    private String              baseUrl;
+
+    /**
+     * Prefix of UIS based rest calls.
+     */
+    private static final String UIS_PREFIX = "ecloud-service-uis-rest-0.1-SNAPSHOT";
+
+    /**
+     * Prefix of MCS based rest calls.
+     */
+    private static final String MCS_PREFIX = "ecloud-service-mcs-rest-0.1-SNAPSHOT";
 
     /**
      * Creates a new instance of this class.
@@ -158,12 +168,13 @@ public class RestIngestionTool {
     @SuppressWarnings("resource")
     private void ingestDataSet() throws Exception {
         DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
-                "Ingesion Tool Provide4", "");
-        client.target(baseUrl + "/uniqueId/data-providers").queryParam("providerId", providerId).request().post(
-                Entity.json(dp));
+                "Ingesion Tool Provider", "");
+        client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers").queryParam("providerId",
+                providerId).request().post(Entity.json(dp));
 
         client.target(
-                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
+                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId +
+                        "").request().put(
                 Entity.form(new Form("description", "Ingestion Tool Dataset")));
 
         Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
@@ -176,7 +187,7 @@ public class RestIngestionTool {
             file.setFileName(input.getName());
             file.setMimeType("text");
 
-            Response resp = client.target(baseUrl + "/uniqueId/createCloudIdLocal").queryParam(
+            Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal").queryParam(
                     "providerId", providerId).queryParam("recordId", input.getName()).request().get();
             CloudId cloudId;
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -186,7 +197,8 @@ public class RestIngestionTool {
             }
 
             resp = client.target(
-                    baseUrl + "/records/{" + cloudId.getId() + "}/representations/{" + schema + "}").request().put(
+                    baseUrl + MCS_PREFIX + "/records/{" + cloudId.getId() + "}/representations/{" +
+                            schema + "}").request().put(
                     Entity.form(new Form("providerId", providerId)));
             Representation representation;
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -198,22 +210,22 @@ public class RestIngestionTool {
             FormDataMultiPart multipart = new FormDataMultiPart().field("mimeType",
                     file.getMimeType()).field("data", is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             client.target(
-                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
-                            representation.getSchema() + "}/versions/{" +
+                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
+                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
                             representation.getVersion() + "}/files/{" + file.getFileName() + "}").request().put(
                     Entity.entity(multipart, multipart.getMediaType()));
 
             client.target(
-                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
-                            representation.getSchema() + "}/versions/{" +
+                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
+                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
                             representation.getVersion() + "}/persist").request().post(null);
 
             multipart = new FormDataMultiPart().field("recordId", representation.getRecordId()).field(
                     "schema", representation.getSchema()).field("version",
                     representation.getVersion());
             client.target(
-                    baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId +
-                            "}/assignments").request().put(
+                    baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
+                            dataSetId + "}/assignments").request().put(
                     Entity.entity(multipart, multipart.getMediaType()));
 
             is.close();
@@ -228,8 +240,8 @@ public class RestIngestionTool {
     @SuppressWarnings("unchecked")
     private void readDataSet() throws Exception {
         Response resp = client.target(
-                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
-                null);
+                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
+                        dataSetId + "}").request().put(null);
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -241,8 +253,8 @@ public class RestIngestionTool {
             FileOutputStream os = new FileOutputStream(new java.io.File(
                     directory + "/" + representation.getFiles().get(0).getFileName()));
             resp = client.target(
-                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
-                            representation.getSchema() + "}/versions/{" +
+                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
+                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
                             representation.getVersion() + "}/files/{" +
                             representation.getFiles().get(0).getFileName() + "}").request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -265,8 +277,8 @@ public class RestIngestionTool {
     @SuppressWarnings("unchecked")
     private void deleteDataSet() throws Exception {
         Response resp = client.target(
-                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
-                null);
+                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
+                        dataSetId + "}").request().put(null);
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -276,15 +288,17 @@ public class RestIngestionTool {
 
         for (Representation representation : dataset.getResults()) {
             client.target(
-                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
-                            representation.getSchema() + "}").request().delete();
+                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
+                            "}/representations/{" + representation.getSchema() + "}").request().delete();
             client.target(
-                    baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId +
-                            "}/assignments").queryParam("recordId", representation.getRecordId()).queryParam(
-                    "schema", representation.getSchema()).request().delete();
+                    baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
+                            dataSetId + "}/assignments").queryParam("recordId",
+                    representation.getRecordId()).queryParam("schema", representation.getSchema()).request().delete();
         }
 
-        client.target("/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().delete();
+        client.target(
+                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
+                        dataSetId + "}").request().delete();
     }
 
     /**
