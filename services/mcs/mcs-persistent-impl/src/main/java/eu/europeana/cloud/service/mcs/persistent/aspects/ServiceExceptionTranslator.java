@@ -28,6 +28,12 @@ public class ServiceExceptionTranslator {
     }
 
 
+    /**
+     * Wraps every runtime exception thrown by system into {@link SystemException}.
+     * 
+     * @param ex
+     *            exception to wrap
+     */
     @AfterThrowing(pointcut = "isService() && inMCSPersistentPackage()", throwing = "ex")
     public void wrapException(RuntimeException ex) {
         // if exception is already our generic system exception - let it be and do nothing

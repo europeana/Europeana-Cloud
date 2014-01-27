@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
-import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CountingInputStream;

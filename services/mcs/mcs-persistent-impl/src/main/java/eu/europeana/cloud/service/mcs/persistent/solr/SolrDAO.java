@@ -42,6 +42,9 @@ public class SolrDAO {
     protected static final String CDSID_SEPARATOR = "\n";
 
 
+    /**
+     * Initialize Solr connection after bean is constructed.
+     */
     @PostConstruct
     public void init() {
         this.server = connector.getSolrServer();

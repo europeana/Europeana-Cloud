@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.solr;
 
 import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
-import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
-import eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProvider;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 

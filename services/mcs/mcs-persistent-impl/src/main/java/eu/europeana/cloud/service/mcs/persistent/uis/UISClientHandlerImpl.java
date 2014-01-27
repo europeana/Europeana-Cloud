@@ -13,6 +13,10 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 
+/**
+ * Communicates with Unique Identifier Service using UISClient. Used for checking if cloudIds and providers exists in
+ * UIS.
+ */
 public class UISClientHandlerImpl implements UISClientHandler {
 
     @Autowired
@@ -20,11 +24,7 @@ public class UISClientHandlerImpl implements UISClientHandler {
 
 
     /**
-     * Checks if given cloudId exist in Unique Identifiers Service. Throws SystemException in case of UIS error.
-     * 
-     * @param cloudId
-     *            cloud id
-     * @return true if cloudId exists in UIS, false otherwise
+     * @inheritDoc
      */
     @Override
     public boolean recordExistInUIS(String cloudId) {
@@ -60,6 +60,9 @@ public class UISClientHandlerImpl implements UISClientHandler {
     }
 
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public boolean providerExistsInUIS(String providerId) {
         try {
