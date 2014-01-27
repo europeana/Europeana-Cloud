@@ -19,6 +19,14 @@ public class CompoundDataSetId {
     private final String dataSetProviderId;
 
 
+    /**
+     * Constructs CompoundDataSetId using given provider id and data set id.
+     * 
+     * @param dataSetProviderId
+     *            provider id
+     * @param dataSetId
+     *            data set id
+     */
     public CompoundDataSetId(String dataSetProviderId, String dataSetId) {
         this.dataSetId = dataSetId;
         this.dataSetProviderId = dataSetProviderId;
