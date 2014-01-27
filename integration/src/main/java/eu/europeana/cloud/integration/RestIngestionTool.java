@@ -3,28 +3,33 @@ package eu.europeana.cloud.integration;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Properties;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
+
+import com.google.common.io.ByteStreams;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 /**
  * This is a command line tool to ingest a new data set.
@@ -34,17 +39,28 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  */
 @Component
 public class RestIngestionTool {
-    @Autowired
-    private DataSetService          dataSetService;
+    /**
+     * client configuration
+     */
+    private Client client;
+    /**
+     * provides base url for rest api
+     */
+    private String baseUrl;
 
-    @Autowired
-    private RecordService           recordService;
-
-    @Autowired
-    private DataProviderService     dataProviderService;
-
-    @Autowired
-    private UniqueIdentifierService uniqueIdentifierService;
+    /**
+     * Creates a new instance of this class.
+     */
+    public RestIngestionTool() {
+        client = JerseyClientBuilder.newClient();
+        Properties props = new Properties();
+        try {
+            props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
+            baseUrl = props.getProperty("server.baseUrl");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Available operations for this tool.
@@ -139,21 +155,16 @@ public class RestIngestionTool {
      * 
      * @throws Exception
      */
+    @SuppressWarnings("resource")
     private void ingestDataSet() throws Exception {
-        try {
-            dataProviderService.createProvider(providerId, new DataProviderProperties(providerId,
-                    "", "", "", "", "", "Ingestion Tool Provide4", ""));
-        } catch (ProviderAlreadyExistsException e) {
-            // ignore if provider exists
-        }
+        DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
+                "Ingesion Tool Provide4", "");
+        client.target(baseUrl + "/uniqueId/data-providers").queryParam("providerId", providerId).request().post(
+                Entity.json(dp));
 
-        try {
-            dataSetService.createDataSet(providerId, dataSetId, "Ingestion Tool Dataset");
-        } catch (ProviderNotExistsException e) {
-            throw e;
-        } catch (DataSetAlreadyExistsException e) {
-            // ignore if data set exists
-        }
+        client.target(
+                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
+                Entity.form(new Form("description", "Ingestion Tool Dataset")));
 
         Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
                 true);
@@ -165,17 +176,45 @@ public class RestIngestionTool {
             file.setFileName(input.getName());
             file.setMimeType("text");
 
-            CloudId cloudId = uniqueIdentifierService.createCloudId(providerId, input.getName());
+            Response resp = client.target(baseUrl + "/uniqueId/createCloudIdLocal").queryParam(
+                    "providerId", providerId).queryParam("recordId", input.getName()).request().get();
+            CloudId cloudId;
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                cloudId = resp.readEntity(CloudId.class);
+            } else {
+                continue;
+            }
 
-            Representation represantation = recordService.createRepresentation(cloudId.getId(),
-                    schema, providerId);
-            recordService.putContent(cloudId.getId(), represantation.getSchema(),
-                    represantation.getVersion(), file, is);
-            recordService.persistRepresentation(cloudId.getId(), schema,
-                    represantation.getVersion());
+            resp = client.target(
+                    baseUrl + "/records/{" + cloudId.getId() + "}/representations/{" + schema + "}").request().put(
+                    Entity.form(new Form("providerId", providerId)));
+            Representation representation;
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                representation = resp.readEntity(Representation.class);
+            } else {
+                continue;
+            }
 
-            dataSetService.addAssignment(providerId, dataSetId, represantation.getRecordId(),
-                    represantation.getSchema(), represantation.getVersion());
+            FormDataMultiPart multipart = new FormDataMultiPart().field("mimeType",
+                    file.getMimeType()).field("data", is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            client.target(
+                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
+                            representation.getSchema() + "}/versions/{" +
+                            representation.getVersion() + "}/files/{" + file.getFileName() + "}").request().put(
+                    Entity.entity(multipart, multipart.getMediaType()));
+
+            client.target(
+                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
+                            representation.getSchema() + "}/versions/{" +
+                            representation.getVersion() + "}/persist").request().post(null);
+
+            multipart = new FormDataMultiPart().field("recordId", representation.getRecordId()).field(
+                    "schema", representation.getSchema()).field("version",
+                    representation.getVersion());
+            client.target(
+                    baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId +
+                            "}/assignments").request().put(
+                    Entity.entity(multipart, multipart.getMediaType()));
 
             is.close();
         }
@@ -186,14 +225,34 @@ public class RestIngestionTool {
      * 
      * @throws Exception
      */
+    @SuppressWarnings("unchecked")
     private void readDataSet() throws Exception {
-        ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
-                null, Integer.MAX_VALUE);
+        Response resp = client.target(
+                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
+                null);
+        ResultSlice<Representation> dataset;
+        if (resp.getStatus() == Status.OK.getStatusCode()) {
+            dataset = resp.readEntity(ResultSlice.class);
+        } else {
+            return;
+        }
+
         for (Representation representation : dataset.getResults()) {
             FileOutputStream os = new FileOutputStream(new java.io.File(
                     directory + "/" + representation.getFiles().get(0).getFileName()));
-            recordService.getContent(representation.getRecordId(), representation.getSchema(),
-                    representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
+            resp = client.target(
+                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
+                            representation.getSchema() + "}/versions/{" +
+                            representation.getVersion() + "}/files/{" +
+                            representation.getFiles().get(0).getFileName() + "}").request().get();
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                dataset = resp.readEntity(ResultSlice.class);
+            } else {
+                InputStream responseStream = resp.readEntity(InputStream.class);
+                byte[] responseContent = ByteStreams.toByteArray(responseStream);
+                os.write(responseContent);
+                return;
+            }
             os.close();
         }
     }
@@ -203,27 +262,36 @@ public class RestIngestionTool {
      * 
      * @throws Exception
      */
+    @SuppressWarnings("unchecked")
     private void deleteDataSet() throws Exception {
-        ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
-                null, Integer.MAX_VALUE);
-        for (Representation representation : dataset.getResults()) {
-            recordService.deleteRepresentation(representation.getRecordId(),
-                    representation.getSchema());
-            dataSetService.removeAssignment(providerId, dataSetId, representation.getRecordId(),
-                    representation.getSchema());
+        Response resp = client.target(
+                baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().put(
+                null);
+        ResultSlice<Representation> dataset;
+        if (resp.getStatus() == Status.OK.getStatusCode()) {
+            dataset = resp.readEntity(ResultSlice.class);
+        } else {
+            return;
         }
-        dataSetService.deleteDataSet(providerId, dataSetId);
+
+        for (Representation representation : dataset.getResults()) {
+            client.target(
+                    baseUrl + "/records/{" + representation.getRecordId() + "}/representations/{" +
+                            representation.getSchema() + "}").request().delete();
+            client.target(
+                    baseUrl + "/data-providers/{" + providerId + "}/data-sets/{" + dataSetId +
+                            "}/assignments").queryParam("recordId", representation.getRecordId()).queryParam(
+                    "schema", representation.getSchema()).request().delete();
+        }
+
+        client.target("/data-providers/{" + providerId + "}/data-sets/{" + dataSetId + "}").request().delete();
     }
 
     /**
      * @param args
      */
     public static void main(String[] args) {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "inmemoryIngestionToolContext.xml");
-        RestIngestionTool tool = context.getBean(RestIngestionTool.class);
-
-// IngestionTool tool = new IngestionTool();
+        RestIngestionTool tool = new RestIngestionTool();
         CmdLineParser parser = new CmdLineParser(tool);
         try {
             parser.parseArgument(args);
@@ -236,7 +304,5 @@ public class RestIngestionTool {
             System.err.println(e.getMessage());
             e.printStackTrace(System.err);
         }
-
-        context.close();
     }
 }

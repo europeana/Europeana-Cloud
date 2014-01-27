@@ -15,7 +15,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;

@@ -66,7 +66,6 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	public CloudId createCloudId(String providerId, String recordId) throws CloudException {
-
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.CREATECLOUDID.getUrl()))
 				.queryParam(RelativeUrls.CREATECLOUDID.getParamNames().get(0), providerId)
 				.queryParam(RelativeUrls.CREATECLOUDID.getParamNames().get(1), recordId).request().get();
@@ -89,7 +88,6 @@ public class UISClient {
 	 *             The generic cloud exception wrapper
 	 */
 	public CloudId createCloudId(String providerId) throws CloudException {
-
 		Response resp = client.target(urlProvider.getUidUrl(RelativeUrls.CREATECLOUDIDNOLOCAL.getUrl()))
 				.queryParam(RelativeUrls.CREATECLOUDIDNOLOCAL.getParamNames().get(0), providerId).request().get();
 

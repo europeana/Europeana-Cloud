@@ -17,7 +17,6 @@ import com.qmino.miredot.annotations.ReturnType;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;

@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -23,13 +23,13 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
-                </dependency>
-                
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-uis-restclient</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-uis-restclient</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -43,7 +43,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
@@ -69,17 +69,17 @@
 		<dependency>
 			<groupId>org.jclouds</groupId>
 			<artifactId>jclouds-blobstore</artifactId>
-                        <version>1.6.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.jclouds.api</groupId>
-                    <artifactId>openstack-keystone</artifactId>
-                    <version>1.6.3</version>
-                </dependency>
+			<version>1.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds.api</groupId>
+			<artifactId>openstack-keystone</artifactId>
+			<version>1.6.3</version>
+		</dependency>
 		<dependency>
 			<groupId>org.jclouds.api</groupId>
 			<artifactId>swift</artifactId>
-                        <version>1.6.0</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -100,7 +100,6 @@
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 		</dependency>
-
 
 		<!--logging -->
 		<dependency>
@@ -124,7 +123,7 @@
 			<artifactId>log4j</artifactId>
 		</dependency>
 
-		<!--tests-->
+		<!--tests -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -186,8 +185,5 @@
 			<id>eaio.com</id>
 			<url>http://eaio.com/maven2</url>
 		</repository>
-
 	</repositories>
-
-
 </project>
