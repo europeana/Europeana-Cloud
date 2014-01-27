@@ -253,6 +253,21 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Returns a representation of a record in specified schema and version.
+     * 
+     * @param cloudId
+     *            id of the record
+     * @param schema
+     *            schema of the representation
+     * @param version
+     *            version of the representation.
+     * @return representation.
+     * @throws QueryExecutionException
+     *             if error occured while executing a query.
+     * @throws NoHostAvailableException
+     *             if no Cassandra host are available.
+     */
     public Representation getRepresentation(String cloudId, String schema, String version)
             throws NoHostAvailableException, QueryExecutionException {
         if (cloudId == null || schema == null || version == null) {
@@ -299,6 +314,23 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Makes a certain temporary representation version a persistent one. Sets creation date.
+     * 
+     * @param cloudId
+     *            id of the record
+     * @param schema
+     *            schema of the representation
+     * @param version
+     *            version of the representation
+     * @param creationTime
+     *            date of creation
+     * @throws QueryExecutionException
+     *             if error occured while executing a query.
+     * @throws NoHostAvailableException
+     *             if no Cassandra host are available.
+     * 
+     */
     public void persistRepresentation(String cloudId, String schema, String version, Date creationTime)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = persistRepresentationStatement.bind(creationTime, cloudId, schema,
@@ -313,7 +345,9 @@ public class CassandraRecordDAO {
      * representation exist - will return empty list.
      * 
      * @param cloudId
+     *            record id
      * @param schema
+     *            schema id
      * @return
      */
     public List<Representation> listRepresentationVersions(String cloudId, String schema)
@@ -333,7 +367,7 @@ public class CassandraRecordDAO {
      * Returns all versions of all representations (persistent or not) for a cloud id.
      * 
      * @param cloudId
-     * @param schema
+     *            record id
      * @return
      */
     public List<Representation> listRepresentationVersions(String cloudId)
@@ -349,6 +383,22 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Adds or modifies given file to list of files of representation.
+     * 
+     * @param cloudId
+     *            record if
+     * @param schema
+     *            schema id
+     * @param version
+     *            version id
+     * @param file
+     *            file
+     * @throws QueryExecutionException
+     *             if error occured while executing a query.
+     * @throws NoHostAvailableException
+     *             if no Cassandra host are available.
+     */
     public void addOrReplaceFileInRepresentation(String cloudId, String schema, String version, File file)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = insertFileStatement.bind(file.getFileName(), serializeFile(file), cloudId,
@@ -358,6 +408,22 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Removes file entry from list of files belonging to record representation.
+     * 
+     * @param cloudId
+     *            record if
+     * @param schema
+     *            schema id
+     * @param version
+     *            version id
+     * @param fileName
+     *            name of file to be removed from representation
+     * @throws QueryExecutionException
+     *             if error occured while executing a query.
+     * @throws NoHostAvailableException
+     *             if no Cassandra host are available.
+     */
     public void removeFileFromRepresentation(String cloudId, String schema, String version, String fileName)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = removeFileStatement.bind(fileName, cloudId, schema, UUID.fromString(version));
@@ -366,6 +432,17 @@ public class CassandraRecordDAO {
     }
 
 
+    /**
+     * Checks if given provider has any representations.
+     * 
+     * @param providerId
+     *            identifier of the provider
+     * @return true if provider has representations, false otherwise
+     * @throws QueryExecutionException
+     *             if error occured while executing a query.
+     * @throws NoHostAvailableException
+     *             if no Cassandra host are available.
+     */
     public boolean providerHasRepresentations(String providerId)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = singleRecordIdForProviderStatement.bind(providerId);

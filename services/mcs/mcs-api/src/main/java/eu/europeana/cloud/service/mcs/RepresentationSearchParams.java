@@ -113,6 +113,11 @@ public final class RepresentationSearchParams {
     }
 
 
+    /**
+     * Returns object hashcode.
+     * 
+     * @return hashCode
+     */
     @Override
     public int hashCode() {
         int hash = 3;
@@ -128,6 +133,13 @@ public final class RepresentationSearchParams {
     }
 
 
+    /**
+     * Check if this object is equal to provided one.
+     * 
+     * @param obj
+     *            object to compare
+     * @return true if objects are equal, false otherwise
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -165,6 +177,11 @@ public final class RepresentationSearchParams {
     }
 
 
+    /**
+     * Return parameters as human readable string.
+     * 
+     * @return string representing object in human readable form.
+     */
     @Override
     public String toString() {
         return "RepresentationSearchParams{" + "recordId=" + recordId + ", schema=" + schema + ", dataProvider="
@@ -195,52 +212,103 @@ public final class RepresentationSearchParams {
         private Date toDate;
 
 
+        /**
+         * Constructor.
+         */
         public Builder() {
         }
 
 
+        /**
+         * Sets schema.
+         * 
+         * @param schema
+         * @return
+         */
         public Builder setSchema(String schema) {
             this.schema = schema;
             return this;
         }
 
 
+        /**
+         * Sets data provider.
+         * 
+         * @param dataProvider
+         * @return
+         */
         public Builder setDataProvider(String dataProvider) {
             this.dataProvider = dataProvider;
             return this;
         }
 
 
+        /**
+         * Sets if representation is persistent.
+         * 
+         * @param persistent
+         * @return
+         */
         public Builder setPersistent(Boolean persistent) {
             this.persistent = persistent;
             return this;
         }
 
 
+        /**
+         * Sets record id.
+         * 
+         * @param recordId
+         * @return
+         */
         public Builder setRecordId(String recordId) {
             this.recordId = recordId;
             return this;
         }
 
 
+        /**
+         * Sets data set id.
+         * 
+         * @param dataSetId
+         * @return
+         */
         public Builder setDataSetId(String dataSetId) {
             this.dataSetId = dataSetId;
             return this;
         }
 
 
+        /**
+         * Sets provider id.
+         * 
+         * @param dataSetProviderId
+         * @return
+         */
         public Builder setDataSetProviderId(String dataSetProviderId) {
             this.dataSetProviderId = dataSetProviderId;
             return this;
         }
 
 
+        /**
+         * Sets fromDate.
+         * 
+         * @param fromDate
+         * @return
+         */
         public Builder setFromDate(Date fromDate) {
             this.fromDate = fromDate;
             return this;
         }
 
 
+        /**
+         * Sets toDate.
+         * 
+         * @param toDate
+         * @return
+         */
         public Builder setToDate(Date toDate) {
             this.toDate = toDate;
             return this;

@@ -114,6 +114,22 @@ public class RepresentationSolrDocument {
     }
 
 
+    /**
+     * Constucts Solr document for Representation with given parameters.
+     * 
+     * @param cloudId
+     *            cloud identifier
+     * @param version
+     *            version identifier
+     * @param schema
+     *            schema identifier
+     * @param providerId
+     *            provider identifier
+     * @param creationDate
+     *            Representation creation date
+     * @param persistent
+     *            whether representation is persistent or not
+     */
     public RepresentationSolrDocument(String cloudId, String version, String schema, String providerId,
             Date creationDate, boolean persistent) {
         this.cloudId = cloudId;
@@ -125,6 +141,24 @@ public class RepresentationSolrDocument {
     }
 
 
+    /**
+     * Constucts Solr document for Representation with given parameters and given data sets identifiers.
+     * 
+     * @param cloudId
+     *            cloud identifier
+     * @param version
+     *            version identifier
+     * @param schema
+     *            schema identifier
+     * @param providerId
+     *            provider identifier
+     * @param creationDate
+     *            Representation creation date
+     * @param persistent
+     *            whether representation is persistent or not
+     * @param dataSets
+     *            identifiers of datasets assigned to representation
+     */
     public RepresentationSolrDocument(String cloudId, String version, String schema, String providerId,
             Date creationDate, boolean persistent, Collection<String> dataSets) {
         this(cloudId, version, schema, providerId, creationDate, persistent);
