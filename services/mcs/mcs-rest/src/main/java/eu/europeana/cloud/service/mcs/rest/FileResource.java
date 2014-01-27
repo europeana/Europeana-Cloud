@@ -73,8 +73,7 @@ public class FileResource {
      * Consumes multipart content - form data:
      * <ul>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content
-     * (required)</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
      * </ul>
      * 
      * @param mimeType
@@ -85,7 +84,7 @@ public class FileResource {
      * @throws IOException
      *             io exception
      * @throws RepresentationNotExistsException
-     *             representation does not exist in specified * version.
+     *             representation does not exist in specified version.
      * @throws CannotModifyPersistentRepresentationException
      *             specified representation version is persistent and modyfying its files is not allowed.
      * @statuscode 204 object has been updated.
@@ -112,7 +111,7 @@ public class FileResource {
     /**
      * Returns file content. Basic support for HTTP "Range" header is implemented for retrieving only a part of content
      * is implemented (Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1, <a
-     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>). For instance: *
+     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>). For instance:
      * <ul>
      * <li><b>Range: bytes=10-15</b> - retrieve bytes from 10 to 15 of content
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
@@ -120,8 +119,7 @@ public class FileResource {
      * 
      * @param range
      *            range of bytes to return (optional)
-     * @return file content * @throws RepresentationNotExistsException representation does not exist in specified
-     *         version.
+     * @return file content @throws RepresentationNotExistsException representation does not exist in specified version.
      * @throws WrongContentRangeException
      *             wrong value in "Range" header
      * @throws FileNotExistsException

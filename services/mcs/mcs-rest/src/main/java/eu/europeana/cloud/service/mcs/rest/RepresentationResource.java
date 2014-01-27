@@ -79,7 +79,7 @@ public class RepresentationResource {
 
 
     /**
-     * Creates new representation version. Url of created representation version will be returned in response. *
+     * Creates new representation version. Url of created representation version will be returned in response.
      * 
      * @param providerId
      *            provider of this representation versio.

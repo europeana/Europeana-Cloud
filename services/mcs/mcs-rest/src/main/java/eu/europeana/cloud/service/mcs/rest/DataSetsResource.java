@@ -64,7 +64,7 @@ public class DataSetsResource {
 
 
     /**
-     * Creates new data set. *
+     * Creates new data set.
      * 
      * @param dataSetId
      *            identifier of data set (required).
@@ -72,7 +72,7 @@ public class DataSetsResource {
      *            description of data set.
      * @return URI to newly created data set in content-location.
      * @throws ProviderNotExistsException
-     *             data provider * does not exist.
+     *             data provider does not exist.
      * @throws eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
      *             data set with this id already exists
      * @statuscode 204 object has been updated.

@@ -46,7 +46,7 @@ public class RepresentationVersionsResource {
      * 
      * @return list of all representation versions
      * @throws RepresentationNotExistsException
-     *             representation does not * exist.
+     *             representation does not exist.
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })

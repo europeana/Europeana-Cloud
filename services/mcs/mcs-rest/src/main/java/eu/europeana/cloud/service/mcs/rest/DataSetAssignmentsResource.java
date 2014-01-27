@@ -64,7 +64,7 @@ public class DataSetAssignmentsResource {
 
 
     /**
-     * Unassigns representation from data set. If representation was not assigned to data set, nothing happens. *
+     * Unassigns representation from data set. If representation was not assigned to data set, nothing happens.
      * 
      * @param recordId
      *            cloud id of record (required)
