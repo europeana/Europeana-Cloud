@@ -37,7 +37,7 @@ public class SwiftConnectionProvider {
      */
     public SwiftConnectionProvider(String provider, String container, String endpoint, String user, String password) {
         this.container = container;
-        context = ContextBuilder.newBuilder(provider).endpoint(endpoint).credentials(user, password).apiVersion("v2.0")
+        context = ContextBuilder.newBuilder(provider).endpoint(endpoint).credentials(user, password)
                 .buildView(BlobStoreContext.class);
         blobStore = context.getBlobStore();
         if (!blobStore.containerExists(container)) {
