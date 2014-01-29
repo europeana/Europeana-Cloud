@@ -1,6 +1,7 @@
 /* IngestionTool.java - created on Jan 20, 2014, Copyright (c) 2011 The European Library, all rights reserved */
 package eu.europeana.cloud.integration;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
@@ -16,8 +18,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -30,6 +32,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
 
 /**
  * This is a command line tool to ingest a new data set.
@@ -62,7 +65,8 @@ public class RestIngestionTool {
      * Creates a new instance of this class.
      */
     public RestIngestionTool() {
-        client = JerseyClientBuilder.newClient();
+// client = JerseyClientBuilder.newBuilder().newClient();
+        client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
         Properties props = new Properties();
         try {
             props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
@@ -169,67 +173,104 @@ public class RestIngestionTool {
     private void ingestDataSet() throws Exception {
         DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
                 "Ingesion Tool Provider", "");
-        client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers").queryParam("providerId",
-                providerId).request().post(Entity.json(dp));
+        Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers").queryParam(
+                "providerId", providerId).request().post(Entity.json(dp));
+        if (resp.getStatus() == Status.OK.getStatusCode()) {
+            System.out.println("Provider '" + providerId + "' has been created!");
+        } else {
+            System.out.println("Provider '" + providerId + "' exists!");
+        }
 
-        client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId +
-                        "").request().put(
-                Entity.form(new Form("description", "Ingestion Tool Dataset")));
+        resp = client.target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets").request().post(
+                Entity.form(new Form("dataSetId", dataSetId).param("description",
+                        "Ingestion Tool Dataset")));
+        if (resp.getStatus() == Status.OK.getStatusCode()) {
+            System.out.println("Dataset '" + dataSetId + "' has been created!");
+        } else {
+            System.out.println("Dataset '" + dataSetId + "' exists!");
+        }
 
+        int scheduled = 0;
+        int done = 0;
         Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
                 true);
         while (iter.hasNext()) {
+            scheduled++;
+
             java.io.File input = iter.next();
-            FileInputStream is = new FileInputStream(input);
 
             File file = new File();
             file.setFileName(input.getName());
             file.setMimeType("text");
 
-            Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal").queryParam(
-                    "providerId", providerId).queryParam("recordId", input.getName()).request().get();
             CloudId cloudId;
+            resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/getCloudId").queryParam(
+                    "providerId", providerId).queryParam("recordId", input.getName()).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 cloudId = resp.readEntity(CloudId.class);
             } else {
-                continue;
+                String substring = input.getName().substring(0, input.getName().lastIndexOf("."));
+                resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal").queryParam(
+                        "providerId", providerId).queryParam("recordId", substring).request().get();
+                if (resp.getStatus() == Status.OK.getStatusCode()) {
+                    cloudId = resp.readEntity(CloudId.class);
+                } else {
+                    continue;
+                }
+            }
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                System.out.println("Dataset '" + dataSetId + "' has been created!");
+            } else {
             }
 
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/{" + cloudId.getId() + "}/representations/{" +
-                            schema + "}").request().put(
-                    Entity.form(new Form("providerId", providerId)));
+                    baseUrl + MCS_PREFIX + "/records/" + cloudId.getId() + "/representations/" +
+                            schema).request().post(
+                    Entity.entity(new Form("providerId", providerId),
+                            MediaType.APPLICATION_FORM_URLENCODED_TYPE));
             Representation representation;
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                representation = resp.readEntity(Representation.class);
+            if (resp.getStatus() == Status.CREATED.getStatusCode()) {
+                resp = client.target(resp.getLocation()).request().get();
+                if (resp.getStatus() == Status.OK.getStatusCode()) {
+                    representation = resp.readEntity(Representation.class);
+                } else {
+                    continue;
+                }
             } else {
                 continue;
             }
 
-            FormDataMultiPart multipart = new FormDataMultiPart().field("mimeType",
-                    file.getMimeType()).field("data", is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            byte[] content = FileUtils.readFileToByteArray(input);
+            FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME,
+                    file.getMimeType()).field(ParamConstants.F_FILE_DATA,
+                    new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
             client.target(
-                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
-                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
-                            representation.getVersion() + "}/files/{" + file.getFileName() + "}").request().put(
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
+                            "/representations/" + representation.getSchema() + "/versions/" +
+                            representation.getVersion() + "/files/" + file.getFileName()).request().put(
                     Entity.entity(multipart, multipart.getMediaType()));
 
             client.target(
-                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
-                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
-                            representation.getVersion() + "}/persist").request().post(null);
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
+                            "/representations/" + representation.getSchema() + "/versions/" +
+                            representation.getVersion() + "/persist").request().post(null);
 
-            multipart = new FormDataMultiPart().field("recordId", representation.getRecordId()).field(
-                    "schema", representation.getSchema()).field("version",
-                    representation.getVersion());
             client.target(
-                    baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
-                            dataSetId + "}/assignments").request().put(
-                    Entity.entity(multipart, multipart.getMediaType()));
+                    baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
+                            dataSetId + "/assignments").request().post(
+                    Entity.form(new Form("recordId", representation.getRecordId()).param("schema",
+                            representation.getSchema())));
 
-            is.close();
+            done++;
+
+            if (scheduled % 100 == 0) {
+                System.out.println("Scheduled: " + scheduled);
+                System.out.println("Done: " + done);
+            }
         }
+        System.out.println("Scheduled: " + scheduled);
+        System.out.println("Done: " + done);
     }
 
     /**
@@ -240,8 +281,8 @@ public class RestIngestionTool {
     @SuppressWarnings("unchecked")
     private void readDataSet() throws Exception {
         Response resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
-                        dataSetId + "}").request().put(null);
+                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().put(
+                null);
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -249,14 +290,18 @@ public class RestIngestionTool {
             return;
         }
 
+        int scheduled = 0;
+        int done = 0;
         for (Representation representation : dataset.getResults()) {
+            scheduled++;
+
             FileOutputStream os = new FileOutputStream(new java.io.File(
                     directory + "/" + representation.getFiles().get(0).getFileName()));
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
-                            "}/representations/{" + representation.getSchema() + "}/versions/{" +
-                            representation.getVersion() + "}/files/{" +
-                            representation.getFiles().get(0).getFileName() + "}").request().get();
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
+                            "/representations/" + representation.getSchema() + "/versions/" +
+                            representation.getVersion() + "/files/" +
+                            representation.getFiles().get(0).getFileName()).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 dataset = resp.readEntity(ResultSlice.class);
             } else {
@@ -266,7 +311,16 @@ public class RestIngestionTool {
                 return;
             }
             os.close();
+
+            done++;
+
+            if (scheduled % 100 == 0) {
+                System.out.println("Scheduled: " + scheduled);
+                System.out.println("Done: " + done);
+            }
         }
+        System.out.println("Scheduled: " + scheduled);
+        System.out.println("Done: " + done);
     }
 
     /**
@@ -277,8 +331,7 @@ public class RestIngestionTool {
     @SuppressWarnings("unchecked")
     private void deleteDataSet() throws Exception {
         Response resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
-                        dataSetId + "}").request().put(null);
+                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().get();
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -286,19 +339,31 @@ public class RestIngestionTool {
             return;
         }
 
+        int scheduled = 0;
+        int done = 0;
         for (Representation representation : dataset.getResults()) {
+            scheduled++;
+
             client.target(
-                    baseUrl + MCS_PREFIX + "/records/{" + representation.getRecordId() +
-                            "}/representations/{" + representation.getSchema() + "}").request().delete();
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
+                            "/representations/" + representation.getSchema()).request().delete();
             client.target(
-                    baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
-                            dataSetId + "}/assignments").queryParam("recordId",
+                    baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
+                            dataSetId + "/assignments").queryParam("recordId",
                     representation.getRecordId()).queryParam("schema", representation.getSchema()).request().delete();
+
+            done++;
+
+            if (scheduled % 100 == 0) {
+                System.out.println("Scheduled: " + scheduled);
+                System.out.println("Done: " + done);
+            }
         }
+        System.out.println("Scheduled: " + scheduled);
+        System.out.println("Done: " + done);
 
         client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/{" + providerId + "}/data-sets/{" +
-                        dataSetId + "}").request().delete();
+                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().delete();
     }
 
     /**
