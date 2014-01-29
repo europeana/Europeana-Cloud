@@ -3,7 +3,6 @@ package eu.europeana.cloud.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -219,11 +218,6 @@ public class RestIngestionTool {
                 }
             }
 
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                System.out.println("Dataset '" + dataSetId + "' has been created!");
-            } else {
-            }
-
             resp = client.target(
                     baseUrl + MCS_PREFIX + "/records/" + cloudId.getId() + "/representations/" +
                             schema).request().post(
@@ -281,8 +275,7 @@ public class RestIngestionTool {
     @SuppressWarnings("unchecked")
     private void readDataSet() throws Exception {
         Response resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().put(
-                null);
+                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().get();
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -295,22 +288,18 @@ public class RestIngestionTool {
         for (Representation representation : dataset.getResults()) {
             scheduled++;
 
-            FileOutputStream os = new FileOutputStream(new java.io.File(
-                    directory + "/" + representation.getFiles().get(0).getFileName()));
             resp = client.target(
                     baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
                             "/representations/" + representation.getSchema() + "/versions/" +
                             representation.getVersion() + "/files/" +
                             representation.getFiles().get(0).getFileName()).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
-                dataset = resp.readEntity(ResultSlice.class);
-            } else {
                 InputStream responseStream = resp.readEntity(InputStream.class);
                 byte[] responseContent = ByteStreams.toByteArray(responseStream);
-                os.write(responseContent);
-                return;
+                FileUtils.writeByteArrayToFile(new java.io.File(directory + "/" + representation.getFiles().get(0).getFileName()), responseContent);
+            } else {
+                continue;
             }
-            os.close();
 
             done++;
 
