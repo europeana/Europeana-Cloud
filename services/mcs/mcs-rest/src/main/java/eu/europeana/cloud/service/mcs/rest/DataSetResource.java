@@ -77,7 +77,7 @@ public class DataSetResource {
 
 
     /**
-     * Updates description of data set. *
+     * Updates description of data set.
      * 
      * @param description
      *            description of data set

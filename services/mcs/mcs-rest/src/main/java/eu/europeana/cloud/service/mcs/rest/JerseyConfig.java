@@ -18,6 +18,10 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExce
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.WebApplicationExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.WrongContentRangeExceptionMapper;
 
+/**
+ * Jersey Configuration for Exception Mappers and Resources
+ * 
+ */
 public class JerseyConfig extends ResourceConfig {
 
     /**

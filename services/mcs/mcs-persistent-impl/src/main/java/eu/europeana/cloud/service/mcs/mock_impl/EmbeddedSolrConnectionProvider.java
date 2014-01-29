@@ -25,6 +25,9 @@ public class EmbeddedSolrConnectionProvider implements SolrConnectionProvider {
     private SolrServer solrServer;
 
 
+    /**
+     * Creates EmbeddedSolrServer instance using config files from solr_home directory.
+     */
     public EmbeddedSolrConnectionProvider() {
         File solrConfig = findFile("/solr_home/solr.xml");
         File solrHome = findFile("/solr_home/");

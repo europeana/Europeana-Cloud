@@ -2,12 +2,13 @@ package eu.europeana.cloud.service.mcs.mock_impl;
 
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 
+/**
+ * Mock of UISClientHandler which returns true for all requests.
+ */
 public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
 
     /**
-     * Mock of UISClientHandler which always returns true.
-     * 
-     * @param cloudId
+     * @inheritDoc
      * @return true
      */
     @Override
@@ -16,6 +17,10 @@ public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
     }
 
 
+    /**
+     * @inheritDoc
+     * @return true
+     */
     @Override
     public boolean providerExistsInUIS(String providerId) {
         return true;

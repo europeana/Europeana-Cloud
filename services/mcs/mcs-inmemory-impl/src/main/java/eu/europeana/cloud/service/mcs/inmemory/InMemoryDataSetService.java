@@ -32,7 +32,11 @@ public class InMemoryDataSetService implements DataSetService {
     private UISClientHandler uisHandler;
 
 
-    public InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO, UISClientHandler dataProviderDao) {
+    /**
+     * Constructs service instnce using dataSetDAO, recordDAO & dataProviderDao.
+     */
+    public InMemoryDataSetService(InMemoryDataSetDAO dataSetDAO, InMemoryRecordDAO recordDAO,
+            UISClientHandler dataProviderDao) {
         super();
         this.dataSetDAO = dataSetDAO;
         this.recordDAO = recordDAO;
@@ -40,6 +44,9 @@ public class InMemoryDataSetService implements DataSetService {
     }
 
 
+    /**
+     * Constructor.
+     */
     public InMemoryDataSetService() {
         super();
     }

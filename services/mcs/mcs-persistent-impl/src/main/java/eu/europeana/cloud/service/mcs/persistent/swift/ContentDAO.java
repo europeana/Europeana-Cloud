@@ -7,6 +7,9 @@ import java.io.OutputStream;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 
+/**
+ * Content storage DAOs interface .
+ */
 public interface ContentDAO {
 
     /**

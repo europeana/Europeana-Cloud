@@ -42,7 +42,7 @@ public class RepresentationsResource {
      * 
      * @return list of representations
      * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier * Service.
+     *             provided id is not known to Unique Identifier Service.
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })

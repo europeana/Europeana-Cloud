@@ -63,7 +63,6 @@ public class FilesResource {
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
      * </ul>
-     * *
      * 
      * @param mimeType
      *            mime type of file

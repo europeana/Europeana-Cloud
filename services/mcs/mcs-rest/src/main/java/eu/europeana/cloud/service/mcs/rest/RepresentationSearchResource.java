@@ -54,7 +54,7 @@ public class RepresentationSearchResource {
      * Searches for representation versions by multiple parameters. Result is returned in slices which contain fixed
      * amount of results and reference (token) to next slice of results. To obtain next result slice, all search
      * parameters in subsequent requests with consecutive result tokens must be the same as in first request. All search
-     * parameters are optional but at least one must be provided. *
+     * parameters are optional but at least one must be provided.
      * 
      * @param providerId
      *            Identifier of representation version's provider.
@@ -68,8 +68,8 @@ public class RepresentationSearchResource {
      *            earliest date of representation version's creation. Must be in ISO8601 format (date with optional
      *            time): yyyy-MM-dd'T'HH:mm:ss.SSSZZ or yyyy-MM-dd
      * @param creationDateUntil
-     *            latest * date of representation version's creation. Must be in ISO8601 format (date with optional
-     *            time): yyyy-MM-dd'T'HH:mm:ss.SSSZZ or yyyy-MM-dd
+     *            latest date of representation version's creation. Must be in ISO8601 format (date with optional time):
+     *            yyyy-MM-dd'T'HH:mm:ss.SSSZZ or yyyy-MM-dd
      * @param persistent
      *            Indicator if representation version must be persistent.
      * @param startFrom
