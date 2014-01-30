@@ -42,40 +42,6 @@ import eu.europeana.cloud.common.web.ParamConstants;
 @Component
 public class RestIngestionTool {
     /**
-     * client configuration
-     */
-    private Client              client;
-    /**
-     * provides base url for rest api
-     */
-    private String              baseUrl;
-
-    /**
-     * Prefix of UIS based rest calls.
-     */
-    private static final String UIS_PREFIX = "ecloud-service-uis-rest-0.1-SNAPSHOT";
-
-    /**
-     * Prefix of MCS based rest calls.
-     */
-    private static final String MCS_PREFIX = "ecloud-service-mcs-rest-0.1-SNAPSHOT";
-
-    /**
-     * Creates a new instance of this class.
-     */
-    public RestIngestionTool() {
-// client = JerseyClientBuilder.newBuilder().newClient();
-        client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
-        Properties props = new Properties();
-        try {
-            props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
-            baseUrl = props.getProperty("server.baseUrl");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Available operations for this tool.
      * 
      * @author Markus Muhr (markus.muhr@kb.nl)
@@ -120,19 +86,52 @@ public class RestIngestionTool {
     }
 
     @Option(name = "-o", aliases = { "--operation" }, required = true)
-    private Operation operation;
+    private Operation           operation;
 
     @Option(name = "-p", aliases = { "--provider" }, usage = "Provider for which a dataset should be ingested")
-    private String    providerId;
+    private String              providerId;
 
     @Option(name = "-d", aliases = { "--dataset" }, usage = "Dataset for which the data should be ingested")
-    private String    dataSetId;
+    private String              dataSetId;
 
     @Option(name = "-s", aliases = { "--schema" }, usage = "Schema specifying the format of the dataset!")
-    private String    schema;
+    private String              schema;
 
     @Option(name = "-f", aliases = { "--file" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
-    private String    directory;
+    private String              directory;
+
+    /**
+     * client configuration
+     */
+    private Client              client;
+    /**
+     * provides base url for rest api
+     */
+    private String              baseUrl;
+
+    /**
+     * Prefix of UIS based rest calls.
+     */
+    private static final String UIS_PREFIX = "ecloud-service-uis-rest-0.1-SNAPSHOT";
+
+    /**
+     * Prefix of MCS based rest calls.
+     */
+    private static final String MCS_PREFIX = "ecloud-service-mcs-rest-0.1-SNAPSHOT";
+
+    /**
+     * Creates a new instance of this class.
+     */
+    public RestIngestionTool() {
+        client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
+        Properties props = new Properties();
+        try {
+            props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
+            baseUrl = props.getProperty("server.baseUrl");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Runs operations for this tool.
@@ -208,9 +207,10 @@ public class RestIngestionTool {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 cloudId = resp.readEntity(CloudId.class);
             } else {
-                String substring = input.getName().substring(0, input.getName().lastIndexOf("."));
+                int endIdx = input.getName().lastIndexOf(".");
+                String localId = endIdx > 0 ? input.getName().substring(0, endIdx) : input.getName();
                 resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal").queryParam(
-                        "providerId", providerId).queryParam("recordId", substring).request().get();
+                        "providerId", providerId).queryParam("recordId", localId).request().get();
                 if (resp.getStatus() == Status.OK.getStatusCode()) {
                     cloudId = resp.readEntity(CloudId.class);
                 } else {
@@ -296,7 +296,9 @@ public class RestIngestionTool {
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 InputStream responseStream = resp.readEntity(InputStream.class);
                 byte[] responseContent = ByteStreams.toByteArray(responseStream);
-                FileUtils.writeByteArrayToFile(new java.io.File(directory + "/" + representation.getFiles().get(0).getFileName()), responseContent);
+                FileUtils.writeByteArrayToFile(new java.io.File(
+                        directory + "/" + representation.getFiles().get(0).getFileName()),
+                        responseContent);
             } else {
                 continue;
             }
@@ -353,6 +355,7 @@ public class RestIngestionTool {
 
         client.target(
                 baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().delete();
+        System.out.println("Deleted dataset: " + dataSetId);
     }
 
     /**
