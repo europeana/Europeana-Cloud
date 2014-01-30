@@ -2,11 +2,8 @@
 package eu.europeana.cloud.integration;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.Properties;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -17,8 +14,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.jettison.JettisonFeature;
+import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.moxy.json.MoxyJsonFeature;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -123,14 +124,17 @@ public class RestIngestionTool {
      * Creates a new instance of this class.
      */
     public RestIngestionTool() {
-        client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
-        Properties props = new Properties();
-        try {
-            props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
-            baseUrl = props.getProperty("server.baseUrl");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        client = ClientBuilder.newBuilder().register(JettisonFeature.class).register(
+                JacksonFeature.class).register(MoxyJsonFeature.class).register(
+                MultiPartFeature.class).register(JsonProcessingFeature.class).build();
+        baseUrl = "http://ecloud.eanadev.org:8080/";
+// Properties props = new Properties();
+// try {
+// props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
+// baseUrl = props.getProperty("server.baseUrl");
+// } catch (IOException e) {
+// e.printStackTrace();
+// }
     }
 
     /**
@@ -170,7 +174,7 @@ public class RestIngestionTool {
     @SuppressWarnings("resource")
     private void ingestDataSet() throws Exception {
         long startTime = System.nanoTime();
-        
+
         DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
                 "Ingesion Tool Provider", "");
         Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers").queryParam(
@@ -180,10 +184,11 @@ public class RestIngestionTool {
         } else {
             System.out.println("Provider '" + providerId + "' exists!");
         }
-        
-        System.out.println("Provider setup: '" + ((System.nanoTime() - startTime) / 1000000) + "' msec");
+
+        System.out.println("Provider setup: '" + ((System.nanoTime() - startTime) / 1000000) +
+                           "' msec");
         startTime = System.nanoTime();
-        
+
         resp = client.target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets").request().post(
                 Entity.form(new Form("dataSetId", dataSetId).param("description",
                         "Ingestion Tool Dataset")));
@@ -193,15 +198,16 @@ public class RestIngestionTool {
             System.out.println("Dataset '" + dataSetId + "' exists!");
         }
 
-        System.out.println("Dataset setup: '" + ((System.nanoTime() - startTime) / 1000000) + "' msec");
+        System.out.println("Dataset setup: '" + ((System.nanoTime() - startTime) / 1000000) +
+                           "' msec");
         startTime = System.nanoTime();
-        
+
         long cloudIdTime = 0;
         long representationTime = 0;
         long uploadTime = 0;
         long persistTime = 0;
         long assignTime = 0;
-        
+
         int scheduled = 0;
         int done = 0;
         Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
@@ -217,8 +223,7 @@ public class RestIngestionTool {
 
             long localTime = System.nanoTime();
             int endIdx = input.getName().lastIndexOf(".");
-            String localId = endIdx > 0 ? input.getName().substring(0, endIdx)
-                    : input.getName();
+            String localId = endIdx > 0 ? input.getName().substring(0, endIdx) : input.getName();
             CloudId cloudId;
             resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/getCloudId").queryParam(
                     "providerId", providerId).queryParam("recordId", localId).request().get();
@@ -257,7 +262,7 @@ public class RestIngestionTool {
                 continue;
             }
             representationTime += (System.nanoTime() - localTime);
-            
+
             localTime = System.nanoTime();
             byte[] content = FileUtils.readFileToByteArray(input);
             FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME,
@@ -303,12 +308,14 @@ public class RestIngestionTool {
             if (scheduled % 10 == 0) {
                 System.out.println("Scheduled: " + scheduled);
                 System.out.println("Done: " + done);
-                System.out.println("Time overall: '" + ((System.nanoTime() - startTime) / 1000000000) + "' sec");  
-                System.out.println("Time cloudId: '" + (cloudIdTime / 1000000000) + "' sec");      
-                System.out.println("Time representation: '" + (representationTime / 1000000000) + "' sec");      
-                System.out.println("Time upload: '" + (uploadTime / 1000000000) + "' sec");      
-                System.out.println("Time persist: '" + (persistTime / 1000000000) + "' sec");      
-                System.out.println("Time assign: '" + (assignTime / 1000000000) + "' sec");         
+                System.out.println("Time overall: '" +
+                                   ((System.nanoTime() - startTime) / 1000000000) + "' sec");
+                System.out.println("Time cloudId: '" + (cloudIdTime / 1000000000) + "' sec");
+                System.out.println("Time representation: '" + (representationTime / 1000000000) +
+                                   "' sec");
+                System.out.println("Time upload: '" + (uploadTime / 1000000000) + "' sec");
+                System.out.println("Time persist: '" + (persistTime / 1000000000) + "' sec");
+                System.out.println("Time assign: '" + (assignTime / 1000000000) + "' sec");
             }
         }
 
@@ -394,16 +401,17 @@ public class RestIngestionTool {
                 continue;
             }
 
-//            resp = client.target(
-//                    baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
-//                            dataSetId + "/assignments").queryParam("recordId",
-//                    representation.getRecordId()).queryParam("schema", representation.getSchema()).request().delete();
-//            if (resp.getStatus() != Status.OK.getStatusCode()) {
-//                System.out.println("Could not remove assignment of representation for '" +
-//                                   representation.getRecordId() + "'!");
-//                continue;
-//            }
-            
+// resp = client.target(
+// baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
+// dataSetId + "/assignments").queryParam("recordId",
+// representation.getRecordId()).queryParam("schema",
+// representation.getSchema()).request().delete();
+// if (resp.getStatus() != Status.OK.getStatusCode()) {
+// System.out.println("Could not remove assignment of representation for '" +
+// representation.getRecordId() + "'!");
+// continue;
+// }
+
             done++;
 
             if (scheduled % 100 == 0) {
