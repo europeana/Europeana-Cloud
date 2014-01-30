@@ -94,7 +94,7 @@
 				</executions>
                         </plugin>
                         <!--
-                        Unpacks "solr.home" directory from ecloud-service-mcs-persistent-impl jar to test resources dir - for test purposes
+                        Unpacks "solr.home" directory from ecloud-service-mcs-persistent jar to test resources dir - for test purposes
                         -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -111,7 +111,7 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>eu.europeana.cloud</groupId>
-									<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+									<artifactId>ecloud-service-mcs-persistent</artifactId>
 									<version>${project.version}</version>
 									<type>jar</type>
 									<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
