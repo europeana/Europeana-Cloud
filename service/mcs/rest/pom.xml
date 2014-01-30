@@ -24,7 +24,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>eu.europeana.cloud</groupId>
-					<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
+					<artifactId>ecloud-service-mcs-inmemory</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
@@ -37,7 +37,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>eu.europeana.cloud</groupId>
-					<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+					<artifactId>ecloud-service-mcs-persistent</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
@@ -50,7 +50,7 @@
                     <dependencies>
                         <dependency>
                             <groupId>eu.europeana.cloud</groupId>
-                            <artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+                            <artifactId>ecloud-service-mcs-persistent</artifactId>
                             <version>${project.version}</version>
                         </dependency>
                     </dependencies>
@@ -280,14 +280,14 @@
 
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
+			<artifactId>ecloud-service-mcs-inmemory</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+			<artifactId>ecloud-service-mcs-persistent</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

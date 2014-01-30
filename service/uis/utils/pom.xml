@@ -7,10 +7,10 @@
 		<version>0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>ecloud-service-uis-truncate</artifactId>
+	<artifactId>ecloud-service-uis-utils</artifactId>
 	<packaging>jar</packaging>
 
-	<name>ecloud-service-uis-truncate</name>
+	<name>ecloud-service-uis-utils</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

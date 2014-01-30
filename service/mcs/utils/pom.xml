@@ -8,7 +8,6 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <groupId>eu.europeana.cloud.service.mcs</groupId>
-    <artifactId>mcs-cleaner</artifactId>
     <version>0.1-SNAPSHOT</version>
     <name>MCS cleaner</name>
     <url>http://maven.apache.org</url>
@@ -44,4 +43,5 @@
             <type>jar</type>
         </dependency>
     </dependencies>
+    <artifactId>ecloud-service-mcs-utils</artifactId>
 </project>

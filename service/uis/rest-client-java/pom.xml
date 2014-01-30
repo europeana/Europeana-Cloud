@@ -7,7 +7,7 @@
 		<version>0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>ecloud-service-uis-restclient</artifactId>
+	<artifactId>ecloud-service-uis-rest-client-java</artifactId>
 	<packaging>jar</packaging>
 
 	<name>Europeana Cloud: Unique Identifier Service REST Client</name>

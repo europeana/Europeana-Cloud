@@ -8,7 +8,7 @@
 		<version>0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>ecloud-service-mcs-persistent-impl</artifactId>
+	<artifactId>ecloud-service-mcs-persistent</artifactId>
 	<packaging>jar</packaging>
 	<name>Europeana Cloud: Metadata and Content Service Persistent Implementation</name>
 
@@ -27,7 +27,7 @@
 
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-uis-restclient</artifactId>
+			<artifactId>ecloud-service-uis-rest-client-java</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

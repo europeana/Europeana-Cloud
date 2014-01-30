@@ -32,8 +32,9 @@
 
 	<modules>
 		<module>common</module>
-		<module>services/mcs</module>
-		<module>services/uis</module>
+		<module>integration</module>
+		<module>service/mcs</module>
+		<module>service/uis</module>
 	</modules>
 
 	<repositories>

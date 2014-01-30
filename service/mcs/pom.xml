@@ -12,11 +12,12 @@
     <artifactId>ecloud-service-mcs</artifactId>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Metadata and Content Service</name>
-    <modules>
-        <module>mcs-api</module>
-        <module>mcs-inmemory-impl</module>
-        <module>mcs-persistent-impl</module>
-        <module>mcs-rest</module>
-        <module>mcs-cleaner</module>
-    </modules>
+	
+	<modules>
+		<module>api</module>
+		<module>inmemory</module>
+		<module>persistent</module>
+		<module>rest</module>
+		<module>utils</module>
+	</modules>
 </project>

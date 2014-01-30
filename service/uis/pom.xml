@@ -16,12 +16,13 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
 	<modules>
-		<module>ecloud-service-uis-api</module>
-		<module>ecloud-service-uis-inmemory</module>
-		<module>ecloud-service-uis-persistent</module>
-		<module>ecloud-service-uis-rest</module>
-		<module>ecloud-service-uis-restclient</module>
-		<module>ecloud-service-uis-truncate</module>
+		<module>api</module>
+		<module>inmemory</module>
+		<module>persistent</module>
+		<module>rest</module>
+		<module>rest-client-java</module>
+		<module>utils</module>
 	</modules>
 </project>

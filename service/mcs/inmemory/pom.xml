@@ -8,7 +8,7 @@
 		<version>0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>ecloud-service-mcs-inmemory-impl</artifactId>
+	<artifactId>ecloud-service-mcs-inmemory</artifactId>
 	<packaging>jar</packaging>
 	<name>Europeana Cloud: Metadata and Content Service In-Memory Implementation</name>
 
