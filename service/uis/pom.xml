@@ -15,6 +15,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<main.directory>${project.parent.basedir}</main.directory>
 	</properties>
 	
 	<modules>

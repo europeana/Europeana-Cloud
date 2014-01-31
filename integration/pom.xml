@@ -13,7 +13,9 @@
 
 	<artifactId>ecloud-integration</artifactId>
 	<name>Europeana Cloud: Integration Tests and Tools</name>
-
+<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>

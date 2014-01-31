@@ -19,5 +19,7 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
+<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 </project>

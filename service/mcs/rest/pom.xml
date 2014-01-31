@@ -11,7 +11,9 @@
 	<artifactId>ecloud-service-mcs-rest</artifactId>
 	<packaging>war</packaging>
 	<name>Europeana Cloud: Metadata and Content Service REST</name>
-
+<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 	<profiles>
 		<profile>
 			<id>inmemory</id>

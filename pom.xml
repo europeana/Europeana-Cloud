@@ -114,7 +114,8 @@
 		<version.blobstore>1.6.0</version.blobstore>
 		<version.swift>1.6.0</version.swift>
 		<version.keystone>1.6.3</version.keystone>
-		<version.gson>2.2.1</version.gson>	
+		<version.gson>2.2.1</version.gson>
+		<main.directory>${project.basedir}</main.directory>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<skipITs>true</skipITs>
@@ -134,13 +135,18 @@
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>license-maven-plugin</artifactId>
-					<version>1.5</version>
+					<version>1.6</version>
+					<configuration>
+						<licenseName>eupl</licenseName>
+						<licenseResolver>file://${main.directory}/license</licenseResolver>
+					</configuration>
 					<executions>
 						<execution>
-							<id>download-licenses</id>
+							<id>first</id>
 							<goals>
-								<goal>download-licenses</goal>
+								<goal>update-file-header</goal>
 							</goals>
+							<phase>process-sources</phase>
 						</execution>
 					</executions>
 				</plugin>

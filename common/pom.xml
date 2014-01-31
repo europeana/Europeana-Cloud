@@ -20,4 +20,8 @@
 			<artifactId>javax.ws.rs-api</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 </project>

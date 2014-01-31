@@ -14,7 +14,7 @@
 
 	<properties>
 		<version.org.glassfish.jersey.test-framework>${version.jersey}</version.org.glassfish.jersey.test-framework>
-
+		<main.directory>${project.parent.basedir}</main.directory>
 	</properties>
 
 	<dependencies>

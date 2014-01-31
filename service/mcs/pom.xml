@@ -12,7 +12,9 @@
     <artifactId>ecloud-service-mcs</artifactId>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Metadata and Content Service</name>
-	
+	<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 	<modules>
 		<module>api</module>
 		<module>inmemory</module>
