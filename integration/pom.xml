@@ -41,11 +41,6 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -139,7 +134,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>${version.commoncodec}</version>
+			<version>${version.commonscodec}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>

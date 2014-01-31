@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Base36 encoder. The characters consists of consonants (capital only) and
@@ -89,7 +88,7 @@ public final class Base36 {
 	private static String convertToNum(String str) {
 		StringBuilder sb = new StringBuilder();
 		for (char c : str.toCharArray()) {
-			sb.append((c * (new Random().nextInt() * OFFSET)));
+			sb.append((c * ((int) (Math.random() * OFFSET))));
 		}
 		return sb.toString();
 	}
@@ -97,7 +96,7 @@ public final class Base36 {
 	private static String convertToNum(long lng) {
 		StringBuilder sb = new StringBuilder();
 		for (char c : Long.toString(lng).toCharArray()) {
-			sb.append((c * (new Random().nextInt() * OFFSET)));
+			sb.append((c * ((int) (Math.random() * OFFSET))));
 		}
 		return sb.toString();
 
