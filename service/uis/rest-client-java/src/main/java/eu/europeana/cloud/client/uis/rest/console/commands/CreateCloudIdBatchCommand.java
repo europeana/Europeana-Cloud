@@ -11,7 +11,6 @@ import org.apache.commons.io.FileUtils;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 
@@ -37,8 +36,7 @@ public class CreateCloudIdBatchCommand extends Command {
 			}
 			FileUtils.writeLines(new File("batch_no_generation"), created);
 		} catch (IOException | CloudException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			getLogger().error(e.getMessage());
 		}
 	}
 

@@ -2,7 +2,6 @@ package eu.europeana.cloud.client.uis.rest.console.commands;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
 
 /**
  * Removal of a record id mapping console command
@@ -16,7 +15,7 @@ public class RemoveMappingByLocalIdCommand extends Command {
 		try{
 			System.out.println(client.removeMappingByLocalId(input[0], input[1]));
 		} catch (CloudException e){
-			System.out.println(e.getMessage());
+			getLogger().error(e.getMessage());
 		}
 	}
 

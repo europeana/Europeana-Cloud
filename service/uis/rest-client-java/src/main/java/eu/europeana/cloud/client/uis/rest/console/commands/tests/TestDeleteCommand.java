@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 
 /**
  * Test Delete Identifiers
@@ -35,7 +35,7 @@ public class TestDeleteCommand extends Command {
 			System.out.println("Fetching " + ids.size() + " records took " + end + " ms");
 			System.out.println("Average: " + (ids.size() / end) * 1000 + " records per second");
 		} catch (IOException | CloudException e) {
-			e.printStackTrace();
+			getLogger().error(e.getMessage());
 		}
 
 	}

@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 import eu.europeana.cloud.common.model.CloudId;
 
 /**
@@ -36,7 +36,7 @@ public class TestRetrieveCloudIdCommand extends Command {
 			System.out.println("Fetching "+ cloudIds.size()+" records took " + end + " ms");
 			System.out.println("Average: " + (cloudIds.size()/end) *1000 +" records per second");
 		} catch (IOException | CloudException e) {
-			e.printStackTrace();
+			getLogger().error(e.getMessage());
 		}
 
 	}

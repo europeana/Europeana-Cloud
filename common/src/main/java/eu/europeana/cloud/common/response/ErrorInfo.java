@@ -3,7 +3,7 @@ package eu.europeana.cloud.common.response;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Rest response that is returned if some error occured.
+ * Rest response that is returned if some error occurred.
  */
 @XmlRootElement
 public class ErrorInfo {
@@ -19,10 +19,18 @@ public class ErrorInfo {
     private String details;
 
 
+    /**
+     * Creates a new instance of this class.
+     */
     public ErrorInfo() {
     }
 
 
+    /**
+     * Creates a new instance of this class.
+     * @param errorCode
+     * @param details
+     */
     public ErrorInfo(String errorCode, String details) {
         this.errorCode = errorCode;
         this.details = details;

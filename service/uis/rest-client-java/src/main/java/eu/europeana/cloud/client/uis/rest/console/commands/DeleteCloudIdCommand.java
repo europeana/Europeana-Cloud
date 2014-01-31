@@ -4,7 +4,6 @@ import javax.naming.directory.InvalidAttributesException;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
 
 /**
  * Delete a cloud id console command
@@ -21,7 +20,7 @@ public class DeleteCloudIdCommand extends Command {
 		try{
 			System.out.println(client.deleteCloudId(input[0]));
 		} catch (CloudException e){
-			System.out.println(e.getMessage());
+			getLogger().error(e.getMessage());
 		}
 	}
 

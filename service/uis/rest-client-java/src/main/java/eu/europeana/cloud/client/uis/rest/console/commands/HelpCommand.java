@@ -1,7 +1,6 @@
 package eu.europeana.cloud.client.uis.rest.console.commands;
 
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
 
 /**
  * Help message
@@ -13,7 +12,7 @@ public class HelpCommand extends Command {
 
 	@Override
 	public void execute(UISClient client, int threadNo,String... input) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("Supported operations are:\n");
 		sb.append("createCloudId\t\t\tproviderId [recordId]: Create a new cloud id\n");
 		sb.append("createBatchCloudId\t\t\tfile: Create batch cloud ids from a file. The file should provider a line per provider and record id spaced delimited\n");

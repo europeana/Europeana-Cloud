@@ -34,12 +34,20 @@ public class ResultSlice<T> {
 	private List<T> results = new ArrayList<T>();
 
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param nextSlice
+	 * @param results
+	 */
 	public ResultSlice(String nextSlice, List<T> results) {
 		this.nextSlice = nextSlice;
 		this.results = Collections.unmodifiableList(results);
 	}
 
 
+	/**
+	 * Creates a new instance of this class.
+	 */
 	public ResultSlice() {
 	}
 

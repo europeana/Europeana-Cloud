@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.naming.directory.InvalidAttributesException;
 
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchWithGenerationCommand;
 import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdCommand;

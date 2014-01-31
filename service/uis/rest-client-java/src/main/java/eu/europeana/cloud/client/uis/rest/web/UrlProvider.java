@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * URL provider for UIS client
  * 
@@ -15,6 +19,7 @@ public class UrlProvider {
 
 	private static String baseUrl;
 
+	private static final Logger logger = LoggerFactory.getLogger(UrlProvider.class);
 	/**
 	 * Creates a new instance of this class.
 	 */
@@ -24,7 +29,7 @@ public class UrlProvider {
 			props.load(new FileInputStream(new File("src/main/resources/client.properties")));
 			baseUrl = props.getProperty("server.baseUrl");
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 	}
 

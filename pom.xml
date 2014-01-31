@@ -8,64 +8,69 @@
 	<packaging>pom</packaging>
 	<version>0.1-SNAPSHOT</version>
 	<inceptionYear>2013</inceptionYear>
-
 	<name>Europeana Cloud: Parent Module</name>
-
 	<organization>
 		<url>http://pro.europeana.eu/web/europeana-cloud</url>
 		<name>Europeana Cloud Development Team</name>
 	</organization>
-
 	<developers>
+		<developer>
+			<id>1nf1n1ty08</id>
+			<name>Markus Muhr</name>
+			<email>Markus.Muhr@ kb.nl</email>
+			<organization>The European Library</organization>
+			<organizationUrl>http://www.theeuropeanlibrary.org</organizationUrl>
+			<roles>
+				<role>scrum-master</role>
+			</roles>
+		</developer>
 		<developer>
 			<id>ymamakis</id>
 			<name>Yorgos Mamakis</name>
-			<email>Yorgos.Mamakis@ kb.nl</email> <!-- To avoid being spammed provide email with spaces and so on -->
+			<email>Yorgos.Mamakis@ kb.nl</email>
 			<organization>Europeana Foundation</organization>
 			<organizationUrl>http://www.europeana.eu</organizationUrl>
 			<roles>
 				<role>developer</role>
 			</roles>
 		</developer>
-                <developer>
-                    <id>olanowak</id>
-                    <name>Aleksandra Nowak</name>
-                    <email>anowak at man.poznan.pl</email>
-                    <organization>Poznań Supercomputing and Networking Center</organization>
-                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
-                    <roles>
-                        <role>developer</role>
-                    </roles>
-                </developer>
-                <developer>
-                    <id>platan</id>
-                    <name>Marcin Mielnicki</name>
-                    <email>marcinm at man.poznan.pl</email>
-                    <organization>Poznań Supercomputing and Networking Center</organization>
-                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
-                    <roles>
-                        <role>developer</role>
-                    </roles>
-                </developer>
-                <developer>
-                    <id>sielski</id>
-                    <name>Krzysztof Sielski</name>
-                    <email>sielski at man.poznan.pl</email>
-                    <organization>Poznań Supercomputing and Networking Center</organization>
-                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
-                    <roles>
-                        <role>developer</role>
-                    </roles>
-                </developer>
+		<developer>
+			<id>olanowak</id>
+			<name>Aleksandra Nowak</name>
+			<email>anowak at man.poznan.pl</email>
+			<organization>Poznań Supercomputing and Networking Center</organization>
+			<organizationUrl>http://www.man.poznan.pl</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>platan</id>
+			<name>Marcin Mielnicki</name>
+			<email>marcinm at man.poznan.pl</email>
+			<organization>Poznań Supercomputing and Networking Center</organization>
+			<organizationUrl>http://www.man.poznan.pl</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>sielski</id>
+			<name>Krzysztof Sielski</name>
+			<email>sielski at man.poznan.pl</email>
+			<organization>Poznań Supercomputing and Networking Center</organization>
+			<organizationUrl>http://www.man.poznan.pl</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
 	</developers>
-
 	<modules>
 		<module>common</module>
-<!-- 		<module>integration</module> -->
+		<module>integration</module>
 		<module>service/mcs</module>
 		<module>service/uis</module>
 	</modules>
-
 	<repositories>
 		<repository>
 			<id>eaio.com</id>
@@ -93,9 +98,7 @@
 			<name>MireDot Releases</name>
 			<url>http://nexus.qmino.com/content/repositories/miredot</url>
 		</repository>
-		<!-- ADD ANY OTHER REPOSITORY HERE -->
 	</repositories>
-
 	<properties>
 		<version.jdk>1.7</version.jdk>
 		<version.junit>4.10</version.junit>
@@ -107,10 +110,8 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<skipITs>true</skipITs>
 	</properties>
-
 	<build>
 		<pluginManagement>
-
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -160,7 +161,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -168,13 +168,11 @@
 				<artifactId>javax.ws.rs-api</artifactId>
 				<version>2.0</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>3.1</version>
 			</dependency>
-
 			<!--Jersey -->
 			<dependency>
 				<groupId>org.glassfish.jersey.ext</groupId>
@@ -196,7 +194,6 @@
 				<artifactId>jersey-container-servlet-core</artifactId>
 				<version>${version.jersey}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-web</artifactId>
@@ -210,7 +207,6 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
-
 			<dependency>
 				<artifactId>guava</artifactId>
 				<groupId>com.google.guava</groupId>

@@ -4,7 +4,6 @@ import javax.naming.directory.InvalidAttributesException;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.Command;
 import eu.europeana.cloud.common.model.LocalId;
 
 /**
@@ -24,7 +23,7 @@ public class GetRecordIdsByProviderCommand extends Command {
 				System.out.println(cId.toString());
 			}
 		} catch (CloudException e) {
-			System.out.println(e.getMessage());
+			getLogger().error(e.getMessage());
 		}
 
 	}

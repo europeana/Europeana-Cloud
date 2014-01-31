@@ -1,6 +1,9 @@
-package eu.europeana.cloud.client.uis.rest.console;
+package eu.europeana.cloud.client.uis.rest.console.commands;
 
 import javax.naming.directory.InvalidAttributesException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.client.uis.rest.UISClient;
 
@@ -11,6 +14,16 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
  */
 public abstract class Command {
 
+	private static final Logger logger = LoggerFactory.getLogger(Command.class);
+	
+	
+	/**
+	 * Get parent logger
+	 * @return The logger
+	 */
+	public Logger getLogger(){
+		return logger;
+	}
 	/**
 	 * Execution method of the command
 	 * @param client The UISClient to connect to
