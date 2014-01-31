@@ -28,7 +28,6 @@ import com.datastax.driver.core.Session;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/persistentServicesTestContext.xml" })
 public class CassandraIngestionDataSetTest extends IngestionDataSetTest {
-
     private static final Logger LOGGER                = LoggerFactory.getLogger(CassandraIngestionDataSetTest.class);
 
     private static boolean      serverRunning         = false;

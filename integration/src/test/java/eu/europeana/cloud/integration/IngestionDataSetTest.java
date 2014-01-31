@@ -95,7 +95,7 @@ public abstract class IngestionDataSetTest {
 
         // read data set
         ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
-                null, Integer.MAX_VALUE);
+                null, recordsNumber);
         Assert.assertEquals(recordsNumber, dataset.getResults().size());
         for (Representation representation : dataset.getResults()) {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -125,11 +125,10 @@ public abstract class IngestionDataSetTest {
             dataSetService.removeAssignment(providerId, dataSetId, representation.getRecordId(),
                     representation.getSchema());
         }
-        dataset = dataSetService.listDataSet(providerId, dataSetId, null, Integer.MAX_VALUE);
+        dataset = dataSetService.listDataSet(providerId, dataSetId, null, 1);
         Assert.assertEquals(0, dataset.getResults().size());
         dataSetService.deleteDataSet(providerId, dataSetId);
-        ResultSlice<DataSet> dataSets = dataSetService.getDataSets(providerId, null,
-                Integer.MAX_VALUE);
+        ResultSlice<DataSet> dataSets = dataSetService.getDataSets(providerId, null, 1);
         Assert.assertEquals(0, dataSets.getResults().size());
     }
 }
