@@ -12,6 +12,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 public class DatabaseConnectionException extends GenericException{
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2743985314014225235L;
+	/**
 	 * Creates a new instance of this class.
 	 * @param e
 	 */
@@ -27,9 +31,6 @@ public class DatabaseConnectionException extends GenericException{
 		super(errorInfo);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2743985314014225235L;
+	
 
 }

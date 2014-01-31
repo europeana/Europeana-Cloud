@@ -19,7 +19,7 @@ public class UrlProvider {
 
 	private static String baseUrl;
 
-	private static final Logger logger = LoggerFactory.getLogger(UrlProvider.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UrlProvider.class);
 	/**
 	 * Creates a new instance of this class.
 	 */
@@ -29,7 +29,7 @@ public class UrlProvider {
 			props.load(new FileInputStream(new File("src/main/resources/client.properties")));
 			baseUrl = props.getProperty("server.baseUrl");
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		}
 	}
 

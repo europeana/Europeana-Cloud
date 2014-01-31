@@ -18,10 +18,12 @@ import java.util.List;
  */
 public final class Base36 {
 
-	/** Base36 DICTIONARY */
-	public static final char[] DICTIONARY = new char[] { '0', '1', '2', '3',
-			'4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J',
-			'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Z' };
+	private static final char[] DICTIONARY = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C',
+			'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Z' };
+
+	private static final int ASCII_OFFSET = 48;
+	private static final int OFFSET = 100;
+	private static final int LENGTH = 11;
 
 	private Base36() {
 
@@ -70,31 +72,31 @@ public final class Base36 {
 			}
 			exponent++;
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (int i = result.size() - 1; i > -1; i--) {
 			sb.append(result.get(i));
 		}
-		if (sb.length() < 11) {
+		if (sb.length() < LENGTH) {
 			char[] cArr = new char[11 - sb.length()];
-			Arrays.fill(cArr, (char) 48);
+			Arrays.fill(cArr, (char) ASCII_OFFSET);
 			sb.append(cArr);
 			return sb.reverse().toString();
 		}
-		return sb.substring(0, 11);
+		return sb.substring(0, LENGTH);
 	}
 
 	private static String convertToNum(String str) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (char c : str.toCharArray()) {
-			sb.append((c * ((int) (Math.random() * 100))));
+			sb.append((c * ((int) (Math.random() * OFFSET))));
 		}
 		return sb.toString();
 	}
 
 	private static String convertToNum(long lng) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (char c : Long.toString(lng).toCharArray()) {
-			sb.append((c * ((int) (Math.random() * 100))));
+			sb.append((c * ((int) (Math.random() * OFFSET))));
 		}
 		return sb.toString();
 

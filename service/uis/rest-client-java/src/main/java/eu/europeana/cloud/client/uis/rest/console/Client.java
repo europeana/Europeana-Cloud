@@ -23,7 +23,7 @@ public class Client {
 		while (true) {
 			scanner = new Scanner(System.in);
 			String[] input = scanner.nextLine().split(" ");
-			if (input[0].equalsIgnoreCase("exit")) {
+			if ("exit".equalsIgnoreCase(input[0])) {
 				scanner.close();
 				break;
 

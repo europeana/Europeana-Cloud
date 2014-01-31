@@ -1,10 +1,7 @@
 /* Truncator.java - created on Jan 10, 2014, Copyright (c) 2013 Europeana Foundation, all rights reserved */
 package eu.europeana.cloud.database.truncate;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import com.google.common.collect.ImmutableList;
 
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 import eu.europeana.cloud.service.uis.database.dao.util.DatabaseTruncateUtil;
@@ -18,29 +15,22 @@ import eu.europeana.cloud.service.uis.database.dao.util.DatabaseTruncateUtil;
 public class Truncator {
 
 	private DatabaseService dbService;
-	
+
 	/**
 	 * Creates a new instance of this class.
-	 * @param dbService 
+	 * 
+	 * @param dbService
 	 */
 	public Truncator(DatabaseService dbService) {
 		this.dbService = dbService;
 	}
 
-	
 	/**
 	 * Truncate the database
 	 */
 	public void truncate() {
 		DatabaseTruncateUtil dbUtil = new DatabaseTruncateUtil(dbService);
-		List<String> tables = new ArrayList<String>() {
-			{
-				add("data_providers");
-				add("Cloud_Id");
-				add("Provider_Record_Id");
-			}
-		};
-		dbUtil.truncateTables(tables);
+		dbUtil.truncateTables(ImmutableList.of("data_providers", "Cloud_Id", "Provider_Record_Id"));
 	}
 
 }

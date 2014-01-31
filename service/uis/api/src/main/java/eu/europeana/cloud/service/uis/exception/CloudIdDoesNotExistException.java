@@ -12,6 +12,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 public class CloudIdDoesNotExistException extends GenericException {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -881851449536503512L;
+	/**
 	 * Creates a new instance of this class.
 	 * @param e
 	 */
@@ -27,9 +31,6 @@ public class CloudIdDoesNotExistException extends GenericException {
 		super(errorInfo);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -881851449536503512L;
+	
 
 }

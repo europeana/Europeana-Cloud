@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.datastax.driver.core.BoundStatement;
@@ -38,6 +40,8 @@ public class CassandraDataProviderDAO {
     private PreparedStatement deleteProviderStatement;
 
     private PreparedStatement getAllProvidersStatement;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderDAO.class);
 
     /**
      * 
@@ -177,7 +181,6 @@ public class CassandraDataProviderDAO {
     }
 
 
-    //TODO: this method is not safe to changes in DataProviderProperties class. Refactor.
     private Map<String, String> propertiesToMap(DataProviderProperties properties) {
         Map<String, String> map = new HashMap<>();
         Method[] methods = DataProviderProperties.class.getDeclaredMethods();
@@ -190,6 +193,7 @@ public class CassandraDataProviderDAO {
                         map.put(m.getName().substring(3), value.toString());
                     }
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                	LOGGER.error(ex.getMessage());
                 }
             }
         }
@@ -197,7 +201,6 @@ public class CassandraDataProviderDAO {
     }
 
 
-    //TODO: this method is not safe to changes in DataProviderProperties class. Refactor.
     private DataProviderProperties mapToProperties(Map<String, String> map) {
         DataProviderProperties properties = new DataProviderProperties();
         Method[] methods = DataProviderProperties.class.getDeclaredMethods();
@@ -209,6 +212,7 @@ public class CassandraDataProviderDAO {
                     try {
                         m.invoke(properties, propValue);
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                    	LOGGER.error(ex.getMessage());
                     }
                 }
             }

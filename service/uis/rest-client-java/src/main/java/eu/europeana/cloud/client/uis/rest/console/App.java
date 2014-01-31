@@ -45,70 +45,61 @@ public class App implements Runnable {
 
 	private String[] input;
 	private int id;
+
 	@Override
 	public void run() {
 		UISClient client = new UISClient();
-		
 
-			Map<String, Command> commands = populateCommands();
-			boolean supported = true;
-			
+		Map<String, Command> commands = populateCommands();
+		boolean supported = true;
 
-			if (!commands.containsKey(input[0])) {
-				System.out.println("Operation is not supported");
-				supported = false;
+		if (!commands.containsKey(input[0])) {
+			System.out.println("Operation is not supported");
+			supported = false;
+		}
+		if (supported) {
+			try {
+				commands.get(input[0]).execute(client, id, input.length > 1 ? subArray(input) : new String[0]);
+			} catch (InvalidAttributesException e) {
+				System.out.println("Wrong number of arguments provided");
 			}
-			if (supported) {
-				try {
-					commands.get(input[0]).execute(client, id, input.length > 1 ? subArray(input) : new String[0]);
-				} catch (InvalidAttributesException e) {
-					System.out.println("Wrong number of arguments provided");
-				}
-			}
-		
-		
+		}
 
 	}
 
 	private static Map<String, Command> populateCommands() {
-		return new HashMap<String, Command>() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -7743782749216945386L;
+		Map<String,Command> a = new HashMap<>();
 
-			{
-				put("createCloudId", new CreateCloudIdCommand());
-				put("createMapping", new CreateMappingCommand());
-				put("deleteCloudId", new DeleteCloudIdCommand());
-				put("getCloudId", new GetCloudIdCommand());
-				put("getCloudIdsByProvider", new GetCloudIdsByProviderCommand());
-				put("getCloudIdsByProviderWithPagination", new GetCloudIdsByProviderWithPaginationCommand());
-				put("getRecordIdsByProvider", new GetRecordIdsByProviderCommand());
-				put("getRecordIdsByProviderWithPagination", new GetRecordIdsByProviderWithPaginationCommand());
-				put("getRecordIds", new GetRecordIdsCommand());
-				put("createBatchCloudId",new CreateCloudIdBatchCommand());
-				put("createBatchCloudWithGeneration", new CreateCloudIdBatchWithGenerationCommand());
-				put("removeMappingByLocalId", new RemoveMappingByLocalIdCommand());
-				put("testOneProviderRW", new TestReadWriteOneProviderCommand());
-				put("testManyProvidersRW", new TestReadWriteManyProvidersCommand());
-				put("testManyProvidersWithIdRW", new TestReadWriteManyProvidersWithIdCommand());
-				put("testOneProviderWithIdRW", new TestReadWriteOneProviderWithIdCommand());
-				put("testOneProviderWrite",new TestCreateMappingIdOneProviderCommand());
-				put("testManyProvidersWrite",new TestCreateMappingIdManyProvidersCommand());
-				put("testReadOneProvider",new TestReadOneProviderCommand());
-				put("testReadManyProviders",new TestReadManyProvidersCommand());
-				put("testRetrieveIdsByCloudId", new TestRetrieveCloudIdCommand());
-				put("testRetrieveCloudIdByProvider", new TestRetrieveCloudIdNoPaginationCommand());
-				put("testRetrieveCloudIdByProviderWithPagination", new TestRetrieveCloudIdWithPaginationCommand());
-				put("testRetrieveLocalIdByProvider", new TestRetrieveLocalIdNoPaginationCommand());
-				put("testRetrieveLocalIdByProviderWithPagination", new TestRetrieveLocalIdWithPaginationCommand());
-				put("testDeleteCloudId",new TestDeleteCommand());
-				put("help", new HelpCommand());
-				put("?", new HelpCommand());
-			}
+		a.put("createCloudId", new CreateCloudIdCommand());
+		a.put("createMapping", new CreateMappingCommand());
+		a.put("deleteCloudId", new DeleteCloudIdCommand());
+		a.put("getCloudId", new GetCloudIdCommand());
+		a.put("getCloudIdsByProvider", new GetCloudIdsByProviderCommand());
+		a.put("getCloudIdsByProviderWithPagination", new GetCloudIdsByProviderWithPaginationCommand());
+		a.put("getRecordIdsByProvider", new GetRecordIdsByProviderCommand());
+		a.put("getRecordIdsByProviderWithPagination", new GetRecordIdsByProviderWithPaginationCommand());
+		a.put("getRecordIds", new GetRecordIdsCommand());
+		a.put("createBatchCloudId", new CreateCloudIdBatchCommand());
+		a.put("createBatchCloudWithGeneration", new CreateCloudIdBatchWithGenerationCommand());
+		a.put("removeMappingByLocalId", new RemoveMappingByLocalIdCommand());
+		a.put("testOneProviderRW", new TestReadWriteOneProviderCommand());
+		a.put("testManyProvidersRW", new TestReadWriteManyProvidersCommand());
+		a.put("testManyProvidersWithIdRW", new TestReadWriteManyProvidersWithIdCommand());
+		a.put("testOneProviderWithIdRW", new TestReadWriteOneProviderWithIdCommand());
+		a.put("testOneProviderWrite", new TestCreateMappingIdOneProviderCommand());
+		a.put("testManyProvidersWrite", new TestCreateMappingIdManyProvidersCommand());
+		a.put("testReadOneProvider", new TestReadOneProviderCommand());
+		a.put("testReadManyProviders", new TestReadManyProvidersCommand());
+		a.put("testRetrieveIdsByCloudId", new TestRetrieveCloudIdCommand());
+		a.put("testRetrieveCloudIdByProvider", new TestRetrieveCloudIdNoPaginationCommand());
+		a.put("testRetrieveCloudIdByProviderWithPagination", new TestRetrieveCloudIdWithPaginationCommand());
+		a.put("testRetrieveLocalIdByProvider", new TestRetrieveLocalIdNoPaginationCommand());
+		a.put("testRetrieveLocalIdByProviderWithPagination", new TestRetrieveLocalIdWithPaginationCommand());
+		a.put("testDeleteCloudId", new TestDeleteCommand());
+		a.put("help", new HelpCommand());
+		a.put("?", new HelpCommand());
 
-		};
+		return a;
 	}
 
 	private static String[] subArray(String[] input) throws InvalidAttributesException {
@@ -116,20 +107,22 @@ public class App implements Runnable {
 		System.arraycopy(input, 1, ret, 0, ret.length);
 		return ret;
 	}
-	
+
 	/**
 	 * Inject command line parameters
+	 * 
 	 * @param input
 	 */
-	public void setInput(String[] input){
-		this.input=input.clone();
+	public void setInput(String[] input) {
+		this.input = input.clone();
 	}
-	
+
 	/**
 	 * Set the thread id
+	 * 
 	 * @param id
 	 */
-	public void setId(int id){
+	public void setId(int id) {
 		this.id = id;
 	}
 }

@@ -73,8 +73,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -94,11 +93,9 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
 		} else {
-			try{
-				ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-				throw generateException(errorInfo);
-			}
-			catch(Exception e){
+			try {
+				throw generateException(resp.readEntity(ErrorInfo.class));
+			} catch (Exception e) {
 				throw e;
 			}
 		}
@@ -123,8 +120,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -145,8 +141,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -167,8 +162,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -189,8 +183,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -216,11 +209,9 @@ public class UISClient {
 				.queryParam(RelativeUrls.GETLOCALIDSBYPROVIDER.getParamNames().get(2), window).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			ResultSlice<LocalId> localIds = resp.readEntity(ResultSlice.class);
-			return localIds;
+			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -246,11 +237,9 @@ public class UISClient {
 				.queryParam(RelativeUrls.GETCLOUDIDSBYPROVIDER.getParamNames().get(2), window).request().get();
 
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			ResultSlice<CloudId> cloudIds = resp.readEntity(ResultSlice.class);
-			return cloudIds;
+			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -275,8 +264,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 
 	}
@@ -299,8 +287,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -320,8 +307,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return true;
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -342,8 +328,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.CREATED.getStatusCode()) {
 			return resp.toString();
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -359,13 +344,12 @@ public class UISClient {
 	 */
 	public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
 		Response resp = client
-				.target(urlProvider.getPidUrl(urlProvider.getPidUrl("/"+RelativeUrls.CREATEPROVIDER.getUrl())))
+				.target(urlProvider.getPidUrl(urlProvider.getPidUrl("/" + RelativeUrls.CREATEPROVIDER.getUrl())))
 				.path(providerId).request().post(Entity.json(dp));
 		if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
 			return true;
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
@@ -384,25 +368,25 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(ResultSlice.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
 	/**
 	 * Retrieve a selected data provider
-	 * @param providerId The provider id to retrieve
+	 * 
+	 * @param providerId
+	 *            The provider id to retrieve
 	 * @return The Data provider that corresponds to the selected id
 	 * @throws CloudException
 	 */
 	public DataProvider getDataProvider(String providerId) throws CloudException {
-		Response resp = client.target(urlProvider.getPidUrl("/"+RelativeUrls.CREATEPROVIDER.getUrl())).path(providerId)
-				.request().get();
+		Response resp = client.target(urlProvider.getPidUrl("/" + RelativeUrls.CREATEPROVIDER.getUrl()))
+				.path(providerId).request().get();
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(DataProvider.class);
 		} else {
-			ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-			throw generateException(errorInfo);
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 

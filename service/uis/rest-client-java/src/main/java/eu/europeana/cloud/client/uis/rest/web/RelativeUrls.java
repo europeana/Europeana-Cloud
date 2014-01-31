@@ -1,7 +1,8 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Enumeration that holds the relative urls and parameters of each API call
@@ -16,17 +17,7 @@ public enum RelativeUrls {
 		@Override
 		public List<String> getParamNames() {
 
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -4917925348535440990L;
-
-				{
-					add(PROVIDER_ID);
-					add(RECORD_ID);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID, RECORD_ID);
 		}
 
 		@Override
@@ -38,17 +29,7 @@ public enum RelativeUrls {
 	CREATECLOUDIDNOLOCAL {
 		@Override
 		public List<String> getParamNames() {
-
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -4917925348535440990L;
-
-				{
-					add(PROVIDER_ID);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID);
 		}
 
 		@Override
@@ -60,17 +41,7 @@ public enum RelativeUrls {
 	GETCLOUDID {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -1592758113004504815L;
-
-				{
-					add(PROVIDER_ID);
-					add(RECORD_ID);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID, RECORD_ID);
 		}
 
 		@Override
@@ -82,16 +53,7 @@ public enum RelativeUrls {
 	GETLOCALIDS {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 3452383847573071930L;
-
-				{
-					add(CLOUD_ID);
-				}
-			};
+			return ImmutableList.of(CLOUD_ID);
 		}
 
 		@Override
@@ -103,18 +65,7 @@ public enum RelativeUrls {
 	GETLOCALIDSBYPROVIDER {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 7408709766048773111L;
-
-				{
-					add(PROVIDER_ID);
-					add(RECORD_ID);
-					add(TO);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID, RECORD_ID, TO);
 		}
 
 		@Override
@@ -126,18 +77,7 @@ public enum RelativeUrls {
 	GETCLOUDIDSBYPROVIDER {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 7520663886629247245L;
-
-				{
-					add(PROVIDER_ID);
-					add(CLOUD_ID);
-					add(TO);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID, CLOUD_ID, TO);
 		}
 
 		@Override
@@ -149,18 +89,7 @@ public enum RelativeUrls {
 	CREATEMAPPING {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 501580880647046185L;
-
-				{
-					add(CLOUD_ID);
-					add(PROVIDER_ID);
-					add(RECORD_ID);
-				}
-			};
+			return ImmutableList.of(CLOUD_ID, PROVIDER_ID, RECORD_ID);
 		}
 
 		@Override
@@ -172,17 +101,7 @@ public enum RelativeUrls {
 	REMOVEMAPPINGBYLOCALID {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 7585573871277473127L;
-
-				{
-					add(PROVIDER_ID);
-					add(RECORD_ID);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID, RECORD_ID);
 		}
 
 		@Override
@@ -194,16 +113,7 @@ public enum RelativeUrls {
 	DELETECLOUDID {
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 7715313142197545810L;
-
-				{
-					add(CLOUD_ID);
-				}
-			};
+			return ImmutableList.of(CLOUD_ID);
 		}
 
 		@Override
@@ -218,12 +128,7 @@ public enum RelativeUrls {
 
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-
-				{
-					add(PROVIDER_ID);
-				}
-			};
+			return ImmutableList.of(PROVIDER_ID);
 		}
 
 		@Override
@@ -239,17 +144,12 @@ public enum RelativeUrls {
 
 		@Override
 		public List<String> getParamNames() {
-			return new ArrayList<String>() {
-
-				{
-					add(STARTFROM);
-				}
-			};
+			return ImmutableList.of(STARTFROM);
 		}
 
 		@Override
 		public String getUrl() {
-			
+
 			return "";
 		}
 

@@ -24,7 +24,7 @@ public class InMemoryDataProviderDAO {
 	private Map<String, DataProvider> providers = new HashMap<>();
 
 	/**
-	 * Get a predefined number ofproviders
+	 * Get a predefined number of providers
 	 * @param limit The number of providers to retrieve
 	 * @return A List of data providers
 	 */
@@ -42,10 +42,9 @@ public class InMemoryDataProviderDAO {
 	public DataProvider getProvider(String id) throws ProviderDoesNotExistException {
 		DataProvider provider = providers.get(id);
 		if (provider == null) {
-			ProviderDoesNotExistException e = new ProviderDoesNotExistException(new IdentifierErrorInfo(
+			throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(id)));
-			throw e;
 		}
 		return provider;
 	}

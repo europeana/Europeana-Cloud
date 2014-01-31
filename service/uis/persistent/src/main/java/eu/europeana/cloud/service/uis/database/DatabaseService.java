@@ -38,6 +38,7 @@ public class DatabaseService {
 	 *            The username
 	 * @param password
 	 *            The password
+	 * @param create Create the database
 	 * @throws IOException
 	 */
 	public DatabaseService(String host, String port, String keyspaceName, String username, String password,

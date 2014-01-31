@@ -13,6 +13,11 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class IdHasBeenMappedException extends GenericException {
 
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3035751589004362690L;
 	/**
 	 * Creates a new instance of this class.
 	 * @param e
@@ -29,9 +34,6 @@ public class IdHasBeenMappedException extends GenericException {
 		super(errorInfo);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3035751589004362690L;
+	
 
 }

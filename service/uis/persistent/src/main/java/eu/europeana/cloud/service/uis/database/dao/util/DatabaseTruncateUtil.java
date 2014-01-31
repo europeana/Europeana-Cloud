@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.uis.database.dao.util;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import eu.europeana.cloud.service.uis.database.DatabaseService;
 
 /**

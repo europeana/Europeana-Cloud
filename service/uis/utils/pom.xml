@@ -10,7 +10,7 @@
 	<artifactId>ecloud-service-uis-utils</artifactId>
 	<packaging>jar</packaging>
 
-	<name>ecloud-service-uis-utils</name>
+	<name>Europeana Cloud: Utils Classes for UIS</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

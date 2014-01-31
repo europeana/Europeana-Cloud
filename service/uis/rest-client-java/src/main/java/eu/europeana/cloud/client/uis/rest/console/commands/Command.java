@@ -14,7 +14,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
  */
 public abstract class Command {
 
-	private static final Logger logger = LoggerFactory.getLogger(Command.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
 	
 	
 	/**
@@ -22,7 +22,7 @@ public abstract class Command {
 	 * @return The logger
 	 */
 	public Logger getLogger(){
-		return logger;
+		return LOGGER;
 	}
 	/**
 	 * Execution method of the command

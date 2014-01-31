@@ -12,6 +12,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 public class RecordDoesNotExistException extends GenericException{
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4115451763281287610L;
+	/**
 	 * Creates a new instance of this class.
 	 * @param errorInfo
 	 */
@@ -28,9 +32,6 @@ public class RecordDoesNotExistException extends GenericException{
 		super(errorInfo);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4115451763281287610L;
+
 
 }

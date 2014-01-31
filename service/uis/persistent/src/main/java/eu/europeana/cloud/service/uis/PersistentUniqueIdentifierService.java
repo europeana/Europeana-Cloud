@@ -75,7 +75,7 @@ public class PersistentUniqueIdentifierService implements
 		}
 		String recordId = recordInfo.length > 1 ? recordInfo[1] : Base36
 				.timeEncode(providerId);
-		if (localIdDao.searchActive(providerId, recordId).size() > 0) {
+		if (!localIdDao.searchActive(providerId, recordId).isEmpty()) {
 			throw new RecordExistsException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
 					IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(
@@ -98,7 +98,7 @@ public class PersistentUniqueIdentifierService implements
 			throws DatabaseConnectionException, RecordDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
-		if (cloudIds.size() == 0) {
+		if (cloudIds.isEmpty()) {
 			throw new RecordDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST
@@ -114,7 +114,7 @@ public class PersistentUniqueIdentifierService implements
 			throws DatabaseConnectionException, CloudIdDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
-		if (cloudIds.size() == 0) {
+		if (cloudIds.isEmpty()) {
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
@@ -196,7 +196,7 @@ public class PersistentUniqueIdentifierService implements
 		}
 		
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
-		if (cloudIds.size() == 0) {
+		if (cloudIds.isEmpty()) {
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
@@ -205,7 +205,7 @@ public class PersistentUniqueIdentifierService implements
 									.getErrorInfo(cloudId)));
 		}
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
-		if (localIds.size() != 0) {
+		if (!localIds.isEmpty()) {
 			throw new IdHasBeenMappedException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
@@ -236,7 +236,7 @@ public class PersistentUniqueIdentifierService implements
 	public void deleteCloudId(String cloudId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException {
 
-		if (!(cloudIdDao.searchActive(cloudId).size() > 0)) {
+		if (cloudIdDao.searchActive(cloudId).isEmpty()) {
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST

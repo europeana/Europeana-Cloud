@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
+
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.Dao;
@@ -77,12 +79,7 @@ public class InMemoryCloudIdDao implements Dao<CloudId, List<CloudId>> {
 		lId.setProviderId(args[1]);
 		lId.setRecordId(args[2]);
 		cId.setLocalId(lId);
-		return new ArrayList<CloudId>(){
-			private static final long serialVersionUID = 4075489743327584853L;
-
-		{
-			add(cId);
-		}};
+		return ImmutableList.of(cId);
 	}
 
 	@Override

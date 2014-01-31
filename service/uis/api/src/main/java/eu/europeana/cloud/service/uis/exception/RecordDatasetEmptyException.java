@@ -12,6 +12,10 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 public class RecordDatasetEmptyException extends GenericException {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7827869940617107588L;
+	/**
 	 * Creates a new instance of this class.
 	 * @param e
 	 */
@@ -27,9 +31,6 @@ public class RecordDatasetEmptyException extends GenericException {
 		super(errorInfo);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7827869940617107588L;
+	
 
 }

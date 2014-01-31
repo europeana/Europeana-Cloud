@@ -120,7 +120,6 @@ public enum IdentifierErrorTemplate {
 
 		@Override
 		public Status getHttpCode() {
-			// return null;
 			return Status.CONFLICT;
 		}
 		

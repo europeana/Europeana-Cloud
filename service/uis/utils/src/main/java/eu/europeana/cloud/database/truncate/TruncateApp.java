@@ -12,8 +12,7 @@ import eu.europeana.cloud.database.truncate.context.ApplicationContextUtils;
  * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
  * @since Jan 10, 2014
  */
-public class TruncateApp 
-{
+public class TruncateApp {
 	
 	/**
 	 * 
