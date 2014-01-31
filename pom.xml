@@ -27,7 +27,36 @@
 				<role>developer</role>
 			</roles>
 		</developer>
-		<!-- Please provide me with similar information and append it here -->
+                <developer>
+                    <id>olanowak</id>
+                    <name>Aleksandra Nowak</name>
+                    <email>anowak at man.poznan.pl</email>
+                    <organization>Poznań Supercomputing and Networking Center</organization>
+                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
+                    <roles>
+                        <role>developer</role>
+                    </roles>
+                </developer>
+                <developer>
+                    <id>platan</id>
+                    <name>Marcin Mielnicki</name>
+                    <email>marcinm at man.poznan.pl</email>
+                    <organization>Poznań Supercomputing and Networking Center</organization>
+                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
+                    <roles>
+                        <role>developer</role>
+                    </roles>
+                </developer>
+                <developer>
+                    <id>sielski</id>
+                    <name>Krzysztof Sielski</name>
+                    <email>sielski at man.poznan.pl</email>
+                    <organization>Poznań Supercomputing and Networking Center</organization>
+                    <organizationUrl>http://www.man.poznan.pl</organizationUrl>
+                    <roles>
+                        <role>developer</role>
+                    </roles>
+                </developer>
 	</developers>
 
 	<modules>
