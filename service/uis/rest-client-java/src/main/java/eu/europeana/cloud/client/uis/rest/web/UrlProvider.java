@@ -17,51 +17,57 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlProvider {
 
-
 	private static String baseUrl;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlProvider.class);
+
 	/**
 	 * Creates a new instance of this class.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
-	public UrlProvider() throws IOException{
+	public UrlProvider() throws IOException {
 		Properties props = new Properties();
-		InputStream is=null;
+		InputStream is = null;
 		try {
-			 is = new FileInputStream(new File("src/main/resources/client.properties"));
+			is = new FileInputStream(new File("src/main/resources/client.properties"));
 			props.load(is);
 			baseUrl = props.getProperty("server.baseUrl");
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
-		} finally{
-			is.close();
+		} finally {
+			if (is != null) {
+				is.close();
+			}
 		}
 	}
 
-        /**
-         * Creates a new instance of this class.
-         * @param serviceUrl
-         */
-        public UrlProvider(final String serviceUrl) {
-            baseUrl = serviceUrl;
-        }
+	/**
+	 * Creates a new instance of this class.
+	 * 
+	 * @param serviceUrl
+	 */
+	public UrlProvider(final String serviceUrl) {
+		baseUrl = serviceUrl;
+	}
 
 	/**
 	 * Return the host url for the unique identifier service
+	 * 
 	 * @param url
 	 * @return The host url for the service
 	 */
-	public String getUidUrl(String url){
-		return baseUrl+"/uniqueId/"+url;
+	public String getUidUrl(String url) {
+		return baseUrl + "/uniqueId/" + url;
 	}
-	
+
 	/**
 	 * Return the host url for the data providers service
+	 * 
 	 * @param url
 	 * @return The host url for the data providers service
 	 */
-	public String getPidUrl(String url){
-		return baseUrl+"/uniqueId/data-providers"+url;
+	public String getPidUrl(String url) {
+		return baseUrl + "/uniqueId/data-providers" + url;
 	}
 }
