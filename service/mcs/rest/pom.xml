@@ -394,7 +394,7 @@
 		<dependency>
 			<groupId>pl.pragmatists</groupId>
 			<artifactId>JUnitParams</artifactId>
-			<version>1.0.2</version>
+			<version>${version.junitparams}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -407,7 +407,7 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>4.5.1</version>
+			<version>${version.solr}</version>
 			<scope>test</scope>
 		</dependency>
 

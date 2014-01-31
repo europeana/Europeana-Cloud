@@ -60,11 +60,26 @@ public class Representation {
 	private boolean persistent;
 
 
+	/**
+	 * Creates a new instance of this class.
+	 */
 	public Representation() {
 		super();
 	}
 
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param recordId
+	 * @param schema
+	 * @param version
+	 * @param allVersionsUri
+	 * @param uri
+	 * @param dataProvider
+	 * @param files
+	 * @param persistent
+	 * @param creationDate
+	 */
 	public Representation(String recordId, String schema, String version,
 			URI allVersionsUri, URI uri, String dataProvider, List<File> files,
 			boolean persistent, Date creationDate) {
@@ -77,10 +92,14 @@ public class Representation {
 		this.dataProvider = dataProvider;
 		this.files = files;
 		this.persistent = persistent;
-		this.creationDate = creationDate;
+		this.creationDate = creationDate!=null?creationDate:null;
 	}
 
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param representation
+	 */
 	public Representation(final Representation representation) {
 		this(representation.getRecordId(), representation.getSchema(), representation.getVersion(),
 				representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
@@ -183,7 +202,7 @@ public class Representation {
 
 
 	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+		this.creationDate = creationDate!=null?creationDate:null;
 	}
 
 

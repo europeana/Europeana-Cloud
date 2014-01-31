@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -23,6 +27,8 @@ public class DatabaseService {
 	private String port;
 
 	private String keyspaceName;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseService.class);
 
 	/**
 	 * Initialization of the database connection
@@ -38,7 +44,8 @@ public class DatabaseService {
 	 *            The username
 	 * @param password
 	 *            The password
-	 * @param create Create the database
+	 * @param create
+	 *            Create the database
 	 * @throws IOException
 	 */
 	public DatabaseService(String host, String port, String keyspaceName, String username, String password,
@@ -109,4 +116,10 @@ public class DatabaseService {
 	public ConsistencyLevel getConsistencyLevel() {
 		return ConsistencyLevel.QUORUM;
 	}
+
+	@PreDestroy
+	    private void closeConnections() {
+	        LOGGER.info("Cluster is shutting down.");
+	        session.getCluster().shutdown();
+	    }
 }

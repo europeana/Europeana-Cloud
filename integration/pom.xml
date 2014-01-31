@@ -41,6 +41,11 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-mcs</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -54,11 +59,6 @@
 			<artifactId>ecloud-service-mcs-persistent</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>eu.europeana.cloud</groupId> -->
-		<!-- <artifactId>ecloud-service-mcs-rest</artifactId> -->
-		<!-- <version>${project.version}</version> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-uis-api</artifactId>
@@ -74,11 +74,6 @@
 			<artifactId>ecloud-service-uis-persistent</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>eu.europeana.cloud</groupId> -->
-		<!-- <artifactId>ecloud-service-uis-rest</artifactId> -->
-		<!-- <version>${project.version}</version> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>args4j</groupId>
 			<artifactId>args4j</artifactId>
@@ -119,37 +114,37 @@
 		<dependency>
 			<groupId>com.eaio.uuid</groupId>
 			<artifactId>uuid</artifactId>
-			<version>3.4</version>
+			<version>${version.uuid}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jclouds</groupId>
 			<artifactId>jclouds-blobstore</artifactId>
-			<version>1.6.0</version>
+			<version>${version.blobstore}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>openstack-keystone</artifactId>
-			<version>1.6.3</version>
+			<version>${version.keystone}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jclouds.api</groupId>
 			<artifactId>swift</artifactId>
-			<version>1.6.0</version>
+			<version>${version.swift}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<version>${version.commonio}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.8</version>
+			<version>${version.commoncodec}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.2.1</version>
+			<version>${version.gson}</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -214,25 +209,18 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
-			<version>4.5.1</version>
+			<version>${version.solr}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>4.5.1</version>
-			<!-- <scope>provided</scope> -->
+			<version>${version.solr}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<!-- <scope>provided</scope> -->
+			<version>${version.servlet}</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>com.sun.jersey</groupId> -->
-		<!-- <artifactId>jersey-json</artifactId> -->
-		<!-- <version>1.8</version> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
@@ -249,31 +237,21 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.glassfish.jersey.media</groupId> -->
-<!-- 			<artifactId>jersey-media-json</artifactId> -->
-<!-- 			<version>2.0-m05-1</version> -->
-<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-processing</artifactId>
-			<version>2.3.1</version>
+			<version>${version.jersey}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jettison</artifactId>
-			<version>2.3.1</version>
+			<version>${version.jersey}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
-			<version>2.3.1</version>
+			<version>${version.jersey}</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.glassfish.jersey.media</groupId> -->
-<!-- 			<artifactId>jersey-media-sse</artifactId> -->
-<!-- 			<version>2.3.1</version> -->
-<!-- 		</dependency> -->
 	</dependencies>
 
 	<repositories>

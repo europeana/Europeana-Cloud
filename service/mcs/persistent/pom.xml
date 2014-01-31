@@ -7,7 +7,6 @@
 		<artifactId>ecloud-service-mcs</artifactId>
 		<version>0.1-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>ecloud-service-mcs-persistent</artifactId>
 	<packaging>jar</packaging>
 	<name>Europeana Cloud: Metadata and Content Service Persistent Implementation</name>
@@ -64,17 +63,17 @@
 		<dependency>
 			<groupId>com.eaio.uuid</groupId>
 			<artifactId>uuid</artifactId>
-			<version>3.4</version>
+			<version>${version.uuid}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jclouds</groupId>
 			<artifactId>jclouds-blobstore</artifactId>
-			<version>1.6.0</version>
+			<version>${version.blobstore}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>openstack-keystone</artifactId>
-			<version>1.6.3</version>
+			<version>${version.keystone}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jclouds.api</groupId>
@@ -84,17 +83,17 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<version>${version.commonio}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.8</version>
+			<version>${version.commonscodec}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.2.1</version>
+			<version>${version.gson}</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -159,18 +158,18 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
-			<version>4.5.1</version>
+			<version>${version.solr}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>4.5.1</version>
+			<version>${version.solr}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
+			<version>${version.servlet}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

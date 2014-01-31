@@ -8,7 +8,6 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <groupId>eu.europeana.cloud.service.mcs</groupId>
-    <version>0.1-SNAPSHOT</version>
     <name>MCS cleaner</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -20,26 +19,20 @@
             <artifactId>log4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.3</version>
-        </dependency>
-            
-        <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
-            <version>4.5.1</version>
+            <version>${version.solr}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
-            <version>4.5.1</version>
+            <version>${version.solr}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>2.3.1</version>
+            <version>${version.jersey}</version>
             <type>jar</type>
         </dependency>
     </dependencies>

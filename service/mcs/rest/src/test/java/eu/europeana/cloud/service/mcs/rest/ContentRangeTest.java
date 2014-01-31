@@ -15,8 +15,8 @@ public class ContentRangeTest {
     public void testParsingProperRange()
             throws WrongContentRangeException {
         FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1-2");
-        assertThat(range.start, is(1L));
-        assertThat(range.end, is(2L));
+        assertThat(range.getStart(), is(1L));
+        assertThat(range.getEnd(), is(2L));
     }
 
 
@@ -26,8 +26,8 @@ public class ContentRangeTest {
         Long start = Integer.MAX_VALUE * 2L;
         Long end = Integer.MAX_VALUE * 3L;
         FileResource.ContentRange range = FileResource.ContentRange.parse(String.format("bytes=%s-%s", start, end));
-        assertThat(range.start, is(start));
-        assertThat(range.end, is(end));
+        assertThat(range.getStart(), is(start));
+        assertThat(range.getEnd(), is(end));
     }
 
 
@@ -35,8 +35,8 @@ public class ContentRangeTest {
     public void testParsingOffset()
             throws WrongContentRangeException {
         FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-");
-        assertThat(range.start, is(1234L));
-        assertThat(range.end, is(-1L));
+        assertThat(range.getStart(), is(1234L));
+        assertThat(range.getEnd(), is(-1L));
     }
 
 
@@ -44,8 +44,8 @@ public class ContentRangeTest {
     public void testParsingSingleByte()
             throws WrongContentRangeException {
         FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-1234");
-        assertThat(range.start, is(1234L));
-        assertThat(range.end, is(1234L));
+        assertThat(range.getStart(), is(1234L));
+        assertThat(range.getEnd(), is(1234L));
     }
 
 

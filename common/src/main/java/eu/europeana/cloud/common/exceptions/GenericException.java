@@ -12,7 +12,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 public class GenericException extends Exception {
     private static final long   serialVersionUID = -6146223626718871100L;
     
-    private IdentifierErrorInfo errorInfo;
+    private final IdentifierErrorInfo errorInfo;
 
     /**
      * Creates a new instance of this class.
@@ -21,6 +21,7 @@ public class GenericException extends Exception {
      */
     public GenericException(ErrorInfo e) {
         super(e.getDetails());
+        errorInfo=null;
     }
 
     /**

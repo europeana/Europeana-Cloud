@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis.database.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.naming.directory.InvalidAttributesException;
+
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -34,13 +36,15 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	private PreparedStatement insertStatement;
 	private PreparedStatement deleteStatement;
 	private PreparedStatement updateStatement;
-	private PreparedStatement searchByProviderStatement; 
+	private PreparedStatement searchByProviderStatement;
 	private PreparedStatement searchByRecordIdStatement;
 	private PreparedStatement searchByProviderPaginatedStatement;
 
 	/**
 	 * The LocalId Dao
-	 * @param dbService The service that exposes the database connection
+	 * 
+	 * @param dbService
+	 *            The service that exposes the database connection
 	 */
 	public LocalIdDao(DatabaseService dbService) {
 		this.dbService = dbService;
@@ -50,26 +54,33 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		prepareStatements();
 	}
 
-	private void prepareStatements(){
-		insertStatement = dbService.getSession().prepare("INSERT INTO Provider_Record_Id(provider_id,record_id,cloud_id,deleted) VALUES(?,?,?,false)");
+	private void prepareStatements() {
+		insertStatement = dbService.getSession().prepare(
+				"INSERT INTO Provider_Record_Id(provider_id,record_id,cloud_id,deleted) VALUES(?,?,?,false)");
 		insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		deleteStatement = dbService.getSession().prepare("UPDATE Provider_Record_Id SET deleted=true WHERE provider_id=? AND record_Id=?");
+		deleteStatement = dbService.getSession().prepare(
+				"UPDATE Provider_Record_Id SET deleted=true WHERE provider_id=? AND record_Id=?");
 		deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		updateStatement = dbService.getSession().prepare("UPDATE Provider_Record_Id SET cloud_id=? WHERE provider_id=? AND record_Id=?");
+		updateStatement = dbService.getSession().prepare(
+				"UPDATE Provider_Record_Id SET cloud_id=? WHERE provider_id=? AND record_Id=?");
 		updateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		searchByProviderStatement = dbService.getSession().prepare("SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? ALLOW FILTERING");
+		searchByProviderStatement = dbService.getSession().prepare(
+				"SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? ALLOW FILTERING");
 		searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		searchByRecordIdStatement = dbService.getSession().prepare("SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING");
+		searchByRecordIdStatement = dbService.getSession().prepare(
+				"SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING");
 		searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-		searchByProviderPaginatedStatement = dbService.getSession().prepare("SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ? ALLOW FILTERING");
+		searchByProviderPaginatedStatement = dbService.getSession().prepare(
+				"SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ? ALLOW FILTERING");
 		searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 	}
+
 	@Override
 	public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		try {
 			ResultSet rs = null;
-			
+
 			if (args.length == 1) {
 				rs = dbService.getSession().execute(searchByProviderStatement.bind(args[0], deleted));
 
@@ -80,20 +91,25 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 	}
 
 	@Override
-	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+	public List<CloudId> searchActive(String... args) throws DatabaseConnectionException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException {
 		return searchById(false, args);
 	}
 
 	/**
 	 * Enable pagination search on active local Id information
-	 * @param start Record to start from
-	 * @param end The number of record to retrieve
-	 * @param providerId The provider Identifier
+	 * 
+	 * @param start
+	 *            Record to start from
+	 * @param end
+	 *            The number of record to retrieve
+	 * @param providerId
+	 *            The provider Identifier
 	 * @return A list of CloudId objects
 	 */
 	public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
@@ -102,14 +118,15 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 	}
 
 	@Override
-	public List<CloudId> insert(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+	public List<CloudId> insert(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException,
+			RecordDatasetEmptyException {
 		try {
 
 			dbService.getSession().execute(insertStatement.bind(args[0], args[1], args[2]));
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 		List<CloudId> cIds = new ArrayList<>();
 		CloudId cId = new CloudId();
@@ -129,7 +146,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 	}
 
@@ -140,7 +157,7 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		} catch (NoHostAvailableException e) {
 			throw new DatabaseConnectionException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host,port,e.getMessage())));
+					IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
 		}
 	}
 
@@ -154,21 +171,22 @@ public class LocalIdDao implements Dao<CloudId, List<CloudId>> {
 		return keyspaceName;
 	}
 
-
 	private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
 		List<CloudId> cloudIds = new ArrayList<>();
-		for (Row row : rs.all()) {
-			if (!row.getBool("deleted")) {
-				LocalId lId = new LocalId();
-				lId.setProviderId(row.getString("provider_Id"));
-				lId.setRecordId(row.getString("record_Id"));
-				CloudId cloudId = new CloudId();
-				cloudId.setId(row.getString("cloud_id"));
-				cloudId.setLocalId(lId);
-				cloudIds.add(cloudId);
+		if (rs != null) {
+			for (Row row : rs.all()) {
+				if (!row.getBool("deleted")) {
+					LocalId lId = new LocalId();
+					lId.setProviderId(row.getString("provider_Id"));
+					lId.setRecordId(row.getString("record_Id"));
+					CloudId cloudId = new CloudId();
+					cloudId.setId(row.getString("cloud_id"));
+					cloudId.setLocalId(lId);
+					cloudIds.add(cloudId);
+				}
 			}
 		}
-		
+
 		return cloudIds;
 	}
 

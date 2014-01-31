@@ -8,7 +8,7 @@ import java.util.Scanner;
  * @author Yorgos.Mamamakis@ kb.nl
  * 
  */
-public class Client {
+public final class Client {
 
 	private Client() {
 

@@ -61,7 +61,7 @@ public class CloudId {
 
 	@Override
 	public String toString(){
-		return String.format("{\ncloudId: %s\n record: %s\n}", this.id, this.localId.toString());
+		return String.format("{\ncloudId: %s\n record: %s%n}", this.id, this.localId.toString());
 	}
 	
 

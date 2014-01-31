@@ -34,8 +34,8 @@ public final class RepresentationSearchParams {
         this.persistent = persistent;
         this.dataSetId = dataSetId;
         this.dataSetProviderId = dataSetProviderId;
-        this.fromDate = fromDate;
-        this.toDate = toDate;
+        this.fromDate = fromDate!=null?fromDate:null;
+        this.toDate = toDate!=null?toDate:null;
     }
 
 
@@ -298,7 +298,7 @@ public final class RepresentationSearchParams {
          * @return
          */
         public Builder setFromDate(Date fromDate) {
-            this.fromDate = fromDate;
+            this.fromDate = fromDate!=null?fromDate:null;
             return this;
         }
 
@@ -310,7 +310,7 @@ public final class RepresentationSearchParams {
          * @return
          */
         public Builder setToDate(Date toDate) {
-            this.toDate = toDate;
+            this.toDate = toDate!=null?toDate:null;
             return this;
         }
 

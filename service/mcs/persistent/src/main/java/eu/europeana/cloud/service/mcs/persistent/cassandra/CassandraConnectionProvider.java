@@ -83,7 +83,7 @@ public class CassandraConnectionProvider {
     /**
      * Returns session to cassandra cluster.
      * 
-     * @return
+     * @return the Session to Cassandra Cluster
      */
     public Session getSession() {
         return session;

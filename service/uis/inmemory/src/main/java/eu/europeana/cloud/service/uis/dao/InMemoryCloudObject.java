@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.dao;
 
 /**
  * In Memory mockup of a Database Object

@@ -3,6 +3,7 @@ package eu.europeana.cloud.client.uis.rest.web;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -22,14 +23,19 @@ public class UrlProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlProvider.class);
 	/**
 	 * Creates a new instance of this class.
+	 * @throws IOException 
 	 */
-	public UrlProvider(){
+	public UrlProvider() throws IOException{
 		Properties props = new Properties();
+		InputStream is=null;
 		try {
-			props.load(new FileInputStream(new File("src/main/resources/client.properties")));
+			 is = new FileInputStream(new File("src/main/resources/client.properties"));
+			props.load(is);
 			baseUrl = props.getProperty("server.baseUrl");
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
+		} finally{
+			is.close();
 		}
 	}
 

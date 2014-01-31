@@ -7,7 +7,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -15,6 +14,8 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Removes all records from Metadata & Content service.
@@ -24,7 +25,7 @@ public final class MCSCleaner {
 
     private static final int STATUS_CODE_NO_CONTENT = 204;
     private static final int FACET_LIMIT = 100;
-    private static Logger logger = Logger.getLogger(MCSCleaner.class);
+    private static Logger logger = LoggerFactory.getLogger(MCSCleaner.class);
     private static Client client = JerseyClientBuilder.newClient();
 
 
@@ -82,7 +83,7 @@ public final class MCSCleaner {
                 }
             }
         } catch (SolrServerException ex) {
-            logger.error(ex);
+            logger.error(ex.getMessage());
         } finally {
             solrServer.shutdown();
         }

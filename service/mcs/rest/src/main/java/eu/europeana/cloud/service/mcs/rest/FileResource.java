@@ -65,7 +65,7 @@ public class FileResource {
     @PathParam(P_FILE)
     private String fileName;
 
-    static final String HEADER_RANGE = "Range";
+    private static final String HEADER_RANGE = "Range";
 
 
     /**
@@ -120,6 +120,7 @@ public class FileResource {
      * @param range
      *            range of bytes to return (optional)
      * @return file content @throws RepresentationNotExistsException representation does not exist in specified version.
+     * @throws RepresentationNotExistsException 
      * @throws WrongContentRangeException
      *             wrong value in "Range" header
      * @throws FileNotExistsException
@@ -194,7 +195,7 @@ public class FileResource {
      */
     static class ContentRange {
 
-        long start, end;
+        private long start, end;
 
         private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
 
@@ -208,7 +209,14 @@ public class FileResource {
         boolean isSpecified() {
             return start != -1 || end != -1;
         }
-
+        
+        long getStart(){
+        	return start;
+        }
+        
+        long getEnd(){
+        	return end;
+        }
 
         static ContentRange parse(String range)
                 throws WrongContentRangeException {

@@ -1,11 +1,15 @@
 package eu.europeana.cloud.client.uis.rest;
 
+import java.io.IOException;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.client.uis.rest.web.RelativeUrls;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
@@ -37,12 +41,17 @@ public class UISClient {
 
 	private static Client client = JerseyClientBuilder.newClient();
 	private static UrlProvider urlProvider;
+	private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
 
 	/**
 	 * Creates a new instance of this class.
 	 */
 	public UISClient() {
-		urlProvider = new UrlProvider();
+		try {
+			urlProvider = new UrlProvider();
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage());
+		}
 	}
 
 	/**
@@ -93,11 +102,7 @@ public class UISClient {
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			return resp.readEntity(CloudId.class);
 		} else {
-			try {
-				throw generateException(resp.readEntity(ErrorInfo.class));
-			} catch (Exception e) {
-				throw e;
-			}
+			throw generateException(resp.readEntity(ErrorInfo.class));
 		}
 	}
 
