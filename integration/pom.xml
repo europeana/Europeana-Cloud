@@ -32,18 +32,16 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-api</artifactId>
