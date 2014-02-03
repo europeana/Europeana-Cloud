@@ -32,7 +32,9 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<properties>
+		<main.directory>${project.parent.basedir}</main.directory>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
