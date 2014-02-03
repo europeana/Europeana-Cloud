@@ -3,8 +3,8 @@
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-service-uis</artifactId>
-		<version>0.1</version>
 		<relativePath>../pom.xml</relativePath>
+		<version>0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>ecloud-service-uis-rest-client-java</artifactId>
 	<packaging>jar</packaging>

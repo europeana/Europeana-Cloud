@@ -5,7 +5,7 @@
 	<groupId>eu.europeana.cloud</groupId>
 	<artifactId>ecloud-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>0.1</version>
+	<version>0.1-SNAPSHOT</version>
 	<inceptionYear>2013</inceptionYear>
 	<name>Europeana Cloud: Parent Module</name>
 	<organization>
@@ -15,7 +15,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
 		<developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
-		<url>http://github.com/europeana/Europeana-Cloud</url>
+		<url>https://github.com/europeana/Europeana-Cloud</url>
 	</scm>
 	<developers>
 		<developer>
