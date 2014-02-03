@@ -13,6 +13,11 @@
 		<url>http://pro.europeana.eu/web/europeana-cloud</url>
 		<name>Europeana Cloud Development Team</name>
 	</organization>
+	<scm>
+		<connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
+		<developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
+		<url>http://github.com/europeana/Europeana-Cloud</url>
+	</scm>
 	<developers>
 		<developer>
 			<id>1nf1n1ty08</id>

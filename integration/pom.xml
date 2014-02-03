@@ -13,9 +13,7 @@
 
 	<artifactId>ecloud-integration</artifactId>
 	<name>Europeana Cloud: Integration Tests and Tools</name>
-<properties>
-		<main.directory>${project.parent.basedir}</main.directory>
-	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -39,6 +37,11 @@
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-mcs</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
