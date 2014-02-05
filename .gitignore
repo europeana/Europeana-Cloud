@@ -13,3 +13,5 @@
 
 nb-configuration.xml
 nbactions.xml
+/ecloud-solr/customized-solr/target/
+/ecloud-solr/solr-distr/target/

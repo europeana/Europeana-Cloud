@@ -75,7 +75,7 @@
 		<module>integration</module>
 		<module>service/mcs</module>
 		<module>service/uis</module>
-	</modules>
+    </modules>
 	<repositories>
 		<repository>
 			<id>eaio.com</id>
