@@ -21,5 +21,6 @@
 		<module>persistent</module>
 		<module>rest</module>
 		<module>utils</module>
-	</modules>
+    <module>mcs-driver</module>
+  </modules>
 </project>
