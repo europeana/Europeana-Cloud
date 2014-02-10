@@ -12,6 +12,6 @@
   <packaging>pom</packaging>
   <name>Europeana Cloud: tools</name>
   <modules>
-    <module>dlf-ingestion-tool</module>
+      <module>ecloud-dlf-ingestion-tool</module>
   </modules>
 </project>

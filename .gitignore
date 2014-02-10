@@ -18,3 +18,5 @@ nbactions.xml
 
 *ewa-nocommit*
 /service/mcs/mcs-driver/target/
+/service/mcs/driver/target/
+/tools/ecloud-dlf-ingestion-tool/target/

@@ -73,7 +73,7 @@
 		<module>integration</module>
 		<module>service/mcs</module>
 		<module>service/uis</module>
-    <module>tools</module>
+                <module>tools</module>
   </modules>
 	<repositories>
 		<repository>
