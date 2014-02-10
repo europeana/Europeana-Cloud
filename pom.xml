@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- LICENCE PLACEHOLDER -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- LICENCE PLACEHOLDER --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.europeana.cloud</groupId>
 	<artifactId>ecloud-parent</artifactId>
@@ -75,7 +73,8 @@
 		<module>integration</module>
 		<module>service/mcs</module>
 		<module>service/uis</module>
-    </modules>
+    <module>tools</module>
+  </modules>
 	<repositories>
 		<repository>
 			<id>eaio.com</id>
@@ -183,7 +182,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore/>
 									</action>
 								</pluginExecution>
 								<!-- copy-dependency plugin -->
@@ -197,7 +196,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore/>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>

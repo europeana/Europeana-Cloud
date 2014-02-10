@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.europeana.cloud</groupId>
-        <artifactId>ecloud-service-mcs</artifactId>
+        <artifactId>tools</artifactId>
         <version>0.2-SNAPSHOT</version>
     </parent>
     <groupId>eu.europeana.cloud</groupId>
-    <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
+    <artifactId>ecloud-dlf-ingestion-tool</artifactId>
     <version>0.2-SNAPSHOT</version>
-    <name>Europeana Cloud: java driver</name>
+    <name>Europeana Cloud: DLF ingestion tool</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,7 +18,12 @@
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-common</artifactId>
+            <artifactId>ecloud-service-uis-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

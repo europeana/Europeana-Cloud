@@ -17,3 +17,4 @@ nbactions.xml
 /ecloud-solr/solr-distr/target/
 
 *ewa-nocommit*
+/service/mcs/mcs-driver/target/
