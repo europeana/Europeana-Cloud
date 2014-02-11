@@ -75,7 +75,7 @@ public class DataSetsResource {
      *             data provider does not exist.
      * @throws eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
      *             data set with this id already exists
-     * @statuscode 204 object has been updated.
+     * @statuscode 201 object has been created.
      */
     @POST
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
