@@ -3,7 +3,7 @@ package eu.europeana.cloud.mcs.driver.exception;
 /**
  * Thrown when an internal error happened in Metadata and Content Service.
  */
-public class ServiceInternalErrorException extends RuntimeException {
+public class DriverException extends RuntimeException {
 
     /**
      * Constructs a ServiceInternalErrorException with the specified detail message.
@@ -11,7 +11,7 @@ public class ServiceInternalErrorException extends RuntimeException {
      * @param message
      *            the detail message
      */
-    public ServiceInternalErrorException(String message) {
+    public DriverException(String message) {
         super(message);
     }
 
@@ -19,7 +19,7 @@ public class ServiceInternalErrorException extends RuntimeException {
     /**
      * Constructs a ServiceInternalErrorException with no specified detail message.
      */
-    public ServiceInternalErrorException() {
+    public DriverException() {
     }
 
 }

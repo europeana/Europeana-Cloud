@@ -1,7 +1,8 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.mcs.driver.exception.ServiceInternalErrorException;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
@@ -26,6 +27,12 @@ public class DataSetServiceClient {
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
 
+    /**
+     * Creates instance of DataSetServiceClient.
+     * 
+     * @param baseUrl
+     *            MCS base address
+     */
     public DataSetServiceClient(String baseUrl) {
         this.baseUrl = baseUrl;
 
@@ -57,18 +64,25 @@ public class DataSetServiceClient {
         form.param("dataSetId", dataSetId);
         form.param("description", description);
 
-        Response response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        Response response = target.request(MediaType.APPLICATION_JSON).post(
+            Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
         int statusCode = response.getStatus();
         Response.StatusType statusInfo = response.getStatusInfo();
         if (statusCode == Status.CREATED.getStatusCode()) {
             return response.getLocation();
-        } else if (statusCode == Status.CONFLICT.getStatusCode()) {
-            throw new DataSetAlreadyExistsException(statusInfo.getReasonPhrase());
-        } else if (statusCode == Status.NOT_FOUND.getStatusCode()) {
-            throw new ProviderNotExistsException(statusInfo.getReasonPhrase());
         } else {
-            throw new ServiceInternalErrorException(statusInfo.getReasonPhrase());
+            //TODO why doesn't it deserialize ErrorInfo correctly?
+            //use error info to build exception
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            if (statusCode == Status.CONFLICT.getStatusCode()) {
+                throw new DataSetAlreadyExistsException(statusInfo.getReasonPhrase());
+            } else if (statusCode == Status.NOT_FOUND.getStatusCode()) {
+                throw new ProviderNotExistsException(statusInfo.getReasonPhrase());
+            } else {
+                throw new DriverException(statusInfo.getReasonPhrase());
+            }
+
         }
     }
 
