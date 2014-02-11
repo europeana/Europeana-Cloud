@@ -1,0 +1,22 @@
+!tape
+name: createDataSet
+interactions:
+- recorded: 2014-02-11T09:40:36.506Z
+  request:
+    method: POST
+    uri: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/FBC/data-sets/
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '48'
+      Content-Type: application/x-www-form-urlencoded
+      Host: localhost:8084
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_25)
+    body: dataSetId=dataSetId_4558&description=description
+  response:
+    status: 201
+    headers:
+      Date: Tue, 11 Feb 2014 09:40:36 GMT
+      Location: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/FBC/data-sets/dataSetId_4558
+      Server: Apache-Coyote/1.1
+    body: !!binary ""

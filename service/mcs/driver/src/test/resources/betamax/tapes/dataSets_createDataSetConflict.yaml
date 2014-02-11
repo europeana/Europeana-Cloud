@@ -1,0 +1,22 @@
+!tape
+name: createDataSetSuccess
+interactions:
+- recorded: 2014-02-11T10:08:37.375Z
+  request:
+    method: POST
+    uri: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets/
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '43'
+      Content-Type: application/x-www-form-urlencoded
+      Host: localhost:8084
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_25)
+    body: dataSetId=dataSetId&description=description
+  response:
+    status: 409
+    headers:
+      Content-Type: application/xml
+      Date: Tue, 11 Feb 2014 10:08:37 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>DATASET_ALREADY_EXISTS</errorCode></errorInfo>
