@@ -7,21 +7,21 @@
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
         <collectionProp name="Arguments.arguments">
-          <elementProp name="app-name" elementType="Argument">
-            <stringProp name="Argument.name">app-name</stringProp>
-            <stringProp name="Argument.value">/ecloud-service-mcs-rest-0.1-SNAPSHOT</stringProp>
-            <stringProp name="Argument.desc">Application name</stringProp>
+            <elementProp name="mcs-name" elementType="Argument">
+                <stringProp name="Argument.name">mcs-name</stringProp>
+            <stringProp name="Argument.value">/ecloud-service-mcs-rest-0.2-SNAPSHOT</stringProp>
+            <stringProp name="Argument.desc">Metadata and content service application name</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="host" elementType="Argument">
             <stringProp name="Argument.name">host</stringProp>
-            <stringProp name="Argument.value">test.met-storage.synat.pcss.pl</stringProp>
+            <stringProp name="Argument.value">localhost</stringProp>
             <stringProp name="Argument.desc">Hostname</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="port" elementType="Argument">
             <stringProp name="Argument.name">port</stringProp>
-            <stringProp name="Argument.value">8090</stringProp>
+            <stringProp name="Argument.value">8084</stringProp>
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -31,10 +31,10 @@
             <stringProp name="Argument.desc">Number of threads</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="requests" elementType="Argument">
-            <stringProp name="Argument.name">requests</stringProp>
+          <elementProp name="records" elementType="Argument">
+            <stringProp name="Argument.name">records</stringProp>
             <stringProp name="Argument.value">10</stringProp>
-            <stringProp name="Argument.desc">Number of requests</stringProp>
+            <stringProp name="Argument.desc">Number of records</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="rampUpPeriod" elementType="Argument">
@@ -57,12 +57,12 @@
           </elementProp>
           <elementProp name="datasets" elementType="Argument">
             <stringProp name="Argument.name">datasets</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="dataProviders" elementType="Argument">
             <stringProp name="Argument.name">dataProviders</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="schemas" elementType="Argument">
@@ -73,6 +73,11 @@
           <elementProp name="loops" elementType="Argument">
             <stringProp name="Argument.name">loops</stringProp>
             <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="uis-name" elementType="Argument">
+            <stringProp name="Argument.name">uis-name</stringProp>
+            <stringProp name="Argument.value">/ecloud-service-uis-rest-0.2-SNAPSHOT</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -105,7 +110,7 @@
       </Arguments>
       <hashTree/>
       <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">stoptest</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
@@ -150,7 +155,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${app-name}/data-providers?providerId=${dataProviderId}</stringProp>
+            <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/data-providers?providerId=${dataProviderId}</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -211,7 +216,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${dataProviderId}/data-sets</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${dataProviderId}/data-sets</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -237,34 +242,118 @@
             </hashTree>
             <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
               <boolProp name="LoopController.continue_forever">true</boolProp>
-              <stringProp name="LoopController.loops">${schemas}</stringProp>
+              <stringProp name="LoopController.loops">${records}</stringProp>
             </LoopController>
             <hashTree>
               <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
                 <stringProp name="CounterConfig.start">1</stringProp>
-                <stringProp name="CounterConfig.end">${schemas}</stringProp>
+                <stringProp name="CounterConfig.end"></stringProp>
                 <stringProp name="CounterConfig.incr">1</stringProp>
-                <stringProp name="CounterConfig.name">schemaId</stringProp>
-                <stringProp name="CounterConfig.format">Schema_0000000</stringProp>
-                <boolProp name="CounterConfig.per_user">true</boolProp>
-                <boolProp name="CounterConfig.reset_on_tg_iteration">true</boolProp>
+                <stringProp name="CounterConfig.name">recordId</stringProp>
+                <stringProp name="CounterConfig.format">Record_0000000</stringProp>
+                <boolProp name="CounterConfig.per_user">false</boolProp>
               </CounterConfig>
               <hashTree/>
+              <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setup] get uniqueId" enabled="true">
+                <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
+                  <collectionProp name="Arguments.arguments"/>
+                </elementProp>
+                <stringProp name="HTTPSampler.domain"></stringProp>
+                <stringProp name="HTTPSampler.port"></stringProp>
+                <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                <stringProp name="HTTPSampler.protocol"></stringProp>
+                <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/getCloudId?recordId=${recordId}&amp;providerId=${dataProviderId}</stringProp>
+                <stringProp name="HTTPSampler.method">GET</stringProp>
+                <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                <boolProp name="HTTPSampler.monitor">false</boolProp>
+                <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+              </HTTPSamplerProxy>
+              <hashTree>
+                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+                  <collectionProp name="Asserion.test_strings">
+                    <stringProp name="49586">200</stringProp>
+                  </collectionProp>
+                  <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                  <boolProp name="Assertion.assume_success">false</boolProp>
+                  <intProp name="Assertion.test_type">8</intProp>
+                </ResponseAssertion>
+                <hashTree/>
+                <XPathExtractor guiclass="XPathExtractorGui" testclass="XPathExtractor" testname="XPath Extractor" enabled="true">
+                  <stringProp name="XPathExtractor.default"></stringProp>
+                  <stringProp name="XPathExtractor.refname">cloudId</stringProp>
+                  <stringProp name="XPathExtractor.xpathQuery">cloudId/id</stringProp>
+                  <boolProp name="XPathExtractor.validate">false</boolProp>
+                  <boolProp name="XPathExtractor.tolerant">false</boolProp>
+                  <boolProp name="XPathExtractor.namespace">false</boolProp>
+                </XPathExtractor>
+                <hashTree/>
+              </hashTree>
+              <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
+                <stringProp name="IfController.condition">!${JMeterThread.last_sample_ok}</stringProp>
+                <boolProp name="IfController.evaluateAll">false</boolProp>
+              </IfController>
+              <hashTree>
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setup] Create uniqueId" enabled="true">
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
+                  </elementProp>
+                  <stringProp name="HTTPSampler.domain"></stringProp>
+                  <stringProp name="HTTPSampler.port"></stringProp>
+                  <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                  <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                  <stringProp name="HTTPSampler.protocol"></stringProp>
+                  <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                  <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/createCloudIdLocal?recordId=${recordId}&amp;providerId=${dataProviderId}</stringProp>
+                  <stringProp name="HTTPSampler.method">GET</stringProp>
+                  <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                  <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                  <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                  <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                  <boolProp name="HTTPSampler.monitor">false</boolProp>
+                  <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                </HTTPSamplerProxy>
+                <hashTree>
+                  <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+                    <collectionProp name="Asserion.test_strings">
+                      <stringProp name="49586">200</stringProp>
+                    </collectionProp>
+                    <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                    <boolProp name="Assertion.assume_success">false</boolProp>
+                    <intProp name="Assertion.test_type">8</intProp>
+                  </ResponseAssertion>
+                  <hashTree/>
+                  <XPathExtractor guiclass="XPathExtractorGui" testclass="XPathExtractor" testname="XPath Extractor" enabled="true">
+                    <stringProp name="XPathExtractor.default"></stringProp>
+                    <stringProp name="XPathExtractor.refname">cloudId</stringProp>
+                    <stringProp name="XPathExtractor.xpathQuery">cloudId/id</stringProp>
+                    <boolProp name="XPathExtractor.validate">false</boolProp>
+                    <boolProp name="XPathExtractor.tolerant">false</boolProp>
+                    <boolProp name="XPathExtractor.namespace">false</boolProp>
+                  </XPathExtractor>
+                  <hashTree/>
+                </hashTree>
+              </hashTree>
               <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
                 <boolProp name="LoopController.continue_forever">true</boolProp>
-                <stringProp name="LoopController.loops">${requests}</stringProp>
+                <stringProp name="LoopController.loops">${schemas}</stringProp>
               </LoopController>
               <hashTree>
                 <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
                   <stringProp name="CounterConfig.start">1</stringProp>
-                  <stringProp name="CounterConfig.end"></stringProp>
+                  <stringProp name="CounterConfig.end">${schemas}</stringProp>
                   <stringProp name="CounterConfig.incr">1</stringProp>
-                  <stringProp name="CounterConfig.name">recordId</stringProp>
-                  <stringProp name="CounterConfig.format">Record_0000000</stringProp>
-                  <boolProp name="CounterConfig.per_user">false</boolProp>
+                  <stringProp name="CounterConfig.name">schemaId</stringProp>
+                  <stringProp name="CounterConfig.format">Schema_0000000</stringProp>
+                  <boolProp name="CounterConfig.per_user">true</boolProp>
+                  <boolProp name="CounterConfig.reset_on_tg_iteration">true</boolProp>
                 </CounterConfig>
                 <hashTree/>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setup] Create representation" enabled="true">
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setUp] Create representation" enabled="true">
                   <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
                     <collectionProp name="Arguments.arguments">
                       <elementProp name="providerId" elementType="HTTPArgument">
@@ -282,7 +371,7 @@
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${app-name}/records/${recordId}/representations/${schemaId}</stringProp>
+                  <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${schemaId}</stringProp>
                   <stringProp name="HTTPSampler.method">POST</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -316,7 +405,7 @@
                   </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
                   <hashTree/>
                 </hashTree>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setup] Assign representation to dataset" enabled="true">
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setUp] Assign representation to dataset" enabled="true">
                   <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
                     <collectionProp name="Arguments.arguments">
                       <elementProp name="recordId" elementType="HTTPArgument">
@@ -348,7 +437,7 @@
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${app-name}/data-providers/${dataProviderId}/data-sets/${datasetId}/assignments</stringProp>
+                  <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${dataProviderId}/data-sets/${datasetId}/assignments</stringProp>
                   <stringProp name="HTTPSampler.method">POST</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -367,7 +456,7 @@
                     <intProp name="Assertion.test_type">8</intProp>
                   </ResponseAssertion>
                   <hashTree/>
-                  <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="false">
+                  <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="true">
                     <stringProp name="Value">${verURI}</stringProp>
                     <stringProp name="FifoName">UNASSIGN_VER_ULRS</stringProp>
                   </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
@@ -433,7 +522,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${dataProviderId}/data-sets/${datasetId}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${dataProviderId}/data-sets/${datasetId}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -476,7 +565,7 @@
                 <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 <stringProp name="HTTPSampler.protocol"></stringProp>
                 <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                <stringProp name="HTTPSampler.path">${app-name}/data-providers/${dataProviderId}/data-sets/${datasetId}?startFrom=${next_slice}</stringProp>
+                <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${dataProviderId}/data-sets/${datasetId}?startFrom=${next_slice}</stringProp>
                 <stringProp name="HTTPSampler.method">GET</stringProp>
                 <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                 <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -581,7 +670,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${app-name}/representations?providerId=${dataProviderId}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcs-name}/representations?providerId=${dataProviderId}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -624,7 +713,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/representations?providerId=${dataProviderId}&amp;startFrom=${next_slice}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/representations?providerId=${dataProviderId}&amp;startFrom=${next_slice}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -743,7 +832,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/representations?providerId=${dataProviderId}&amp;datasetId=${datasetId}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/representations?providerId=${dataProviderId}&amp;datasetId=${datasetId}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -786,7 +875,7 @@
                 <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 <stringProp name="HTTPSampler.protocol"></stringProp>
                 <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                <stringProp name="HTTPSampler.path">${app-name}/representations?providerId=${dataProviderId}&amp;datasetId=${datasetId}&amp;startFrom=${next_slice}</stringProp>
+                <stringProp name="HTTPSampler.path">${mcs-name}/representations?providerId=${dataProviderId}&amp;datasetId=${datasetId}&amp;startFrom=${next_slice}</stringProp>
                 <stringProp name="HTTPSampler.method">GET</stringProp>
                 <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                 <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -906,7 +995,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/representations?dataSetProviderId=${dataProviderId}&amp;datasetId=${datasetId}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/representations?dataSetProviderId=${dataProviderId}&amp;datasetId=${datasetId}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -949,7 +1038,7 @@
                 <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 <stringProp name="HTTPSampler.protocol"></stringProp>
                 <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                <stringProp name="HTTPSampler.path">${app-name}/representations?dataSetProviderId=${dataProviderId}&amp;datasetId=${datasetId}&amp;startFrom=${next_slice}</stringProp>
+                <stringProp name="HTTPSampler.path">${mcs-name}/representations?dataSetProviderId=${dataProviderId}&amp;datasetId=${datasetId}&amp;startFrom=${next_slice}</stringProp>
                 <stringProp name="HTTPSampler.method">GET</stringProp>
                 <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                 <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1053,7 +1142,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${app-name}/representations?schema=${schemaId}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcs-name}/representations?schema=${schemaId}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1096,7 +1185,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/representations?schema=${schemaId}&amp;startFrom=${next_slice}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/representations?schema=${schemaId}&amp;startFrom=${next_slice}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1205,7 +1294,7 @@
             <hashTree/>
             <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
               <boolProp name="LoopController.continue_forever">true</boolProp>
-              <stringProp name="LoopController.loops">${requests}</stringProp>
+              <stringProp name="LoopController.loops">${records}</stringProp>
             </LoopController>
             <hashTree>
               <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
@@ -1270,7 +1359,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${app-name}/data-providers/${dataProviderId}/data-sets/${datasetId}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${dataProviderId}/data-sets/${datasetId}</stringProp>
               <stringProp name="HTTPSampler.method">DELETE</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1297,7 +1386,7 @@
           </hashTree>
         </hashTree>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
