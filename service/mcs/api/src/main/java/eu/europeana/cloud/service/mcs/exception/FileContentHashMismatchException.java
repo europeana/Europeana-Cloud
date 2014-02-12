@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown when declared file's hash is different than actual hash.
  */
-public class FileContentHashMismatchException extends Exception {
+public class FileContentHashMismatchException extends BaseMCSException {
 
     /**
      * Constructs a FileContentHashMismatchException with no specified detail message.
