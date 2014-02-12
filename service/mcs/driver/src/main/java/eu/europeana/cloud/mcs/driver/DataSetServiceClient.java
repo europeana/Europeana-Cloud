@@ -72,8 +72,8 @@ public class DataSetServiceClient {
         if (statusCode == Status.CREATED.getStatusCode()) {
             return response.getLocation();
         } else {
-            //TODO why doesn't it deserialize ErrorInfo correctly?
-            //use error info to build exception
+            //TODO why details from ErrorInfo are not deserialized correctly?
+            //TODO2 use error info to build exception message
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             if (statusCode == Status.CONFLICT.getStatusCode()) {
                 throw new DataSetAlreadyExistsException(statusInfo.getReasonPhrase());

@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 
 public class DataSetServiceClientTest {
 
@@ -63,12 +62,11 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Ignore
     @Betamax(tape = "dataSets/createDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverException()
             throws Exception {
-        String providerId = "notFoundProviderId";
+        String providerId = "providerId";
         String dataSetId = "dataSetId";
         String description = "description";
 
