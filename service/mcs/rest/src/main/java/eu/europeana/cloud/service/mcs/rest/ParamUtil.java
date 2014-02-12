@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 

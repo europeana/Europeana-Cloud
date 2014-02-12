@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
+package eu.europeana.cloud.service.mcs.status;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
 

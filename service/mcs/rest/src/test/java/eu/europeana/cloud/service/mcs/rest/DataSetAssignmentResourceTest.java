@@ -14,7 +14,7 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.McsErrorCode;
+import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import javax.ws.rs.Path;
