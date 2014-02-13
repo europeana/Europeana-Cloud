@@ -18,8 +18,26 @@ import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 
+/**
+ * Class with static method for generating Exceptions from ErrorInfo objects.
+ */
 public class MCSExceptionProvider {
 
+    /**
+     * Generate {@link MCSException} from {@link ErrorInfo}.
+     *
+     * This method is intended to be used everywhere where we want to translate
+     * MCS error message to appropriate exception and throw it. Error message
+     * handling occurs in different methods so we avoid code repetition.
+     *
+     * Method returns the child classes of {@link MCSException}. It should not
+     * return general MCSException, unless new error code was introduced in
+     * {@link McsErrorCode} Method can throw DriverException if MCS responded
+     * with HTTP 500 code (InternalServerError).
+     *
+     * @param errorInfo object storing error information returned by MCS
+     * @return MCSException to be thrown
+     */
     public static MCSException generateException(ErrorInfo errorInfo) {
 
         if (errorInfo == null) {
@@ -61,9 +79,9 @@ public class MCSExceptionProvider {
             case CANNOT_PERSIST_EMPTY_REPRESENTATION:
                 return new CannotPersistEmptyRepresentationException(details);
             case WRONG_CONTENT_RANGE:
-                return new WrongContentRangeException(details);     
+                return new WrongContentRangeException(details);
             case OTHER:
-                throw new DriverException(details); //this error means always InternalServerError TODO move to JavaDoc
+                throw new DriverException(details);
             default:
                 return new MCSException(details); //this will happen only if somebody uses code newly introdued to MscErrorCode        
         }

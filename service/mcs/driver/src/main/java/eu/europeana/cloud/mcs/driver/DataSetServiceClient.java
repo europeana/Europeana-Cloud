@@ -50,11 +50,8 @@ public class DataSetServiceClient {
      * given provider) already exists
      * @throws ProviderNotExistsException when provider with given id does not
      * exits
+     * @throws MCSException on unexpected situations.
      */
-//204 	object has been updated.
-//404 	data provider does not exist.
-//409 	data set with this id already exists
-//500 	The service call has not succeeded because of server side error.
     public URI createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException, MCSException {
 
@@ -80,19 +77,6 @@ public class DataSetServiceClient {
 
     }
 
-    /*
-     public static void generateException(int statusCode) throws DataSetAlreadyExistsException, ProviderNotExistsException, RecordNotExistsException {
-     Response.StatusType statusInfo = null;
-     if (statusCode == Status.CONFLICT.getStatusCode()) {
-            
-     throw new DataSetAlreadyExistsException(statusInfo.getReasonPhrase());
-     } else if (statusCode == Status.NOT_FOUND.getStatusCode()) {
-     throw new ProviderNotExistsException(statusInfo.getReasonPhrase());
-     } else {
-     throw new DriverException(statusInfo.getReasonPhrase());
-     }
-     }
-     */
     public DataSet getDataSet(String providerId, String dataSetId) {
         return null;
     }
