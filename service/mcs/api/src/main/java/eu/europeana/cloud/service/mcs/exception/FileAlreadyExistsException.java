@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown whene there is attempt to create a file which is already attached to a specific representation version.
  */
-public class FileAlreadyExistsException extends BaseMCSException {
+public class FileAlreadyExistsException extends MCSException {
 
     /**
      * Constructs a FileAlreadyExistsException with no specified detail message.

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown when there was attempt to persist representation with no files attached.
  */
-public class CannotPersistEmptyRepresentationException extends BaseMCSException {
+public class CannotPersistEmptyRepresentationException extends MCSException {
 
     /**
      * Constructs a CannotPersistEmptyRepresentationException with the specified detail message.

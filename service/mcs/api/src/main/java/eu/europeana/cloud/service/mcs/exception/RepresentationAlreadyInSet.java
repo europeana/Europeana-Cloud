@@ -4,7 +4,7 @@ package eu.europeana.cloud.service.mcs.exception;
  * Thrown if there was attempt to use representation that does not exist (or representation in version that does not
  * exist).
  */
-public class RepresentationAlreadyInSet extends BaseMCSException {
+public class RepresentationAlreadyInSet extends MCSException {
 
     /**
      * Constructs a RepresentationNotExistsException with no specified detail message.

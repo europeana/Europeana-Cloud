@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown when there is attempt to get data set which does not exist.
  */
-public class DataSetNotExistsException extends BaseMCSException {
+public class DataSetNotExistsException extends MCSException {
 
     /**
      * Constructs a DataSetNotExistsException with no specified detail message.

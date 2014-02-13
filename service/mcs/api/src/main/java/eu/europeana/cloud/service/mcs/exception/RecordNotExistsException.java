@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown when using cloud id which is not registered in Unique Identifier Service (UID).
  */
-public class RecordNotExistsException extends BaseMCSException {
+public class RecordNotExistsException extends MCSException {
 
     /**
      * Constructs a RecordNotExistsException with no specified detail message.

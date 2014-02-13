@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.exception;
 /**
  * Thrown when there is attempt to get non existing file from a specific representation version.
  */
-public class FileNotExistsException extends BaseMCSException {
+public class FileNotExistsException extends MCSException {
 
     /**
      * Constructs a FileNotExistsException with no specified detail message.
