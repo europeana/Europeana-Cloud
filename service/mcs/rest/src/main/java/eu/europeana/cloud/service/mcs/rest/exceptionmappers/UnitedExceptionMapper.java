@@ -171,7 +171,7 @@ public class UnitedExceptionMapper {
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(WrongContentRangeException exception) {
-        return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.OTHER, exception);
+        return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.WRONG_CONTENT_RANGE, exception);
     }
 
 
