@@ -9,11 +9,14 @@ import eu.europeana.cloud.mcs.driver.RepresentationServiceClient;
 import eu.europeana.cloud.mcs.driver.SearchParams;
 import eu.europeana.cloud.mcs.driver.SearchServiceClient;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -30,7 +33,6 @@ public class DLFMigrator {
     private final DataSetServiceClient dataSetClient;
     private final SearchServiceClient searchClient;
 
-
     public DLFMigrator() {
         uisClient = new UISClient(uisUrl);
         representationClient = new RepresentationServiceClient();
@@ -39,12 +41,10 @@ public class DLFMigrator {
         searchClient = new SearchServiceClient();
     }
 
-
     public void migrate() {
         try {
 
             //create or get provider
-
             uisClient.createProvider(providerId, null);
 
             List<File> filesList = new ArrayList<>();
@@ -58,11 +58,10 @@ public class DLFMigrator {
 
     }
 
-
     /**
-     * 
-     * @param f
-     *            folder containing various record representations. Name of the folder is record local id.
+     *
+     * @param f folder containing various record representations. Name of the
+     * folder is record local id.
      */
     private void migrateRecord(File f)
             throws CloudException {
@@ -78,7 +77,6 @@ public class DLFMigrator {
 
     }
 
-
     private void migrateFile(String cloudId) {
         //        String versionId = 
         representationClient.createRepresentation();
@@ -91,7 +89,6 @@ public class DLFMigrator {
         representationClient.persistVersion("cloudId", "schemaId", "versionId");
     }
 
-
     private void createDataSet() {
         try {
             dataSetClient.createDataSet("dataSetId", providerId, "description");
@@ -100,9 +97,11 @@ public class DLFMigrator {
         } catch (DataSetAlreadyExistsException ex) {
 
         } catch (ProviderNotExistsException ex) {
+            
+        } catch (MCSException ex) {
+
         }
     }
-
 
     public void searchImportedRecords() {
         searchClient.search(new SearchParams());
