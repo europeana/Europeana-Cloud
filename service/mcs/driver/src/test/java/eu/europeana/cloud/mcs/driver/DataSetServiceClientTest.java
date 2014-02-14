@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -110,10 +111,10 @@ public class DataSetServiceClientTest {
         assertThat(result.getResults().size(), is(resultSize));
         assertNull(result.getNextSlice());
     }
-    
+
     @Betamax(tape = "dataSets/getDataSetChunkDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistsException()
+    public void shouldThrowDataSetNotExistsExceptionForRepresentationsChunk()
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "dataset000042";
@@ -122,7 +123,30 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
         instance.getDataSetChunk(providerId, dataSetId, startFrom);
     }
-    
-    
+
+    @Betamax(tape = "dataSets/getDataSetSuccess")
+    @Test
+    public void shouldReturnAllRepresentations()
+            throws Exception {
+        String providerId = "Provider001";
+        String dataSetId = "dataset000002";
+        int resultSize = 200;
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        List<Representation> result = instance.getDataSet(providerId, dataSetId);
+        assertNotNull(result);
+        assertThat(result.size(), is(resultSize));
+    }
+
+    @Betamax(tape = "dataSets/getDataSetDataSetNotExists")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistsExceptionForRepresentationsAll()
+            throws Exception {
+        String providerId = "Provider001";
+        String dataSetId = "dataset000042";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        instance.getDataSet(providerId, dataSetId);
+    }
 
 }
