@@ -1,13 +1,18 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -65,11 +70,15 @@ public class DataSetServiceClient {
         Response response = target.request().post(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-        int statusCode = response.getStatus();
         Response.StatusType statusInfo = response.getStatusInfo();
-        if (statusCode == Status.CREATED.getStatusCode()) {
+        if (response.getStatus() == Status.CREATED.getStatusCode()) {
             return response.getLocation();
         } else {
+            //TODO this does not function correctly,
+            //details are filled with "MessageBodyReader not found for media type=text/html; 
+            //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
+            //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
+            //simple strings like 'adsfd' get entitised correctly
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
 
@@ -77,8 +86,42 @@ public class DataSetServiceClient {
 
     }
 
-    public DataSet getDataSet(String providerId, String dataSetId) {
-        return null;
+    public List<Representation> getDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+
+        List<Representation> resultList = new ArrayList<>();
+        ResultSlice resultSlice;
+        String startFrom = null;
+        
+        do {
+            resultSlice = getDataSetChunk(providerId, dataSetId, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
+            }
+            resultList.addAll(resultSlice.getResults());
+            startFrom = resultSlice.getNextSlice();
+
+        } while (resultSlice.getNextSlice() != null);
+
+        return resultList;
+    }
+
+    public ResultSlice<Representation> getDataSetChunk(String providerId, String dataSetId, String startFrom) throws DataSetNotExistsException, MCSException {
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
+                .resolveTemplate("DATAPROVIDER", providerId)
+                .resolveTemplate("DATASETID", dataSetId);
+        
+        if(startFrom!=null)
+        {
+            target = target.queryParam("startFrom", startFrom);
+        }
+        
+        Response response = target.request().get();
+        if (response.getStatus() == Status.OK.getStatusCode()) {
+            return response.readEntity(ResultSlice.class);
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
     }
 
     public void getDataSetForProvider(String providerId) {
