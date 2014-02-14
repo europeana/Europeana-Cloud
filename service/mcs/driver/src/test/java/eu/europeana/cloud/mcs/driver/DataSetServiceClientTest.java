@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
 import org.junit.Rule;
@@ -109,5 +110,19 @@ public class DataSetServiceClientTest {
         assertThat(result.getResults().size(), is(resultSize));
         assertNull(result.getNextSlice());
     }
+    
+    @Betamax(tape = "dataSets/getDataSetChunkDataSetNotExists")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistsException()
+            throws Exception {
+        String providerId = "Provider001";
+        String dataSetId = "dataset000042";
+        String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        instance.getDataSetChunk(providerId, dataSetId, startFrom);
+    }
+    
+    
 
 }
