@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Response.Status;
 
 /**
- * Client for managing datasets.
+ * Client for managing datasets in MCS.
  */
 public class DataSetServiceClient {
 
@@ -45,17 +45,84 @@ public class DataSetServiceClient {
     }
 
     /**
-     * Creates a new data set in MCS.
+     * Returns chunk of data sets list of specified provider.
+     *
+     * This method returns the chunk specified by <code>startFrom</code>
+     * parameter. If parameter is <code>null</code>, the first chunk is
+     * returned. You can use {@link ResultSlice#getNextSlice()} of returned
+     * result to obtain <code>startFrom</code> value to get the next chunk, etc;
+     * if {@link ResultSlice#getNextSlice()}<code>==null</code> in returned
+     * result it means it is the last slice.
+     *
+     * If you just need all representations, you can use
+     * {@link #getDataSetRepresentations} method, which encapsulates this
+     * method.
+     *
+     * @param providerId provider identifier (required)
+     * @param startFrom code pointing to the requested result slice (if equal to
+     * null, first slice is returned)
+     * @return chunk of data sets list of specified provider
+     * @throws MCSException on unexpected situations
+     */
+    public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
+
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
+                .resolveTemplate("DATAPROVIDER", providerId);
+
+        if (startFrom != null) {
+            target = target.queryParam("startFrom", startFrom);
+        }
+
+        Response response = target.request().get();
+        if (response.getStatus() == Status.OK.getStatusCode()) {
+            return response.readEntity(ResultSlice.class);
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+
+    /**
+     * Lists all data sets of specified provider.
+     *
+     * If provider does not exist, the empty list is returned.
+     *
+     * @param providerId provider identifier (required)
+     * @return list of all data sets of specified provider (empty if provider
+     * does not exist)
+     * @throws MCSException on unexpected situations
+     */
+    public List<DataSet> getDataSetsForProvider(String providerId) throws MCSException {
+
+        List<DataSet> resultList = new ArrayList<>();
+        ResultSlice resultSlice;
+        String startFrom = null;
+
+        do {
+            resultSlice = getDataSetsForProviderChunk(providerId, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
+            }
+            resultList.addAll(resultSlice.getResults());
+            startFrom = resultSlice.getNextSlice();
+
+        } while (resultSlice.getNextSlice() != null);
+
+        return resultList;
+    }
+
+    /**
+     * Creates a new data set.
      *
      * @param providerId provider identifier
      * @param dataSetId data set identifier
-     * @param description data set description.
+     * @param description data set description
      * @return URI to created data set
      * @throws DataSetAlreadyExistsException when data set with given id (for
      * given provider) already exists
      * @throws ProviderNotExistsException when provider with given id does not
-     * exits
-     * @throws MCSException on unexpected situations.
+     * exist
+     * @throws MCSException on unexpected situations
      */
     public URI createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException, MCSException {
@@ -70,7 +137,6 @@ public class DataSetServiceClient {
         Response response = target.request().post(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-        Response.StatusType statusInfo = response.getStatusInfo();
         if (response.getStatus() == Status.CREATED.getStatusCode()) {
             return response.getLocation();
         } else {
@@ -86,14 +152,67 @@ public class DataSetServiceClient {
 
     }
 
-    public List<Representation> getDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+    /**
+     * Returns chunk of representation versions list from data set.
+     *
+     * If specific version of representation is assigned to data set, this
+     * version is returned. If a whole representation is assigned to data set,
+     * the latest persistent representation version is returned.
+     *
+     * This method returns the chunk specified by <code>startFrom</code>
+     * parameter. If parameter is empty, the first chunk is returned. You can
+     * use {@link ResultSlice#getNextSlice()} of returned result to obtain
+     * <code>startFrom</code> value to get the next chunk, etc. If you just need
+     * all representations, you can use {@link #getDataSetRepresentations}
+     * method, which encapsulates this method.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @param startFrom code pointing to the requested result slice (if equal to
+     * null, first slice is returned)
+     * @return chunk of representation versions list from data set
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws MCSException on unexpected situations
+     */
+    public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom) throws DataSetNotExistsException, MCSException {
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
+                .resolveTemplate("DATAPROVIDER", providerId)
+                .resolveTemplate("DATASETID", dataSetId);
+
+        if (startFrom != null) {
+            target = target.queryParam("startFrom", startFrom);
+        }
+
+        Response response = target.request().get();
+        if (response.getStatus() == Status.OK.getStatusCode()) {
+            return response.readEntity(ResultSlice.class);
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+
+    /**
+     * Lists all representation versions from data set.
+     *
+     * If specific version of representation is assigned to data set, this
+     * version is returned. If a whole representation is assigned to data set,
+     * the latest persistent representation version is returned.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @return list of representation versions from data set
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws MCSException on unexpected situations
+     */
+    public List<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
 
         List<Representation> resultList = new ArrayList<>();
         ResultSlice resultSlice;
         String startFrom = null;
-        
+
         do {
-            resultSlice = getDataSetChunk(providerId, dataSetId, startFrom);
+            resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
             }
@@ -105,30 +224,122 @@ public class DataSetServiceClient {
         return resultList;
     }
 
-    public ResultSlice<Representation> getDataSetChunk(String providerId, String dataSetId, String startFrom) throws DataSetNotExistsException, MCSException {
+    /**
+     * Updates description of data set.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @param description new description of data set (if empty will be set to
+     * empty)
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws MCSException on unexpected situations
+     */
+    public void UpdateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
         WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
                 .resolveTemplate("DATAPROVIDER", providerId)
                 .resolveTemplate("DATASETID", dataSetId);
-        
-        if(startFrom!=null)
-        {
-            target = target.queryParam("startFrom", startFrom);
-        }
-        
-        Response response = target.request().get();
-        if (response.getStatus() == Status.OK.getStatusCode()) {
-            return response.readEntity(ResultSlice.class);
-        } else {
+
+        Form form = new Form();
+        form.param("description", description);
+
+        Response response = target.request().put(
+                Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
 
-    public void getDataSetForProvider(String providerId) {
+    /**
+     * Deletes data set.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws MCSException on unexpected situations
+     */
+    public void DeleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
+                .resolveTemplate("DATAPROVIDER", providerId)
+                .resolveTemplate("DATASETID", dataSetId);
+
+        Response response = target.request().delete();
+
+        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+
     }
 
-    public void assignRepresentationToDataSet(String dataSetId, String providerId, String cloudId, String schemaId,
-            String versionId) {
+    /**
+     * Assigns representation into data set.
+     *
+     * If representation was not assigned to data set, nothing happens.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @param cloudId cloudId of the record (required)
+     * @param schemaId schema of the representation (required)
+     * @param versionId version of representation; if not provided, latest
+     * persistent version will be assigned to data set
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws RepresentationNotExistsException if no such representation exists
+     * @throws MCSException on unexpected situations
+     */
+    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
+            String versionId) throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
+
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}/assignments")
+                .resolveTemplate("DATAPROVIDER", providerId)
+                .resolveTemplate("DATASETID", dataSetId);
+
+        Form form = new Form();
+        form.param("recordId", cloudId);
+        form.param("schema", schemaId);
+        form.param("version", versionId);
+
+        Response response = target.request().post(
+                Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+
+    }
+
+    /**
+     * Unassigns representation from data set.
+     *
+     * If representation was not assigned to data set, nothing happens.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @param cloudId cloudId of the record (required)
+     * @param schemaId schema of the representation (required)
+     * @throws DataSetNotExistsException if data set does not exist
+     * @throws MCSException on unexpected situations
+     */
+    public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
+            throws DataSetNotExistsException, MCSException {
+
+        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}/assignments")
+                .resolveTemplate("DATAPROVIDER", providerId)
+                .resolveTemplate("DATASETID", dataSetId)
+                .queryParam("recordId", cloudId)
+                .queryParam("schema", schemaId);
+
+        Response response = target.request().delete();
+
+        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+
     }
 
 }
