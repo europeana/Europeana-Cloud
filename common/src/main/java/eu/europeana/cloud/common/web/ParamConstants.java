@@ -31,7 +31,7 @@ public interface ParamConstants {
 
     static final String P_FILE = "FILE";
 
-    // form parameters' names
+    // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";
 
     static final String F_DATASET_PROVIDER_ID = "dataSetProviderId";
