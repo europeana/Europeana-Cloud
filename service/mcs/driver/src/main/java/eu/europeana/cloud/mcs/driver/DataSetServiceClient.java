@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -34,6 +35,8 @@ public class DataSetServiceClient {
     private final Client client = ClientBuilder.newClient();
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
+    
+    
     /**
      * Creates instance of DataSetServiceClient.
      *
@@ -51,7 +54,7 @@ public class DataSetServiceClient {
      * parameter. If parameter is <code>null</code>, the first chunk is
      * returned. You can use {@link ResultSlice#getNextSlice()} of returned
      * result to obtain <code>startFrom</code> value to get the next chunk, etc;
-     * if {@link ResultSlice#getNextSlice()}<code>==null</code> in returned
+     * if {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code> in returned
      * result it means it is the last slice.
      *
      * If you just need all representations, you can use
@@ -61,7 +64,8 @@ public class DataSetServiceClient {
      * @param providerId provider identifier (required)
      * @param startFrom code pointing to the requested result slice (if equal to
      * null, first slice is returned)
-     * @return chunk of data sets list of specified provider
+     * @return chunk of data sets list of specified provider (empty if provider
+     * does not exist)
      * @throws MCSException on unexpected situations
      */
     public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
@@ -70,7 +74,7 @@ public class DataSetServiceClient {
                 .resolveTemplate("DATAPROVIDER", providerId);
 
         if (startFrom != null) {
-            target = target.queryParam("startFrom", startFrom);
+            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
         Response response = target.request().get();
@@ -114,9 +118,9 @@ public class DataSetServiceClient {
     /**
      * Creates a new data set.
      *
-     * @param providerId provider identifier
-     * @param dataSetId data set identifier
-     * @param description data set description
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @param description data set description (not required)
      * @return URI to created data set
      * @throws DataSetAlreadyExistsException when data set with given id (for
      * given provider) already exists
@@ -131,8 +135,8 @@ public class DataSetServiceClient {
                 .resolveTemplate("DATAPROVIDER", providerId);
 
         Form form = new Form();
-        form.param("dataSetId", dataSetId);
-        form.param("description", description);
+        form.param(ParamConstants.F_DATASET, dataSetId);
+        form.param(ParamConstants.F_DESCRIPTION, description);
 
         Response response = target.request().post(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
@@ -180,7 +184,7 @@ public class DataSetServiceClient {
                 .resolveTemplate("DATASETID", dataSetId);
 
         if (startFrom != null) {
-            target = target.queryParam("startFrom", startFrom);
+            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
         Response response = target.request().get();
@@ -234,13 +238,13 @@ public class DataSetServiceClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException on unexpected situations
      */
-    public void UpdateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
+    public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
         WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
                 .resolveTemplate("DATAPROVIDER", providerId)
                 .resolveTemplate("DATASETID", dataSetId);
 
         Form form = new Form();
-        form.param("description", description);
+        form.param(ParamConstants.F_DESCRIPTION, description);
 
         Response response = target.request().put(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
@@ -260,7 +264,7 @@ public class DataSetServiceClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException on unexpected situations
      */
-    public void DeleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+    public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
         WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
                 .resolveTemplate("DATAPROVIDER", providerId)
                 .resolveTemplate("DATASETID", dataSetId);
@@ -298,9 +302,9 @@ public class DataSetServiceClient {
                 .resolveTemplate("DATASETID", dataSetId);
 
         Form form = new Form();
-        form.param("recordId", cloudId);
-        form.param("schema", schemaId);
-        form.param("version", versionId);
+        form.param(ParamConstants.F_GID, cloudId);
+        form.param(ParamConstants.F_SCHEMA, schemaId);
+        form.param(ParamConstants.F_VER, versionId);
 
         Response response = target.request().post(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
@@ -330,8 +334,8 @@ public class DataSetServiceClient {
         WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}/assignments")
                 .resolveTemplate("DATAPROVIDER", providerId)
                 .resolveTemplate("DATASETID", dataSetId)
-                .queryParam("recordId", cloudId)
-                .queryParam("schema", schemaId);
+                .queryParam(ParamConstants.F_GID, cloudId)
+                .queryParam(ParamConstants.F_SCHEMA, schemaId);
 
         Response response = target.request().delete();
 
