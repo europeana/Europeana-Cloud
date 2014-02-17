@@ -1,5 +1,5 @@
 !tape
-name: createDataSetSuccess
+name: dataSets/createDataSetConflict
 interactions:
 - recorded: 2014-02-11T10:08:37.375Z
   request:

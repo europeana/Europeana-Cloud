@@ -1,5 +1,5 @@
 !tape
-name: createDataSet
+name: dataSets/createDataSetSuccess
 interactions:
 - recorded: 2014-02-11T09:43:48.731Z
   request:
