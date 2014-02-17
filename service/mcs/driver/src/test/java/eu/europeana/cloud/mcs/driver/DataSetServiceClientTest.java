@@ -82,7 +82,7 @@ public class DataSetServiceClientTest {
         instance.createDataSet(providerId, dataSetId, description);
     }
 
-    @Betamax(tape = "dataSets/getDataSetChunkSuccess")
+    @Betamax(tape = "dataSets/getRepresentationsChunkSuccess")
     @Test
     public void shouldRetrieveRepresentationsFirstChunk()
             throws Exception {
@@ -99,7 +99,7 @@ public class DataSetServiceClientTest {
         assertThat(result.getNextSlice(), is(startFrom));
     }
 
-    @Betamax(tape = "dataSets/getDataSetChunkSecondSucess")
+    @Betamax(tape = "dataSets/getRepresentationsChunkSecondSucess")
     @Test
     public void shouldRetrieveRepresentationsSecondChunk()
             throws Exception {
@@ -115,7 +115,7 @@ public class DataSetServiceClientTest {
         assertNull(result.getNextSlice());
     }
 
-    @Betamax(tape = "dataSets/getDataSetChunkDataSetNotExists")
+    @Betamax(tape = "dataSets/getRepresentationsChunkDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsChunk()
             throws Exception {
@@ -127,7 +127,7 @@ public class DataSetServiceClientTest {
         instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
     }
 
-    @Betamax(tape = "dataSets/getDataSetSuccess")
+    @Betamax(tape = "dataSets/getRepresentationsSuccess")
     @Test
     public void shouldReturnAllRepresentations()
             throws Exception {
@@ -141,7 +141,7 @@ public class DataSetServiceClientTest {
         assertThat(result.size(), is(resultSize));
     }
 
-    @Betamax(tape = "dataSets/getDataSetDataSetNotExists")
+    @Betamax(tape = "dataSets/getRepresentationsDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsAll()
             throws Exception {
