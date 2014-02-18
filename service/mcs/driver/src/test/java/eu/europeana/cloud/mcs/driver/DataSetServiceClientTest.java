@@ -150,11 +150,37 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
+    
+    @Betamax(tape = "dataSets/getRepresentationsChunkInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetRepresentationsChunk()
+            throws Exception {
+           String providerId = "Provider001";
+        String dataSetId = "dataset000002";
+        
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
+    }
+    
+    @Betamax(tape = "dataSets/getRepresentationsInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetRepresentations()
+            throws Exception {
+           String providerId = "Provider001";
+        String dataSetId = "dataset000002";
+        
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetRepresentations(providerId, dataSetId);
+    }
+
+    
+    
+    
 
 }
 
-//TODO driver exception
- //public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
+
+//public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
 // public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
 //public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
 //public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
