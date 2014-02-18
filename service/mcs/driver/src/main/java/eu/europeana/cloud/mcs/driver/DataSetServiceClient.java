@@ -239,8 +239,9 @@ public class DataSetServiceClient {
      *
      * @param providerId provider identifier (required)
      * @param dataSetId data set identifier (required)
-     * @param description new description of data set (if empty will be set to
-     * empty)
+     * @param description new description of data set (if <code>""</code> will
+     * be set to <code>""</code>, if <code>null</code> will be set to
+     * <code>null</code>)
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException on unexpected situations
      */
