@@ -25,19 +25,17 @@ public class DataSetServiceClientTest {
 
     //TODO clean
     //this is only needed for recording tests
-    private final String baseUrl = "http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT";
-    private final String baseUrl2 = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
 
     //getDataSetsForProviderChunk
     //getDataSetsForProvider
-    
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
     public void shouldSuccessfullyCreateDataSet()
             throws Exception {
-        String providerId = "providerId";
-        String dataSetId = "dataSetId";
-        String description = "description";
+        String providerId = "Provider001";
+        String dataSetId = "dataset000008";
+        String description = "description01";
 
         String expectedLocation = baseUrl + "/data-providers/" + providerId + "/data-sets/" + dataSetId;
 
@@ -45,13 +43,13 @@ public class DataSetServiceClientTest {
         URI result = instance.createDataSet(providerId, dataSetId, description);
         assertThat(result.toString(), is(expectedLocation));
     }
-    
+
     @Betamax(tape = "dataSets/createDataSetConflict")
     @Test(expected = DataSetAlreadyExistsException.class)
     public void shouldThrowDataSetAlreadyExists()
             throws Exception {
-        String providerId = "providerId";
-        String dataSetId = "dataSetId";
+        String providerId = "Provider001";
+        String dataSetId = "dataset000002";
         String description = "description";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
@@ -70,6 +68,7 @@ public class DataSetServiceClientTest {
         instance.createDataSet(providerId, dataSetId, description);
     }
 
+    //to test it you can turn off Cassandra
     @Betamax(tape = "dataSets/createDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateDataSet()
@@ -92,14 +91,14 @@ public class DataSetServiceClientTest {
         int resultSize = 100;
         String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
 
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
         assertNotNull(result.getResults());
         assertThat(result.getResults().size(), is(resultSize));
         assertThat(result.getNextSlice(), is(startFrom));
     }
 
-    @Betamax(tape = "dataSets/getRepresentationsChunkSecondSucess")
+    @Betamax(tape = "dataSets/getRepresentationsChunkSecondSuccess")
     @Test
     public void shouldRetrieveRepresentationsSecondChunk()
             throws Exception {
@@ -108,7 +107,7 @@ public class DataSetServiceClientTest {
         int resultSize = 100;
         String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
 
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
         assertNotNull(result.getResults());
         assertThat(result.getResults().size(), is(resultSize));
@@ -123,7 +122,7 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000042";
         String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
 
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
     }
 
@@ -135,7 +134,7 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000002";
         int resultSize = 200;
 
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
         assertNotNull(result);
         assertThat(result.size(), is(resultSize));
@@ -148,16 +147,15 @@ public class DataSetServiceClientTest {
         String providerId = "Provider001";
         String dataSetId = "dataset000042";
 
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl2);
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
 
 }
 
-
- //public void UpdateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
-   // public void DeleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
-    //public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
-    //public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
-
+//TODO driver exception
+ //public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
+// public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+//public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
+//public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
 

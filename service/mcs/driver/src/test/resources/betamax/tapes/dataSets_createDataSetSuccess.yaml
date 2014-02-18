@@ -1,22 +1,22 @@
 !tape
 name: dataSets/createDataSetSuccess
 interactions:
-- recorded: 2014-02-11T09:43:48.731Z
+- recorded: 2014-02-17T16:06:15.446Z
   request:
     method: POST
-    uri: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets/
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Content-Length: '48'
+      Content-Length: '49'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8084
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_25)
-    body: dataSetId=dataSetId&description=description
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+    body: dataSetId=dataset000008&description=description01
   response:
     status: 201
     headers:
-      Date: Tue, 11 Feb 2014 09:43:48 GMT
-      Location: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets/dataSetId
+      Date: Mon, 17 Feb 2014 16:06:15 GMT
+      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets/dataset000008
       Server: Apache-Coyote/1.1
     body: !!binary ""

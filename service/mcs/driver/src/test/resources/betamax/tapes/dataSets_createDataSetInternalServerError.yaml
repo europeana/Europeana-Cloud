@@ -1,32 +1,12 @@
 !tape
 name: dataSets/createDataSetInternalServerError
 interactions:
-- recorded: 2014-02-11T13:51:28.616Z
+- recorded: 2014-02-17T16:08:22.453Z
   request:
     method: POST
-    uri: http://localhost:8084/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets/
-    headers:
-      Accept: application/xml
-      Content-Length: '43'
-      Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8084
-      Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_25)
-    body: dataSetId=dataSetId&description=description
-  response:
-    status: 500
-    headers:
-      Content-Type: application/xml
-      Date: Tue, 11 Feb 2014 13:51:28 GMT
-      Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>All host(s) tried for query failed (no host was tried)</details><errorCode>OTHER</errorCode></errorInfo>
-- recorded: 2014-02-14T09:19:04.095Z
-  request:
-    method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets/
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/providerId/data-sets
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Connection: close
       Content-Length: '43'
       Content-Type: application/x-www-form-urlencoded
       Host: localhost:8080
@@ -34,9 +14,9 @@ interactions:
       User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
     body: dataSetId=dataSetId&description=description
   response:
-    status: 404
+    status: 500
     headers:
       Content-Type: application/xml
-      Date: Fri, 14 Feb 2014 09:19:03 GMT
+      Date: Mon, 17 Feb 2014 16:08:22 GMT
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>PROVIDER_NOT_EXISTS</errorCode></errorInfo>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>MessageBodyReader not found for media type=text/html; charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, genericType=class eu.europeana.cloud.common.response.ErrorInfo.</details><errorCode>OTHER</errorCode></errorInfo>
