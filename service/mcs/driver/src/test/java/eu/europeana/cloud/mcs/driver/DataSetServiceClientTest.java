@@ -35,13 +35,13 @@ public class DataSetServiceClientTest {
         String providerId = "Provider002";
         //the tape was recorded when the result chunk was 100
         int resultSize = 100;
-        String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
+        String startFrom = "dataset000101";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, null);
         assertNotNull(result.getResults());
         assertThat(result.getResults().size(), is(resultSize));
-        //assertThat(result.getNextSlice(), is(startFrom));
+        assertThat(result.getNextSlice(), is(startFrom));
     }
 
     @Betamax(tape = "dataSets/getDataSetsChunkSecondSuccess")
@@ -50,7 +50,7 @@ public class DataSetServiceClientTest {
             throws Exception {
         String providerId = "Provider002";
         int resultSize = 100;
-        String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
+        String startFrom = "dataset000101";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
@@ -67,7 +67,9 @@ public class DataSetServiceClientTest {
         String startFrom = null;
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.getDataSetsForProviderChunk(providerId, startFrom);
+        ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
+        assertNotNull(result.getResults());
+        assertThat(result.getResults().size(), is(0));
     }
 
     @Betamax(tape = "dataSets/getDataSetsSuccess")
@@ -84,13 +86,15 @@ public class DataSetServiceClientTest {
     }
 
     @Betamax(tape = "dataSets/getDataSetsNoProvider")
-    @Test(expected = DataSetNotExistsException.class)
+    @Test
     public void shouldNotThrowProviderNotExistsForDataSetsAll()
             throws Exception {
         String providerId = "notFoundProviderId";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.getDataSetsForProvider(providerId);
+        List<DataSet> result = instance.getDataSetsForProvider(providerId);
+        assertNotNull(result);
+        assertThat(result.size(), is(0));
     }
 
     @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
@@ -113,6 +117,7 @@ public class DataSetServiceClientTest {
         instance.getDataSetsForProviderChunk(providerId, null);
     }
 
+    //
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
     public void shouldSuccessfullyCreateDataSet()
