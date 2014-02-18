@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -10,12 +11,12 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
 import java.util.List;
+import static org.hamcrest.CoreMatchers.is;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class DataSetServiceClientTest {
@@ -27,8 +28,91 @@ public class DataSetServiceClientTest {
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
 
-    //getDataSetsForProviderChunk
-    //getDataSetsForProvider
+    @Betamax(tape = "dataSets/getDataSetsChunkSuccess")
+    @Test
+    public void shouldRetrieveDataSetsFirstChunk()
+            throws Exception {
+        String providerId = "Provider002";
+        //the tape was recorded when the result chunk was 100
+        int resultSize = 100;
+        String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, null);
+        assertNotNull(result.getResults());
+        assertThat(result.getResults().size(), is(resultSize));
+        //assertThat(result.getNextSlice(), is(startFrom));
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsChunkSecondSuccess")
+    @Test
+    public void shouldRetrieveDataSetsSecondChunk()
+            throws Exception {
+        String providerId = "Provider002";
+        int resultSize = 100;
+        String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
+        assertNotNull(result.getResults());
+        assertThat(result.getResults().size(), is(resultSize));
+        assertNull(result.getNextSlice());
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsChunkNoProvider")
+    @Test
+    public void shouldNotThrowProviderNotExistsForDataSetsChunk()
+            throws Exception {
+        String providerId = "notFoundProviderId";
+        String startFrom = null;
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetsForProviderChunk(providerId, startFrom);
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsSuccess")
+    @Test
+    public void shouldReturnAllDataSets()
+            throws Exception {
+        String providerId = "Provider002";
+        int resultSize = 200;
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        List<DataSet> result = instance.getDataSetsForProvider(providerId);
+        assertNotNull(result);
+        assertThat(result.size(), is(resultSize));
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsNoProvider")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldNotThrowProviderNotExistsForDataSetsAll()
+            throws Exception {
+        String providerId = "notFoundProviderId";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetsForProvider(providerId);
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetDataSetsChunk()
+            throws Exception {
+        String providerId = "Provider001";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetsForProviderChunk(providerId, null);
+    }
+
+    @Betamax(tape = "dataSets/getDataSetsInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetDataSets()
+            throws Exception {
+        String providerId = "Provider001";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.getDataSetsForProviderChunk(providerId, null);
+    }
+
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
     public void shouldSuccessfullyCreateDataSet()
@@ -150,35 +234,30 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
-    
+
     @Betamax(tape = "dataSets/getRepresentationsChunkInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationsChunk()
             throws Exception {
-           String providerId = "Provider001";
+        String providerId = "Provider001";
         String dataSetId = "dataset000002";
-        
+
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
     }
-    
+
     @Betamax(tape = "dataSets/getRepresentationsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentations()
             throws Exception {
-           String providerId = "Provider001";
+        String providerId = "Provider001";
         String dataSetId = "dataset000002";
-        
+
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
 
-    
-    
-    
-
 }
-
 
 //public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
 // public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
