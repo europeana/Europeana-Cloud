@@ -12,12 +12,14 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
 
 public class DataSetServiceClientTest {
 
@@ -234,7 +236,7 @@ public class DataSetServiceClientTest {
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "dataset000042";
-
+        
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
@@ -350,15 +352,63 @@ public class DataSetServiceClientTest {
             throws Exception {
         String providerId = "Provider002";
         String dataSetId = "dataset000001";
-        String descrption = "TEST3";
+        String description = "TEST3";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.updateDescriptionOfDataSet(providerId, dataSetId, descrption);
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
     }
+
+    @Betamax(tape = "dataSets/deleteDataSetSuccess")
+    @Test
+    public void shouldDeleteDataSet()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000033";
+        DataSet dataSet = new DataSet();
+        dataSet.setProviderId(providerId);
+        dataSet.setId(dataSetId);
+        dataSet.setDescription(null);
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.deleteDataSet(providerId, dataSetId);
+
+        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+
+        assertFalse(dataSets.contains(dataSet));
+    }
+
+    //TODO test this when fixed: https://jira.man.poznan.pl/jira/browse/ECL-141
+    @Ignore
+    //@Betamax(tape = "dataSets/deleteDataSetDataSetNotExists")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistsForDeleteDataSet()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000033";
+        DataSet dataSet = new DataSet();
+        dataSet.setProviderId(providerId);
+        dataSet.setId(dataSetId);
+        dataSet.setDescription(null);
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.deleteDataSet(providerId, dataSetId);
+    }
+
+    @Betamax(tape = "dataSets/deleteDataSetInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForDeleteDataSet()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000033";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.deleteDataSet(providerId, dataSetId);
+
+    }
+
 }
 
 
-//public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
 //public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
 //public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
 
