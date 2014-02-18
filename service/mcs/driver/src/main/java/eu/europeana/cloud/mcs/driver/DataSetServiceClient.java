@@ -35,8 +35,13 @@ public class DataSetServiceClient {
     private final Client client = ClientBuilder.newClient();
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
-    
-    
+    //data-providers/{DATAPROVIDER}/data-sets/
+    private static final String dataSetsPath = ParamConstants.PROVIDERS + "/{" + ParamConstants.P_PROVIDER + "}/" + ParamConstants.DATASETS;
+    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}
+    private static final String dataSetPath = dataSetsPath + "/{" + ParamConstants.P_DATASET + "}";
+    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/assignments
+    private static final String assignmentsPath = dataSetPath + "/" + ParamConstants.ASSIGNMENTS;
+
     /**
      * Creates instance of DataSetServiceClient.
      *
@@ -54,8 +59,9 @@ public class DataSetServiceClient {
      * parameter. If parameter is <code>null</code>, the first chunk is
      * returned. You can use {@link ResultSlice#getNextSlice()} of returned
      * result to obtain <code>startFrom</code> value to get the next chunk, etc;
-     * if {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code> in returned
-     * result it means it is the last slice.
+     * if
+     * {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code>
+     * in returned result it means it is the last slice.
      *
      * If you just need all representations, you can use
      * {@link #getDataSetRepresentations} method, which encapsulates this
@@ -70,8 +76,8 @@ public class DataSetServiceClient {
      */
     public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
 
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
-                .resolveTemplate("DATAPROVIDER", providerId);
+        WebTarget target = client.target(this.baseUrl).path(dataSetsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId);
 
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
@@ -131,8 +137,8 @@ public class DataSetServiceClient {
     public URI createDataSet(String providerId, String dataSetId, String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException, MCSException {
 
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/")
-                .resolveTemplate("DATAPROVIDER", providerId);
+        WebTarget target = client.target(this.baseUrl).path(dataSetsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId);
 
         Form form = new Form();
         form.param(ParamConstants.F_DATASET, dataSetId);
@@ -179,9 +185,9 @@ public class DataSetServiceClient {
      * @throws MCSException on unexpected situations
      */
     public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom) throws DataSetNotExistsException, MCSException {
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
-                .resolveTemplate("DATAPROVIDER", providerId)
-                .resolveTemplate("DATASETID", dataSetId);
+        WebTarget target = client.target(this.baseUrl).path(dataSetPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
@@ -239,9 +245,9 @@ public class DataSetServiceClient {
      * @throws MCSException on unexpected situations
      */
     public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
-                .resolveTemplate("DATAPROVIDER", providerId)
-                .resolveTemplate("DATASETID", dataSetId);
+        WebTarget target = client.target(this.baseUrl).path(dataSetPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         Form form = new Form();
         form.param(ParamConstants.F_DESCRIPTION, description);
@@ -265,9 +271,9 @@ public class DataSetServiceClient {
      * @throws MCSException on unexpected situations
      */
     public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}")
-                .resolveTemplate("DATAPROVIDER", providerId)
-                .resolveTemplate("DATASETID", dataSetId);
+        WebTarget target = client.target(this.baseUrl).path(dataSetPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         Response response = target.request().delete();
 
@@ -297,9 +303,9 @@ public class DataSetServiceClient {
     public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
             String versionId) throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
 
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}/assignments")
-                .resolveTemplate("DATAPROVIDER", providerId)
-                .resolveTemplate("DATASETID", dataSetId);
+        WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         Form form = new Form();
         form.param(ParamConstants.F_GID, cloudId);
@@ -331,9 +337,9 @@ public class DataSetServiceClient {
     public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
             throws DataSetNotExistsException, MCSException {
 
-        WebTarget target = client.target(this.baseUrl).path("data-providers/{DATAPROVIDER}/data-sets/{DATASETID}/assignments")
-                .resolveTemplate("DATAPROVIDER", providerId)
-                .resolveTemplate("DATASETID", dataSetId)
+        WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
                 .queryParam(ParamConstants.F_GID, cloudId)
                 .queryParam(ParamConstants.F_SCHEMA, schemaId);
 

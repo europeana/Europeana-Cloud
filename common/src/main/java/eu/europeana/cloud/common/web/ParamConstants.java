@@ -17,6 +17,8 @@ public interface ParamConstants {
     static final String PROVIDERS = "data-providers";
 
     static final String DATASETS = "data-sets";
+    
+    static final String ASSIGNMENTS = "assignments";
 
     // path parameters' names
     static final String P_GID = "ID";
