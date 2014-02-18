@@ -97,6 +97,7 @@ public class DataSetServiceClientTest {
         assertThat(result.size(), is(0));
     }
 
+    //to test it you can turn off Cassandra
     @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSetsChunk()
@@ -117,7 +118,6 @@ public class DataSetServiceClientTest {
         instance.getDataSetsForProviderChunk(providerId, null);
     }
 
-    //
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
     public void shouldSuccessfullyCreateDataSet()
@@ -157,7 +157,6 @@ public class DataSetServiceClientTest {
         instance.createDataSet(providerId, dataSetId, description);
     }
 
-    //to test it you can turn off Cassandra
     @Betamax(tape = "dataSets/createDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateDataSet()
@@ -262,10 +261,104 @@ public class DataSetServiceClientTest {
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
 
+    //we cannot mock system state change in Betamax
+    //because it will not record two different answers for the same request 
+    @Betamax(tape = "dataSets/updateDescriptionSuccess")
+    @Test
+    public void ShouldUpdateDescriptionOfDataSet()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000002";
+        String description = "TEST1";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
+        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+
+        for (DataSet dataSet : dataSets) {
+            if (dataSetId.equals(dataSet.getId())) {
+
+                assertThat(dataSet.getDescription(), is(description));
+            }
+
+        }
+
+    }
+
+    @Betamax(tape = "dataSets/updateDescriptionEmptySuccess")
+    @Test
+    public void ShouldUpdateDescriptionOfDataSetToEmpty()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000002";
+        String description = "";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
+        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+
+        for (DataSet dataSet : dataSets) {
+            if (dataSetId.equals(dataSet.getId())) {
+
+                assertThat(dataSet.getDescription(), is(description));
+            }
+
+        }
+
+    }
+
+    @Betamax(tape = "dataSets/updateDescriptionNullSuccess")
+    @Test
+    public void ShouldUpdateDescriptionOfDataSetToNull()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000002";
+        String description = null;
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
+        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+
+        for (DataSet dataSet : dataSets) {
+            if (dataSetId.equals(dataSet.getId())) {
+
+                assertNull(dataSet.getDescription());
+            }
+
+        }
+
+    }
+
+    @Betamax(tape = "dataSets/updateDescriptionDataSetNotExists")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistsForUpdateDescription()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "noSuchDataset";
+        String description = "TEST4";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
+    }
+
+    @Betamax(tape = "dataSets/updateDescriptionInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForUpdateDescription()
+            throws Exception {
+        String providerId = "Provider002";
+        String dataSetId = "dataset000001";
+        String descrption = "TEST3";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.updateDescriptionOfDataSet(providerId, dataSetId, descrption);
+    }
 }
 
-//public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws DataSetNotExistsException, MCSException {
-// public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
+
+//public void deleteDataSet(String providerId, String dataSetId) throws DataSetNotExistsException, MCSException {
 //public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
 //public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
 
