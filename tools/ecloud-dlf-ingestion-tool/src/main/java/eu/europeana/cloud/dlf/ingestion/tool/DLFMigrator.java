@@ -5,18 +5,16 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RepresentationServiceClient;
-import eu.europeana.cloud.mcs.driver.SearchParams;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.SearchServiceClient;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -28,18 +26,20 @@ public class DLFMigrator {
     String providerId = "providerId";
 
     private final UISClient uisClient;
-    private final RepresentationServiceClient representationClient;
+    private final RecordServiceClient representationClient;
     private final FileServiceClient filesClient;
     private final DataSetServiceClient dataSetClient;
     private final SearchServiceClient searchClient;
 
+
     public DLFMigrator() {
         uisClient = new UISClient(uisUrl);
-        representationClient = new RepresentationServiceClient();
-        filesClient = new FileServiceClient();
+        representationClient = new RecordServiceClient(mcsUrl);
+        filesClient = new FileServiceClient(mcsUrl);
         dataSetClient = new DataSetServiceClient(mcsUrl);
         searchClient = new SearchServiceClient();
     }
+
 
     public void migrate() {
         try {
@@ -58,10 +58,11 @@ public class DLFMigrator {
 
     }
 
+
     /**
-     *
-     * @param f folder containing various record representations. Name of the
-     * folder is record local id.
+     * 
+     * @param f
+     *            folder containing various record representations. Name of the folder is record local id.
      */
     private void migrateRecord(File f)
             throws CloudException {
@@ -71,23 +72,25 @@ public class DLFMigrator {
 
         //get list of files
         //for all files in dir
-        migrateFile(cloudId.getId());
+        //migrateFile(String cloudId, String schema, String version, String mediaType)
 
         createDataSet();
 
     }
 
-    private void migrateFile(String cloudId) {
-        //        String versionId = 
-        representationClient.createRepresentation();
 
+    private void migrateFile(String cloudId, String schema, String version, String mediaType)
+            throws MCSException, IOException {
+
+        representationClient.copyRepresentation(cloudId, schema, version);
         //add file to representation 
         InputStream data = null;
-        filesClient.uploadFile("cloudId", "schema", "version", data);
+        filesClient.uploadFile(cloudId, schema, version, data, mediaType);
 
         //persist representation
-        representationClient.persistVersion("cloudId", "schemaId", "versionId");
+        representationClient.persistRepresentation(cloudId, schema, version);
     }
+
 
     private void createDataSet() {
         try {
@@ -97,14 +100,15 @@ public class DLFMigrator {
         } catch (DataSetAlreadyExistsException ex) {
 
         } catch (ProviderNotExistsException ex) {
-            
+
         } catch (MCSException ex) {
 
         }
     }
 
+
     public void searchImportedRecords() {
-        searchClient.search(new SearchParams());
+        //searchClient.search(new SearchParams());
 
     }
 }
