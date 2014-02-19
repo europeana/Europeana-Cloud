@@ -1,0 +1,19 @@
+!tape
+name: record/getRepresentation_cloudID_schema_version_Successfully
+interactions:
+- recorded: 2014-02-18T16:05:53.054Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/3480fe50-9888-11e3-b072-50e549e85271/
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Tue, 18 Feb 2014 16:05:53 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions</allVersionsUri><creationDate>2014-02-18T11:34:11.494+01:00</creationDate><dataProvider>ProviderA</dataProvider><persistent>false</persistent><recordId>7MZWQJF8P84</recordId><schema>schema_000001</schema><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/3480fe50-9888-11e3-b072-50e549e85271</uri><version>3480fe50-9888-11e3-b072-50e549e85271</version></representation>
