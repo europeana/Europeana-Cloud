@@ -289,7 +289,14 @@ public class DataSetServiceClient {
     /**
      * Assigns representation into data set.
      *
-     * If representation was not assigned to data set, nothing happens.
+     * If specific version is assigned, and then other version of the same
+     * schema assigned again, the old version is overridden. You can also assign
+     * the representation without version in this case the old version will also
+     * be overridden. Note that the version number will be then set to null in
+     * Cassandra, but
+     * {@link #getDataSetRepresentations(java.lang.String, java.lang.String)}
+     * method will return the last persistent version with
+     * {@link Representation#version} filled.
      *
      * @param providerId provider identifier (required)
      * @param dataSetId data set identifier (required)
@@ -301,7 +308,7 @@ public class DataSetServiceClient {
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException on unexpected situations
      */
-    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
+     public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
             String versionId) throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
 
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
@@ -326,7 +333,8 @@ public class DataSetServiceClient {
     /**
      * Unassigns representation from data set.
      *
-     * If representation was not assigned to data set, nothing happens.
+     * If representation was not assigned to data set, nothing happens. If
+     * representation does not exist, nothing happens.
      *
      * @param providerId provider identifier (required)
      * @param dataSetId data set identifier (required)
