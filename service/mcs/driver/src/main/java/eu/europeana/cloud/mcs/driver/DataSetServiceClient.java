@@ -35,12 +35,35 @@ public class DataSetServiceClient {
     private final Client client = ClientBuilder.newClient();
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
-    //data-providers/{DATAPROVIDER}/data-sets/
-    private static final String dataSetsPath = ParamConstants.PROVIDERS + "/{" + ParamConstants.P_PROVIDER + "}/" + ParamConstants.DATASETS;
+    //data-providers/{DATAPROVIDER}/data-sets
+    private static final String dataSetsPath; // = ParamConstants.PROVIDERS + "/{" + ParamConstants.P_PROVIDER + "}/" + ParamConstants.DATASETS;
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}
-    private static final String dataSetPath = dataSetsPath + "/{" + ParamConstants.P_DATASET + "}";
+    private static final String dataSetPath; // = dataSetsPath + "/{" + ParamConstants.P_DATASET + "}";
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/assignments
-    private static final String assignmentsPath = dataSetPath + "/" + ParamConstants.ASSIGNMENTS;
+    private static final String assignmentsPath; // = dataSetPath + "/" + ParamConstants.ASSIGNMENTS;
+
+    static {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(ParamConstants.PROVIDERS);
+        builder.append("/");
+        builder.append("{");
+        builder.append(ParamConstants.P_PROVIDER);
+        builder.append("}/");
+        builder.append(ParamConstants.DATASETS);
+        dataSetsPath = builder.toString();
+
+        builder.append("/");
+        builder.append("{");
+        builder.append(ParamConstants.P_DATASET);
+        builder.append("}");
+        dataSetPath = builder.toString();
+
+        builder.append("/");
+        builder.append(ParamConstants.ASSIGNMENTS);
+        assignmentsPath = builder.toString();
+
+    }
 
     /**
      * Creates instance of DataSetServiceClient.
@@ -308,7 +331,7 @@ public class DataSetServiceClient {
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException on unexpected situations
      */
-     public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
+    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId,
             String versionId) throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
 
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
