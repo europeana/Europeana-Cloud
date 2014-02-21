@@ -76,10 +76,10 @@ public class RecordServiceClient {
         builder.append(ParamConstants.P_VER);
         builder.append("}");
         versionPath = builder.toString();
-        
+
         copyPath = versionPath + "/" + ParamConstants.COPY;
-        persistPath = versionPath + "/" + ParamConstants.PERSIST; 
- 
+        persistPath = versionPath + "/" + ParamConstants.PERSIST;
+
     }
 
     /**
@@ -101,7 +101,8 @@ public class RecordServiceClient {
      */
     public Record getRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate("ID", cloudId);
+        WebTarget target = client.target(baseUrl).path(recordPath)
+                .resolveTemplate(ParamConstants.P_GID, cloudId);
         Builder request = target.request();
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -124,7 +125,8 @@ public class RecordServiceClient {
      */
     public boolean deleteRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate("ID", cloudId);
+        WebTarget target = client.target(baseUrl).path(recordPath)
+                .resolveTemplate(ParamConstants.P_GID, cloudId);
         Builder request = target.request();
         Response response = request.delete();
         if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
@@ -146,7 +148,8 @@ public class RecordServiceClient {
      */
     public List<Representation> getRepresentations(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path(representationsPath).resolveTemplate("ID", cloudId);
+        WebTarget target = client.target(baseUrl).path(representationsPath)
+                .resolveTemplate(ParamConstants.P_GID, cloudId);
         Response response = target.request().get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
@@ -171,7 +174,8 @@ public class RecordServiceClient {
     public Representation getRepresentation(String cloudId, String schema)
             throws RecordNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()
@@ -198,7 +202,8 @@ public class RecordServiceClient {
     public URI createRepresentation(String cloudId, String schema, String providerId)
             throws ProviderNotExistsException, RecordNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Form form = new Form();
         form.param("providerId", providerId);
@@ -225,7 +230,8 @@ public class RecordServiceClient {
     public boolean deletesRepresentation(String cloudId, String schema)
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Response responseDelete = request.delete();
         if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
@@ -250,7 +256,8 @@ public class RecordServiceClient {
     public List<Representation> getRepresentations(String cloudId, String schema)
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(versionsPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -278,7 +285,9 @@ public class RecordServiceClient {
     public Representation getRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(versionPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
         Response response = request.get();
         System.out.println(response);
@@ -307,7 +316,9 @@ public class RecordServiceClient {
     public boolean deleteRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(versionPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
         Response responseDelete = request.delete();
         if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
@@ -333,9 +344,10 @@ public class RecordServiceClient {
      */
     public URI copyRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl)
-                .path(copyPath).resolveTemplate("ID", cloudId)
-                .resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget target = client.target(baseUrl).path(copyPath)
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = target.request();
         Response response = request.post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
@@ -364,9 +376,10 @@ public class RecordServiceClient {
     public URI persistRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException, MCSException {
-        WebTarget target = client.target(baseUrl)
-                .path(persistPath)
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget target = client.target(baseUrl).path(persistPath)
+                .resolveTemplate(ParamConstants.P_GID, cloudId)
+                .resolveTemplate(ParamConstants.P_SCHEMA, schema)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Form form = new Form();
         Builder request = target.request();
         Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
