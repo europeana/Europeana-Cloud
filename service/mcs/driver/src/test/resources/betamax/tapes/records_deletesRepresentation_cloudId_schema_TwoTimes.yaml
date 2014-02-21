@@ -1,5 +1,5 @@
 !tape
-name: record/_deletesRepresentation_cloudId_schema_TwoTimes
+name: records/deletesRepresentation_cloudId_schema_TwoTimes
 interactions:
 - recorded: 2014-02-18T16:07:58.686Z
   request:

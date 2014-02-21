@@ -1,5 +1,5 @@
 !tape
-name: record/getRepresentation_cloudID_schema_version_Latest
+name: records/getRepresentation_cloudID_schema_version_Latest
 interactions:
 - recorded: 2014-02-18T16:05:44.680Z
   request:

@@ -1,5 +1,5 @@
 !tape
-name: record/copyRepresentation_Successfully
+name: records/copyRepresentation_Successfully
 interactions:
 - recorded: 2014-02-18T16:05:45.410Z
   request:

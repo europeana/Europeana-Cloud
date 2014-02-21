@@ -1,5 +1,5 @@
 !tape
-name: record/createRepresentation_createRepresentation_cloudId_schema_providerId_404_incorrectId
+name: records/createRepresentation_createRepresentation_cloudId_schema_providerId_404_incorrectId
 interactions:
 - recorded: 2014-02-18T16:05:50.829Z
   request:

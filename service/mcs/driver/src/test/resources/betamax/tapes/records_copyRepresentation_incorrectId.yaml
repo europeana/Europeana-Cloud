@@ -1,10 +1,10 @@
 !tape
-name: record/copyRepresentation_incorrectSchema
+name: records/copyRepresentation_incorrectId
 interactions:
-- recorded: 2014-02-18T16:05:50.223Z
+- recorded: 2014-02-18T16:05:46.674Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001_/versions/e9261830-955a-11e3-b6af-50e549e85271/copy
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84_/representations/schema_000001/versions/ff67be10-9888-11e3-b072-50e549e85271/copy
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '0'
@@ -16,6 +16,6 @@ interactions:
     status: 404
     headers:
       Content-Type: application/xml
-      Date: Tue, 18 Feb 2014 16:05:50 GMT
+      Date: Tue, 18 Feb 2014 16:05:46 GMT
       Server: Apache-Coyote/1.1
     body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>

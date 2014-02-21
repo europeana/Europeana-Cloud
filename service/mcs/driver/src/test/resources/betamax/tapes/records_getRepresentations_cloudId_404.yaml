@@ -1,5 +1,5 @@
 !tape
-name: record/getRepresentations_cloudId_404
+name: records/getRepresentations_cloudId_404
 interactions:
 - recorded: 2014-02-18T16:05:54.851Z
   request:

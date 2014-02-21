@@ -1,5 +1,5 @@
 !tape
-name: record/getRecord_cloudId_404
+name: records/getRecord_cloudId_404
 interactions:
 - recorded: 2014-02-19T07:18:26.315Z
   request:

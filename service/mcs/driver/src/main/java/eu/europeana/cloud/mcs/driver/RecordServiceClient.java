@@ -21,8 +21,6 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +81,7 @@ public class RecordServiceClient {
     }
 
     /**
-     * Constructs a RecordServiceClient
+     * Creates instance of RecordServiceClient.
      *
      * @param baseUrl URL of the MCS Rest Service
      */
@@ -92,7 +90,7 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function returns record with all its latest persistent representation.
+     * Returns record with all its latest persistent representation.
      *
      * @param cloudId id of getting Record
      * @return Record of specified cloudId
@@ -233,11 +231,11 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_GID, cloudId)
                 .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
-        Response responseDelete = request.delete();
-        if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
+        Response response = request.delete();
+        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
             return true;
         } else {
-            ErrorInfo errorInfo = responseDelete.readEntity(ErrorInfo.class);
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
 
@@ -320,11 +318,11 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_SCHEMA, schema)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
-        Response responseDelete = request.delete();
-        if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
+        Response response = request.delete();
+        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
             return true;
         } else {
-            ErrorInfo errorInfo = responseDelete.readEntity(ErrorInfo.class);
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
 
