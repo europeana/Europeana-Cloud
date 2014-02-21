@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-18T15:52:01.148Z
   request:
     method: DELETE
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/5dfded60-988d-11e3-b072-50e549e85271/
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/5dfded60-988d-11e3-b072-50e549e85271
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Host: localhost:8080

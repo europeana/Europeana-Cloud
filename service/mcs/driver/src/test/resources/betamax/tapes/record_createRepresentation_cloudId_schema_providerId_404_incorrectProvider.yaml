@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-18T16:05:49.144Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Connection: close
