@@ -1,0 +1,33 @@
+!tape
+name: dataSets/unassignRepresentationVersionSuccess
+interactions:
+- recorded: 2014-02-21T08:39:22.630Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets/dataset000023/assignments?recordId=1DZ6HTS415W&schema=schema66
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 204
+    headers:
+      Date: Fri, 21 Feb 2014 08:39:22 GMT
+      Server: Apache-Coyote/1.1
+- recorded: 2014-02-21T08:39:22.810Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets/dataset000023
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Fri, 21 Feb 2014 08:39:22 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice/>

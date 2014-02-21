@@ -343,7 +343,7 @@ public class DataSetServiceClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException on unexpected situations
      */
-    public void unassignRepresentationToDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
+    public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId, String schemaId)
             throws DataSetNotExistsException, MCSException {
 
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)

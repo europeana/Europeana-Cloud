@@ -413,22 +413,24 @@ public class DataSetServiceClientTest {
 
     }
 
-    private void assertOneCorrectRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId, String schemaId, String versionId) throws MCSException {
+    private int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId, String schemaId, String versionId) throws MCSException {
         List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
 
         int found = 0;
         for (Representation r : result) {
             if (r.getSchema().equals(schemaId)) {
-                assertThat(r.getVersion(), is(versionId));
+                if (versionId != null) {
+                    assertThat(r.getVersion(), is(versionId));
+                }
                 found++;
             }
         }
-        assertThat(found, is(1));
+        return found;
     }
 
     @Betamax(tape = "dataSets/assignRepresentationNoVersionSuccess")
     @Test
-    public void shouldAssignRepresentationToDataSet()
+    public void shouldAssignRepresentation()
             throws Exception {
         String providerId = "Provider002";
         String dataSetId = "dataset000008";
@@ -440,7 +442,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, null);
 
-        assertOneCorrectRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId);
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId), is(1));
     }
 
     //should not complain about assigning the same representation version again
@@ -448,16 +450,16 @@ public class DataSetServiceClientTest {
     //but I wrote it just in case
     @Betamax(tape = "dataSets/assignTheSameRepresentationSuccess")
     @Test
-    public void shouldAssignTheSameRepresentationToDataSet()
+    public void shouldAssignTheSameRepresentation()
             throws Exception {
 
-        shouldAssignRepresentationToDataSet();
-        shouldAssignRepresentationToDataSet();
+        shouldAssignRepresentation();
+        shouldAssignRepresentation();
     }
 
     @Betamax(tape = "dataSets/assignRepresentationVersionSuccess")
     @Test
-    public void shouldAssignRepresentationVersionToDataSet()
+    public void shouldAssignRepresentationVersion()
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "dataset000066";
@@ -468,7 +470,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, versionId1);
-        assertOneCorrectRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId1);
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId1), is(1));
 
     }
 
@@ -487,13 +489,13 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, versionId2);
-        assertOneCorrectRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId2);
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId2), is(1));
 
     }
 
     @Betamax(tape = "dataSets/assignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForAssingRepresentationToDataSet()
+    public void shouldThrowDriverExceptionForAssingRepresentation()
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "dataset000015";
@@ -508,7 +510,7 @@ public class DataSetServiceClientTest {
 
     @Betamax(tape = "dataSets/assignRepresentationRepresentationNotExists")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsForAssingRepresentationToDataSet()
+    public void shouldThrowRepresentationNotExistsForAssingRepresentation()
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "dataset000016";
@@ -523,7 +525,7 @@ public class DataSetServiceClientTest {
 
     @Betamax(tape = "dataSets/assignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistsForAssingRepresentationToDataSet()
+    public void shouldThrowDataSetNotExistsForAssingRepresentation()
             throws Exception {
         String providerId = "Provider001";
         String dataSetId = "noSuchDataSet";
@@ -536,76 +538,92 @@ public class DataSetServiceClientTest {
 
     }
 
-    //
     @Betamax(tape = "dataSets/unassignRepresentationSuccess")
     @Test
-    public void shouldUnassignRepresentationFromDataSet()
+    public void shouldUnassignRepresentation()
             throws Exception {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
-        String cloudId = ""; //TODO EXISTING ASSIGNED
-        String schemaId = ""; //TODO EXISTING ASSIGNED
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "schema66";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
     }
 
     //should not complain about unassigning not assigned representation
     @Betamax(tape = "dataSets/unassignNotAssignedRepresentationSuccess")
     @Test
-    public void shouldUnassignNotAssignedRepresentationFromDataSet()
+    public void shouldUnassignNotAssignedRepresentation()
             throws Exception {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
-        String cloudId = ""; //TODO EXISTING NOT ASSIGNED
-        String schemaId = ""; //TODO EXISTING NOT ASSIGNED
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "schema66";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId);
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
+
+    }
+
+    @Betamax(tape = "dataSets/unassignRepresentationVersionSuccess")
+    @Test
+    public void shouldUnassignRepresentationWithVersion()
+            throws Exception {
+        String providerId = "Provider001";
+        String dataSetId = "dataset000023";
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "schema66";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
+        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
 
     }
 
     //should not complain about unassigning non-existing representation
     @Betamax(tape = "dataSets/unassignNonExistingRepresentationSuccess")
     @Test
-    public void shouldUnassignNonExistingRepresentationFromDataSet()
+    public void shouldUnassignNonExistingRepresentation()
             throws Exception {
         String providerId = "Provider002";
-        String dataSetId = "dataset000002";
-        String cloudId = ""; //TODO EXISTING (I think)
-        String schemaId = ""; //TODO NON EXISTING
+        String dataSetId = "dataset000007";
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "noSuchSchema";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
     }
 
     @Betamax(tape = "dataSets/unassignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForUnassingRepresentationFromDataSet()
+    public void shouldThrowDriverExceptionForUnassingRepresentation()
             throws Exception {
-        String providerId = "Provider002";
-        String dataSetId = "dataset000002";
-        String cloudId = ""; //TODO EXISTING
-        String schemaId = ""; //TODO EXISTING
+        String providerId = "Provider001";
+        String dataSetId = "dataset000058";
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "schema77";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
     }
 
     @Betamax(tape = "dataSets/unassignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistsForUnassingRepresentationFromDataSet()
+    public void shouldThrowDataSetNotExistsForUnassingRepresentation()
             throws Exception {
         String providerId = "Provider002";
         String dataSetId = "noSuchDataSet";
-        String cloudId = "noSuchCloudId"; //TODO EXISTING
-        String schemaId = "noSuchSchema"; //TODO EXISTING
+        String cloudId = "1DZ6HTS415W";
+        String schemaId = "schema77";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
     }
 
