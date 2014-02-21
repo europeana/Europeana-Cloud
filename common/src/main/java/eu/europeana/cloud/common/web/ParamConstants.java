@@ -20,6 +20,10 @@ public interface ParamConstants {
 
     static final String ASSIGNMENTS = "assignments";
 
+    static final String COPY = "copy";
+    
+    static final String PERSIST = "persist";
+
     // path parameters' names
     static final String P_CLOUDID = "CLOUDID";
 
