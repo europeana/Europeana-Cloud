@@ -186,13 +186,13 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "records/createRepresentation_cloudId_schema_providerId_404_incorrectProvider")
+    @Betamax(tape = "records/createRepresentationNoProvider")
     @Test(expected = ProviderNotExistsException.class)
-    public void createRepresentation_cloudId_schema_providerId_404_incorrectProvider()
+    public void shouldThrowProviderNotExistsForCreateRepresentation()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         String schema = "schema_000001";
-        String providerId = "ProviderA_";
+        String providerId = "noSuchProvider";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         
         instance.createRepresentation(cloudId, schema, providerId);
