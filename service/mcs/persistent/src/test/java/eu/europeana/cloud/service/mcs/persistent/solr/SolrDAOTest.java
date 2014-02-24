@@ -88,6 +88,31 @@ public class SolrDAOTest {
 
 
     @Test
+    public void shouldMakeOneSolrEntryIfAssignedMoreThanOnce()
+            throws Exception {
+
+        Representation rep = new Representation("cloud333", "schema1", "version2", null, null, "dataProvider", null,
+                true, new Date());
+        ArrayList<CompoundDataSetId> dataSets = new ArrayList<>();
+        dataSets.add(new CompoundDataSetId("provider", "dataSet1"));
+        dataSets.add(new CompoundDataSetId("provider", "dataSet2"));
+
+        //given - representation with 2 datasets already assigned
+        solrDAO.insertRepresentation(rep, dataSets);
+        RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
+        TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
+
+        //when (add the same assigment for the second time)
+        solrDAO.addAssignment(rep.getVersion(), new CompoundDataSetId("provider", "dataSet1"));
+
+        //then
+        RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
+        TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.transform(dataSets, serialize));
+
+    }
+
+
+    @Test
     public void shouldRemoveRepresentation()
             throws Exception {
         Representation rep = new Representation("cloud1", "schema1", "version4", null, null, "dataProvider", null,
@@ -184,7 +209,7 @@ public class SolrDAOTest {
         CompoundDataSetId ds1 = new CompoundDataSetId("provider", "dataSet1");
         CompoundDataSetId ds2 = new CompoundDataSetId("provider", "dataSet2");
         CompoundDataSetId ds3 = new CompoundDataSetId("provider", "dataSet3");
-        CompoundDataSetId ds4 = new CompoundDataSetId("provider", "dataSet3");
+        CompoundDataSetId ds4 = new CompoundDataSetId("provider", "dataSet4");
 
         // insert persistent representation with 2 data sets
         Representation rep = new Representation("1", "dc", "v1", null, null, "dataProvider", null, true, new Date());

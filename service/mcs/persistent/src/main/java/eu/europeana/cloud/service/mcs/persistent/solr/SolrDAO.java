@@ -126,7 +126,12 @@ public class SolrDAO {
     public void addAssignment(String versionId, CompoundDataSetId dataSetId)
             throws SolrServerException, IOException, SolrDocumentNotFoundException {
         RepresentationSolrDocument document = getDocumentById(versionId);
-        document.getDataSets().add(serialize(dataSetId));
+        Collection<String> dataSets = document.getDataSets();
+        String assigment = serialize(dataSetId);
+        if (!dataSets.contains(assigment)) {
+            dataSets.add(assigment);
+        }
+
         server.addBean(document);
         server.commit();
     }
