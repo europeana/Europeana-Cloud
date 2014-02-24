@@ -105,7 +105,22 @@ public interface UniqueIdentifierService {
      * @throws ProviderDoesNotExistException 
      * @throws RecordDatasetEmptyException 
      */
-    void createIdMapping(String cloudId, String providerId, String recordId)
+    CloudId createIdMapping(String cloudId, String providerId, String recordId)
+            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException, RecordDatasetEmptyException;
+
+    /**
+     * Create a mapping between a new providerId and recordId and an existing cloud identifier
+     * 
+     * @param cloudId
+     * @param providerId
+     * @param recordId
+     * @throws DatabaseConnectionException
+     * @throws CloudIdDoesNotExistException
+     * @throws IdHasBeenMappedException
+     * @throws ProviderDoesNotExistException 
+     * @throws RecordDatasetEmptyException 
+     */
+    CloudId createIdMapping(String cloudId, String providerId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,ProviderDoesNotExistException, RecordDatasetEmptyException;
 
     /**

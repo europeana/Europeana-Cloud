@@ -182,7 +182,7 @@ public class PersistentUniqueIdentifierService implements
 	}
 
 	@Override
-	public void createIdMapping(String cloudId, String providerId,
+	public CloudId createIdMapping(String cloudId, String providerId,
 			String recordId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
@@ -214,6 +214,15 @@ public class PersistentUniqueIdentifierService implements
 
 		localIdDao.insert(providerId, recordId, cloudId);
 		cloudIdDao.insert(cloudId, providerId, recordId);
+		
+		CloudId clId = new CloudId();
+		clId.setId(cloudId);
+		
+		LocalId lid = new LocalId();
+		lid.setProviderId(providerId);
+		lid.setRecordId(recordId);
+		clId.setLocalId(lid);
+		return clId;
 	}
 
 	@Override
@@ -267,6 +276,13 @@ public class PersistentUniqueIdentifierService implements
 	@Override
 	public String getPort() {
 		return this.port;
+	}
+
+	@Override
+	public CloudId createIdMapping(String cloudId, String providerId) throws DatabaseConnectionException,
+			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException,
+			RecordDatasetEmptyException {
+		return createIdMapping(cloudId, providerId, Base36.timeEncode(providerId));
 	}
 
 }

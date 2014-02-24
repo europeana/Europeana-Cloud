@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao;
 import eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao;
 import eu.europeana.cloud.service.uis.encoder.Base36;
@@ -44,7 +45,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	/**
-	 * Creates a new instance of this class and intializes the service with
+	 * Creates a new instance of this class and initializes the service with
 	 * given data access objects.
 	 * 
 	 * @param cloudIdDao
@@ -138,7 +139,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	@Override
-	public void createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException,
+	public CloudId createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException {
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (!localIds.isEmpty()) {
@@ -155,6 +156,14 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 		localIdDao.insert(cloudId, providerId, recordId);
 		cloudIdDao.insert(cloudId, providerId, recordId);
+		CloudId clId = new CloudId();
+		clId.setId(cloudId);
+		
+		LocalId lid = new LocalId();
+		lid.setProviderId(providerId);
+		lid.setRecordId(recordId);
+		clId.setLocalId(lid);
+		return clId;
 	}
 
 	@Override
@@ -201,5 +210,12 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	public void reset() {
 		localIdDao.reset();
 		cloudIdDao.reset();
+	}
+
+	@Override
+	public CloudId createIdMapping(String cloudId, String providerId) throws DatabaseConnectionException,
+			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException,
+			RecordDatasetEmptyException {
+		return createIdMapping(cloudId, providerId, Base36.timeEncode(providerId));
 	}
 }

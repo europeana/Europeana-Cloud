@@ -32,6 +32,10 @@ public interface ParamConstants {
     static final String P_DATASET = "DATASET";
 
     static final String P_FILE = "FILE";
+    
+    static final String P_LOCALID = "LOCALID";
+    
+    static final String P_CLOUDID = "CLOUDID";
 
     // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";
@@ -59,5 +63,6 @@ public interface ParamConstants {
     static final String F_DATE_UNTIL = "creationDateUntil";
 
     static final String F_START_FROM = "startFrom";
+    
 
 }
