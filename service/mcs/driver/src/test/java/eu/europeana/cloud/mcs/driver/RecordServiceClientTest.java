@@ -11,9 +11,6 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.net.URI;
 import java.util.List;
-import javax.ws.rs.client.Client;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.Rule;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,13 +22,15 @@ public class RecordServiceClientTest {
 
     @Rule
     public Recorder recorder = new Recorder();
-
-    public Client client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
-
+ 
+    //TODO clean
+    //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
 
+    
+    //TODO TU - review all tests, names and checked parameters
 
-    @Betamax(tape = "record/getRecord_cloudId_Successfully")
+    @Betamax(tape = "records/getRecord_cloudId_Successfully")
     @Test
     public void getRecord_cloudId_Successfully()
             throws MCSException {
@@ -43,24 +42,25 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRecord_cloudId_404")
+    @Betamax(tape = "records/getRecord_cloudId_404")
     @Test(expected = RecordNotExistsException.class)
     public void getRecord_cloudId_404()
             throws MCSException {
         String cloudId = "7MZWQJF8P84_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Record record = instance.getRecord(cloudId);
+        
+        instance.getRecord(cloudId);
     }
 
 
-    @Betamax(tape = "record/deleteRecord_cloudId_Successfully")
+    @Betamax(tape = "records/deleteRecord_cloudId_Successfully")
     @Test
     public void _deleteRecord_cloudId_Successfully()
             throws MCSException {
         String cloudId = "3SWK3L9K179";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRecord(cloudId);
-        assertTrue(isSuccessfull);
+        
+        instance.deleteRecord(cloudId);
     }
 
 
@@ -75,7 +75,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentations_cloudId_Successfully")
+    @Betamax(tape = "records/getRepresentations_cloudId_Successfully")
     @Test
     public void getRepresentations_cloudId_Successfully()
             throws MCSException {
@@ -89,7 +89,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentations_cloudId_404")
+    @Betamax(tape = "records/getRepresentations_cloudId_404")
     @Test(expected = RecordNotExistsException.class)
     public void getRepresentations_cloudId_404()
             throws MCSException {
@@ -103,7 +103,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentation_cloudId_schema_Successfully")
+    @Betamax(tape = "records/getRepresentation_cloudId_schema_Successfully")
     @Test
     public void getRepresentation_cloudId_schema_Successfully()
             throws MCSException {
@@ -128,38 +128,48 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/createRepresentation_cloudId_schema_providerId_Successfully")
+    @Betamax(tape = "records/createRepresentationSuccess")
     @Test
-    public void createRepresentation_cloudId_schema_providerId_Successfully()
+    public void shouldCreateRepresentation()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String providerId = "ProviderA";
+        String cloudId = "1DZ6HTS415W";
+        String schema = "schema77";
+        String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        Representation representation = JerseyClientBuilder.newClient().register(MultiPartFeature.class).target(uri)
-                .request().get().readEntity(Representation.class);
+        assertNotNull(uri);
+        
+        //validate URI, obtain version
+        String[] elements = uri.getRawPath().split("/");
+        String uriVersion = elements[elements.length - 1];
+        String uriSchema = elements[elements.length - 3];
+        String uriRecordId = elements[elements.length - 5];
+        assertEquals(cloudId, uriRecordId);
+        assertEquals(schema, uriSchema);
+        
+        //get representation and check
+        Representation representation = instance.getRepresentation(cloudId, schema, uriVersion);
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
         assertEquals(schema, representation.getSchema());
+        assertEquals(uriVersion, representation.getVersion());
     }
 
-
-    @Betamax(tape = "record/createRepresentation_createRepresentation_cloudId_schema_providerId_404_incorrectId")
+    @Betamax(tape = "records/createRepresentationRecordNotExists")
     @Test(expected = RecordNotExistsException.class)
-    public void createRepresentation_cloudId_schema_providerId_404_incorrectId()
+    public void shouldThrowRecordNotExistsForCreateRepresentation()
             throws MCSException {
         String cloudId = "7MZWQJF8P84_";
         String schema = "schema_000001";
-        String providerId = "ProviderA";
+        String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        Representation representation = JerseyClientBuilder.newClient().register(MultiPartFeature.class).target(uri)
-                .request().get().readEntity(Representation.class);
+        
+        instance.createRepresentation(cloudId, schema, providerId);
     }
 
 
-    //Jak to powinno być obsłużone zwracany ok i tworzony jest schemat to jest chyba ok
+    //TODO is this logic valid:
+    //we return ok and create the schema, is it ok?
     @Ignore("Ask - probably ok")
     @Test(expected = RecordNotExistsException.class)
     public void createRepresentation_cloudId_schema_providerId_404_incorrectSchema()
@@ -168,13 +178,15 @@ public class RecordServiceClientTest {
         String schema = "schema_000001_xx";
         String providerId = "ProviderA";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        Representation representation = JerseyClientBuilder.newClient().register(MultiPartFeature.class).target(uri)
-                .request().get().readEntity(Representation.class);
+        
+        //TODO validate URI
+        instance.getRepresentation(cloudId, schema);
     }
 
 
-    @Betamax(tape = "record/createRepresentation_cloudId_schema_providerId_404_incorrectProvider")
+    @Betamax(tape = "records/createRepresentation_cloudId_schema_providerId_404_incorrectProvider")
     @Test(expected = ProviderNotExistsException.class)
     public void createRepresentation_cloudId_schema_providerId_404_incorrectProvider()
             throws MCSException {
@@ -182,21 +194,20 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String providerId = "ProviderA_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        Representation representation = JerseyClientBuilder.newClient().register(MultiPartFeature.class).target(uri)
-                .request().get().readEntity(Representation.class);
+        
+        instance.createRepresentation(cloudId, schema, providerId);
     }
 
 
-    @Betamax(tape = "record/deletesRepresentation_cloudId_schema_Successfully")
+    @Betamax(tape = "records/deletesRepresentation_cloudId_schema_Successfully")
     @Test
-    public void _deletesRepresentation_cloudId_schema_Successfully()
+    public void deletesRepresentation_cloudId_schema_Successfully()
             throws MCSException {
         String cloudId = "1TZC17H34S5";
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deletesRepresentation(cloudId, schema);
-        assertTrue(isSuccessfull);
+        
+        instance.deletesRepresentation(cloudId, schema);
     }
 
 
@@ -207,8 +218,8 @@ public class RecordServiceClientTest {
         String cloudId = "1TZC17H34S5";
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deletesRepresentation(cloudId, schema);
-        assertTrue(isSuccessfull);
+       
+        instance.deletesRepresentation(cloudId, schema);
     }
 
 
@@ -219,7 +230,8 @@ public class RecordServiceClientTest {
         String cloudId = "1TZC17H34S5_";
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deletesRepresentation(cloudId, schema);
+        
+        instance.deletesRepresentation(cloudId, schema);
     }
 
 
@@ -230,11 +242,12 @@ public class RecordServiceClientTest {
         String cloudId = "1TZC17H34S5";
         String schema = "schema_000001_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deletesRepresentation(cloudId, schema);
+        
+        instance.deletesRepresentation(cloudId, schema);
     }
 
 
-    @Betamax(tape = "record/getRepresentations_cloudId_schema_Successfully")
+    @Betamax(tape = "records/getRepresentations_cloudId_schema_Successfully")
     @Test
     public void getRepresentations_cloudId_schema_Successfully()
             throws RepresentationNotExistsException, MCSException {
@@ -272,7 +285,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentation_cloudID_schema_version_Successfully")
+    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_Successfully")
     @Test
     public void getRepresentation_cloudID_schema_version_Successfully()
             throws MCSException {
@@ -288,7 +301,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentation_cloudID_schema_version_Latest")
+    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_Latest")
     @Test
     public void getRepresentation_cloudID_schema_version_Latest()
             throws MCSException {
@@ -303,7 +316,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/getRepresentation_cloudID_schema_version_incorrectId")
+    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_incorrectId")
     @Test(expected = RepresentationNotExistsException.class)
     public void getRepresentation_cloudID_schema_version_incorrectId()
             throws MCSException {
@@ -311,11 +324,12 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "71cdeb90-955b-11e3-b6af-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Representation representation = instance.getRepresentation(cloudId, schema, version);
+        
+        instance.getRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/getRepresentation_cloudID_schema_version_incorrectSchema")
+    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_incorrectSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void getRepresentation_cloudID_schema_version_incorrectSchema()
             throws MCSException {
@@ -323,7 +337,8 @@ public class RecordServiceClientTest {
         String schema = "schema_000001_";
         String version = "71cdeb90-955b-11e3-b6af-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Representation representation = instance.getRepresentation(cloudId, schema, version);
+        
+        instance.getRepresentation(cloudId, schema, version);
     }
 
 
@@ -335,24 +350,25 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "71cdeb90-955b-11e3-b6af-50e549e85271_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Representation representation = instance.getRepresentation(cloudId, schema, version);
+        
+        instance.getRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/deleteRepresentation_cloudID_schema_version_Successfully")
+    @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_Successfully")
     @Test
-    public void _deleteRepresentation_cloudID_schema_version_Successfully()
+    public void deleteRepresentation_cloudID_schema_version_Successfully()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         String schema = "schema_000001";
         String version = "5dfded60-988d-11e3-b072-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRepresentation(cloudId, schema, version);
-        assertTrue(isSuccessfull);
+        
+        instance.deleteRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/deleteRepresentation_cloudID_schema_version_incorrectId")
+    @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_incorrectId")
     @Test(expected = RepresentationNotExistsException.class)
     public void deleteRepresentation_cloudID_schema_version_incorrectId()
             throws MCSException {
@@ -360,11 +376,12 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "ae7dd340-97c5-11e3-b4e8-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRepresentation(cloudId, schema, version);
+        
+        instance.deleteRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/deleteRepresentation_cloudID_schema_version_incorrectSchema")
+    @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_incorrectSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void deleteRepresentation_cloudID_schema_version_incorrectSchema()
             throws MCSException {
@@ -372,7 +389,8 @@ public class RecordServiceClientTest {
         String schema = "schema_000001_";
         String version = "ae7dd340-97c5-11e3-b4e8-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRepresentation(cloudId, schema, version);
+        
+        instance.deleteRepresentation(cloudId, schema, version);
     }
 
 
@@ -384,7 +402,8 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "89feff50-94ad-11e3-ac19-50e549e85271_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRepresentation(cloudId, schema, version);
+        
+        instance.deleteRepresentation(cloudId, schema, version);
     }
 
 
@@ -396,11 +415,12 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "a36c2120-8e4f-11e3-81d2-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        boolean isSuccessfull = instance.deleteRepresentation(cloudId, schema, version);
+        
+        instance.deleteRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/copyRepresentation_Successfully")
+    @Betamax(tape = "records/copyRepresentation_Successfully")
     @Test
     public void copyRepresentation_Successfully()
             throws MCSException {
@@ -413,7 +433,7 @@ public class RecordServiceClientTest {
     }
 
 
-    @Betamax(tape = "record/copyRepresentation_incorrectId")
+    @Betamax(tape = "records/copyRepresentation_incorrectId")
     @Test(expected = RepresentationNotExistsException.class)
     public void copyRepresentation_incorrectId()
             throws MCSException {
@@ -421,11 +441,12 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "ff67be10-9888-11e3-b072-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uriResult = instance.copyRepresentation(cloudId, schema, version);
+        
+        instance.copyRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/copyRepresentation_incorrectSchema")
+    @Betamax(tape = "records/copyRepresentation_incorrectSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void copyRepresentation_incorrectSchema()
             throws MCSException {
@@ -433,7 +454,8 @@ public class RecordServiceClientTest {
         String schema = "schema_000001_";
         String version = "e9261830-955a-11e3-b6af-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uriResult = instance.copyRepresentation(cloudId, schema, version);
+        
+        instance.copyRepresentation(cloudId, schema, version);
     }
 
 
@@ -445,11 +467,12 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "e9261830-955a-11e3-b6af-50e549e85271_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uriResult = instance.copyRepresentation(cloudId, schema, version);
+        
+        instance.copyRepresentation(cloudId, schema, version);
     }
 
 
-    @Betamax(tape = "record/persistRepresentation_Successfully")
+    @Betamax(tape = "records/persistRepresentation_Successfully")
     @Test
     public void persistRepresentation_Successfully()
             throws MCSException {
@@ -457,6 +480,7 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         String version = "ff67be10-9888-11e3-b072-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         URI uriResult = instance.copyRepresentation(cloudId, schema, version);
         assertNotNull(uriResult);
     }

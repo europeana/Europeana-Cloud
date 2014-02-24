@@ -90,7 +90,7 @@ public class RecordServiceClient {
     }
 
     /**
-     * Returns record with all its latest persistent representation.
+     * Returns record with all its latest persistent representations.
      *
      * @param cloudId id of getting Record
      * @return Record of specified cloudId
@@ -117,19 +117,16 @@ public class RecordServiceClient {
      * all Versions. Mapping from UIS is not removed.
      *
      * @param cloudId id of deleting Record.
-     * @return true if operation was successful
      * @throws RecordNotExistsException when id is not known UIS Service.
      * @throws MCSException on unexpected situations.
      */
-    public boolean deleteRecord(String cloudId)
+    public void deleteRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(recordPath)
                 .resolveTemplate(ParamConstants.P_GID, cloudId);
         Builder request = target.request();
         Response response = request.delete();
-        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
@@ -187,24 +184,26 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function creates new representation version.
+     * Creates new representation version.
      *
-     * @param cloudId id of creating representation.
-     * @param schema schema of creating representation.
-     * @param providerId providerId of creating representation.
-     * @return URI to created representation.
-     * @throws ProviderNotExistsException when no provider with given id exist.
-     * @throws RecordNotExistsException when id is not known UIS Service.
-     * @throws MCSException on unexpected situations.
+     * @param cloudId id of the record in which to create the representation (required)
+     * @param schema schema of the representation to be created (required)
+     * @param providerId provider of this representation version (required)
+     * @return URI to the created representation
+     * @throws ProviderNotExistsException when no provider with given id exists
+     * @throws RecordNotExistsException when cloud id is not known to UIS Service
+     * @throws MCSException on unexpected situations
      */
     public URI createRepresentation(String cloudId, String schema, String providerId)
             throws ProviderNotExistsException, RecordNotExistsException, MCSException {
+        
         WebTarget target = client.target(baseUrl).path(schemaPath)
                 .resolveTemplate(ParamConstants.P_GID, cloudId)
                 .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Form form = new Form();
         form.param("providerId", providerId);
+        
         Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             URI uri = response.getLocation();
@@ -220,21 +219,18 @@ public class RecordServiceClient {
      *
      * @param cloudId id of deleting representation.
      * @param schema schema of deleting representation.
-     * @return true if operation success.
      * @throws RepresentationNotExistsException if specified Representation does
      * not exist.
      * @throws MCSException on unexpected situations.
      */
-    public boolean deletesRepresentation(String cloudId, String schema)
+    public void deletesRepresentation(String cloudId, String schema)
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
                 .resolveTemplate(ParamConstants.P_GID, cloudId)
                 .resolveTemplate(ParamConstants.P_SCHEMA, schema);
         Builder request = target.request();
         Response response = request.delete();
-        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
@@ -304,14 +300,13 @@ public class RecordServiceClient {
      * @param cloudId id of deleting Representation.
      * @param schema schema of deleting Representation.
      * @param version version of deleting Representation.
-     * @return true if object was deleted.
      * @throws RepresentationNotExistsException if specified Representation does
      * not exist.
      * @throws CannotModifyPersistentRepresentationException if specified
      * Representation is persistent as such cannot be removed.
      * @throws MCSException on unexpected situations.
      */
-    public boolean deleteRepresentation(String cloudId, String schema, String version)
+    public void deleteRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(versionPath)
                 .resolveTemplate(ParamConstants.P_GID, cloudId)
@@ -319,9 +314,7 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
         Response response = request.delete();
-        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
