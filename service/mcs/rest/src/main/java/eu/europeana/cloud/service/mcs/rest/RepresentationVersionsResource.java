@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 /**
  * Resource to manage representation versions.
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions")
 @Component
 @Scope("request")
 public class RepresentationVersionsResource {
@@ -37,7 +37,7 @@ public class RepresentationVersionsResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_SCHEMA)
+    @PathParam(P_REPRESENTATIONNAME)
     private String representation;
 
 

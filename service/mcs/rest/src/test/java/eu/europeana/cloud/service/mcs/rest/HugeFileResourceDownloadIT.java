@@ -94,9 +94,9 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()) //
                 .resolveTemplates(ImmutableMap.<String, Object> of( //
                     ParamConstants.P_GID, globalId, //
-                    ParamConstants.P_SCHEMA, schema, //
+                    ParamConstants.P_REPRESENTATIONNAME, schema, //
                     ParamConstants.P_VER, version, //
-                    ParamConstants.P_FILE, file.getFileName()));
+                    ParamConstants.P_FILENAME, file.getFileName()));
 
         Response response = webTarget.request().get();
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());

@@ -8,9 +8,9 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_FILE;
+import static eu.europeana.cloud.common.web.ParamConstants.P_FILENAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
 
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 /**
  * Resource to manage representation version's files with their content.
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}/files/{" + P_FILE + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{" + P_FILENAME + "}")
 @Component
 @Scope("request")
 public class FileResource {
@@ -56,13 +56,13 @@ public class FileResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_SCHEMA)
+    @PathParam(P_REPRESENTATIONNAME)
     private String schema;
 
     @PathParam(P_VER)
     private String version;
 
-    @PathParam(P_FILE)
+    @PathParam(P_FILENAME)
     private String fileName;
 
     private static final String HEADER_RANGE = "Range";

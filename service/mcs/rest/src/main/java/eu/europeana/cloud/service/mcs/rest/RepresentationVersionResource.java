@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 
 import javax.ws.rs.DELETE;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 /**
  * Resource to manage representation versions.
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}/versions/{" + P_VER + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 @Component
 @Scope("request")
 public class RepresentationVersionResource {
@@ -42,7 +42,7 @@ public class RepresentationVersionResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_SCHEMA)
+    @PathParam(P_REPRESENTATIONNAME)
     private String schema;
 
     @PathParam(P_VER)

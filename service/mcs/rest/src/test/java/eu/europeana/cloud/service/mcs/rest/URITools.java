@@ -75,19 +75,19 @@ class URITools {
 
 
     private static Map<String, String> getRepresentationMap(String globalId, String schema) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_SCHEMA, schema);
+        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema);
     }
 
 
     private static Map<String, String> getVersionMap(String globalId, String schema, String version) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_SCHEMA, schema,
+        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema,
             ParamConstants.P_VER, version);
     }
 
 
     private static Map<String, String> getFileMap(String globalId, String schema, String version, String fileName) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_SCHEMA, schema,
-            ParamConstants.P_VER, version, ParamConstants.P_FILE, fileName);
+        return ImmutableMap.<String, String> of(ParamConstants.P_GID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema,
+            ParamConstants.P_VER, version, ParamConstants.P_FILENAME, fileName);
     }
 
 

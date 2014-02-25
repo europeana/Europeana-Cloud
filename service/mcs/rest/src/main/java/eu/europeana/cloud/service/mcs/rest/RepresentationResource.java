@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -30,7 +30,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 /**
  * Resource to manage representations.
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_SCHEMA + "}")
+@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}")
 @Component
 @Scope("request")
 public class RepresentationResource {
@@ -44,7 +44,7 @@ public class RepresentationResource {
     @PathParam(P_GID)
     private String globalId;
 
-    @PathParam(P_SCHEMA)
+    @PathParam(P_REPRESENTATIONNAME)
     private String schema;
 
 

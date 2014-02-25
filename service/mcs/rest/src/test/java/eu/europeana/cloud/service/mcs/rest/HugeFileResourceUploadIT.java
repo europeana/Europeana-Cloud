@@ -103,9 +103,9 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
             ImmutableMap.<String, Object> of( //
                 ParamConstants.P_GID, globalId, //
-                ParamConstants.P_SCHEMA, schema, //
+                ParamConstants.P_REPRESENTATIONNAME, schema, //
                 ParamConstants.P_VER, version, //
-                ParamConstants.P_FILE, "terefere"));
+                ParamConstants.P_FILENAME, "terefere"));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
