@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 
@@ -33,7 +33,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 /**
  * FilesResource
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files")
+@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files")
 @Component
 @Scope("request")
 public class FilesResource {
@@ -44,7 +44,7 @@ public class FilesResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam(P_GID)
+    @PathParam(P_CLOUDID)
     private String globalId;
 
     @PathParam(P_REPRESENTATIONNAME)

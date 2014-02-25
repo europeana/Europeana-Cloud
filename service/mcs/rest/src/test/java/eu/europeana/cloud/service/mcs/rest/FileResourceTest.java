@@ -79,7 +79,7 @@ public class FileResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_GID, rep.getRecordId(),
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID, rep.getRecordId(),
             ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER, rep.getVersion(), ParamConstants.P_FILENAME,
             file.getFileName());
         fileWebTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);

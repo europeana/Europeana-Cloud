@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Scope;
 /**
  * Resource representing records.
  */
-@Path("/records/{" + P_GID + "}")
+@Path("/records/{" + P_CLOUDID + "}")
 @Component
 @Scope("request")
 public class RecordsResource {
@@ -35,7 +35,7 @@ public class RecordsResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam(P_GID)
+    @PathParam(P_CLOUDID)
     private String globalId;
 
 

@@ -21,7 +21,7 @@ public interface ParamConstants {
     static final String ASSIGNMENTS = "assignments";
 
     // path parameters' names
-    static final String P_GID = "ID";
+    static final String P_CLOUDID = "CLOUDID";
 
     static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
 
@@ -34,8 +34,6 @@ public interface ParamConstants {
     static final String P_FILENAME = "FILENAME";
 
     static final String P_LOCALID = "LOCALID";
-
-    static final String P_CLOUDID = "CLOUDID";
 
     // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";

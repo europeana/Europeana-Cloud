@@ -102,7 +102,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             any(InputStream.class));
         WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
             ImmutableMap.<String, Object> of( //
-                ParamConstants.P_GID, globalId, //
+                ParamConstants.P_CLOUDID, globalId, //
                 ParamConstants.P_REPRESENTATIONNAME, schema, //
                 ParamConstants.P_VER, version, //
                 ParamConstants.P_FILENAME, "terefere"));

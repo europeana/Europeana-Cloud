@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 
 import javax.ws.rs.Consumes;
@@ -30,7 +30,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 /**
  * Resource to manage representations.
  */
-@Path("/records/{" + P_GID + "}/representations/{" + P_REPRESENTATIONNAME + "}")
+@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}")
 @Component
 @Scope("request")
 public class RepresentationResource {
@@ -41,7 +41,7 @@ public class RepresentationResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam(P_GID)
+    @PathParam(P_CLOUDID)
     private String globalId;
 
     @PathParam(P_REPRESENTATIONNAME)

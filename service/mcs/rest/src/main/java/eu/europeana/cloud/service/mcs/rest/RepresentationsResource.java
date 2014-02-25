@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import static eu.europeana.cloud.common.web.ParamConstants.P_GID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 /**
  * Resource that represents cecord representations.
  */
-@Path("/records/{" + P_GID + "}/representations")
+@Path("/records/{" + P_CLOUDID + "}/representations")
 @Component
 @Scope("request")
 public class RepresentationsResource {
@@ -33,7 +33,7 @@ public class RepresentationsResource {
     @Context
     private UriInfo uriInfo;
 
-    @PathParam(P_GID)
+    @PathParam(P_CLOUDID)
     private String globalId;
 
 
