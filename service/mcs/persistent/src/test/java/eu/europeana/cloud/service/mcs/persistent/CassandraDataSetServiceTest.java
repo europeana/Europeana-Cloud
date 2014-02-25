@@ -195,6 +195,13 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     }
 
 
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowExceptionWhenDeletingNotExistingDataSet()
+            throws Exception {
+        cassandraDataSetService.deleteDataSet("xxx", "xxx");
+    }
+
+
     @Test
     public void shouldAssignMostRecentVersionToDataSet()
             throws Exception {

@@ -206,6 +206,11 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+
+        if (ds == null) {
+            throw new DataSetNotExistsException();
+        }
         dataSetDAO.deleteDataSet(providerId, dataSetId);
 
         representationIndexer.removeAssignmentsFromDataSet(new CompoundDataSetId(providerId, dataSetId));

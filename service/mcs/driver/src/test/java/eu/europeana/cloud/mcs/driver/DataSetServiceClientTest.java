@@ -2,9 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -14,9 +12,6 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -26,7 +21,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 
 public class DataSetServiceClientTest {
 
@@ -36,6 +30,7 @@ public class DataSetServiceClientTest {
     //TODO clean
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+
 
     @Betamax(tape = "dataSets/getDataSetsChunkSuccess")
     @Test
@@ -53,6 +48,7 @@ public class DataSetServiceClientTest {
         assertThat(result.getNextSlice(), is(startFrom));
     }
 
+
     @Betamax(tape = "dataSets/getDataSetsChunkSecondSuccess")
     @Test
     public void shouldRetrieveDataSetsSecondChunk()
@@ -68,6 +64,7 @@ public class DataSetServiceClientTest {
         assertNull(result.getNextSlice());
     }
 
+
     @Betamax(tape = "dataSets/getDataSetsChunkNoProvider")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsChunk()
@@ -80,6 +77,7 @@ public class DataSetServiceClientTest {
         assertNotNull(result.getResults());
         assertThat(result.getResults().size(), is(0));
     }
+
 
     @Betamax(tape = "dataSets/getDataSetsSuccess")
     @Test
@@ -94,6 +92,7 @@ public class DataSetServiceClientTest {
         assertThat(result.size(), is(resultSize));
     }
 
+
     @Betamax(tape = "dataSets/getDataSetsNoProvider")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsAll()
@@ -106,6 +105,7 @@ public class DataSetServiceClientTest {
         assertThat(result.size(), is(0));
     }
 
+
     //to test it you can turn off Cassandra
     @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
     @Test(expected = DriverException.class)
@@ -117,6 +117,7 @@ public class DataSetServiceClientTest {
         instance.getDataSetsForProviderChunk(providerId, null);
     }
 
+
     @Betamax(tape = "dataSets/getDataSetsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSets()
@@ -126,6 +127,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetsForProviderChunk(providerId, null);
     }
+
 
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
@@ -142,6 +144,7 @@ public class DataSetServiceClientTest {
         assertThat(result.toString(), is(expectedLocation));
     }
 
+
     @Betamax(tape = "dataSets/createDataSetConflict")
     @Test(expected = DataSetAlreadyExistsException.class)
     public void shouldThrowDataSetAlreadyExists()
@@ -153,6 +156,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.createDataSet(providerId, dataSetId, description);
     }
+
 
     @Betamax(tape = "dataSets/createDataSetProviderNotFound")
     @Test(expected = ProviderNotExistsException.class)
@@ -166,6 +170,7 @@ public class DataSetServiceClientTest {
         instance.createDataSet(providerId, dataSetId, description);
     }
 
+
     @Betamax(tape = "dataSets/createDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateDataSet()
@@ -177,6 +182,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.createDataSet(providerId, dataSetId, description);
     }
+
 
     @Betamax(tape = "dataSets/getRepresentationsChunkSuccess")
     @Test
@@ -195,6 +201,7 @@ public class DataSetServiceClientTest {
         assertThat(result.getNextSlice(), is(startFrom));
     }
 
+
     @Betamax(tape = "dataSets/getRepresentationsChunkSecondSuccess")
     @Test
     public void shouldRetrieveRepresentationsSecondChunk()
@@ -211,6 +218,7 @@ public class DataSetServiceClientTest {
         assertNull(result.getNextSlice());
     }
 
+
     @Betamax(tape = "dataSets/getRepresentationsChunkDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsChunk()
@@ -222,6 +230,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
     }
+
 
     @Betamax(tape = "dataSets/getRepresentationsSuccess")
     @Test
@@ -237,6 +246,7 @@ public class DataSetServiceClientTest {
         assertThat(result.size(), is(resultSize));
     }
 
+
     @Betamax(tape = "dataSets/getRepresentationsDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsAll()
@@ -247,6 +257,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
+
 
     @Betamax(tape = "dataSets/getRepresentationsChunkInternalServerError")
     @Test(expected = DriverException.class)
@@ -259,6 +270,7 @@ public class DataSetServiceClientTest {
         instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
     }
 
+
     @Betamax(tape = "dataSets/getRepresentationsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentations()
@@ -269,6 +281,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.getDataSetRepresentations(providerId, dataSetId);
     }
+
 
     //we cannot mock system state change in Betamax
     //because it will not record two different answers for the same request 
@@ -295,6 +308,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/updateDescriptionEmptySuccess")
     @Test
     public void ShouldUpdateDescriptionOfDataSetToEmpty()
@@ -317,6 +331,7 @@ public class DataSetServiceClientTest {
         }
 
     }
+
 
     @Betamax(tape = "dataSets/updateDescriptionNullSuccess")
     @Test
@@ -341,6 +356,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/updateDescriptionDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForUpdateDescription()
@@ -353,6 +369,7 @@ public class DataSetServiceClientTest {
         instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
     }
 
+
     @Betamax(tape = "dataSets/updateDescriptionInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUpdateDescription()
@@ -364,6 +381,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
     }
+
 
     @Betamax(tape = "dataSets/deleteDataSetSuccess")
     @Test
@@ -384,9 +402,8 @@ public class DataSetServiceClientTest {
         assertFalse(dataSets.contains(dataSet));
     }
 
-    //TODO test this when fixed: https://jira.man.poznan.pl/jira/browse/ECL-141
-    @Ignore
-    //@Betamax(tape = "dataSets/deleteDataSetDataSetNotExists")
+
+    @Betamax(tape = "dataSets/deleteDataSetDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForDeleteDataSet()
             throws Exception {
@@ -401,6 +418,7 @@ public class DataSetServiceClientTest {
         instance.deleteDataSet(providerId, dataSetId);
     }
 
+
     @Betamax(tape = "dataSets/deleteDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteDataSet()
@@ -413,7 +431,10 @@ public class DataSetServiceClientTest {
 
     }
 
-    private int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId, String schemaId, String versionId) throws MCSException {
+
+    private int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId,
+            String schemaId, String versionId)
+            throws MCSException {
         List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
 
         int found = 0;
@@ -427,6 +448,7 @@ public class DataSetServiceClientTest {
         }
         return found;
     }
+
 
     @Betamax(tape = "dataSets/assignRepresentationNoVersionSuccess")
     @Test
@@ -445,6 +467,7 @@ public class DataSetServiceClientTest {
         assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId), is(1));
     }
 
+
     //should not complain about assigning the same representation version again
     //this test does not have sense using Betamax
     //but I wrote it just in case
@@ -456,6 +479,7 @@ public class DataSetServiceClientTest {
         shouldAssignRepresentation();
         shouldAssignRepresentation();
     }
+
 
     @Betamax(tape = "dataSets/assignRepresentationVersionSuccess")
     @Test
@@ -473,6 +497,7 @@ public class DataSetServiceClientTest {
         assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId1), is(1));
 
     }
+
 
     //this test does not have sense using Betamax
     //but I wrote it just in case
@@ -493,6 +518,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/assignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForAssingRepresentation()
@@ -507,6 +533,7 @@ public class DataSetServiceClientTest {
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, versionId);
 
     }
+
 
     @Betamax(tape = "dataSets/assignRepresentationRepresentationNotExists")
     @Test(expected = RepresentationNotExistsException.class)
@@ -523,6 +550,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/assignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForAssingRepresentation()
@@ -538,6 +566,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/unassignRepresentationSuccess")
     @Test
     public void shouldUnassignRepresentation()
@@ -552,6 +581,7 @@ public class DataSetServiceClientTest {
 
         assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
     }
+
 
     //should not complain about unassigning not assigned representation
     @Betamax(tape = "dataSets/unassignNotAssignedRepresentationSuccess")
@@ -569,6 +599,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/unassignRepresentationVersionSuccess")
     @Test
     public void shouldUnassignRepresentationWithVersion()
@@ -583,6 +614,7 @@ public class DataSetServiceClientTest {
         assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
 
     }
+
 
     //should not complain about unassigning non-existing representation
     @Betamax(tape = "dataSets/unassignNonExistingRepresentationSuccess")
@@ -599,6 +631,7 @@ public class DataSetServiceClientTest {
 
     }
 
+
     @Betamax(tape = "dataSets/unassignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUnassingRepresentation()
@@ -612,6 +645,7 @@ public class DataSetServiceClientTest {
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
     }
+
 
     @Betamax(tape = "dataSets/unassignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
