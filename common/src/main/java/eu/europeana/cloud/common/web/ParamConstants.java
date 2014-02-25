@@ -17,13 +17,13 @@ public interface ParamConstants {
     static final String PROVIDERS = "data-providers";
 
     static final String DATASETS = "data-sets";
-    
+
     static final String ASSIGNMENTS = "assignments";
 
     // path parameters' names
     static final String P_GID = "ID";
 
-    static final String P_SCHEMA = "SCHEMA";
+    static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
 
     static final String P_VER = "VERSION";
 
@@ -31,10 +31,10 @@ public interface ParamConstants {
 
     static final String P_DATASET = "DATASET";
 
-    static final String P_FILE = "FILE";
-    
+    static final String P_FILENAME = "FILENAME";
+
     static final String P_LOCALID = "LOCALID";
-    
+
     static final String P_CLOUDID = "CLOUDID";
 
     // form parameters' names (also used as query parameters' names)
@@ -63,6 +63,5 @@ public interface ParamConstants {
     static final String F_DATE_UNTIL = "creationDateUntil";
 
     static final String F_START_FROM = "startFrom";
-    
 
 }
