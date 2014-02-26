@@ -92,20 +92,21 @@ public class RecordServiceClient {
     /**
      * Returns record with all its latest persistent representations.
      *
-     * @param cloudId id of getting Record
-     * @return Record of specified cloudId
-     * @throws RecordNotExistsException when id is not known UIS Service.
-     * @throws MCSException on unexpected situations.
+     * @param cloudId id of the record (required)
+     * @return record of specified cloudId (required)
+     * @throws RecordNotExistsException when id is not known UIS Service
+     * @throws MCSException on unexpected situations
      */
     public Record getRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
+
         WebTarget target = client.target(baseUrl).path(recordPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
+
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(Record.class);
-
         } else {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
@@ -113,19 +114,25 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function deletes record from MSC Service with all its Representations in
-     * all Versions. Mapping from UIS is not removed.
+     * Deletes record with all its representations in all versions.
      *
-     * @param cloudId id of deleting Record.
-     * @throws RecordNotExistsException when id is not known UIS Service.
-     * @throws MCSException on unexpected situations.
+     * Does not remove mapping from Unique Identifier Service. If record exists,
+     * but nothing was deleted (it had no representations assigned), nothing
+     * happens.
+     *
+     * @param cloudId id of deleted record (required)
+     * @throws RecordNotExistsException if id is not known to UIS Service
+     * @throws MCSException on unexpected situations
      */
     public void deleteRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
+
         WebTarget target = client.target(baseUrl).path(recordPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
+
         Response response = request.delete();
+
         if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
@@ -186,24 +193,26 @@ public class RecordServiceClient {
     /**
      * Creates new representation version.
      *
-     * @param cloudId id of the record in which to create the representation (required)
+     * @param cloudId id of the record in which to create the representation
+     * (required)
      * @param schema schema of the representation to be created (required)
      * @param providerId provider of this representation version (required)
      * @return URI to the created representation
      * @throws ProviderNotExistsException when no provider with given id exists
-     * @throws RecordNotExistsException when cloud id is not known to UIS Service
+     * @throws RecordNotExistsException when cloud id is not known to UIS
+     * Service
      * @throws MCSException on unexpected situations
      */
     public URI createRepresentation(String cloudId, String schema, String providerId)
             throws ProviderNotExistsException, RecordNotExistsException, MCSException {
-        
+
         WebTarget target = client.target(baseUrl).path(schemaPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, schema);
         Builder request = target.request();
         Form form = new Form();
         form.param("providerId", providerId);
-        
+
         Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             URI uri = response.getLocation();
@@ -238,10 +247,10 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function gets list all versions of record representation.
+     * Returns list of all latest persistent versions of record representation.
      *
-     * @param cloudId id of getting representation list.
-     * @param schema schema of getting representation list.
+     * @param cloudId id of the record to get representations from
+     * @param schema schema of the representations
      * @return representation list.
      * @throws RepresentationNotExistsException if specified Representation does
      * not exist.

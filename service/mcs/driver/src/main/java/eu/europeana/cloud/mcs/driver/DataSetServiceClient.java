@@ -54,7 +54,7 @@ public class DataSetServiceClient {
         dataSetsPath = builder.toString();
 
         builder.append("/");
-        builder.append("{");
+        builder.append("{"); 
         builder.append(ParamConstants.P_DATASET);
         builder.append("}");
         dataSetPath = builder.toString();
@@ -68,7 +68,7 @@ public class DataSetServiceClient {
     /**
      * Creates instance of DataSetServiceClient.
      *
-     * @param baseUrl MCS base address
+     * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl) {
         this.baseUrl = baseUrl;
