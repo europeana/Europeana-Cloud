@@ -153,13 +153,12 @@ public class RecordServiceClientTest {
 
     }
 
-    //@Betamax(tape = "records/createRepresentationRecordNotExists")
+    @Betamax(tape = "records/createRepresentationRecordNotExists")
     @Test(expected = RecordNotExistsException.class)
-    @Ignore("TODO")
     public void shouldThrowRecordNotExistsForCreateRepresentation()
             throws MCSException {
 
-        String cloudId = "1DZ6HTS415W";
+        String cloudId = "noSuchRecord";
         String schema = "schema_000001";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);

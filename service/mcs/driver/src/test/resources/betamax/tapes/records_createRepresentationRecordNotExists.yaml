@@ -1,12 +1,13 @@
 !tape
 name: records/createRepresentationRecordNotExists
 interactions:
-- recorded: 2014-02-24T11:49:12.402Z
+- recorded: 2014-02-26T10:38:15.832Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84_/representations/schema_000001
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema_000001
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Connection: close
       Content-Length: '22'
       Content-Type: application/x-www-form-urlencoded
       Host: localhost:8080
@@ -17,6 +18,6 @@ interactions:
     status: 404
     headers:
       Content-Type: application/xml
-      Date: Mon, 24 Feb 2014 11:49:12 GMT
+      Date: Wed, 26 Feb 2014 10:38:15 GMT
       Server: Apache-Coyote/1.1
-    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: 7MZWQJF8P84_</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'
+    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: noSuchRecord</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'
