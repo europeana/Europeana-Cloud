@@ -35,7 +35,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsChunkSuccess")
     @Test
     public void shouldRetrieveDataSetsFirstChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         //the tape was recorded when the result chunk was 100
         int resultSize = 100;
@@ -52,7 +52,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsChunkSecondSuccess")
     @Test
     public void shouldRetrieveDataSetsSecondChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         int resultSize = 100;
         String startFrom = "dataset000101";
@@ -68,7 +68,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsChunkNoProvider")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "notFoundProviderId";
         String startFrom = null;
 
@@ -82,7 +82,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsSuccess")
     @Test
     public void shouldReturnAllDataSets()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         int resultSize = 200;
 
@@ -96,7 +96,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsNoProvider")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsAll()
-            throws Exception {
+            throws MCSException {
         String providerId = "notFoundProviderId";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
@@ -110,7 +110,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSetsChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
@@ -121,7 +121,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getDataSetsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSets()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
@@ -132,7 +132,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/createDataSetSuccess")
     @Test
     public void shouldSuccessfullyCreateDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000008";
         String description = "description01";
@@ -148,7 +148,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/createDataSetConflict")
     @Test(expected = DataSetAlreadyExistsException.class)
     public void shouldThrowDataSetAlreadyExists()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
         String description = "description";
@@ -161,7 +161,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/createDataSetProviderNotFound")
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowProviderNotExists()
-            throws Exception {
+            throws MCSException {
         String providerId = "notFoundProviderId";
         String dataSetId = "dataSetId";
         String description = "description";
@@ -174,7 +174,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/createDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "providerId";
         String dataSetId = "dataSetId";
         String description = "description";
@@ -187,7 +187,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsChunkSuccess")
     @Test
     public void shouldRetrieveRepresentationsFirstChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
         //the tape was recorded when the result chunk was 100
@@ -205,7 +205,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsChunkSecondSuccess")
     @Test
     public void shouldRetrieveRepresentationsSecondChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
         int resultSize = 100;
@@ -222,7 +222,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsChunkDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000042";
         String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
@@ -235,7 +235,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsSuccess")
     @Test
     public void shouldReturnAllRepresentations()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
         int resultSize = 200;
@@ -250,7 +250,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsAll()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000042";
 
@@ -262,7 +262,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsChunkInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationsChunk()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
 
@@ -274,7 +274,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/getRepresentationsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentations()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000002";
 
@@ -288,7 +288,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/updateDescriptionSuccess")
     @Test
     public void ShouldUpdateDescriptionOfDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
         String description = "TEST1";
@@ -312,7 +312,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/updateDescriptionEmptySuccess")
     @Test
     public void ShouldUpdateDescriptionOfDataSetToEmpty()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
         String description = "";
@@ -336,7 +336,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/updateDescriptionNullSuccess")
     @Test
     public void ShouldUpdateDescriptionOfDataSetToNull()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
         String description = null;
@@ -360,7 +360,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/updateDescriptionDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForUpdateDescription()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "noSuchDataset";
         String description = "TEST4";
@@ -373,7 +373,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/updateDescriptionInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUpdateDescription()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000001";
         String description = "TEST3";
@@ -386,7 +386,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/deleteDataSetSuccess")
     @Test
     public void shouldDeleteDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000033";
         DataSet dataSet = new DataSet();
@@ -406,7 +406,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/deleteDataSetDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForDeleteDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000033";
         DataSet dataSet = new DataSet();
@@ -422,7 +422,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/deleteDataSetInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteDataSet()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000033";
 
@@ -453,7 +453,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationNoVersionSuccess")
     @Test
     public void shouldAssignRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000008";
         String cloudId = "1DZ6HTS415W";
@@ -474,7 +474,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignTheSameRepresentationSuccess")
     @Test
     public void shouldAssignTheSameRepresentation()
-            throws Exception {
+            throws MCSException {
 
         shouldAssignRepresentation();
         shouldAssignRepresentation();
@@ -484,7 +484,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationVersionSuccess")
     @Test
     public void shouldAssignRepresentationVersion()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000066";
         String cloudId = "1DZ6HTS415W";
@@ -504,7 +504,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationOtherVersionSecondSuccess")
     @Test
     public void shouldOverrideAssignedRepresentationVersion()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000066";
         String cloudId = "1DZ6HTS415W";
@@ -522,7 +522,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForAssingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000015";
         String cloudId = "1DZ6HTS415W";
@@ -538,7 +538,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationRepresentationNotExists")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForAssingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000016";
         String cloudId = "1DZ6HTS415W";
@@ -554,7 +554,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/assignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForAssingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "noSuchDataSet";
         String cloudId = "1DZ6HTS415W";
@@ -570,7 +570,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignRepresentationSuccess")
     @Test
     public void shouldUnassignRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
@@ -587,7 +587,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignNotAssignedRepresentationSuccess")
     @Test
     public void shouldUnassignNotAssignedRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
@@ -603,7 +603,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignRepresentationVersionSuccess")
     @Test
     public void shouldUnassignRepresentationWithVersion()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000023";
         String cloudId = "1DZ6HTS415W";
@@ -620,7 +620,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignNonExistingRepresentationSuccess")
     @Test
     public void shouldUnassignNonExistingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000007";
         String cloudId = "1DZ6HTS415W";
@@ -635,7 +635,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUnassingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider001";
         String dataSetId = "dataset000058";
         String cloudId = "1DZ6HTS415W";
@@ -650,7 +650,7 @@ public class DataSetServiceClientTest {
     @Betamax(tape = "dataSets/unassignRepresentationDataSetNotExists")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForUnassingRepresentation()
-            throws Exception {
+            throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "noSuchDataSet";
         String cloudId = "1DZ6HTS415W";
