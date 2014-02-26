@@ -28,25 +28,35 @@ public class RecordServiceClientTest {
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
 
-    //TODO TU - review all tests, names and checked parameters
-    @Betamax(tape = "records/getRecord_cloudId_Successfully")
+    @Betamax(tape = "records/getRecordSuccess")
     @Test
-    public void getRecord_cloudId_Successfully()
+    public void shouldRetrieveRecord()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         Record record = instance.getRecord(cloudId);
         assertNotNull(record);
         assertEquals(cloudId, record.getId());
     }
 
-    @Betamax(tape = "records/getRecord_cloudId_404")
+    @Betamax(tape = "records/getRecordNoRecord")
     @Test(expected = RecordNotExistsException.class)
-    public void getRecord_cloudId_404()
+    public void shouldThrowRecordNotExistsForGetRecord()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84_";
+        String cloudId = "noSuchRecord";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
+        instance.getRecord(cloudId);
+    }
+    
+    @Betamax(tape = "records/getRecordInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowInternalServerErrorForGetRecord()
+            throws MCSException {
+        String cloudId = "7MZWQJF8P84";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         instance.getRecord(cloudId);
     }
 
@@ -172,7 +182,7 @@ public class RecordServiceClientTest {
             throws MCSException {
 
         String cloudId = "1DZ6HTS415W";
-        String schema = "newSchema";
+        String schema = "newSchema2";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 

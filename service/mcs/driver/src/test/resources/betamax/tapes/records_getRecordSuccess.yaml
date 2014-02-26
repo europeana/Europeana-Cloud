@@ -1,5 +1,5 @@
 !tape
-name: records/getRecord_cloudId_Successfully
+name: records/getRecordSuccess
 interactions:
 - recorded: 2014-02-18T11:46:02.823Z
   request:
