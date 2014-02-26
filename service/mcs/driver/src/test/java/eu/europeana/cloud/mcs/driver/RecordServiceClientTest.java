@@ -12,10 +12,13 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.net.URI;
 import java.util.List;
+import static org.hamcrest.CoreMatchers.is;
 import org.junit.Rule;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.number.OrderingComparisons.greaterThan;
+import static org.junit.Assert.assertThat;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -28,13 +31,14 @@ public class RecordServiceClientTest {
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
 
+    //getRecord
     @Betamax(tape = "records/getRecordSuccess")
     @Test
     public void shouldRetrieveRecord()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         Record record = instance.getRecord(cloudId);
         assertNotNull(record);
         assertEquals(cloudId, record.getId());
@@ -49,40 +53,80 @@ public class RecordServiceClientTest {
 
         instance.getRecord(cloudId);
     }
-    
+
     @Betamax(tape = "records/getRecordInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRecord()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         instance.getRecord(cloudId);
     }
 
-    @Betamax(tape = "records/deleteRecord_cloudId_Successfully")
+    //deleteRecord
+    //this test could be better with Betamax 2.0 ability to hold state (not yet in main maven repository)
+    @Betamax(tape = "records/deleteRecordSuccess")
     @Test
-    public void _deleteRecord_cloudId_Successfully()
+    public void shouldDeleteRecord()
             throws MCSException {
-        String cloudId = "3SWK3L9K179";
+
+        String cloudId = "1DZ6HTS415W";
+        String schema = "schema77";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        //delete record
+        instance.deleteRecord(cloudId);
+
+        //check that there are not representations for this record
+        //we only check one schema, because there is no method to just get all representations
+        List<Representation> representations = instance.getRepresentations(cloudId, schema);
+        assertThat(representations.size(), is(0));
+
+    }
+
+    @Betamax(tape = "records/deleteRecordNoRepresentations")
+    @Test()
+    public void shouldNotComplainAboutDeletingRecordWithNoRepresentations()
+            throws MCSException {
+
+        String cloudId = "1DZ6HTS415W";
+        String schema = "schema77";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        //check that there are not representations for this record
+        //we only check one schema, because there is no method to just get all representations
+        List<Representation> representations = instance.getRepresentations(cloudId, schema);
+        assertThat(representations.size(), is(0));
+
+        //delete record
+        instance.deleteRecord(cloudId);
+    }
+    
+    @Betamax(tape = "records/deleteRecordNoRecord")
+    @Test(expected = RecordNotExistsException.class)
+    public void shouldThrowRecordNotExistsForDeleteRecord()
+            throws MCSException {
+
+        String cloudId = "noSuchRecord";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRecord(cloudId);
     }
-
-    @Ignore("Error in api")
-    @Test(expected = RecordNotExistsException.class)
-    public void _deleteRecord_cloudId_TwoTimes()
+    
+    @Betamax(tape = "records/deleteRecordInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowInternalServerErrorForDeleteRecord()
             throws MCSException {
-        String cloudId = "RK4F1HPD6RH";
+        String cloudId = "1DZ6HTS415W";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        instance.deleteRecord(cloudId);
-        instance.deleteRecord(cloudId);
+
+        instance.getRecord(cloudId);
     }
 
     @Betamax(tape = "records/getRepresentations_cloudId_Successfully")
     @Test
-    public void getRepresentations_cloudId_Successfully()
+    public void shouldRetrieveRepresentations()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
@@ -95,15 +139,12 @@ public class RecordServiceClientTest {
 
     @Betamax(tape = "records/getRepresentations_cloudId_404")
     @Test(expected = RecordNotExistsException.class)
-    public void getRepresentations_cloudId_404()
+    public void shouldThrowRecordNotExistsForGetRepresentations()
             throws MCSException {
         String cloudId = "7MZWQJF8P84_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        List<Representation> representationList = instance.getRepresentations(cloudId);
-        assertNotNull(representationList);
-        for (Representation representation : representationList) {
-            assertEquals(cloudId, representation.getRecordId());
-        }
+
+        instance.getRepresentations(cloudId);
     }
 
     @Betamax(tape = "records/getRepresentation_cloudId_schema_Successfully")
@@ -210,12 +251,12 @@ public class RecordServiceClientTest {
 
         instance.createRepresentation(cloudId, schema, providerId);
     }
-    
+
     @Betamax(tape = "records/createRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateRepresentation()
             throws Exception {
-        
+
         String cloudId = "1DZ6HTS415W";
         String schema = "schema77";
         String providerId = "Provider001";
