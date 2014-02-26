@@ -223,7 +223,7 @@ public class RecordServiceClientTest {
             throws MCSException {
 
         String cloudId = "1DZ6HTS415W";
-        String schema = "newSchema2";
+        String schema = "newSchema";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
