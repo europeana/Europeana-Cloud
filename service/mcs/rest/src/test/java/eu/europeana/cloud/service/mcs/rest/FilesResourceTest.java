@@ -31,6 +31,7 @@ import org.junit.After;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -70,8 +71,9 @@ public class FilesResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID, rep.getRecordId(),
-            ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER, rep.getVersion());
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
+            rep.getRecordId(), ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER,
+            rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
@@ -96,7 +98,7 @@ public class FilesResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldUploadDataWithPost()
+    public void shouldUploadDataWithPostWithoutFileName()
             throws Exception {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
@@ -123,5 +125,73 @@ public class FilesResourceTest extends JerseyTest {
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
         assertArrayEquals(content, contentBos.toByteArray());
+    }
+
+
+    @Test
+    public void shouldUploadDataWithPostWitchFileName()
+            throws Exception {
+        // given particular (random in this case) content in service
+        byte[] content = new byte[1000];
+        ThreadLocalRandom.current().nextBytes(content);
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+
+        // when content is added to record representation
+        FormDataMultiPart multipart = new FormDataMultiPart()
+                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+
+        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
+        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+
+        // then data should be in record service
+        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        assertEquals(1, rep.getFiles().size());
+
+        File insertedFile = rep.getFiles().get(0);
+        ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
+        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+            contentBos);
+        assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
+        assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
+        assertEquals(content.length, insertedFile.getContentLength());
+        assertArrayEquals(content, contentBos.toByteArray());
+    }
+
+
+    @Test
+    public void shouldBeReturn409WhenFileAlreadyExist()
+            throws Exception {
+        // given particular (random in this case) content in service
+        byte[] content = { 1, 2, 3, 4 };
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+                content));
+
+        byte[] modifiedContent = { 5, 6, 7 };
+        ThreadLocalRandom.current().nextBytes(modifiedContent);
+        String modifiedContentMd5 = Hashing.md5().hashBytes(content).toString();
+        // when content is added to record representation
+        FormDataMultiPart multipart = new FormDataMultiPart()
+                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(modifiedContent),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+
+        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        assertEquals("Unexpected status code", Response.Status.CONFLICT.getStatusCode(), postFileResponse.getStatus());
+        //assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+
+        // then data should be in record service
+        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        assertEquals(1, rep.getFiles().size());
+
+        File insertedFile = rep.getFiles().get(0);
+        ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
+        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+            contentBos);
+        assertNotSame("MD5 file mismatch", modifiedContentMd5, insertedFile.getMd5());
+        assertNotSame(modifiedContent.length, insertedFile.getContentLength());
     }
 }

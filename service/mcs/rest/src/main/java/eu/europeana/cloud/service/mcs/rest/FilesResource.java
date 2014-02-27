@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
+import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
@@ -28,7 +29,9 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 
 /**
  * FilesResource
@@ -57,10 +60,11 @@ public class FilesResource {
 
 
     /**
-     * Adds a new file to representation version. File name will be assigned automatically by service and URI to created
-     * resource will be returned in response as content location. Consumes multipart content - form data:
+     * Adds a new file to representation version. URI to created resource will be returned in response as content
+     * location. Consumes multipart content - form data:
      * <ul>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_NAME} - file name</li>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
      * </ul>
      * 
@@ -68,22 +72,39 @@ public class FilesResource {
      *            mime type of file
      * @param data
      *            binary stream of file content (required)
+     * @param fileName
+     *            name of creating file. If fileName does not provided by POST request fileName will assigned
+     *            automatically by service.
      * @return empty response with tag (content md5) and URI to created resource in content location.
-     * @throws IOException
+     * @statuscode 201 object has been created.
      * @throws RepresentationNotExistsException
      *             representation does not exist in specified version
      * @throws CannotModifyPersistentRepresentationException
-     *             specified representation version is persistent and modyfying its files is not allowed.
+     *             specified representation version is persistent and modifying its files is not allowed.
+     * @throws FileAlreadyExistsException
+     *             specified file already exist.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+    public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data,
+            @FormDataParam(F_FILE_NAME) String fileName)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            FileAlreadyExistsException {
         ParamUtil.require(F_FILE_DATA, data);
 
         File f = new File();
         f.setMimeType(mimeType);
-
+        if (fileName != null) {
+            try {
+                File temp = recordService.getFile(globalId, schema, version, fileName);
+                if (temp != null)
+                    throw new FileAlreadyExistsException(fileName);
+                System.out.println("ss");
+            } catch (FileNotExistsException e) {
+                System.out.println("ss");
+            }
+            f.setFileName(fileName);
+        }
         recordService.putContent(globalId, schema, version, f, data);
 
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);

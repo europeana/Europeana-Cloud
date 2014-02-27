@@ -21,7 +21,7 @@ public interface ParamConstants {
     static final String ASSIGNMENTS = "assignments";
 
     static final String COPY = "copy";
-    
+
     static final String PERSIST = "persist";
 
     // path parameters' names
@@ -57,6 +57,8 @@ public interface ParamConstants {
     static final String F_FILE_DATA = "data";
 
     static final String F_FILE_MIME = "mimeType";
+
+    static final String F_FILE_NAME = "fileName";
 
     static final String F_DATE_FROM = "creationDateFrom";
 

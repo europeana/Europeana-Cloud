@@ -44,6 +44,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.mockito.Mockito;
 
@@ -79,9 +80,9 @@ public class FileResourceTest extends JerseyTest {
         file.setFileName("fileName");
         file.setMimeType("mime/fileSpecialMime");
 
-        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID, rep.getRecordId(),
-            ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER, rep.getVersion(), ParamConstants.P_FILENAME,
-            file.getFileName());
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
+            rep.getRecordId(), ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER,
+            rep.getVersion(), ParamConstants.P_FILENAME, file.getFileName());
         fileWebTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
@@ -257,12 +258,11 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldUploadDataWithPut()
+    public void shouldReturn404WhenUploadDataWithPutNotExistingFile()
             throws Exception {
         // given particular (random in this case) content
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         // when content is added to record representation
         FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
@@ -270,20 +270,7 @@ public class FileResourceTest extends JerseyTest {
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         Response putFileResponse = fileWebTarget.request().put(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), putFileResponse.getStatus());
-        assertEquals("Unexpected content location", fileWebTarget.getUri(), putFileResponse.getLocation());
-        assertEquals("File content tag mismatch", contentMd5, putFileResponse.getEntityTag().getValue());
-
-        // then data should be in record service
-        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
-        ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file.getFileName(), contentBos);
-        assertEquals(1, rep.getFiles().size());
-
-        File insertedFile = rep.getFiles().get(0);
-        assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-        assertEquals(content.length, insertedFile.getContentLength());
-        assertArrayEquals(content, contentBos.toByteArray());
+        assertEquals("Unexpected status code", Response.Status.NOT_FOUND.getStatusCode(), putFileResponse.getStatus());
     }
 
 
