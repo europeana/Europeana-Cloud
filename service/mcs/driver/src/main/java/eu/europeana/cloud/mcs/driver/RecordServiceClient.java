@@ -107,10 +107,10 @@ public class RecordServiceClient {
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(Record.class);
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
         }
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
+
     }
 
     /**
@@ -121,7 +121,7 @@ public class RecordServiceClient {
      * happens.
      *
      * @param cloudId id of deleted record (required)
-     * @throws RecordNotExistsException if id is not known to UIS Service
+     * @throws RecordNotExistsException if cloudId is not known UIS Service
      * @throws MCSException on unexpected situations
      */
     public void deleteRecord(String cloudId)
@@ -140,34 +140,35 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function returns list of all latest persistent versions of record
-     * representations.
+     * Lists all latest persistent versions of record representation.
      *
-     * @param cloudId id of record from get list of representations.
-     * @return list of representations.
-     * @throws RecordNotExistsException when id is not known UIS Service.
-     * @throws MCSException on unexpected situations.
+     * @param cloudId id of record from which to get representations (required)
+     * @return list of representations
+     * @throws RecordNotExistsException if cloudId is not known UIS Service
+     * @throws MCSException on unexpected situations
      */
     public List<Representation> getRepresentations(String cloudId)
             throws RecordNotExistsException, MCSException {
+
         WebTarget target = client.target(baseUrl).path(representationsPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
+
         Response response = target.request().get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
-            });
-            return entity;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            return response.readEntity(new GenericType<List<Representation>>() {
+            }); //formatting here is irreadble
         }
+
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
+
     }
 
     /**
-     * Function returns latest persistent version of representation.
+     * Returns latest persistent version of representation.
      *
-     * @param cloudId id of record from get representation.
-     * @param schema schema from get representation.
+     * @param cloudId id of record from which to get representations (required)
+     * @param schema name of the representation (required)
      * @return representation of specified schema and cloudId.
      * @throws RecordNotExistsException representation does not exist or no
      * persistent version of this representation exists.

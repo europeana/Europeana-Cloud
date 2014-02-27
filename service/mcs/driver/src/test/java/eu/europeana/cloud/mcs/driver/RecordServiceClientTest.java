@@ -10,6 +10,10 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
@@ -102,7 +106,7 @@ public class RecordServiceClientTest {
         //delete record
         instance.deleteRecord(cloudId);
     }
-    
+
     @Betamax(tape = "records/deleteRecordNoRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForDeleteRecord()
@@ -113,7 +117,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRecord(cloudId);
     }
-    
+
     @Betamax(tape = "records/deleteRecordInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForDeleteRecord()
@@ -124,29 +128,45 @@ public class RecordServiceClientTest {
         instance.getRecord(cloudId);
     }
 
-    @Betamax(tape = "records/getRepresentations_cloudId_Successfully")
+    //getRepresentations(cloudId)
+    @Betamax(tape = "records/getRepresentationsSuccess")
     @Test
     public void shouldRetrieveRepresentations()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
+        String cloudId = "J93T5R6615H";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
         List<Representation> representationList = instance.getRepresentations(cloudId);
         assertNotNull(representationList);
+        //in this scenario we have 3 persistent representations, 2 in one schema and 1 in another
+        assertThat(representationList.size(), is(2));
         for (Representation representation : representationList) {
-            assertEquals(cloudId, representation.getRecordId());
+            assertThat(cloudId, is(representation.getRecordId()));
+            assertTrue(representation.isPersistent());
         }
     }
 
-    @Betamax(tape = "records/getRepresentations_cloudId_404")
+    @Betamax(tape = "records/getRepresentationsNoRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForGetRepresentations()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84_";
+        String cloudId = "noSuchRecord";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.getRepresentations(cloudId);
     }
 
+    @Betamax(tape = "records/getRepresentationsInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowInternalServerErrorForGetRepresentations()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.getRepresentations(cloudId);
+    }
+
+    //getRepresentations(cloudId, schema)
     @Betamax(tape = "records/getRepresentation_cloudId_schema_Successfully")
     @Test
     public void getRepresentation_cloudId_schema_Successfully()
@@ -188,7 +208,7 @@ public class RecordServiceClientTest {
         assertEquals(uriVersion, representation.getVersion());
     }
 
-    @Betamax(tape = "records/createRepresentationSuccess")
+    //@Betamax(tape = "records/createRepresentationSuccess")
     @Test
     public void shouldCreateRepresentation()
             throws MCSException {
@@ -526,6 +546,28 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         URI uriResult = instance.copyRepresentation(cloudId, schema, version);
+        assertNotNull(uriResult);
+    }
+
+    //TODO
+    @Test
+    public void shouldPersistAfterAddingFiles()
+            throws MCSException, IOException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema77";
+        String version = "700307a0-9fc4-11e3-92f4-1c6f653f6012";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        FileServiceClient fileService = new FileServiceClient(baseUrl);
+        String fileContent = "The content of the file.";
+        String fileType = "text/plain";
+        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
+
+        try {
+            fileService.uploadFile(cloudId, schema, version, data, fileType);
+        } catch (Exception e) {
+        }
+
+        URI uriResult = instance.persistRepresentation(cloudId, schema, version);
         assertNotNull(uriResult);
     }
 

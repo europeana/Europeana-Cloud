@@ -54,7 +54,7 @@ public class DataSetServiceClient {
         dataSetsPath = builder.toString();
 
         builder.append("/");
-        builder.append("{"); 
+        builder.append("{");
         builder.append(ParamConstants.P_DATASET);
         builder.append("}");
         dataSetPath = builder.toString();
@@ -172,16 +172,15 @@ public class DataSetServiceClient {
 
         if (response.getStatus() == Status.CREATED.getStatusCode()) {
             return response.getLocation();
-        } else {
-            //TODO this does not function correctly,
-            //details are filled with "MessageBodyReader not found for media type=text/html; 
-            //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
-            //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
-            //simple strings like 'adsfd' get entitised correctly
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-
         }
+
+        //TODO this does not function correctly,
+        //details are filled with "MessageBodyReader not found for media type=text/html; 
+        //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
+        //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
+        //simple strings like 'adsfd' get entitised correctly
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
 
     }
 
@@ -219,10 +218,10 @@ public class DataSetServiceClient {
         Response response = target.request().get();
         if (response.getStatus() == Status.OK.getStatusCode()) {
             return response.readEntity(ResultSlice.class);
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
         }
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
+
     }
 
     /**

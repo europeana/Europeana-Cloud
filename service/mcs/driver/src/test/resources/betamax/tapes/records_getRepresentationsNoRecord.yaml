@@ -1,10 +1,10 @@
 !tape
-name: records/getRepresentations_cloudId_404
+name: records/getRepresentationsNoRecord
 interactions:
 - recorded: 2014-02-18T16:05:54.851Z
   request:
     method: GET
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84_/representations
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Host: localhost:8080
@@ -16,4 +16,4 @@ interactions:
       Content-Type: application/xml
       Date: Tue, 18 Feb 2014 16:05:54 GMT
       Server: Apache-Coyote/1.1
-    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: 7MZWQJF8P84_</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'
+    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: noSuchRecord</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'
