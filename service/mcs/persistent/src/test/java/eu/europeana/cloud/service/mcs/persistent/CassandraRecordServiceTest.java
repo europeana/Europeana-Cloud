@@ -131,6 +131,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
 
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotFoundExpWhenNoSuchRepresentation()
+            throws Exception {
+        makeUISSuccess();
+        cassandraRecordService.getRepresentation("globalId", "not_existing_schema");
+    }
+
+
     @Test
     public void shouldGetLatestPersistentRepresentation()
             throws Exception {
@@ -227,7 +235,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
 
-    @Test
+    @Test(expected = RepresentationNotExistsException.class)
     public void shouldDeleteAllRepresentationVersions()
             throws Exception {
         makeUISSuccess();
@@ -238,11 +246,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         cassandraRecordService.deleteRepresentation("globalId", "dc");
 
-        assertTrue(cassandraRecordService.listRepresentationVersions("globalId", "dc").isEmpty());
+        cassandraRecordService.listRepresentationVersions("globalId", "dc").isEmpty();
     }
 
 
-    @Test
+    @Test(expected = RepresentationNotExistsException.class)
     public void shouldDeleteAllRecord()
             throws Exception {
         makeUISSuccess();
@@ -256,8 +264,37 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         // when
         cassandraRecordService.deleteRecord("globalId");
 
-        // then
-        assertTrue(cassandraRecordService.listRepresentationVersions("globalId", "dc").isEmpty());
+        // then exception should be thrown
+        cassandraRecordService.listRepresentationVersions("globalId", "dc");
+    }
+
+
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowExcWhenDeletingRecordHasNoRepresentations()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        // given
+        // record does not have any representation
+
+        // when
+        cassandraRecordService.deleteRecord("globalId");
+        //then should throw RepresentationNotExistsException
+    }
+
+
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowExcWhenDeletingRecordForTheSecondTime()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        // given
+        Representation dc = cassandraRecordService.createRepresentation("globalId", "dc", providerId);
+        // delete record 
+        cassandraRecordService.deleteRecord("globalId");
+        // when deleting for the second time 
+        cassandraRecordService.deleteRecord("globalId");
+
     }
 
 

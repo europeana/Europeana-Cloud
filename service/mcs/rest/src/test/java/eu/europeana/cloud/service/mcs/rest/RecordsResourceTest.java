@@ -7,7 +7,9 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Date;
@@ -41,6 +43,7 @@ public class RecordsResourceTest extends JerseyTest {
     public Application configure() {
         return new ResourceConfig().registerClasses(RecordsResource.class)
                 .registerClasses(RecordNotExistsExceptionMapper.class)
+                .registerClasses(RepresentationNotExistsExceptionMapper.class)
                 .property("contextConfigLocation", "classpath:testContext.xml");
     }
 
@@ -48,7 +51,7 @@ public class RecordsResourceTest extends JerseyTest {
     @Before
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-//        uisClient = applicationContext.getBean(null)
+        //        uisClient = applicationContext.getBean(null)
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -86,7 +89,6 @@ public class RecordsResourceTest extends JerseyTest {
         verifyNoMoreInteractions(recordService);
     }
 
-    
 
     @Test
     public void getRecordReturns406ForUnsupportedFormat() {
@@ -143,4 +145,20 @@ public class RecordsResourceTest extends JerseyTest {
         verify(recordService, times(1)).deleteRecord(globalId);
         verifyNoMoreInteractions(recordService);
     }
+
+
+    @Test
+    public void deleteRecordReturns404IfRecordHasNoRepresentations()
+            throws Exception {
+        String globalId = "global1";
+        Throwable exception = new RepresentationNotExistsException();
+        Mockito.doThrow(exception).when(recordService).deleteRecord(globalId);
+
+        Response response = target().path("/records/" + globalId).request(MediaType.APPLICATION_XML).delete();
+
+        assertThat(response.getStatus(), is(404));
+        verify(recordService, times(1)).deleteRecord(globalId);
+        verifyNoMoreInteractions(recordService);
+    }
+
 }

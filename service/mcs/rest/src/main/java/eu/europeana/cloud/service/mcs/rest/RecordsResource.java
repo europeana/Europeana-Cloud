@@ -18,6 +18,7 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import org.springframework.context.annotation.Scope;
 
@@ -62,10 +63,12 @@ public class RecordsResource {
      * 
      * @throws RecordNotExistsException
      *             provided id is not known to Unique Identifier Service.
+     * @throws RepresentationNotExistsException
+     *             thrown if no representation can be found for requested record. Service cannot delete such record.
      */
     @DELETE
     public void deleteRecord()
-            throws RecordNotExistsException {
+            throws RecordNotExistsException, RepresentationNotExistsException {
         recordService.deleteRecord(globalId);
     }
 

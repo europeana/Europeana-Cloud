@@ -84,9 +84,13 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public void deleteRecord(String cloudId)
-            throws RecordNotExistsException {
+            throws RecordNotExistsException, RepresentationNotExistsException {
         if (uis.recordExistInUIS(cloudId)) {
             List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
+            if (allRecordRepresentationsInAllVersions.isEmpty()) {
+                throw new RepresentationNotExistsException(String.format(
+                    "No representation found for given cloudId %s", cloudId));
+            }
             representationIndexer.removeRecordRepresentations(cloudId);
             for (Representation repVersion : allRecordRepresentationsInAllVersions) {
                 for (File f : repVersion.getFiles()) {

@@ -299,7 +299,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
-        return cassandraRecordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+        Representation persistRepresentation = cassandraRecordService.persistRepresentation(r.getRecordId(),
+            r.getSchema(), r.getVersion());
+        return persistRepresentation;
     }
 
 
