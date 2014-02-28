@@ -1,5 +1,5 @@
 !tape
-name: records/deleteRepresentation_cloudID_schema_version_Successfully
+name: records/deleteSchemaSuccess
 interactions:
 - recorded: 2014-02-18T15:52:01.148Z
   request:

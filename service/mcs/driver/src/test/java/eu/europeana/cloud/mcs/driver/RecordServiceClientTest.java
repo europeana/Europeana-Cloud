@@ -323,7 +323,7 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
-        instance.deletesRepresentation(cloudId, schema);
+        instance.deleteRepresentation(cloudId, schema);
     }
 
     @Ignore("Error in api")
@@ -334,7 +334,7 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
-        instance.deletesRepresentation(cloudId, schema);
+        instance.deleteRepresentation(cloudId, schema);
     }
 
     @Ignore("Ask")
@@ -345,7 +345,7 @@ public class RecordServiceClientTest {
         String schema = "schema_000001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
-        instance.deletesRepresentation(cloudId, schema);
+        instance.deleteRepresentation(cloudId, schema);
     }
 
     @Ignore("Ask")
@@ -356,7 +356,7 @@ public class RecordServiceClientTest {
         String schema = "schema_000001_";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
-        instance.deletesRepresentation(cloudId, schema);
+        instance.deleteRepresentation(cloudId, schema);
     }
 
     @Betamax(tape = "records/getRepresentations_cloudId_schema_Successfully")
