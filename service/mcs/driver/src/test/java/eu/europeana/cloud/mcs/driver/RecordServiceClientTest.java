@@ -185,17 +185,42 @@ public class RecordServiceClientTest {
         assertEquals(version, representation.getVersion());
     }
 
-    //TODO TU, change assertThat+is
     @Betamax(tape = "records/getRepresentationForSchemaNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsForGetRepresentationForSchema()
+    public void shouldThrowRepresentationNotExistsForGetRepresentationForSchemaWhenNoSchema()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
+        //no representation for this schema
         String schema = "noSuchSchema";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         instance.getRepresentation(cloudId, schema);
     }
 
+    @Betamax(tape = "records/getRepresentationForSchemaNoPersistent")
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExistsForGetRepresentationForSchemaWhenNoPersistent()
+            throws MCSException {
+        String cloudId = "GWV0RHNSSGJ";
+        //there are representations for this schema, but none is persistent
+        String schema = "schema1";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
+        instance.getRepresentation(cloudId, schema);
+    }
+
+    @Betamax(tape = "records/getRepresentationForSchemaInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowInternalServerErrorForGetRepresentationForSchema()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema1";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.getRepresentation(cloudId, schema);
+    }
+
+    //createRepresentation
     private void assertCorrectlyCreatedRepresentation(RecordServiceClient instance, URI uri, String providerId, String cloudId, String schema) throws MCSException {
 
         String[] elements = uri.getRawPath().split("/");
@@ -214,7 +239,7 @@ public class RecordServiceClientTest {
         assertEquals(uriVersion, representation.getVersion());
     }
 
-    //@Betamax(tape = "records/createRepresentationSuccess")
+    @Betamax(tape = "records/createRepresentationSuccess")
     @Test
     public void shouldCreateRepresentation()
             throws MCSException {
@@ -556,6 +581,7 @@ public class RecordServiceClientTest {
     }
 
     //TODO
+    @Ignore
     @Test
     public void shouldPersistAfterAddingFiles()
             throws MCSException, IOException {

@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import java.net.URI;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,8 +45,8 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, null);
         assertNotNull(result.getResults());
-        assertThat(result.getResults().size(), is(resultSize));
-        assertThat(result.getNextSlice(), is(startFrom));
+        assertEquals(result.getResults().size(), resultSize);
+        assertEquals(result.getNextSlice(), startFrom);
     }
 
 
@@ -60,7 +61,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
         assertNotNull(result.getResults());
-        assertThat(result.getResults().size(), is(resultSize));
+        assertEquals(result.getResults().size(), resultSize);
         assertNull(result.getNextSlice());
     }
 
@@ -75,7 +76,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, startFrom);
         assertNotNull(result.getResults());
-        assertThat(result.getResults().size(), is(0));
+        assertEquals(result.getResults().size(), 0);
     }
 
 
@@ -89,7 +90,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         List<DataSet> result = instance.getDataSetsForProvider(providerId);
         assertNotNull(result);
-        assertThat(result.size(), is(resultSize));
+        assertEquals(result.size(), resultSize);
     }
 
 
@@ -102,7 +103,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         List<DataSet> result = instance.getDataSetsForProvider(providerId);
         assertNotNull(result);
-        assertThat(result.size(), is(0));
+        assertEquals(result.size(), 0);
     }
 
 
@@ -141,7 +142,7 @@ public class DataSetServiceClientTest {
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         URI result = instance.createDataSet(providerId, dataSetId, description);
-        assertThat(result.toString(), is(expectedLocation));
+        assertEquals(result.toString(), expectedLocation);
     }
 
 
@@ -197,8 +198,8 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
         assertNotNull(result.getResults());
-        assertThat(result.getResults().size(), is(resultSize));
-        assertThat(result.getNextSlice(), is(startFrom));
+        assertEquals(result.getResults().size(), resultSize);
+        assertEquals(result.getNextSlice(), startFrom);
     }
 
 
@@ -214,7 +215,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
         assertNotNull(result.getResults());
-        assertThat(result.getResults().size(), is(resultSize));
+        assertEquals(result.getResults().size(), resultSize);
         assertNull(result.getNextSlice());
     }
 
@@ -243,7 +244,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
         assertNotNull(result);
-        assertThat(result.size(), is(resultSize));
+        assertEquals(result.size(), resultSize);
     }
 
 
@@ -301,7 +302,7 @@ public class DataSetServiceClientTest {
         for (DataSet dataSet : dataSets) {
             if (dataSetId.equals(dataSet.getId())) {
 
-                assertThat(dataSet.getDescription(), is(description));
+                assertEquals(dataSet.getDescription(), description);
             }
 
         }
@@ -325,7 +326,7 @@ public class DataSetServiceClientTest {
         for (DataSet dataSet : dataSets) {
             if (dataSetId.equals(dataSet.getId())) {
 
-                assertThat(dataSet.getDescription(), is(description));
+                assertEquals(dataSet.getDescription(), description);
             }
 
         }
@@ -441,7 +442,7 @@ public class DataSetServiceClientTest {
         for (Representation r : result) {
             if (r.getSchema().equals(schemaId)) {
                 if (versionId != null) {
-                    assertThat(r.getVersion(), is(versionId));
+                    assertEquals(r.getVersion(), versionId);
                 }
                 found++;
             }
@@ -464,7 +465,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, null);
 
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId), is(1));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId), 1);
     }
 
 
@@ -494,7 +495,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, versionId1);
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId1), is(1));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId1), 1);
 
     }
 
@@ -514,7 +515,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, schemaId, versionId2);
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId2), is(1));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, versionId2), 1);
 
     }
 
@@ -579,7 +580,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), 0);
     }
 
 
@@ -594,7 +595,7 @@ public class DataSetServiceClientTest {
         String schemaId = "schema66";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), 0);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
 
     }
@@ -611,7 +612,7 @@ public class DataSetServiceClientTest {
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, schemaId);
-        assertThat(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), is(0));
+        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, schemaId, null), 0);
 
     }
 
