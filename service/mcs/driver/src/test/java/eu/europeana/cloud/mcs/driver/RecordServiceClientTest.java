@@ -254,7 +254,7 @@ public class RecordServiceClientTest {
     public void shouldCreateNewSchemaWhenNotExists()
             throws MCSException {
 
-        String cloudId = "1DZ6HTS415W";
+        String cloudId = "BXTG2477LVX";
         String schema = "newSchema";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
@@ -266,7 +266,7 @@ public class RecordServiceClientTest {
         } catch (RepresentationNotExistsException ex) {
             schemaNotExists = true;
         }
-        //assertTrue(schemaNotExists); TODO can be restored when fixed ECL-140, tape will have to be rerecorded
+        assertTrue(schemaNotExists);
 
         URI uri = instance.createRepresentation(cloudId, schema, providerId);
         TestUtils.assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
@@ -297,45 +297,56 @@ public class RecordServiceClientTest {
     }
 
     //deleteRepresentation(cloudId, schema) - deleting schema
-    @Betamax(tape = "records/deletesRepresentation_cloudId_schema_Successfully")
+    @Betamax(tape = "records/deleteSchemaSuccess")
     @Test
-    public void deletesRepresentation_cloudId_schema_Successfully()
+    public void shouldDeleteSchema()
             throws MCSException {
-        String cloudId = "1TZC17H34S5";
-        String schema = "schema_000001";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema1";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.deleteRepresentation(cloudId, schema);
+        //check the schema does not exist
+        //we catch this exception here and not expect in @Test,
+        //because then it could also come from deleteRepresentation method call
+        Boolean noSchema = false;
+        try {
+            instance.getRepresentations(cloudId, schema);
+        } catch (RepresentationNotExistsException ex) {
+            noSchema = true;
+        }
+        assertTrue(noSchema);
+    }
+
+    @Betamax(tape = "records/deleteSchemaNoSchema")
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExistsForDeleteSchema()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "noSuchSchema";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema);
     }
 
-    @Ignore("Error in api")
+    @Betamax(tape = "records/deleteSchemaNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
-    public void _deletesRepresentation_cloudId_schema_TwoTimes()
+    public void shouldThrowRepresentationNotExistsForDeleteSchemaWhenNoRecord()
             throws MCSException {
-        String cloudId = "1TZC17H34S5";
-        String schema = "schema_000001";
+        String cloudId = "noSuchRecord";
+        String schema = "schema1";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema);
     }
 
-    @Ignore("Ask")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void deletesRepresentation_cloudId_schema_404_incorrectId()
-            throws MCSException {
-        String cloudId = "1TZC17H34S5_";
-        String schema = "schema_000001";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+    @Betamax(tape = "records/deleteSchemaInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForDeleteSchema()
+            throws Exception {
 
-        instance.deleteRepresentation(cloudId, schema);
-    }
-
-    @Ignore("Ask")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void deletesRepresentation_cloudId_schema_404_incorrectSchema()
-            throws MCSException {
-        String cloudId = "1TZC17H34S5";
-        String schema = "schema_000001_";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema77";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema);
@@ -577,8 +588,9 @@ public class RecordServiceClientTest {
         //add files to it
         //TODO
         try {
-        fileService.uploadFile(cloudId, schema, version, data, fileType);
-                } catch (Exception ex) {}
+            fileService.uploadFile(cloudId, schema, version, data, fileType);
+        } catch (Exception ex) {
+        }
         //persist
         URI uriResult = instance.persistRepresentation(cloudId, schema, version);
         assertNotNull(uriResult);
