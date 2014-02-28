@@ -44,7 +44,6 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.mockito.Mockito;
 

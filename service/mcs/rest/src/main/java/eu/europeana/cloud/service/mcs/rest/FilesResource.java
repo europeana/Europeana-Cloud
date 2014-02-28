@@ -7,7 +7,6 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -95,14 +94,15 @@ public class FilesResource {
         File f = new File();
         f.setMimeType(mimeType);
         if (fileName != null) {
+
             try {
                 File temp = recordService.getFile(globalId, schema, version, fileName);
                 if (temp != null)
                     throw new FileAlreadyExistsException(fileName);
-                System.out.println("ss");
             } catch (FileNotExistsException e) {
-                System.out.println("ss");
+                //expected exception
             }
+
             f.setFileName(fileName);
         }
         recordService.putContent(globalId, schema, version, f, data);

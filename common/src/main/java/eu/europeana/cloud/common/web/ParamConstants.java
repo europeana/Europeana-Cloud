@@ -68,4 +68,7 @@ public interface ParamConstants {
 
     static final String F_START_FROM = "startFrom";
 
+    //header paramiters' names
+    static final String H_RANGE = "Range";
+
 }
