@@ -25,6 +25,7 @@ import static org.hamcrest.number.OrderingComparisons.greaterThan;
 import static org.junit.Assert.assertThat;
 import org.junit.Ignore;
 import org.junit.Test;
+import eu.europeana.cloud.mcs.driver.TestUtils;
 
 public class RecordServiceClientTest {
 
@@ -193,7 +194,7 @@ public class RecordServiceClientTest {
         //no representation for this schema
         String schema = "noSuchSchema";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         instance.getRepresentation(cloudId, schema);
     }
 
@@ -205,7 +206,7 @@ public class RecordServiceClientTest {
         //there are representations for this schema, but none is persistent
         String schema = "schema1";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         instance.getRepresentation(cloudId, schema);
     }
 
@@ -220,25 +221,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema);
     }
 
-    //createRepresentation
-    private void assertCorrectlyCreatedRepresentation(RecordServiceClient instance, URI uri, String providerId, String cloudId, String schema) throws MCSException {
-
-        String[] elements = uri.getRawPath().split("/");
-        String uriVersion = elements[elements.length - 1];
-        String uriSchema = elements[elements.length - 3];
-        String uriRecordId = elements[elements.length - 5];
-        assertEquals(cloudId, uriRecordId);
-        assertEquals(schema, uriSchema);
-
-        //get representation and check
-        Representation representation = instance.getRepresentation(cloudId, schema, uriVersion);
-        assertNotNull(representation);
-        assertEquals(cloudId, representation.getRecordId());
-        assertEquals(schema, representation.getSchema());
-        assertEquals(providerId, representation.getDataProvider());
-        assertEquals(uriVersion, representation.getVersion());
-    }
-
+    //create representation
     @Betamax(tape = "records/createRepresentationSuccess")
     @Test
     public void shouldCreateRepresentation()
@@ -248,10 +231,9 @@ public class RecordServiceClientTest {
         String schema = "schema77";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        assertNotNull(uri);
 
-        assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
+        URI uri = instance.createRepresentation(cloudId, schema, providerId);
+        TestUtils.assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
 
     }
 
@@ -288,7 +270,7 @@ public class RecordServiceClientTest {
         //assertTrue(schemaNotExists); TODO can be restored when fixed ECL-140, tape will have to be rerecorded
 
         URI uri = instance.createRepresentation(cloudId, schema, providerId);
-        assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
+        TestUtils.assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
     }
 
     @Betamax(tape = "records/createRepresentationNoProvider")
@@ -315,6 +297,7 @@ public class RecordServiceClientTest {
         instance.createRepresentation(cloudId, schema, providerId);
     }
 
+    //deleteRepresentation(cloudId, schema) - deleting schema
     @Betamax(tape = "records/deletesRepresentation_cloudId_schema_Successfully")
     @Test
     public void deletesRepresentation_cloudId_schema_Successfully()
@@ -359,6 +342,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema);
     }
 
+    //getRepresentations(cloudId, schema)
     @Betamax(tape = "records/getRepresentations_cloudId_schema_Successfully")
     @Test
     public void getRepresentations_cloudId_schema_Successfully()
@@ -394,6 +378,7 @@ public class RecordServiceClientTest {
         List<Representation> resultRepresentationList = instance.getRepresentations(cloudId, schema);
     }
 
+    //getRepresentation(cloudId, schema, version)
     @Betamax(tape = "records/getRepresentation_cloudID_schema_version_Successfully")
     @Test
     public void getRepresentation_cloudID_schema_version_Successfully()
@@ -459,6 +444,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema, version);
     }
 
+    //deleteRepresentation(cloudId, schema, version)
     @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_Successfully")
     @Test
     public void deleteRepresentation_cloudID_schema_version_Successfully()
@@ -519,6 +505,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
+    //copyRepresentation
     @Betamax(tape = "records/copyRepresentation_Successfully")
     @Test
     public void copyRepresentation_Successfully()
@@ -567,17 +554,31 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/persistRepresentation_Successfully")
+    //persistRepresentation
+    //@Betamax(tape = "records/persistRepresentationSuccess")
     @Test
-    public void persistRepresentation_Successfully()
-            throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "ff67be10-9888-11e3-b072-50e549e85271";
+    public void persistRepresentation()
+            throws MCSException, IOException {
+        String providerId = "Provider001";
+        String cloudId = "4H7HC9HT46F";
+        String schema = "schema1";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
-        URI uriResult = instance.copyRepresentation(cloudId, schema, version);
+        String fileContent = "The content of the file.";
+        String fileType = "text/plain";
+        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
+        FileServiceClient fileService = new FileServiceClient(baseUrl);
+
+        //create new representation version
+        URI uri = instance.createRepresentation(cloudId, schema, providerId);
+        //obtain the version
+        String version = TestUtils.parseRepresentationFromUri(uri).getVersion();
+        //add files to it
+        fileService.uploadFile(cloudId, schema, version, data, fileType);
+        //persist
+        URI uriResult = instance.persistRepresentation(cloudId, schema, version);
         assertNotNull(uriResult);
+        assertEquals(uri.toString(), uriResult.toString());
     }
 
     //TODO
