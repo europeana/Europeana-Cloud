@@ -85,7 +85,7 @@ public class RecordServiceClientTest {
         //check that there are not representations for this record
         //we only check one schema, because there is no method to just get all representations
         List<Representation> representations = instance.getRepresentations(cloudId, schema);
-        assertThat(representations.size(), is(0));
+        assertEquals(representations.size(), 0);
 
     }
 
@@ -101,7 +101,7 @@ public class RecordServiceClientTest {
         //check that there are not representations for this record
         //we only check one schema, because there is no method to just get all representations
         List<Representation> representations = instance.getRepresentations(cloudId, schema);
-        assertThat(representations.size(), is(0));
+        assertEquals(representations.size(), 0);
 
         //delete record
         instance.deleteRecord(cloudId);
@@ -138,10 +138,10 @@ public class RecordServiceClientTest {
 
         List<Representation> representationList = instance.getRepresentations(cloudId);
         assertNotNull(representationList);
-        //in this scenario we have 3 persistent representations, 2 in one schema and 1 in another
-        assertThat(representationList.size(), is(2));
+        //in this scenario we have 3 persistent representations, 2 in one schema and 1 in another, thus we want to get 2
+        assertEquals(representationList.size(), 2);
         for (Representation representation : representationList) {
-            assertThat(cloudId, is(representation.getRecordId()));
+            assertEquals(cloudId, representation.getRecordId());
             assertTrue(representation.isPersistent());
         }
     }
@@ -166,28 +166,34 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId);
     }
 
+    //TODO TU
     //getRepresentations(cloudId, schema)
-    @Betamax(tape = "records/getRepresentation_cloudId_schema_Successfully")
+    @Betamax(tape = "records/getRepresentationForSchemaSuccess")
     @Test
-    public void getRepresentation_cloudId_schema_Successfully()
+    public void shouldRetrieveRepresentationForSchema()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema1";
+        //the last persisent representation
+        String version = "acf7a040-9587-11e3-8f2f-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         Representation representation = instance.getRepresentation(cloudId, schema);
+
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
         assertEquals(schema, representation.getSchema());
+        assertEquals(version, representation.getVersion());
     }
 
-    @Ignore("In api is specyfied RecordNotExistException but is thrown RepresentationNotExistException")
-    @Test(expected = RecordNotExistsException.class)
-    public void getRepresentation_cloudId_schema_404()
+    //TODO TU, change assertThat+is
+    @Betamax(tape = "records/getRepresentationForSchemaNoSchema")
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExistsForGetRepresentationForSchema()
             throws MCSException {
         String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001_";
+        String schema = "noSuchSchema";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Representation representation = instance.getRepresentation(cloudId, schema);
+        instance.getRepresentation(cloudId, schema);
     }
 
     private void assertCorrectlyCreatedRepresentation(RecordServiceClient instance, URI uri, String providerId, String cloudId, String schema) throws MCSException {

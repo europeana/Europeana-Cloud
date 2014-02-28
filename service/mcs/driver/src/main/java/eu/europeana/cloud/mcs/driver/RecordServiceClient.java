@@ -169,13 +169,13 @@ public class RecordServiceClient {
      *
      * @param cloudId id of record from which to get representations (required)
      * @param schema name of the representation (required)
-     * @return representation of specified schema and cloudId.
-     * @throws RecordNotExistsException representation does not exist or no
-     * persistent version of this representation exists.
-     * @throws MCSException on unexpected situations.
+     * @return representation of specified schema and cloudId
+     * @throws RepresentationNotExistsException representation does not exist or no
+     * persistent version of this representation exists
+     * @throws MCSException on unexpected situations
      */
     public Representation getRepresentation(String cloudId, String schema)
-            throws RecordNotExistsException, MCSException {
+            throws RepresentationNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, schema);
