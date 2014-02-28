@@ -170,8 +170,8 @@ public class RecordServiceClient {
      * @param cloudId id of record from which to get representations (required)
      * @param schema name of the representation (required)
      * @return representation of specified schema and cloudId
-     * @throws RepresentationNotExistsException representation does not exist or no
-     * persistent version of this representation exists
+     * @throws RepresentationNotExistsException representation does not exist or
+     * no persistent version of this representation exists
      * @throws MCSException on unexpected situations
      */
     public Representation getRepresentation(String cloudId, String schema)
@@ -225,15 +225,15 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function deletes representation with all versions.
+     * Deletes representation with all versions.
      *
-     * @param cloudId id of deleting representation.
-     * @param schema schema of deleting representation.
+     * @param cloudId id of the record to delete representation from (required)
+     * @param schema schema of deleted representation (required)
      * @throws RepresentationNotExistsException if specified Representation does
-     * not exist.
-     * @throws MCSException on unexpected situations.
+     * not exist
+     * @throws MCSException on unexpected situations
      */
-    public void deletesRepresentation(String cloudId, String schema)
+    public void deleteRepresentation(String cloudId, String schema)
             throws RepresentationNotExistsException, MCSException {
         WebTarget target = client.target(baseUrl).path(schemaPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
@@ -248,14 +248,14 @@ public class RecordServiceClient {
     }
 
     /**
-     * Returns list of all latest persistent versions of record representation.
+     * Lists all versions of record representation.
      *
-     * @param cloudId id of the record to get representations from
-     * @param schema schema of the representations
-     * @return representation list.
+     * @param cloudId id of the record to get representation from (required)
+     * @param schema schema of the representation (required)
+     * @return representation versions list
      * @throws RepresentationNotExistsException if specified Representation does
-     * not exist.
-     * @throws MCSException on unexpected situations.
+     * not exist
+     * @throws MCSException on unexpected situations
      */
     public List<Representation> getRepresentations(String cloudId, String schema)
             throws RepresentationNotExistsException, MCSException {
@@ -275,16 +275,20 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function returns representation in specified version.
+     * Returns representation in specified version.
      *
-     * @param cloudId id of getting representation.
-     * @param schema schema of getting representation.
-     * @param version version of getting representation. If version = LATEST
-     * function will return latest persistent version.
-     * @return requested representation.
+     * Returns representation in specified version. If Version = LATEST, will
+     * redirect to actual latest persistent version at the moment of invoking
+     * this method.
+     *
+     * @param cloudId id of the record to get representation from (required)
+     * @param schema schema of the representation (required)
+     * @param version version of getting representation; if version==LATEST
+     * function will return latest persistent version (required)
+     * @return requested representation version
      * @throws RepresentationNotExistsException if specified representation does
-     * not exist.
-     * @throws MCSException on unexpected situations.
+     * not exist
+     * @throws MCSException on unexpected situations
      */
     public Representation getRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, MCSException {
@@ -305,16 +309,17 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function deletes Representation in specified version.
+     * Deletes representation in specified version.
      *
-     * @param cloudId id of deleting Representation.
-     * @param schema schema of deleting Representation.
-     * @param version version of deleting Representation.
-     * @throws RepresentationNotExistsException if specified Representation does
-     * not exist.
+     * @param cloudId id of the record to delete representation version from
+     * (required)
+     * @param schema schema of the representation (required)
+     * @param version the deleted version of the representation (required)
+     * @throws RepresentationNotExistsException if specified representation does
+     * not exist
      * @throws CannotModifyPersistentRepresentationException if specified
-     * Representation is persistent as such cannot be removed.
-     * @throws MCSException on unexpected situations.
+     * representation is persistent and thus cannot be removed
+     * @throws MCSException on unexpected situations
      */
     public void deleteRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, MCSException {
@@ -332,16 +337,18 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function Copies all information with all files and their content from one
+     * Copies all information from one representation version to another.
+     *
+     * Copies all information with all files and their content from one
      * representation version to a new temporary one.
      *
-     * @param cloudId id of copying representation.
-     * @param schema schema of copying representation.
-     * @param version version of copying representation.
-     * @return URI to created copy of representation.
-     * @throws RepresentationNotExistsException if specified representation does
-     * not exist.
-     * @throws MCSException on unexpected situations.
+     * @param cloudId id of the record that holds representation (required)
+     * @param schema schema of the copied representation (required)
+     * @param version version of the copied representation (required)
+     * @return URI to the created copy of representation
+     * @throws RepresentationNotExistsException if specified representation
+     * version does not exist
+     * @throws MCSException on unexpected situations
      */
     public URI copyRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, MCSException {
@@ -360,19 +367,19 @@ public class RecordServiceClient {
     }
 
     /**
-     * Function persist temporary representation.
+     * Makes specified temporary representation version persistent.
      *
-     * @param cloudId id of persisting representation.
-     * @param schema schema of persisting representation.
-     * @param version version of persisting representation.
-     * @return URI to persisted representation.
+     * @param cloudId id of the record that holds representation (required)
+     * @param schema schema of the representation to be persisted (required)
+     * @param version version that should be made persistent (required)
+     * @return URI to the persisted representation
      * @throws RepresentationNotExistsException when representation does not
-     * exist in specified version.
+     * exist in specified version
      * @throws CannotModifyPersistentRepresentationException when representation
-     * version is already persistent.
+     * version is already persistent
      * @throws CannotPersistEmptyRepresentationException when representation
-     * version has no file attached and as such cannot be made persistent.
-     * @throws MCSException on unexpected situations.
+     * version has no file attached and thus cannot be made persistent
+     * @throws MCSException on unexpected situations
      */
     public URI persistRepresentation(String cloudId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
