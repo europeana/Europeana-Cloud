@@ -222,13 +222,15 @@ public class RecordServiceClientTest {
     }
 
     //create representation
-    @Betamax(tape = "records/createRepresentationSuccess")
+    //@Betamax(tape = "records/createRepresentationSuccess")
     @Test
     public void shouldCreateRepresentation()
             throws MCSException {
 
-        String cloudId = "1DZ6HTS415W";
-        String schema = "schema77";
+        //String cloudId = "1DZ6HTS415W";
+        //String schema = "schema77";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
         String providerId = "Provider001";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
@@ -406,15 +408,19 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema);
     }
 
+    //TODO TU add some versions of other schema and rerecord
     //getRepresentation(cloudId, schema, version)
-    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_Successfully")
+    @Betamax(tape = "records/getRepresentationSuccess")
     @Test
-    public void getRepresentation_cloudID_schema_version_Successfully()
+    public void shouldRetrieveRepresentationVersion()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "3480fe50-9888-11e3-b072-50e549e85271";
+        
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //this is some not-persistent version
+        String version = "6e2b47e0-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
@@ -422,55 +428,88 @@ public class RecordServiceClientTest {
         assertEquals(version, representation.getVersion());
     }
 
-    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_Latest")
+    @Betamax(tape = "records/getRepresentationLatestSuccess")
     @Test
-    public void getRepresentation_cloudID_schema_version_Latest()
+    public void shouldRetrieveLatestRepresentationVersion()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
         String version = "LATEST";
+        //this is the version of latest persistent version
+        String versionCode = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
         assertEquals(schema, representation.getSchema());
+        assertEquals(versionCode, representation.getVersion());
     }
 
-    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_incorrectId")
+    @Betamax(tape = "records/getRepresentationVersionNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
-    public void getRepresentation_cloudID_schema_version_incorrectId()
+    public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRecord()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84_";
-        String schema = "schema_000001";
-        String version = "71cdeb90-955b-11e3-b6af-50e549e85271";
+        String cloudId = "noSuchRecord";
+        String schema = "schema22";
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.getRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/getRepresentation_cloudID_schema_version_incorrectSchema")
+    @Betamax(tape = "records/getRepresentationVersionNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
-    public void getRepresentation_cloudID_schema_version_incorrectSchema()
+    public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoSchema()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001_";
-        String version = "71cdeb90-955b-11e3-b6af-50e549e85271";
+        String cloudId = "J93T5R6615H";
+        String schema = "noSuchSchema";
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.getRepresentation(cloudId, schema, version);
     }
 
-    @Ignore("Ask")
+    @Betamax(tape = "records/getRepresentationVersionNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
-    public void getRepresentation_cloudID_schema_version_incorrectVersion()
+    public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "71cdeb90-955b-11e3-b6af-50e549e85271_";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //there is no such version, but the UUID is valid
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6013";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.getRepresentation(cloudId, schema, version);
     }
+    
+    @Betamax(tape = "records/getRepresentationVersionInvalidVersion")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetRepresentationVersionWhenInvalidVersion()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //there is no such version and the UUID is invalid
+        String version = "noSuchVersion";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.getRepresentation(cloudId, schema, version);
+    }
+    
+    //for example when Cassandra is not working
+    @Betamax(tape = "records/getRepresentationVersionInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForGetRepresentationVersion()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        String version = "6e2b47e0-a2d9-11e3-8a55-1c6f653f6012";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.getRepresentation(cloudId, schema, version);
+    }
+    
+    
 
     //deleteRepresentation(cloudId, schema, version)
     @Ignore
@@ -621,8 +660,8 @@ public class RecordServiceClientTest {
     public void shouldPersistAfterAddingFiles()
             throws MCSException, IOException {
         String cloudId = "J93T5R6615H";
-        String schema = "schema77";
-        String version = "700307a0-9fc4-11e3-92f4-1c6f653f6012";
+        String schema = "schema22";
+        String version = "67565180-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         FileServiceClient fileService = new FileServiceClient(baseUrl);
         String fileContent = "The content of the file.";
