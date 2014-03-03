@@ -414,13 +414,13 @@ public class RecordServiceClientTest {
     @Test
     public void shouldRetrieveRepresentationVersion()
             throws MCSException {
-        
+
         String cloudId = "J93T5R6615H";
         String schema = "schema22";
         //this is some not-persistent version
         String version = "6e2b47e0-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
@@ -438,7 +438,7 @@ public class RecordServiceClientTest {
         //this is the version of latest persistent version
         String versionCode = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        
+
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
         assertEquals(cloudId, representation.getRecordId());
@@ -482,7 +482,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema, version);
     }
-    
+
     @Betamax(tape = "records/getRepresentationVersionInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationVersionWhenInvalidVersion()
@@ -495,7 +495,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema, version);
     }
-    
+
     //for example when Cassandra is not working
     @Betamax(tape = "records/getRepresentationVersionInternalServerError")
     @Test(expected = DriverException.class)
@@ -508,68 +508,111 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema, version);
     }
-    
-    
 
     //deleteRepresentation(cloudId, schema, version)
-    @Ignore
-    //@Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_Successfully")
+    @Betamax(tape = "records/deleteRepresentationVersionSuccess")
     @Test
-    public void deleteRepresentation_cloudID_schema_version_Successfully()
+    public void shouldDeleteRepresentationVersion()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "5dfded60-988d-11e3-b072-50e549e85271";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        String version = "6e2b47e0-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema, version);
+
+        //try to get this version
+        Boolean noVersion = false;
+        try {
+            instance.getRepresentation(cloudId, schema, version);
+        } catch (RepresentationNotExistsException ex) {
+            noVersion = true;
+        }
+        assertTrue(noVersion);
     }
 
-    @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_incorrectId")
+    @Betamax(tape = "records/deleteRepresentationVersionNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
-    public void deleteRepresentation_cloudID_schema_version_incorrectId()
+    public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRecord()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84_";
-        String schema = "schema_000001";
-        String version = "ae7dd340-97c5-11e3-b4e8-50e549e85271";
+        String cloudId = "noSuchRecord";
+        String schema = "schema22";
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/deleteRepresentation_cloudID_schema_version_incorrectSchema")
+    @Betamax(tape = "records/deleteRepresentationVersionNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
-    public void deleteRepresentation_cloudID_schema_version_incorrectSchema()
+    public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoSchema()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001_";
-        String version = "ae7dd340-97c5-11e3-b4e8-50e549e85271";
+        String cloudId = "J93T5R6615H";
+        String schema = "noSuchSchema";
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
-    @Ignore("Now is trow InternalError but should be RepresentationNotExistsException")
+    @Betamax(tape = "records/deleteRepresentationVersionNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
-    public void deleteRepresentation_cloudID_schema_version_incorrectVersion()
+    public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "89feff50-94ad-11e3-ac19-50e549e85271_";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //there is no such version, but the UUID is valid
+        String version = "74cc8410-a2d9-11e3-8a55-1c6f653f6013";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
-    @Ignore("Wron exeption is throw.")
+    @Betamax(tape = "records/deleteRepresentationVersionInvalidVersion")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForDeleteRepresentationVersionWhenInvalidVersion()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //there is no such version and the UUID is invalid
+        String version = "noSuchVersion";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.deleteRepresentation(cloudId, schema, version);
+    }
+
+    //for example when Cassandra is not working
+    @Betamax(tape = "records/deleteRepresentationVersionInternalServerError")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForDeleteRepresentationVersion()
+            throws MCSException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        String version = "7b2349c0-a2d9-11e3-8a55-1c6f653f6012";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+
+        instance.deleteRepresentation(cloudId, schema, version);
+    }
+
+    @Betamax(tape = "records/deleteRepresentationVersionCannotModifyPersistent")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void deleteRepresentation_cloudID_schema_version_persisted()
+    public void shouldNotAllowToDeletePersistenRepresentation()
             throws MCSException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "a36c2120-8e4f-11e3-81d2-50e549e85271";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema22";
+        //this version is persistent (but not latest - not important)
+        String version = "67565180-a2d9-11e3-8a55-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
+        
+        //check this representation is persistent
+        Representation representation = instance.getRepresentation(cloudId, schema, version);
+        assertNotNull(representation);
+        assertEquals(cloudId, representation.getRecordId());
+        assertEquals(schema, representation.getSchema());
+        assertEquals(version, representation.getVersion());
+        assertTrue(representation.isPersistent());
 
+        //try to delete
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
