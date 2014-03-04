@@ -1,0 +1,53 @@
+!tape
+name: records/shouldCopyPersistentRepresentation
+interactions:
+- recorded: 2014-03-04T10:00:57.534Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/copy
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '0'
+      Content-Type: application/x-www-form-urlencoded
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 201
+    headers:
+      Date: Tue, 04 Mar 2014 10:00:57 GMT
+      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/df32f9b0-a383-11e3-857e-1c6f653f6012
+      Server: Apache-Coyote/1.1
+    body: !!binary ""
+- recorded: 2014-03-04T10:00:57.710Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/df32f9b0-a383-11e3-857e-1c6f653f6012
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Tue, 04 Mar 2014 10:00:57 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions</allVersionsUri><creationDate>2014-03-04T11:00:53.188+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>26</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/df32f9b0-a383-11e3-857e-1c6f653f6012/files/4fc65724-333b-4304-b006-3b882c87ecff</contentUri><date>2014-03-04T08:51:45.198+01:00</date><fileName>4fc65724-333b-4304-b006-3b882c87ecff</fileName><md5>795ccef68203e8729a8a8247775f9fbf</md5><mimeType>text/plain</mimeType></files><files><contentLength>46</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/df32f9b0-a383-11e3-857e-1c6f653f6012/files/ad377503-151e-4a58-89fd-6ad36d4f5286</contentUri><date>2014-03-04T08:51:46.082+01:00</date><fileName>ad377503-151e-4a58-89fd-6ad36d4f5286</fileName><md5>3aed5437eaa88fc317a3f6201fbcffa2</md5><mimeType>text/plain</mimeType></files><persistent>false</persistent><recordId>J93T5R6615H</recordId><schema>schema22</schema><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/df32f9b0-a383-11e3-857e-1c6f653f6012</uri><version>df32f9b0-a383-11e3-857e-1c6f653f6012</version></representation>
+- recorded: 2014-03-04T10:00:57.890Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Tue, 04 Mar 2014 10:00:57 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions</allVersionsUri><creationDate>2014-03-04T08:51:46.648+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>26</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/files/4fc65724-333b-4304-b006-3b882c87ecff</contentUri><date>2014-03-04T08:51:45.198+01:00</date><fileName>4fc65724-333b-4304-b006-3b882c87ecff</fileName><md5>795ccef68203e8729a8a8247775f9fbf</md5><mimeType>text/plain</mimeType></files><files><contentLength>46</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/files/ad377503-151e-4a58-89fd-6ad36d4f5286</contentUri><date>2014-03-04T08:51:46.082+01:00</date><fileName>ad377503-151e-4a58-89fd-6ad36d4f5286</fileName><md5>3aed5437eaa88fc317a3f6201fbcffa2</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><recordId>J93T5R6615H</recordId><schema>schema22</schema><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012</uri><version>88edb4d0-a2ef-11e3-89f5-1c6f653f6012</version></representation>
