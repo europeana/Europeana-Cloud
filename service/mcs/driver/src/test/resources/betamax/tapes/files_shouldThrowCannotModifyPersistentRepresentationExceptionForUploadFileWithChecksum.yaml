@@ -1,0 +1,25 @@
+!tape
+name: files/shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFileWithChecksum
+interactions:
+- recorded: 2014-03-05T12:17:09.207Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/80441ab0-a38d-11e3-8614-50e549e85271/files
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Connection: close
+      Content-Length: '313'
+      Content-Type: multipart/form-data; boundary=Boundary_2_1741663741_1394021828831
+      Host: localhost:8080
+      MIME-Version: '1.0'
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+    body: "--Boundary_2_1741663741_1394021828831\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=\"mimeType\"\r\n\r\ntext/plain\r\n--Boundary_2_1741663741_1394021828831\r\nContent-Type: application/octet-stream\r\nContent-Disposition: form-data;\
+      \ name=\"data\"\r\n\r\nTest_123456789_1\r\n--Boundary_2_1741663741_1394021828831--\r\n"
+  response:
+    status: 405
+    headers:
+      Content-Type: application/xml
+      Date: Wed, 05 Mar 2014 12:17:08 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>

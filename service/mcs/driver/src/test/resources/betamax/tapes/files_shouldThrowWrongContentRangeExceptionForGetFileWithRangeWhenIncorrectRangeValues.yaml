@@ -1,0 +1,20 @@
+!tape
+name: files/shouldThrowWrongContentRangeExceptionForGetFileWithRangeWhenIncorrectRangeValues
+interactions:
+- recorded: 2014-03-05T12:17:26.264Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      Range: bytese=1-50
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 416
+    headers:
+      Content-Type: application/xml
+      Date: Wed, 05 Mar 2014 12:17:26 GMT
+      Server: Apache-Coyote/1.1
+    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\d+)[-](?&lt;end&gt;\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>'
