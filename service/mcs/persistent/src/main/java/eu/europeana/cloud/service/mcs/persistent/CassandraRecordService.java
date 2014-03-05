@@ -372,9 +372,9 @@ public class CassandraRecordService
 	 */
 	@Override
 	public void deleteContent(String globalId, String schema, String version, String fileName)
-		throws FileNotExistsException, CannotModifyPersistentRepresentationException
+		throws FileNotExistsException, CannotModifyPersistentRepresentationException, RepresentationNotExistsException
 	{
-		Representation representation = recordDAO.getRepresentation(globalId, schema, version);
+		Representation representation = getRepresentation(globalId, schema, version);
 		if (representation.isPersistent()) {
 			throw new CannotModifyPersistentRepresentationException();
 		}
