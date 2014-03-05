@@ -72,7 +72,7 @@ public class FilesResourceTest extends JerseyTest {
         file.setMimeType("mime/fileSpecialMime");
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
-            rep.getRecordId(), ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER,
+            rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
             rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
@@ -81,7 +81,7 @@ public class FilesResourceTest extends JerseyTest {
     @After
     public void cleanUp()
             throws Exception {
-        recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
+        recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
     }
 
 
@@ -115,12 +115,12 @@ public class FilesResourceTest extends JerseyTest {
         assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
 
         // then data should be in record service
-        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
         assertEquals(1, rep.getFiles().size());
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
             contentBos);
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
@@ -147,12 +147,12 @@ public class FilesResourceTest extends JerseyTest {
         assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
 
         // then data should be in record service
-        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
         assertEquals(1, rep.getFiles().size());
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
             contentBos);
         assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
@@ -167,7 +167,7 @@ public class FilesResourceTest extends JerseyTest {
         // given particular (random in this case) content in service
         byte[] content = { 1, 2, 3, 4 };
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         byte[] modifiedContent = { 5, 6, 7 };
@@ -184,12 +184,12 @@ public class FilesResourceTest extends JerseyTest {
         //assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
 
         // then data should be in record service
-        rep = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
         assertEquals(1, rep.getFiles().size());
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), insertedFile.getFileName(),
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
             contentBos);
         assertNotSame("MD5 file mismatch", modifiedContentMd5, insertedFile.getMd5());
         assertNotSame(modifiedContent.length, insertedFile.getContentLength());

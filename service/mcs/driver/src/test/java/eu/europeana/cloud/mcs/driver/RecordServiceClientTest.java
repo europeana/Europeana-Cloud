@@ -47,7 +47,7 @@ public class RecordServiceClientTest {
 
         Record record = instance.getRecord(cloudId);
         assertNotNull(record);
-        assertEquals(cloudId, record.getId());
+        assertEquals(cloudId, record.getCloudId());
     }
 
     @Betamax(tape = "records/getRecordNoRecord")
@@ -143,7 +143,7 @@ public class RecordServiceClientTest {
         //in this scenario we have 3 persistent representations, 2 in one schema and 1 in another, thus we want to get 2
         assertEquals(representationList.size(), 2);
         for (Representation representation : representationList) {
-            assertEquals(cloudId, representation.getRecordId());
+            assertEquals(cloudId, representation.getCloudId());
             assertTrue(representation.isPersistent());
         }
     }
@@ -181,8 +181,8 @@ public class RecordServiceClientTest {
         Representation representation = instance.getRepresentation(cloudId, schema);
 
         assertNotNull(representation);
-        assertEquals(cloudId, representation.getRecordId());
-        assertEquals(schema, representation.getSchema());
+        assertEquals(cloudId, representation.getCloudId());
+        assertEquals(schema, representation.getRepresentationName());
         assertEquals(version, representation.getVersion());
         assertTrue(representation.isPersistent());
     }
@@ -368,8 +368,8 @@ public class RecordServiceClientTest {
         //in Betamax test there are 52 versions
         assertThat(result.size(), greaterThan(1));
         for (Representation representation : result) {
-            assertEquals(cloudId, representation.getRecordId());
-            assertEquals(schema, representation.getSchema());
+            assertEquals(cloudId, representation.getCloudId());
+            assertEquals(schema, representation.getRepresentationName());
         }
     }
 
@@ -421,8 +421,8 @@ public class RecordServiceClientTest {
 
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
-        assertEquals(cloudId, representation.getRecordId());
-        assertEquals(schema, representation.getSchema());
+        assertEquals(cloudId, representation.getCloudId());
+        assertEquals(schema, representation.getRepresentationName());
         assertEquals(version, representation.getVersion());
     }
 
@@ -442,8 +442,8 @@ public class RecordServiceClientTest {
 
         Representation representationLatest = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representationLatest);
-        assertEquals(cloudId, representationLatest.getRecordId());
-        assertEquals(schema, representationLatest.getSchema());
+        assertEquals(cloudId, representationLatest.getCloudId());
+        assertEquals(schema, representationLatest.getRepresentationName());
         //assertEquals(versionCode, representationLatest.getVersion());
 
         //check by getting lastest persistent representation with other method
@@ -643,8 +643,8 @@ public class RecordServiceClientTest {
         //check this representation is persistent
         Representation representation = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representation);
-        assertEquals(cloudId, representation.getRecordId());
-        assertEquals(schema, representation.getSchema());
+        assertEquals(cloudId, representation.getCloudId());
+        assertEquals(schema, representation.getRepresentationName());
         assertEquals(version, representation.getVersion());
         assertTrue(representation.isPersistent());
 

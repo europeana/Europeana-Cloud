@@ -82,13 +82,13 @@ public abstract class IngestionDataSetTest {
 
             Representation represantation = recordService.createRepresentation(cloudId.getId(),
                     schema, providerId);
-            recordService.putContent(cloudId.getId(), represantation.getSchema(),
+            recordService.putContent(cloudId.getId(), represantation.getRepresentationName(),
                     represantation.getVersion(), file, is);
             recordService.persistRepresentation(cloudId.getId(), schema,
                     represantation.getVersion());
 
-            dataSetService.addAssignment(providerId, dataSetId, represantation.getRecordId(),
-                    represantation.getSchema(), represantation.getVersion());
+            dataSetService.addAssignment(providerId, dataSetId, represantation.getCloudId(),
+                    represantation.getRepresentationName(), represantation.getVersion());
 
             is.close();
         }
@@ -101,7 +101,7 @@ public abstract class IngestionDataSetTest {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
 
             Assert.assertEquals(1, representation.getFiles().size());
-            recordService.getContent(representation.getRecordId(), representation.getSchema(),
+            recordService.getContent(representation.getCloudId(), representation.getRepresentationName(),
                     representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
 
             byte[] readBytes = os.toByteArray();
@@ -112,18 +112,18 @@ public abstract class IngestionDataSetTest {
 
         // delete data set
         for (Representation representation : dataset.getResults()) {
-            recordService.deleteRepresentation(representation.getRecordId(),
-                    representation.getSchema());
+            recordService.deleteRepresentation(representation.getCloudId(),
+                    representation.getRepresentationName());
             boolean notExists = false;
             try {
-                recordService.getRepresentation(representation.getRecordId(),
-                        representation.getSchema());
+                recordService.getRepresentation(representation.getCloudId(),
+                        representation.getRepresentationName());
             } catch (RepresentationNotExistsException e) {
                 notExists = true;
             }
             Assert.assertEquals(true, notExists);
-            dataSetService.removeAssignment(providerId, dataSetId, representation.getRecordId(),
-                    representation.getSchema());
+            dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
+                    representation.getRepresentationName());
         }
         dataset = dataSetService.listDataSet(providerId, dataSetId, null, 1);
         Assert.assertEquals(0, dataset.getResults().size());

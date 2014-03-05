@@ -50,7 +50,7 @@ public class SolrDAOTest {
         solrDAO.insertRepresentation(rep, dataSets);
         RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
         assertEquals(rep.getVersion(), doc.getVersion());
-        assertEquals(rep.getSchema(), doc.getSchema());
+        assertEquals(rep.getRepresentationName(), doc.getSchema());
         assertEquals(rep.getDataProvider(), doc.getProviderId());
         assertEquals(rep.getCreationDate(), doc.getCreationDate());
     }

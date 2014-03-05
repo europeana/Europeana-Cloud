@@ -81,8 +81,8 @@ public class SolrDAO {
             }
         }
 
-        RepresentationSolrDocument document = new RepresentationSolrDocument(rep.getRecordId(), rep.getVersion(),
-                rep.getSchema(), rep.getDataProvider(), rep.getCreationDate(), rep.isPersistent(), existingDataSets);
+        RepresentationSolrDocument document = new RepresentationSolrDocument(rep.getCloudId(), rep.getVersion(),
+                rep.getRepresentationName(), rep.getDataProvider(), rep.getCreationDate(), rep.isPersistent(), existingDataSets);
         server.addBean(document);
         server.commit();
     }

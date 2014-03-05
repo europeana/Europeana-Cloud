@@ -80,7 +80,7 @@ public class FileResourceTest extends JerseyTest {
         file.setMimeType("mime/fileSpecialMime");
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
-            rep.getRecordId(), ParamConstants.P_REPRESENTATIONNAME, rep.getSchema(), ParamConstants.P_VER,
+            rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
             rep.getVersion(), ParamConstants.P_FILENAME, file.getFileName());
         fileWebTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
@@ -89,7 +89,7 @@ public class FileResourceTest extends JerseyTest {
     @After
     public void cleanUp()
             throws Exception {
-        recordService.deleteRepresentation(rep.getRecordId(), rep.getSchema());
+        recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
     }
 
 
@@ -110,7 +110,7 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when part of file is requested (skip first byte)
@@ -131,7 +131,7 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when part of file is requested (2 bytes with 1 byte offset)
@@ -166,7 +166,7 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when unsatisfiable content range is requested
@@ -182,7 +182,7 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when part of file is requested (2 bytes with 1 byte offset)
@@ -204,7 +204,7 @@ public class FileResourceTest extends JerseyTest {
             throws Exception {
         // given particular content in service
         byte[] content = { 1, 2, 3, 4 };
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when you override it with another content
@@ -220,7 +220,7 @@ public class FileResourceTest extends JerseyTest {
 
         // then the content in service should be also modivied
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String retrievedFileMd5 = recordService.getContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(),
+        String retrievedFileMd5 = recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
             file.getFileName(), baos);
         assertArrayEquals("Read data is different from written", contentModified, baos.toByteArray());
         assertEquals("MD5 checksum is different than written", contentModifiedMd5, retrievedFileMd5);
@@ -233,14 +233,14 @@ public class FileResourceTest extends JerseyTest {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         Response deleteFileResponse = fileWebTarget.request().delete();
         assertEquals("Unexpected status code", Response.Status.NO_CONTENT.getStatusCode(),
             deleteFileResponse.getStatus());
 
-        Representation representation = recordService.getRepresentation(rep.getRecordId(), rep.getSchema(),
+        Representation representation = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(),
             rep.getVersion());
         assertTrue(representation.getFiles().isEmpty());
     }
@@ -280,7 +280,7 @@ public class FileResourceTest extends JerseyTest {
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), file, new ByteArrayInputStream(
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
                 content));
 
         // when this file is requested

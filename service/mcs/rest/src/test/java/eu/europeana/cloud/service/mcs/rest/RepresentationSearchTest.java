@@ -86,9 +86,9 @@ public class RepresentationSearchTest extends JerseyTest {
         s1_p2 = recordService.createRepresentation("cloud_2", "s1", "p2");
         s2_p1 = recordService.createRepresentation("cloud_3", "s2", "p1");
 
-        dataSetService.addAssignment("p1", "ds", s1_p1.getRecordId(), s1_p1.getSchema(), s1_p1.getVersion());
-        dataSetService.addAssignment("p1", "ds", s1_p2.getRecordId(), s1_p2.getSchema(), s1_p2.getVersion());
-        dataSetService.addAssignment("p1", "ds", s2_p1.getRecordId(), s2_p1.getSchema(), s2_p1.getVersion());
+        dataSetService.addAssignment("p1", "ds", s1_p1.getCloudId(), s1_p1.getRepresentationName(), s1_p1.getVersion());
+        dataSetService.addAssignment("p1", "ds", s1_p2.getCloudId(), s1_p2.getRepresentationName(), s1_p2.getVersion());
+        dataSetService.addAssignment("p1", "ds", s2_p1.getCloudId(), s2_p1.getRepresentationName(), s2_p1.getVersion());
     }
 
 

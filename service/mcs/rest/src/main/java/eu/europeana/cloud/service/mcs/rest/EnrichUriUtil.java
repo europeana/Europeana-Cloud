@@ -27,7 +27,7 @@ final class EnrichUriUtil {
                 .getBaseUriBuilder()
                 .path(RepresentationVersionsResource.class)
                 .buildFromMap(
-                        ImmutableMap.of(P_CLOUDID, representation.getRecordId(), P_REPRESENTATIONNAME, representation.getSchema()));
+                        ImmutableMap.of(P_CLOUDID, representation.getCloudId(), P_REPRESENTATIONNAME, representation.getRepresentationName()));
         representation.setAllVersionsUri(uriInfo.resolve(allVersionsUri));
 
         if (representation.getVersion() != null) {
@@ -35,7 +35,7 @@ final class EnrichUriUtil {
                     .getBaseUriBuilder()
                     .path(RepresentationVersionResource.class)
                     .buildFromMap(
-                            ImmutableMap.of(P_CLOUDID, representation.getRecordId(), P_REPRESENTATIONNAME, representation.getSchema(),
+                            ImmutableMap.of(P_CLOUDID, representation.getCloudId(), P_REPRESENTATIONNAME, representation.getRepresentationName(),
                                     P_VER, representation.getVersion()));
             representation.setUri(uriInfo.resolve(latestVersionUri));
         }
@@ -48,7 +48,7 @@ final class EnrichUriUtil {
 
 
     static void enrich(UriInfo uriInfo, Representation rep, File file) {
-        enrich(uriInfo, rep.getRecordId(), rep.getSchema(), rep.getVersion(), file);
+        enrich(uriInfo, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);
     }
 
 

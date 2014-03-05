@@ -82,7 +82,7 @@ public class RecordsResource {
         EnrichUriUtil.enrich(uriInfo, record);
         for (Representation representation : record.getRepresentations()) {
             representation.setFiles(null);
-            representation.setRecordId(null);
+            representation.setCloudId(null);
         }
     }
 }

@@ -71,7 +71,7 @@ public class RecordsResourceTest extends JerseyTest {
         // prepare expected representation: 
         // - erase record id and files
         // - set URIs
-        expectedRepresentation.setRecordId(null);
+        expectedRepresentation.setCloudId(null);
         expectedRepresentation.setFiles(Collections.<File> emptyList());
         expectedRepresentation.setAllVersionsUri(URI.create(getBaseUri() + "records/" + globalId
                 + "/representations/DC/versions"));

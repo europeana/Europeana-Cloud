@@ -81,15 +81,15 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldReturnErrorWhenRepresentationIsAssignedTwice()
             throws Exception {
         // given that representation is already assigned to set
-        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(),
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName(),
             rep.getVersion());
 
         // when representation (even in different version) is to be assigned to the same data set
-        Representation rep2 = recordService.createRepresentation(rep.getRecordId(), rep.getSchema(),
+        Representation rep2 = recordService.createRepresentation(rep.getCloudId(), rep.getRepresentationName(),
             rep.getDataProvider());
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep2.getRecordId()).param(F_SCHEMA, rep2.getSchema())
+        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep2.getCloudId()).param(F_SCHEMA, rep2.getRepresentationName())
                 .param(F_VER, rep2.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
 
@@ -104,25 +104,25 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldAddAssignmentForLatestVersion()
             throws Exception {
         // given representation and data set in data service
-        recordService.putContent(rep.getRecordId(), rep.getSchema(), rep.getVersion(), new File("terefere", "xml",
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), new File("terefere", "xml",
                 null, null, -1, null), new ByteArrayInputStream("buf".getBytes()));
-        rep = recordService.persistRepresentation(rep.getRecordId(), rep.getSchema(), rep.getVersion());
+        rep = recordService.persistRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         // when representation is assigned to data set without specifying the version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_SCHEMA, rep.getSchema()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getCloudId()).param(F_SCHEMA, rep.getRepresentationName()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
         // then we get representation in latest version
         Representation latestRepresentation = recordService.createRepresentation("globalId", dataSet.getId(),
             dataProvider.getId());
-        recordService.putContent(latestRepresentation.getRecordId(), latestRepresentation.getSchema(),
+        recordService.putContent(latestRepresentation.getCloudId(), latestRepresentation.getRepresentationName(),
             latestRepresentation.getVersion(), new File("terefere", "xml", null, null, -1, null),
             new ByteArrayInputStream("buf".getBytes()));
-        latestRepresentation = recordService.persistRepresentation(latestRepresentation.getRecordId(),
-            latestRepresentation.getSchema(), latestRepresentation.getVersion());
+        latestRepresentation = recordService.persistRepresentation(latestRepresentation.getCloudId(),
+            latestRepresentation.getRepresentationName(), latestRepresentation.getVersion());
 
         List<Representation> representations = dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null,
             10000).getResults();
@@ -141,7 +141,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when representation is assigned to data set in specific version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getRecordId()).param(F_SCHEMA, rep.getSchema())
+        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getCloudId()).param(F_SCHEMA, rep.getRepresentationName())
                 .param(F_VER, rep.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
@@ -158,7 +158,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldRemoveAssignment()
             throws Exception {
         // given assignment in data set
-        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getRecordId(), rep.getSchema(),
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName(),
             rep.getVersion());
         assertEquals(1, dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null, 10000).getResults()
                 .size());
@@ -166,8 +166,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when assignment is deleted
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Response deleteAssignmentResponse = dataSetAssignmentWebTarget.queryParam(F_GID, rep.getRecordId())
-                .queryParam(F_SCHEMA, rep.getSchema()).request().delete();
+        Response deleteAssignmentResponse = dataSetAssignmentWebTarget.queryParam(F_GID, rep.getCloudId())
+                .queryParam(F_SCHEMA, rep.getRepresentationName()).request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteAssignmentResponse.getStatus());
 
         // then there should be no representation in data set

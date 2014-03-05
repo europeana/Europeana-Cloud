@@ -440,7 +440,7 @@ public class DataSetServiceClientTest {
 
         int found = 0;
         for (Representation r : result) {
-            if (r.getSchema().equals(schemaId)) {
+            if (r.getRepresentationName().equals(schemaId)) {
                 if (versionId != null) {
                     assertEquals(r.getVersion(), versionId);
                 }

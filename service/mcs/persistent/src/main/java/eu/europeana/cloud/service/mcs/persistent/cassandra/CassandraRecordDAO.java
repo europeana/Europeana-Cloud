@@ -141,9 +141,9 @@ public class CassandraRecordDAO {
         String prevSchema = null;
         for (Row row : rs) {
             Representation rep = mapToRepresentation(row);
-            if (rep.isPersistent() && !rep.getSchema().equals(prevSchema)) {
+            if (rep.isPersistent() && !rep.getRepresentationName().equals(prevSchema)) {
                 representations.add(rep);
-                prevSchema = rep.getSchema();
+                prevSchema = rep.getRepresentationName();
             }
         }
         return new Record(cloudId, representations);
@@ -465,8 +465,8 @@ public class CassandraRecordDAO {
     private Representation mapToRepresentation(Row row) {
         Representation representation = new Representation();
         representation.setDataProvider(row.getString("provider_id"));
-        representation.setRecordId(row.getString("cloud_id"));
-        representation.setSchema(row.getString("schema_id"));
+        representation.setCloudId(row.getString("cloud_id"));
+        representation.setRepresentationName(row.getString("schema_id"));
         representation.setVersion(row.getUUID("version_id").toString());
         representation.setPersistent(row.getBool("persistent"));
         representation.setCreationDate(row.getDate("creation_date"));

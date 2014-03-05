@@ -15,8 +15,8 @@ public class TestUtils {
 
         String[] elements = uri.getRawPath().split("/");
         representation.setVersion(elements[elements.length - 1]);
-        representation.setSchema(elements[elements.length - 3]);
-        representation.setRecordId(elements[elements.length - 5]);
+        representation.setRepresentationName(elements[elements.length - 3]);
+        representation.setCloudId(elements[elements.length - 5]);
 
         return representation;
     }
@@ -26,14 +26,14 @@ public class TestUtils {
         assertNotNull(uri);
         Representation representationUri = parseRepresentationFromUri(uri);
 
-        assertEquals(cloudId, representationUri.getRecordId());
-        assertEquals(schema, representationUri.getSchema());
+        assertEquals(cloudId, representationUri.getCloudId());
+        assertEquals(schema, representationUri.getRepresentationName());
 
         //get representation and check
         Representation representation = instance.getRepresentation(cloudId, schema, representationUri.getVersion());
         assertNotNull(representation);
-        assertEquals(cloudId, representation.getRecordId());
-        assertEquals(schema, representation.getSchema());
+        assertEquals(cloudId, representation.getCloudId());
+        assertEquals(schema, representation.getRepresentationName());
         assertEquals(providerId, representation.getDataProvider());
         assertEquals(representationUri.getVersion(), representation.getVersion());
     }
@@ -56,6 +56,6 @@ public class TestUtils {
 
     public static Representation obtainRepresentationFromURI(RecordServiceClient instance, URI uri) throws MCSException {
         Representation data = parseRepresentationFromUri(uri);
-        return instance.getRepresentation(data.getRecordId(), data.getSchema(), data.getVersion());
+        return instance.getRepresentation(data.getCloudId(), data.getRepresentationName(), data.getVersion());
     }
 }

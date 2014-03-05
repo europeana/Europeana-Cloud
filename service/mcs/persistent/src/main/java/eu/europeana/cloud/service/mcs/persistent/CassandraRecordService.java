@@ -100,13 +100,13 @@ public class CassandraRecordService
 			for (Representation repVersion : allRecordRepresentationsInAllVersions) {
 				for (File f : repVersion.getFiles()) {
 					try {
-						contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getSchema(),
+						contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getRepresentationName(),
 							repVersion.getVersion(), f.getFileName()));
 					}
 					catch (FileNotExistsException ex) {
 						LOGGER.warn(
 							"File {} was found in representation {}-{}-{} but no content of such file was found",
-							f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
+							f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
 					}
 				}
 			}
@@ -133,7 +133,7 @@ public class CassandraRecordService
 				}
 				catch (FileNotExistsException ex) {
 					LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-						f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
+						f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
 				}
 			}
 		}
@@ -221,7 +221,7 @@ public class CassandraRecordService
 			}
 			catch (FileNotExistsException ex) {
 				LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-					f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
+					f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
 			}
 		}
 		recordDAO.deleteRepresentation(globalId, schema, version);

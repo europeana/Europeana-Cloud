@@ -269,8 +269,8 @@ public class RestIngestionTool {
                     file.getMimeType()).field(ParamConstants.F_FILE_DATA,
                     new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() +
+                            "/representations/" + representation.getRepresentationName() + "/versions/" +
                             representation.getVersion() + "/files/" + file.getFileName()).request().put(
                     Entity.entity(multipart, multipart.getMediaType()));
             if (resp.getStatus() != Status.CREATED.getStatusCode()) {
@@ -281,8 +281,8 @@ public class RestIngestionTool {
 
             localTime = System.nanoTime();
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() +
+                            "/representations/" + representation.getRepresentationName() + "/versions/" +
                             representation.getVersion() + "/persist").request().post(null);
             if (resp.getStatus() != Status.CREATED.getStatusCode()) {
                 System.out.println("Could not persist representation for '" + cloudId.getId() +
@@ -295,8 +295,8 @@ public class RestIngestionTool {
             resp = client.target(
                     baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
                             dataSetId + "/assignments").request().post(
-                    Entity.form(new Form("recordId", representation.getRecordId()).param("schema",
-                            representation.getSchema())));
+                    Entity.form(new Form("recordId", representation.getCloudId()).param("schema",
+                            representation.getRepresentationName())));
             if (resp.getStatus() != Status.NO_CONTENT.getStatusCode()) {
                 System.out.println("Could not assign representation for '" + cloudId.getId() + "'!");
                 continue;
@@ -345,8 +345,8 @@ public class RestIngestionTool {
             scheduled++;
 
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() +
+                            "/representations/" + representation.getRepresentationName() + "/versions/" +
                             representation.getVersion() + "/files/" +
                             representation.getFiles().get(0).getFileName()).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -393,22 +393,22 @@ public class RestIngestionTool {
             scheduled++;
 
             resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema()).request().delete();
+                    baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() +
+                            "/representations/" + representation.getRepresentationName()).request().delete();
             if (resp.getStatus() != Status.NO_CONTENT.getStatusCode()) {
                 System.out.println("Could not delete representation for '" +
-                                   representation.getRecordId() + "'!");
+                                   representation.getCloudId() + "'!");
                 continue;
             }
 
 // resp = client.target(
 // baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
 // dataSetId + "/assignments").queryParam("recordId",
-// representation.getRecordId()).queryParam("schema",
-// representation.getSchema()).request().delete();
+// representation.getCloudId()).queryParam("schema",
+// representation.getRepresentationName()).request().delete();
 // if (resp.getStatus() != Status.OK.getStatusCode()) {
 // System.out.println("Could not remove assignment of representation for '" +
-// representation.getRecordId() + "'!");
+// representation.getCloudId() + "'!");
 // continue;
 // }
 

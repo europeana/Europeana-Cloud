@@ -33,7 +33,7 @@ public class InMemoryRecordDAO {
             throw new RecordNotExistsException(globalId);
         }
         Record record = new Record();
-        record.setId(globalId);
+        record.setCloudId(globalId);
         List<Representation> representationInfos = new ArrayList<>();
         record.setRepresentations(representationInfos);
         for (Map.Entry<String, List<Representation>> representation : representations.entrySet()) {
@@ -59,7 +59,7 @@ public class InMemoryRecordDAO {
             for (List<Representation> repVersionList : representationNameToVersionList.values()) {
                 Representation latestVersion = getLatestRepresentation(repVersionList);
                 boolean providerMatch = providerId == null || latestVersion.getDataProvider().equals(providerId);
-                boolean schemaMatch = schema == null || latestVersion.getSchema().equals(schema);
+                boolean schemaMatch = schema == null || latestVersion.getRepresentationName().equals(schema);
                 if (providerMatch && schemaMatch) {
                     representations.add(latestVersion);
                 }
@@ -96,8 +96,8 @@ public class InMemoryRecordDAO {
         copy.setDataProvider(rep.getDataProvider());
         copy.setFiles(new ArrayList<>(rep.getFiles()));
         copy.setPersistent(rep.isPersistent());
-        copy.setRecordId(rep.getRecordId());
-        copy.setSchema(rep.getSchema());
+        copy.setCloudId(rep.getCloudId());
+        copy.setRepresentationName(rep.getRepresentationName());
         copy.setVersion(rep.getVersion());
         return copy;
     }
@@ -129,10 +129,10 @@ public class InMemoryRecordDAO {
             representations.put(schema, representationVersions);
         }
         Representation rep = new Representation();
-        rep.setRecordId(globalId);
+        rep.setCloudId(globalId);
         rep.setPersistent(false);
         rep.setDataProvider(providerId);
-        rep.setSchema(schema);
+        rep.setRepresentationName(schema);
         rep.setFiles(new ArrayList<File>());
         String version = generateNewVersionNumber(representationVersions, false);
         rep.setVersion(version);

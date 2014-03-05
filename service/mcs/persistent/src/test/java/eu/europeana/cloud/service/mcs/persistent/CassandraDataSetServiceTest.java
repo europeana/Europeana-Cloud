@@ -97,7 +97,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
         // when trying to add assignment - error is expected
-        cassandraDataSetService.addAssignment(providerId, "not-existing", r.getRecordId(), r.getSchema(),
+        cassandraDataSetService.addAssignment(providerId, "not-existing", r.getCloudId(), r.getRepresentationName(),
             r.getVersion());
     }
 
@@ -127,9 +127,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 
         // when representations are assigned to data set
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
             r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
             r2.getVersion());
 
         // then those representations should be returned when listing assignments
@@ -150,13 +150,13 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
             r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
             r2.getVersion());
 
         // when one of the representation is removed from data set
-        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema());
+        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName());
 
         // then only one representation should remain assigned in data set
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
@@ -174,9 +174,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
         Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
             r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getRecordId(), r2.getSchema(),
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
             r2.getVersion());
 
         // when this particular data set is removed
@@ -214,7 +214,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r3 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
         //when assigned representation without specyfying version
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getRecordId(), r1.getSchema(), null);
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(), null);
 
         // then the most recent version should be returned
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
@@ -299,8 +299,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
-        Representation persistRepresentation = cassandraRecordService.persistRepresentation(r.getRecordId(),
-            r.getSchema(), r.getVersion());
+        Representation persistRepresentation = cassandraRecordService.persistRepresentation(r.getCloudId(),
+            r.getRepresentationName(), r.getVersion());
         return persistRepresentation;
     }
 

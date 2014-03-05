@@ -169,13 +169,13 @@ public class ServiceIngestionTool {
 
             Representation represantation = recordService.createRepresentation(cloudId.getId(),
                     schema, providerId);
-            recordService.putContent(cloudId.getId(), represantation.getSchema(),
+            recordService.putContent(cloudId.getId(), represantation.getRepresentationName(),
                     represantation.getVersion(), file, is);
             recordService.persistRepresentation(cloudId.getId(), schema,
                     represantation.getVersion());
 
-            dataSetService.addAssignment(providerId, dataSetId, represantation.getRecordId(),
-                    represantation.getSchema(), represantation.getVersion());
+            dataSetService.addAssignment(providerId, dataSetId, represantation.getCloudId(),
+                    represantation.getRepresentationName(), represantation.getVersion());
 
             is.close();
         }
@@ -192,7 +192,7 @@ public class ServiceIngestionTool {
         for (Representation representation : dataset.getResults()) {
             FileOutputStream os = new FileOutputStream(new java.io.File(
                     directory + "/" + representation.getFiles().get(0).getFileName()));
-            recordService.getContent(representation.getRecordId(), representation.getSchema(),
+            recordService.getContent(representation.getCloudId(), representation.getRepresentationName(),
                     representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
             os.close();
         }
@@ -207,10 +207,10 @@ public class ServiceIngestionTool {
         ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
                 null, Integer.MAX_VALUE);
         for (Representation representation : dataset.getResults()) {
-            recordService.deleteRepresentation(representation.getRecordId(),
-                    representation.getSchema());
-            dataSetService.removeAssignment(providerId, dataSetId, representation.getRecordId(),
-                    representation.getSchema());
+            recordService.deleteRepresentation(representation.getCloudId(),
+                    representation.getRepresentationName());
+            dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
+                    representation.getRepresentationName());
         }
         dataSetService.deleteDataSet(providerId, dataSetId);
     }

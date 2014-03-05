@@ -92,13 +92,13 @@ class URITools {
 
 
     static void enrich(Representation representation, URI baseUri) {
-        representation.setUri(URITools.getVersionUri(baseUri, representation.getRecordId(), representation.getSchema(),
+        representation.setUri(URITools.getVersionUri(baseUri, representation.getCloudId(), representation.getRepresentationName(),
             representation.getVersion()));
-        representation.setAllVersionsUri(URITools.getAllVersionsUri(baseUri, representation.getRecordId(),
-            representation.getSchema()));
+        representation.setAllVersionsUri(URITools.getAllVersionsUri(baseUri, representation.getCloudId(),
+            representation.getRepresentationName()));
         for (File file : representation.getFiles()) {
-            file.setContentUri(URITools.getContentUri(baseUri, representation.getRecordId(),
-                representation.getSchema(), representation.getVersion(), file.getFileName()));
+            file.setContentUri(URITools.getContentUri(baseUri, representation.getCloudId(),
+                representation.getRepresentationName(), representation.getVersion(), file.getFileName()));
         }
     }
 
