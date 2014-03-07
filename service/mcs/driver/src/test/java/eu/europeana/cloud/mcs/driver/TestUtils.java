@@ -21,22 +21,26 @@ public class TestUtils {
         return representation;
     }
 
-    public static void assertCorrectlyCreatedRepresentation(RecordServiceClient instance, URI uri, String providerId, String cloudId, String schema)
+
+    public static void assertCorrectlyCreatedRepresentation(RecordServiceClient instance, URI uri, String providerId,
+            String cloudId, String representationName)
             throws MCSException {
         assertNotNull(uri);
         Representation representationUri = parseRepresentationFromUri(uri);
 
         assertEquals(cloudId, representationUri.getCloudId());
-        assertEquals(schema, representationUri.getRepresentationName());
+        assertEquals(representationName, representationUri.getRepresentationName());
 
         //get representation and check
-        Representation representation = instance.getRepresentation(cloudId, schema, representationUri.getVersion());
+        Representation representation = instance.getRepresentation(cloudId, representationName,
+            representationUri.getVersion());
         assertNotNull(representation);
         assertEquals(cloudId, representation.getCloudId());
-        assertEquals(schema, representation.getRepresentationName());
+        assertEquals(representationName, representation.getRepresentationName());
         assertEquals(providerId, representation.getDataProvider());
         assertEquals(representationUri.getVersion(), representation.getVersion());
     }
+
 
     public static void assertSameFiles(Representation rep1, Representation rep2) {
         List<File> files1 = rep1.getFiles();
@@ -54,7 +58,9 @@ public class TestUtils {
         }
     }
 
-    public static Representation obtainRepresentationFromURI(RecordServiceClient instance, URI uri) throws MCSException {
+
+    public static Representation obtainRepresentationFromURI(RecordServiceClient instance, URI uri)
+            throws MCSException {
         Representation data = parseRepresentationFromUri(uri);
         return instance.getRepresentation(data.getCloudId(), data.getRepresentationName(), data.getVersion());
     }

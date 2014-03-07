@@ -434,13 +434,13 @@ public class DataSetServiceClientTest {
 
 
     private int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId,
-            String schemaId, String versionId)
+            String representationName, String versionId)
             throws MCSException {
         List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
 
         int found = 0;
         for (Representation r : result) {
-            if (r.getRepresentationName().equals(schemaId)) {
+            if (r.getRepresentationName().equals(representationName)) {
                 if (versionId != null) {
                     assertEquals(r.getVersion(), versionId);
                 }

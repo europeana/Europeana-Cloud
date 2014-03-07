@@ -9,7 +9,7 @@ public class RepresentationServiceClient {
     }
 
 
-    public void persistVersion(String cloudId, String schemaId, String versionId) {
+    public void persistVersion(String cloudId, String representationName, String versionId) {
     }
 
 }
