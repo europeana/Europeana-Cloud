@@ -38,7 +38,6 @@ import org.springframework.context.ApplicationContext;
 public class DataSetAssignmentResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
-
     private DataSetService dataSetService;
 
     private RecordService recordService;
@@ -81,16 +80,16 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldReturnErrorWhenRepresentationIsAssignedTwice()
             throws Exception {
         // given that representation is already assigned to set
-        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName(),
-            rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(),
+            rep.getRepresentationName(), rep.getVersion());
 
         // when representation (even in different version) is to be assigned to the same data set
         Representation rep2 = recordService.createRepresentation(rep.getCloudId(), rep.getRepresentationName(),
             rep.getDataProvider());
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep2.getCloudId()).param(F_REPRESENTATIONNAME, rep2.getRepresentationName())
-                .param(F_VER, rep2.getVersion()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep2.getCloudId()).param(F_REPRESENTATIONNAME,
+            rep2.getRepresentationName()).param(F_VER, rep2.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
 
         // then error should be returned
@@ -104,14 +103,15 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldAddAssignmentForLatestVersion()
             throws Exception {
         // given representation and data set in data service
-        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), new File("terefere", "xml",
-                null, null, -1, null), new ByteArrayInputStream("buf".getBytes()));
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), new File("terefere",
+                "xml", null, null, -1, null), new ByteArrayInputStream("buf".getBytes()));
         rep = recordService.persistRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         // when representation is assigned to data set without specifying the version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME, rep.getRepresentationName()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME,
+            rep.getRepresentationName()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
@@ -141,8 +141,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when representation is assigned to data set in specific version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME, rep.getRepresentationName())
-                .param(F_VER, rep.getVersion()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME,
+            rep.getRepresentationName()).param(F_VER, rep.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
@@ -158,8 +158,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     public void shouldRemoveAssignment()
             throws Exception {
         // given assignment in data set
-        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName(),
-            rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(),
+            rep.getRepresentationName(), rep.getVersion());
         assertEquals(1, dataSetService.listDataSet(dataProvider.getId(), dataSet.getId(), null, 10000).getResults()
                 .size());
 

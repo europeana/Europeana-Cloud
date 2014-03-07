@@ -76,7 +76,8 @@ public class RepresentationSearchResource {
      *            Threshold param to indicate result slice
      * @return found representation versions (in slices).
      * @statuscode 400 If no search parameter is provided.
-     * */
+     * 
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<Representation> searchRepresentations( //

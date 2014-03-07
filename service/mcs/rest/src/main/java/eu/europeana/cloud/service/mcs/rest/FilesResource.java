@@ -97,8 +97,9 @@ public class FilesResource {
 
             try {
                 File temp = recordService.getFile(globalId, schema, version, fileName);
-                if (temp != null)
+                if (temp != null) {
                     throw new FileAlreadyExistsException(fileName);
+                }
             } catch (FileNotExistsException e) {
                 //expected exception
             }

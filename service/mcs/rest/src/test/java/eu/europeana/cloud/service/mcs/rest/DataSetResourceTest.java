@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationContext;
 public class DataSetResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
-
     private DataSetService dataSetService;
 
     private RecordService recordService;
@@ -132,7 +131,8 @@ public class DataSetResourceTest extends JerseyTest {
         Representation r1_2 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
         Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
-        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getCloudId(), r1_1.getRepresentationName(), null);
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getCloudId(), r1_1.getRepresentationName(),
+            null);
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getCloudId(), r2_1.getRepresentationName(),
             r2_1.getVersion());
 

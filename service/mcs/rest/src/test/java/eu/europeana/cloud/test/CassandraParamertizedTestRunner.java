@@ -41,8 +41,9 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
 
     @Override
     protected void runChild(FrameworkMethod method, RunNotifier notifier) {
-        if (handleIgnored(method, notifier))
+        if (handleIgnored(method, notifier)) {
             return;
+        }
 
         if (method.getAnnotation(Ignore.class) != null) {
             Description ignoredMethod = parameterisedRunner.describeParameterisedMethod(method);
@@ -63,8 +64,9 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
 
     private boolean handleIgnored(FrameworkMethod method, RunNotifier notifier) {
         TestMethod testMethod = parameterisedRunner.testMethodFor(method);
-        if (testMethod.isIgnored())
+        if (testMethod.isIgnored()) {
             notifier.fireTestIgnored(describeMethod(method));
+        }
 
         return testMethod.isIgnored();
     }
@@ -77,8 +79,9 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
         List<FrameworkMethod> resultMethods = new ArrayList<FrameworkMethod>();
         resultMethods.addAll(parameterisedRunner.returnListOfMethods());
 
-        for (FrameworkMethod method : resultMethods)
+        for (FrameworkMethod method : resultMethods) {
             description.addChild(describeMethod(method));
+        }
 
         return description;
     }
@@ -87,8 +90,9 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
     private Description describeMethod(FrameworkMethod method) {
         Description child = parameterisedRunner.describeParameterisedMethod(method);
 
-        if (child == null)
+        if (child == null) {
             child = describeChild(method);
+        }
 
         return child;
     }
@@ -97,8 +101,9 @@ public class CassandraParamertizedTestRunner extends CassandraTestRunner {
     @Override
     protected Statement methodInvoker(FrameworkMethod method, Object test) {
         Statement methodInvoker = parameterisedRunner.parameterisedMethodInvoker(method, test);
-        if (methodInvoker == null)
+        if (methodInvoker == null) {
             methodInvoker = super.methodInvoker(method, test);
+        }
 
         return methodInvoker;
     }

@@ -109,7 +109,8 @@ public class InMemoryDataSetServiceTest {
         public Representation getRepresentation(String globalId, String schema, String version)
                 throws RepresentationNotExistsException, VersionNotExistsException {
             for (Representation representation : representations) {
-                if (representation.getCloudId().equals(globalId) && representation.getRepresentationName().equals(schema)
+                if (representation.getCloudId().equals(globalId)
+                        && representation.getRepresentationName().equals(schema)
                         && representation.getVersion().equals(version)) {
                     return representation;
                 }

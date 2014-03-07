@@ -120,8 +120,8 @@ public class FilesResourceTest extends JerseyTest {
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
-            contentBos);
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+            insertedFile.getFileName(), contentBos);
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
         assertArrayEquals(content, contentBos.toByteArray());
@@ -152,8 +152,8 @@ public class FilesResourceTest extends JerseyTest {
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
-            contentBos);
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+            insertedFile.getFileName(), contentBos);
         assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
@@ -167,8 +167,8 @@ public class FilesResourceTest extends JerseyTest {
         // given particular (random in this case) content in service
         byte[] content = { 1, 2, 3, 4 };
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file, new ByteArrayInputStream(
-                content));
+        recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
+            new ByteArrayInputStream(content));
 
         byte[] modifiedContent = { 5, 6, 7 };
         ThreadLocalRandom.current().nextBytes(modifiedContent);
@@ -189,8 +189,8 @@ public class FilesResourceTest extends JerseyTest {
 
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), insertedFile.getFileName(),
-            contentBos);
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+            insertedFile.getFileName(), contentBos);
         assertNotSame("MD5 file mismatch", modifiedContentMd5, insertedFile.getMd5());
         assertNotSame(modifiedContent.length, insertedFile.getContentLength());
     }

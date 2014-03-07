@@ -143,7 +143,6 @@ public class InMemoryRecordDAO {
 
     // persistentVersion: \d+
     // tempVersion: \d+[.]PRE-\d+
-
     private String generateNewVersionNumber(List<Representation> versions, boolean persistent) {
         if (versions.isEmpty()) {
             if (persistent) {

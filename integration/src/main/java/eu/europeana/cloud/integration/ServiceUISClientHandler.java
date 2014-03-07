@@ -22,11 +22,13 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
  * @since Jan 21, 2014
  */
 public class ServiceUISClientHandler implements UISClientHandler {
+
     @Autowired
-    private DataProviderService     dataProviderService;
+    private DataProviderService dataProviderService;
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
+
 
     @Override
     public boolean recordExistInUIS(String cloudId) {
@@ -34,12 +36,13 @@ public class ServiceUISClientHandler implements UISClientHandler {
         try {
             List<CloudId> ids = uniqueIdentifierService.getLocalIdsByCloudId(cloudId);
             exists = ids != null && !ids.isEmpty();
-        } catch (DatabaseConnectionException | CloudIdDoesNotExistException
-                | ProviderDoesNotExistException | RecordDatasetEmptyException e) {
+        } catch (DatabaseConnectionException | CloudIdDoesNotExistException | ProviderDoesNotExistException
+                | RecordDatasetEmptyException e) {
             // ignore
         }
         return exists;
     }
+
 
     @Override
     public boolean providerExistsInUIS(String providerId) {

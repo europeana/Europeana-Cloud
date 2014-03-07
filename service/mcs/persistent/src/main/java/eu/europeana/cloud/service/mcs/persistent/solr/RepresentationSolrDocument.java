@@ -86,7 +86,7 @@ public class RepresentationSolrDocument {
 
 
     public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate!=null?creationDate:null;
+        this.creationDate = creationDate != null ? creationDate : null;
     }
 
 
@@ -136,7 +136,7 @@ public class RepresentationSolrDocument {
         this.version = version;
         this.schema = schema;
         this.providerId = providerId;
-        this.creationDate = creationDate!=null?creationDate:null;
+        this.creationDate = creationDate != null ? creationDate : null;
         this.persistent = persistent;
     }
 

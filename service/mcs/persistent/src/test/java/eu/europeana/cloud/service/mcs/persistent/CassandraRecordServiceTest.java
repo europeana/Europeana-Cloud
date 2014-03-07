@@ -316,8 +316,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f, new ByteArrayInputStream(
-                dummyContent));
+        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f,
+            new ByteArrayInputStream(dummyContent));
     }
 
 
@@ -329,7 +329,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
 
         File f = r.getFiles().get(0);
-        cassandraRecordService.deleteContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName());
+        cassandraRecordService
+                .deleteContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName());
     }
 
 
@@ -352,8 +353,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f, new ByteArrayInputStream(
-                dummyContent));
+        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f,
+            new ByteArrayInputStream(dummyContent));
 
         r = cassandraRecordService.getRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
         assertThat(r.getFiles().size(), is(1));
@@ -375,10 +376,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f, new ByteArrayInputStream(
-                dummyContent));
+        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f,
+            new ByteArrayInputStream(dummyContent));
         ByteArrayOutputStream baos = new ByteArrayOutputStream(dummyContent.length);
-        cassandraRecordService.getContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName(), baos);
+        cassandraRecordService.getContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName(),
+            baos);
 
         assertThat(baos.toByteArray(), is(dummyContent));
     }
@@ -394,11 +396,12 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         byte[] dummyContent = { 1, 2, 3 };
         File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f, new ByteArrayInputStream(
-                dummyContent));
+        cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f,
+            new ByteArrayInputStream(dummyContent));
 
         // when
-        cassandraRecordService.deleteContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName());
+        cassandraRecordService
+                .deleteContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName());
 
         // then
         r = cassandraRecordService.getRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
@@ -411,16 +414,17 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         makeUISProviderSuccess();
         Representation r = insertDummyPersistentRepresentation("globalId", "dc", providerId);
-        Representation copy = cassandraRecordService.copyRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
+        Representation copy = cassandraRecordService.copyRepresentation(r.getCloudId(), r.getRepresentationName(),
+            r.getVersion());
 
         assertThat(copy, is(r));
         for (File f : r.getFiles()) {
             ByteArrayOutputStream rContent = new ByteArrayOutputStream();
             ByteArrayOutputStream copyContent = new ByteArrayOutputStream();
-            cassandraRecordService
-                    .getContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f.getFileName(), rContent);
-            cassandraRecordService.getContent(copy.getCloudId(), copy.getRepresentationName(), copy.getVersion(), f.getFileName(),
-                copyContent);
+            cassandraRecordService.getContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(),
+                f.getFileName(), rContent);
+            cassandraRecordService.getContent(copy.getCloudId(), copy.getRepresentationName(), copy.getVersion(),
+                f.getFileName(), copyContent);
             assertThat(rContent.toByteArray(), is(copyContent.toByteArray()));
         }
     }

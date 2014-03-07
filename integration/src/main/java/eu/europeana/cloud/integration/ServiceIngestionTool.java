@@ -34,17 +34,19 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  */
 @Component
 public class ServiceIngestionTool {
-    @Autowired
-    private DataSetService          dataSetService;
 
     @Autowired
-    private RecordService           recordService;
+    private DataSetService dataSetService;
 
     @Autowired
-    private DataProviderService     dataProviderService;
+    private RecordService recordService;
+
+    @Autowired
+    private DataProviderService dataProviderService;
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
+
 
     /**
      * Available operations for this tool.
@@ -53,11 +55,11 @@ public class ServiceIngestionTool {
      * @since Jan 19, 2012
      */
     public enum Operation {
+
         /**
          * ingests data set
          */
-        ingestDataSet(
-                      "Ingests a data set for a given provider-id, dataset-id, schema and directory!"),
+        ingestDataSet("Ingests a data set for a given provider-id, dataset-id, schema and directory!"),
         /**
          * reads data set
          */
@@ -65,13 +67,13 @@ public class ServiceIngestionTool {
         /**
          * deletes data set
          */
-        deleteDataSet(
-                      "Deletes a data set for a given provider-id, dataset-id, schema and directory!");
+        deleteDataSet("Deletes a data set for a given provider-id, dataset-id, schema and directory!");
 
         /**
          * description for option
          */
         private String description;
+
 
         /**
          * Creates a new instance of this class.
@@ -82,6 +84,7 @@ public class ServiceIngestionTool {
             this.description = description;
         }
 
+
         /**
          * @return description for option
          */
@@ -90,59 +93,63 @@ public class ServiceIngestionTool {
         }
     }
 
+
     @Option(name = "-o", aliases = { "--operation" }, required = true)
     private Operation operation;
 
     @Option(name = "-p", aliases = { "--provider" }, usage = "Provider for which a dataset should be ingested")
-    private String    providerId;
+    private String providerId;
 
     @Option(name = "-d", aliases = { "--dataset" }, usage = "Dataset for which the data should be ingested")
-    private String    dataSetId;
+    private String dataSetId;
 
     @Option(name = "-s", aliases = { "--schema" }, usage = "Schema specifying the format of the dataset!")
-    private String    schema;
+    private String schema;
 
     @Option(name = "-f", aliases = { "--file" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
-    private String    directory;
+    private String directory;
+
 
     /**
      * Runs operations for this tool.
      */
     private void run() {
         switch (operation) {
-        case ingestDataSet:
-            try {
-                ingestDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not ingest dataset!", e);
-            }
-            break;
-        case readDataSet:
-            try {
-                readDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not read dataset!", e);
-            }
-            break;
-        case deleteDataSet:
-            try {
-                deleteDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not delete dataset!", e);
-            }
-            break;
+            case ingestDataSet:
+                try {
+                    ingestDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not ingest dataset!", e);
+                }
+                break;
+            case readDataSet:
+                try {
+                    readDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not read dataset!", e);
+                }
+                break;
+            case deleteDataSet:
+                try {
+                    deleteDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not delete dataset!", e);
+                }
+                break;
         }
     }
+
 
     /**
      * Ingestion of a data set.
      * 
      * @throws Exception
      */
-    private void ingestDataSet() throws Exception {
+    private void ingestDataSet()
+            throws Exception {
         try {
-            dataProviderService.createProvider(providerId, new DataProviderProperties(providerId,
-                    "", "", "", "", "", "Ingestion Tool Provide4", ""));
+            dataProviderService.createProvider(providerId, new DataProviderProperties(providerId, "", "", "", "", "",
+                    "Ingestion Tool Provide4", ""));
         } catch (ProviderAlreadyExistsException e) {
             // ignore if provider exists
         }
@@ -155,8 +162,7 @@ public class ServiceIngestionTool {
             // ignore if data set exists
         }
 
-        Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
-                true);
+        Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null, true);
         while (iter.hasNext()) {
             java.io.File input = iter.next();
             FileInputStream is = new FileInputStream(input);
@@ -167,63 +173,64 @@ public class ServiceIngestionTool {
 
             CloudId cloudId = uniqueIdentifierService.createCloudId(providerId, input.getName());
 
-            Representation represantation = recordService.createRepresentation(cloudId.getId(),
-                    schema, providerId);
+            Representation represantation = recordService.createRepresentation(cloudId.getId(), schema, providerId);
             recordService.putContent(cloudId.getId(), represantation.getRepresentationName(),
-                    represantation.getVersion(), file, is);
-            recordService.persistRepresentation(cloudId.getId(), schema,
-                    represantation.getVersion());
+                represantation.getVersion(), file, is);
+            recordService.persistRepresentation(cloudId.getId(), schema, represantation.getVersion());
 
             dataSetService.addAssignment(providerId, dataSetId, represantation.getCloudId(),
-                    represantation.getRepresentationName(), represantation.getVersion());
+                represantation.getRepresentationName(), represantation.getVersion());
 
             is.close();
         }
     }
+
 
     /**
      * Reads a data set to a directory!
      * 
      * @throws Exception
      */
-    private void readDataSet() throws Exception {
-        ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
-                null, Integer.MAX_VALUE);
+    private void readDataSet()
+            throws Exception {
+        ResultSlice<Representation> dataset = dataSetService
+                .listDataSet(providerId, dataSetId, null, Integer.MAX_VALUE);
         for (Representation representation : dataset.getResults()) {
-            FileOutputStream os = new FileOutputStream(new java.io.File(
-                    directory + "/" + representation.getFiles().get(0).getFileName()));
+            FileOutputStream os = new FileOutputStream(new java.io.File(directory + "/"
+                    + representation.getFiles().get(0).getFileName()));
             recordService.getContent(representation.getCloudId(), representation.getRepresentationName(),
-                    representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
+                representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
             os.close();
         }
     }
+
 
     /**
      * Delete a data set!
      * 
      * @throws Exception
      */
-    private void deleteDataSet() throws Exception {
-        ResultSlice<Representation> dataset = dataSetService.listDataSet(providerId, dataSetId,
-                null, Integer.MAX_VALUE);
+    private void deleteDataSet()
+            throws Exception {
+        ResultSlice<Representation> dataset = dataSetService
+                .listDataSet(providerId, dataSetId, null, Integer.MAX_VALUE);
         for (Representation representation : dataset.getResults()) {
-            recordService.deleteRepresentation(representation.getCloudId(),
-                    representation.getRepresentationName());
+            recordService.deleteRepresentation(representation.getCloudId(), representation.getRepresentationName());
             dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
-                    representation.getRepresentationName());
+                representation.getRepresentationName());
         }
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
+
 
     /**
      * @param args
      */
     public static void main(String[] args) {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "inmemoryIngestionToolContext.xml");
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inmemoryIngestionToolContext.xml");
         ServiceIngestionTool tool = context.getBean(ServiceIngestionTool.class);
 
-// IngestionTool tool = new IngestionTool();
+        // IngestionTool tool = new IngestionTool();
         CmdLineParser parser = new CmdLineParser(tool);
         try {
             parser.parseArgument(args);

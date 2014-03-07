@@ -85,7 +85,8 @@ public class InMemoryRecordService implements RecordService {
         Record r = recordDAO.getRecord(globalId);
         for (Representation rep : r.getRepresentations()) {
             try {
-                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getRepresentationName())) {
+                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId,
+                    rep.getRepresentationName())) {
                     for (File f : repVersion.getFiles()) {
                         contentDAO.deleteContent(globalId, repVersion.getRepresentationName(), repVersion.getVersion(),
                             f.getFileName());

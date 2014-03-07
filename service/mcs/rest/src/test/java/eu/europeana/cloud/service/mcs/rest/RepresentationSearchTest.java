@@ -115,8 +115,8 @@ public class RepresentationSearchTest extends JerseyTest {
         // given representations s1_p1, s1_p2, s2_p1
 
         // when searching for schema s1
-        Response searchForSchemaResponse = representationSearchWebTarget.queryParam(ParamConstants.F_REPRESENTATIONNAME, "s1")
-                .request().get();
+        Response searchForSchemaResponse = representationSearchWebTarget
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchForSchemaResponse.getStatus());
         List<Representation> s1Representations = searchForSchemaResponse.readEntity(ResultSlice.class).getResults();
 

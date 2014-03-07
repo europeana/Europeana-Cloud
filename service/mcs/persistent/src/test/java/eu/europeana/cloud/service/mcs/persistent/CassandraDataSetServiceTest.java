@@ -127,10 +127,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 
         // when representations are assigned to data set
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
-            r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
-            r2.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+            r1.getRepresentationName(), r1.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+            r2.getRepresentationName(), r2.getVersion());
 
         // then those representations should be returned when listing assignments
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
@@ -150,13 +150,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
 
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
-            r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
-            r2.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+            r1.getRepresentationName(), r1.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+            r2.getRepresentationName(), r2.getVersion());
 
         // when one of the representation is removed from data set
-        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName());
+        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+            r1.getRepresentationName());
 
         // then only one representation should remain assigned in data set
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
@@ -174,10 +175,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
         Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(),
-            r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(), r2.getRepresentationName(),
-            r2.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+            r1.getRepresentationName(), r1.getVersion());
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+            r2.getRepresentationName(), r2.getVersion());
 
         // when this particular data set is removed
         cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId());
@@ -214,7 +215,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r3 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
 
         //when assigned representation without specyfying version
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(), r1.getRepresentationName(), null);
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+            r1.getRepresentationName(), null);
 
         // then the most recent version should be returned
         List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
