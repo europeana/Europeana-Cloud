@@ -50,24 +50,15 @@ public class UrlProvider {
 	public UrlProvider(final String serviceUrl) {
 		baseUrl = serviceUrl;
 	}
+	
 
 	/**
-	 * Return the host url for the unique identifier service
+	 * Return the base url for the unique identifier service
 	 * 
 	 * @param url
-	 * @return The host url for the service
+	 * @return The base url for the service
 	 */
-	public String getUidUrl(String url) {
-		return baseUrl + "/uniqueId/" + url;
-	}
-
-	/**
-	 * Return the host url for the data providers service
-	 * 
-	 * @param url
-	 * @return The host url for the data providers service
-	 */
-	public String getPidUrl(String url) {
-		return baseUrl + "/uniqueId/data-providers" + url;
+	public String getBaseUrl() {
+		return baseUrl;
 	}
 }
