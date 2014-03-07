@@ -8,6 +8,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -29,6 +30,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
@@ -64,9 +66,6 @@ public class DataProviderResource {
     @Context
     private UriInfo uriInfo;
 
-    private static final String FROM = "from";
-    private static final String TO = "to";
-
 
     /**
      * Gets provider.
@@ -98,7 +97,6 @@ public class DataProviderResource {
         EnrichUriUtil.enrich(uriInfo, provider);
     }
 
-
     /**
      * @param start
      * @param to
@@ -111,8 +109,9 @@ public class DataProviderResource {
     @Path("localIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIdsByProvider(@QueryParam(FROM) String from, @QueryParam(TO) @DefaultValue("10000") int to)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+    public Response getLocalIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    			@QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
+    				throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
         pList.setResults(uniqueIdentifierService.getLocalIdsByProvider(providerId, from, to));
         if (pList.getResults().size() == to) {
@@ -127,8 +126,9 @@ public class DataProviderResource {
     @Path("cloudIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getCloudIdsByProvider(@QueryParam(FROM) String from, @QueryParam(TO) @DefaultValue("10000") int to)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+    public Response getCloudIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    			@QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
+    					throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
         pList.setResults(uniqueIdentifierService.getCloudIdsByProvider(providerId, from, to));
         if (pList.getResults().size() == to) {
@@ -138,10 +138,10 @@ public class DataProviderResource {
     }
 
 
-    @PUT
+    @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    public Response createIdMapping(@QueryParam("localId") String localId)
+    public Response createIdMapping(@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
         if (localId != null) {

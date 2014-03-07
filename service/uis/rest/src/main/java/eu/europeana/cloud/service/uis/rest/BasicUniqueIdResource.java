@@ -19,6 +19,7 @@ import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
@@ -40,8 +41,6 @@ public class BasicUniqueIdResource{
 	@Autowired
 	private UniqueIdentifierService uniqueIdentifierService;
 
-	private static final String PROVIDERID = "providerId";
-	private static final String LOCALID = "localId";
 	private static final String CLOUDID = "cloudId";
 	
 	@PathParam(CLOUDID)
@@ -51,7 +50,7 @@ public class BasicUniqueIdResource{
 	@Path("cloudIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@ReturnType("eu.europeana.cloud.common.model.CloudId")
-	public Response createCloudId(@QueryParam(PROVIDERID) String providerId, @QueryParam(LOCALID) String localId)
+	public Response createCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId, @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
 			throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
 			RecordDatasetEmptyException, CloudIdDoesNotExistException {
 
@@ -63,7 +62,7 @@ public class BasicUniqueIdResource{
 	@Path("cloudIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@ReturnType("eu.europeana.cloud.common.model.CloudId")
-	public Response getCloudId(@QueryParam(PROVIDERID) String providerId, @QueryParam(LOCALID) String recordId)
+	public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId, @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
 			throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
 			RecordDatasetEmptyException {
 		return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
