@@ -12,7 +12,7 @@ interactions:
       Host: localhost:8080
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
-    body: recordId=1DZ6HTS415W&schema=schema77&version=97dd0b70-9a3f-11e3-9690-1c6f653f6012
+    body: cloudId=1DZ6HTS415W&representationName=schema77&version=97dd0b70-9a3f-11e3-9690-1c6f653f6012
   response:
     status: 204
     headers:

@@ -338,8 +338,8 @@ public class DataSetServiceClient {
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         Form form = new Form();
-        form.param(ParamConstants.F_GID, cloudId);
-        form.param(ParamConstants.F_SCHEMA, schemaId);
+        form.param(ParamConstants.F_CLOUDID, cloudId);
+        form.param(ParamConstants.F_REPRESENTATIONNAME, schemaId);
         form.param(ParamConstants.F_VER, versionId);
 
         Response response = target.request().post(
@@ -371,8 +371,8 @@ public class DataSetServiceClient {
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
                 .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
-                .queryParam(ParamConstants.F_GID, cloudId)
-                .queryParam(ParamConstants.F_SCHEMA, schemaId);
+                .queryParam(ParamConstants.F_CLOUDID, cloudId)
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, schemaId);
 
         Response response = target.request().delete();
 

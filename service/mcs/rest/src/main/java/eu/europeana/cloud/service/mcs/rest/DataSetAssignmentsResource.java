@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import static eu.europeana.cloud.common.web.ParamConstants.F_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
@@ -54,11 +54,11 @@ public class DataSetAssignmentsResource {
      * @statuscode 204 object assigned.
      */
     @POST
-    public void addAssignment(@FormParam(F_GID) String recordId, @FormParam(F_SCHEMA) String schema,
+    public void addAssignment(@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
             @FormParam(F_VER) String representationVersion)
             throws DataSetNotExistsException, RepresentationNotExistsException {
-        ParamUtil.require(F_GID, recordId);
-        ParamUtil.require(F_SCHEMA, schema);
+        ParamUtil.require(F_CLOUDID, recordId);
+        ParamUtil.require(F_REPRESENTATIONNAME, schema);
         dataSetService.addAssignment(providerId, dataSetId, recordId, schema, representationVersion);
     }
 
@@ -74,10 +74,10 @@ public class DataSetAssignmentsResource {
      *             no such data set exists
      */
     @DELETE
-    public void removeAssignment(@QueryParam(F_GID) String recordId, @QueryParam(F_SCHEMA) String schema)
+    public void removeAssignment(@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
             throws DataSetNotExistsException {
-        ParamUtil.require(F_GID, recordId);
-        ParamUtil.require(F_SCHEMA, schema);
+        ParamUtil.require(F_CLOUDID, recordId);
+        ParamUtil.require(F_REPRESENTATIONNAME, schema);
         dataSetService.removeAssignment(providerId, dataSetId, recordId, schema);
     }
 }

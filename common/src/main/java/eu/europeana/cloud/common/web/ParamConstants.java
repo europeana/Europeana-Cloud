@@ -48,9 +48,9 @@ public interface ParamConstants {
 
     static final String F_PROVIDER = "providerId";
 
-    static final String F_GID = "recordId";
+    static final String F_CLOUDID = "cloudId";
 
-    static final String F_SCHEMA = "schema";
+    static final String F_REPRESENTATIONNAME = "representationName";
 
     static final String F_VER = "version";
 

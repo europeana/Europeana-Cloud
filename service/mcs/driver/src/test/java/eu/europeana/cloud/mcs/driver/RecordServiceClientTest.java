@@ -36,7 +36,8 @@ public class RecordServiceClientTest {
     //TODO clean
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
-    
+
+
     //getRecord
     @Betamax(tape = "records/getRecordSuccess")
     @Test
@@ -50,6 +51,7 @@ public class RecordServiceClientTest {
         assertEquals(cloudId, record.getCloudId());
     }
 
+
     @Betamax(tape = "records/getRecordNoRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForGetRecord()
@@ -60,6 +62,7 @@ public class RecordServiceClientTest {
         instance.getRecord(cloudId);
     }
 
+
     @Betamax(tape = "records/getRecordInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRecord()
@@ -69,6 +72,7 @@ public class RecordServiceClientTest {
 
         instance.getRecord(cloudId);
     }
+
 
     //deleteRecord
     //this test could be better with Betamax 2.0 ability to hold state (not yet in main maven repository)
@@ -91,6 +95,7 @@ public class RecordServiceClientTest {
 
     }
 
+
     @Betamax(tape = "records/deleteRecordNoRepresentations")
     @Test()
     public void shouldNotComplainAboutDeletingRecordWithNoRepresentations()
@@ -109,6 +114,7 @@ public class RecordServiceClientTest {
         instance.deleteRecord(cloudId);
     }
 
+
     @Betamax(tape = "records/deleteRecordNoRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForDeleteRecord()
@@ -120,6 +126,7 @@ public class RecordServiceClientTest {
         instance.deleteRecord(cloudId);
     }
 
+
     @Betamax(tape = "records/deleteRecordInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForDeleteRecord()
@@ -129,6 +136,7 @@ public class RecordServiceClientTest {
 
         instance.getRecord(cloudId);
     }
+
 
     //getRepresentations(cloudId)
     @Betamax(tape = "records/getRepresentationsSuccess")
@@ -148,6 +156,7 @@ public class RecordServiceClientTest {
         }
     }
 
+
     @Betamax(tape = "records/getRepresentationsNoRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForGetRepresentations()
@@ -158,6 +167,7 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId);
     }
 
+
     @Betamax(tape = "records/getRepresentationsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRepresentations()
@@ -167,6 +177,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentations(cloudId);
     }
+
 
     //getRepresentations(cloudId, schema)
     @Betamax(tape = "records/getRepresentationForSchemaSuccess")
@@ -187,6 +198,7 @@ public class RecordServiceClientTest {
         assertTrue(representation.isPersistent());
     }
 
+
     @Betamax(tape = "records/getRepresentationForSchemaNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationForSchemaWhenNoSchema()
@@ -198,6 +210,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema);
     }
+
 
     @Betamax(tape = "records/getRepresentationForSchemaNoPersistent")
     @Test(expected = RepresentationNotExistsException.class)
@@ -211,6 +224,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema);
     }
 
+
     @Betamax(tape = "records/getRepresentationForSchemaInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRepresentationForSchema()
@@ -221,6 +235,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema);
     }
+
 
     //create representation
     @Betamax(tape = "records/createRepresentationSuccess")
@@ -238,6 +253,7 @@ public class RecordServiceClientTest {
 
     }
 
+
     @Betamax(tape = "records/createRepresentationRecordNotExists")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForCreateRepresentation()
@@ -250,6 +266,7 @@ public class RecordServiceClientTest {
 
         instance.createRepresentation(cloudId, schema, providerId);
     }
+
 
     @Betamax(tape = "records/createRepresentationSchemaNotExists")
     @Test
@@ -274,6 +291,7 @@ public class RecordServiceClientTest {
         TestUtils.assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, schema);
     }
 
+
     @Betamax(tape = "records/createRepresentationNoProvider")
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowProviderNotExistsForCreateRepresentation()
@@ -286,6 +304,7 @@ public class RecordServiceClientTest {
         instance.createRepresentation(cloudId, schema, providerId);
     }
 
+
     @Betamax(tape = "records/createRepresentationInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateRepresentation()
@@ -297,6 +316,7 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         instance.createRepresentation(cloudId, schema, providerId);
     }
+
 
     //deleteRepresentation(cloudId, schema) - deleting schema
     @Betamax(tape = "records/deleteSchemaSuccess")
@@ -320,6 +340,7 @@ public class RecordServiceClientTest {
         assertTrue(noSchema);
     }
 
+
     @Betamax(tape = "records/deleteSchemaNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteSchemaWhenNoSchema()
@@ -330,6 +351,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRepresentation(cloudId, schema);
     }
+
 
     @Betamax(tape = "records/deleteSchemaNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
@@ -342,6 +364,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema);
     }
 
+
     @Betamax(tape = "records/deleteSchemaInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteSchema()
@@ -353,6 +376,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRepresentation(cloudId, schema);
     }
+
 
     //getRepresentations(cloudId, schema)
     @Betamax(tape = "records/getSchemaVersionsSuccess")
@@ -373,6 +397,7 @@ public class RecordServiceClientTest {
         }
     }
 
+
     @Betamax(tape = "records/getSchemaVersionsNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetSchemaVersionsWhenNoSchema()
@@ -383,6 +408,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentations(cloudId, schema);
     }
+
 
     @Betamax(tape = "records/getSchemaVersionsNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
@@ -395,6 +421,7 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId, schema);
     }
 
+
     @Betamax(tape = "records/getSchemaVersionsInternalServerError")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetSchemaVersions()
@@ -406,6 +433,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRepresentation(cloudId, schema);
     }
+
 
     //getRepresentation(cloudId, schema, version)
     @Betamax(tape = "records/getRepresentationSuccess")
@@ -425,6 +453,7 @@ public class RecordServiceClientTest {
         assertEquals(schema, representation.getRepresentationName());
         assertEquals(version, representation.getVersion());
     }
+
 
     //@Betamax(tape = "records/getRepresentationLatestSuccess")
     @Ignore
@@ -451,7 +480,8 @@ public class RecordServiceClientTest {
         //TODO WTF
         //assertEquals(representationLatest, representation);
     }
-    
+
+
     @Betamax(tape = "records/shouldTreatLatestPersistentVersionAsLatestCreated")
     @Test
     public void shouldTreatLatestPersistentVersionAsLatestCreated()
@@ -482,6 +512,7 @@ public class RecordServiceClientTest {
         assertEquals(representation.getVersion(), versionB);
     }
 
+
     @Betamax(tape = "records/getRepresentationVersionNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRecord()
@@ -494,6 +525,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema, version);
     }
 
+
     @Betamax(tape = "records/getRepresentationVersionNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoSchema()
@@ -505,6 +537,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema, version);
     }
+
 
     @Betamax(tape = "records/getRepresentationVersionNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
@@ -519,6 +552,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema, version);
     }
 
+
     @Betamax(tape = "records/getRepresentationVersionInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationVersionWhenInvalidVersion()
@@ -532,6 +566,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, schema, version);
     }
 
+
     //for example when Cassandra is not working
     @Betamax(tape = "records/getRepresentationVersionInternalServerError")
     @Test(expected = DriverException.class)
@@ -544,6 +579,7 @@ public class RecordServiceClientTest {
 
         instance.getRepresentation(cloudId, schema, version);
     }
+
 
     //deleteRepresentation(cloudId, schema, version)
     @Betamax(tape = "records/deleteRepresentationVersionSuccess")
@@ -567,6 +603,7 @@ public class RecordServiceClientTest {
         assertTrue(noVersion);
     }
 
+
     @Betamax(tape = "records/deleteRepresentationVersionNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRecord()
@@ -579,6 +616,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
+
     @Betamax(tape = "records/deleteRepresentationVersionNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoSchema()
@@ -590,6 +628,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRepresentation(cloudId, schema, version);
     }
+
 
     @Betamax(tape = "records/deleteRepresentationVersionNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
@@ -604,6 +643,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
+
     @Betamax(tape = "records/deleteRepresentationVersionInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteRepresentationVersionWhenInvalidVersion()
@@ -617,6 +657,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, schema, version);
     }
 
+
     //for example when Cassandra is not working
     @Betamax(tape = "records/deleteRepresentationVersionInternalServerError")
     @Test(expected = DriverException.class)
@@ -629,6 +670,7 @@ public class RecordServiceClientTest {
 
         instance.deleteRepresentation(cloudId, schema, version);
     }
+
 
     @Betamax(tape = "records/deleteRepresentationVersionCannotModifyPersistent")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
@@ -651,6 +693,7 @@ public class RecordServiceClientTest {
         //try to delete
         instance.deleteRepresentation(cloudId, schema, version);
     }
+
 
     //copyRepresentation
     @Betamax(tape = "records/shouldCopyNonPersistentRepresentation")
@@ -686,6 +729,7 @@ public class RecordServiceClientTest {
 
     }
 
+
     @Betamax(tape = "records/shouldCopyPersistentRepresentation")
     @Test
     public void shouldCopyPersistentRepresentation()
@@ -700,7 +744,7 @@ public class RecordServiceClientTest {
 
         //make a copy
         URI targetURI = instance.copyRepresentation(cloudId, schema, sourceVersion);
-        
+
         //check URI
         assertNotNull(targetURI);
         //get copying result
@@ -719,7 +763,6 @@ public class RecordServiceClientTest {
     }
 
 
-
     @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord()
@@ -731,6 +774,7 @@ public class RecordServiceClientTest {
 
         instance.copyRepresentation(cloudId, schema, version);
     }
+
 
     @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoSchema")
     @Test(expected = RepresentationNotExistsException.class)
@@ -744,7 +788,8 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, schema, version);
     }
 
-     @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion")
+
+    @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
@@ -756,6 +801,7 @@ public class RecordServiceClientTest {
 
         instance.copyRepresentation(cloudId, schema, version);
     }
+
 
     @Betamax(tape = "records/shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion")
     @Test(expected = DriverException.class)
@@ -770,6 +816,7 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, schema, version);
     }
 
+
     //for example when Cassandra is not working
     @Betamax(tape = "records/shouldThrowDriverExceptionForCopyRepresentationVersion")
     @Test(expected = DriverException.class)
@@ -783,8 +830,7 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, schema, version);
     }
 
-    
-    
+
     //persistRepresentation
     //@Betamax(tape = "records/persistRepresentationSuccess") //TODO record when uploading is ok
     @Ignore
@@ -816,6 +862,7 @@ public class RecordServiceClientTest {
         assertNotNull(uriResult);
         assertEquals(uri.toString(), uriResult.toString());
     }
+
 
     //TODO
     @Ignore

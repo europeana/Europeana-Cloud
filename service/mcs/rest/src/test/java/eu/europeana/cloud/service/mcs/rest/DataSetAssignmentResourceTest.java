@@ -5,8 +5,8 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import static eu.europeana.cloud.common.web.ParamConstants.F_GID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
@@ -89,7 +89,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
             rep.getDataProvider());
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep2.getCloudId()).param(F_SCHEMA, rep2.getRepresentationName())
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep2.getCloudId()).param(F_REPRESENTATIONNAME, rep2.getRepresentationName())
                 .param(F_VER, rep2.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
 
@@ -111,7 +111,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when representation is assigned to data set without specifying the version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getCloudId()).param(F_SCHEMA, rep.getRepresentationName()));
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME, rep.getRepresentationName()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
 
@@ -141,7 +141,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when representation is assigned to data set in specific version
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Entity<Form> assinmentForm = Entity.form(new Form(F_GID, rep.getCloudId()).param(F_SCHEMA, rep.getRepresentationName())
+        Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep.getCloudId()).param(F_REPRESENTATIONNAME, rep.getRepresentationName())
                 .param(F_VER, rep.getVersion()));
         Response addAssignmentResponse = dataSetAssignmentWebTarget.request().post(assinmentForm);
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), addAssignmentResponse.getStatus());
@@ -166,8 +166,8 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
         // when assignment is deleted
         dataSetAssignmentWebTarget = dataSetAssignmentWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId())
                 .resolveTemplate(P_DATASET, dataSet.getId());
-        Response deleteAssignmentResponse = dataSetAssignmentWebTarget.queryParam(F_GID, rep.getCloudId())
-                .queryParam(F_SCHEMA, rep.getRepresentationName()).request().delete();
+        Response deleteAssignmentResponse = dataSetAssignmentWebTarget.queryParam(F_CLOUDID, rep.getCloudId())
+                .queryParam(F_REPRESENTATIONNAME, rep.getRepresentationName()).request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteAssignmentResponse.getStatus());
 
         // then there should be no representation in data set
