@@ -816,23 +816,20 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records/shoudThrowCannotPersistEmptyRepresentationExceptionForPersistRepresentationWithoutFiles")
+    @Betamax(tape = "records/shouldNotPersistEmptyRepresentation")
     @Test(expected = CannotPersistEmptyRepresentationException.class)
-    public void shoudThrowCannotPersistEmptyRepresentationExceptionForPersistRepresentationWithoutFiles()
+    public void shouldNotPersistEmptyRepresentation()
             throws MCSException, IOException {
-        String providerId = "ProviderA";
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
+        String providerId = "Provider001";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema33";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
-        FileServiceClient fileService = new FileServiceClient(baseUrl);
+
         //create new representation version
         URI uri = instance.createRepresentation(cloudId, schema, providerId);
         //obtain the version
         String version = TestUtils.parseRepresentationFromUri(uri).getVersion();
-
+        //try to persist
         instance.persistRepresentation(cloudId, schema, version);
     }
 
