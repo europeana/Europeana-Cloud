@@ -1,10 +1,10 @@
 !tape
-name: records_shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord
+name: records_shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord
 interactions:
-- recorded: 2014-03-04T10:15:40.453Z
+- recorded: 2014-03-10T09:52:51.945Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/copy
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema33/versions/fece3cb0-a5fb-11e3-b4a7-50e549e85271/persist
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '0'
@@ -16,6 +16,6 @@ interactions:
     status: 404
     headers:
       Content-Type: application/xml
-      Date: Tue, 04 Mar 2014 10:15:40 GMT
+      Date: Mon, 10 Mar 2014 09:52:51 GMT
       Server: Apache-Coyote/1.1
     body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>

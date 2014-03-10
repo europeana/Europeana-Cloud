@@ -36,7 +36,7 @@ public class RecordServiceClientTest {
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
 
     //getRecord
-    @Betamax(tape = "records/getRecordSuccess")
+    @Betamax(tape = "records_shouldRetrieveRecord")
     @Test
     public void shouldRetrieveRecord()
             throws MCSException {
@@ -48,7 +48,7 @@ public class RecordServiceClientTest {
         assertEquals(cloudId, record.getCloudId());
     }
 
-    @Betamax(tape = "records/getRecordNoRecord")
+    @Betamax(tape = "records_shouldThrowRecordNotExistsForGetRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForGetRecord()
             throws MCSException {
@@ -58,7 +58,7 @@ public class RecordServiceClientTest {
         instance.getRecord(cloudId);
     }
 
-    @Betamax(tape = "records/getRecordInternalServerError")
+    @Betamax(tape = "records_shouldThrowInternalServerErrorForGetRecord")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRecord()
             throws MCSException {
@@ -70,7 +70,7 @@ public class RecordServiceClientTest {
 
     //deleteRecord
     //this test could be better with Betamax 2.0 ability to hold state (not yet in main maven repository)
-    @Betamax(tape = "records/deleteRecordSuccess")
+    @Betamax(tape = "records_shouldDeleteRecord")
     @Test
     public void shouldDeleteRecord()
             throws MCSException {
@@ -89,7 +89,7 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records/deleteRecordNoRepresentations")
+    @Betamax(tape = "records_shouldNotComplainAboutDeletingRecordWithNoRepresentations")
     @Test()
     public void shouldNotComplainAboutDeletingRecordWithNoRepresentations()
             throws MCSException {
@@ -107,7 +107,7 @@ public class RecordServiceClientTest {
         instance.deleteRecord(cloudId);
     }
 
-    @Betamax(tape = "records/deleteRecordNoRecord")
+    @Betamax(tape = "records_shouldThrowRecordNotExistsForDeleteRecord")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForDeleteRecord()
             throws MCSException {
@@ -118,7 +118,7 @@ public class RecordServiceClientTest {
         instance.deleteRecord(cloudId);
     }
 
-    @Betamax(tape = "records/deleteRecordInternalServerError")
+    @Betamax(tape = "records_shouldThrowInternalServerErrorForDeleteRecord")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForDeleteRecord()
             throws MCSException {
@@ -129,7 +129,7 @@ public class RecordServiceClientTest {
     }
 
     //getRepresentations(cloudId)
-    @Betamax(tape = "records/getRepresentationsSuccess")
+    @Betamax(tape = "records_shouldRetrieveRepresentations")
     @Test
     public void shouldRetrieveRepresentations()
             throws MCSException {
@@ -146,7 +146,7 @@ public class RecordServiceClientTest {
         }
     }
 
-    @Betamax(tape = "records/getRepresentationsNoRecord")
+    @Betamax(tape = "records_shouldThrowRecordNotExistsForGetRepresentations")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForGetRepresentations()
             throws MCSException {
@@ -156,7 +156,7 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId);
     }
 
-    @Betamax(tape = "records/getRepresentationsInternalServerError")
+    @Betamax(tape = "records_shouldThrowInternalServerErrorForGetRepresentations")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRepresentations()
             throws MCSException {
@@ -167,7 +167,7 @@ public class RecordServiceClientTest {
     }
 
     //getRepresentations(cloudId, representationName)
-    @Betamax(tape = "records/getRepresentationForSchemaSuccess")
+    @Betamax(tape = "records_shouldRetrieveLastPersistentRepresentationForRepresentationName")
     @Test
     public void shouldRetrieveLastPersistentRepresentationForRepresentationName()
             throws MCSException {
@@ -185,7 +185,7 @@ public class RecordServiceClientTest {
         assertTrue(representation.isPersistent());
     }
 
-    @Betamax(tape = "records/getRepresentationForSchemaNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationForRepresentationNameWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationForRepresentationNameWhenNoRepresentationName()
             throws MCSException {
@@ -197,7 +197,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/getRepresentationForSchemaNoPersistent")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationForRepresentationNameWhenNoPersistent")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationForRepresentationNameWhenNoPersistent()
             throws MCSException {
@@ -209,7 +209,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/getRepresentationForSchemaInternalServerError")
+    @Betamax(tape = "records_shouldThrowInternalServerErrorForGetRepresentationForRepresentationName")
     @Test(expected = DriverException.class)
     public void shouldThrowInternalServerErrorForGetRepresentationForRepresentationName()
             throws MCSException {
@@ -221,7 +221,7 @@ public class RecordServiceClientTest {
     }
 
     //create representation
-    @Betamax(tape = "records/createRepresentationSuccess")
+    @Betamax(tape = "records_shouldCreateRepresentation")
     @Test
     public void shouldCreateRepresentation()
             throws MCSException {
@@ -236,7 +236,7 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records/createRepresentationRecordNotExists")
+    @Betamax(tape = "records_shouldThrowRecordNotExistsForCreateRepresentation")
     @Test(expected = RecordNotExistsException.class)
     public void shouldThrowRecordNotExistsForCreateRepresentation()
             throws MCSException {
@@ -249,7 +249,7 @@ public class RecordServiceClientTest {
         instance.createRepresentation(cloudId, representationName, providerId);
     }
 
-    @Betamax(tape = "records/createRepresentationSchemaNotExists")
+    @Betamax(tape = "records_shouldCreateNewSchemaWhenNotExists")
     @Test
     public void shouldCreateNewSchemaWhenNotExists()
             throws MCSException {
@@ -272,7 +272,7 @@ public class RecordServiceClientTest {
         TestUtils.assertCorrectlyCreatedRepresentation(instance, uri, providerId, cloudId, representationName);
     }
 
-    @Betamax(tape = "records/createRepresentationNoProvider")
+    @Betamax(tape = "records_shouldThrowProviderNotExistsForCreateRepresentation")
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowProviderNotExistsForCreateRepresentation()
             throws MCSException {
@@ -284,7 +284,7 @@ public class RecordServiceClientTest {
         instance.createRepresentation(cloudId, representationName, providerId);
     }
 
-    @Betamax(tape = "records/createRepresentationInternalServerError")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForCreateRepresentation")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateRepresentation()
             throws Exception {
@@ -297,7 +297,7 @@ public class RecordServiceClientTest {
     }
 
     //deleteRepresentation(cloudId, representationName) - deleting representation name
-    @Betamax(tape = "records/deleteSchemaSuccess")
+    @Betamax(tape = "records_shouldDeleteRepresentationName")
     @Test
     public void shouldDeleteRepresentationName()
             throws MCSException {
@@ -318,7 +318,7 @@ public class RecordServiceClientTest {
         assertTrue(noRepresentationName);
     }
 
-    @Betamax(tape = "records/deleteSchemaNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRepresentationNameWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationNameWhenNoRepresentationName()
             throws MCSException {
@@ -329,7 +329,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/deleteSchemaNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRepresentationNameWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationNameWhenNoRecord()
             throws MCSException {
@@ -340,7 +340,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/deleteSchemaInternalServerError")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForDeleteRepresentationName")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteRepresentationName()
             throws Exception {
@@ -353,7 +353,7 @@ public class RecordServiceClientTest {
     }
 
     //getRepresentations(cloudId, representationName)
-    @Betamax(tape = "records/getSchemaVersionsSuccess")
+    @Betamax(tape = "records_shouldRetrieveSchemaVersions")
     @Test
     public void shouldRetrieveSchemaVersions()
             throws RepresentationNotExistsException, MCSException {
@@ -371,7 +371,7 @@ public class RecordServiceClientTest {
         }
     }
 
-    @Betamax(tape = "records/getSchemaVersionsNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationNameVersionsWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationNameVersionsWhenNoRepresentationName()
             throws MCSException {
@@ -382,7 +382,7 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/getSchemaVersionsNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationNameVersionsWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationNameVersionsWhenNoRecord()
             throws MCSException {
@@ -393,7 +393,7 @@ public class RecordServiceClientTest {
         instance.getRepresentations(cloudId, representationName);
     }
 
-    @Betamax(tape = "records/getSchemaVersionsInternalServerError")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForGetSchemaVersions")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetSchemaVersions()
             throws Exception {
@@ -406,7 +406,7 @@ public class RecordServiceClientTest {
     }
 
     //getRepresentation(cloudId, representationName, version)
-    @Betamax(tape = "records/getRepresentationSuccess")
+    @Betamax(tape = "records_shouldRetrieveRepresentationVersion")
     @Test
     public void shouldRetrieveRepresentationVersion()
             throws MCSException {
@@ -424,7 +424,7 @@ public class RecordServiceClientTest {
         assertEquals(version, representation.getVersion());
     }
 
-    //@Betamax(tape = "records/shouldRetrieveLatestRepresentationVersion")
+    //@Betamax(tape = "records_shouldRetrieveLatestRepresentationVersion")
     @Ignore
     @Test
     public void shouldRetrieveLatestRepresentationVersion()
@@ -449,7 +449,7 @@ public class RecordServiceClientTest {
         //assertEquals(representationLatest, representation);
     }
 
-    @Betamax(tape = "records/shouldTreatLatestPersistentVersionAsLatestCreated")
+    @Betamax(tape = "records_shouldTreatLatestPersistentVersionAsLatestCreated")
     @Test
     public void shouldTreatLatestPersistentVersionAsLatestCreated()
             throws MCSException, IOException {
@@ -479,7 +479,7 @@ public class RecordServiceClientTest {
         assertEquals(representation.getVersion(), versionB);
     }
 
-    @Betamax(tape = "records/getRepresentationVersionNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRecord()
             throws MCSException {
@@ -491,7 +491,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/getRepresentationVersionNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoRepresentationName()
             throws MCSException {
@@ -503,7 +503,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/getRepresentationVersionNoSuchVersion")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForGetRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
@@ -516,7 +516,7 @@ public class RecordServiceClientTest {
         instance.getRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/getRepresentationVersionInvalidVersion")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForGetRepresentationVersionWhenInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationVersionWhenInvalidVersion()
             throws MCSException {
@@ -530,7 +530,7 @@ public class RecordServiceClientTest {
     }
 
     //for example when Cassandra is not working
-    @Betamax(tape = "records/getRepresentationVersionInternalServerError")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForGetRepresentationVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationVersion()
             throws MCSException {
@@ -543,7 +543,7 @@ public class RecordServiceClientTest {
     }
 
     //deleteRepresentation(cloudId, representationName, version)
-    @Betamax(tape = "records/deleteRepresentationVersionSuccess")
+    @Betamax(tape = "records_shouldDeleteRepresentationVersion")
     @Test
     public void shouldDeleteRepresentationVersion()
             throws MCSException {
@@ -564,7 +564,7 @@ public class RecordServiceClientTest {
         assertTrue(noVersion);
     }
 
-    @Betamax(tape = "records/deleteRepresentationVersionNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRecord()
             throws MCSException {
@@ -576,7 +576,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/deleteRepresentationVersionNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoRepresentationName()
             throws MCSException {
@@ -588,7 +588,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/deleteRepresentationVersionNoSuchVersion")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
@@ -601,7 +601,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/deleteRepresentationVersionInvalidVersion")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForDeleteRepresentationVersionWhenInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteRepresentationVersionWhenInvalidVersion()
             throws MCSException {
@@ -615,7 +615,7 @@ public class RecordServiceClientTest {
     }
 
     //for example when Cassandra is not working
-    @Betamax(tape = "records/deleteRepresentationVersionInternalServerError")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForDeleteRepresentationVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteRepresentationVersion()
             throws MCSException {
@@ -627,7 +627,7 @@ public class RecordServiceClientTest {
         instance.deleteRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/deleteRepresentationVersionCannotModifyPersistent")
+    @Betamax(tape = "records_shouldNotAllowToDeletePersistenRepresentation")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotAllowToDeletePersistenRepresentation()
             throws MCSException {
@@ -650,7 +650,7 @@ public class RecordServiceClientTest {
     }
 
     //copyRepresentation
-    @Betamax(tape = "records/shouldCopyNonPersistentRepresentation")
+    @Betamax(tape = "records_shouldCopyNonPersistentRepresentation")
     @Test
     public void shouldCopyNonPersistentRepresentation()
             throws MCSException, IOException {
@@ -683,7 +683,7 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records/shouldCopyPersistentRepresentation")
+    @Betamax(tape = "records_shouldCopyPersistentRepresentation")
     @Test
     public void shouldCopyPersistentRepresentation()
             throws MCSException, IOException {
@@ -715,7 +715,7 @@ public class RecordServiceClientTest {
         TestUtils.assertSameFiles(targetRepresentation, sourceRepresentation);
     }
 
-    @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord()
             throws MCSException {
@@ -727,7 +727,7 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoSchema")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRepresentationName()
             throws MCSException {
@@ -739,7 +739,7 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion()
             throws MCSException {
@@ -752,7 +752,7 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion()
             throws MCSException {
@@ -766,7 +766,7 @@ public class RecordServiceClientTest {
     }
 
     //for example when Cassandra is not working
-    @Betamax(tape = "records/shouldThrowDriverExceptionForCopyRepresentationVersion")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForCopyRepresentationVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCopyRepresentationVersion()
             throws MCSException {
@@ -779,7 +779,7 @@ public class RecordServiceClientTest {
     }
 
     //persistRepresentation
-    @Betamax(tape = "records/shouldPersistAfterAddingFiles")
+    @Betamax(tape = "records_shouldPersistAfterAddingFiles")
     @Test
     public void shouldPersistAfterAddingFiles()
             throws MCSException, IOException {
@@ -812,7 +812,7 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records/shouldNotPersistEmptyRepresentation")
+    @Betamax(tape = "records_shouldNotPersistEmptyRepresentation")
     @Test(expected = CannotPersistEmptyRepresentationException.class)
     public void shouldNotPersistEmptyRepresentation()
             throws MCSException, IOException {
@@ -829,7 +829,7 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shouldNotPersistRepresentationAgain")
+    @Betamax(tape = "records_shouldNotPersistRepresentationAgain")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotPersistRepresentationAgain()
             throws MCSException, IOException {
@@ -847,9 +847,9 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord()
+    public void shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord()
             throws MCSException, IOException {
         String cloudId = "noSuchRecord";
         String representationName = "schema33";
@@ -860,9 +860,9 @@ public class RecordServiceClientTest {
     }
 
     @Betamax(
-            tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName")
+            tape = "records_shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName()
+    public void shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName()
             throws MCSException, IOException {
         String cloudId = "J93T5R6615H";
         String representationName = "noSuchSchema";
@@ -872,9 +872,9 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, representationName, version);
     }
 
-    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion")
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion()
+    public void shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion()
             throws MCSException, IOException {
         String cloudId = "J93T5R6615H";
         String representationName = "schema33";
@@ -884,7 +884,7 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, representationName, version);
     }
     
-    @Betamax(tape = "records/shouldThrowDriverExceptionForPersistRepresentationVersionWhenInvalidVersion")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForPersistRepresentationVersionWhenInvalidVersion")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForPersistRepresentationVersionWhenInvalidVersion()
             throws MCSException, IOException {
@@ -898,9 +898,9 @@ public class RecordServiceClientTest {
     
 
     //for example when Cassandra is not working
-    @Betamax(tape = "records/shoudThrowDriverExceptionForPersistRepresentation")
+    @Betamax(tape = "records_shouldThrowDriverExceptionForPersistRepresentation")
     @Test(expected = DriverException.class)
-    public void shoudThrowDriverExceptionForPersistRepresentation()
+    public void shouldThrowDriverExceptionForPersistRepresentation()
             throws MCSException, IOException {
         String cloudId = "7MZWQJF8P84";
         String representationName = "schema_000001";

@@ -1,5 +1,5 @@
 !tape
-name: records/shouldTreatLatestPersistentVersionAsLatestCreated
+name: records_shouldTreatLatestPersistentVersionAsLatestCreated
 interactions:
 - recorded: 2014-03-04T10:04:11.813Z
   request:

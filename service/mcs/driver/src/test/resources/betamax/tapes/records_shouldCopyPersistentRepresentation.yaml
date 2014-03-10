@@ -1,5 +1,5 @@
 !tape
-name: records/shouldCopyPersistentRepresentation
+name: records_shouldCopyPersistentRepresentation
 interactions:
 - recorded: 2014-03-04T10:00:57.534Z
   request:

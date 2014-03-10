@@ -1,5 +1,5 @@
 !tape
-name: records/shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion
+name: records_shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion
 interactions:
 - recorded: 2014-03-04T10:16:51.132Z
   request:

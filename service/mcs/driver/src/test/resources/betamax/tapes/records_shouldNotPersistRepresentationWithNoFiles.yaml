@@ -1,5 +1,5 @@
 !tape
-name: records/shouldNotPersistRepresentationWithNoFiles
+name: records_shouldNotPersistRepresentationWithNoFiles
 interactions:
 - recorded: 2014-03-04T15:05:19.236Z
   request:

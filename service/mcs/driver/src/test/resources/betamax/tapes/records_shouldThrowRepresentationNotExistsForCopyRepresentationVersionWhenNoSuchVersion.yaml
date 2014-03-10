@@ -1,5 +1,5 @@
 !tape
-name: records/shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion
+name: records_shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion
 interactions:
 - recorded: 2014-03-04T10:16:22.747Z
   request:

@@ -1,5 +1,5 @@
 !tape
-name: records/shouldPersistRepresentation
+name: records_shouldPersistRepresentation
 interactions:
 - recorded: 2014-03-04T15:03:07.981Z
   request:
