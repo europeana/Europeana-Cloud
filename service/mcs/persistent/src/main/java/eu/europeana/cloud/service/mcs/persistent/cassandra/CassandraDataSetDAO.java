@@ -363,8 +363,8 @@ public class CassandraDataSetDAO {
 
     private Representation mapRowToRepresentationStub(Row row) {
         Representation representation = new Representation();
-        representation.setRecordId(row.getString("cloud_id"));
-        representation.setSchema(row.getString("schema_id"));
+        representation.setCloudId(row.getString("cloud_id"));
+        representation.setRepresentationName(row.getString("schema_id"));
         UUID verisonId = row.getUUID("version_id");
         if (verisonId != null) {
             representation.setVersion(verisonId.toString());

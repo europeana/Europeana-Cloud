@@ -1,0 +1,21 @@
+!tape
+name: records/shouldThrowDriverExceptionForCopyRepresentationVersionWhenInvalidVersion
+interactions:
+- recorded: 2014-03-04T10:16:51.132Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/noSuchVersion/copy
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '0'
+      Content-Type: application/x-www-form-urlencoded
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 500
+    headers:
+      Content-Type: application/xml
+      Date: Tue, 04 Mar 2014 10:16:50 GMT
+      Server: Apache-Coyote/1.1
+    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Invalid UUID string: noSuchVersion</details><errorCode>OTHER</errorCode></errorInfo>'

@@ -6,6 +6,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotModifyPersistentRepresentationExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotPersistEmptyRepresentationExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetAlreadyExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.DataSetNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.FileAlreadyExistsExceptionMapper;
@@ -38,6 +39,7 @@ public class JerseyConfig extends ResourceConfig {
 
         // exception mappers
         register(CannotModifyPersistentRepresentationExceptionMapper.class);
+        register(CannotPersistEmptyRepresentationExceptionMapper.class);
         register(DataSetAlreadyExistsExceptionMapper.class);
         register(DataSetNotExistsExceptionMapper.class);
         register(FileAlreadyExistsExceptionMapper.class);

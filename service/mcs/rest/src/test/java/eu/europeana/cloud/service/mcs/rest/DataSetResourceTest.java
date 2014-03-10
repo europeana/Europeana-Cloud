@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationContext;
 public class DataSetResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
-
     private DataSetService dataSetService;
 
     private RecordService recordService;
@@ -132,8 +131,9 @@ public class DataSetResourceTest extends JerseyTest {
         Representation r1_2 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
         Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
-        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getRecordId(), r1_1.getSchema(), null);
-        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getRecordId(), r2_1.getSchema(),
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getCloudId(), r1_1.getRepresentationName(),
+            null);
+        dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getCloudId(), r2_1.getRepresentationName(),
             r2_1.getVersion());
 
         // when you list dataset contents
@@ -146,7 +146,7 @@ public class DataSetResourceTest extends JerseyTest {
         // then you should get assigned records in specified versions or latest (depending on assigmnents)
         assertEquals(2, dataSetContents.size());
         Representation r1FromDataset, r2FromDataset;
-        if (dataSetContents.get(0).getRecordId().equals(r1_1.getRecordId())) {
+        if (dataSetContents.get(0).getCloudId().equals(r1_1.getCloudId())) {
             r1FromDataset = dataSetContents.get(0);
             r2FromDataset = dataSetContents.get(1);
         } else {
@@ -165,6 +165,6 @@ public class DataSetResourceTest extends JerseyTest {
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 
-        return recordService.persistRepresentation(r.getRecordId(), r.getSchema(), r.getVersion());
+        return recordService.persistRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
     }
 }

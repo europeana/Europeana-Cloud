@@ -84,19 +84,23 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public void deleteRecord(String cloudId)
-            throws RecordNotExistsException {
+            throws RecordNotExistsException, RepresentationNotExistsException {
         if (uis.recordExistInUIS(cloudId)) {
             List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
+            if (allRecordRepresentationsInAllVersions.isEmpty()) {
+                throw new RepresentationNotExistsException(String.format(
+                    "No representation found for given cloudId %s", cloudId));
+            }
             representationIndexer.removeRecordRepresentations(cloudId);
             for (Representation repVersion : allRecordRepresentationsInAllVersions) {
                 for (File f : repVersion.getFiles()) {
                     try {
-                        contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getSchema(),
+                        contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getRepresentationName(),
                             repVersion.getVersion(), f.getFileName()));
                     } catch (FileNotExistsException ex) {
                         LOGGER.warn(
                             "File {} was found in representation {}-{}-{} but no content of such file was found",
-                            f.getFileName(), cloudId, repVersion.getSchema(), repVersion.getVersion());
+                            f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
                     }
                 }
             }
@@ -120,7 +124,7 @@ public class CassandraRecordService implements RecordService {
                     contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                        f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
+                        f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
                 }
             }
         }
@@ -200,7 +204,7 @@ public class CassandraRecordService implements RecordService {
                 contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                    f.getFileName(), globalId, rep.getSchema(), rep.getVersion());
+                    f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
             }
         }
         recordDAO.deleteRepresentation(globalId, schema, version);
@@ -255,15 +259,15 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-            throws CannotModifyPersistentRepresentationException {
+            throws CannotModifyPersistentRepresentationException, RepresentationNotExistsException {
         DateTime now = new DateTime();
-        Representation representation = recordDAO.getRepresentation(globalId, schema, version);
+        Representation representation = getRepresentation(globalId, schema, version);
         if (representation.isPersistent()) {
             throw new CannotModifyPersistentRepresentationException();
         }
 
         boolean isCreate = true; // if it is create file operation or update
-                                 // content
+        // content
         if (file.getFileName() == null) {
             file.setFileName(UUID.randomUUID().toString());
         } else {
@@ -340,8 +344,9 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public void deleteContent(String globalId, String schema, String version, String fileName)
-            throws FileNotExistsException, CannotModifyPersistentRepresentationException {
-        Representation representation = recordDAO.getRepresentation(globalId, schema, version);
+            throws FileNotExistsException, CannotModifyPersistentRepresentationException,
+            RepresentationNotExistsException {
+        Representation representation = getRepresentation(globalId, schema, version);
         if (representation.isPersistent()) {
             throw new CannotModifyPersistentRepresentationException();
         }

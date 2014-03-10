@@ -75,7 +75,7 @@ public class CassandraDataSetService implements DataSetService {
         String nextResultToken = null;
         if (representationStubs.size() == limit + 1) {
             Representation nextResult = representationStubs.get(limit);
-            nextResultToken = encodeParams(nextResult.getRecordId(), nextResult.getSchema());
+            nextResultToken = encodeParams(nextResult.getCloudId(), nextResult.getRepresentationName());
             representationStubs.remove(limit);
         }
 
@@ -83,10 +83,11 @@ public class CassandraDataSetService implements DataSetService {
         List<Representation> representations = new ArrayList<>(representationStubs.size());
         for (Representation stub : representationStubs) {
             if (stub.getVersion() == null) {
-                representations.add(recordDAO.getLatestPersistentRepresentation(stub.getRecordId(), stub.getSchema()));
+                representations.add(recordDAO.getLatestPersistentRepresentation(stub.getCloudId(),
+                    stub.getRepresentationName()));
             } else {
-                representations
-                        .add(recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion()));
+                representations.add(recordDAO.getRepresentation(stub.getCloudId(), stub.getRepresentationName(),
+                    stub.getVersion()));
             }
         }
         return new ResultSlice<Representation>(nextResultToken, representations);

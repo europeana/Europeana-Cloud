@@ -11,7 +11,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_DATE_FROM;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATE_UNTIL;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PERSISTENT;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.F_SCHEMA;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 
@@ -76,14 +76,15 @@ public class RepresentationSearchResource {
      *            Threshold param to indicate result slice
      * @return found representation versions (in slices).
      * @statuscode 400 If no search parameter is provided.
-     * */
+     * 
+     */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<Representation> searchRepresentations( //
             @QueryParam(F_PROVIDER) String providerId, //
             @QueryParam(F_DATASET) String dataSetId, //
             @QueryParam(F_DATASET_PROVIDER_ID) String dataSetProviderId, //
-            @QueryParam(F_SCHEMA) String schema, //
+            @QueryParam(F_REPRESENTATIONNAME) String schema, //
             @QueryParam(F_DATE_FROM) String creationDateFrom, //
             @QueryParam(F_DATE_UNTIL) String creationDateUntil, //
             @QueryParam(F_PERSISTENT) Boolean persistent, //

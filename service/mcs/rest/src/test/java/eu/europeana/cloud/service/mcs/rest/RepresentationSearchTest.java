@@ -86,9 +86,9 @@ public class RepresentationSearchTest extends JerseyTest {
         s1_p2 = recordService.createRepresentation("cloud_2", "s1", "p2");
         s2_p1 = recordService.createRepresentation("cloud_3", "s2", "p1");
 
-        dataSetService.addAssignment("p1", "ds", s1_p1.getRecordId(), s1_p1.getSchema(), s1_p1.getVersion());
-        dataSetService.addAssignment("p1", "ds", s1_p2.getRecordId(), s1_p2.getSchema(), s1_p2.getVersion());
-        dataSetService.addAssignment("p1", "ds", s2_p1.getRecordId(), s2_p1.getSchema(), s2_p1.getVersion());
+        dataSetService.addAssignment("p1", "ds", s1_p1.getCloudId(), s1_p1.getRepresentationName(), s1_p1.getVersion());
+        dataSetService.addAssignment("p1", "ds", s1_p2.getCloudId(), s1_p2.getRepresentationName(), s1_p2.getVersion());
+        dataSetService.addAssignment("p1", "ds", s2_p1.getCloudId(), s2_p1.getRepresentationName(), s2_p1.getVersion());
     }
 
 
@@ -115,8 +115,8 @@ public class RepresentationSearchTest extends JerseyTest {
         // given representations s1_p1, s1_p2, s2_p1
 
         // when searching for schema s1
-        Response searchForSchemaResponse = representationSearchWebTarget.queryParam(ParamConstants.F_SCHEMA, "s1")
-                .request().get();
+        Response searchForSchemaResponse = representationSearchWebTarget
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchForSchemaResponse.getStatus());
         List<Representation> s1Representations = searchForSchemaResponse.readEntity(ResultSlice.class).getResults();
 
@@ -149,7 +149,7 @@ public class RepresentationSearchTest extends JerseyTest {
 
         // when searching for provider p1
         Response searchResponse = representationSearchWebTarget.queryParam(ParamConstants.F_PROVIDER, "p1")
-                .queryParam(ParamConstants.F_SCHEMA, "s1").request().get();
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, "s1").request().get();
         assertEquals("Unexpected status code", Response.Status.OK.getStatusCode(), searchResponse.getStatus());
         List<Representation> foundRepresenations = searchResponse.readEntity(ResultSlice.class).getResults();
 
@@ -187,7 +187,7 @@ public class RepresentationSearchTest extends JerseyTest {
     @SuppressWarnings("unused")
     private List<Map<String, String>> searchParams() {
         Map<String, String> allQueryParams = new HashMap<>();
-        allQueryParams.put(ParamConstants.F_SCHEMA, "s1");
+        allQueryParams.put(ParamConstants.F_REPRESENTATIONNAME, "s1");
         allQueryParams.put(ParamConstants.F_PROVIDER, "p1");
         allQueryParams.put(ParamConstants.F_DATE_FROM, "1995-12-31T23:59:59.999Z");
         allQueryParams.put(ParamConstants.F_PERSISTENT, "TRUE");

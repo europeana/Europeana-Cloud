@@ -123,7 +123,8 @@ public class RepresentationVersionResource {
      * @throws RepresentationNotExistsException
      *             representation does not exist in specified version.
      * @statuscode 201 representation has been copied to a new one.
-     * */
+     * 
+     */
     @POST
     @Path("/copy")
     public Response copyRepresentation()

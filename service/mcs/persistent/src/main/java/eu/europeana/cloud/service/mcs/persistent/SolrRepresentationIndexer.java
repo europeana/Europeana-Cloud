@@ -51,8 +51,9 @@ public class SolrRepresentationIndexer {
                 solrDAO.insertRepresentation(representation, null);
             } else {
                 Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO.getDataSetAssignments(
-                    representation.getRecordId(), representation.getSchema(), null);
-                solrDAO.removeAssignment(representation.getRecordId(), representation.getSchema(), dataSetIds);
+                    representation.getCloudId(), representation.getRepresentationName(), null);
+                solrDAO.removeAssignment(representation.getCloudId(), representation.getRepresentationName(),
+                    dataSetIds);
                 solrDAO.insertRepresentation(representation, dataSetIds);
             }
         } catch (IOException | SolrDocumentNotFoundException | SolrServerException ex) {

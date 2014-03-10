@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.
@@ -140,9 +141,9 @@ public class CassandraRecordDAO {
         String prevSchema = null;
         for (Row row : rs) {
             Representation rep = mapToRepresentation(row);
-            if (rep.isPersistent() && !rep.getSchema().equals(prevSchema)) {
+            if (rep.isPersistent() && !rep.getRepresentationName().equals(prevSchema)) {
                 representations.add(rep);
-                prevSchema = rep.getSchema();
+                prevSchema = rep.getRepresentationName();
             }
         }
         return new Record(cloudId, representations);
@@ -210,15 +211,18 @@ public class CassandraRecordDAO {
      * @return latest persistent version of a representation or null if such doesn't exist.
      */
     public Representation getLatestPersistentRepresentation(String cloudId, String schema) {
-        List<Representation> allRepresentations = this.listRepresentationVersions(cloudId, schema);
-
-        for (Representation r : allRepresentations) {
-            if (r.isPersistent()) {
-                r.setFiles(getFilesForRepresentation(cloudId, schema, r.getVersion()));
-                return r;
+        List<Representation> allRepresentations;
+        try {
+            allRepresentations = this.listRepresentationVersions(cloudId, schema);
+            for (Representation r : allRepresentations) {
+                if (r.isPersistent()) {
+                    r.setFiles(getFilesForRepresentation(cloudId, schema, r.getVersion()));
+                    return r;
+                }
             }
+        } catch (RepresentationNotExistsException ex) { //don't rethrow, just return null
+            return null;
         }
-
         return null;
     }
 
@@ -348,14 +352,19 @@ public class CassandraRecordDAO {
      *            record id
      * @param schema
      *            schema id
+     * @throws RepresentationNotExistsException
+     *             when there is no representation matching requested parameters
      * @return
      */
     public List<Representation> listRepresentationVersions(String cloudId, String schema)
-            throws NoHostAvailableException, QueryExecutionException {
+            throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
         BoundStatement boundStatement = listRepresentationVersionsStatement.bind(cloudId, schema);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<Representation> result = new ArrayList<>(rs.getAvailableWithoutFetching());
+        if (rs.isExhausted()) {
+            throw new RepresentationNotExistsException();
+        }
         for (Row row : rs) {
             result.add(mapToRepresentation(row));
         }
@@ -456,8 +465,8 @@ public class CassandraRecordDAO {
     private Representation mapToRepresentation(Row row) {
         Representation representation = new Representation();
         representation.setDataProvider(row.getString("provider_id"));
-        representation.setRecordId(row.getString("cloud_id"));
-        representation.setSchema(row.getString("schema_id"));
+        representation.setCloudId(row.getString("cloud_id"));
+        representation.setRepresentationName(row.getString("schema_id"));
         representation.setVersion(row.getUUID("version_id").toString());
         representation.setPersistent(row.getBool("persistent"));
         representation.setCreationDate(row.getDate("creation_date"));

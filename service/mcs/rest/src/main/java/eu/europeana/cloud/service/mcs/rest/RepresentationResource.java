@@ -89,7 +89,8 @@ public class RepresentationResource {
      * @throws ProviderNotExistsException
      *             no provider with given id exists
      * @statuscode 201 object has been created.
-     * */
+     * 
+     */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRepresentation(@FormParam(F_PROVIDER) String providerId)

@@ -7,8 +7,10 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotModifyPersistentRepresentationExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.CannotPersistEmptyRepresentationExceptionMapper;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
@@ -72,6 +74,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
                 .registerClasses(RepresentationNotExistsExceptionMapper.class)
                 .registerClasses(VersionNotExistsExceptionMapper.class)
                 .registerClasses(CannotModifyPersistentRepresentationExceptionMapper.class)
+                .registerClasses(CannotPersistEmptyRepresentationExceptionMapper.class)
                 .property("contextConfigLocation", "classpath:testContext.xml");
     }
 
@@ -229,7 +232,9 @@ public class RepresentationVersionResourceTest extends JerseyTest {
         return $(
             $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
             $(new CannotModifyPersistentRepresentationException(),
-                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405));
+                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
+            $(new CannotPersistEmptyRepresentationException(),
+                McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
     }
 
 

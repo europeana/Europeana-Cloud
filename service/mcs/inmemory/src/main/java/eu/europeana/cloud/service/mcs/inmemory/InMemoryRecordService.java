@@ -85,9 +85,10 @@ public class InMemoryRecordService implements RecordService {
         Record r = recordDAO.getRecord(globalId);
         for (Representation rep : r.getRepresentations()) {
             try {
-                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId, rep.getSchema())) {
+                for (Representation repVersion : recordDAO.listRepresentationVersions(globalId,
+                    rep.getRepresentationName())) {
                     for (File f : repVersion.getFiles()) {
-                        contentDAO.deleteContent(globalId, repVersion.getSchema(), repVersion.getVersion(),
+                        contentDAO.deleteContent(globalId, repVersion.getRepresentationName(), repVersion.getVersion(),
                             f.getFileName());
                     }
                 }
@@ -285,10 +286,10 @@ public class InMemoryRecordService implements RecordService {
             try {
                 List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId);
                 for (Representation stub : representationStubs) {
-                    if (schema == null || schema.equals(stub.getSchema())) {
+                    if (schema == null || schema.equals(stub.getRepresentationName())) {
                         Representation realContent;
                         try {
-                            realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(),
+                            realContent = recordDAO.getRepresentation(stub.getCloudId(), stub.getRepresentationName(),
                                 stub.getVersion());
                             toReturn.add(realContent);
                         } catch (RepresentationNotExistsException ex) {

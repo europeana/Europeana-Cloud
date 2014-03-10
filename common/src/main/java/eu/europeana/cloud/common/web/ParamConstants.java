@@ -20,6 +20,10 @@ public interface ParamConstants {
 
     static final String ASSIGNMENTS = "assignments";
 
+    static final String COPY = "copy";
+
+    static final String PERSIST = "persist";
+
     // path parameters' names
     static final String P_CLOUDID = "CLOUDID";
 
@@ -44,15 +48,17 @@ public interface ParamConstants {
 
     static final String F_PROVIDER = "providerId";
 
-    static final String F_GID = "recordId";
+    static final String F_CLOUDID = "cloudId";
 
-    static final String F_SCHEMA = "schema";
+    static final String F_REPRESENTATIONNAME = "representationName";
 
     static final String F_VER = "version";
 
     static final String F_FILE_DATA = "data";
 
     static final String F_FILE_MIME = "mimeType";
+
+    static final String F_FILE_NAME = "fileName";
 
     static final String F_DATE_FROM = "creationDateFrom";
 
@@ -61,5 +67,8 @@ public interface ParamConstants {
     static final String F_DATE_UNTIL = "creationDateUntil";
 
     static final String F_START_FROM = "startFrom";
+
+    //header paramiters' names
+    static final String H_RANGE = "Range";
 
 }

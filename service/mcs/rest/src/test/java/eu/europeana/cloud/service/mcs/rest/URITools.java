@@ -34,13 +34,13 @@ class URITools {
 
     static URI getVersionPath(String globalId, String schema, String version) {
         return UriBuilder.fromResource(RepresentationVersionResource.class).buildFromMap(
-                getVersionMap(globalId, schema, version));
+            getVersionMap(globalId, schema, version));
     }
 
 
     static URI getRepresentationPath(String globalId, String schema) {
         return UriBuilder.fromResource(RepresentationResource.class).buildFromMap(
-                getRepresentationMap(globalId, schema));
+            getRepresentationMap(globalId, schema));
     }
 
 
@@ -58,7 +58,7 @@ class URITools {
 
     static Object getListVersionsPath(String globalId, String schema) {
         return UriBuilder.fromResource(RepresentationVersionsResource.class).buildFromMap(
-                getRepresentationMap(globalId, schema));
+            getRepresentationMap(globalId, schema));
     }
 
 
@@ -75,30 +75,32 @@ class URITools {
 
 
     private static Map<String, String> getRepresentationMap(String globalId, String schema) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema);
+        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
+            ParamConstants.P_REPRESENTATIONNAME, schema);
     }
 
 
     private static Map<String, String> getVersionMap(String globalId, String schema, String version) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema,
-            ParamConstants.P_VER, version);
+        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
+            ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_VER, version);
     }
 
 
     private static Map<String, String> getFileMap(String globalId, String schema, String version, String fileName) {
-        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId, ParamConstants.P_REPRESENTATIONNAME, schema,
-            ParamConstants.P_VER, version, ParamConstants.P_FILENAME, fileName);
+        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
+            ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_VER, version, ParamConstants.P_FILENAME,
+            fileName);
     }
 
 
     static void enrich(Representation representation, URI baseUri) {
-        representation.setUri(URITools.getVersionUri(baseUri, representation.getRecordId(), representation.getSchema(),
-            representation.getVersion()));
-        representation.setAllVersionsUri(URITools.getAllVersionsUri(baseUri, representation.getRecordId(),
-            representation.getSchema()));
+        representation.setUri(URITools.getVersionUri(baseUri, representation.getCloudId(),
+            representation.getRepresentationName(), representation.getVersion()));
+        representation.setAllVersionsUri(URITools.getAllVersionsUri(baseUri, representation.getCloudId(),
+            representation.getRepresentationName()));
         for (File file : representation.getFiles()) {
-            file.setContentUri(URITools.getContentUri(baseUri, representation.getRecordId(),
-                representation.getSchema(), representation.getVersion(), file.getFileName()));
+            file.setContentUri(URITools.getContentUri(baseUri, representation.getCloudId(),
+                representation.getRepresentationName(), representation.getVersion(), file.getFileName()));
         }
     }
 

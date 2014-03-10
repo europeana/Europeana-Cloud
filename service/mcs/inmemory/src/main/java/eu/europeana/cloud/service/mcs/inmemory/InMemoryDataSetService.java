@@ -75,7 +75,8 @@ public class InMemoryDataSetService implements DataSetService {
         for (Representation stub : listOfStubs) {
             Representation realContent;
             try {
-                realContent = recordDAO.getRepresentation(stub.getRecordId(), stub.getSchema(), stub.getVersion());
+                realContent = recordDAO.getRepresentation(stub.getCloudId(), stub.getRepresentationName(),
+                    stub.getVersion());
             } catch (RepresentationNotExistsException e) {
                 // we have reference to an object that not exists anymore!
                 continue;

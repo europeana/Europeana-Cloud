@@ -35,7 +35,6 @@ import org.springframework.context.ApplicationContext;
 public class DataSetsResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
-
     private DataSetService dataSetService;
 
     private WebTarget dataSetsWebTarget;

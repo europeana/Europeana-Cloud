@@ -3,6 +3,7 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -12,6 +13,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import java.net.URI;
 import java.util.List;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
@@ -19,76 +21,126 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RecordServiceClient {
 
-    private final Client client;
     private final String baseUrl;
-    private static final Logger logger = LoggerFactory.getLogger(FileServiceClient.class);
+    private final Client client = ClientBuilder.newClient();
+    private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
+
+    //records/{CLOUDID}
+    private static final String recordPath;
+    //records/{CLOUDID}/representations
+    private static final String representationsPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}
+    private static final String represtationNamePath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions
+    private static final String versionsPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}
+    private static final String versionPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/copy
+    private static final String copyPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/persist
+    private static final String persistPath;
+
+    static {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(ParamConstants.RECORDS);
+        builder.append("/");
+        builder.append("{");
+        builder.append(ParamConstants.P_CLOUDID);
+        builder.append("}");
+        recordPath = builder.toString();
+
+        builder.append("/");
+        builder.append(ParamConstants.REPRESENTATIONS);
+        representationsPath = builder.toString();
+
+        builder.append("/");
+        builder.append("{");
+        builder.append(ParamConstants.P_REPRESENTATIONNAME);
+        builder.append("}");
+        represtationNamePath = builder.toString();
+
+        builder.append("/");
+        builder.append(ParamConstants.VERSIONS);
+        versionsPath = builder.toString();
+
+        builder.append("/");
+        builder.append("{");
+        builder.append(ParamConstants.P_VER);
+        builder.append("}");
+        versionPath = builder.toString();
+
+        copyPath = versionPath + "/" + ParamConstants.COPY;
+        persistPath = versionPath + "/" + ParamConstants.PERSIST;
+
+    }
 
 
     /**
-     * Constructs a RecordServiceClient
+     * Creates instance of RecordServiceClient.
      * 
      * @param baseUrl
-     *            url of the MCS Rest Service
+     *            URL of the MCS Rest Service
      */
     public RecordServiceClient(String baseUrl) {
-        client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
         this.baseUrl = baseUrl;
     }
 
 
     /**
-     * Function returns record with all its latest persistent representation.
+     * Returns record with all its latest persistent representations.
      * 
      * @param cloudId
-     *            id of getting Record
-     * @return Record of specified cloudId
+     *            id of the record (required)
+     * @return record of specified cloudId (required)
      * @throws RecordNotExistsException
-     *             when id is not known UIS Service.
+     *             when id is not known UIS Service
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
     public Record getRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/").resolveTemplate("ID", cloudId);
+
+        WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
+
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(Record.class);
-
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
         }
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
+
     }
 
 
     /**
-     * Function deletes record from MSC Service with all its Representations in all Versions. Mapping from UIS is not
-     * removed.
+     * Deletes record with all its representations in all versions.
+     * 
+     * Does not remove mapping from Unique Identifier Service. If record exists, but nothing was deleted (it had no
+     * representations assigned), nothing happens.
      * 
      * @param cloudId
-     *            id of deleting Record.
-     * @return true if operation was successful
+     *            id of deleted record (required)
      * @throws RecordNotExistsException
-     *             when id is not known UIS Service.
+     *             if cloudId is not known UIS Service
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public boolean deleteRecord(String cloudId)
+    public void deleteRecord(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/").resolveTemplate("ID", cloudId);
+
+        WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
+
         Response response = request.delete();
-        if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
+
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
@@ -96,48 +148,52 @@ public class RecordServiceClient {
 
 
     /**
-     * Function returns list of all latest persistent versions of record representations.
+     * Lists all latest persistent versions of record representation.
      * 
      * @param cloudId
-     *            id of record from get list of representations.
-     * @return list of representations.
+     *            id of record from which to get representations (required)
+     * @return list of representations
      * @throws RecordNotExistsException
-     *             when id is not known UIS Service.
+     *             if cloudId is not known UIS Service
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
     public List<Representation> getRepresentations(String cloudId)
             throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/representations/").resolveTemplate("ID", cloudId);
+
+        WebTarget target = client.target(baseUrl).path(representationsPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
+
         Response response = target.request().get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            List<Representation> entity = response.readEntity(new GenericType<List<Representation>>() {
-            });
-            return entity;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            return response.readEntity(new GenericType<List<Representation>>() {
+            }); //formatting here is irreadble
         }
+
+        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+        throw MCSExceptionProvider.generateException(errorInfo);
+
     }
 
 
     /**
-     * Function returns latest persistent version of representation.
+     * Returns latest persistent version of representation.
      * 
      * @param cloudId
-     *            id of record from get representation.
-     * @param schema
-     *            schema from get representation.
-     * @return representation of specified schema and cloudId.
-     * @throws RecordNotExistsException
-     *             representation does not exist or no persistent version of this representation exists.
+     *            id of record from which to get representations (required)
+     * @param representationName
+     *            name of the representation (required)
+     * @return representation of specified representationName and cloudId
+     * @throws RepresentationNotExistsException
+     *             representation does not exist or no persistent version of this representation exists
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public Representation getRepresentation(String cloudId, String schema)
-            throws RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+    public Representation getRepresentation(String cloudId, String representationName)
+            throws RepresentationNotExistsException, MCSException {
+        WebTarget target = client.target(baseUrl).path(represtationNamePath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()
@@ -152,29 +208,32 @@ public class RecordServiceClient {
 
 
     /**
-     * Function creates new representation version.
+     * Creates new representation version.
      * 
      * @param cloudId
-     *            id of creating representation.
-     * @param schema
-     *            schema of creating representation.
+     *            id of the record in which to create the representation (required)
+     * @param representationName
+     *            name of the representation to be created (required)
      * @param providerId
-     *            providerId of creating representation.
-     * @return uri to created representation.
+     *            provider of this representation version (required)
+     * @return URI to the created representation
      * @throws ProviderNotExistsException
-     *             when no provider with given id exist.
+     *             when no provider with given id exists
      * @throws RecordNotExistsException
-     *             when id is not known UIS Service.
+     *             when cloud id is not known to UIS Service
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public URI createRepresentation(String cloudId, String schema, String providerId)
+    public URI createRepresentation(String cloudId, String representationName, String providerId)
             throws ProviderNotExistsException, RecordNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+
+        WebTarget target = client.target(baseUrl).path(represtationNamePath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
         Form form = new Form();
         form.param("providerId", providerId);
+
         Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             URI uri = response.getLocation();
@@ -187,28 +246,26 @@ public class RecordServiceClient {
 
 
     /**
-     * Function deletes representation with all versions.
+     * Deletes representation with all versions.
      * 
      * @param cloudId
-     *            id of deleting representation.
-     * @param schema
-     *            schema of deleting representation.
-     * @return true if operation success.
+     *            id of the record to delete representation from (required)
+     * @param representationName
+     *            representationName of deleted representation (required)
      * @throws RepresentationNotExistsException
-     *             if specified Representation does not exist.
+     *             if specified Representation does not exist
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public boolean deletesRepresentation(String cloudId, String schema)
+    public void deleteRepresentation(String cloudId, String representationName)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+        WebTarget target = client.target(baseUrl).path(represtationNamePath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        Response responseDelete = request.delete();
-        if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
-            ErrorInfo errorInfo = responseDelete.readEntity(ErrorInfo.class);
+        Response response = request.delete();
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
 
@@ -216,22 +273,22 @@ public class RecordServiceClient {
 
 
     /**
-     * Function gets list all versions of record representation.
+     * Lists all versions of record representation.
      * 
      * @param cloudId
-     *            id of getting representation list.
-     * @param schema
-     *            schema of getting representation list.
-     * @return representation list.
+     *            id of the record to get representation from (required)
+     * @param representationName
+     *            representationName of the representation (required)
+     * @return representation versions list
      * @throws RepresentationNotExistsException
-     *             if specified Representation does not exist.
+     *             if specified Representation does not exist
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public List<Representation> getRepresentations(String cloudId, String schema)
+    public List<Representation> getRepresentations(String cloudId, String representationName)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/versions/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema);
+        WebTarget target = client.target(baseUrl).path(versionsPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
         Response response = request.get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -246,24 +303,30 @@ public class RecordServiceClient {
 
 
     /**
-     * Function returns representation in specified version.
+     * Returns representation in specified version.
+     * 
+     * Returns representation in specified version. If Version = LATEST, will redirect to actual latest persistent
+     * version at the moment of invoking this method.
      * 
      * @param cloudId
-     *            id of getting representation.
-     * @param schema
-     *            schema of getting representation.
+     *            id of the record to get representation from (required)
+     * @param representationName
+     *            name of the representation (required)
      * @param version
-     *            version of getting representation. If version = LATEST function will return latest persistent version.
-     * @return requested representation.
+     *            version of getting representation; if version==LATEST function will return latest persistent version
+     *            (required)
+     * @return requested representation version
      * @throws RepresentationNotExistsException
-     *             if specified representation does not exist.
+     *             if specified representation does not exist
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public Representation getRepresentation(String cloudId, String schema, String version)
+    public Representation getRepresentation(String cloudId, String representationName, String version)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget webtarget = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/versions/{VERSION}/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
         Response response = request.get();
         System.out.println(response);
@@ -278,32 +341,31 @@ public class RecordServiceClient {
 
 
     /**
-     * Function deletes Representation in specified version.
+     * Deletes representation in specified version.
      * 
      * @param cloudId
-     *            id of deleting Representation.
-     * @param schema
-     *            schema of deleting Representation.
+     *            id of the record to delete representation version from (required)
+     * @param representationName
+     *            name of the representation (required)
      * @param version
-     *            version of deleting Representation.
-     * @return true if object was deleted.
+     *            the deleted version of the representation (required)
      * @throws RepresentationNotExistsException
-     *             if specified Representation does not exist.
+     *             if specified representation does not exist
      * @throws CannotModifyPersistentRepresentationException
-     *             if specified Representation is persistent as such cannot be removed.
+     *             if specified representation is persistent and thus cannot be removed
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public boolean deleteRepresentation(String cloudId, String schema, String version)
+    public void deleteRepresentation(String cloudId, String representationName, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, MCSException {
-        WebTarget webtarget = client.target(baseUrl).path("records/{ID}/representations/{SCHEMA}/versions/{VERSION}/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget webtarget = client.target(baseUrl).path(versionPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
-        Response responseDelete = request.delete();
-        if (responseDelete.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
-            ErrorInfo errorInfo = responseDelete.readEntity(ErrorInfo.class);
+        Response response = request.delete();
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }
 
@@ -311,26 +373,27 @@ public class RecordServiceClient {
 
 
     /**
-     * Function Copies all information with all files and their content from one representation version to a new
-     * temporary one.
+     * Copies all information from one representation version to another.
+     * 
+     * Copies all information with all files and their content from one representation version to a new temporary one.
      * 
      * @param cloudId
-     *            id of copying representation.
-     * @param schema
-     *            schema of copying representation.
+     *            id of the record that holds representation (required)
+     * @param representationName
+     *            name of the copied representation (required)
      * @param version
-     *            version of copying representation.
-     * @return uri to created copy of representation.
+     *            version of the copied representation (required)
+     * @return URI to the created copy of representation
      * @throws RepresentationNotExistsException
-     *             if specified representation does not exist.
+     *             if specified representation version does not exist
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public URI copyRepresentation(String cloudId, String schema, String version)
+    public URI copyRepresentation(String cloudId, String representationName, String version)
             throws RepresentationNotExistsException, MCSException {
-        WebTarget target = client.target(baseUrl)
-                .path("records/{ID}/representations/{SCHEMA}/versions/{VERSION}/copy/").resolveTemplate("ID", cloudId)
-                .resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget target = client.target(baseUrl).path(copyPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = target.request();
         Response response = request.post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
         if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
@@ -343,30 +406,30 @@ public class RecordServiceClient {
 
 
     /**
-     * Function persist temporary representation.
+     * Makes specified temporary representation version persistent.
      * 
      * @param cloudId
-     *            id of persisting representation.
-     * @param schema
-     *            schema of persisting representation.
+     *            id of the record that holds representation (required)
+     * @param representationName
+     *            name of the representation to be persisted (required)
      * @param version
-     *            version of persisting representation.
-     * @return uri to persisted representation.
+     *            version that should be made persistent (required)
+     * @return URI to the persisted representation
      * @throws RepresentationNotExistsException
-     *             when representation does not exist in specified version.
+     *             when representation does not exist in specified version
      * @throws CannotModifyPersistentRepresentationException
-     *             when representation version is already persistent.
+     *             when representation version is already persistent
      * @throws CannotPersistEmptyRepresentationException
-     *             when representation version has no file attached and as such cannot be made persistent.
+     *             when representation version has no file attached and thus cannot be made persistent
      * @throws MCSException
-     *             on unexpected situations.
+     *             on unexpected situations
      */
-    public URI persistRepresentation(String cloudId, String schema, String version)
+    public URI persistRepresentation(String cloudId, String representationName, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException, MCSException {
-        WebTarget target = client.target(baseUrl)
-                .path("records/{ID}/representations/{SCHEMA}/versions/{VERSION}/persist/")
-                .resolveTemplate("ID", cloudId).resolveTemplate("SCHEMA", schema).resolveTemplate("VERSION", version);
+        WebTarget target = client.target(baseUrl).path(persistPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
         Form form = new Form();
         Builder request = target.request();
         Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
@@ -379,15 +442,4 @@ public class RecordServiceClient {
         }
     }
 
-
-    public static void main(String[] args)
-            throws MCSException {
-        String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "LATEST";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        Representation representation = instance.getRepresentation(cloudId, schema, version);
-
-    }
 }

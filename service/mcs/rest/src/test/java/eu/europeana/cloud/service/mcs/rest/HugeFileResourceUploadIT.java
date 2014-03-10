@@ -100,12 +100,12 @@ public class HugeFileResourceUploadIT extends JerseyTest {
         MockPutContentMethod mockPutContent = new MockPutContentMethod();
         doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
             any(InputStream.class));
-        WebTarget webTarget = target(FileResource.class.getAnnotation(Path.class).value()).resolveTemplates(
+
+        WebTarget webTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(
             ImmutableMap.<String, Object> of( //
                 ParamConstants.P_CLOUDID, globalId, //
                 ParamConstants.P_REPRESENTATIONNAME, schema, //
-                ParamConstants.P_VER, version, //
-                ParamConstants.P_FILENAME, "terefere"));
+                ParamConstants.P_VER, version));
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
@@ -114,7 +114,8 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             MediaType.APPLICATION_OCTET_STREAM).field(ParamConstants.F_FILE_DATA, inputStream,
             MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-        Response response = webTarget.request().put(Entity.entity(multipart, multipart.getMediaType()));
+        Response response = webTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+
         assertEquals("Unsuccessful request", Response.Status.Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
 
@@ -141,6 +142,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
             MessageDigest md = MessageDigest.getInstance("MD5");
             DigestInputStream inputStream = new DigestInputStream((InputStream) args[4], md);
             consume(inputStream);
+            file.setFileName("terefere");
             file.setMd5(BaseEncoding.base16().lowerCase().encode(md.digest()));
             return null;
         }

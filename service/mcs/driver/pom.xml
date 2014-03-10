@@ -88,6 +88,13 @@
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>pl.pragmatists</groupId>
+            <artifactId>JUnitParams</artifactId>
+            <scope>test</scope>
+            <version>1.0.2</version>
+        </dependency>
+            
     </dependencies>
     <build>
         <testResources>

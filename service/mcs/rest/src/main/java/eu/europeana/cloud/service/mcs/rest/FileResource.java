@@ -42,7 +42,8 @@ import org.springframework.stereotype.Component;
 /**
  * Resource to manage representation version's files with their content.
  */
-@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{" + P_FILENAME + "}")
+@Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{"
+        + P_FILENAME + "}")
 @Component
 @Scope("request")
 public class FileResource {
@@ -69,8 +70,8 @@ public class FileResource {
 
 
     /**
-     * Upload file operation. Adds or updates file in representation version. MD5 of uploaded data is returned as tag.
-     * Consumes multipart content - form data:
+     * Modify file operation. Updates file in representation version. MD5 of uploaded data is returned as tag. Consumes
+     * multipart content - form data:
      * <ul>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
@@ -81,30 +82,32 @@ public class FileResource {
      * @param data
      *            binary stream of file content (required)
      * @return uri of uploaded content file in content-location
-     * @throws IOException
-     *             io exception
      * @throws RepresentationNotExistsException
      *             representation does not exist in specified version.
      * @throws CannotModifyPersistentRepresentationException
-     *             specified representation version is persistent and modyfying its files is not allowed.
+     *             specified representation version is persistent and modifying its files is not allowed.
+     * @throws FileNotExistsException
+     *             specified file does not exist.
      * @statuscode 204 object has been updated.
-     * @statuscode 201 object has been created.
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
-            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            FileNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
+
+        // For throw  FileNotExistsException if specified file does not exist.
+        recordService.getFile(globalId, schema, version, fileName);
 
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        boolean isCreateOperation = recordService.putContent(globalId, schema, version, f, data);
+        recordService.putContent(globalId, schema, version, f, data);
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 
-        Response.Status operationStatus = isCreateOperation ? Response.Status.CREATED : Response.Status.NO_CONTENT;
-        return Response.status(operationStatus).location(f.getContentUri()).tag(f.getMd5()).build();
+        return Response.status(Response.Status.NO_CONTENT).location(f.getContentUri()).tag(f.getMd5()).build();
     }
 
 
@@ -120,7 +123,7 @@ public class FileResource {
      * @param range
      *            range of bytes to return (optional)
      * @return file content @throws RepresentationNotExistsException representation does not exist in specified version.
-     * @throws RepresentationNotExistsException 
+     * @throws RepresentationNotExistsException
      * @throws WrongContentRangeException
      *             wrong value in "Range" header
      * @throws FileNotExistsException
@@ -209,14 +212,17 @@ public class FileResource {
         boolean isSpecified() {
             return start != -1 || end != -1;
         }
-        
-        long getStart(){
-        	return start;
+
+
+        long getStart() {
+            return start;
         }
-        
-        long getEnd(){
-        	return end;
+
+
+        long getEnd() {
+            return end;
         }
+
 
         static ContentRange parse(String range)
                 throws WrongContentRangeException {

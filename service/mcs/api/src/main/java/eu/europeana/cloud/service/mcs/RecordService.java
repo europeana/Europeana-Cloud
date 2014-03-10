@@ -45,9 +45,11 @@ public interface RecordService {
      *            id for the record
      * @throws RecordNotExistsException
      *             thrown if provided id is not registered id in the eCloud system.
+     * @throws RepresentationNotExistsException
+     *             thrown if no representation can be found for requested record. Service cannot delete such record.
      */
     void deleteRecord(String globalId)
-            throws RecordNotExistsException;
+            throws RecordNotExistsException, RepresentationNotExistsException;
 
 
     /**

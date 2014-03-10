@@ -12,7 +12,7 @@ interactions:
       Host: localhost:8080
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
-    body: recordId=1DZ6HTS415W&schema=schema77&version=49398390-9a3f-11e3-9690-1c6f653f6012
+    body: cloudId=1DZ6HTS415W&representationName=schema77&version=49398390-9a3f-11e3-9690-1c6f653f6012
   response:
     status: 204
     headers:
@@ -33,4 +33,4 @@ interactions:
       Content-Type: application/xml
       Date: Fri, 21 Feb 2014 08:05:10 GMT
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="representation"><creationDate>2014-02-20T15:57:14.969+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><recordId>1DZ6HTS415W</recordId><schema>schema77</schema><version>49398390-9a3f-11e3-9690-1c6f653f6012</version></results></resultSlice>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="representation"><creationDate>2014-02-20T15:57:14.969+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>1DZ6HTS415W</cloudId><representationName>schema77</representationName><version>49398390-9a3f-11e3-9690-1c6f653f6012</version></results></resultSlice>

@@ -42,6 +42,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
  */
 @Component
 public class RestIngestionTool {
+
     /**
      * Available operations for this tool.
      * 
@@ -49,11 +50,11 @@ public class RestIngestionTool {
      * @since Jan 19, 2012
      */
     public enum Operation {
+
         /**
          * ingests data set
          */
-        ingestDataSet(
-                      "Ingests a data set for a given provider-id, dataset-id, schema and directory!"),
+        ingestDataSet("Ingests a data set for a given provider-id, dataset-id, schema and directory!"),
         /**
          * reads data set
          */
@@ -61,13 +62,13 @@ public class RestIngestionTool {
         /**
          * deletes data set
          */
-        deleteDataSet(
-                      "Deletes a data set for a given provider-id, dataset-id, schema and directory!");
+        deleteDataSet("Deletes a data set for a given provider-id, dataset-id, schema and directory!");
 
         /**
          * description for option
          */
         private String description;
+
 
         /**
          * Creates a new instance of this class.
@@ -78,6 +79,7 @@ public class RestIngestionTool {
             this.description = description;
         }
 
+
         /**
          * @return description for option
          */
@@ -86,29 +88,30 @@ public class RestIngestionTool {
         }
     }
 
+
     @Option(name = "-o", aliases = { "--operation" }, required = true)
-    private Operation           operation;
+    private Operation operation;
 
     @Option(name = "-p", aliases = { "--provider" }, usage = "Provider for which a dataset should be ingested")
-    private String              providerId;
+    private String providerId;
 
     @Option(name = "-d", aliases = { "--dataset" }, usage = "Dataset for which the data should be ingested")
-    private String              dataSetId;
+    private String dataSetId;
 
     @Option(name = "-s", aliases = { "--schema" }, usage = "Schema specifying the format of the dataset!")
-    private String              schema;
+    private String schema;
 
     @Option(name = "-f", aliases = { "--file" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
-    private String              directory;
+    private String directory;
 
     /**
      * client configuration
      */
-    private Client              client;
+    private Client client;
     /**
      * provides base url for rest api
      */
-    private String              baseUrl;
+    private String baseUrl;
 
     /**
      * Prefix of UIS based rest calls.
@@ -120,51 +123,54 @@ public class RestIngestionTool {
      */
     private static final String MCS_PREFIX = "ecloud-service-mcs-rest-0.1-SNAPSHOT";
 
+
     /**
      * Creates a new instance of this class.
      */
     public RestIngestionTool() {
-        client = ClientBuilder.newBuilder().register(JettisonFeature.class).register(
-                JacksonFeature.class).register(MoxyJsonFeature.class).register(
-                MultiPartFeature.class).register(JsonProcessingFeature.class).build();
+        client = ClientBuilder.newBuilder().register(JettisonFeature.class).register(JacksonFeature.class)
+                .register(MoxyJsonFeature.class).register(MultiPartFeature.class).register(JsonProcessingFeature.class)
+                .build();
         baseUrl = "http://ecloud.eanadev.org:8080/";
-// Properties props = new Properties();
-// try {
-// props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
-// baseUrl = props.getProperty("server.baseUrl");
-// } catch (IOException e) {
-// e.printStackTrace();
-// }
+        // Properties props = new Properties();
+        // try {
+        // props.load(new FileInputStream(new java.io.File("src/main/resources/client.properties")));
+        // baseUrl = props.getProperty("server.baseUrl");
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
     }
+
 
     /**
      * Runs operations for this tool.
      */
     private void run() {
         switch (operation) {
-        case ingestDataSet:
-            try {
-                ingestDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not ingest dataset!", e);
-            }
-            break;
-        case readDataSet:
-            try {
-                readDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not read dataset!", e);
-            }
-            break;
-        case deleteDataSet:
-            try {
-                deleteDataSet();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not delete dataset!", e);
-            }
-            break;
+            case ingestDataSet:
+                try {
+                    ingestDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not ingest dataset!", e);
+                }
+                break;
+            case readDataSet:
+                try {
+                    readDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not read dataset!", e);
+                }
+                break;
+            case deleteDataSet:
+                try {
+                    deleteDataSet();
+                } catch (Exception e) {
+                    throw new RuntimeException("Could not delete dataset!", e);
+                }
+                break;
         }
     }
+
 
     /**
      * Ingestion of a data set.
@@ -172,34 +178,32 @@ public class RestIngestionTool {
      * @throws Exception
      */
     @SuppressWarnings("resource")
-    private void ingestDataSet() throws Exception {
+    private void ingestDataSet()
+            throws Exception {
         long startTime = System.nanoTime();
 
         DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
                 "Ingesion Tool Provider", "");
-        Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers").queryParam(
-                "providerId", providerId).request().post(Entity.json(dp));
+        Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers")
+                .queryParam("providerId", providerId).request().post(Entity.json(dp));
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             System.out.println("Provider '" + providerId + "' has been created!");
         } else {
             System.out.println("Provider '" + providerId + "' exists!");
         }
 
-        System.out.println("Provider setup: '" + ((System.nanoTime() - startTime) / 1000000) +
-                           "' msec");
+        System.out.println("Provider setup: '" + ((System.nanoTime() - startTime) / 1000000) + "' msec");
         startTime = System.nanoTime();
 
-        resp = client.target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets").request().post(
-                Entity.form(new Form("dataSetId", dataSetId).param("description",
-                        "Ingestion Tool Dataset")));
+        resp = client.target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets").request()
+                .post(Entity.form(new Form("dataSetId", dataSetId).param("description", "Ingestion Tool Dataset")));
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             System.out.println("Dataset '" + dataSetId + "' has been created!");
         } else {
             System.out.println("Dataset '" + dataSetId + "' exists!");
         }
 
-        System.out.println("Dataset setup: '" + ((System.nanoTime() - startTime) / 1000000) +
-                           "' msec");
+        System.out.println("Dataset setup: '" + ((System.nanoTime() - startTime) / 1000000) + "' msec");
         startTime = System.nanoTime();
 
         long cloudIdTime = 0;
@@ -210,8 +214,7 @@ public class RestIngestionTool {
 
         int scheduled = 0;
         int done = 0;
-        Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null,
-                true);
+        Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null, true);
         while (iter.hasNext()) {
             scheduled++;
 
@@ -225,13 +228,13 @@ public class RestIngestionTool {
             int endIdx = input.getName().lastIndexOf(".");
             String localId = endIdx > 0 ? input.getName().substring(0, endIdx) : input.getName();
             CloudId cloudId;
-            resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/getCloudId").queryParam(
-                    "providerId", providerId).queryParam("recordId", localId).request().get();
+            resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/getCloudId").queryParam("providerId", providerId)
+                    .queryParam("recordId", localId).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 cloudId = resp.readEntity(CloudId.class);
             } else {
-                resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal").queryParam(
-                        "providerId", providerId).queryParam("recordId", localId).request().get();
+                resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal")
+                        .queryParam("providerId", providerId).queryParam("recordId", localId).request().get();
                 if (resp.getStatus() == Status.OK.getStatusCode()) {
                     cloudId = resp.readEntity(CloudId.class);
                 } else {
@@ -242,19 +245,18 @@ public class RestIngestionTool {
             cloudIdTime += (System.nanoTime() - localTime);
 
             localTime = System.nanoTime();
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + cloudId.getId() + "/representations/" +
-                            schema).request().post(
-                    Entity.entity(new Form("providerId", providerId),
-                            MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            resp = client
+                    .target(baseUrl + MCS_PREFIX + "/records/" + cloudId.getId() + "/representations/" + schema)
+                    .request()
+                    .post(Entity.entity(new Form("providerId", providerId), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
             Representation representation;
             if (resp.getStatus() == Status.CREATED.getStatusCode()) {
                 resp = client.target(resp.getLocation()).request().get();
                 if (resp.getStatus() == Status.OK.getStatusCode()) {
                     representation = resp.readEntity(Representation.class);
                 } else {
-                    System.out.println("Could not retrieve newly created representation for '" +
-                                       cloudId.getId() + "'!");
+                    System.out
+                            .println("Could not retrieve newly created representation for '" + cloudId.getId() + "'!");
                     continue;
                 }
             } else {
@@ -265,14 +267,15 @@ public class RestIngestionTool {
 
             localTime = System.nanoTime();
             byte[] content = FileUtils.readFileToByteArray(input);
-            FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME,
-                    file.getMimeType()).field(ParamConstants.F_FILE_DATA,
-                    new ByteArrayInputStream(content), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
-                            representation.getVersion() + "/files/" + file.getFileName()).request().put(
-                    Entity.entity(multipart, multipart.getMediaType()));
+            FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                    .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            resp = client
+                    .target(
+                        baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() + "/representations/"
+                                + representation.getRepresentationName() + "/versions/" + representation.getVersion()
+                                + "/files/" + file.getFileName()).request()
+                    .put(Entity.entity(multipart, multipart.getMediaType()));
             if (resp.getStatus() != Status.CREATED.getStatusCode()) {
                 System.out.println("Could not upload file for '" + cloudId.getId() + "'!");
                 continue;
@@ -280,23 +283,26 @@ public class RestIngestionTool {
             uploadTime += (System.nanoTime() - localTime);
 
             localTime = System.nanoTime();
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
-                            representation.getVersion() + "/persist").request().post(null);
+            resp = client
+                    .target(
+                        baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() + "/representations/"
+                                + representation.getRepresentationName() + "/versions/" + representation.getVersion()
+                                + "/persist").request().post(null);
             if (resp.getStatus() != Status.CREATED.getStatusCode()) {
-                System.out.println("Could not persist representation for '" + cloudId.getId() +
-                                   "'!");
+                System.out.println("Could not persist representation for '" + cloudId.getId() + "'!");
                 continue;
             }
             persistTime += (System.nanoTime() - localTime);
 
             localTime = System.nanoTime();
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
-                            dataSetId + "/assignments").request().post(
-                    Entity.form(new Form("recordId", representation.getRecordId()).param("schema",
-                            representation.getSchema())));
+            resp = client
+                    .target(
+                        baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId
+                                + "/assignments")
+                    .request()
+                    .post(
+                        Entity.form(new Form("recordId", representation.getCloudId()).param("schema",
+                            representation.getRepresentationName())));
             if (resp.getStatus() != Status.NO_CONTENT.getStatusCode()) {
                 System.out.println("Could not assign representation for '" + cloudId.getId() + "'!");
                 continue;
@@ -308,11 +314,9 @@ public class RestIngestionTool {
             if (scheduled % 10 == 0) {
                 System.out.println("Scheduled: " + scheduled);
                 System.out.println("Done: " + done);
-                System.out.println("Time overall: '" +
-                                   ((System.nanoTime() - startTime) / 1000000000) + "' sec");
+                System.out.println("Time overall: '" + ((System.nanoTime() - startTime) / 1000000000) + "' sec");
                 System.out.println("Time cloudId: '" + (cloudIdTime / 1000000000) + "' sec");
-                System.out.println("Time representation: '" + (representationTime / 1000000000) +
-                                   "' sec");
+                System.out.println("Time representation: '" + (representationTime / 1000000000) + "' sec");
                 System.out.println("Time upload: '" + (uploadTime / 1000000000) + "' sec");
                 System.out.println("Time persist: '" + (persistTime / 1000000000) + "' sec");
                 System.out.println("Time assign: '" + (assignTime / 1000000000) + "' sec");
@@ -323,15 +327,18 @@ public class RestIngestionTool {
         System.out.println("Done: " + done);
     }
 
+
     /**
      * Reads a data set to a directory!
      * 
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    private void readDataSet() throws Exception {
-        Response resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().get();
+    private void readDataSet()
+            throws Exception {
+        Response resp = client
+                .target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request()
+                .get();
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -344,17 +351,16 @@ public class RestIngestionTool {
         for (Representation representation : dataset.getResults()) {
             scheduled++;
 
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema() + "/versions/" +
-                            representation.getVersion() + "/files/" +
-                            representation.getFiles().get(0).getFileName()).request().get();
+            resp = client
+                    .target(
+                        baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() + "/representations/"
+                                + representation.getRepresentationName() + "/versions/" + representation.getVersion()
+                                + "/files/" + representation.getFiles().get(0).getFileName()).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 InputStream responseStream = resp.readEntity(InputStream.class);
                 byte[] responseContent = ByteStreams.toByteArray(responseStream);
-                FileUtils.writeByteArrayToFile(new java.io.File(
-                        directory + "/" + representation.getFiles().get(0).getFileName()),
-                        responseContent);
+                FileUtils.writeByteArrayToFile(new java.io.File(directory + "/"
+                        + representation.getFiles().get(0).getFileName()), responseContent);
             } else {
                 continue;
             }
@@ -370,15 +376,18 @@ public class RestIngestionTool {
         System.out.println("Done: " + done);
     }
 
+
     /**
      * Delete a data set!
      * 
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    private void deleteDataSet() throws Exception {
-        Response resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().get();
+    private void deleteDataSet()
+            throws Exception {
+        Response resp = client
+                .target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request()
+                .get();
         ResultSlice<Representation> dataset;
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             dataset = resp.readEntity(ResultSlice.class);
@@ -392,26 +401,25 @@ public class RestIngestionTool {
         for (Representation representation : dataset.getResults()) {
             scheduled++;
 
-            resp = client.target(
-                    baseUrl + MCS_PREFIX + "/records/" + representation.getRecordId() +
-                            "/representations/" + representation.getSchema()).request().delete();
+            resp = client
+                    .target(
+                        baseUrl + MCS_PREFIX + "/records/" + representation.getCloudId() + "/representations/"
+                                + representation.getRepresentationName()).request().delete();
             if (resp.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                System.out.println("Could not delete representation for '" +
-                                   representation.getRecordId() + "'!");
+                System.out.println("Could not delete representation for '" + representation.getCloudId() + "'!");
                 continue;
             }
 
-// resp = client.target(
-// baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
-// dataSetId + "/assignments").queryParam("recordId",
-// representation.getRecordId()).queryParam("schema",
-// representation.getSchema()).request().delete();
-// if (resp.getStatus() != Status.OK.getStatusCode()) {
-// System.out.println("Could not remove assignment of representation for '" +
-// representation.getRecordId() + "'!");
-// continue;
-// }
-
+            // resp = client.target(
+            // baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" +
+            // dataSetId + "/assignments").queryParam("recordId",
+            // representation.getCloudId()).queryParam("schema",
+            // representation.getRepresentationName()).request().delete();
+            // if (resp.getStatus() != Status.OK.getStatusCode()) {
+            // System.out.println("Could not remove assignment of representation for '" +
+            // representation.getCloudId() + "'!");
+            // continue;
+            // }
             done++;
 
             if (scheduled % 100 == 0) {
@@ -422,13 +430,14 @@ public class RestIngestionTool {
         System.out.println("Scheduled: " + scheduled);
         System.out.println("Done: " + done);
 
-        resp = client.target(
-                baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId).request().delete();
+        resp = client.target(baseUrl + MCS_PREFIX + "/data-providers/" + providerId + "/data-sets/" + dataSetId)
+                .request().delete();
         if (resp.getStatus() != Status.OK.getStatusCode()) {
             System.out.println("Could not delete dataset '" + dataSetId + "'!");
         }
         System.out.println("Deleted dataset: " + dataSetId);
     }
+
 
     /**
      * @param args

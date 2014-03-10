@@ -1,0 +1,35 @@
+!tape
+name: records/deleteRepresentationVersionCannotModifyPersistent
+interactions:
+- recorded: 2014-03-03T14:52:32.957Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 03 Mar 2014 14:52:32 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions</allVersionsUri><creationDate>2014-03-03T14:43:24.396+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>24</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012/files/97df6b37-2593-46b5-b741-84f755b8ccb5</contentUri><date>2014-03-03T14:43:18.349+01:00</date><fileName>97df6b37-2593-46b5-b741-84f755b8ccb5</fileName><md5>fad216b328837cadf9f7ae0ba54a8340</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><cloudId>J93T5R6615H</cloudId><representationName>schema22</representationName><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012</uri><version>67565180-a2d9-11e3-8a55-1c6f653f6012</version></representation>
+- recorded: 2014-03-03T14:52:33.228Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 405
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 03 Mar 2014 14:52:32 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>

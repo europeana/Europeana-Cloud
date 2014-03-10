@@ -65,8 +65,8 @@ public class InMemoryDataSetDAO {
         Representation stub = getStub(listOfStubs, recordId, schema);
         if (stub == null) {
             stub = new Representation();
-            stub.setRecordId(recordId);
-            stub.setSchema(schema);
+            stub.setCloudId(recordId);
+            stub.setRepresentationName(schema);
             stub.setVersion(version);
             listOfStubs.add(stub);
         } else {
@@ -91,7 +91,7 @@ public class InMemoryDataSetDAO {
 
     private Representation getStub(List<Representation> listOfStubs, String recordId, String schema) {
         for (Representation stub : listOfStubs) {
-            if (stub.getRecordId().equals(recordId) && stub.getSchema().equals(schema)) {
+            if (stub.getCloudId().equals(recordId) && stub.getRepresentationName().equals(schema)) {
                 return stub;
             }
         }

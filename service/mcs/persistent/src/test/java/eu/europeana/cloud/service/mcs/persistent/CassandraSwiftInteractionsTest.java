@@ -18,7 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * 
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/spiedServicesTestContext.xml" })
@@ -58,14 +58,14 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 
         // when content is put 
         try {
-            cassandraRecordService.putContent(r.getRecordId(), r.getSchema(), r.getVersion(), f,
+            cassandraRecordService.putContent(r.getCloudId(), r.getRepresentationName(), r.getVersion(), f,
                 new ByteArrayInputStream(dummyContent));
         } catch (MockException e) {
             // it's expected
         }
 
         // then - no file should be present
-        Representation fetched = cassandraRecordService.getRepresentation(r.getRecordId(), r.getSchema(),
+        Representation fetched = cassandraRecordService.getRepresentation(r.getCloudId(), r.getRepresentationName(),
             r.getVersion());
         Assert.assertTrue(fetched.getFiles().isEmpty());
     }

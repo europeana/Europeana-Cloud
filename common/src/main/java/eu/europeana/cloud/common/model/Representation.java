@@ -13,251 +13,252 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Representation {
 
-	/**
-	 * Identifier (cloud id) ov a record this object is representation of.
-	 */
-	private String recordId;
+    /**
+     * Identifier (cloud id) ov a record this object is representation of.
+     */
+    private String cloudId;
 
-	/**
-	 * Schema of this representation.
-	 */
-	private String schema;
+    /**
+     * Representation Name of this representation.
+     */
+    private String representationName;
 
-	/**
-	 * Identifier of a version of this representation.
-	 */
-	private String version;
+    /**
+     * Identifier of a version of this representation.
+     */
+    private String version;
 
-	/**
-	 * Uri to the history of all versions of this representation.
-	 */
-	private URI allVersionsUri;
+    /**
+     * Uri to the history of all versions of this representation.
+     */
+    private URI allVersionsUri;
 
-	/**
-	 * Self uri.
-	 */
-	private URI uri;
+    /**
+     * Self uri.
+     */
+    private URI uri;
 
-	/**
-	 * Data provider of this version of representation.
-	 */
-	private String dataProvider;
+    /**
+     * Data provider of this version of representation.
+     */
+    private String dataProvider;
 
-	/**
-	 * A list of files which constitute this representation.
-	 */
-	private List<File> files = new ArrayList<File>(0);
+    /**
+     * A list of files which constitute this representation.
+     */
+    private List<File> files = new ArrayList<File>(0);
 
-	/**
-	 * If this is temporary representation version: date of this object creation; If this is persistent representation
-	 * version: date of making this object persistent.
-	 */
-	private Date creationDate;
+    /**
+     * If this is temporary representation version: date of this object creation; If this is persistent representation
+     * version: date of making this object persistent.
+     */
+    private Date creationDate;
 
-	/**
-	 * Indicator whether this is persistent representation version (true) or temporary (false).
-	 */
-	private boolean persistent;
-
-
-	/**
-	 * Creates a new instance of this class.
-	 */
-	public Representation() {
-		super();
-	}
+    /**
+     * Indicator whether this is persistent representation version (true) or temporary (false).
+     */
+    private boolean persistent;
 
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param recordId
-	 * @param schema
-	 * @param version
-	 * @param allVersionsUri
-	 * @param uri
-	 * @param dataProvider
-	 * @param files
-	 * @param persistent
-	 * @param creationDate
-	 */
-	public Representation(String recordId, String schema, String version,
-			URI allVersionsUri, URI uri, String dataProvider, List<File> files,
-			boolean persistent, Date creationDate) {
-		super();
-		this.recordId = recordId;
-		this.schema = schema;
-		this.version = version;
-		this.allVersionsUri = allVersionsUri;
-		this.uri = uri;
-		this.dataProvider = dataProvider;
-		this.files = files;
-		this.persistent = persistent;
-		this.creationDate = creationDate!=null?creationDate:null;
-	}
+    /**
+     * Creates a new instance of this class.
+     */
+    public Representation() {
+        super();
+    }
 
 
-	/**
-	 * Creates a new instance of this class.
-	 * @param representation
-	 */
-	public Representation(final Representation representation) {
-		this(representation.getRecordId(), representation.getSchema(), representation.getVersion(),
-				representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
-				cloneFiles(representation), representation.isPersistent(), representation.getCreationDate());
-	}
+    /**
+     * Creates a new instance of this class.
+     * 
+     * @param cloudId
+     * @param representationName
+     * @param version
+     * @param allVersionsUri
+     * @param uri
+     * @param dataProvider
+     * @param files
+     * @param persistent
+     * @param creationDate
+     */
+    public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
+            String dataProvider, List<File> files, boolean persistent, Date creationDate) {
+        super();
+        this.cloudId = cloudId;
+        this.representationName = representationName;
+        this.version = version;
+        this.allVersionsUri = allVersionsUri;
+        this.uri = uri;
+        this.dataProvider = dataProvider;
+        this.files = files;
+        this.persistent = persistent;
+        this.creationDate = creationDate != null ? creationDate : null;
+    }
 
 
-	private static List<File> cloneFiles(Representation representation) {
-		List<File> files = new ArrayList<>(representation.getFiles().size());
-		for (File file : representation.getFiles()) {
-			files.add(new File(file));
-		}
-		return files;
-	}
+    /**
+     * Creates a new instance of this class.
+     * 
+     * @param representation
+     */
+    public Representation(final Representation representation) {
+        this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
+                representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
+                cloneFiles(representation), representation.isPersistent(), representation.getCreationDate());
+    }
 
 
-	public String getRecordId() {
-		return recordId;
-	}
+    private static List<File> cloneFiles(Representation representation) {
+        List<File> files = new ArrayList<>(representation.getFiles().size());
+        for (File file : representation.getFiles()) {
+            files.add(new File(file));
+        }
+        return files;
+    }
 
 
-	public void setRecordId(String recordId) {
-		this.recordId = recordId;
-	}
+    public String getCloudId() {
+        return cloudId;
+    }
 
 
-	public String getSchema() {
-		return schema;
-	}
+    public void setCloudId(String cloudId) {
+        this.cloudId = cloudId;
+    }
 
 
-	public void setSchema(String schema) {
-		this.schema = schema;
-	}
+    public String getRepresentationName() {
+        return representationName;
+    }
 
 
-	public String getVersion() {
-		return version;
-	}
+    public void setRepresentationName(String representationName) {
+        this.representationName = representationName;
+    }
 
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public String getVersion() {
+        return version;
+    }
 
 
-	public String getDataProvider() {
-		return dataProvider;
-	}
+    public void setVersion(String version) {
+        this.version = version;
+    }
 
 
-	public void setDataProvider(String dataProvider) {
-		this.dataProvider = dataProvider;
-	}
+    public String getDataProvider() {
+        return dataProvider;
+    }
 
 
-	public List<File> getFiles() {
-		return files;
-	}
+    public void setDataProvider(String dataProvider) {
+        this.dataProvider = dataProvider;
+    }
 
 
-	public void setFiles(List<File> files) {
-		this.files = files;
-	}
+    public List<File> getFiles() {
+        return files;
+    }
 
 
-	public boolean isPersistent() {
-		return persistent;
-	}
+    public void setFiles(List<File> files) {
+        this.files = files;
+    }
 
 
-	public void setPersistent(boolean persistent) {
-		this.persistent = persistent;
-	}
+    public boolean isPersistent() {
+        return persistent;
+    }
 
 
-	public URI getAllVersionsUri() {
-		return allVersionsUri;
-	}
+    public void setPersistent(boolean persistent) {
+        this.persistent = persistent;
+    }
 
 
-	public void setAllVersionsUri(URI allVersionsUri) {
-		this.allVersionsUri = allVersionsUri;
-	}
+    public URI getAllVersionsUri() {
+        return allVersionsUri;
+    }
 
 
-	public URI getUri() {
-		return uri;
-	}
+    public void setAllVersionsUri(URI allVersionsUri) {
+        this.allVersionsUri = allVersionsUri;
+    }
 
 
-	public void setUri(URI selfUri) {
-		this.uri = selfUri;
-	}
+    public URI getUri() {
+        return uri;
+    }
 
 
-	public Date getCreationDate() {
-		return creationDate;
-	}
+    public void setUri(URI selfUri) {
+        this.uri = selfUri;
+    }
 
 
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate!=null?creationDate:null;
-	}
+    public Date getCreationDate() {
+        return creationDate;
+    }
 
 
-	@Override
-	public int hashCode() {
-		int hash = 7;
-		hash = 37 * hash + Objects.hashCode(this.recordId);
-		hash = 37 * hash + Objects.hashCode(this.schema);
-		hash = 37 * hash + Objects.hashCode(this.version);
-		hash = 37 * hash + Objects.hashCode(this.dataProvider);
-		hash = 37 * hash + Objects.hashCode(this.files);
-		hash = 37 * hash + Objects.hashCode(this.creationDate);
-		hash = 37 * hash + (this.persistent ? 1 : 0);
-		return hash;
-	}
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate != null ? creationDate : null;
+    }
 
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final Representation other = (Representation) obj;
-		if (!Objects.equals(this.recordId, other.recordId)) {
-			return false;
-		}
-		if (!Objects.equals(this.schema, other.schema)) {
-			return false;
-		}
-		if (!Objects.equals(this.version, other.version)) {
-			return false;
-		}
-		if (!Objects.equals(this.dataProvider, other.dataProvider)) {
-			return false;
-		}
-		if (!Objects.equals(this.files, other.files)) {
-			return false;
-		}
-		if (!Objects.equals(this.creationDate, other.creationDate)) {
-			return false;
-		}
-		if (this.persistent != other.persistent) {
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(this.cloudId);
+        hash = 37 * hash + Objects.hashCode(this.representationName);
+        hash = 37 * hash + Objects.hashCode(this.version);
+        hash = 37 * hash + Objects.hashCode(this.dataProvider);
+        hash = 37 * hash + Objects.hashCode(this.files);
+        hash = 37 * hash + Objects.hashCode(this.creationDate);
+        hash = 37 * hash + (this.persistent ? 1 : 0);
+        return hash;
+    }
 
 
-	@Override
-	public String toString() {
-		return "Representation{" + "recordId=" + recordId + ", schema=" + schema + ", version=" + version
-				+ ", dataProvider=" + dataProvider + ", files=" + files + ", creationDate="
-				+ creationDate + ", persistent=" + persistent + '}';
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Representation other = (Representation) obj;
+        if (!Objects.equals(this.cloudId, other.cloudId)) {
+            return false;
+        }
+        if (!Objects.equals(this.representationName, other.representationName)) {
+            return false;
+        }
+        if (!Objects.equals(this.version, other.version)) {
+            return false;
+        }
+        if (!Objects.equals(this.dataProvider, other.dataProvider)) {
+            return false;
+        }
+        if (!Objects.equals(this.files, other.files)) {
+            return false;
+        }
+        if (!Objects.equals(this.creationDate, other.creationDate)) {
+            return false;
+        }
+        if (this.persistent != other.persistent) {
+            return false;
+        }
+        return true;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Representation{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
+                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", creationDate=" + creationDate
+                + ", persistent=" + persistent + '}';
+    }
 }
