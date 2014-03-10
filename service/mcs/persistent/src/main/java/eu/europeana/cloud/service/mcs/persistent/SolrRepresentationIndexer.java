@@ -1,16 +1,21 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.google.gson.Gson;
 import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -36,6 +41,11 @@ public class SolrRepresentationIndexer {
     @Autowired
     private CassandraDataSetDAO cassandraDataSetDAO;
 
+    @Autowired
+    private RabbitTemplate template;
+
+    private final Gson gson = new Gson();
+
 
     /**
      * Indexes representation version (new or updated). If inserted representation version is persistent, there there
@@ -46,10 +56,13 @@ public class SolrRepresentationIndexer {
      *            representation version.
      */
     public void insertRepresentation(Representation representation) {
+
         try {
             if (!representation.isPersistent()) {
                 solrDAO.insertRepresentation(representation, null);
-            } else {
+                template.convertAndSend("records.representations.versions.add",
+                    prepareRepresentationMessage(representation));
+            } else { //TODO: check what is going on here and send a message to the queue
                 Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO.getDataSetAssignments(
                     representation.getCloudId(), representation.getRepresentationName(), null);
                 solrDAO.removeAssignment(representation.getCloudId(), representation.getRepresentationName(),
@@ -72,6 +85,7 @@ public class SolrRepresentationIndexer {
     public void removeRepresentationVersion(String versionId) {
         try {
             solrDAO.removeRepresentationVersion(versionId);
+            template.convertAndSend("records.representations.versions.deleteVersion", versionId);
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);
         }
@@ -89,9 +103,19 @@ public class SolrRepresentationIndexer {
     public void removeRepresentation(String cloudId, String schema) {
         try {
             solrDAO.removeRepresentation(cloudId, schema);
+            template.convertAndSend("records.representations.versions.deleteVersion",
+                prepareRemoveRepresentationMsg(cloudId, schema));
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);
         }
+    }
+
+
+    private String prepareRemoveRepresentationMsg(String cloudId, String schema) {
+        HashMap<String, String> map = new LinkedHashMap<>();
+        map.put(ParamConstants.F_CLOUDID, cloudId);
+        map.put(ParamConstants.F_REPRESENTATIONNAME, schema);
+        return gson.toJson(map);
     }
 
 
@@ -103,6 +127,7 @@ public class SolrRepresentationIndexer {
     public void removeRecordRepresentations(String cloudId) {
         try {
             solrDAO.removeRecordRepresentation(cloudId);
+            template.convertAndSend("records.representations.deleteAll", cloudId);
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);
         }
@@ -154,6 +179,11 @@ public class SolrRepresentationIndexer {
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove assignments from data set in solr", ex);
         }
+    }
+
+
+    private String prepareRepresentationMessage(Representation representation) {
+        return gson.toJson(representation);
     }
 
 }

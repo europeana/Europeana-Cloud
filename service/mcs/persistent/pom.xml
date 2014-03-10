@@ -56,6 +56,19 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+                
+                <dependency>
+                    <groupId>org.springframework.amqp</groupId>
+                    <artifactId>spring-rabbit</artifactId>
+                    <version>1.2.1.RELEASE</version> 
+                    <exclusions>
+				<!--without jcl - because we use log4j through slf4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+                    </exclusions>
+                </dependency>
 
 		<dependency>
 			<groupId>com.datastax.cassandra</groupId>
