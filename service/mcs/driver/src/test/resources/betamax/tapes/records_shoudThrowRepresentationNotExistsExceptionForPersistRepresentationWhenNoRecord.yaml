@@ -1,10 +1,10 @@
 !tape
-name: records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidCloudId
+name: records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord
 interactions:
-- recorded: 2014-03-10T07:45:00.098Z
+- recorded: 2014-03-10T09:52:51.945Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P00/representations/schema_000001/versions/fece3cb0-a5fb-11e3-b4a7-50e549e85271/persist
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema33/versions/fece3cb0-a5fb-11e3-b4a7-50e549e85271/persist
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '0'
@@ -16,6 +16,6 @@ interactions:
     status: 404
     headers:
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 07:45:00 GMT
+      Date: Mon, 10 Mar 2014 09:52:51 GMT
       Server: Apache-Coyote/1.1
     body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>

@@ -833,66 +833,73 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/shoudThrowCannotModifyPersistentRepresentationExceptionForPersistRepresentation")
+    @Betamax(tape = "records/shouldNotPersistRepresentationAgain")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shoudThrowCannotModifyPersistentRepresentationExceptionForPersistRepresentation()
+    public void shouldNotPersistRepresentationAgain()
             throws MCSException, IOException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema33";
+        //this version is alredy presistent
+        String version = "559bc4a0-a380-11e3-857e-1c6f653f6012";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
 
+        //ensure this version is persistent
+        Representation representation = instance.getRepresentation(cloudId, schema, version);
+        assertEquals(representation.isPersistent(), true);
+
+        //try to persist
         instance.persistRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidCloudId")
+    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidCloudId()
+    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRecord()
             throws MCSException, IOException {
-        String cloudId = "7MZWQJF8P00";
-        String schema = "schema_000001";
+        String cloudId = "noSuchRecord";
+        String schema = "schema33";
         String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
 
         instance.persistRepresentation(cloudId, schema, version);
     }
 
     @Betamax(
-            tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidRepresentationName")
+            tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidRepresentationName()
+    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName()
             throws MCSException, IOException {
-        String cloudId = "7MZWQJF8P84";
-        String represtentationNamw = "schema_000101";
+        String cloudId = "J93T5R6615H";
+        String schema = "noSuchSchema";
         String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
 
-        instance.persistRepresentation(cloudId, represtentationNamw, version);
+        instance.persistRepresentation(cloudId, schema, version);
     }
 
-    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidVersion")
+    @Betamax(tape = "records/shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenInvalidVersion()
+    public void shoudThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoSuchVersion()
             throws MCSException, IOException {
-        String cloudId = "7MZWQJF8P84";
-        String represtentationNamw = "schema_000001";
-        String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85200";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema33";
+        String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85204";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
-
-        instance.persistRepresentation(cloudId, represtentationNamw, version);
+       
+        instance.persistRepresentation(cloudId, schema, version);
     }
+    
+    @Betamax(tape = "records/shouldThrowDriverExceptionForPersistRepresentationVersionWhenInvalidVersion")
+    @Test(expected = DriverException.class)
+    public void shouldThrowDriverExceptionForPersistRepresentationVersionWhenInvalidVersion()
+            throws MCSException, IOException {
+        String cloudId = "J93T5R6615H";
+        String schema = "schema33";
+        String version = "noSuchVersion";
+        RecordServiceClient instance = new RecordServiceClient(baseUrl);
+       
+        instance.persistRepresentation(cloudId, schema, version);
+    }
+    
 
     //for example when Cassandra is not working
     @Betamax(tape = "records/shoudThrowDriverExceptionForPersistRepresentation")
@@ -900,60 +907,12 @@ public class RecordServiceClientTest {
     public void shoudThrowDriverExceptionForPersistRepresentation()
             throws MCSException, IOException {
         String cloudId = "7MZWQJF8P84";
-        String represtentationNamw = "schema_000001";
+        String representationName = "schema_000001";
         String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
 
-        instance.persistRepresentation(cloudId, represtentationNamw, version);
+        instance.persistRepresentation(cloudId, representationName, version);
     }
 
-    //persistRepresentation
-    @Betamax(tape = "records/shouldPersistRepresentation")
-    @Test
-    public void shouldPersistRepresentation()
-            throws MCSException, IOException {
-        String providerId = "Provider001";
-        String cloudId = "J93T5R6615H";
-        String schema = "schema33";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl);
-        String fileContent = "The content of the file.";
-        String fileType = "text/plain";
-        InputStream data = new ByteArrayInputStream(fileContent.getBytes());
-        FileServiceClient fileService = new FileServiceClient(baseUrl);
-
-        //create version
-        URI uriCreate = instance.createRepresentation(cloudId, schema, providerId);
-        Representation coordinates = TestUtils.parseRepresentationFromUri(uriCreate);
-        //add file
-        fileService.uploadFile(cloudId, schema, coordinates.getVersion(), data, fileType);
-        //persist representation
-        URI uriPersist = instance.persistRepresentation(cloudId, schema, coordinates.getVersion());
-        assertEquals(uriCreate.toString(), uriPersist.toString());
-        //obtain the representation
-        Representation representation = TestUtils.obtainRepresentationFromURI(instance, uriPersist);
-        assertEquals(representation.getFiles().size(), 1);
-        assertEquals(representation.isPersistent(), true);
-    }
-
-    //@Betamax(tape = "records/shouldNotPersistRepresentationWithNoFiles")
-    @Test(expected = CannotPersistEmptyRepresentationException.class)
-    @Ignore
-    public void shouldNotPersistRepresentationWithNoFiles()
-            throws MCSException, IOException {
-        String providerId = "Provider001";
-        String cloudId = "J93T5R6615H";
-        String schema = "schema33";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl);
-
-        //create version
-        URI uriCreate = instance.createRepresentation(cloudId, schema, providerId);
-        Representation coordinates = TestUtils.parseRepresentationFromUri(uriCreate);
-
-        instance.persistRepresentation(cloudId, schema, coordinates.getVersion());
-
-    }
 
 }
