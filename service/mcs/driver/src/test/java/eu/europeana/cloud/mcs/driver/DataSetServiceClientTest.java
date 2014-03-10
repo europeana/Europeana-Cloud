@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import java.net.URI;
 import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import org.junit.Rule;
@@ -21,7 +20,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 
 public class DataSetServiceClientTest {
 
@@ -33,7 +31,7 @@ public class DataSetServiceClientTest {
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
 
 
-    @Betamax(tape = "dataSets/getDataSetsChunkSuccess")
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetsFirstChunk")
     @Test
     public void shouldRetrieveDataSetsFirstChunk()
             throws MCSException {
@@ -50,7 +48,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getDataSetsChunkSecondSuccess")
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetsSecondChunk")
     @Test
     public void shouldRetrieveDataSetsSecondChunk()
             throws MCSException {
@@ -66,7 +64,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getDataSetsChunkNoProvider")
+    @Betamax(tape = "dataSets_shouldNotThrowProviderNotExistsForDataSetsChunk")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsChunk()
             throws MCSException {
@@ -80,7 +78,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getDataSetsSuccess")
+    @Betamax(tape = "dataSets_shouldReturnAllDataSets")
     @Test
     public void shouldReturnAllDataSets()
             throws MCSException {
@@ -94,7 +92,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getDataSetsNoProvider")
+    @Betamax(tape = "dataSets_shouldNotThrowProviderNotExistsForDataSetsAll")
     @Test
     public void shouldNotThrowProviderNotExistsForDataSetsAll()
             throws MCSException {
@@ -108,7 +106,7 @@ public class DataSetServiceClientTest {
 
 
     //to test it you can turn off Cassandra
-    @Betamax(tape = "dataSets/getDataSetsChunkInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForGetDataSetsChunk")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSetsChunk()
             throws MCSException {
@@ -119,7 +117,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getDataSetsInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForGetDataSets")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetDataSets()
             throws MCSException {
@@ -130,7 +128,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/createDataSetSuccess")
+    @Betamax(tape = "dataSets_shouldSuccessfullyCreateDataSet")
     @Test
     public void shouldSuccessfullyCreateDataSet()
             throws MCSException {
@@ -146,7 +144,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/createDataSetConflict")
+    @Betamax(tape = "dataSets_shouldThrowDataSetAlreadyExists")
     @Test(expected = DataSetAlreadyExistsException.class)
     public void shouldThrowDataSetAlreadyExists()
             throws MCSException {
@@ -159,7 +157,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/createDataSetProviderNotFound")
+    @Betamax(tape = "dataSets_shouldThrowProviderNotExists")
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowProviderNotExists()
             throws MCSException {
@@ -172,7 +170,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/createDataSetInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForCreateDataSet")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForCreateDataSet()
             throws MCSException {
@@ -185,7 +183,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsChunkSuccess")
+    @Betamax(tape = "dataSets_shouldRetrieveRepresentationsFirstChunk")
     @Test
     public void shouldRetrieveRepresentationsFirstChunk()
             throws MCSException {
@@ -203,7 +201,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsChunkSecondSuccess")
+    @Betamax(tape = "dataSets_shouldRetrieveRepresentationsSecondChunk")
     @Test
     public void shouldRetrieveRepresentationsSecondChunk()
             throws MCSException {
@@ -220,7 +218,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsChunkDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForRepresentationsChunk")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsChunk()
             throws MCSException {
@@ -233,7 +231,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsSuccess")
+    @Betamax(tape = "dataSets_shouldReturnAllRepresentations")
     @Test
     public void shouldReturnAllRepresentations()
             throws MCSException {
@@ -248,7 +246,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForRepresentationsAll")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForRepresentationsAll()
             throws MCSException {
@@ -260,7 +258,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsChunkInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForGetRepresentationsChunk")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentationsChunk()
             throws MCSException {
@@ -272,7 +270,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/getRepresentationsInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForGetRepresentations")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForGetRepresentations()
             throws MCSException {
@@ -286,9 +284,9 @@ public class DataSetServiceClientTest {
 
     //we cannot mock system state change in Betamax
     //because it will not record two different answers for the same request 
-    @Betamax(tape = "dataSets/updateDescriptionSuccess")
+    @Betamax(tape = "dataSets_shouldUpdateDescriptionOfDataSet")
     @Test
-    public void ShouldUpdateDescriptionOfDataSet()
+    public void shouldUpdateDescriptionOfDataSet()
             throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
@@ -310,9 +308,9 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/updateDescriptionEmptySuccess")
+    @Betamax(tape = "dataSets_shouldUpdateDescriptionOfDataSetToEmpty")
     @Test
-    public void ShouldUpdateDescriptionOfDataSetToEmpty()
+    public void shouldUpdateDescriptionOfDataSetToEmpty()
             throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
@@ -334,9 +332,9 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/updateDescriptionNullSuccess")
+    @Betamax(tape = "dataSets_shouldUpdateDescriptionOfDataSetToNull")
     @Test
-    public void ShouldUpdateDescriptionOfDataSetToNull()
+    public void shouldUpdateDescriptionOfDataSetToNull()
             throws MCSException {
         String providerId = "Provider002";
         String dataSetId = "dataset000002";
@@ -358,7 +356,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/updateDescriptionDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForUpdateDescription")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForUpdateDescription()
             throws MCSException {
@@ -371,7 +369,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/updateDescriptionInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForUpdateDescription")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUpdateDescription()
             throws MCSException {
@@ -384,7 +382,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/deleteDataSetSuccess")
+    @Betamax(tape = "dataSets_shouldDeleteDataSet")
     @Test
     public void shouldDeleteDataSet()
             throws MCSException {
@@ -404,7 +402,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/deleteDataSetDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForDeleteDataSet")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForDeleteDataSet()
             throws MCSException {
@@ -420,7 +418,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/deleteDataSetInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForDeleteDataSet")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForDeleteDataSet()
             throws MCSException {
@@ -451,7 +449,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/assignRepresentationNoVersionSuccess")
+    @Betamax(tape = "dataSets_shouldAssignRepresentation")
     @Test
     public void shouldAssignRepresentation()
             throws MCSException {
@@ -472,7 +470,7 @@ public class DataSetServiceClientTest {
     //should not complain about assigning the same representation version again
     //this test does not have sense using Betamax
     //but I wrote it just in case
-    @Betamax(tape = "dataSets/assignTheSameRepresentationSuccess")
+    @Betamax(tape = "dataSets_shouldAssignTheSameRepresentation")
     @Test
     public void shouldAssignTheSameRepresentation()
             throws MCSException {
@@ -482,7 +480,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/assignRepresentationVersionSuccess")
+    @Betamax(tape = "dataSets_shouldAssignRepresentationVersion")
     @Test
     public void shouldAssignRepresentationVersion()
             throws MCSException {
@@ -502,7 +500,7 @@ public class DataSetServiceClientTest {
 
     //this test does not have sense using Betamax
     //but I wrote it just in case
-    @Betamax(tape = "dataSets/assignRepresentationOtherVersionSecondSuccess")
+    @Betamax(tape = "dataSets_shouldOverrideAssignedRepresentationVersion")
     @Test
     public void shouldOverrideAssignedRepresentationVersion()
             throws MCSException {
@@ -520,7 +518,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/assignRepresentationInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForAssingRepresentation")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForAssingRepresentation()
             throws MCSException {
@@ -536,7 +534,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/assignRepresentationRepresentationNotExists")
+    @Betamax(tape = "dataSets_shouldThrowRepresentationNotExistsForAssingRepresentation")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsForAssingRepresentation()
             throws MCSException {
@@ -552,7 +550,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/assignRepresentationDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForAssingRepresentation")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForAssingRepresentation()
             throws MCSException {
@@ -568,7 +566,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/unassignRepresentationSuccess")
+    @Betamax(tape = "dataSets_shouldUnassignRepresentation")
     @Test
     public void shouldUnassignRepresentation()
             throws MCSException {
@@ -585,7 +583,7 @@ public class DataSetServiceClientTest {
 
 
     //should not complain about unassigning not assigned representation
-    @Betamax(tape = "dataSets/unassignNotAssignedRepresentationSuccess")
+    @Betamax(tape = "dataSets_shouldUnassignNotAssignedRepresentation")
     @Test
     public void shouldUnassignNotAssignedRepresentation()
             throws MCSException {
@@ -601,7 +599,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/unassignRepresentationVersionSuccess")
+    @Betamax(tape = "dataSets_shouldUnassignRepresentationWithVersion")
     @Test
     public void shouldUnassignRepresentationWithVersion()
             throws MCSException {
@@ -618,7 +616,7 @@ public class DataSetServiceClientTest {
 
 
     //should not complain about unassigning non-existing representation
-    @Betamax(tape = "dataSets/unassignNonExistingRepresentationSuccess")
+    @Betamax(tape = "dataSets_shouldUnassignNonExistingRepresentation")
     @Test
     public void shouldUnassignNonExistingRepresentation()
             throws MCSException {
@@ -633,7 +631,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/unassignRepresentationInternalServerError")
+    @Betamax(tape = "dataSets_shouldThrowDriverExceptionForUnassingRepresentation")
     @Test(expected = DriverException.class)
     public void shouldThrowDriverExceptionForUnassingRepresentation()
             throws MCSException {
@@ -648,7 +646,7 @@ public class DataSetServiceClientTest {
     }
 
 
-    @Betamax(tape = "dataSets/unassignRepresentationDataSetNotExists")
+    @Betamax(tape = "dataSets_shouldThrowDataSetNotExistsForUnassingRepresentation")
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowDataSetNotExistsForUnassingRepresentation()
             throws MCSException {
