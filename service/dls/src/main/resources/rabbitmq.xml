@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+           http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    
+    <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
+    
+    <rabbit:queue id="representationVersionAddedQueue"/>
+    <rabbit:queue id="representationVersionRemovedQueue"/>
+    <rabbit:queue id="representationRemovedQueue"/>
+    <rabbit:queue id="allRecordRepresentationsRemovedQueue"/>
+    <rabbit:queue id="assignmentAddedQueue"/>
+    <rabbit:queue id="assignmentRemovedQueue"/>
+    
+    <rabbit:topic-exchange name="mcs-notifications.topic" >
+        <rabbit:bindings>
+            <rabbit:binding queue="representationVersionAddedQueue" pattern="records.representations.versions.add"/>
+            <rabbit:binding queue="representationVersionRemovedQueue" pattern="records.representations.versions.deleteVersion"/>
+            <rabbit:binding queue="representationRemovedQueue" pattern="records.representations.delete"/>
+            <rabbit:binding queue="allRecordRepresentationsRemovedQueue" pattern="records.representations.deleteAll"/>
+            <rabbit:binding queue="assignmentAddedQueue" pattern="records.representations.assignments.add"/>
+            <rabbit:binding queue="assignmentRemovedQueue" pattern="records.representations.assignments.delete"/>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+    
+    <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
+    <rabbit:admin connection-factory="rabbitConnectionFactory"/>
+
+    <rabbit:listener-container>
+        <rabbit:listener queues="representationVersionAddedQueue" ref="representationVersionAddedListener"/>
+        <rabbit:listener queues="representationVersionRemovedQueue" ref="representationVersionRemovedListener"/>
+        <rabbit:listener queues="representationRemovedQueue" ref="representationRemovedListener"/>
+        <rabbit:listener queues="allRecordRepresentationsRemovedQueue" ref="allRecordRepresentationsRemovedistener"/>
+        <rabbit:listener queues="assignmentAddedQueue" ref="assignmentAddedListener"/>
+        <rabbit:listener queues="assignmentRemovedQueue" ref="assignmentRemovedListener"/>
+    </rabbit:listener-container>
+    
+    <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
+    <bean id="representationVersionRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionRemovedListener"/>
+    <bean id="representationRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationRemovedListener"/>
+    <bean id="allRecordRepresentationsRemovedistener" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedistener"/>
+    <bean id="assignmentAddedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentAddedListener"/>   
+    <bean id="assignmentRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
+</beans>         

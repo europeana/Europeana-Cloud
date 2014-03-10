@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+                            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd">
+    
+    
+    <mockito:mock id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate"/>
+    <mockito:mock id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
+    <mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
+    <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+ 
+
+    <!--uncomment to access real rabbitmq in tests-->
+    <!--    
+    <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
+    
+    <rabbit:topic-exchange name="mcs-notifications.topic" >
+    </rabbit:topic-exchange>
+    
+    <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
+    <rabbit:admin connection-factory="rabbitConnectionFactory"/>
+    -->
+       
+     
+</beans>         

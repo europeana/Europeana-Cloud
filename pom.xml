@@ -74,7 +74,8 @@
 		<module>service/mcs</module>
 		<module>service/uis</module>
                 <module>tools</module>
-  </modules>
+	 <module>service/dls</module>
+	</modules>
 	<repositories>
 		<repository>
 			<id>eaio.com</id>

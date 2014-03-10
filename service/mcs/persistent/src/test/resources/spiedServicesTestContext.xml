@@ -40,7 +40,8 @@
     <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
-     
+    <mockito:mock id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate"/>
+    
     <!--spy on everything-->
     <mockito:spy beanName="cassandraConnectionProvider"/>
     <mockito:spy beanName="cassandraDataSetService"/>
