@@ -17,11 +17,17 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import junitparams.JUnitParamsRunner;
+import static junitparams.JUnitParamsRunner.$;
+import junitparams.Parameters;
 import static org.hamcrest.Matchers.is;
+import org.junit.Assert;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(JUnitParamsRunner.class)
 public class MCSExceptionProviderTest {
 
     @Test(expected = DriverException.class)
@@ -38,60 +44,41 @@ public class MCSExceptionProviderTest {
     }
 
 
-    @Test
-    public void shouldReturnCannotModifyPersistentRepresentationException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof CannotModifyPersistentRepresentationException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
+    @SuppressWarnings("unused")
+    private Object[] statusCodes() {
+        return $(
+            $(new CannotModifyPersistentRepresentationException(),
+                McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString()),
+            $(new DataSetAlreadyExistsException(), McsErrorCode.DATASET_ALREADY_EXISTS.toString()),
+            $(new DataSetNotExistsException(), McsErrorCode.DATASET_NOT_EXISTS.toString()),
+            $(new FileAlreadyExistsException(), McsErrorCode.FILE_ALREADY_EXISTS.toString()),
+            $(new FileNotExistsException(), McsErrorCode.FILE_NOT_EXISTS.toString()),
+            $(new ProviderNotExistsException(), McsErrorCode.PROVIDER_NOT_EXISTS.toString()),
+            $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString()),
+            $(new VersionNotExistsException(), McsErrorCode.VERSION_NOT_EXISTS.toString()),
+            $(new FileContentHashMismatchException(), McsErrorCode.FILE_CONTENT_HASH_MISMATCH.toString()),
+            $(new RepresentationAlreadyInSet(), McsErrorCode.REPRESENTATION_ALREADY_IN_SET.toString()),
+            $(new CannotPersistEmptyRepresentationException(),
+                McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString()),
+            $(new WrongContentRangeException(), McsErrorCode.WRONG_CONTENT_RANGE.toString())
+        //
+        );
     }
 
 
     @Test
-    public void shouldReturnDataSetAlreadyExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.DATASET_ALREADY_EXISTS.toString(), "details");
+    @Parameters(method = "statusCodes")
+    public void shouldReturnCorrectException(Throwable ex, String errorCode) {
+        ErrorInfo errorInfo = new ErrorInfo(errorCode, "details");
         MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof DataSetAlreadyExistsException);
+        Assert.assertEquals(ex.getClass(), exception.getClass());
         assertThat(exception.getMessage(), is(errorInfo.getDetails()));
     }
 
 
-    @Test
-    public void shouldReturnDataSetNotExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.DATASET_NOT_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof DataSetNotExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnFileAlreadyExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.FILE_ALREADY_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof FileAlreadyExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnFileNotExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.FILE_NOT_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof FileNotExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnProviderNotExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.PROVIDER_NOT_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof ProviderNotExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
+    /*
+        This one is separate becouse it returns different details message...
+    */
     @Test
     public void shouldReturnRecordNotExistsException() {
         ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.RECORD_NOT_EXISTS.toString(), "details");
@@ -101,62 +88,8 @@ public class MCSExceptionProviderTest {
     }
 
 
-    @Test
-    public void shouldReturnRepresentationNotExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof RepresentationNotExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnVersionNotExistsException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.VERSION_NOT_EXISTS.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof VersionNotExistsException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnFileContentHashMismatchException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.FILE_CONTENT_HASH_MISMATCH.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof FileContentHashMismatchException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnRepresentationAlreadyInSet() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.REPRESENTATION_ALREADY_IN_SET.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof RepresentationAlreadyInSet);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnCannotPersistEmptyRepresentationException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof CannotPersistEmptyRepresentationException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
-    @Test
-    public void shouldReturnWrongContentRangeException() {
-        ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.WRONG_CONTENT_RANGE.toString(), "details");
-        MCSException exception = MCSExceptionProvider.generateException(errorInfo);
-        assertTrue(exception instanceof WrongContentRangeException);
-        assertThat(exception.getMessage(), is(errorInfo.getDetails()));
-    }
-
-
     @Test(expected = DriverException.class)
-    public void shouldReturnDriverException() {
+    public void shouldThrowDriverException() {
         ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.toString(), "details");
         MCSExceptionProvider.generateException(errorInfo);
     }
