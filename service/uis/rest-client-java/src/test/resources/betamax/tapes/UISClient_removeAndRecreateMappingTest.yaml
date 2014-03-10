@@ -1,0 +1,67 @@
+!tape
+name: UISClient/removeAndRecreateMappingTest
+interactions:
+- recorded: 2014-03-10T10:17:45.488Z
+  request:
+    method: POST
+    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds?providerId=TEST_PROVIDER
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 10 Mar 2014 10:17:44 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></cloudId>
+- recorded: 2014-03-10T10:17:45.554Z
+  request:
+    method: DELETE
+    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/TEST_PROVIDER/localIds/BPBC59M0TJ6
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/json
+      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Server: Apache-Coyote/1.1
+    body: Mapping marked as deleted
+- recorded: 2014-03-10T10:17:45.662Z
+  request:
+    method: POST
+    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/TEST_PROVIDER/cloudIds/86LHPSFG0RT?recordId=BPBC59M0TJ6
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></cloudId>
+- recorded: 2014-03-10T10:17:45.745Z
+  request:
+    method: GET
+    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds/86LHPSFG0RT
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></results><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></results></resultSlice>

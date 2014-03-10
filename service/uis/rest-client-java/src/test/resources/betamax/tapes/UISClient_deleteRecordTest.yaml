@@ -1,0 +1,19 @@
+!tape
+name: UISClient/deleteRecordTest
+interactions:
+- recorded: 2014-03-10T10:17:46.136Z
+  request:
+    method: POST
+    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds?providerId=TEST_PROVIDER&recordId=TEST_RECORD
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 409
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>An identifier for provider id TEST_PROVIDER and record id TEST_RECORD already exists in the database</details><errorCode>RECORD_EXISTS</errorCode></errorInfo>

@@ -1,0 +1,55 @@
+!tape
+name: UISClient/updateProvider
+interactions:
+- recorded: 2014-03-10T10:17:43.203Z
+  request:
+    method: POST
+    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers?providerId=updateProviderTest_Id
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Date: Mon, 10 Mar 2014 10:17:43 GMT
+      Location: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+      Server: Apache-Coyote/1.1
+    body: !!binary ""
+- recorded: 2014-03-10T10:17:43.321Z
+  request:
+    method: PUT
+    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Content-Length: '227'
+      Content-Type: application/json
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+    body: '{"contactPerson":"person2","digitalLibraryURL":"url2","digitalLibraryWebsite":"url2","officialAddress":"Address2","organisationName":"Name2","organisationWebsite":"website2","organisationWebsiteURL":"url2","remarks":"remarks2"}'
+  response:
+    status: 204
+    headers:
+      Date: Mon, 10 Mar 2014 10:17:43 GMT
+      Server: Apache-Coyote/1.1
+- recorded: 2014-03-10T10:17:43.631Z
+  request:
+    method: GET
+    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8081
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Mon, 10 Mar 2014 10:17:43 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><dataProvider><id>updateProviderTest_Id</id><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties><uri>http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id</uri></dataProvider>
