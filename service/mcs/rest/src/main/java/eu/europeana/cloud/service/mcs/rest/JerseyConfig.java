@@ -38,6 +38,7 @@ public class JerseyConfig extends ResourceConfig {
         register(LoggingFilter.class);
 
         // exception mappers
+        register(CannotPersistEmptyRepresentationExceptionMapper.class);
         register(CannotModifyPersistentRepresentationExceptionMapper.class);
         register(CannotPersistEmptyRepresentationExceptionMapper.class);
         register(DataSetAlreadyExistsExceptionMapper.class);
