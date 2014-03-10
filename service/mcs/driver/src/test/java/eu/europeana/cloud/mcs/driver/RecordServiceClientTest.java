@@ -427,7 +427,7 @@ public class RecordServiceClientTest {
         assertEquals(version, representation.getVersion());
     }
 
-    //@Betamax(tape = "records/getRepresentationLatestSuccess")
+    //@Betamax(tape = "records/shouldRetrieveLatestRepresentationVersion")
     @Ignore
     @Test
     public void shouldRetrieveLatestRepresentationVersion()
@@ -436,20 +436,19 @@ public class RecordServiceClientTest {
         String schema = "schema22";
         String version = "LATEST";
         //this is the version of latest persistent version
-
-        //TODO
-        //String versionCode = "74cc8410-a2d9-11e3-8a55-1c6f653f6012";
+        String versionCode = "88edb4d0-a2ef-11e3-89f5-1c6f653f6012";
+        
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         Representation representationLatest = instance.getRepresentation(cloudId, schema, version);
         assertNotNull(representationLatest);
         assertEquals(cloudId, representationLatest.getCloudId());
         assertEquals(schema, representationLatest.getRepresentationName());
-        //assertEquals(versionCode, representationLatest.getVersion());
+        assertEquals(versionCode, representationLatest.getVersion());
 
         //check by getting lastest persistent representation with other method
         Representation representation = instance.getRepresentation(cloudId, schema);
-        //TODO WTF
+        //TODO JIRA ECL-160
         //assertEquals(representationLatest, representation);
     }
 
