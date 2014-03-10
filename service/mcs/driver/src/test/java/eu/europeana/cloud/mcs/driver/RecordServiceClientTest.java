@@ -38,7 +38,6 @@ public class RecordServiceClientTest {
     //this is only needed for recording tests
     private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
 
-
     //getRecord
     @Betamax(tape = "records/getRecordSuccess")
     @Test
@@ -454,7 +453,6 @@ public class RecordServiceClientTest {
         //assertEquals(representationLatest, representation);
     }
 
-
     @Betamax(tape = "records/shouldTreatLatestPersistentVersionAsLatestCreated")
     @Test
     public void shouldTreatLatestPersistentVersionAsLatestCreated()
@@ -784,28 +782,38 @@ public class RecordServiceClientTest {
         instance.copyRepresentation(cloudId, schema, version);
     }
 
+    //persistRepresentation
     @Betamax(tape = "records/shouldPersistAfterAddingFiles")
     @Test
     public void shouldPersistAfterAddingFiles()
             throws MCSException, IOException {
-        String cloudId = "7MZWQJF8P84";
-        String schema = "schema_000001";
-        String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";
+        String providerId = "Provider001";
+        String cloudId = "J93T5R6615H";
+        String schema = "schema33";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
         FileServiceClient fileService = new FileServiceClient(baseUrl);
         String fileContent = "The content of the file.";
         String fileType = "text/plain";
+
+        //create representation
+        URI uriCreated = instance.createRepresentation(cloudId, schema, providerId);
+        Representation coordinates = TestUtils.parseRepresentationFromUri(uriCreated);
+
+        //add files
         InputStream data = new ByteArrayInputStream(fileContent.getBytes());
-        try {
-            fileService.uploadFile(cloudId, schema, version, data, fileType);
-        } catch (Exception e) {
-        }
+        fileService.uploadFile(cloudId, schema, coordinates.getVersion(), data, fileType);
 
-        URI uriResult = instance.persistRepresentation(cloudId, schema, version);
+        //persist representation
+        URI uriPersisted = instance.persistRepresentation(cloudId, schema, coordinates.getVersion());
 
-        assertNotNull(uriResult);
-        Representation resultRepresentation = TestUtils.obtainRepresentationFromURI(instance, uriResult);
-        assertEquals(resultRepresentation.isPersistent(), true);
+        assertNotNull(uriPersisted);
+        Representation persistedRepresentation = TestUtils.obtainRepresentationFromURI(instance, uriPersisted);
+        assertEquals(providerId, persistedRepresentation.getDataProvider());
+        assertEquals(schema, persistedRepresentation.getRepresentationName());
+        assertEquals(cloudId, persistedRepresentation.getCloudId());
+        assertEquals(coordinates.getVersion(), persistedRepresentation.getVersion());
+        assertEquals(persistedRepresentation.isPersistent(), true);
+
     }
 
     @Betamax(tape = "records/shoudThrowCannotPersistEmptyRepresentationExceptionForPersistRepresentationWithoutFiles")
@@ -948,7 +956,6 @@ public class RecordServiceClientTest {
         Representation coordinates = TestUtils.parseRepresentationFromUri(uriCreate);
 
         instance.persistRepresentation(cloudId, schema, coordinates.getVersion());
- 
 
     }
 
