@@ -85,7 +85,7 @@ public class SolrRepresentationIndexerTest {
         //when
         indexer.removeRepresentation(cloudId, schemaId);
         //then
-        verify(template, times(1)).convertAndSend("records.representations.versions.deleteVersion", json);
+        verify(template, times(1)).convertAndSend("records.representations.delete", json);
         verifyNoMoreInteractions(template);
     }
 

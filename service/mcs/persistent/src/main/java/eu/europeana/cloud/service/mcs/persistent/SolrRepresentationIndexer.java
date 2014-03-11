@@ -110,7 +110,7 @@ public class SolrRepresentationIndexer {
     public void removeRepresentation(String cloudId, String representationName) {
         try {
             solrDAO.removeRepresentation(cloudId, representationName);
-            template.convertAndSend("records.representations.versions.deleteVersion",
+            template.convertAndSend("records.representations.delete",
                 prepareRemoveRepresentationMsg(cloudId, representationName));
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class RepresentationVersionAddedListener implements MessageListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionRemovedListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionAddedListener.class);
 
     @Autowired
     SolrDAO solrDao;

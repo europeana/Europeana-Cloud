@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RepresentationRemovedListener implements MessageListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionRemovedListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationRemovedListener.class);
 
     @Autowired
     SolrDAO solrDao;
