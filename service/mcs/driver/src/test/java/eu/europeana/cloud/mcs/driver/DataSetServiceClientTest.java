@@ -621,6 +621,7 @@ public class DataSetServiceClientTest {
 
     }
 
+    //data set iterator
     @Betamax(tape = "dataSets_shouldProvideDataSetIterator")
     @Test
     public void shouldProvideDataSetIterator()
@@ -629,7 +630,7 @@ public class DataSetServiceClientTest {
         int numberOfDataSets = 200;
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-        DataSetIterator iterator = instance.getDataSetsIteratorForProvider(providerId);
+        DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
         assertNotNull(iterator);
         int counter = 0;
         while (iterator.hasNext()) {
@@ -647,7 +648,7 @@ public class DataSetServiceClientTest {
         String providerId = "noSuchProvider";
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-        DataSetIterator iterator = instance.getDataSetsIteratorForProvider(providerId);
+        DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
         assertNotNull(iterator);
         assertEquals(iterator.hasNext(), false);
 
@@ -661,7 +662,7 @@ public class DataSetServiceClientTest {
         int numberOfDataSets = 200;
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-        DataSetIterator iterator = instance.getDataSetsIteratorForProvider(providerId);
+        DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
         assertNotNull(iterator);
         for (int i = 0; i < numberOfDataSets; i++) {
             //catch exception here, because it is not when we want it to be thrown
@@ -684,7 +685,102 @@ public class DataSetServiceClientTest {
         int numberOfDataSets = 200;
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-        DataSetIterator iterator = instance.getDataSetsIteratorForProvider(providerId);
+        DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
         iterator.next();
     }
+
+    //representation iterator
+    @Betamax(tape = "dataSets_shouldProvideRepresentationIterator")
+    @Test
+    public void shouldProvideRepresentationIterator()
+            throws MCSException {
+        String providerId = "Provider001";
+        String dataSetId = "dataset3";
+        int numberOfRepresentations = 200;
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
+        assertNotNull(iterator);
+        int counter = 0;
+        while (iterator.hasNext()) {
+            counter++;
+            assertNotNull(iterator.next());
+        }
+        assertEquals(counter, numberOfRepresentations);
+
+    }
+
+    @Betamax(tape = "dataSets_shouldProvideRepresentationIteratorThatThrowsDataSetNotExistsExceptionWhenNoDataSet")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoDataSet()
+            throws Exception, Throwable {
+        String providerId = "Provider001";
+        String dataSetId = "noSuchDataSet";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
+        assertNotNull(iterator);
+
+        try {
+            iterator.hasNext();
+        } catch (DriverException e) {
+            throw e.getCause();
+        }
+    }
+
+    @Betamax(tape = "dataSets_shouldProvideRepresentationIteratorThatThrowsDataSetNotExistsExceptionWhenNoProvider")
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider()
+            throws MCSException, Throwable {
+        String providerId = "noSuchProvider";
+        String dataSetId = "dataset3";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
+        assertNotNull(iterator);
+
+        try {
+            iterator.hasNext();
+        } catch (DriverException e) {
+            throw e.getCause();
+        }
+    }
+
+    @Betamax(tape = "dataSets_shouldProvideRepresentationIteratorThatThrowsNoSuchElementException")
+    @Test(expected = NoSuchElementException.class)
+    public void shouldProvideRepresentationIteratorThatThrowsNoSuchElementException()
+            throws MCSException {
+        String providerId = "Provider001";
+        String dataSetId = "dataset3";
+        int numberOfRepresentations = 200;
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
+        assertNotNull(iterator);
+        for (int i = 0; i < numberOfRepresentations; i++) {
+            //catch exception here, because it is not when we want it to be thrown
+            try {
+                assertNotNull(iterator.next());
+            } catch (NoSuchElementException ex) {
+                assert false : "NoSuchElementException thrown in unexpected place.";
+            }
+        }
+
+        iterator.next();
+
+    }
+
+    @Betamax(tape = "dataSets_shouldProvideRepresentationIteratorThatThrowsDriverException")
+    @Test(expected = DriverException.class)
+    public void shouldProvideRepresentationIteratorThatThrowsDriverException()
+            throws MCSException {
+        String providerId = "Provider001";
+        String dataSetId = "dataset3";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+        RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
+        iterator.next();
+    }
+
+
 }

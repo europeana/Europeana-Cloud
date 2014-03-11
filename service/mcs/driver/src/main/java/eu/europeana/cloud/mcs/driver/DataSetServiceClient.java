@@ -157,7 +157,7 @@ public class DataSetServiceClient {
      * @return iterator to the list of all data sets of specified provider
      * (empty if provider does not exist)
      */
-    public DataSetIterator getDataSetsIteratorForProvider(String providerId) {
+    public DataSetIterator getDataSetIteratorForProvider(String providerId) {
         return new DataSetIterator(this, providerId);
     }
 
@@ -273,6 +273,21 @@ public class DataSetServiceClient {
         } while (resultSlice.getNextSlice() != null);
 
         return resultList;
+    }
+
+    /**
+     * Returns iterator to list of representation versions of data set.
+     *
+     * Iterator is not initialised with data on creation, calls to MCS server
+     * are performed in iterator methods.
+     *
+     * @param providerId provider identifier (required)
+     * @param dataSetId data set identifier (required)
+     * @return iterator to the list of all data sets of specified provider
+     * (empty if provider does not exist)
+     */
+    public RepresentationIterator getRepresentationIterator(String providerId, String dataSetId) {
+        return new RepresentationIterator(this, providerId, dataSetId);
     }
 
     /**

@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
  * Class for iterating through DataSets of given provider.
  *
  * The best way to initialise iterator is to obtain it by calling
- * {@link DataSetServiceClient#getDataSetsIteratorForProvider(String providerId)} method.
+ * {@link DataSetServiceClient#getDataSetIteratorForProvider(String)} method.
  *
  * Iterator obtains {@link DataSet} objects in chunks, obtaining new chunk only
  * if needed, inside overridden {@link Iterator} class methods.
@@ -29,7 +29,7 @@ public class DataSetIterator implements Iterator<DataSet> {
     private Iterator<DataSet> dataSetListIterator;
 
     /**
-     * Creates instance of FirstFlag.
+     * Creates instance of DataSetIterator.
      *
      * @param client properly initialised client for internal communication with
      * MCS server (required)
