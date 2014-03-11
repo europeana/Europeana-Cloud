@@ -257,7 +257,7 @@ public class FileResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldReturn404WhenUploadDataWithPutNotExistingFile()
+    public void shouldReturn404WhenUpdatingNotExistingFile()
             throws Exception {
         // given particular (random in this case) content
         byte[] content = new byte[1000];

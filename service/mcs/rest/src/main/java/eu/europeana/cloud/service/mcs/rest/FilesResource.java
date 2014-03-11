@@ -101,7 +101,7 @@ public class FilesResource {
                     throw new FileAlreadyExistsException(fileName);
                 }
             } catch (FileNotExistsException e) {
-                //expected exception
+                //file does not exist, so continue and add it
             }
 
             f.setFileName(fileName);

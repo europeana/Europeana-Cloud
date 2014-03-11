@@ -129,7 +129,7 @@ public class FilesResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldUploadDataWithPostWitchFileName()
+    public void shouldUploadDataWithPostWithFileName()
             throws Exception {
         // given particular (random in this case) content in service
         byte[] content = new byte[1000];
