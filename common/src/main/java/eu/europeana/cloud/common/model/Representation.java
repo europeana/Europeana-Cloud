@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Representation {
 
     /**
-     * Identifier (cloud id) ov a record this object is representation of.
+     * Identifier (cloud id) of a record this object is representation of.
      */
     private String cloudId;
 

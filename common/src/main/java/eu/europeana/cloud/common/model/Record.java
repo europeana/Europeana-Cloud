@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Record {
 
     /**
-     * Identifier (cloud cloudId) of a record.
+     * Identifier (cloud id) of a record.
      */
     private String cloudId;
 
