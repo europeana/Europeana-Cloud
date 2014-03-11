@@ -63,7 +63,7 @@ public class SolrRepresentationIndexer {
             if (!representation.isPersistent()) {
                 solrDAO.insertRepresentation(representation, null);
                 template.convertAndSend("records.representations.versions.add",
-                    prepareRepresentationMessage(representation));
+                    prepareInsertRepresentationMessage(representation));
             } else { //TODO: check what is going on here and send a message to the queue
                 Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO.getDataSetAssignments(
                     representation.getCloudId(), representation.getRepresentationName(), null);
@@ -74,6 +74,11 @@ public class SolrRepresentationIndexer {
         } catch (IOException | SolrDocumentNotFoundException | SolrServerException ex) {
             LOGGER.error("Cannot insert representation into solr", ex);
         }
+    }
+
+
+    private String prepareInsertRepresentationMessage(Representation representation) {
+        return gson.toJson(representation);
     }
 
 
@@ -99,14 +104,14 @@ public class SolrRepresentationIndexer {
      * 
      * @param cloudId
      *            record id
-     * @param schema
+     * @param representationName
      *            represenation's schema
      */
-    public void removeRepresentation(String cloudId, String schema) {
+    public void removeRepresentation(String cloudId, String representationName) {
         try {
-            solrDAO.removeRepresentation(cloudId, schema);
+            solrDAO.removeRepresentation(cloudId, representationName);
             template.convertAndSend("records.representations.versions.deleteVersion",
-                prepareRemoveRepresentationMsg(cloudId, schema));
+                prepareRemoveRepresentationMsg(cloudId, representationName));
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);
         }
@@ -139,16 +144,28 @@ public class SolrRepresentationIndexer {
     /**
      * Removes assignment between data set and representation (regardless its version).
      * 
-     * @param recordId
-     * @param schema
+     * @param cloudId
+     * @param representationName
      * @param dataSetId
      */
-    public void removeAssignment(String recordId, String schema, CompoundDataSetId dataSetId) {
+    public void removeAssignment(String cloudId, String representationName, CompoundDataSetId dataSetId) {
         try {
-            solrDAO.removeAssignment(recordId, schema, Collections.singletonList(dataSetId));
+            solrDAO.removeAssignment(cloudId, representationName, Collections.singletonList(dataSetId));
+            template.convertAndSend("records.representations.assignments.delete",
+                prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot remove assignment from solr", ex);
         }
+    }
+
+
+    private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
+        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
+        JsonObject jo = new JsonObject();
+        jo.add("compoundDataSetId", elem);
+        jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
+        jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
+        return jo.toString();
     }
 
 
@@ -192,11 +209,6 @@ public class SolrRepresentationIndexer {
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove assignments from data set in solr", ex);
         }
-    }
-
-
-    private String prepareRepresentationMessage(Representation representation) {
-        return gson.toJson(representation);
     }
 
 }

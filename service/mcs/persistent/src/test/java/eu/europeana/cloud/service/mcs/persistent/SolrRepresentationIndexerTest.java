@@ -110,4 +110,28 @@ public class SolrRepresentationIndexerTest {
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
             is(ds.getDataSetProviderId()));
     }
+
+
+    @Test
+    public void shouldSendMessageAboutAssignmentRemoval() {
+        //given
+        String cloudId = "b95fcda053f6012";
+        String representationName = "schema";
+        CompoundDataSetId ds = new CompoundDataSetId("providerId", "someDataSetId");
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+
+        //when
+        indexer.removeAssignment(cloudId, representationName, ds);
+        //then
+        verify(template, times(1)).convertAndSend(eq("records.representations.assignments.delete"), argument.capture());
+        verifyNoMoreInteractions(template);
+
+        JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
+        assertThat(jo.get(ParamConstants.P_CLOUDID).getAsString(), is(cloudId));
+        assertThat(jo.get(ParamConstants.P_REPRESENTATIONNAME).getAsString(), is(representationName));
+        assertTrue(jo.get("compoundDataSetId").isJsonObject());
+        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
+        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
+            is(ds.getDataSetProviderId()));
+    }
 }
