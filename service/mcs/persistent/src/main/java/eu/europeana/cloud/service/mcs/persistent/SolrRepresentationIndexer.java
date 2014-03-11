@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
@@ -161,9 +163,20 @@ public class SolrRepresentationIndexer {
     public void addAssignment(String versionId, CompoundDataSetId dataSetId) {
         try {
             solrDAO.addAssignment(versionId, dataSetId);
+            template.convertAndSend("records.representations.assignments.add",
+                prepareAddAssignmentMsg(versionId, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot add assignment to solr", ex);
         }
+    }
+
+
+    private String prepareAddAssignmentMsg(String versionId, CompoundDataSetId dataSetId) {
+        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
+        JsonObject jo = new JsonObject();
+        jo.add("compoundDataSetId", elem);
+        jo.addProperty(ParamConstants.P_VER, versionId);
+        return jo.toString();
     }
 
 
