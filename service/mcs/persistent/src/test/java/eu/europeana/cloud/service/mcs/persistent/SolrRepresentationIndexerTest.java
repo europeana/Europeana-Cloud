@@ -164,7 +164,7 @@ public class SolrRepresentationIndexerTest {
         //when
         indexer.addAssignment(versionId, ds);
         //then
-        verify(template, times(1)).convertAndSend(eq("records.representations.assignments.add"), argument.capture());
+        verify(template, times(1)).convertAndSend(eq("datasets.assignments.add"), argument.capture());
         verifyNoMoreInteractions(template);
 
         JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
@@ -186,7 +186,7 @@ public class SolrRepresentationIndexerTest {
         //when
         indexer.removeAssignment(cloudId, representationName, ds);
         //then
-        verify(template, times(1)).convertAndSend(eq("records.representations.assignments.delete"), argument.capture());
+        verify(template, times(1)).convertAndSend(eq("datasets.assignments.delete"), argument.capture());
         verifyNoMoreInteractions(template);
 
         JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();

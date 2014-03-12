@@ -155,8 +155,8 @@ public class SolrRepresentationIndexer {
     public void removeAssignment(String cloudId, String representationName, CompoundDataSetId dataSetId) {
         try {
             solrDAO.removeAssignment(cloudId, representationName, Collections.singletonList(dataSetId));
-            template.convertAndSend("records.representations.assignments.delete",
-                    prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
+            template.convertAndSend("datasets.assignments.delete",
+                prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot remove assignment from solr", ex);
         }
@@ -180,8 +180,7 @@ public class SolrRepresentationIndexer {
     public void addAssignment(String versionId, CompoundDataSetId dataSetId) {
         try {
             solrDAO.addAssignment(versionId, dataSetId);
-            template.convertAndSend("records.representations.assignments.add",
-                    prepareAddAssignmentMsg(versionId, dataSetId));
+            template.convertAndSend("datasets.assignments.add", prepareAddAssignmentMsg(versionId, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot add assignment to solr", ex);
         }

@@ -23,8 +23,8 @@
             <rabbit:binding queue="representationVersionRemovedQueue" pattern="records.representations.versions.deleteVersion"/>
             <rabbit:binding queue="representationRemovedQueue" pattern="records.representations.delete"/>
             <rabbit:binding queue="allRecordRepresentationsRemovedQueue" pattern="records.representations.deleteAll"/>
-            <rabbit:binding queue="assignmentAddedQueue" pattern="records.representations.assignments.add"/>
-            <rabbit:binding queue="assignmentRemovedQueue" pattern="records.representations.assignments.delete"/>
+            <rabbit:binding queue="assignmentAddedQueue" pattern="datasets.assignments.add"/>
+            <rabbit:binding queue="assignmentRemovedQueue" pattern="datasets.assignments.delete"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
     
