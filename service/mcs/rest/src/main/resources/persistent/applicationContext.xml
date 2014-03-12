@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:task="http://www.springframework.org/schema/task"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:jee="http://www.springframework.org/schema/jee"
-       xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-                         http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-                         http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
-                         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
-                         http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:jee="http://www.springframework.org/schema/jee"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+           xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+                        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
 
     <context:annotation-config/>
     <import resource="classpath:config.xml" />
@@ -32,7 +32,7 @@
     cassandra-->
     <bean id="cassandraConnectionProvider"
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
-
+    
         <constructor-arg name="host">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/cassandra/host"/>
@@ -69,57 +69,54 @@
 
     <bean id="swiftConnectionProvider" 
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
-        <constructor-arg name="provider" >
+		<constructor-arg name="provider" >
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/provider"/>
-        </constructor-arg>
-        <constructor-arg name="container">
+		</constructor-arg>
+		<constructor-arg name="container">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/container"/>
-        </constructor-arg>
-        <constructor-arg name="endpoint">
+		</constructor-arg>
+		<constructor-arg name="endpoint">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/endpoint"/>
-        </constructor-arg>
-        <constructor-arg name="user">
+		</constructor-arg>
+		<constructor-arg name="user">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/user"/>
-        </constructor-arg>
-        <constructor-arg name="password">
+		</constructor-arg>
+		<constructor-arg name="password">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/password"/>
-        </constructor-arg>
-    </bean>
-
+		</constructor-arg>
+	</bean>    
+    
     <bean id="sorlConnector" 
           class="eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProviderImpl">
-        <constructor-arg name="solrUrl">
+		<constructor-arg name="solrUrl">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/solr/url"/>
-        </constructor-arg>
-    </bean>
-
-
+		</constructor-arg>
+	</bean>
+    
+    
     <bean id="solrDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
     <bean id="solrRepresentationIndexer" 
           class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-
-    <rabbit:connection-factory id="rabbitConnectionFactory" 
-                               host="ecloud.eanadev.org" port="5672"/>
-
-    <rabbit:template id="amqpTemplate" 
-                     connection-factory="rabbitConnectionFactory" 
-                     exchange="mcs-notifications.topic"/>
-    <rabbit:admin connection-factory="rabbitConnectionFactory"/>
-
+        
+        <!--TODO: replace hardcoded props with jndi-lookup-->
+        <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
+        <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
+        <rabbit:admin connection-factory="rabbitConnectionFactory"/> 
+        
     <bean id="uisHandler" 
           class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <bean id="uisClient" 
           class="eu.europeana.cloud.client.uis.rest.UISClient">
-        <constructor-arg name="uisUrl">
+            <constructor-arg name="uisUrl">
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/uis-url"/>
-        </constructor-arg>
-    </bean>
+            </constructor-arg>   
+        </bean>
 </beans>
