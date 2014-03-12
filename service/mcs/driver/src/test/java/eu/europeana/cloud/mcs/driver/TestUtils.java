@@ -64,4 +64,18 @@ public class TestUtils {
         Representation data = parseRepresentationFromUri(uri);
         return instance.getRepresentation(data.getCloudId(), data.getRepresentationName(), data.getVersion());
     }
+
+    public static int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId, String representationName, String versionId) throws MCSException {
+        List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
+        int found = 0;
+        for (Representation r : result) {
+            if (r.getRepresentationName().equals(representationName)) {
+                if (versionId != null) {
+                    assertEquals(r.getVersion(), versionId);
+                }
+                found++;
+            }
+        }
+        return found;
+    }
 }

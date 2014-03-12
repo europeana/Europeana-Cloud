@@ -405,23 +405,6 @@ public class DataSetServiceClientTest {
 
     }
 
-    private int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId,
-            String representationName, String versionId)
-            throws MCSException {
-        List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
-
-        int found = 0;
-        for (Representation r : result) {
-            if (r.getRepresentationName().equals(representationName)) {
-                if (versionId != null) {
-                    assertEquals(r.getVersion(), versionId);
-                }
-                found++;
-            }
-        }
-        return found;
-    }
-
     @Betamax(tape = "dataSets_shouldAssignRepresentation")
     @Test
     public void shouldAssignRepresentation()
@@ -436,7 +419,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, null);
 
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId), 1);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId), 1);
     }
 
     //should not complain about assigning the same representation version again
@@ -464,7 +447,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId1);
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId1), 1);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId1), 1);
 
     }
 
@@ -483,7 +466,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId2);
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId2), 1);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId2), 1);
 
     }
 
@@ -544,7 +527,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
 
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
     }
 
     //should not complain about unassigning not assigned representation
@@ -558,7 +541,7 @@ public class DataSetServiceClientTest {
         String representationName = "schema66";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
 
     }
@@ -574,7 +557,7 @@ public class DataSetServiceClientTest {
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
-        assertEquals(howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
+        assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
 
     }
 
