@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowIOExceptionForModyfiyFile
+name: files/shouldThrowIOExceptionForModifyFile
 interactions:
 - recorded: 2014-03-05T12:17:36.881Z
   request:

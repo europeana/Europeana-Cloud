@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowCannotModifyPersistentRepresentationExceptionForModyfiyFileWhenIncorrectVersion
+name: files_shouldThrowCannotModifyPersistentRepresentationExceptionForModifyFileWhenIncorrectVersion
 interactions:
 - recorded: 2014-03-05T12:17:18.025Z
   request:

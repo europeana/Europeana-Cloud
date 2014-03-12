@@ -441,9 +441,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldModyfiyFile")
+    @Betamax(tape = "files/shouldModifyFile")
     @Test
-    public void shouldModyfiyFile()
+    public void shouldModifyFile()
             throws UnsupportedEncodingException, IOException, MCSException {
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");
@@ -465,9 +465,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectCloudId")
+    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectCloudId")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectCloudId()
+    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectCloudId()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectCloudId = "12c068c9-461d-484e-878f-099c5fca4400";
         String contentString = "Test_123456789_123456";
@@ -481,9 +481,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectRepresentationName")
+    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectRepresentationName()
+    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectRepresentationName()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectRepresentationName = "schema_000101";
         String contentString = "Test_123456789_123456";
@@ -497,9 +497,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectVersion")
+    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectVersion")
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectVersion()
+    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectVersion()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
         String contentString = "Test_123456789_123456";
@@ -513,9 +513,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowCannotModifyPersistentRepresentationExceptionForModyfiyFileWhenIncorrectVersion")
+    @Betamax(tape = "files/shouldThrowCannotModifyPersistentRepresentationExceptionForModifyFileWhenIncorrectVersion")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldThrowCannotModifyPersistentRepresentationExceptionForModyfiyFileWhenIncorrectVersion()
+    public void shouldThrowCannotModifyPersistentRepresentationExceptionForModifyFileWhenIncorrectVersion()
             throws UnsupportedEncodingException, IOException, MCSException {
         String persistedVersion = "80441ab0-a38d-11e3-8614-50e549e85271";
         String persistedFileName = "fcec9675-f7e5-4d44-a4a8-0ca12087a2c4";
@@ -530,9 +530,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowIOExceptionForModyfiyFile")
+    @Betamax(tape = "files/shouldThrowIOExceptionForModifyFile")
     @Test(expected = IOException.class)
-    public void shouldThrowIOExceptionForModyfiyFile()
+    public void shouldThrowIOExceptionForModifyFile()
             throws UnsupportedEncodingException, IOException, MCSException {
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");
@@ -546,9 +546,9 @@ public class FileServiceClientTest {
     }
 
 
-    @Betamax(tape = "files/shouldThrowDriverExceptionForModyfiyFile")
+    @Betamax(tape = "files/shouldThrowDriverExceptionForModifyFile")
     @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForModyfiyFile()
+    public void shouldThrowDriverExceptionForModifyFile()
             throws UnsupportedEncodingException, IOException, MCSException {
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");

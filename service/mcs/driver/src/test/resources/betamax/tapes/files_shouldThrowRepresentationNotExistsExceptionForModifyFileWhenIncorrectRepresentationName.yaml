@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectRepresentationName
+name: files_shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectRepresentationName
 interactions:
 - recorded: 2014-03-05T12:17:32.885Z
   request:

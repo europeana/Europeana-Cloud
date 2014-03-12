@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowDriverExceptionForModyfiyFile
+name: files_shouldThrowDriverExceptionForModifyFile
 interactions:
 - recorded: 2014-03-05T11:08:33.543Z
   request:

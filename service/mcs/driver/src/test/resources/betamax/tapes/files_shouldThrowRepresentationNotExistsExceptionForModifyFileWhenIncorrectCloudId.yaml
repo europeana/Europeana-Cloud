@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectCloudId
+name: files_shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectCloudId
 interactions:
 - recorded: 2014-03-05T12:17:32.341Z
   request:

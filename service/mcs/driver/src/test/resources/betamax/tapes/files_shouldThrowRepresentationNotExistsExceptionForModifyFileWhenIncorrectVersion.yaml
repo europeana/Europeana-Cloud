@@ -1,5 +1,5 @@
 !tape
-name: files/shouldThrowRepresentationNotExistsExceptionForModyfiyFileWhenIncorrectVersion
+name: files_shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectVersion
 interactions:
 - recorded: 2014-03-05T12:17:19.655Z
   request:
