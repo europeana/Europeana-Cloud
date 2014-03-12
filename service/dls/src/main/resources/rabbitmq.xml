@@ -16,6 +16,7 @@
     <rabbit:queue id="allRecordRepresentationsRemovedQueue"/>
     <rabbit:queue id="assignmentAddedQueue"/>
     <rabbit:queue id="assignmentRemovedQueue"/>
+    <rabbit:queue id="allDataSetAssignmentsRemovedQueue"/>
     
     <rabbit:topic-exchange name="mcs-notifications.topic" >
         <rabbit:bindings>
@@ -25,6 +26,7 @@
             <rabbit:binding queue="allRecordRepresentationsRemovedQueue" pattern="records.representations.deleteAll"/>
             <rabbit:binding queue="assignmentAddedQueue" pattern="datasets.assignments.add"/>
             <rabbit:binding queue="assignmentRemovedQueue" pattern="datasets.assignments.delete"/>
+            <rabbit:binding queue="allDataSetAssignmentsRemovedQueue" pattern="datasets.assignments.deleteAll"/>
         </rabbit:bindings>
     </rabbit:topic-exchange>
     
@@ -38,6 +40,7 @@
         <rabbit:listener queues="allRecordRepresentationsRemovedQueue" ref="allRecordRepresentationsRemovedistener"/>
         <rabbit:listener queues="assignmentAddedQueue" ref="assignmentAddedListener"/>
         <rabbit:listener queues="assignmentRemovedQueue" ref="assignmentRemovedListener"/>
+        <rabbit:listener queues="allDataSetAssignmentsRemovedQueue" ref="allDataSetAssignmentsRemovedListener"/>
     </rabbit:listener-container>
     
     <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
@@ -46,4 +49,5 @@
     <bean id="allRecordRepresentationsRemovedistener" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedistener"/>
     <bean id="assignmentAddedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentAddedListener"/>   
     <bean id="assignmentRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
+    <bean id="allDataSetAssignmentsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
 </beans>         

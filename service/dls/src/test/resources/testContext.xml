@@ -18,5 +18,6 @@
     <bean id="assignmentRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
     <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
     <bean id="representationVersionAddedPersistentListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentListener"/>
-    
+    <bean id="allRecordRepresentationsRemovedistener" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedistener"/>
+    <bean id="allDataSetAssignmentsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AllDataSetAssignmentsRemovedListener"/>
 </beans>

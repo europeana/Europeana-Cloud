@@ -209,4 +209,22 @@ public class SolrRepresentationIndexerTest {
         verify(template, times(1)).convertAndSend("records.representations.deleteAll", cloudId);
         verifyNoMoreInteractions(template);
     }
+
+
+    @Test
+    public void shouldSendMessageAboutAllDataSetAssignmentsDeletion() {
+        //given
+        CompoundDataSetId ds = new CompoundDataSetId("provider", "dataSet");
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        //when
+        indexer.removeAssignmentsFromDataSet(ds);
+        //then
+        verify(template, times(1)).convertAndSend(eq("datasets.assignments.deleteAll"), argument.capture());
+        verifyNoMoreInteractions(template);
+        JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
+        assertTrue(jo.get("compoundDataSetId").isJsonObject());
+        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
+        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
+            is(ds.getDataSetProviderId()));
+    }
 }

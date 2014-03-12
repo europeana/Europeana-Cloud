@@ -163,9 +163,7 @@ public class SolrRepresentationIndexer {
     }
 
     private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
+        JsonObject jo = prepareCompoundDataSetIdJson(dataSetId);
         jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
         jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
         return jo.toString();
@@ -187,9 +185,7 @@ public class SolrRepresentationIndexer {
     }
 
     private String prepareAddAssignmentMsg(String versionId, CompoundDataSetId dataSetId) {
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
+        JsonObject jo = prepareCompoundDataSetIdJson(dataSetId);
         jo.addProperty(ParamConstants.P_VER, versionId);
         return jo.toString();
     }
@@ -203,9 +199,18 @@ public class SolrRepresentationIndexer {
     public void removeAssignmentsFromDataSet(CompoundDataSetId dataSetId) {
         try {
             solrDAO.removeAssignmentFromDataSet(dataSetId);
+            template.convertAndSend("datasets.assignments.deleteAll", prepareCompoundDataSetIdJson(dataSetId)
+                    .toString());
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove assignments from data set in solr", ex);
         }
     }
 
+
+    private JsonObject prepareCompoundDataSetIdJson(CompoundDataSetId dataSetId) {
+        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
+        JsonObject jo = new JsonObject();
+        jo.add("compoundDataSetId", elem);
+        return jo;
+    }
 }
