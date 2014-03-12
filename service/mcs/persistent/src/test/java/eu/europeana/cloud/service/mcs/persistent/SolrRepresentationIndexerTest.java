@@ -197,4 +197,16 @@ public class SolrRepresentationIndexerTest {
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
                 is(ds.getDataSetProviderId()));
     }
+
+
+    @Test
+    public void shouldSendMessageAboutRecordsRepresentationsDeletion() {
+        //given
+        String cloudId = "b95fcda053f6012";
+        //when
+        indexer.removeRecordRepresentations(cloudId);
+        //then
+        verify(template, times(1)).convertAndSend("records.representations.deleteAll", cloudId);
+        verifyNoMoreInteractions(template);
+    }
 }
