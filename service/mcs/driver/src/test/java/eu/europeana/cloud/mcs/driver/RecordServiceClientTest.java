@@ -89,13 +89,13 @@ public class RecordServiceClientTest {
 
     }
 
-    @Betamax(tape = "records_shouldNotComplainAboutDeletingRecordWithNoRepresentations")
-    @Test()
-    public void shouldNotComplainAboutDeletingRecordWithNoRepresentations()
+    @Betamax(tape = "records_shouldThrowRepresentationNotExistsForDeleteRecordWhenNoRepresentations")
+    @Test(expected = RepresentationNotExistsException.class)
+    public void shouldThrowRepresentationNotExistsForDeleteRecordWhenNoRepresentations()
             throws MCSException {
 
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema77";
+        String cloudId = "25DG622J4VM";
+        String representationName = "schema1";
         RecordServiceClient instance = new RecordServiceClient(baseUrl);
 
         //check that there are not representations for this record

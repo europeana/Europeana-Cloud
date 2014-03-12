@@ -1,0 +1,19 @@
+!tape
+name: records_shouldThrowRepresentationNotExistsForDeleteRecordWhenNoRepresentations
+interactions:
+- recorded: 2014-03-12T11:21:39.945Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/25DG622J4VM/representations/schema1/versions
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+  response:
+    status: 404
+    headers:
+      Content-Type: application/xml
+      Date: Wed, 12 Mar 2014 11:21:39 GMT
+      Server: Apache-Coyote/1.1
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>
