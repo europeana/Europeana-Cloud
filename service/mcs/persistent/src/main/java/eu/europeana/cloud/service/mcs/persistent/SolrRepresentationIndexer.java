@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
@@ -23,13 +24,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * Receives information about modifications in record representations and their data set assignments and sends them to
- * index. All public methods are asynchronous.
- * 
- * This class requires task executor in spring configuration with id: solrIndexerExecutor.
- * 
- * In future, implementation should be changed to use more reliable (probably persistent) queuing technology (i.e. jms
- * or RabbitMQ).
+ * Receives information about modifications in record representations and their
+ * data set assignments and sends them to index. All public methods are
+ * asynchronous.
+ *
+ * This class requires task executor in spring configuration with id:
+ * solrIndexerExecutor.
+ *
+ * In future, implementation should be changed to use more reliable (probably
+ * persistent) queueing technology (i.e. jms or RabbitMQ).
  */
 @Component
 @Async("solrIndexerExecutor")
@@ -46,16 +49,18 @@ public class SolrRepresentationIndexer {
     @Autowired
     private RabbitTemplate template;
 
-    private final Gson gson = new Gson();
-
+    private final Gson gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+            .create();
 
     /**
-     * Indexes representation version (new or updated). If inserted representation version is persistent, there there
-     * might be some data set assignment changes involved (in cases where representation in latest persistent version is
-     * assigned to data set) - in this case, such reassignment is also done.
-     * 
-     * @param representation
-     *            representation version.
+     * Indexes representation version (new or updated). If inserted
+     * representation version is persistent, there there might be some data set
+     * assignment changes involved (in cases where representation in latest
+     * persistent version is assigned to data set) - in this case, such
+     * reassignment is also done.
+     *
+     * @param representation representation version.
      */
     public void insertRepresentation(Representation representation) {
 
@@ -63,31 +68,35 @@ public class SolrRepresentationIndexer {
             if (!representation.isPersistent()) {
                 solrDAO.insertRepresentation(representation, null);
                 template.convertAndSend("records.representations.versions.add",
-                    prepareInsertRepresentationMessage(representation));
+                        prepareInsertRepresentationMessage(representation));
             } else { //TODO: check what is going on here and send a message to the queue
                 Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO.getDataSetAssignments(
-                    representation.getCloudId(), representation.getRepresentationName(), null);
-                solrDAO.removeAssignment(representation.getCloudId(), representation.getRepresentationName(),
-                    dataSetIds);
+                        representation.getCloudId(), representation.getRepresentationName(), null);
                 solrDAO.insertRepresentation(representation, dataSetIds);
+                template.convertAndSend("records.representations.versions.addPersistent", prepareInsertPersistentRepresentationMessage(representation, dataSetIds));
             }
-        } catch (IOException | SolrDocumentNotFoundException | SolrServerException ex) {
+        } catch (IOException | SolrServerException ex) {
             LOGGER.error("Cannot insert representation into solr", ex);
         }
     }
-
 
     private String prepareInsertRepresentationMessage(Representation representation) {
         return gson.toJson(representation);
     }
 
+    private String prepareInsertPersistentRepresentationMessage(Representation representation, Collection<CompoundDataSetId> dataSetIds) {
+        HashMap<String, Object> map = new LinkedHashMap<>();
+        map.put(ParamConstants.F_REPRESENTATION, representation);
+        map.put(ParamConstants.F_DATASETS, dataSetIds);
+        return gson.toJson(map);
+    }
 
     /**
-     * Removes representation version from index. This method should be invoked only for temporary representation
-     * versions (although no verification is made in this method) - because no dataset reassignment is performed. *
-     * 
-     * @param versionId
-     *            representation version id
+     * Removes representation version from index. This method should be invoked
+     * only for temporary representation versions (although no verification is
+     * made in this method) - because no dataset reassignment is performed. *
+     *
+     * @param versionId representation version id
      */
     public void removeRepresentationVersion(String versionId) {
         try {
@@ -98,25 +107,21 @@ public class SolrRepresentationIndexer {
         }
     }
 
-
     /**
      * Removes all representation's versions from index.
-     * 
-     * @param cloudId
-     *            record id
-     * @param representationName
-     *            represenation's schema
+     *
+     * @param cloudId record id
+     * @param representationName representation's schema
      */
     public void removeRepresentation(String cloudId, String representationName) {
         try {
             solrDAO.removeRepresentation(cloudId, representationName);
             template.convertAndSend("records.representations.delete",
-                prepareRemoveRepresentationMsg(cloudId, representationName));
+                    prepareRemoveRepresentationMsg(cloudId, representationName));
         } catch (SolrServerException | IOException ex) {
             LOGGER.error("Cannot remove representation from solr", ex);
         }
     }
-
 
     private String prepareRemoveRepresentationMsg(String cloudId, String schema) {
         HashMap<String, String> map = new LinkedHashMap<>();
@@ -125,10 +130,9 @@ public class SolrRepresentationIndexer {
         return gson.toJson(map);
     }
 
-
     /**
      * Removes all record's representations with all their versions from index.
-     * 
+     *
      * @param cloudId
      */
     public void removeRecordRepresentations(String cloudId) {
@@ -140,10 +144,10 @@ public class SolrRepresentationIndexer {
         }
     }
 
-
     /**
-     * Removes assignment between data set and representation (regardless its version).
-     * 
+     * Removes assignment between data set and representation (regardless its
+     * version).
+     *
      * @param cloudId
      * @param representationName
      * @param dataSetId
@@ -152,12 +156,11 @@ public class SolrRepresentationIndexer {
         try {
             solrDAO.removeAssignment(cloudId, representationName, Collections.singletonList(dataSetId));
             template.convertAndSend("records.representations.assignments.delete",
-                prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
+                    prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot remove assignment from solr", ex);
         }
     }
-
 
     private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
         JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
@@ -168,25 +171,21 @@ public class SolrRepresentationIndexer {
         return jo.toString();
     }
 
-
     /**
-     * Adds assignment between data set and a represenation version.
-     * 
-     * @param versionId
-     *            representation version id.
-     * @param dataSetId
-     *            dataset id with owner's (provider's) id.
+     * Adds assignment between data set and a representation version.
+     *
+     * @param versionId representation version id.
+     * @param dataSetId dataset id with owner's (provider's) id.
      */
     public void addAssignment(String versionId, CompoundDataSetId dataSetId) {
         try {
             solrDAO.addAssignment(versionId, dataSetId);
             template.convertAndSend("records.representations.assignments.add",
-                prepareAddAssignmentMsg(versionId, dataSetId));
+                    prepareAddAssignmentMsg(versionId, dataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
             LOGGER.error("Cannot add assignment to solr", ex);
         }
     }
-
 
     private String prepareAddAssignmentMsg(String versionId, CompoundDataSetId dataSetId) {
         JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
@@ -196,12 +195,11 @@ public class SolrRepresentationIndexer {
         return jo.toString();
     }
 
-
     /**
-     * Removes data set assignments from ALL representation. This method is to be used if whole data set is removed.
-     * 
-     * @param dataSetId
-     *            dataset id with owner's (provider's) id.
+     * Removes data set assignments from ALL representation. This method is to
+     * be used if whole data set is removed.
+     *
+     * @param dataSetId dataset id with owner's (provider's) id.
      */
     public void removeAssignmentsFromDataSet(CompoundDataSetId dataSetId) {
         try {

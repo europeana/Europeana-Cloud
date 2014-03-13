@@ -21,3 +21,4 @@ nbactions.xml
 /service/mcs/mcs-driver/target/
 /service/mcs/driver/target/
 /tools/ecloud-dlf-ingestion-tool/target/
+/service/dls/target/
