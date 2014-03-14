@@ -43,8 +43,9 @@ public class AssignmentAddedListener implements MessageListener {
             return;
         }
 
-        String version = null;
         JsonObject jo = gson.fromJson(messageText, JsonElement.class).getAsJsonObject();
+
+        String version = null;
         JsonElement versionJson = jo.get(ParamConstants.P_VER);
         if (versionJson != null && !versionJson.isJsonNull()) {
             version = versionJson.getAsString();

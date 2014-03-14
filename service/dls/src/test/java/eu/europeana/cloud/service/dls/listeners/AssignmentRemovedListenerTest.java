@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/testContext.xml" })
+@ContextConfiguration(value = {"classpath:/testContext.xml"})
 public class AssignmentRemovedListenerTest {
 
     @Autowired
@@ -33,26 +33,15 @@ public class AssignmentRemovedListenerTest {
 
     private static final Gson gson = new Gson();
 
-
     @After
     public void cleanUp() {
         Mockito.reset(solrDAO);
     }
 
-
-    private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
-        jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
-        jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
-        return jo.toString();
-    }
-
-
     @Test
     public void shouldCallRremoveAssignment()
             throws Exception {
+        //given
         String cloudId = "id123123";
         String representationName = "rn";
         String dataSet = "dataset";
@@ -60,29 +49,57 @@ public class AssignmentRemovedListenerTest {
         CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
         Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
                 new MessageProperties());
+        //when
         listener.onMessage(message);
+        //then
         verify(solrDAO, times(1)).removeAssignment(cloudId, representationName, Collections.singletonList(ds));
         verifyNoMoreInteractions(solrDAO);
 
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentWhenReceivedEmptyMessage()
+    public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
             throws Exception {
-
-        Message message = new Message(new String("").getBytes(), new MessageProperties());
+        //given
+        Message message = new Message(null, new MessageProperties());
         //when
         listener.onMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
     }
 
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyMessage()
+            throws Exception {
+        //given
+        Message message = new Message("".getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedMessageWithEmptyCloudIdProperty()
+    public void shouldNotCallDAOWhenReceivedNullCloudId()
             throws Exception {
+        //given
+        String cloudId = null;
+        String representationName = "rn";
+        String dataSet = "dataset";
+        String provider = "provider123";
+        CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
+        Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
+                new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyCloudId()
+            throws Exception {
+        //given
         String cloudId = "";
         String representationName = "rn";
         String dataSet = "dataset";
@@ -96,12 +113,28 @@ public class AssignmentRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullRepresentationName()
+            throws Exception {
+        //given
+        String cloudId = "id123123";
+        String representationName = null;
+        String dataSet = "dataset";
+        String provider = "provider123";
+        CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
+        Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
+                new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedMessageWithEmptyRepresentationNameProperty()
+    public void shouldNotCallDAOWhenReceivedEmptyRepresentationName()
             throws Exception {
-
-        String cloudId = "id";
+        //given
+        String cloudId = "id123123";
         String representationName = "";
         String dataSet = "dataset";
         String provider = "provider123";
@@ -114,12 +147,43 @@ public class AssignmentRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullCompundDataSetId()
+            throws Exception {
+        //given
+        String cloudId = "id123123";
+        String representationName = "rn";
+        Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, null).getBytes(),
+                new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedMessageWithEmptyDataSetProperty()
+    public void shouldNotCallDAOWhenReceivedNullDataSet()
             throws Exception {
+        //given
+        //given
+        String cloudId = "id123123";
+        String representationName = "rn";
+        String dataSet = null;
+        String provider = "provider123";
+        CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
+        Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
+                new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
-        String cloudId = "cloud123123";
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyDataSet()
+            throws Exception {
+        //given
+        String cloudId = "id123123";
         String representationName = "rn";
         String dataSet = "";
         String provider = "provider123";
@@ -132,14 +196,30 @@ public class AssignmentRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullProvider()
+            throws Exception {
+        //given
+        String cloudId = "id123123";
+        String representationName = "rn";
+        String dataSet = "dataset";
+        String provider = null;
+        CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
+        Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
+                new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedMessageWithEmptyProviderProperty()
+    public void shouldNotCallDAOWhenReceivedEmptyProvider()
             throws Exception {
-
-        String cloudId = "cloud123123";
+        //given
+        String cloudId = "id123123";
         String representationName = "rn";
-        String dataSet = "dataSet";
+        String dataSet = "dataset";
         String provider = "";
         CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
         Message message = new Message(prepareRemoveAssginmentMessage(cloudId, representationName, ds).getBytes(),
@@ -150,16 +230,12 @@ public class AssignmentRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
-    @Test
-    public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
-            throws Exception {
-
-        Message message = new Message(null, new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+    private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
+        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
+        JsonObject jo = new JsonObject();
+        jo.add("compoundDataSetId", elem);
+        jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
+        jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
+        return jo.toString();
     }
-
 }
