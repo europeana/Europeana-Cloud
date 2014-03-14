@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dls.listeners;
+ package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
