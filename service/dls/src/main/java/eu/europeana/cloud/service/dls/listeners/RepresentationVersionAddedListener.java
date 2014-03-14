@@ -2,7 +2,10 @@ package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -33,21 +36,28 @@ public class RepresentationVersionAddedListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message) {
-        String messageBody = message.getBody().toString();
-        if (messageBody == null) {
-            LOGGER.error("Message has null body");
+        byte[] messageBytes = message.getBody();
+        if (messageBytes == null) {
+            LOGGER.error("Message has null body.");
             return;
         }
-        if (messageBody.equals("")) {
-            LOGGER.error("Message has empty body");
+
+        String messageText = new String(message.getBody());
+        if (messageText.isEmpty()) {
+            LOGGER.error("Message has empty body.");
+            return;
         }
 
-        Representation representation = gson.fromJson(message.getBody().toString(), Representation.class);
-        
+        Representation representation = gson.fromJson(messageText, Representation.class);
+        if (representation == null) {
+            LOGGER.error("Received representation is null.");
+            return;
+        }
+
         try {
             solrDao.insertRepresentation(representation, null);
         } catch (IOException | SolrServerException ex) {
-            LOGGER.error("Cannot insert representation into solr", ex);
+            LOGGER.error("Cannot insert representation into solr.", ex);
         }
     }
 

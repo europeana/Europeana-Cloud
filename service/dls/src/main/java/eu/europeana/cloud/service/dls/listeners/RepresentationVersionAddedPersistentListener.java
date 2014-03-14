@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.HashMap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,30 +40,43 @@ public class RepresentationVersionAddedPersistentListener implements MessageList
      */
     @Override
     public void onMessage(Message message) {
-        String messageBody = message.getBody().toString();
-        if (messageBody == null) {
-            LOGGER.error("Message has null body");
+        byte[] messageBytes = message.getBody();
+        if (messageBytes == null) {
+            LOGGER.error("Message has null body.");
             return;
         }
-        if (messageBody.equals("")) {
-            LOGGER.error("Message has empty body");
+
+        String messageText = new String(message.getBody());
+        if (messageText.isEmpty()) {
+            LOGGER.error("Message has empty body.");
+            return;
         }
 
-        JsonElement jsonElem = gson.fromJson(messageBody, JsonElement.class);
+        JsonElement jsonElem = gson.fromJson(messageText, JsonElement.class);
         JsonObject jsonObject = jsonElem.getAsJsonObject();
 
         JsonElement jsonRepresentation = jsonObject.get(ParamConstants.F_REPRESENTATION);
         Representation representation = gson.fromJson(jsonRepresentation, Representation.class);
-
+        if(representation == null)
+        {
+            LOGGER.error("Received representation is null.");
+            return;
+        }
+        
         Type dataSetIdsType = new TypeToken<Collection<CompoundDataSetId>>() {
         }.getType();
         JsonElement jsonDataSetIds = jsonObject.get(ParamConstants.F_DATASETS);
         Collection<CompoundDataSetId> dataSetIds = gson.fromJson(jsonDataSetIds, dataSetIdsType);
-
+        if (dataSetIds == null)
+        {
+            LOGGER.error("Received data set ids list is null.");
+            return;
+        }
+        
         try {
             solrDao.insertRepresentation(representation, dataSetIds);
         } catch (IOException | SolrServerException ex) {
-            LOGGER.error("Cannot insert persistent representation into solr", ex);
+            LOGGER.error("Cannot insert persistent representation into solr.", ex);
         }
     }
 }
