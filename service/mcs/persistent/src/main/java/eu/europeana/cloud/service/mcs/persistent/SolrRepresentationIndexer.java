@@ -69,7 +69,7 @@ public class SolrRepresentationIndexer {
                 solrDAO.insertRepresentation(representation, null);
                 template.convertAndSend("records.representations.versions.add",
                         prepareInsertRepresentationMessage(representation));
-            } else { //TODO: check what is going on here and send a message to the queue
+            } else {
                 Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO.getDataSetAssignments(
                         representation.getCloudId(), representation.getRepresentationName(), null);
                 solrDAO.insertRepresentation(representation, dataSetIds);
