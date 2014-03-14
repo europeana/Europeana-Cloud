@@ -94,7 +94,7 @@ public class FileServiceClient {
 
 
     /**
-     * Function returns file content.
+     * Function returns file content. By setting range parameter one can retrieve only a part of content.
      * 
      * @param cloudId
      *            id of returned file.
