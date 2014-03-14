@@ -7,7 +7,7 @@ import org.springframework.amqp.core.MessageListener;
  * 
  * 
  */
-public class AllRecordRepresentationsRemovedistener implements MessageListener {
+public class AllRecordRepresentationsRemovedListener implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
