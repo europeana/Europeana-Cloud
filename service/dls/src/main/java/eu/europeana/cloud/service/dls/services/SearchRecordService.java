@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.dls.solr.RepresentationSearchParams;
+import eu.europeana.cloud.service.dls.RepresentationSearchParams;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,12 +20,16 @@ public class SearchRecordService {
 
 
     /**
-     * Searches for representation versions by multiple parameters. Result is returned in slices which contain fixed
-     * amount of results and reference (token) to next slice of results.
-     * @param searchParams parameters 
-     * @param thresholdParam Threshold param to indicate result slice
-     * @param limit maximum number of results to return
-     * @return slice of representations matching parameters and token to the next page of results
+     * Searches for specified representations and returns result in slices.
+     * 
+     * @param searchParams
+     *            search parameters.
+     * @param thresholdParam
+     *            if null - will return first result slice. Result slices contain token for next pages, which should be
+     *            provided in this parameter for subsequent result slices.
+     * @param limit
+     *            max number of results in one slice.
+     * @return found representations.
      */
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
         int startFrom = 0;
