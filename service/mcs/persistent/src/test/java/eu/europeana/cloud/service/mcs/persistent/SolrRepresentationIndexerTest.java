@@ -22,7 +22,6 @@ import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -37,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/rabbitContext.xml"})
+@ContextConfiguration(value = { "classpath:/rabbitContext.xml" })
 public class SolrRepresentationIndexerTest {
 
     @Autowired
@@ -49,14 +48,14 @@ public class SolrRepresentationIndexerTest {
     @Autowired
     CassandraDataSetDAO cassandraDataSetDAO;
 
-    private static final Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-            .create();
+    private static final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
+
 
     @After
     public void cleanUp() {
         Mockito.reset(template);
     }
+
 
     @Test
     public void shouldSendMessageAboutNotPersistentRepresentationVersionInsert() {
@@ -69,13 +68,15 @@ public class SolrRepresentationIndexerTest {
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
 
-        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        Representation representation = new Representation(cloudId, representationName, versionId, null, null,
+                providerId, files, persistent, creationDate);
         indexer.insertRepresentation(representation);
 
         verify(template, times(1)).convertAndSend("records.representations.versions.add", gson.toJson(representation));
         verifyNoMoreInteractions(template);
 
     }
+
 
     @Test
     public void shouldSendMessageAboutPersistentRepresentationVersionInsert() {
@@ -87,7 +88,8 @@ public class SolrRepresentationIndexerTest {
         ArrayList<File> files = new ArrayList<>();
         boolean persistent = true;
         Date creationDate = Calendar.getInstance().getTime();
-        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        Representation representation = new Representation(cloudId, representationName, versionId, null, null,
+                providerId, files, persistent, creationDate);
 
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";
@@ -96,12 +98,14 @@ public class SolrRepresentationIndexerTest {
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
         //when
-        Mockito.when(cassandraDataSetDAO.getDataSetAssignments(cloudId, representationName, null)).thenReturn(dataSetIds);
+        Mockito.when(cassandraDataSetDAO.getDataSetAssignments(cloudId, representationName, null)).thenReturn(
+            dataSetIds);
         indexer.insertRepresentation(representation);
 
         //then
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(template, times(1)).convertAndSend(eq("records.representations.versions.addPersistent"), argument.capture());
+        verify(template, times(1)).convertAndSend(eq("records.representations.versions.addPersistent"),
+            argument.capture());
         verifyNoMoreInteractions(template);
 
         JsonElement jsonElem = gson.fromJson(argument.getValue(), JsonElement.class);
@@ -110,20 +114,22 @@ public class SolrRepresentationIndexerTest {
         JsonElement jsonRepresentation = jsonObject.get(ParamConstants.F_REPRESENTATION);
         Representation sentRepresentation = gson.fromJson(jsonRepresentation, Representation.class);
 
-        Type dataSetIdsType = new TypeToken<Collection<CompoundDataSetId>>() {}.getType();
+        Type dataSetIdsType = new TypeToken<Collection<CompoundDataSetId>>() {
+        }.getType();
         JsonElement jsonDataSetIds = jsonObject.get(ParamConstants.F_DATASETS);
         Collection<CompoundDataSetId> sentDataSetIds = gson.fromJson(jsonDataSetIds, dataSetIdsType);
 
-     //      Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
-//        Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
-//        HashMap<String, Object> sentItems = gson.fromJson(argument.getValue(), type);
-//        assertEquals(sentItems.size(), 2);
-//        Collection<CompoundDataSetId> sentDataSetIds = (Collection<CompoundDataSetId>) sentItems.get(ParamConstants.F_DATASETS);
-//        Representation sentRepresentation = (Representation) sentItems.get(ParamConstants.F_REPRESENTATION);
+        //      Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
+        //        Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
+        //        HashMap<String, Object> sentItems = gson.fromJson(argument.getValue(), type);
+        //        assertEquals(sentItems.size(), 2);
+        //        Collection<CompoundDataSetId> sentDataSetIds = (Collection<CompoundDataSetId>) sentItems.get(ParamConstants.F_DATASETS);
+        //        Representation sentRepresentation = (Representation) sentItems.get(ParamConstants.F_REPRESENTATION);
         assertEquals(sentDataSetIds, dataSetIds);
         assertEquals(sentRepresentation, representation);
 
     }
+
 
     @Test
     public void shouldSendMessageAboutRepresentationVersionRemoval() {
@@ -136,6 +142,7 @@ public class SolrRepresentationIndexerTest {
         verify(template, times(1)).convertAndSend("records.representations.versions.deleteVersion", versionId);
         verifyNoMoreInteractions(template);
     }
+
 
     @Test
     public void shouldSendMessageAboutRepresentationRemoval() {
@@ -153,6 +160,7 @@ public class SolrRepresentationIndexerTest {
         verify(template, times(1)).convertAndSend("records.representations.delete", json);
         verifyNoMoreInteractions(template);
     }
+
 
     @Test
     public void shouldSendMessageAboutNewAssignment() {
@@ -172,8 +180,9 @@ public class SolrRepresentationIndexerTest {
         assertTrue(jo.get("compoundDataSetId").isJsonObject());
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
-                is(ds.getDataSetProviderId()));
+            is(ds.getDataSetProviderId()));
     }
+
 
     @Test
     public void shouldSendMessageAboutAssignmentRemoval() {
@@ -195,7 +204,7 @@ public class SolrRepresentationIndexerTest {
         assertTrue(jo.get("compoundDataSetId").isJsonObject());
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
         assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
-                is(ds.getDataSetProviderId()));
+            is(ds.getDataSetProviderId()));
     }
 
 

@@ -1,10 +1,8 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.dls.rest;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET_PROVIDER_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATE_FROM;
@@ -13,7 +11,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_PERSISTENT;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.dls.services.SearchRecordService;
+import eu.europeana.cloud.service.dls.solr.RepresentationSearchParams;
 
 import java.util.Date;
 
@@ -41,13 +40,15 @@ import org.springframework.stereotype.Component;
 public class RepresentationSearchResource {
 
     @Autowired
-    private RecordService recordService;
+    private SearchRecordService recordService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
     // ISO8601 standard
     private static final DateTimeFormatter DATE_FORMAT = ISODateTimeFormat.dateOptionalTimeParser();
+
+    private static final String errorCode = "OTHER";
 
 
     /**
@@ -90,9 +91,11 @@ public class RepresentationSearchResource {
             @QueryParam(F_PERSISTENT) Boolean persistent, //
             @QueryParam(F_START_FROM) String startFrom) {
 
+        System.err.println("number of elements " + numberOfElementsOnPage);
+
         // at least one parameter must be provided
         if (allNull(providerId, dataSetId, dataSetProviderId, schema, creationDateFrom, creationDateUntil, persistent)) {
-            ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), "At least one parameter must be provided");
+            ErrorInfo errorInfo = new ErrorInfo(errorCode, "At least one parameter must be provided");
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
         }
 
@@ -141,8 +144,8 @@ public class RepresentationSearchResource {
             try {
                 dateParsed = DATE_FORMAT.parseDateTime(date).toDate();
             } catch (IllegalArgumentException ex) {
-                ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), dateParamName
-                        + " parameter has wrong format: " + ex.getMessage());
+                ErrorInfo errorInfo = new ErrorInfo(errorCode, dateParamName + " parameter has wrong format: "
+                        + ex.getMessage());
                 throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo)
                         .build());
             }

@@ -9,7 +9,6 @@
     
     
     <mockito:mock id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate"/>
-    <mockito:mock id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
     <mockito:mock id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
  

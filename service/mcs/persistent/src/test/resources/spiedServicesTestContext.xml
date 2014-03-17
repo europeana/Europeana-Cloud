@@ -11,10 +11,6 @@
 
     <context:annotation-config/>
 
-    <task:annotation-driven/>
-    <!-- async configuration for solr indexer - in queue, single thread in executor -->
-    <task:executor id="solrIndexerExecutor" pool-size="1"/>
-
     <!--connection provider - with options the same as in embedded cassandra-->
     <bean id="cassandraConnectionProvider"
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
@@ -36,8 +32,6 @@
         <constructor-arg name="user" type="java.lang.String" value="test_user"/>
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
-    <bean id="sorlConnector" class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider"/>
-    <bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
     <mockito:mock id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate"/>
@@ -52,5 +46,4 @@
     <mockito:spy beanName="swiftConnectionProvider"/>
     <mockito:spy beanName="sorlConnector"/>
     <mockito:spy beanName="solrRepresentationIndexer"/>
-    <mockito:spy beanName="solrDAO"/>
 </beans>

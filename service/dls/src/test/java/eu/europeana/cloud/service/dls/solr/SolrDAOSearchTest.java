@@ -1,6 +1,5 @@
-package eu.europeana.cloud.service.mcs.persistent.solr;
+package eu.europeana.cloud.service.dls.solr;
 
-import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -17,9 +16,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
-import eu.europeana.cloud.service.mcs.persistent.TestUtil;
-import eu.europeana.cloud.service.mcs.persistent.exception.SolrDocumentNotFoundException;
+import eu.europeana.cloud.service.dls.TestUtil;
+import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/solrTestContext.xml" })

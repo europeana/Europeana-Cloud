@@ -94,36 +94,7 @@
 					</execution>
 				</executions>
                         </plugin>
-                        <!--
-                        Unpacks "solr.home" directory from ecloud-service-mcs-persistent jar to test resources dir - for test purposes
-                        -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.8</version>
-				<executions>
-					<execution>
-						<id>unpack</id>
-						<phase>process-test-resources</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>eu.europeana.cloud</groupId>
-									<artifactId>ecloud-service-mcs-persistent</artifactId>
-									<version>${project.version}</version>
-									<type>jar</type>
-									<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-									<includes>solr_home/**</includes>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!--configuration of miredot - REST API documentation generator. -->
+                      <!--configuration of miredot - REST API documentation generator. -->
 			<plugin>
 				<groupId>com.qmino</groupId>
 				<artifactId>miredot-maven-plugin</artifactId>
@@ -404,13 +375,5 @@
 			<version>3.1.0</version>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-core</artifactId>
-			<version>${version.solr}</version>
-			<scope>test</scope>
-		</dependency>
-
 	</dependencies>
 </project>

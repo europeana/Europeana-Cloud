@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.dls.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,15 +32,15 @@ import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.UISClientHandler;
-import org.mockito.Mockito;
+import eu.europeana.cloud.service.dls.ApplicationContextUtils;
+import eu.europeana.cloud.service.dls.solr.CompoundDataSetId;
+import eu.europeana.cloud.service.dls.solr.SolrDAO;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * FileResourceTest
@@ -48,11 +48,9 @@ import org.mockito.Mockito;
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationSearchTest extends JerseyTest {
 
-    private RecordService recordService;
-
-    private DataSetService dataSetService;
-
     private WebTarget representationSearchWebTarget;
+
+    private SolrDAO solrDAO;
 
     private Representation s1_p1;
 
@@ -60,52 +58,49 @@ public class RepresentationSearchTest extends JerseyTest {
 
     private Representation s2_p1;
 
-    private UISClientHandler uisHandler;
-
 
     @Before
     public void mockUp()
             throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-        recordService = applicationContext.getBean(RecordService.class);
         representationSearchWebTarget = target(RepresentationSearchResource.class.getAnnotation(Path.class).value());
-        dataSetService = applicationContext.getBean(DataSetService.class);
-        uisHandler = applicationContext.getBean(UISClientHandler.class);
+        solrDAO = applicationContext.getBean(SolrDAO.class);
 
-        DataProvider dp = new DataProvider();
-        dp.setId("p1");
-        DataProvider dp2 = new DataProvider();
-        dp.setId("p2");
+        CompoundDataSetId dataSetId_p1 = new CompoundDataSetId("p1", "ds");
+        CompoundDataSetId dataSetId_p2 = new CompoundDataSetId("p2", "ds");
+        s1_p1 = getDummyRepresentation("cloud_1", "s1", "p1");
+        s1_p2 = getDummyRepresentation("cloud_2", "s1", "p2");
+        s2_p1 = getDummyRepresentation("cloud_3", "s2", "p1");
 
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("p1");
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS("p2");
+        solrDAO.insertRepresentation(s1_p1, Collections.singleton(dataSetId_p1));
+        solrDAO.insertRepresentation(s1_p2, Collections.singleton(dataSetId_p2));
+        solrDAO.insertRepresentation(s2_p1, Collections.singleton(dataSetId_p1));
+    }
 
-        dataSetService.createDataSet("p1", "ds", "descr");
 
-        s1_p1 = recordService.createRepresentation("cloud_1", "s1", "p1");
-        s1_p2 = recordService.createRepresentation("cloud_2", "s1", "p2");
-        s2_p1 = recordService.createRepresentation("cloud_3", "s2", "p1");
-
-        dataSetService.addAssignment("p1", "ds", s1_p1.getCloudId(), s1_p1.getRepresentationName(), s1_p1.getVersion());
-        dataSetService.addAssignment("p1", "ds", s1_p2.getCloudId(), s1_p2.getRepresentationName(), s1_p2.getVersion());
-        dataSetService.addAssignment("p1", "ds", s2_p1.getCloudId(), s2_p1.getRepresentationName(), s2_p1.getVersion());
+    private Representation getDummyRepresentation(String cloudId, String representationName, String provider) {
+        Representation rep = new Representation();
+        rep.setCloudId(cloudId);
+        rep.setRepresentationName(representationName);
+        rep.setDataProvider(provider);
+        rep.setVersion(UUID.randomUUID().toString());
+        rep.setCreationDate(new Date());
+        return rep;
     }
 
 
     @After
     public void cleanUp()
             throws Exception {
-        dataSetService.deleteDataSet("p1", "ds");
-
-        recordService.deleteRecord("cloud_1");
-        recordService.deleteRecord("cloud_2");
-        recordService.deleteRecord("cloud_3");
+        solrDAO.removeRepresentationVersion(s1_p1.getVersion());
+        solrDAO.removeRepresentationVersion(s1_p2.getVersion());
+        solrDAO.removeRepresentationVersion(s2_p1.getVersion());
     }
 
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:restServicesTestContext.xml");
     }
 
 

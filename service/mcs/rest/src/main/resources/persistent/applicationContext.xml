@@ -23,11 +23,7 @@
     <bean id="serviceExceptionTranslator" 
           class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 
-    <task:annotation-driven/>
-    <!--async configuration for solr indexer - in queue, single thread 
-    in executor-->
-    <task:executor id="solrIndexerExecutor" pool-size="1"/>
-
+ 
     <!--connection provider - with options the same as in embedded 
     cassandra-->
     <bean id="cassandraConnectionProvider"
@@ -91,17 +87,6 @@
 		</constructor-arg>
 	</bean>    
     
-    <bean id="sorlConnector" 
-          class="eu.europeana.cloud.service.mcs.persistent.solr.SolrConnectionProviderImpl">
-		<constructor-arg name="solrUrl">
-            <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/mcs/solr/url"/>
-		</constructor-arg>
-	</bean>
-    
-    
-    <bean id="solrDAO" 
-          class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO"/>
     <bean id="solrRepresentationIndexer" 
           class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
         

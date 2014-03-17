@@ -1,8 +1,7 @@
 package eu.europeana.cloud.service.dls.solr.exception;
 
 /**
- * Exception that might be thrown by any service implementing persistent MCS service, indicating some problem with
- * external system (e.g. Casssandra or Swift connection problem).
+ * Exception indicating some problem with external system (e.g. Solr connection problem).
  */
 public class SystemException extends RuntimeException {
 

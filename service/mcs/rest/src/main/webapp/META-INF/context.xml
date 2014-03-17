@@ -34,11 +34,6 @@
         name="mcs/cassandra/password"
         global="mcs/cassandra/password"
         type="java.lang.String"/>
-    
-    <ResourceLink
-        name="mcs/solr/url"
-        global="mcs/solr/url"
-        type="java.lang.String"/>
 
     <ResourceLink
         name="mcs/swift/provider"

@@ -32,7 +32,6 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 
@@ -49,9 +48,6 @@ public class CassandraRecordService implements RecordService {
 
     @Autowired
     private SwiftContentDAO contentDAO;
-
-    @Autowired
-    private SolrDAO solrDAO;
 
     @Autowired
     private SolrRepresentationIndexer representationIndexer;
@@ -393,21 +389,7 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
-        int startFrom = 0;
-        if (thresholdParam != null) {
-            try {
-                startFrom = Integer.parseInt(thresholdParam);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Wrong threshold param for searching");
-            }
-        }
-        List<Representation> foundRepresenations = solrDAO.search(searchParams, startFrom, limit + 1);
-        String nextResultToken = null;
-        if (foundRepresenations.size() == limit + 1) {
-            nextResultToken = Integer.toString(startFrom + limit + 1);
-            foundRepresenations.remove(limit);
-        }
-        return new ResultSlice<>(nextResultToken, foundRepresenations);
+        throw new UnsupportedOperationException("Not supported.");
     }
 
 
