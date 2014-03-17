@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
@@ -17,7 +14,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
+ * RabbitMQ listener that processes messages about removing all assignments from
+ * a certain data set.
  *
+ * It is triggered by with <code>datasets.assignments.deleteAll</code>
+ * routing key. Message text should be a {@link CompoundDataSetId} object,
+ * serialised to json.
+ *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignmentFromDataSet(CompoundDataSetId dataSetId)} so that Solr index is updated
+ * (the dataset will have no representations assigned in updated index).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, a message is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * {@link eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer#removeAssignmentsFromDataSet(CompoundDataSetId dataSetId)}
+ * method in MCS.
  */
 @Component
 public class AllDataSetAssignmentsRemovedListener implements MessageListener {
