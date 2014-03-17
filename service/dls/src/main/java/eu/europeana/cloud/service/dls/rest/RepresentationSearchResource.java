@@ -11,8 +11,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_PERSISTENT;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import eu.europeana.cloud.service.dls.RepresentationSearchParams;
 import eu.europeana.cloud.service.dls.services.SearchRecordService;
-import eu.europeana.cloud.service.dls.solr.RepresentationSearchParams;
 
 import java.util.Date;
 

@@ -2,10 +2,10 @@ package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.dls.solr.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.util.ArrayList;
 import java.util.Calendar;

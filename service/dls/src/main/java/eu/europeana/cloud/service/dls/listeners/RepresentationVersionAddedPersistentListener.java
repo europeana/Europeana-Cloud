@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.dls.solr.CompoundDataSetId;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
 import java.lang.reflect.Type;

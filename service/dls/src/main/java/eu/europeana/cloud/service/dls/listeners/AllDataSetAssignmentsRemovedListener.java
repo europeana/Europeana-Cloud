@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dls.listeners;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import eu.europeana.cloud.service.dls.solr.CompoundDataSetId;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
 import org.apache.solr.client.solrj.SolrServerException;

@@ -31,12 +31,12 @@ import org.springframework.context.ApplicationContext;
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.ApplicationContextUtils;
-import eu.europeana.cloud.service.dls.solr.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.util.Collections;
 import java.util.Date;

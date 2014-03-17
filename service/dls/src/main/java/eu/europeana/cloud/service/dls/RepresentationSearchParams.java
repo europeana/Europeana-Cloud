@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dls.solr;
+package eu.europeana.cloud.service.dls;
 
 import java.util.Date;
 import java.util.Objects;

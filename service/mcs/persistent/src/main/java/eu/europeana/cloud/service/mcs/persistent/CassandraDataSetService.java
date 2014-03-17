@@ -14,7 +14,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;

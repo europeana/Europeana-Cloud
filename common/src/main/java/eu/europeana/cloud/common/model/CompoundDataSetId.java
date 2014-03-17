@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent.util;
+package eu.europeana.cloud.common.model;
 
 import java.util.Objects;
 

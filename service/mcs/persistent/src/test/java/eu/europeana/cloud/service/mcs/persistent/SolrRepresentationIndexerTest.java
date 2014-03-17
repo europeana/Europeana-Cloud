@@ -10,7 +10,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;

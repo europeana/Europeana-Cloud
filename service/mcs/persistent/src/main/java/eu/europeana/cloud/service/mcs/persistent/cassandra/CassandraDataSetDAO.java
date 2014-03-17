@@ -10,7 +10,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.persistent.util.CompoundDataSetId;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

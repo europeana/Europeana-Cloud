@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.dls.TestUtil;
