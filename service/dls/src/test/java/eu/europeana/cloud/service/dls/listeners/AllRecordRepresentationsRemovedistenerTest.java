@@ -21,7 +21,7 @@ public class AllRecordRepresentationsRemovedistenerTest {
 
     @Autowired
     AllRecordRepresentationsRemovedListener listener;
-
+    
     @Autowired
     SolrDAO solrDAO;
 
