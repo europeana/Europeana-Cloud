@@ -7,7 +7,6 @@ import java.util.List;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -316,19 +315,4 @@ public interface RecordService {
     void deleteContent(String globalId, String schema, String version, String fileName)
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException;
-
-
-    /**
-     * Searches for specified representations and returns result in slices.
-     * 
-     * @param searchParams
-     *            search parameters.
-     * @param thresholdParam
-     *            if null - will return first result slice. Result slices contain token for next pages, which should be
-     *            provided in this parameter for subsequent result slices.
-     * @param limit
-     *            max number of results in one slice.
-     * @return found representations.
-     */
-    ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit);
 }

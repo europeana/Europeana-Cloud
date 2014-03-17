@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.RepresentationSearchParams;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -381,15 +379,6 @@ public class CassandraRecordService implements RecordService {
         }
         // get version after all modifications
         return recordDAO.getRepresentation(globalId, schema, copiedRep.getVersion());
-    }
-
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
-        throw new UnsupportedOperationException("Not supported.");
     }
 
 
