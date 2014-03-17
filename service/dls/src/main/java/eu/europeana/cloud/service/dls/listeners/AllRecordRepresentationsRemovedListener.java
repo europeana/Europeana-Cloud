@@ -8,14 +8,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * 
  * 
  */
-@Component
-public class AllRecordRepresentationsRemovedistener implements MessageListener {
+public class AllRecordRepresentationsRemovedListener implements MessageListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationRemovedListener.class);
 

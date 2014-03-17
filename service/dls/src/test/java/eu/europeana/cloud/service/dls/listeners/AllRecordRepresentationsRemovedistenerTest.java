@@ -20,7 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class AllRecordRepresentationsRemovedistenerTest {
 
     @Autowired
-    AllRecordRepresentationsRemovedistener listener;
+    AllRecordRepresentationsRemovedListener listener;
 
     @Autowired
     SolrDAO solrDAO;
