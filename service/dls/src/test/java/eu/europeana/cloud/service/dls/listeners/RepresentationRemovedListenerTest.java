@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,10 +124,10 @@ public class RepresentationRemovedListenerTest {
     }
 
     private String prepareRemoveRepresentationMessage(String cloudId, String representationName) {
-        HashMap<String, String> map = new LinkedHashMap<>();
-        map.put(ParamConstants.F_CLOUDID, cloudId);
-        map.put(ParamConstants.F_REPRESENTATIONNAME, representationName);
-        return gson.toJson(map);
+        JsonObject jo = new JsonObject();
+        jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
+        jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
+        return jo.toString();
     }
 
 }

@@ -90,11 +90,11 @@ public class SolrRepresentationIndexer {
                 prepareRemoveRepresentationMsg(cloudId, representationName));
     }
 
-    private String prepareRemoveRepresentationMsg(String cloudId, String schema) {
-        HashMap<String, String> map = new LinkedHashMap<>();
-        map.put(ParamConstants.F_CLOUDID, cloudId);
-        map.put(ParamConstants.F_REPRESENTATIONNAME, schema);
-        return gson.toJson(map);
+    private String prepareRemoveRepresentationMsg(String cloudId, String representationName) {
+        JsonObject jo = new JsonObject();
+        jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
+        jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
+        return jo.toString();
     }
 
     /**

@@ -17,6 +17,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import junit.framework.Assert;
+import org.apache.commons.lang.StringUtils;
 import static org.hamcrest.Matchers.is;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -136,18 +138,23 @@ public class SolrRepresentationIndexerTest {
     @Test
     public void shouldSendMessageAboutRepresentationRemoval() {
         //given
-        String cloudId = "fff123123";
-        String schemaId = "rdf";
-        HashMap<String, String> map = new LinkedHashMap<>();
-        map.put(ParamConstants.F_CLOUDID, cloudId);
-        map.put(ParamConstants.F_REPRESENTATIONNAME, schemaId);
-        String json = gson.toJson(map);
-
+        String cloudId = "cloudId123123";
+        String representationName = "rdf";
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         //when
-        indexer.removeRepresentation(cloudId, schemaId);
+        indexer.removeRepresentation(cloudId, representationName);
         //then
-        verify(template, times(1)).convertAndSend("records.representations.delete", json);
+        verify(template, times(1)).convertAndSend(eq("records.representations.delete"), argument.capture());
         verifyNoMoreInteractions(template);
+
+        JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
+        JsonElement cloudIdJson = jo.get(ParamConstants.P_CLOUDID);
+        String sentCloudId = cloudIdJson.getAsString();
+        assertEquals(sentCloudId, cloudId);
+
+        JsonElement representationNameJson = jo.get(ParamConstants.P_REPRESENTATIONNAME);
+        String sentRepresentationName = representationNameJson.getAsString();
+        assertEquals(sentRepresentationName, representationName);
     }
 
     @Test
@@ -159,6 +166,7 @@ public class SolrRepresentationIndexerTest {
 
         //when
         indexer.addAssignment(versionId, ds);
+
         //then
         verify(template, times(1)).convertAndSend(eq("datasets.assignments.add"), argument.capture());
         verifyNoMoreInteractions(template);
@@ -181,6 +189,7 @@ public class SolrRepresentationIndexerTest {
 
         //when
         indexer.removeAssignment(cloudId, representationName, ds);
+
         //then
         verify(template, times(1)).convertAndSend(eq("datasets.assignments.delete"), argument.capture());
         verifyNoMoreInteractions(template);
@@ -215,7 +224,7 @@ public class SolrRepresentationIndexerTest {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(template, times(1)).convertAndSend(eq("datasets.assignments.deleteAll"), argument.capture());
         verifyNoMoreInteractions(template);
-        
+
         CompoundDataSetId sentCompoundDataSetId = gson.fromJson(argument.getValue(), CompoundDataSetId.class);
         assertEquals(sentCompoundDataSetId, compoundDataSetId);
 
