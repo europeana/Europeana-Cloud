@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/testContext.xml" })
+@ContextConfiguration(value = {"classpath:/testContext.xml"})
 public class AllDataSetAssignmentsRemovedListenerTest {
 
     @Autowired
@@ -31,49 +31,29 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 
     private final Gson gson = new Gson();
 
-
     @After
     public void cleanUp() {
         Mockito.reset(solrDAO);
     }
 
-
     @Test
-    public void shouldCallRemoveAssignments()
+    public void shouldCallRemoveAssignmentFromDataSet()
             throws Exception {
         //given
-        CompoundDataSetId dataSetId = new CompoundDataSetId("providerId", "dataSetId");
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
-
-        Message message = new Message(jo.toString().getBytes(), new MessageProperties());
+        String dataSetId = "dataset123";
+        String providerId = "provider123123";
+        CompoundDataSetId compoundDataSetId = new CompoundDataSetId(providerId, dataSetId);
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
         //then
-        verify(solrDAO, times(1)).removeAssignmentFromDataSet(dataSetId);
+        verify(solrDAO, times(1)).removeAssignmentFromDataSet(compoundDataSetId);
         verifyNoMoreInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentsWhenReceivedEmptyMessage()
+    public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
             throws Exception {
-
-        //given
-        String versionId = "";
-        Message message = new Message(versionId.getBytes(), new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
-    }
-
-
-    @Test
-    public void shouldNotCallRemoveAssignmentsWhenReceivedMessageWithNullBody()
-            throws Exception {
-
         //given
         Message message = new Message(null, new MessageProperties());
         //when
@@ -82,17 +62,23 @@ public class AllDataSetAssignmentsRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentsWhenMessageContainsNullProviderParameter()
+    public void shouldNotCallDAOWhenReceivedEmptyMessage()
             throws Exception {
         //given
-        CompoundDataSetId dataSetId = new CompoundDataSetId(null, "dataSetId");
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
+        Message message = new Message("".getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
-        Message message = new Message(jo.toString().getBytes(), new MessageProperties());
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullCompundDataSetId()
+            throws Exception {
+        //given
+        CompoundDataSetId compoundDataSetId = null;
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
 
@@ -100,17 +86,14 @@ public class AllDataSetAssignmentsRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentsWhenMessageContainsEmptyProviderParameter()
+    public void shouldNotCallDAOWhenReceivedNullProviderId()
             throws Exception {
         //given
-        CompoundDataSetId dataSetId = new CompoundDataSetId("", "dataSetId");
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
-
-        Message message = new Message(jo.toString().getBytes(), new MessageProperties());
+        String dataSetId = "dataset123";
+        String providerId = null;
+        CompoundDataSetId compoundDataSetId = new CompoundDataSetId(providerId, dataSetId);
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
 
@@ -118,17 +101,14 @@ public class AllDataSetAssignmentsRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentsWhenMessageContainsNullDataSetIdParameter()
+    public void shouldNotCallDAOWhenReceivedEmptyProviderId()
             throws Exception {
         //given
-        CompoundDataSetId dataSetId = new CompoundDataSetId("dataSetId", null);
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
-
-        Message message = new Message(jo.toString().getBytes(), new MessageProperties());
+        String dataSetId = "dataset123";
+        String providerId = "";
+        CompoundDataSetId compoundDataSetId = new CompoundDataSetId(providerId, dataSetId);
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
 
@@ -136,21 +116,40 @@ public class AllDataSetAssignmentsRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotCallRemoveAssignmentsWhenMessageContainsEmptyDataSetIdParameter()
+    public void shouldNotCallDAOWhenReceivedNullDataSetId()
             throws Exception {
         //given
-        CompoundDataSetId dataSetId = new CompoundDataSetId("providerId", "");
-        JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
-        JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
-
-        Message message = new Message(jo.toString().getBytes(), new MessageProperties());
+        String dataSetId = null;
+        String providerId = "provider123123";
+        CompoundDataSetId compoundDataSetId = new CompoundDataSetId(providerId, dataSetId);
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
 
         //then  
         verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyDataSetId()
+            throws Exception {
+        //given
+        String dataSetId = "";
+        String providerId = "provider123123";
+        CompoundDataSetId compoundDataSetId = new CompoundDataSetId(providerId, dataSetId);
+        Message message = new Message(prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+
+        //then  
+        verifyZeroInteractions(solrDAO);
+    }
+
+    private String prepareAllDataSetAssignmentsRemovedMessage(CompoundDataSetId compoundDataSetId) {
+        JsonElement elem = gson.toJsonTree(compoundDataSetId, CompoundDataSetId.class);
+        JsonObject jo = new JsonObject();
+        jo.add("compoundDataSetId", elem);
+        return jo.toString();
     }
 }
