@@ -1,4 +1,4 @@
- package eu.europeana.cloud.service.dls.listeners;
+package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,26 +53,28 @@ public class RepresentationVersionAddedPersistentListener implements MessageList
         }
 
         JsonElement jsonElem = gson.fromJson(messageText, JsonElement.class);
+        if (jsonElem == null || jsonElem.isJsonNull()) {
+            LOGGER.error("Received message with null parameters map.");
+            return;
+        }
         JsonObject jsonObject = jsonElem.getAsJsonObject();
 
         JsonElement jsonRepresentation = jsonObject.get(ParamConstants.F_REPRESENTATION);
         Representation representation = gson.fromJson(jsonRepresentation, Representation.class);
-        if(representation == null)
-        {
+        if (representation == null) {
             LOGGER.error("Received representation is null.");
             return;
         }
-        
+
         Type dataSetIdsType = new TypeToken<Collection<CompoundDataSetId>>() {
         }.getType();
         JsonElement jsonDataSetIds = jsonObject.get(ParamConstants.F_DATASETS);
         Collection<CompoundDataSetId> dataSetIds = gson.fromJson(jsonDataSetIds, dataSetIdsType);
-        if (dataSetIds == null)
-        {
+        if (dataSetIds == null) {
             LOGGER.error("Received data set ids list is null.");
             return;
         }
-        
+
         try {
             solrDao.insertRepresentation(representation, dataSetIds);
         } catch (IOException | SolrServerException ex) {

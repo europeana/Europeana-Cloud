@@ -99,6 +99,32 @@ public class RepresentationVersionAddedPersistentListenerTest {
     }
 
     @Test
+    public void shouldNotCallDAOWhenReceivedNullMap()
+            throws Exception {
+        //given
+        HashMap<String, Object> map = null;
+
+        Message message = new Message(gson.toJson(map).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyMap()
+            throws Exception {
+        //given
+        HashMap<String, Object> map = new LinkedHashMap<>();
+
+        Message message = new Message(gson.toJson(map).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
     public void shouldNotCallDAOWhenReceivedNullRepresentation()
             throws Exception {
         //given
