@@ -4,8 +4,9 @@
 
     <parent>
         <groupId>eu.europeana.cloud</groupId>
-        <artifactId>ecloud-service-mcs</artifactId>
+        <artifactId>ecloud-parent</artifactId>
         <version>0.2-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     
     <artifactId>ecloud-service-dls</artifactId>
