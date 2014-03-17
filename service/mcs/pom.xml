@@ -17,7 +17,6 @@
     </properties>
     <modules>
         <module>api</module>
-        <module>inmemory</module>
         <module>persistent</module>
         <module>rest</module>
         <module>utils</module>
