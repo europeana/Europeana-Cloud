@@ -16,7 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/testContext.xml" })
+@ContextConfiguration(value = {"classpath:/testContext.xml"})
 public class RepresentationVersionRemovedListenerTest {
 
     @Autowired
@@ -25,18 +25,16 @@ public class RepresentationVersionRemovedListenerTest {
     @Autowired
     SolrDAO solrDAO;
 
-
     @After
     public void cleanUp() {
         Mockito.reset(solrDAO);
     }
 
-
     @Test
     public void shouldCallRemoveRepresentation()
             throws Exception {
-
-        String versionId = "versionId";
+        //given
+        String versionId = "version123";
         Message message = new Message(versionId.getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
@@ -45,11 +43,21 @@ public class RepresentationVersionRemovedListenerTest {
         verifyNoMoreInteractions(solrDAO);
     }
 
+    @Test
+    public void shouldNotCallRemoveRepresentationWhenReceivedNullMessage()
+            throws Exception {
+        //given
+        Message message = new Message(null, new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
 
     @Test
     public void shouldNotCallRemoveRepresentationWhenReceivedEmptyMessage()
             throws Exception {
-
+        //given
         String versionId = "";
         Message message = new Message(versionId.getBytes(), new MessageProperties());
         //when
@@ -58,15 +66,4 @@ public class RepresentationVersionRemovedListenerTest {
         verifyZeroInteractions(solrDAO);
     }
 
-
-    @Test
-    public void shouldNotCallRemoveRepresentationWhenReceivedMessageWithNullBody()
-            throws Exception {
-
-        Message message = new Message(null, new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
-    }
 }
