@@ -116,10 +116,10 @@ public class SolrRepresentationIndexer {
      */
     public void removeAssignment(String cloudId, String representationName, CompoundDataSetId dataSetId) {
         template.convertAndSend("datasets.assignments.delete",
-                prepareRemoveAssginmentMessage(cloudId, representationName, dataSetId));
+                prepareRemoveAssignmentMessage(cloudId, representationName, dataSetId));
     }
 
-    private String prepareRemoveAssginmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
+    private String prepareRemoveAssignmentMessage(String cloudId, String representationName, CompoundDataSetId dataSetId) {
         JsonObject jo = prepareCompoundDataSetIdJson(dataSetId);
         jo.addProperty(ParamConstants.P_CLOUDID, cloudId);
         jo.addProperty(ParamConstants.P_REPRESENTATIONNAME, representationName);
@@ -146,10 +146,10 @@ public class SolrRepresentationIndexer {
      * Removes data set assignments from ALL representation. This method is to
      * be used if whole data set is removed.
      *
-     * @param dataSetId dataset id with owner's (provider's) id.
+     * @param compoundDataSetId dataset id with owner's (provider's) id.
      */
-    public void removeAssignmentsFromDataSet(CompoundDataSetId dataSetId) {
-        template.convertAndSend("datasets.assignments.deleteAll", prepareCompoundDataSetIdJson(dataSetId).toString());
+    public void removeAssignmentsFromDataSet(CompoundDataSetId compoundDataSetId) {
+        template.convertAndSend("datasets.assignments.deleteAll", gson.toJson(compoundDataSetId));
     }
 
     private JsonObject prepareCompoundDataSetIdJson(CompoundDataSetId dataSetId) {
