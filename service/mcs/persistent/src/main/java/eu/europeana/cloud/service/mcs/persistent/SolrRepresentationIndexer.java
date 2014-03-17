@@ -155,7 +155,7 @@ public class SolrRepresentationIndexer {
     private JsonObject prepareCompoundDataSetIdJson(CompoundDataSetId dataSetId) {
         JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
         JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
+        jo.add(ParamConstants.F_DATASET_PROVIDER_ID, elem);
         return jo;
     }
 }

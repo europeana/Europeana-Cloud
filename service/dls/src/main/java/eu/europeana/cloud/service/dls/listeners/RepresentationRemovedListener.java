@@ -2,8 +2,6 @@ package eu.europeana.cloud.service.dls.listeners;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;

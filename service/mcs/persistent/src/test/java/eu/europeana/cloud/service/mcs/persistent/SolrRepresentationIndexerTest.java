@@ -165,9 +165,9 @@ public class SolrRepresentationIndexerTest {
 
         JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
         assertThat(jo.get(ParamConstants.P_VER).getAsString(), is(versionId));
-        assertTrue(jo.get("compoundDataSetId").isJsonObject());
-        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
-        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
+        assertTrue(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).isJsonObject());
+        assertThat(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
+        assertThat(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).getAsJsonObject().get("dataSetProviderId").getAsString(),
                 is(ds.getDataSetProviderId()));
     }
 
@@ -188,9 +188,9 @@ public class SolrRepresentationIndexerTest {
         JsonObject jo = gson.fromJson(argument.getValue(), JsonElement.class).getAsJsonObject();
         assertThat(jo.get(ParamConstants.P_CLOUDID).getAsString(), is(cloudId));
         assertThat(jo.get(ParamConstants.P_REPRESENTATIONNAME).getAsString(), is(representationName));
-        assertTrue(jo.get("compoundDataSetId").isJsonObject());
-        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
-        assertThat(jo.get("compoundDataSetId").getAsJsonObject().get("dataSetProviderId").getAsString(),
+        assertTrue(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).isJsonObject());
+        assertThat(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).getAsJsonObject().get("dataSetId").getAsString(), is(ds.getDataSetId()));
+        assertThat(jo.get(ParamConstants.F_DATASET_PROVIDER_ID).getAsJsonObject().get("dataSetProviderId").getAsString(),
                 is(ds.getDataSetProviderId()));
     }
 

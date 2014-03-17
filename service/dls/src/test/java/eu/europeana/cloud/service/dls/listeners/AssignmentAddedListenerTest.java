@@ -179,7 +179,7 @@ public class AssignmentAddedListenerTest {
     private String prepareAddAssignmentMessage(String versionId, CompoundDataSetId dataSetId) {
         JsonElement elem = gson.toJsonTree(dataSetId, CompoundDataSetId.class);
         JsonObject jo = new JsonObject();
-        jo.add("compoundDataSetId", elem);
+        jo.add(ParamConstants.F_DATASET_PROVIDER_ID, elem);
         jo.addProperty(ParamConstants.P_VER, versionId);
         return jo.toString();
     }

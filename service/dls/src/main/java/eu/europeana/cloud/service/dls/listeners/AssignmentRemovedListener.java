@@ -69,7 +69,7 @@ public class AssignmentRemovedListener implements MessageListener {
             return;
         }
 
-        JsonElement dsJson = jo.get("compoundDataSetId");
+        JsonElement dsJson = jo.get(ParamConstants.F_DATASET_PROVIDER_ID);
         CompoundDataSetId compoundDataSetId = gson.fromJson(dsJson, CompoundDataSetId.class);
         if (compoundDataSetId == null) {
             LOGGER.error("Required parameter CompoundDataSetId is null.");
