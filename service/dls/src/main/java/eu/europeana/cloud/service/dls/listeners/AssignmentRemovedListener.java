@@ -63,14 +63,14 @@ public class AssignmentRemovedListener implements MessageListener {
             representationName = representationNameJson.getAsString();
         }
         if (StringUtils.isBlank(representationName)) {
-            LOGGER.error("Required parameter version is empty.");
+            LOGGER.error("Required parameter representationName is empty.");
             return;
         }
 
         JsonElement dsJson = jo.get("compoundDataSetId");
         CompoundDataSetId compoundDataSetId = gson.fromJson(dsJson, CompoundDataSetId.class);
         if (compoundDataSetId == null) {
-            LOGGER.error("Required CompoundDataSetId is null.");
+            LOGGER.error("Required parameter CompoundDataSetId is null.");
             return;
         }
         if (StringUtils.isBlank(compoundDataSetId.getDataSetId())) {

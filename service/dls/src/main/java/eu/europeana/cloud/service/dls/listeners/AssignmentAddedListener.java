@@ -58,7 +58,7 @@ public class AssignmentAddedListener implements MessageListener {
         JsonElement dsJson = jo.get("compoundDataSetId");
         CompoundDataSetId compoundDataSetId = gson.fromJson(dsJson, CompoundDataSetId.class);
         if (compoundDataSetId == null) {
-            LOGGER.error("Required CompoundDataSetId is null.");
+            LOGGER.error("Required parameter CompoundDataSetId is null.");
             return;
         }
         if (StringUtils.isBlank(compoundDataSetId.getDataSetId())) {

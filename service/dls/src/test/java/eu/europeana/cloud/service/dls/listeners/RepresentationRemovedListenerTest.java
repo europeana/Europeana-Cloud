@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/testContext.xml" })
+@ContextConfiguration(value = {"classpath:/testContext.xml"})
 public class RepresentationRemovedListenerTest {
 
     @Autowired
@@ -31,66 +31,104 @@ public class RepresentationRemovedListenerTest {
 
     private static final Gson gson = new Gson();
 
-
     @After
     public void cleanUp() {
         Mockito.reset(solrDAO);
     }
 
-
     @Test
-    public void shouldRunRemoveMethodWithRequesedParams()
+    public void shouldCallRemoveRepresentation()
             throws Exception {
         //given
-        HashMap<String, String> map = new LinkedHashMap<>();
-        String cloudId = "cloudId";
-        String schema = "schema";
-        map.put(ParamConstants.F_CLOUDID, cloudId);
-        map.put(ParamConstants.F_REPRESENTATIONNAME, schema);
-        String body = gson.toJson(map);
-        Message message = new Message(body.getBytes(), new MessageProperties());
-
+        String cloudId = "cloudId123";
+        String representationName = "representation123";
+        Message message = new Message(prepareRemoveRepresentationMessage(cloudId, representationName).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
         //then
-        verify(solrDAO, times(1)).removeRepresentation(cloudId, schema);
+        verify(solrDAO, times(1)).removeRepresentation(cloudId, representationName);
         verifyNoMoreInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldNotRunRemoveMethodWhenNullParamsSendInMsg()
+    public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
             throws Exception {
         //given
-        HashMap<String, String> map = new LinkedHashMap<>();
-        String schema = "schema";
-        map.put(ParamConstants.F_REPRESENTATIONNAME, schema);
-        String body = gson.toJson(map);
-        Message message = new Message(body.getBytes(), new MessageProperties());
-
+        Message message = new Message(null, new MessageProperties());
         //when
         listener.onMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
     }
 
-
     @Test
-    public void shouldDoNothingWhenEmptyParamsSendInMsg()
+    public void shouldNotCallDAOWhenReceivedEmptyMessage()
             throws Exception {
         //given
-        HashMap<String, String> map = new LinkedHashMap<>();
-        String cloudId = "";
-        String schema = "schema";
-        map.put(ParamConstants.F_CLOUDID, cloudId);
-        map.put(ParamConstants.F_REPRESENTATIONNAME, schema);
-        String body = gson.toJson(map);
-        Message message = new Message(body.getBytes(), new MessageProperties());
-
+        Message message = new Message("".getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullCloudId()
+            throws Exception {
+        //given
+        String cloudId = null;
+        String representationName = "representation123";
+        Message message = new Message(prepareRemoveRepresentationMessage(cloudId, representationName).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyCloudId()
+            throws Exception {
+        //given
+        String cloudId = "";
+        String representationName = "representation123";
+        Message message = new Message(prepareRemoveRepresentationMessage(cloudId, representationName).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedNullRepresentationName()
+            throws Exception {
+        //given
+        String cloudId = "cloudId123";
+        String representationName = null;
+        Message message = new Message(prepareRemoveRepresentationMessage(cloudId, representationName).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    @Test
+    public void shouldNotCallDAOWhenReceivedEmptyRepresentationName()
+            throws Exception {
+        //given
+        String cloudId = "cloudId123";
+        String representationName = "";
+        Message message = new Message(prepareRemoveRepresentationMessage(cloudId, representationName).getBytes(), new MessageProperties());
+        //when
+        listener.onMessage(message);
+        //then
+        verifyZeroInteractions(solrDAO);
+    }
+
+    private String prepareRemoveRepresentationMessage(String cloudId, String representationName) {
+        HashMap<String, String> map = new LinkedHashMap<>();
+        map.put(ParamConstants.F_CLOUDID, cloudId);
+        map.put(ParamConstants.F_REPRESENTATIONNAME, representationName);
+        return gson.toJson(map);
     }
 
 }
