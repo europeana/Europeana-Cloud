@@ -14,7 +14,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener class which reacts on messages about
+ * RabbitMQ listener that processes messages about adding a new/updating
+ * {@link eu.europeana.cloud.common.model.Representation representation} version
+ * of a certain {@link eu.europeana.cloud.common.model.Record record}.
+ *
+ * It receives messages with <code>records.representations.versions.add</code>
+ * routing key. Message text should be a {@link Representation} object,
+ * serialised to Json. {@link Representation} object contains all necessary
+ * information (cloudId of the
+ * {@link eu.europeana.cloud.common.model.Record record} it belongs to, version
+ * etc.).
+ *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#insertRepresentation(Representation, Collection) SolrDAO.insertRepresentation(Representation, Collection&lt;CompoundDataSetId&gt;)}
+ * (with second argument being <code>null</code>) so that Solr index is updated
+ * ({@link eu.europeana.cloud.common.model.Record record} will hold a new
+ * {@link eu.europeana.cloud.common.model.Representation representation} version
+ * for a specific representation name (among others previously added) in updated
+ * index).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.insertRepresentation(Representation)}</code>
+ * method in MCS.
  */
 @Component
 public class RepresentationVersionAddedListener implements MessageListener {
@@ -27,10 +53,6 @@ public class RepresentationVersionAddedListener implements MessageListener {
     @Autowired
     SolrDAO solrDao;
 
-    /**
-     *
-     * @param message
-     */
     @Override
     public void onMessage(Message message) {
         byte[] messageBytes = message.getBody();

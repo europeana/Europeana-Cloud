@@ -21,7 +21,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener class which reacts on messages about
+ * RabbitMQ listener that processes messages about adding a new persistent
+ * {@link eu.europeana.cloud.common.model.Representation representation} version
+ * to a certain {@link eu.europeana.cloud.common.model.Record record}.
+ *
+ * It receives messages with
+ * <code>records.representations.versions.addPersistent</code> routing key.
+ * Message text should be a map serialised to Json, holding
+ * {@link Representation} object, and a list of {@link CompoundDataSetId}
+ * objects. The list of ids is needed, if there are some
+ * {@link eu.europeana.cloud.common.model.DataSet data sets} that have
+ * representation name assigned <i>as a whole</i>. In such case
+ * {@link eu.europeana.cloud.common.model.DataSet data set} holds a pointer to
+ * latest persistent version. So if a new version is persisted, the pointer
+ * might need to be updated (not necessarily, because <i>latest</i>
+ * property is attributed based on
+ * {@link eu.europeana.cloud.common.model.Representation representation}
+ * creation time). The list of ids can be empty, but cannot be <code>null</code>.
+ *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#insertRepresentation(Representation, Collection) SolrDAO.insertRepresentation(Representation, Collection&lt;CompoundDataSetId&gt;)}
+ * so that Solr index is updated (the
+ * {@link eu.europeana.cloud.common.model.Representation representation} is
+ * marked as persistent and
+ * {@link eu.europeana.cloud.common.model.DataSet data sets} point to this
+ * {@link eu.europeana.cloud.common.model.Representation representation} if
+ * appropriate).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.insertRepresentation(Representation, Collection&lt;CompoundDataSetId&gt;)</code>
+ * method in MCS.
  */
 @Component
 public class RepresentationVersionAddedPersistentListener implements MessageListener {
@@ -34,10 +68,6 @@ public class RepresentationVersionAddedPersistentListener implements MessageList
     @Autowired
     SolrDAO solrDao;
 
-    /**
-     *
-     * @param message
-     */
     @Override
     public void onMessage(Message message) {
         byte[] messageBytes = message.getBody();

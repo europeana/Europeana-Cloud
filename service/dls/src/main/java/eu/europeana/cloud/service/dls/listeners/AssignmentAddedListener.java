@@ -18,8 +18,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
+ * RabbitMQ listener that processes messages about adding an assignment of
+ * {@link eu.europeana.cloud.common.model.Representation representation} version
+ * a certain {@link eu.europeana.cloud.common.model.DataSet data set}.
  *
+ * It receives messages with <code>datasets.assignments.delete</code> routing
+ * key. Message text should be Json including {@link CompoundDataSetId} object
+ * and property containing id of representation version.
  *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#addAssignment(String, CompoundDataSetId)}
+ * so that Solr index is updated
+ * ({@link eu.europeana.cloud.common.model.DataSet data set} will have new
+ * version assigned in updated index).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.addAssignment(String, CompoundDataSetId)}</code>
+ * method in MCS.
  */
 @Component
 public class AssignmentAddedListener implements MessageListener {

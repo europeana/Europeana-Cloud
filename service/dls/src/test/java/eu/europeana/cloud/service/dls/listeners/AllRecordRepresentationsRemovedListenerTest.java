@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/testContext.xml"})
-public class AllRecordRepresentationsRemovedistenerTest {
+public class AllRecordRepresentationsRemovedListenerTest {
 
     @Autowired
     AllRecordRepresentationsRemovedListener listener;

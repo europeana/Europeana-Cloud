@@ -19,8 +19,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
+ * RabbitMQ listener that processes messages about removing an assignment of
+ * {@link eu.europeana.cloud.common.model.Representation representation} of
+ * certain representation name to a certain
+ * {@link eu.europeana.cloud.common.model.DataSet data set}.
  *
+ * It receives messages with <code>datasets.assignments.delete</code> routing
+ * key. Message text should be Json including {@link CompoundDataSetId} object,
+ * a property containing representation name and a property containing cloudId
+ * of the {@link eu.europeana.cloud.common.model.Record record}. We need the
+ * cloudId to uniquely identify the
+ * {@link eu.europeana.cloud.common.model.Representation representation}
+ * versions of the provided representation name, as no version id is included.
  *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignment(String, String, Collection) SolrDAO.removeAssignment(String, String, Collection&lt;CompoundDataSetId&gt;)}
+ * so that Solr index is updated
+ * ({@link eu.europeana.cloud.common.model.DataSet data set} will have no
+ * versions of this
+ * {@link eu.europeana.cloud.common.model.Representation representation}
+ * assigned in updated index).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeAssignment(String, String, CompoundDataSetId)}</code>
+ * method in MCS.
  */
 @Component
 public class AssignmentRemovedListener implements MessageListener {
@@ -87,7 +114,7 @@ public class AssignmentRemovedListener implements MessageListener {
         try {
             solrDao.removeAssignment(cloudId, representationName, Collections.singletonList(compoundDataSetId));
         } catch (SolrServerException | IOException | SolrDocumentNotFoundException ex) {
-            LOGGER.error("Cannot removed assignment from solr", ex);
+            LOGGER.error("Cannot remove assignment from solr", ex);
         }
     }
 

@@ -15,22 +15,26 @@ import org.springframework.stereotype.Component;
 
 /**
  * RabbitMQ listener that processes messages about removing all assignments from
- * a certain data set.
+ * a certain {@link eu.europeana.cloud.common.model.DataSet data set}.
  *
- * It is triggered by with <code>datasets.assignments.deleteAll</code>
- * routing key. Message text should be a {@link CompoundDataSetId} object,
- * serialised to json.
+ * It receives messages with <code>datasets.assignments.deleteAll</code> routing
+ * key. Message text should be a {@link CompoundDataSetId} object, serialised to
+ * Json.
  *
  * After receiving properly formed message, listener calls
- * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignmentFromDataSet(CompoundDataSetId dataSetId)} so that Solr index is updated
- * (the dataset will have no representations assigned in updated index).
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignmentFromDataSet(CompoundDataSetId)}
+ * so that Solr index is updated (the
+ * {@link eu.europeana.cloud.common.model.DataSet data set} will have no
+ * {@link eu.europeana.cloud.common.model.Representation representations}
+ * assigned in updated index).
  *
  * If message is malformed, information about error is logged and no call to
- * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, a message is
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  *
  * Messages for this listener are produced by
- * {@link eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer#removeAssignmentsFromDataSet(CompoundDataSetId dataSetId)}
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeAssignmentsFromDataSet(CompoundDataSetId)</code>}
  * method in MCS.
  */
 @Component

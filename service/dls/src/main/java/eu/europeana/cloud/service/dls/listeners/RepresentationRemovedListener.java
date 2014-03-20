@@ -1,14 +1,11 @@
 package eu.europeana.cloud.service.dls.listeners;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.LinkedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -19,8 +16,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener class which reacts on messages about deletion of record's
- * representation.
+ * RabbitMQ listener that processes messages about removing a
+ * {@link eu.europeana.cloud.common.model.Representation representation} of
+ * certain representation name in all versions from a
+ * {@link eu.europeana.cloud.common.model.Record record} of certain cloudId.
+ *
+ * It receives messages with <code>records.representations.delete</code> routing
+ * key. Message text should be Json including a property containing
+ * representation name and a property containing cloudId of the
+ * {@link eu.europeana.cloud.common.model.Record record}.
+ *
+ * After receiving properly formed message, listener calls
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeRepresentation(String, String)}
+ * so that Solr index is updated
+ * ({@link eu.europeana.cloud.common.model.Record record} will hold no versions
+ * of this {@link eu.europeana.cloud.common.model.Representation representation}
+ * in updated index).
+ *
+ * If message is malformed, information about error is logged and no call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} is performed. If call to
+ * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
+ * also logged.
+ *
+ * Messages for this listener are produced by
+ * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeRepresentation(String, String)}</code>
+ * method in MCS.
  */
 @Component
 public class RepresentationRemovedListener implements MessageListener {
@@ -32,13 +52,6 @@ public class RepresentationRemovedListener implements MessageListener {
 
     private final Gson gson = new Gson();
 
-    /**
-     * Reacts on message about representation removal and removes all versions
-     * of requested representation from index. Message body should contain cloud
-     * identifier and representationName of the representation.
-     *
-     * @param message
-     */
     @Override
     public void onMessage(Message message) {
 
