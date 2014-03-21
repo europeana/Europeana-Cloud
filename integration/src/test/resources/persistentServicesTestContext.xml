@@ -78,9 +78,9 @@
 			value="test_pwd" />
 	</bean>
 
-	<bean id="sorlConnector"
-		class="eu.europeana.cloud.service.mcs.mock_impl.EmbeddedSolrConnectionProvider" />
-	<bean id="solrDAO" class="eu.europeana.cloud.service.mcs.persistent.solr.SolrDAO" />
+<!-- 	<bean id="sorlConnector" -->
+<!-- 		class="eu.europeana.cloud.service.dls.mock_impl.EmbeddedSolrConnectionProvider" /> -->
+<!-- 	<bean id="solrDAO" class="eu.europeana.cloud.service.dls.persistent.solr.SolrDAO" /> -->
 	<bean id="solrRepresentationIndexer"
 		class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer" />
 
