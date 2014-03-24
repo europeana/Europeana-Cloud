@@ -1,0 +1,20 @@
+!tape
+name: UISClient/duplicateProvider
+interactions:
+- recorded: 2014-03-21T14:09:07.983Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=Test+provider+Id&recordId=TEST_RECORD
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_40)
+  response:
+    status: 200
+    headers:
+      Content-Type: application/xml
+      Date: Fri, 21 Mar 2014 14:09:07 GMT
+      Server: Apache-Coyote/1.1
+      X-Betamax: PLAY
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>59P0L6JLKD0</id><localId><providerId>Test provider Id</providerId><recordId>TEST_RECORD</recordId></localId></cloudId>

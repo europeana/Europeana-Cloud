@@ -29,7 +29,7 @@ public class UISClientTest {
     public Recorder recorder = new Recorder();
 
     /** Needed to record the tests. */
-    private static final String BASE_URL = "http://localhost:8081/ecloud-service-uis-rest";
+    private static final String BASE_URL = "http://localhost:8080/ecloud-service-uis-rest";
     
     private static final String PROVIDER_ID = "TEST_PROVIDER";
     
@@ -89,8 +89,8 @@ public class UISClientTest {
         assertNotNull(providerUpdated.getProperties());
         assertTrue(providerUpdated.getProperties().equals(providerPropertiesUpdated));
     }
-    
-    @Test(expected = CloudException.class)
+    @Betamax(tape = "UISClient/duplicateProvider")
+    @Test
     public final void duplicateProviderRecordTest() throws Exception {
     	
         UISClient uisClient = new UISClient(BASE_URL);
@@ -99,7 +99,11 @@ public class UISClientTest {
 
     	// try to insert the same (PROVIDER_ID + RECORD_ID) twice
     	uisClient.createCloudId(providerId, RECORD_ID);
+    	try{
     	uisClient.createCloudId(providerId, RECORD_ID);
+    	} catch(Exception e) {
+    		assertTrue(e instanceof CloudException);
+    	}
     }
     
     @Betamax(tape = "UISClient/createMappingTest")

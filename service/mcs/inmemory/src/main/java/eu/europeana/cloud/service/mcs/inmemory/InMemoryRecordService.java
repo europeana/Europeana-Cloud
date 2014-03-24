@@ -270,7 +270,7 @@ public class InMemoryRecordService implements RecordService {
     }
 
 
-    @Override
+//    @Override
     public ResultSlice<Representation> search(RepresentationSearchParams searchParams, String thresholdParam, int limit) {
         int threshold = 0;
         if (thresholdParam != null) {

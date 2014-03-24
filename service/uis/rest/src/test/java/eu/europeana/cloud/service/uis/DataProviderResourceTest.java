@@ -33,6 +33,7 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
@@ -338,10 +339,10 @@ public class DataProviderResourceTest extends JerseyTest {
 		CloudId gid = createCloudId("providerId", "recordId");
 		when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
 		// Create a single object test
-		target("cloudIds").queryParam("providerId", "providerId").queryParam("localId", "recordId")
+		target("cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, "providerId").queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
-		Response res = target("/data-providers/providerId/cloudIds/" + gid.getId()).queryParam("localId", "local1")
-				.request().put(Entity.text(""));
+		Response res = target("/data-providers/providerId/cloudIds/" + gid.getId()).queryParam(UISParamConstants.Q_RECORD_ID, "local1")
+				.request().post(Entity.text(""));
 		assertThat(res.getStatus(), is(200));
 	}
 
@@ -359,8 +360,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
 
-		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam("localId", "local1").request()
-				.put(Entity.text(""));
+		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+				.post(Entity.text(""));
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(
@@ -387,8 +388,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
 
-		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam("localId", "local1").request()
-				.put(Entity.text(""));
+		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+				.post(Entity.text(""));
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -410,8 +411,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
 		doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
 
-		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam("localId", "local1").request()
-				.put(Entity.text(""));
+		Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+				.post(Entity.text(""));
 		assertThat(resp.getStatus(), is(409));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
 		StringUtils.equals(errorInfo.getErrorCode(),
@@ -432,7 +433,7 @@ public class DataProviderResourceTest extends JerseyTest {
 	public void testRemoveMapping() throws Exception {
 		CloudId gid = createCloudId("providerId", "recordId");
 		when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
-		target("/cloudIds").queryParam("providerId", "providerId").queryParam("localId", "recordId")
+		target("/cloudIds").queryParam("providerId", "providerId").queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		Response resp = target("/data-providers/providerId/localIds/recordId").request().delete();
 		assertThat(resp.getStatus(), is(200));

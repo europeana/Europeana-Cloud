@@ -27,6 +27,7 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
@@ -96,7 +97,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		CloudId originalGid = createCloudId(providerId, recordId);
 		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
 		// Create a single object test
-		Response response = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response response = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
 		assertThat(response.getStatus(), is(200));
 		CloudId retrieveCreate = response.readEntity(CloudId.class);
@@ -120,7 +121,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(databaseException);
 
-		Response resp = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response resp = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -147,7 +148,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response resp = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
 		assertThat(resp.getStatus(), is(409));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -167,7 +168,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 		CloudId originalGid = createCloudId(providerId, recordId);
 		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenReturn(originalGid);
 		// Retrieve the single object by provider and recordId
-		Response response = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response response = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request().get();
 
 		assertThat(response.getStatus(), is(200));
@@ -191,7 +192,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response resp = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(500));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -218,7 +219,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 
 		when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
 
-		Response resp = target("/cloudIds").queryParam(providerId, providerId).queryParam("localId", recordId)
+		Response resp = target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
 		assertThat(resp.getStatus(), is(404));
 		ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
@@ -311,7 +312,7 @@ public class BasicUniqueIdResourceTest extends JerseyTest {
 	public void testDeleteCloudId() throws Exception {
 		CloudId gid = createCloudId(providerId, recordId);
 		when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(gid);
-		target("/cloudIds").queryParam(providerId, providerId).queryParam(recordId, recordId)
+		target("/cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, providerId).queryParam(UISParamConstants.Q_RECORD_ID, recordId)
 				.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
 		Response res = target("/cloudIds/" + gid.getId()).request().delete();
 		assertThat(res.getStatus(), is(200));
