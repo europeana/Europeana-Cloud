@@ -15,22 +15,6 @@
 	</properties>
 	<profiles>
 		<profile>
-			<id>inmemory</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<spring.config.dir>inmemory</spring.config.dir>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>eu.europeana.cloud</groupId>
-					<artifactId>ecloud-service-mcs-inmemory</artifactId>
-					<version>${project.version}</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
 			<id>persistent</id>
 			<properties>
 				<spring.config.dir>persistent</spring.config.dir>
@@ -64,7 +48,6 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>persistent/</exclude>
-                                        <exclude>inmemory/</exclude>
                                         <exclude>standalone/</exclude>
 				</excludes>
 			</resource>
@@ -249,14 +232,6 @@
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs-inmemory</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-persistent</artifactId>

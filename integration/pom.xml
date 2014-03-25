@@ -47,22 +47,12 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-mcs-inmemory</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-mcs-persistent</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-uis-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-uis-inmemory</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
