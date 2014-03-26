@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="2.5" jmeter="2.10 r1533061">
+<jmeterTestPlan version="1.2" properties="2.6" jmeter="2.11 r1554548">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test plan (requires Standard Set of plugins)" enabled="true">
       <stringProp name="TestPlan.comments">Please configure variables below. This test requires Standard Set of plugins from http://jmeter-plugins.org. </stringProp>
@@ -21,7 +21,7 @@
           </elementProp>
           <elementProp name="port" elementType="Argument">
             <stringProp name="Argument.name">port</stringProp>
-            <stringProp name="Argument.value">8084</stringProp>
+            <stringProp name="Argument.value">8080</stringProp>
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -131,7 +131,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/data-providers?providerId=ProviderA</stringProp>
+          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/?providerId=ProviderB</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -184,7 +184,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/getCloudId?recordId=${recordId}&amp;providerId=ProviderA</stringProp>
+            <stringProp name="HTTPSampler.path">${uis-name}/cloudIds/?recordId=${recordId}&amp;providerId=ProviderA</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -240,7 +240,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${uis-name}/uniqueId/createCloudIdLocal?recordId=${recordId}&amp;providerId=ProviderA</stringProp>
+              <stringProp name="HTTPSampler.path">${uis-name}/cloudIds/?recordId=${recordId}&amp;providerId=ProviderA</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -336,7 +336,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/records/${recCounter}/representations/schema1</stringProp>
+            <stringProp name="HTTPSampler.path">${mcs-name}/records/${recCounter}/representations/schema1/</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2026,7 +2026,7 @@
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="tearDown Thread Group" enabled="true">
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="tearDown Thread Group" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
