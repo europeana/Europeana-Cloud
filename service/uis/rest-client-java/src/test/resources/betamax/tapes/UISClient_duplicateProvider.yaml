@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-03-21T14:09:07.983Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=Test+provider+Id&recordId=TEST_RECORD
+    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds?providerId=Test+provider+Id&recordId=TEST_RECORD
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Host: localhost:8080

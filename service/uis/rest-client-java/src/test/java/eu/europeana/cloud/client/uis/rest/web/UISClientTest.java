@@ -29,7 +29,7 @@ public class UISClientTest {
     public Recorder recorder = new Recorder();
 
     /** Needed to record the tests. */
-    private static final String BASE_URL = "http://localhost:8080/ecloud-service-uis-rest";
+    private static final String BASE_URL = "http://localhost:8081/ecloud-service-uis-rest";
     
     private static final String PROVIDER_ID = "TEST_PROVIDER";
     
@@ -89,6 +89,7 @@ public class UISClientTest {
         assertNotNull(providerUpdated.getProperties());
         assertTrue(providerUpdated.getProperties().equals(providerPropertiesUpdated));
     }
+    
     @Betamax(tape = "UISClient/duplicateProvider")
     @Test
     public final void duplicateProviderRecordTest() throws Exception {
