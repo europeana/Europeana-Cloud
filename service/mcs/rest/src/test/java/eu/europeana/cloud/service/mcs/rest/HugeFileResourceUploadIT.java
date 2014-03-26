@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.test.CassandraTestRunner;
 import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -47,6 +49,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
+@RunWith(CassandraTestRunner.class)
 public class HugeFileResourceUploadIT extends JerseyTest {
 
     private static RecordService recordService;
@@ -79,7 +82,7 @@ public class HugeFileResourceUploadIT extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
 
 

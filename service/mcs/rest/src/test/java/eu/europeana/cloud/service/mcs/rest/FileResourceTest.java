@@ -18,8 +18,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -29,7 +27,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
 import com.google.common.collect.ImmutableMap;
@@ -45,12 +42,14 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.test.CassandraTestRunner;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 /**
  * FileResourceTest
  */
-@RunWith(JUnitParamsRunner.class)
+@RunWith(CassandraTestRunner.class)
 public class FileResourceTest extends JerseyTest {
 
     private RecordService recordService;
@@ -95,7 +94,7 @@ public class FileResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
 
 
@@ -124,9 +123,26 @@ public class FileResourceTest extends JerseyTest {
         assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
 
+    int[][] parameters = new int[][]{
+        {1, 2}, {0, 0}, {0, 1}, {3, 3}, {0, 3}, {3, 4}
+    };
 
+        /**
+     * Yeah, this test really sucks. It should use Parameterized test (as it was
+     * implemented earlier - see the anotaions down below commented out). But it
+     * is impossible to use 2 runners in one test.
+     *
+     * @throws Exception
+     */
     @Test
-    @Parameters({ "1,2", "0,0", "0,1", "3,3", "0,3", "3,4" })
+    public void shouldReturnContentWithinRangeForParameters() throws Exception {
+        for (int[] elem : parameters) {
+            shouldReturnContentWithinRange(elem[0], elem[1]);
+        }
+    }
+
+//    @Test
+//    @Parameters({ "1,2", "0,0", "0,1", "3,3", "0,3", "3,4" })
     public void shouldReturnContentWithinRange(Integer rangeStart, Integer rangeEnd)
             throws Exception {
         // given particular content in service
@@ -145,8 +161,6 @@ public class FileResourceTest extends JerseyTest {
         byte[] expectedResponseContent = copyOfRange(content, rangeStart, rangeEnd);
         assertArrayEquals("Read data is different from requested range", expectedResponseContent, responseContent);
     }
-
-
     /**
      * Copy the specified range of array to a new array. This method works similar to
      * {@link Arrays#copyOfRange(byte[], int, int)}, but final index is inclusive.
