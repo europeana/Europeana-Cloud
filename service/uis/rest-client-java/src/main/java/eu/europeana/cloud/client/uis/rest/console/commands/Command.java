@@ -14,7 +14,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
  */
 public abstract class Command {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Command.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 	
 	
 	/**

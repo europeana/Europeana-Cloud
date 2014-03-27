@@ -23,7 +23,7 @@ public class CreateMappingCommand extends Command {
 			client.createProvider(input[1], new DataProviderProperties());
 			System.out.println(client.createMapping(input[0], input[1], input[2]));
 		} catch (CloudException e) {
-			getLogger().error(e.getMessage());
+			getLogger().info(e.getMessage());
 		}
 	}
 

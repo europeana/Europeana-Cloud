@@ -42,12 +42,13 @@ public class UISClient {
 	private static Client client = JerseyClientBuilder.newClient();
 	private static UrlProvider urlProvider;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
-	
+	//private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(UISClient.class);
 	/**
 	 * Creates a new instance of this class.
 	 */
 	public UISClient() {
 		try {
+			
 			urlProvider = new UrlProvider();
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
@@ -423,6 +424,9 @@ public class UISClient {
 	 */
 	public CloudException generateException(ErrorInfo e) {
 		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
+		LOGGER.error(e.getDetails()+"blabla");
+		
+		
 		switch (error) {
 		case CLOUDID_DOES_NOT_EXIST:
 			return new CloudException(e.getErrorCode(), new CloudIdDoesNotExistException(e));

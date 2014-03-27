@@ -1,7 +1,6 @@
 package eu.europeana.cloud.client.uis.rest.console;
 
 import java.util.Scanner;
-
 /**
  * Command line application for Connection REST API
  * 
@@ -48,5 +47,5 @@ public final class Client {
 
 		}
 	}
-
+	
 }

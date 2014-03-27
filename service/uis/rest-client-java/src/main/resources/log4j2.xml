@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" name="UISClient" packages="">
+	<Appenders>
+		<Flume name="eventLogger" compress="false">
+			<Agent host="localhost" port="41414" />
+			<RFC5424Layout enterpriseNumber="18060" includeMDC="true"
+				appName="UISClient" />
+		</Flume>
+	</Appenders>
+	<Loggers>
+		<Root level="debug">
+			<AppenderRef ref="eventLogger" />
+		</Root>
+		<Logger name="eu.europeana.cloud.client.uis.rest">
+			<AppenderRef ref="eventLogger" />
+		</Logger>
+	</Loggers>
+</Configuration>
