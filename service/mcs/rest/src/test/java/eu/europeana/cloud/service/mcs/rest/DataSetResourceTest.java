@@ -5,37 +5,36 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-
+import eu.europeana.cloud.test.CassandraTestRunner;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.test.JerseyTest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
  * DataSetResourceTest
  */
+@RunWith(CassandraTestRunner.class)
 public class DataSetResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
@@ -54,7 +53,7 @@ public class DataSetResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
 
 

@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.test.CassandraTestRunner;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import javax.ws.rs.Path;
@@ -29,12 +30,14 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
 /**
  * DataSetAssignmentResourceTest
  */
+@RunWith(CassandraTestRunner.class)
 public class DataSetAssignmentResourceTest extends JerseyTest {
 
     // private DataProviderService dataProviderService;
@@ -55,7 +58,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedServicesTestContext.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
 
 
