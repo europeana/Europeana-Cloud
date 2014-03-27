@@ -78,6 +78,13 @@
 	</modules>
 	<repositories>
 		<repository>
+			<id>repo1</id>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
 			<id>eaio.com</id>
 			<url>http://eaio.com/maven2</url>
 		</repository>
@@ -90,13 +97,6 @@
 			<id>europeanalabs.eu</id>
 			<name>europeanalabs.eu-releases</name>
 			<url>http://europeanalabs.eu/artifactory</url>
-		</repository>
-		<repository>
-			<id>repo1</id>
-			<url>http://repo1.maven.org/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
 		</repository>
 		<repository>
 			<id>miredot</id>
@@ -123,6 +123,7 @@
 		<main.directory>${project.basedir}</main.directory>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<log4j2_version>2.0-rc1</log4j2_version>
 		<skipITs>true</skipITs>
 	</properties>
 	<build>

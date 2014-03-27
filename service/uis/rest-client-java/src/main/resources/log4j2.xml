@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" name="UISClient" packages="">
+<Configuration status="debug" name="RESTClient" packages="">
 	<Appenders>
-		<Flume name="eventLogger" compress="false">
+		<Flume name="testagent" compress="false">
 			<Agent host="localhost" port="41414" />
 			<RFC5424Layout enterpriseNumber="18060" includeMDC="true"
-				appName="UISClient" />
+				appName="RESTClient" />
 		</Flume>
 	</Appenders>
 	<Loggers>
 		<Root level="debug">
-			<AppenderRef ref="eventLogger" />
+			<AppenderRef ref="testagent" />
 		</Root>
 		<Logger name="eu.europeana.cloud.client.uis.rest.UISClient">
-			<AppenderRef ref="eventLogger" />
+			<AppenderRef ref="testagent" />
 		</Logger>
 	</Loggers>
 </Configuration>
