@@ -11,7 +11,7 @@
 		<Root level="debug">
 			<AppenderRef ref="eventLogger" />
 		</Root>
-		<Logger name="eu.europeana.cloud.client.uis.rest">
+		<Logger name="eu.europeana.cloud.client.uis.rest.UISClient">
 			<AppenderRef ref="eventLogger" />
 		</Logger>
 	</Loggers>
