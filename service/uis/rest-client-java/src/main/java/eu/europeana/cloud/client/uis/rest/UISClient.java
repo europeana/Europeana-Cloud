@@ -424,7 +424,7 @@ public class UISClient {
 	 */
 	public CloudException generateException(ErrorInfo e) {
 		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
-		LOGGER.error(e.getDetails()+"blabla");
+		LOGGER.error(e.getDetails());
 		
 		
 		switch (error) {
