@@ -5,11 +5,13 @@
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:jee="http://www.springframework.org/schema/jee"
 	   xmlns:aop="http://www.springframework.org/schema/aop"
+           xmlns:rabbit="http://www.springframework.org/schema/rabbit"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
                         http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
-                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+                        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
 
 	<context:annotation-config/>
 	<import resource="classpath:config.xml" />
@@ -66,8 +68,13 @@
 		</constructor-arg>
 	</bean>    
     
-	<bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
-        <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
+	  <bean id="solrRepresentationIndexer" 
+          class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+        
+        <!--TODO: ECL-173 replace hardcoded props with jndi-lookup-->
+        <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
+        <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
+        <rabbit:admin connection-factory="rabbitConnectionFactory"/> 
         <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
 
 </beans>
