@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context antiJARLocking="true" path="/">
+<Context antiJARLocking="true" path="/ecloud-service-uis-rest-0.2-SNAPSHOT">
 	
 <!--Below are references to global resources that should be defined in Tomcat's server.xml to be available and used
 	by application. Define those variables in GlobalNamingResources section of mentioned file, e.g.:
