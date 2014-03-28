@@ -90,7 +90,7 @@
     <bean id="solrRepresentationIndexer" 
           class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
         
-        <!--TODO: replace hardcoded props with jndi-lookup-->
+        <!--TODO: ECL-173 replace hardcoded props with jndi-lookup-->
         <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
         <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
         <rabbit:admin connection-factory="rabbitConnectionFactory"/> 
