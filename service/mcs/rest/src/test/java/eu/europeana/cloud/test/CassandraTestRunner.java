@@ -44,6 +44,11 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
                 try {
                     LOGGER.info("Starting embedded Cassandra");
                     EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
+                    try {
+    					Thread.sleep(10000l);
+    				} catch (InterruptedException e) {
+    					throw new RuntimeException("Caused by InterruptedException", e);
+    				}
                     cluster = Cluster.builder().addContactPoint("localhost").withPort(PORT).build();
                     initKeyspace();
                     serverRunning = true;
@@ -64,7 +69,7 @@ public class CassandraTestRunner extends BlockJUnit4ClassRunner {
 
     private void initKeyspace()
             throws IOException {
-        CQLDataLoader dataLoader = new CQLDataLoader("localhost", PORT);
+        CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
         dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
     }
 
