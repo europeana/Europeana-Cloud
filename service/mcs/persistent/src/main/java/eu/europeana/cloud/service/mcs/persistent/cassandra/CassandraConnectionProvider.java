@@ -76,7 +76,7 @@ public class CassandraConnectionProvider {
     @PreDestroy
     private void closeConnections() {
         LOGGER.info("Cluster is shutting down.");
-        cluster.shutdown();
+        cluster.close();
     }
 
 

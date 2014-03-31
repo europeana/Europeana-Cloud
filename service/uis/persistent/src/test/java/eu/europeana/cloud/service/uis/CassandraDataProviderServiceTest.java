@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 @ContextConfiguration(value = { "classpath:/default-context.xml" })
 public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
+	
 	@Autowired
 	private CassandraDataProviderService cassandraDataProviderService;
 

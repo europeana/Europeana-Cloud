@@ -120,6 +120,6 @@ public class DatabaseService {
 	@PreDestroy
 	    private void closeConnections() {
 	        LOGGER.info("Cluster is shutting down.");
-	        session.getCluster().shutdown();
+	        session.getCluster().close();
 	    }
 }

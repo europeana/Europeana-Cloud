@@ -47,6 +47,11 @@ public abstract class CassandraTestBase {
 				try {
 					LOGGER.info("Starting embedded Cassandra...");
 					EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
+					try {
+						Thread.sleep(10000l);
+					} catch (InterruptedException e) {
+						throw new RuntimeException("Caused by InterruptedException", e);
+					}
 				} catch (Exception e) {
 					LOGGER.error("Cannot start embedded Cassandra!", e);
 					throw new RuntimeException("Cannot start embedded Cassandra!", e);
@@ -60,7 +65,9 @@ public abstract class CassandraTestBase {
 					EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
 					throw new RuntimeException("Cannot initialize keyspace!", e);
 				}
+				
 				serverRunning = true;
+				
 			}
 		}
 	}
@@ -73,7 +80,7 @@ public abstract class CassandraTestBase {
 	}
 
 	private void initKeyspace() throws IOException {
-		CQLDataLoader dataLoader = new CQLDataLoader("localhost", PORT);
+		CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
 		dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
 	}
 

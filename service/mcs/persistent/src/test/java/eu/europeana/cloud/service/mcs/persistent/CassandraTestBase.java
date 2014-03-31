@@ -4,7 +4,9 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+
 import java.io.IOException;
+
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -36,11 +38,18 @@ public abstract class CassandraTestBase {
                 try {
                     LOGGER.info("Starting embedded Cassandra...");
                     EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
+                    try {
+    					Thread.sleep(10000l);
+    				} catch (InterruptedException e) {
+    					throw new RuntimeException("Caused by InterruptedException", e);
+    				}
                 } catch (Exception e) {
                     LOGGER.error("Cannot start embedded Cassandra!", e);
                     throw new RuntimeException("Cannot start embedded Cassandra!", e);
                 }
                 cluster = Cluster.builder().addContactPoint("localhost").withPort(PORT).build();
+                
+               
                 try {
                     LOGGER.info("Initializing keyspace...");
                     initKeyspace();
@@ -56,13 +65,14 @@ public abstract class CassandraTestBase {
 
 
     protected Session getSession() {
-        return cluster.connect(KEYSPACE);
+    	return cluster.connect(KEYSPACE);
     }
 
 
     private void initKeyspace()
             throws IOException {
-        CQLDataLoader dataLoader = new CQLDataLoader("localhost", PORT);
+        CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
+        
         dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
     }
 
