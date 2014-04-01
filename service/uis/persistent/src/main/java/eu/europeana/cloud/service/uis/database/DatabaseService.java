@@ -50,12 +50,16 @@ public class DatabaseService {
 	 */
 	public DatabaseService(String host, String port, String keyspaceName, String username, String password,
 			boolean create) throws IOException {
+
+        LOGGER.info("DatabaseService starting... host='{}', port='{}', keyspaceName='{}', create='{}',username='{}'",
+        		host, port, keyspaceName, create, username);
 		this.host = host;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
 		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port))
 				.withCredentials(username, password).build();
 		if (create) {
+	        LOGGER.info("DatabaseService creating tables...");
 			session = cluster.connect();
 			List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
 			int i = 0;
@@ -67,8 +71,10 @@ public class DatabaseService {
 				}
 				i++;
 			}
+	        LOGGER.info("DatabaseService tables created successfully.");
 		}
 		session = cluster.connect(keyspaceName);
+        LOGGER.info("DatabaseService started successfully.");
 	}
 
 	/**
@@ -119,7 +125,8 @@ public class DatabaseService {
 
 	@PreDestroy
 	    private void closeConnections() {
-	        LOGGER.info("Cluster is shutting down.");
-	        session.getCluster().close();
+	        LOGGER.info("closeConnections() Cluster is shutting down.");
+	        session.getCluster().shutdown();
+	        LOGGER.info("closeConnections() Cluster shut down successfully.");
 	    }
 }

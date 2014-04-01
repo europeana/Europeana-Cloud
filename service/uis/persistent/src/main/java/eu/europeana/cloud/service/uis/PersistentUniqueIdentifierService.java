@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -38,6 +40,8 @@ public class PersistentUniqueIdentifierService implements
 	private String host;
 	private String keyspace;
 	private String port;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersistentUniqueIdentifierService.class);
 
 	
 	/**
@@ -51,12 +55,14 @@ public class PersistentUniqueIdentifierService implements
 	 */
 	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,
 			LocalIdDao localIdDao,CassandraDataProviderDAO dataProviderDao) {
+        LOGGER.info("PersistentUniqueIdentifierService starting...");
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
 		this.dataProviderDao = dataProviderDao;
 		this.host = cloudIdDao.getHost();
 		this.keyspace = cloudIdDao.getKeyspace();
 		this.port = cloudIdDao.getPort();
+        LOGGER.info("PersistentUniqueIdentifierService started successfully...");
 	}
 
 	@Override
@@ -64,8 +70,11 @@ public class PersistentUniqueIdentifierService implements
 			throws DatabaseConnectionException, RecordExistsException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException,
 			CloudIdDoesNotExistException {
+        LOGGER.info("createCloudId() creating cloudId");
 		String providerId = recordInfo[0];
+        LOGGER.info("createCloudId() creating cloudId providerId={}", providerId);
 		if(dataProviderDao.getProvider(providerId)==null){
+	        LOGGER.warn("ProviderDoesNotExistException for providerId={}", providerId);
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -75,7 +84,9 @@ public class PersistentUniqueIdentifierService implements
 		}
 		String recordId = recordInfo.length > 1 ? recordInfo[1] : Base36
 				.timeEncode(providerId);
+        LOGGER.info("createCloudId() creating cloudId providerId='{}', recordId='{}'", providerId, recordId);
 		if (!localIdDao.searchActive(providerId, recordId).isEmpty()) {
+	        LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);
 			throw new RecordExistsException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
 					IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(
@@ -97,6 +108,7 @@ public class PersistentUniqueIdentifierService implements
 	public CloudId getCloudId(String providerId, String recordId)
 			throws DatabaseConnectionException, RecordDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
+        LOGGER.info("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.isEmpty()) {
 			throw new RecordDoesNotExistException(
@@ -106,15 +118,19 @@ public class PersistentUniqueIdentifierService implements
 							IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST
 									.getErrorInfo(providerId, recordId)));
 		}
-		return cloudIds.get(0);
+		final CloudId cloudId = cloudIds.get(0);
+        LOGGER.info("getCloudId() returning cloudId='{}'", cloudId);
+		return cloudId;
 	}
 
 	@Override
 	public List<CloudId> getLocalIdsByCloudId(String cloudId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
+        LOGGER.info("getLocalIdsByCloudId() cloudId='{}'", cloudId);
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for cloudId={}", cloudId);
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
@@ -138,7 +154,9 @@ public class PersistentUniqueIdentifierService implements
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 
+        LOGGER.info("getLocalIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, end);
 		if(dataProviderDao.getProvider(providerId)==null){
+	        LOGGER.warn("ProviderDoesNotExistException for providerId='{}', start='{}', end='{}'", providerId, start, end);
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -165,7 +183,9 @@ public class PersistentUniqueIdentifierService implements
 			int end) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
 
+        LOGGER.info("getCloudIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, start, end);
 		if(dataProviderDao.getProvider(providerId)==null){
+	        LOGGER.warn("ProviderDoesNotExistException for providerId='{}', start='{}', end='{}'", providerId, start, end);
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -186,7 +206,9 @@ public class PersistentUniqueIdentifierService implements
 			String recordId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
+        LOGGER.info("createIdMapping() creating mapping for cloudId='{}', providerId='{}', providerId='{}' ...", cloudId, providerId, providerId);
 		if(dataProviderDao.getProvider(providerId)==null){
+	        LOGGER.warn("ProviderDoesNotExistException for cloudId='{}', providerId='{}', recordId='{}'", cloudId, providerId, recordId);
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -197,6 +219,7 @@ public class PersistentUniqueIdentifierService implements
 		
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}', providerId='{}', recordId='{}'", cloudId, providerId, recordId);
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
@@ -206,6 +229,7 @@ public class PersistentUniqueIdentifierService implements
 		}
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (!localIds.isEmpty()) {
+	        LOGGER.warn("IdHasBeenMappedException for cloudId='{}', providerId='{}', recordId='{}'", cloudId, providerId, recordId);
 			throw new IdHasBeenMappedException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
@@ -215,21 +239,25 @@ public class PersistentUniqueIdentifierService implements
 		localIdDao.insert(providerId, recordId, cloudId);
 		cloudIdDao.insert(cloudId, providerId, recordId);
 		
-		CloudId clId = new CloudId();
-		clId.setId(cloudId);
+		CloudId newCloudId = new CloudId();
+		newCloudId.setId(cloudId);
 		
 		LocalId lid = new LocalId();
 		lid.setProviderId(providerId);
 		lid.setRecordId(recordId);
-		clId.setLocalId(lid);
-		return clId;
+		newCloudId.setLocalId(lid);
+        LOGGER.info("createIdMapping() new mapping created! new cloudId='{}' for already "
+        		+ "existing cloudId='{}', providerId='{}', providerId='{}' ...", newCloudId, cloudId, providerId, providerId);
+		return newCloudId;
 	}
 
 	@Override
 	public void removeIdMapping(String providerId, String recordId)
 			throws DatabaseConnectionException, ProviderDoesNotExistException,
 			RecordIdDoesNotExistException {
+        LOGGER.info("removeIdMapping() removing Id mapping for providerId='{}', recordId='{}' ...", providerId, recordId);
 		if(dataProviderDao.getProvider(providerId)==null){
+	        LOGGER.warn("ProviderDoesNotExistException for providerId='{}', recordId='{}'", providerId, recordId);
 			throw new ProviderDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
@@ -238,14 +266,16 @@ public class PersistentUniqueIdentifierService implements
 									.getErrorInfo(providerId)));
 		}
 		localIdDao.delete(providerId, recordId);
-
+        LOGGER.info("Id mapping removed for providerId='{}', recordId='{}'", providerId, recordId);
 	}
 
 	@Override
 	public void deleteCloudId(String cloudId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException {
 
+        LOGGER.info("deleteCloudId() deleting cloudId='{}' ...", cloudId);
 		if (cloudIdDao.searchActive(cloudId).isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}'", cloudId);
 			throw new CloudIdDoesNotExistException(
 					new IdentifierErrorInfo(
 							IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
@@ -260,7 +290,7 @@ public class PersistentUniqueIdentifierService implements
 			cloudIdDao.delete(cloudId, cId.getLocalId().getProviderId(), cId
 					.getLocalId().getRecordId());
 		}
-
+        LOGGER.info("CloudId deleted for cloudId='{}'", cloudId);
 	}
 
 	@Override
@@ -282,6 +312,7 @@ public class PersistentUniqueIdentifierService implements
 	public CloudId createIdMapping(String cloudId, String providerId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException,
 			RecordDatasetEmptyException {
+        LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'", providerId);
 		return createIdMapping(cloudId, providerId, Base36.timeEncode(providerId));
 	}
 
