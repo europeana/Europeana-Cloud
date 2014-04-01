@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.uis;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +38,15 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 	@Autowired
 	private InMemoryLocalIdDao localIdDao;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryUniqueIdentifierService.class);
 
 	/**
 	 * Creates a new instance of this class.
 	 */
 	public InMemoryUniqueIdentifierService() {
 		// nothing to do
+        LOGGER.info("InMemoryUniqueIdentifierService started successfully...");
 	}
 
 	/**
@@ -54,17 +59,22 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	 *            data access for local identifiers
 	 */
 	public InMemoryUniqueIdentifierService(InMemoryCloudIdDao cloudIdDao, InMemoryLocalIdDao localIdDao) {
+        LOGGER.info("InMemoryUniqueIdentifierService starting...");
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
+        LOGGER.info("InMemoryUniqueIdentifierService started successfully.");
 	}
 
 	@Override
 	public CloudId createCloudId(String... recordInfo) throws DatabaseConnectionException, RecordExistsException,
 			ProviderDoesNotExistException {
+        LOGGER.info("createCloudId() creating cloudId");
 		String providerId = recordInfo[0];
 		String recordId = recordInfo.length > 1 ? recordInfo[1] : Base36.timeEncode(providerId);
+        LOGGER.info("createCloudId() creating cloudId for providerId='{}', recordId='{}'", providerId, recordId);
 		String cloudId = Base36.encode(String.format("/%s/%s", providerId, recordId));
 		if (!localIdDao.searchActive(providerId, recordId).isEmpty()) {
+	        LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);
 			throw new RecordExistsException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
 					IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId)));
@@ -76,20 +86,26 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public CloudId getCloudId(String providerId, String recordId) throws DatabaseConnectionException,
 			RecordDoesNotExistException, ProviderDoesNotExistException {
+        LOGGER.info("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
 		List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("RecordDoesNotExistException for providerId={}, recordId={}", providerId, recordId);
 			throw new RecordDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)));
 		}
-		return cloudIds.get(0);
+		final CloudId cloudId = cloudIds.get(0);
+        LOGGER.info("getCloudId() returning cloudId='{}'", cloudId);
+		return cloudId;
 	}
 
 	@Override
 	public List<CloudId> getLocalIdsByCloudId(String cloudId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, ProviderDoesNotExistException {
+        LOGGER.info("getLocalIdsByCloudId() cloudId='{}'", cloudId);
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for cloudId={}", cloudId);
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
@@ -106,6 +122,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+        LOGGER.info("getLocalIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, end);
 		List<CloudId> cloudIds = null;
 		if (start == null) {
 			cloudIds = localIdDao.searchActive(providerId);
@@ -122,6 +139,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
 			throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
+        LOGGER.info("getCloudIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, start, end);
 		List<CloudId> cloudIds;
 
 		if (start == null) {
@@ -131,6 +149,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 		}
 
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("RecordDatasetEmptyException for providerId='{}', start='{}', end='{}'", providerId, start, end);
 			throw new RecordDatasetEmptyException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
 					IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(providerId)));
@@ -141,14 +160,17 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	@Override
 	public CloudId createIdMapping(String cloudId, String providerId, String recordId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException {
+        LOGGER.info("createIdMapping() creating mapping for clouId='{}', providerId='{}', recordId='{}' ...", cloudId, providerId, recordId);
 		List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
 		if (!localIds.isEmpty()) {
+	        LOGGER.warn("IdHasBeenMappedException for clouId='{}' providerId='{}', recordId='{}'", cloudId, providerId, recordId);
 			throw new IdHasBeenMappedException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),
 					IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(providerId, recordId, cloudId)));
 		}
 		List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
 		if (cloudIds.isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for clouId='{}' providerId='{}', recordId='{}'", cloudId, providerId, recordId);
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
@@ -156,28 +178,32 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 
 		localIdDao.insert(cloudId, providerId, recordId);
 		cloudIdDao.insert(cloudId, providerId, recordId);
-		CloudId clId = new CloudId();
-		clId.setId(cloudId);
+		CloudId newCloudId = new CloudId();
+		newCloudId.setId(cloudId);
 		
 		LocalId lid = new LocalId();
 		lid.setProviderId(providerId);
 		lid.setRecordId(recordId);
-		clId.setLocalId(lid);
-		return clId;
+		newCloudId.setLocalId(lid);
+        LOGGER.info("createIdMapping() new mapping created! new cloudId='{}' for already "
+        		+ "existing cloudId='{}', providerId='{}', providerId='{}' ...", newCloudId, cloudId, providerId, providerId);
+		return newCloudId;
 	}
 
 	@Override
 	public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException,
 			ProviderDoesNotExistException, RecordIdDoesNotExistException {
-
+        LOGGER.info("removeIdMapping() removing Id mapping for providerId='{}', recordId='{}' ...", providerId, recordId);
 		localIdDao.delete(providerId, recordId);
-
+        LOGGER.info("Id mapping removed for providerId='{}', recordId='{}'", providerId, recordId);
 	}
 
 	@Override
 	public void deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException,
 			ProviderDoesNotExistException, RecordIdDoesNotExistException {
+        LOGGER.info("deleteCloudId() deleting cloudId='{}' ...", cloudId);
 		if (cloudIdDao.searchActive(cloudId).isEmpty()) {
+	        LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}'", cloudId);
 			throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
@@ -187,6 +213,7 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 			localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 			cloudIdDao.delete(cloudId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
 		}
+        LOGGER.info("CloudId deleted for cloudId='{}'", cloudId);
 	}
 
 	@Override
@@ -205,17 +232,20 @@ public class InMemoryUniqueIdentifierService implements UniqueIdentifierService 
 	}
 
 	/**
-	 * Empty daos
+	 * Empty DAOs
 	 */
 	public void reset() {
+        LOGGER.info("reset(), reseting..");
 		localIdDao.reset();
 		cloudIdDao.reset();
+        LOGGER.info("reset finished successfully");
 	}
 
 	@Override
 	public CloudId createIdMapping(String cloudId, String providerId) throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, IdHasBeenMappedException, ProviderDoesNotExistException,
 			RecordDatasetEmptyException {
+        LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'", providerId);
 		return createIdMapping(cloudId, providerId, Base36.timeEncode(providerId));
 	}
 }
