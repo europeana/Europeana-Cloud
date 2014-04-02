@@ -126,7 +126,7 @@ public class DatabaseService {
 	@PreDestroy
 	    private void closeConnections() {
 	        LOGGER.info("closeConnections() Cluster is shutting down.");
-	        session.getCluster().shutdown();
+	        session.getCluster().close();
 	        LOGGER.info("closeConnections() Cluster shut down successfully.");
 	    }
 }

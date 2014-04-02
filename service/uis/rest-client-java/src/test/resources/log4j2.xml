@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info" name="MCSPersistent"
+	packages="">
+	<Appenders>
+		<Console name="ecloudagent" target="SYSTEM_OUT">
+			<PatternLayout pattern="%m%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="ecloudagent" />
+		</Root>
+		<Logger
+			name="eu.europeana.cloud.client.uis.rest.UISClient">
+			<AppenderRef ref="ecloudagent" />
+		</Logger>
+	</Loggers>
+</Configuration>

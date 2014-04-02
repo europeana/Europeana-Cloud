@@ -2,7 +2,7 @@
 <Configuration status="debug" name="RESTClient" packages="">
 	<Appenders>
 		<Flume name="testagent" compress="false">
-			<Agent host="localhost" port="41414" />
+			<Agent host="localhost" port="41415" />
 			<RFC5424Layout enterpriseNumber="18060" includeMDC="true"
 				appName="RESTClient" />
 		</Flume>
