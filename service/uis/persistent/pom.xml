@@ -16,7 +16,24 @@
 	<properties>
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
+	<profiles>
 
+		<profile>
+			<id>flume</id>
+			<properties>
+				<log4j2.dir>flume</log4j2.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>standard</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<log4j2.dir>standard</log4j2.dir>
+			</properties>
+		</profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
@@ -150,7 +167,43 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<build>
 
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>standard/</exclude>
+					<exclude>flume/</exclude>
+
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources/${log4j2.dir}</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
 	<repositories>
 		<repository>
 			<id>synat-a09-libs-releases-public</id>

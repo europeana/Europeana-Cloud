@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info" name="DLSService" packages="">
+	<Appenders>
+		<Flume name="ecloudagent" compress="false">
+			<Agent host="localhost" port="41417" />
+			<RFC5424Layout enterpriseNumber="18060" includeMDC="true"
+				appName="DLSService" />
+		</Flume>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="ecloudagent" />
+		</Root>
+		<Logger name="eu.europeana.cloud.service.dls.services.SearchRecordService">
+			<AppenderRef ref="ecloudagent" />
+		</Logger>
+	</Loggers>
+</Configuration>

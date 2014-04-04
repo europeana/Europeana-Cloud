@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="info" name="MCSInMemory" packages="">
+<Configuration status="info" name="MCSInMemor" packages="">
 	<Appenders>
 		<Flume name="ecloudagent" compress="false">
 			<Agent host="localhost" port="41415" />
 			<RFC5424Layout enterpriseNumber="18060" includeMDC="true"
-				appName="MCSInMemory" />
+				appName="MCSPersistent" />
 		</Flume>
 	</Appenders>
 	<Loggers>
