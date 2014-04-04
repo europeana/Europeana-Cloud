@@ -14,5 +14,9 @@
 			name="eu.europeana.cloud.client.uis.rest.UISClient">
 			<AppenderRef ref="ecloudagent" />
 		</Logger>
+		<Logger
+			name="eu.europeana.cloud.client.uis.rest.web.UISClientTest">
+			<AppenderRef ref="ecloudagent" />
+		</Logger>
 	</Loggers>
 </Configuration>
