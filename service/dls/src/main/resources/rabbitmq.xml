@@ -9,7 +9,7 @@
     
     
     <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
-    
+    <rabbit:queue id="representationVersionAddedPersistentQueue"/>
     <rabbit:queue id="representationVersionAddedQueue"/>
     <rabbit:queue id="representationVersionRemovedQueue"/>
     <rabbit:queue id="representationRemovedQueue"/>
@@ -35,7 +35,7 @@
     <rabbit:admin connection-factory="rabbitConnectionFactory"/>
 
     <rabbit:listener-container>
-        <rabbit:listener queues="representationVersionAddedPersistentQueue" ref="records.representations.versions.addPersistent"/>
+        <rabbit:listener queues="representationVersionAddedPersistentQueue" ref="representationVersionAddedPersistentListener"/>
         <rabbit:listener queues="representationVersionAddedQueue" ref="representationVersionAddedListener"/>
         <rabbit:listener queues="representationVersionRemovedQueue" ref="representationVersionRemovedListener"/>
         <rabbit:listener queues="representationRemovedQueue" ref="representationRemovedListener"/>
@@ -44,7 +44,7 @@
         <rabbit:listener queues="assignmentRemovedQueue" ref="assignmentRemovedListener"/>
         <rabbit:listener queues="allDataSetAssignmentsRemovedQueue" ref="allDataSetAssignmentsRemovedListener"/>
     </rabbit:listener-container>
-    <bean id="RepresentationVersionAddedPersistentListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentListener"/>
+    <bean id="representationVersionAddedPersistentListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentListener"/>
     <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
     <bean id="representationVersionRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionRemovedListener"/>
     <bean id="representationRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationRemovedListener"/>
