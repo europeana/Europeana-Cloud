@@ -99,15 +99,20 @@
 			<artifactId>uuid</artifactId>
 			<version>${version.uuid}</version>
 		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.jclouds</groupId> -->
+		<!-- <artifactId>jclouds-blobstore</artifactId> -->
+		<!-- <version>${version.blobstore}</version> -->
+		<!-- </dependency> -->
 		<dependency>
-			<groupId>org.jclouds</groupId>
+			<groupId>org.apache.jclouds</groupId>
 			<artifactId>jclouds-blobstore</artifactId>
-			<version>${version.blobstore}</version>
+			<version>1.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>openstack-keystone</artifactId>
-			<version>${version.keystone}</version>
+			<version>1.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jclouds.api</groupId>
