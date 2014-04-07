@@ -91,8 +91,6 @@ public class RepresentationSearchResource {
             @QueryParam(F_PERSISTENT) Boolean persistent, //
             @QueryParam(F_START_FROM) String startFrom) {
 
-        System.err.println("number of elements " + numberOfElementsOnPage);
-
         // at least one parameter must be provided
         if (allNull(providerId, dataSetId, dataSetProviderId, schema, creationDateFrom, creationDateUntil, persistent)) {
             ErrorInfo errorInfo = new ErrorInfo(errorCode, "At least one parameter must be provided");

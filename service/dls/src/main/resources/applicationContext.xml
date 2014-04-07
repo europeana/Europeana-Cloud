@@ -14,8 +14,9 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 ">
     
     <import resource="classpath:rabbitmq.xml" />
-     <import resource="classpath:config.xml" />
+    <import resource="classpath:config.xml" />
     
+    <context:component-scan base-package="eu.europeana.cloud.service.dls.rest"/>
     <context:annotation-config/>
     
     <bean id="sorlConnector" class="eu.europeana.cloud.service.dls.solr.SolrConnectionProviderImpl">
