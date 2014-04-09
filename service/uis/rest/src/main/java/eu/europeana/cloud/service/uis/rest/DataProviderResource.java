@@ -98,9 +98,11 @@ public class DataProviderResource {
     }
 
     /**
-     * @param start
+     * Get the record identifiers for a specific provider identifier with pagination
+     * 
+     * @param from
      * @param to
-     * @return
+     * @return A list of record Identifiers (with their cloud identifiers)
      * @throws DatabaseConnectionException
      * @throws ProviderDoesNotExistException
      * @throws RecordDatasetEmptyException
@@ -122,6 +124,16 @@ public class DataProviderResource {
     }
 
 
+    /**
+     * Get the cloud identifiers for a specific provider identifier with pagination
+     * 
+     * @param from
+     * @param to
+     * @return A list of cloud Identifiers
+     * @throws DatabaseConnectionException
+     * @throws ProviderDoesNotExistException
+     * @throws RecordDatasetEmptyException
+     */
     @GET
     @Path("cloudIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -138,6 +150,16 @@ public class DataProviderResource {
     }
 
 
+    /**
+     * Create a mapping between a cloud identifier and a record identifier for a provider
+     * @param localId
+     * @return The newly associated cloud identifier
+     * @throws DatabaseConnectionException
+     * @throws CloudIdDoesNotExistException
+     * @throws IdHasBeenMappedException
+     * @throws ProviderDoesNotExistException
+     * @throws RecordDatasetEmptyException
+     */
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -152,6 +174,14 @@ public class DataProviderResource {
     }
 
 
+    /**
+     * Remove the mapping between a record identifier and a cloud identifier
+     * 
+     * @return Confirmation that the mapping has been removed
+     * @throws DatabaseConnectionException
+     * @throws ProviderDoesNotExistException
+     * @throws RecordIdDoesNotExistException
+     */
     @DELETE
     @Path("localIds/{" + P_LOCALID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })

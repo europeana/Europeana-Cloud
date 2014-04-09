@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.uis.exception;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
@@ -17,62 +14,66 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 public class UISExceptionMapper {
 
 	/**
-	 * @param e A CloudIdException
+	 * @param e A {@link CloudIdDoesNotExistException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(CloudIdDoesNotExistException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A DatabaseConnectionException
+	 * @param e A {@link DatabaseConnectionException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(DatabaseConnectionException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e An IdHasBeenMappedException
+	 * @param e An {@link IdHasBeenMappedException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(IdHasBeenMappedException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A ProviderDoesNotExistException
+	 * @param e A {@link ProviderDoesNotExistException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(ProviderDoesNotExistException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A RecordDatasetEmptyException
+	 * @param e A {@link RecordDatasetEmptyException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(RecordDatasetEmptyException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A RecordDoesNotExistException
+	 * @param e A {@link RecordDoesNotExistException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(RecordDoesNotExistException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A RecordExistsException
+	 * @param e A {@link RecordExistsException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(RecordExistsException e){
 		return buildResponse(e);
 	}
 	/**
-	 * @param e A RecordIdExistsException
+	 * @param e A {@link RecordIdDoesNotExistException}
 	 * @return An API exception response corresponding to the exception
 	 */
 	public Response toResponse(RecordIdDoesNotExistException e){
 		return buildResponse(e);
 	}
 	
+	/**
+	 * @param e A {@link ProviderAlreadyExistsException}
+	 * @return An API exception response corresponding to the exception
+	 */
 	public Response toResponse(ProviderAlreadyExistsException e){
 		return buildResponse(e);
 	}

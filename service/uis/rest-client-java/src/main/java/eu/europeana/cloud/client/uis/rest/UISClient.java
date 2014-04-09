@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
-import eu.europeana.cloud.common.exceptions.GenericException;
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -21,14 +19,6 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
@@ -39,8 +29,8 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  */
 public class UISClient {
 
-	private static Client client = JerseyClientBuilder.newClient();
-	private static UrlProvider urlProvider;
+	private Client client = JerseyClientBuilder.newClient();
+	private UrlProvider urlProvider;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
 	//private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(UISClient.class);
 	/**
@@ -425,30 +415,6 @@ public class UISClient {
 	public CloudException generateException(ErrorInfo e) {
 		IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(e.getErrorCode());
 		LOGGER.error(e.getDetails());
-		
-		
-		switch (error) {
-		case CLOUDID_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new CloudIdDoesNotExistException(e));
-		case DATABASE_CONNECTION_ERROR:
-			return new CloudException(e.getErrorCode(), new DatabaseConnectionException(e));
-		case ID_HAS_BEEN_MAPPED:
-			return new CloudException(e.getErrorCode(), new IdHasBeenMappedException(e));
-		case PROVIDER_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new ProviderDoesNotExistException(e));
-		case PROVIDER_ALREADY_EXISTS:
-			return new CloudException(e.getErrorCode(), new ProviderAlreadyExistsException(e));
-		case RECORD_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new RecordDoesNotExistException(e));
-		case RECORD_EXISTS:
-			return new CloudException(e.getErrorCode(), new RecordExistsException(e));
-		case RECORDID_DOES_NOT_EXIST:
-			return new CloudException(e.getErrorCode(), new RecordIdDoesNotExistException(e));
-		case RECORDSET_EMPTY:
-			return new CloudException(e.getErrorCode(), new RecordDatasetEmptyException(e));
-		default:
-			return new CloudException(e.getErrorCode(), new GenericException(e));
-		}
-
+		return new CloudException(e.getErrorCode(),error.getException(e));
 	}
 }

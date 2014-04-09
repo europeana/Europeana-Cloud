@@ -14,6 +14,11 @@ import eu.europeana.cloud.database.truncate.context.ApplicationContextUtils;
  */
 public class TruncateApp {
 	
+	
+	private TruncateApp(){
+		
+	}
+	
 	/**
 	 * 
 	 * @param args

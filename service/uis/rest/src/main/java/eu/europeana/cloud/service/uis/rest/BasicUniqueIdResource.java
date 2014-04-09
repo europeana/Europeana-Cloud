@@ -29,7 +29,7 @@ import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 
 /**
- * Implementation of the Unique Identifier Service. Accessible path /uniqueid
+ * Implementation of the Unique Identifier Service. 
  * 
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 17, 2013
@@ -46,6 +46,17 @@ public class BasicUniqueIdResource{
 	@PathParam(CLOUDID)
 	private String cloudId;
 	
+	/**
+	 * Invoke the generation of a cloud identifier using the provider identifier and a record identifier
+	 * @param providerId 
+	 * @param localId
+	 * @return The newly created CloudId
+	 * @throws DatabaseConnectionException
+	 * @throws RecordExistsException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 * @throws CloudIdDoesNotExistException
+	 */
 	@POST
 	@Path("cloudIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -58,6 +69,16 @@ public class BasicUniqueIdResource{
 				.build() : Response.ok().entity(uniqueIdentifierService.createCloudId(providerId)).build();
 	}
 
+	/**
+	 * Invoke the generation of a cloud identifier using the provider identifier
+	 * @param providerId
+	 * @param recordId
+	 * @return The newly created CloudId
+	 * @throws DatabaseConnectionException
+	 * @throws RecordDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
 	@GET
 	@Path("cloudIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -68,6 +89,14 @@ public class BasicUniqueIdResource{
 		return Response.ok(uniqueIdentifierService.getCloudId(providerId, recordId)).build();
 	}
 
+	/**
+	 * Retrieve a list of record Identifiers associated with a cloud identifier
+	 * @return A list of record identifiers
+	 * @throws DatabaseConnectionException
+	 * @throws CloudIdDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
 	@GET
 	@Path("cloudIds/{"+CLOUDID+"}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -79,6 +108,14 @@ public class BasicUniqueIdResource{
 		return Response.ok(pList).build();
 	}
 
+	/**
+	 * Remove a cloud identifier and all the associations to its record identifiers
+	 * @return Confirmation that the selected cloud identifier is removed
+	 * @throws DatabaseConnectionException
+	 * @throws CloudIdDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordIdDoesNotExistException
+	 */
 	@DELETE
 	@Path("cloudIds/{"+CLOUDID+"}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })

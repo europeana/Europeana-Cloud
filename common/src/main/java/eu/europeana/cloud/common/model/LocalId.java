@@ -67,6 +67,6 @@ public class LocalId {
 
     @Override
     public String toString() {
-        return String.format("{\nproviderId: %s\n recordId: %s%n}", this.providerId, this.recordId);
+        return String.format("{%nproviderId: %s%n recordId: %s%n}", this.providerId, this.recordId);
     }
 }

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UrlProvider {
 
-	private static String baseUrl;
+	private String baseUrl;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlProvider.class);
 
@@ -55,7 +55,6 @@ public class UrlProvider {
 	/**
 	 * Return the base url for the unique identifier service
 	 * 
-	 * @param url
 	 * @return The base url for the service
 	 */
 	public String getBaseUrl() {
