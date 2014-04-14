@@ -19,6 +19,11 @@
 	<profiles>
 		
 		<profile>
+                    <activation>
+                        <activeByDefault>
+                            true
+                            </activeByDefault>
+                    </activation>
 			<id>persistent</id>
 			<properties>
 				<spring.config.dir>persistent</spring.config.dir>
