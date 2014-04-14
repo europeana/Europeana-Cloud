@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context antiJARLocking="true" path="/ContentServiceApi">
 	
-<!--Below are references to global resources that should be defined in Tomcat's server.xml to be available and used
+  <!--Below are references to global resources that should be defined in Tomcat's server.xml to be available and used
 	by application. Define those variables in GlobalNamingResources section of mentioned file, e.g.:
 	
 	  <GlobalNamingResources>
@@ -56,10 +56,13 @@
         name="mcs/swift/password"
         global="mcs/swift/password"
         type="java.lang.String"/>
-               
-        <ResourceLink 
-            global="mcs/uis-url" 
-            name="mcs/uis-url" 
-            type="java.lang.String"/>
+    <ResourceLink 
+        global="mcs/uis-url" 
+        name="mcs/uis-url" 
+        type="java.lang.String"/>
+    <ResourceLink
+        name="rabbit/host"
+        global="rabbit/host"
+        type="java.lang.String"/>
         
 </Context>
