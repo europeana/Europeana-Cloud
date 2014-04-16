@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -17,14 +18,11 @@
 	</properties>
 
 	<profiles>
-		
-		<profile>
-                    <activation>
-                        <activeByDefault>
-                            true
-                            </activeByDefault>
-                    </activation>
+		 <profile>
 			<id>persistent</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<properties>
 				<spring.config.dir>persistent</spring.config.dir>
 			</properties>
@@ -35,6 +33,18 @@
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
+		</profile> 
+
+		<profile>
+			<id>zookeeper</id>
+			<activation>
+     			<property>
+       				<name>zookeeper</name>
+      			</property>
+    		</activation>
+			<properties>
+				<spring.config.dir>zookeeper</spring.config.dir> 
+			</properties>
 		</profile>
 	</profiles>
 
@@ -44,7 +54,7 @@
 			<artifactId>ecloud-service-uis-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-uis-persistent</artifactId>
@@ -132,7 +142,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
@@ -181,7 +191,6 @@
 				<excludes>
 					<exclude>persistent/</exclude>
 					<exclude>inmemory/</exclude>
-
 				</excludes>
 			</resource>
 		</resources>
