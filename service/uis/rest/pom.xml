@@ -45,6 +45,13 @@
 			<properties>
 				<spring.config.dir>zookeeper</spring.config.dir> 
 			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-uis-registration</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
 		</profile>
 	</profiles>
 
