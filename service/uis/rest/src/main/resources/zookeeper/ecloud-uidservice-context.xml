@@ -11,7 +11,7 @@
   http://www.springframework.org/schema/context/spring-context.xsd">
 	<context:annotation-config />
 	
-	<bean id="serviceProperties" class="eu.europeana.cloud.service.ServiceProperties">
+	<bean id="serviceProperties" class="eu.europeana.cloud.common.service.ServiceProperties">
 		<constructor-arg name="serviceId" value="1" />
 		<constructor-arg name="serviceName" value="UIS" />
 		
