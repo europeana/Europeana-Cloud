@@ -2,13 +2,31 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xmlns:jee="http://www.springframework.org/schema/jee"
        xsi:schemaLocation="http://www.springframework.org/schema/rabbit
            http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+           http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans.xsd">
     
     
-    <rabbit:connection-factory id="rabbitConnectionFactory" host="localhost" port="5672"/>
+    <bean name="rabbitHost" class="java.lang.String">
+        <constructor-arg>
+            <jee:jndi-lookup expected-type="java.lang.String" 
+                             jndi-name="java:comp/env/rabbit/host"/>
+        </constructor-arg>   
+    </bean>
+        
+    <bean id="rabbitConnectionFactory"
+          class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <property name="channelCacheSize" value="5" />
+        <property name="username" value="guest" />
+        <property name="password" value="guest" />
+        <property name="host" ref="rabbitHost" />
+    </bean>
+
+    <rabbit:connection-factory id="rabbitConnectionFactory" />
+
     <rabbit:queue id="representationVersionAddedPersistentQueue"/>
     <rabbit:queue id="representationVersionAddedQueue"/>
     <rabbit:queue id="representationVersionRemovedQueue"/>

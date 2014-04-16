@@ -4,4 +4,9 @@
         name="mcs/solr/url"
         global="mcs/solr/url"
         type="java.lang.String"/>
+<ResourceLink
+        name="rabbit/host"
+        global="rabbit/host"
+        type="java.lang.String"/>
+
 </Context>
