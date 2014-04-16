@@ -19,7 +19,7 @@
 		<constructor-arg name="listenAddress" value="http://localhost:8080/ecloud-service-uis-rest/" />
 	</bean>
 	
-	<bean id="zookeeperService" class="eu.europeana.cloud.service.uis.rest.zookeeper.ZookeeperService">
+	<bean id="zookeeperService" class="eu.europeana.cloud.service.uis.registration.ZookeeperService">
 	
 		<!-- 
 		Zookeeper address, this could be a single address in case only one Zookeeper is deployed, e.g 127.0.0.1:2181
