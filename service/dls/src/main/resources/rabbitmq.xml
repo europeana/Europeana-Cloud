@@ -10,23 +10,20 @@
            http://www.springframework.org/schema/beans/spring-beans.xsd">
     
     
-    <bean name="rabbitHost" class="java.lang.String">
-        <constructor-arg>
+    <bean id="rabbitConnectionFactory"
+             class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <constructor-arg name="hostname" >
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/rabbit/host"/>
-        </constructor-arg>   
+        </constructor-arg>
+        <constructor-arg name="port" >
+            <jee:jndi-lookup expected-type="java.lang.Integer" 
+                             jndi-name="java:comp/env/rabbit/port"/>
+        </constructor-arg>
+        <property name="username" value="guest"/>
+        <property name="password" value="guest"/>
     </bean>
         
-    <bean id="rabbitConnectionFactory"
-          class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
-        <property name="channelCacheSize" value="5" />
-        <property name="username" value="guest" />
-        <property name="password" value="guest" />
-        <property name="host" ref="rabbitHost" />
-    </bean>
-
-    <rabbit:connection-factory id="rabbitConnectionFactory" />
-
     <rabbit:queue id="representationVersionAddedPersistentQueue"/>
     <rabbit:queue id="representationVersionAddedQueue"/>
     <rabbit:queue id="representationVersionRemovedQueue"/>
