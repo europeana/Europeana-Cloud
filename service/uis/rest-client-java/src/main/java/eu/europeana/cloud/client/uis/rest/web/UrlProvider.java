@@ -48,7 +48,9 @@ public class UrlProvider {
 	 * @param serviceUrl
 	 */
 	public UrlProvider(final String serviceUrl) {
+		LOGGER.info("Starting UrlProvider with serviceUrl='{}'", serviceUrl);
 		baseUrl = serviceUrl;
+		LOGGER.info("UrlProvider started successfully");
 	}
 	
 
