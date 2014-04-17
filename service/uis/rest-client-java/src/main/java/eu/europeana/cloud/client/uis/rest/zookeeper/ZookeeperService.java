@@ -83,6 +83,9 @@ public class ZookeeperService {
 		return serviceFinder;
 	}
 	
+	/**
+	 * @return reads the Zookeeper Address from the property file.
+	 */
 	private String getZookeeperAddress() throws IOException {
 
 		Properties props = new Properties();
@@ -100,7 +103,10 @@ public class ZookeeperService {
 		}
 		return null;
 	}
-	
+
+	/**
+	 * @return reads the default Zookeeper zNode from the property file.
+	 */
 	private String getZookeeperZNode() throws IOException {
 
 		Properties props = new Properties();

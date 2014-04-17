@@ -18,7 +18,16 @@ import com.google.common.base.Throwables;
 
 import eu.europeana.cloud.common.service.ServiceProperties;
 
-
+/**
+ * Asks Zookeeper for available UIS services. 
+ * 
+ * ZooKeeper is used for service discovery:
+ * 
+ * Services are registered on a common znode, and any client can query Zookeeper
+ * for a list of available services.
+ * 
+ * @author emmanouil.koufakis@theeuropeanlibrary.org
+ */
 public class ServiceFinder {
 
     private final ServiceDiscovery<ServiceProperties> discovery;
