@@ -64,5 +64,8 @@
         name="rabbit/host"
         global="rabbit/host"
         type="java.lang.String"/>
-        
+    <ResourceLink
+        name="rabbit/port"
+        global="rabbit/port"
+        type="java.lang.Integer"/>    
 </Context>

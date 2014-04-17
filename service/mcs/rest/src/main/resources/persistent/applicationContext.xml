@@ -90,23 +90,20 @@
     <bean id="solrRepresentationIndexer" 
           class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
         
-    <bean name="rabbitHost" class="java.lang.String">
-        <constructor-arg>
-            <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/rabbit/host"/>
-        </constructor-arg>   
-    </bean>
-        
     <bean id="rabbitConnectionFactory"
           class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
-        <property name="channelCacheSize" value="5" />
-        <property name="username" value="guest" />
-        <property name="password" value="guest" />
-        <property name="host" ref="rabbitHost" />
+        <constructor-arg name="hostname" >
+            <jee:jndi-lookup expected-type="java.lang.String" 
+                              jndi-name="java:comp/env/rabbit/host"/>
+        </constructor-arg>
+        <constructor-arg name="port" >
+            <jee:jndi-lookup expected-type="java.lang.Integer" 
+                              jndi-name="java:comp/env/rabbit/port"/>
+        </constructor-arg>
+        <property name="username" value="guest"/>
+        <property name="password" value="guest"/>
     </bean>
-
-    <rabbit:connection-factory id="rabbitConnectionFactory" />
-    
+        
     <rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory" exchange="mcs-notifications.topic"/>
     <rabbit:admin connection-factory="rabbitConnectionFactory"/> 
         
