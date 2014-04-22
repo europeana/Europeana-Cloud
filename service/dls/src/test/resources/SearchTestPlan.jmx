@@ -33,7 +33,7 @@
           </elementProp>
           <elementProp name="records" elementType="Argument">
             <stringProp name="Argument.name">records</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.desc">Number of records</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -62,12 +62,12 @@
           </elementProp>
           <elementProp name="dataProviders" elementType="Argument">
             <stringProp name="Argument.name">dataProviders</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="schemas" elementType="Argument">
             <stringProp name="Argument.name">schemas</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="loops" elementType="Argument">
@@ -88,6 +88,16 @@
           <elementProp name="systemsDelay" elementType="Argument">
             <stringProp name="Argument.name">systemsDelay</stringProp>
             <stringProp name="Argument.value">150</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="uploadedFileDirectory" elementType="Argument">
+            <stringProp name="Argument.name">uploadedFileDirectory</stringProp>
+            <stringProp name="Argument.value">${__BeanShell(import org.apache.jmeter.services.FileServer; FileServer.getFileServer().getBaseDir();)}${__BeanShell(File.separator,)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="uloadedFileName" elementType="Argument">
+            <stringProp name="Argument.name">uloadedFileName</stringProp>
+            <stringProp name="Argument.value">example_metadata.xml</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -1835,8 +1845,8 @@
                 <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
                 <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
                   <collectionProp name="HTTPFileArgs.files">
-                    <elementProp name="/home/krystian/Development/eCloud/sources/Europeana-Cloud/service/mcs/rest/target/test-classes/example_metadata.xml" elementType="HTTPFileArg">
-                      <stringProp name="File.path">/home/krystian/Development/eCloud/sources/Europeana-Cloud/service/mcs/rest/target/test-classes/example_metadata.xml</stringProp>
+                    <elementProp name="${uploadedFileDirectory}${uloadedFileName}" elementType="HTTPFileArg">
+                      <stringProp name="File.path">${uploadedFileDirectory}${uloadedFileName}</stringProp>
                       <stringProp name="File.paramname">data</stringProp>
                       <stringProp name="File.mimetype">application/octet-stream</stringProp>
                     </elementProp>
