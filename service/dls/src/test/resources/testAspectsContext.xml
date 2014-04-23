@@ -12,18 +12,26 @@
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
 
     <context:annotation-config/>
-    <mockito:mock id="solrDao" class="eu.europeana.cloud.service.dls.solr.SolrDAO"/>
+    <bean id="solrDao" class="eu.europeana.cloud.service.dls.solr.SolrDAO"/>
+  <mockito:mock id="solrServer" class="org.apache.solr.client.solrj.impl.HttpSolrServer"/>
+    <bean id="sorlConnector" class="eu.europeana.cloud.service.dls.solr.SolrConnectionProviderImpl">
+        <constructor-arg ref="solrServer" /> 
+    </bean>
+    
+<!--<bean id="sorlConnector" class="org.mockito.Mockito" factory-method="mock"> 
+    <constructor-arg value="org.apache.solr.client.solrj.impl.HttpSolrServer" /> 
+</bean> -->
+    
+
+<!--        <constructor-arg name="solrUrl">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/solr/url"/>
+        </constructor-arg>  -->
+     
     
     <aop:aspectj-autoproxy/>
     <bean id="serviceExceptionTranslator" 
           class="eu.europeana.cloud.service.dls.aspects.ServiceExceptionTranslator"/>
-    
-    <bean id="representationRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationRemovedListener"/>
-    <bean id="representationVersionRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionRemovedListener"/>
-    <bean id="assignmentAddedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentAddedListener"/>
-    <bean id="assignmentRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
-    <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
-    <bean id="representationVersionAddedPersistentListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentListener"/>
-    <bean id="allRecordRepresentationsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedListener"/>
-    <bean id="allDataSetAssignmentsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AllDataSetAssignmentsRemovedListener"/>
+  
+   
+
 </beans>

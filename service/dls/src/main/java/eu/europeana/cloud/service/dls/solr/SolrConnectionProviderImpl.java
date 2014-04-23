@@ -29,6 +29,17 @@ public class SolrConnectionProviderImpl implements SolrConnectionProvider {
 
 
     /**
+     * Class constructor. Expects SolrServer object.
+     * 
+     * @param solrServer
+     *            Solr solrServer object
+     */
+    public SolrConnectionProviderImpl(SolrServer solrServer) {
+        this.solrServer = solrServer;
+    }
+
+
+    /**
      * {@inheritDoc}
      */
     @Override
