@@ -27,7 +27,7 @@
 		a comma seperated list of Zookeeper addresses, e.g localhost:2181,localhost:2182,localhost:2183
 		-->
 		<constructor-arg name="zookeeperAddress" value="localhost:2181"/>
-		<constructor-arg name="zookeeperConnectionTimeout" value="60000"/>
+		<constructor-arg name="zookeeperConnectionTimeout" value="1000"/>
 		
 		<!-- 
 		This means that if this instance crashes, it will take 1 minute before Zookeeper notices the crash and notifies the clients. 
@@ -36,10 +36,9 @@
 		Before changing this value, be sure JVM garbage collection configuration is under control, otherwise, a long garbage collection that 
 		lasts beyond the ZooKeeper session timeout will be interpreted as "server down"..
 		-->
-		<constructor-arg name="zookeeperSessionTimeout" value="60000"/>
+		<constructor-arg name="zookeeperSessionTimeout" value="1000"/>
 		
 		<constructor-arg name="zNode" value="/eCloud/serviceDiscovery"/>
 		<constructor-arg name="serviceProperties" ref="serviceProperties"/>
 	</bean>
-	
 </beans>
