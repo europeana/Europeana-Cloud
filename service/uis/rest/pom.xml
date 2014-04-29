@@ -18,7 +18,7 @@
 	</properties>
 
 	<profiles>
-		 <profile>
+		<profile>
 			<id>persistent</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -33,18 +33,15 @@
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
-		</profile> 
+		</profile>
 
 		<profile>
 			<id>zookeeper</id>
 			<activation>
-     			<property>
-       				<name>zookeeper</name>
-      			</property>
-    		</activation>
-			<properties>
-				<spring.config.dir>zookeeper</spring.config.dir> 
-			</properties>
+				<property>
+					<name>zookeeper</name>
+				</property>
+			</activation>
 			<dependencies>
 				<dependency>
 					<groupId>eu.europeana.cloud</groupId>
@@ -52,6 +49,31 @@
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<id>copy-zookeeper-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/resources/zookeeper</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 
@@ -61,7 +83,7 @@
 			<artifactId>ecloud-service-uis-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-uis-persistent</artifactId>
@@ -149,7 +171,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
@@ -198,6 +220,7 @@
 				<excludes>
 					<exclude>persistent/</exclude>
 					<exclude>inmemory/</exclude>
+					<exclude>zookeeper/</exclude>
 				</excludes>
 			</resource>
 		</resources>
@@ -207,7 +230,7 @@
 				<version>2.6</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-spring-resources</id>
 						<phase>validate</phase>
 						<goals>
 							<goal>copy-resources</goal>
