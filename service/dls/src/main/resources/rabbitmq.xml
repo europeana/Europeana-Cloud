@@ -24,14 +24,14 @@
         <property name="password" value="guest"/>
     </bean>
         
-    <rabbit:queue id="representationVersionAddedPersistentQueue"/>
-    <rabbit:queue id="representationVersionAddedQueue"/>
-    <rabbit:queue id="representationVersionRemovedQueue"/>
-    <rabbit:queue id="representationRemovedQueue"/>
-    <rabbit:queue id="allRecordRepresentationsRemovedQueue"/>
-    <rabbit:queue id="assignmentAddedQueue"/>
-    <rabbit:queue id="assignmentRemovedQueue"/>
-    <rabbit:queue id="allDataSetAssignmentsRemovedQueue"/>
+    <rabbit:queue id="representationVersionAddedPersistentQueue" name="representationVersionAddedPersistentQueue" auto-delete="false" durable="true" />
+    <rabbit:queue id="representationVersionAddedQueue" name="representationVersionAddedQueue"  auto-delete="false" durable="true" />
+    <rabbit:queue id="representationVersionRemovedQueue" name="representationVersionRemovedQueue"  auto-delete="false" durable="true" />
+    <rabbit:queue id="representationRemovedQueue" name="representationRemovedQueue" auto-delete="false" durable="true" />
+    <rabbit:queue id="allRecordRepresentationsRemovedQueue" name="allRecordRepresentationsRemovedQueue"  auto-delete="false" durable="true" />
+    <rabbit:queue id="assignmentAddedQueue" name="assignmentAddedQueue"  auto-delete="false" durable="true" />
+    <rabbit:queue id="assignmentRemovedQueue" name="assignmentRemovedQueue"  auto-delete="false" durable="true" />
+    <rabbit:queue id="allDataSetAssignmentsRemovedQueue" name="allDataSetAssignmentsRemovedQueue"  auto-delete="false" durable="true" />
     
     <rabbit:topic-exchange name="mcs-notifications.topic" >
         <rabbit:bindings>
