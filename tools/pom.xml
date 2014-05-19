@@ -10,7 +10,7 @@
   <artifactId>tools</artifactId>
   <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Europeana Cloud: tools</name>
+  <name>Europeana Cloud: Tools</name>
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
   </modules>
