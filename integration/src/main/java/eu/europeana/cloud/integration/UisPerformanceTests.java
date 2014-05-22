@@ -18,7 +18,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.web.UISParamConstants;
 
 /**
- * 
+ * This command tool tests performance of the UniqueIdentifierService.
  * 
  * @author Markus Muhr (markus.muhr@kb.nl)
  * @since Mar 24, 2014
