@@ -31,7 +31,7 @@ public class UisPerformanceTests {
         Client client = ClientBuilder.newBuilder().register(JettisonFeature.class).register(
                 JacksonFeature.class).register(MoxyJsonFeature.class).register(
                 MultiPartFeature.class).register(JsonProcessingFeature.class).build();
-        String baseUrl = "http://store2.tel.ulcc.ac.uk/";//"http://localhost:8080/";
+        String baseUrl = "http://store2.tel.private/";//"http://localhost:8009/"; //"http://localhost:8080/";
         String UIS_PREFIX = "ecloud-service-uis-rest";
 
         long startTime = System.nanoTime();
@@ -74,15 +74,12 @@ public class UisPerformanceTests {
                 if (resp.getStatus() == Status.OK.getStatusCode()) {
                     cloudId = resp.readEntity(CloudId.class);
                 } else {
-                    System.out.println("Could not create cloud id for '" + recordId + "'!");
+                    System.out.println("Could not create cloud id for '" + recordId + "'! " + resp.getStatusInfo() + " " + resp.getStatusInfo().getReasonPhrase());
                     continue;
                 }
             }
-            if (cloudId != null) {
-                continue;
-            }
 
-            if (i % 5000 == 0) {
+            if (i % 500 == 0) {
                 System.out.println("Time overall: '" +
                                    ((System.nanoTime() - startTime) / 1000000000) + "' sec");
                 System.out.println("Time get cloudId: '" + (getCloudIdTime / 1000000000) + "' sec");
