@@ -133,7 +133,10 @@
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 		</dependency>
-
+                <dependency>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka_2.9.2</artifactId>
+                </dependency>
 		<!-- Log4j 2 implementation -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -197,7 +200,7 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency>     
 		<dependency>
 			<groupId>com.github.psnc-dl.cassandraunit</groupId>
 			<artifactId>cassandra-unit</artifactId>

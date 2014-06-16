@@ -68,4 +68,12 @@
         name="rabbit/port"
         global="rabbit/port"
         type="java.lang.Integer"/>    
+    <ResourceLink
+        name="kafka/brokerList"
+        global="kafka/brokerList"
+        type="java.lang.String"/>
+    <ResourceLink
+        name="kafka/topic"
+        global="kafka/topic"
+        type="java.lang.String"/>   
 </Context>
