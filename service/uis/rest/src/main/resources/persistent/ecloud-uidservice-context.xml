@@ -46,7 +46,9 @@
 		<constructor-arg name="password">
 			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
 		</constructor-arg>
-		<constructor-arg name="create" value="true" />
+                <constructor-arg name="create">
+			<jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
+		</constructor-arg>
 	</bean>
 
 <bean id="mappings"

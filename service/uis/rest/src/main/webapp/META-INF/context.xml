@@ -34,4 +34,9 @@
         name="uis/cassandra/password"
         global="uis/cassandra/password"
         type="java.lang.String"/>
+    
+        <ResourceLink
+        name="uis/cassandra/autoCreateTables"
+        global="uis/cassandra/autoCreateTables"
+        type="java.lang.Boolean"/>
 </Context>
