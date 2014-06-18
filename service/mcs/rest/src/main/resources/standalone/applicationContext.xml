@@ -11,7 +11,7 @@
 						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
                         http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
                         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
-                        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+                        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.3.xsd">
 
 	<context:annotation-config/>
 	<import resource="classpath:config.xml" />
