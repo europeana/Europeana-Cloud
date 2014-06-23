@@ -77,6 +77,7 @@
         <module>service/uis</module>
         <module>tools</module>
         <module>service/dls</module>
+        <module>ecloud-solr</module>
     </modules>
     <repositories>
         <repository>
@@ -313,7 +314,7 @@
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>
-                <version>2.0.1</version>
+                <version>2.0.2</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>

@@ -220,16 +220,22 @@
 			<version>1.2.0</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+<!--		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
 			<version>${version.solr}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-core</artifactId>
-			<version>${version.solr}</version>
-			<scope>provided</scope>
+		</dependency>-->
+                <dependency>
+                    <groupId>org.apache.solr</groupId>
+                    <artifactId>solr-core</artifactId>
+                    <version>${version.solr}</version>
+                    <scope>provided</scope>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>antlr-runtime</artifactId>
+                            <groupId>org.antlr</groupId>
+                        </exclusion>
+                    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
