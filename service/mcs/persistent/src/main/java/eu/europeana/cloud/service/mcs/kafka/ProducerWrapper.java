@@ -5,10 +5,10 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
- * Sending message to Kafka broker.
+ * ProducerWrapper with {@link CustomPartitioner} as routing partitions
+ * algorithm is sending message to Kafka broker.
  */
 public class ProducerWrapper {
 
@@ -20,8 +20,7 @@ public class ProducerWrapper {
     private final String topic;
 
     /**
-     * Constructs a ProducerWrapper with {@link CustomPartitioner} as routing
-     * partitions algorithm.
+     * Constructs a ProducerWrapper.
      * 
      * @param brokerList
      *            list of Kafka broker formated as "host:port,host2:port"

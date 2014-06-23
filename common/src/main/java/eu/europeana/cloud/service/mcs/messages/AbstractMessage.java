@@ -1,13 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.europeana.cloud.service.mcs.messages;
 
 /**
- *
- *
+ * Message for MCS and DLS asynchronous communication.
+ * 
  */
 public abstract class AbstractMessage {
 

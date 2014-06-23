@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.mcs.kafka;
 
 import kafka.producer.Partitioner;
 import kafka.utils.VerifiableProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * Routing messages to different partitions via routingKey.
@@ -14,7 +13,7 @@ public class CustomPartitioner implements Partitioner {
      * Constructs a CustomizePartitioner.
      * 
      * @param props
-     *            unused but required by kafka.
+     *            unused but required by Kafka.
      */
     public CustomPartitioner(VerifiableProperties props) {
     }
@@ -43,7 +42,7 @@ public class CustomPartitioner implements Partitioner {
      *            used to route message to partitions
      * @param numPartitions
      *            number of partitions
-     * @return
+     * @return number of routed partition
      */
     public int partition(String routingKey, int numPartitions) {
 	final int hash = Integer.valueOf(routingKey);
