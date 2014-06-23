@@ -12,9 +12,9 @@ import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
  * 
  * @author krystian
  */
-public class InsertRepresentationPersistent extends AbstractMessage {
+public class InsertRepresentationPersistentMessage extends AbstractMessage {
 
-    public InsertRepresentationPersistent(String payload) {
+    public InsertRepresentationPersistentMessage(String payload) {
 	super(payload);
     }
 

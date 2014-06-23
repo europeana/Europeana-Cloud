@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package eu.europeana.cloud.service.mcs.messages;
 
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
@@ -11,9 +12,9 @@ import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
  * 
  * @author krystian
  */
-public class AddAssignment extends AbstractMessage {
+public class RemoveRecordRepresentationsMessage extends AbstractMessage {
 
-    public AddAssignment(String payload) {
+    public RemoveRecordRepresentationsMessage(String payload) {
 	super(payload);
     }
 

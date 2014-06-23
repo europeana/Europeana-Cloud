@@ -12,9 +12,9 @@ import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
  * 
  * @author krystian
  */
-public class RemoveRepresentationVersion extends AbstractMessage {
+public class RemoveRepresentationMessage extends AbstractMessage {
 
-    public RemoveRepresentationVersion(String payload) {
+    public RemoveRepresentationMessage(String payload) {
 	super(payload);
     }
 

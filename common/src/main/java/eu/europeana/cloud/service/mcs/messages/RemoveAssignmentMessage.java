@@ -12,9 +12,9 @@ import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
  * 
  * @author krystian
  */
-public class RemoveAssignment extends AbstractMessage {
+public class RemoveAssignmentMessage extends AbstractMessage {
 
-    public RemoveAssignment(String payload) {
+    public RemoveAssignmentMessage(String payload) {
 	super(payload);
     }
 

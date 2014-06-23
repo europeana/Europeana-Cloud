@@ -189,6 +189,11 @@
             <version>${version.solr}</version>
         </dependency>
         <dependency>
+            <groupId>com.github.ddth</groupId>
+            <artifactId>ddth-kafka</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>${version.servlet}</version>
