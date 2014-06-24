@@ -124,6 +124,7 @@
         <version.keystone>1.6.3</version.keystone>
         <version.gson>2.2.1</version.gson>
         <version.kafka>0.8.1.1</version.kafka>
+        <version.cassandra-unit>2.0.2.1</version.cassandra-unit>
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

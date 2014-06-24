@@ -78,7 +78,8 @@ public class CassandraIngestionDataSetTest extends IngestionDataSetTest {
     }
 
     private void initKeyspace() throws IOException {
-        CQLDataLoader dataLoader = new CQLDataLoader("localhost", PORT);
+        CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
+        
         dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
     }
 
