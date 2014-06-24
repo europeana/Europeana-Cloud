@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +47,13 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 	 */
 	@Test
 	public void shouldCreateAndGetProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
-		DataProvider dp = cassandraDataProviderService
-				.createProvider("provident", createRandomDataProviderProperties());
+		String id = "provident";
+                DataProvider dp = cassandraDataProviderService
+				.createProvider(id, createRandomDataProviderProperties());
 
 		DataProvider dpFromService = cassandraDataProviderService.getProvider("provident");
 		assertThat(dp, is(dpFromService));
+                assertThat(dp.getPartitionKey(), is(id.hashCode()));
 	}
 
 	/**

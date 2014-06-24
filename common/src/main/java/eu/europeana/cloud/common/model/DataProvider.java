@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Represents data provider.
- *
+ * 
  */
 @XmlRootElement
 public class DataProvider {
@@ -15,6 +15,11 @@ public class DataProvider {
      * The provider id.
      */
     private String id;
+
+    /**
+     * The hash of provider id.
+     */
+    private int partitionKey;
 
     /**
      * Data provider properties.
@@ -57,10 +62,21 @@ public class DataProvider {
     }
 
 
+    public void setPartitionKey(int partitionKey) {
+        this.partitionKey = partitionKey;
+    }
+
+
+    public int getPartitionKey() {
+        return partitionKey;
+    }
+
+
     @Override
     public int hashCode() {
         int hash = 5;
         hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 37 * hash + Objects.hashCode(this.partitionKey);
         hash = 37 * hash + Objects.hashCode(this.properties);
         return hash;
     }
@@ -76,6 +92,9 @@ public class DataProvider {
         }
         final DataProvider other = (DataProvider) obj;
         if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.partitionKey, other.partitionKey)) {
             return false;
         }
         if (!Objects.equals(this.properties, other.properties)) {

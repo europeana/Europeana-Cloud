@@ -31,8 +31,6 @@ public class CassandraDataProviderDAO {
 
     private DatabaseService dbService;
 
-    private PreparedStatement insertNewProviderStatement;
-
     private PreparedStatement updateProviderStatement;
 
     private PreparedStatement getProviderStatement;
@@ -55,16 +53,12 @@ public class CassandraDataProviderDAO {
 
     
     private void prepareStatements() {
-        insertNewProviderStatement = dbService.getSession().prepare(
-            "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?) IF NOT EXISTS;");
-        insertNewProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         updateProviderStatement = dbService.getSession().prepare(
-            "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?);");
+            "INSERT INTO data_providers(provider_id, properties, creation_date, partition_key) VALUES (?,?,?,?);");
         updateProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getProviderStatement = dbService.getSession().prepare(
-            "SELECT provider_id, properties FROM data_providers WHERE provider_id = ?;");
+            "SELECT provider_id, partition_key, properties FROM data_providers WHERE provider_id = ?;");
         getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteProviderStatement = dbService.getSession().prepare(
@@ -72,7 +66,7 @@ public class CassandraDataProviderDAO {
         deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getAllProvidersStatement = dbService.getSession().prepare(
-            "SELECT provider_id, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
+            "SELECT provider_id, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
         getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -160,10 +154,12 @@ public class CassandraDataProviderDAO {
 
     private DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties, Date date)
             throws NoHostAvailableException, QueryExecutionException {
-        BoundStatement boundStatement = updateProviderStatement.bind(providerId, propertiesToMap(properties), date);
+        int partitionKey = providerId.hashCode();
+        BoundStatement boundStatement = updateProviderStatement.bind(providerId, propertiesToMap(properties), date, partitionKey);
         dbService.getSession().execute(boundStatement);
         DataProvider dp = new DataProvider();
         dp.setId(providerId);
+        dp.setPartitionKey(partitionKey);
         dp.setProperties(properties);
         return dp;
     }
@@ -172,10 +168,12 @@ public class CassandraDataProviderDAO {
     private DataProvider map(Row row) {
         DataProvider provider = new DataProvider();
         String providerId = row.getString("provider_id");
+        int partitionKey = row.getInt("partition_key");
 
         Map<String, String> propertiesMap = row.getMap("properties", String.class, String.class);
         DataProviderProperties properties = mapToProperties(propertiesMap);
         provider.setId(providerId);
+        provider.setPartitionKey(partitionKey);
         provider.setProperties(properties);
         return provider;
     }
