@@ -13,7 +13,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-solr</artifactId>
     <name>Europeana Cloud Solr</name>
-
+    
     <modules>
         <module>customized-solr</module>
         <module>solr-distr</module>
@@ -21,6 +21,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <solr.home>/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr</solr.home>
+        <solr.data.dir>/home/solr/data/</solr.data.dir>
     </properties>
 
     <profiles>
@@ -28,10 +30,15 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <id>sandbox</id>
+            <id>standard</id>
             <properties>
-                <solr.home>/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr</solr.home>
-                <solr.data.dir>/home/solr/data/</solr.data.dir>
+                <solr.resources.dir>standard</solr.resources.dir>
+            </properties>
+        </profile>
+        <profile>
+            <id>log_analysis</id>
+            <properties>
+                <solr.resources.dir>log_analysis</solr.resources.dir>
             </properties>
         </profile>
     </profiles>
