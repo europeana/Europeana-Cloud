@@ -53,7 +53,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <excludes>
-                    <exclude>solr_files/</exclude>
+                    <exclude>solr_schema/</exclude>
                 </excludes>
             </resource>
         </resources>
@@ -69,10 +69,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${basedir}/target/classes</outputDirectory>
+                            <outputDirectory>${basedir}/target/classes/solr/conf/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/resources/solr_files/${solr.resources.dir}</directory>
+                                    <directory>src/main/resources/solr_schema/${solr.resources.dir}</directory>
                                 </resource>
                             </resources>
                         </configuration>
