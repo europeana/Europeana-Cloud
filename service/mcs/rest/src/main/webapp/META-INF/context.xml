@@ -59,15 +59,7 @@
     <ResourceLink 
         global="mcs/uis-url" 
         name="mcs/uis-url" 
-        type="java.lang.String"/>
-    <ResourceLink
-        name="rabbit/host"
-        global="rabbit/host"
-        type="java.lang.String"/>
-    <ResourceLink
-        name="rabbit/port"
-        global="rabbit/port"
-        type="java.lang.Integer"/>    
+        type="java.lang.String"/>  
     <ResourceLink
         name="kafka/brokerList"
         global="kafka/brokerList"

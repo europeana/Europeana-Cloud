@@ -25,7 +25,6 @@ import org.apache.commons.lang.SerializationUtils;
 import static org.apache.commons.lang.SerializationUtils.serialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,9 +42,6 @@ public class SolrRepresentationIndexer {
 
     @Autowired
     private CassandraDataSetDAO cassandraDataSetDAO;
-
-    @Autowired(required = true)
-    private RabbitTemplate template;
 
     @Autowired(required = true)
     private ProducerWrapper producerWrapper;
@@ -69,9 +65,6 @@ public class SolrRepresentationIndexer {
 	    int partitionKey) {
 
 	if (!representation.isPersistent()) {
-	    // TODO
-	    template.convertAndSend("records.representations.versions.add",
-		    prepareInsertRepresentationMessage(representation));
 	    producerWrapper
 		    .send(partitionKey,
 			    serialize(new InsertRepresentationMessage(
@@ -81,11 +74,6 @@ public class SolrRepresentationIndexer {
 	    Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO
 		    .getDataSetAssignments(representation.getCloudId(),
 			    representation.getRepresentationName(), null);
-	    // TODO
-	    template.convertAndSend(
-		    "records.representations.versions.addPersistent",
-		    prepareInsertPersistentRepresentationMessage(
-			    representation, dataSetIds));
 	    producerWrapper.send(
 		    partitionKey,
 		    serialize(new InsertRepresentationPersistentMessage(
@@ -119,10 +107,6 @@ public class SolrRepresentationIndexer {
      *            using to route message to different partitions.
      */
     public void removeRepresentationVersion(String versionId, int partitionKey) {
-	// TODO
-	template.convertAndSend(
-		"records.representations.versions.deleteVersion", versionId);
-
 	producerWrapper.send(partitionKey,
 		serialize(new RemoveRepresentationVersionMessage(versionId)));
     }
@@ -139,9 +123,6 @@ public class SolrRepresentationIndexer {
      */
     public void removeRepresentation(String cloudId, String representationName,
 	    int partitionKey) {
-	// TODO
-	template.convertAndSend("records.representations.delete",
-		prepareRemoveRepresentationMsg(cloudId, representationName));
 	producerWrapper.send(
 		partitionKey,
 		serialize(new RemoveRepresentationMessage(
@@ -166,8 +147,6 @@ public class SolrRepresentationIndexer {
      *            using to route message to different partitions.
      */
     public void removeRecordRepresentations(String cloudId, int partitionKey) {
-	// TODO
-	template.convertAndSend("records.representations.deleteAll", cloudId);
 	producerWrapper.send(partitionKey,
 		serialize(new RemoveRecordRepresentationsMessage(cloudId)));
     }
@@ -187,11 +166,6 @@ public class SolrRepresentationIndexer {
      */
     public void removeAssignment(String cloudId, String representationName,
 	    CompoundDataSetId dataSetId, int partitionKey) {
-	// TODO
-	template.convertAndSend(
-		"datasets.assignments.delete",
-		prepareRemoveAssignmentMessage(cloudId, representationName,
-			dataSetId));
 	producerWrapper.send(
 		partitionKey,
 		serialize(new RemoveAssignmentMessage(
@@ -219,9 +193,6 @@ public class SolrRepresentationIndexer {
      */
     public void addAssignment(String versionId, CompoundDataSetId dataSetId,
 	    int partitionKey) {
-	// TODO
-	template.convertAndSend("datasets.assignments.add",
-		prepareAddAssignmentMsg(versionId, dataSetId));
 	producerWrapper.send(partitionKey, serialize(new AddAssignmentMessage(
 		prepareAddAssignmentMsg(versionId, dataSetId))));
     }
@@ -244,9 +215,6 @@ public class SolrRepresentationIndexer {
      */
     public void removeAssignmentsFromDataSet(
 	    CompoundDataSetId compoundDataSetId, int partitionKey) {
-	// TODO
-	template.convertAndSend("datasets.assignments.deleteAll",
-		gson.toJson(compoundDataSetId));
 	producerWrapper.send(
 		partitionKey,
 		serialize(new RemoveAssignmentsFromDataSetMessage(gson

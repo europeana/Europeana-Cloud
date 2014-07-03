@@ -34,9 +34,7 @@
     </bean>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
-<!--    TODO remove rabbitmq-->
-    
-    <mockito:mock id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate"/>
+
     
     <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
     

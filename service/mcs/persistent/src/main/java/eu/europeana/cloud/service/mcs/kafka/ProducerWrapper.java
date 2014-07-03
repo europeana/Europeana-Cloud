@@ -39,7 +39,8 @@ public class ProducerWrapper {
 	properties.put("partitioner.class",
 		"eu.europeana.cloud.service.mcs.kafka.CustomPartitioner");
 	properties.put("producer.type", "sync");
-	properties.put("request.required.acks", "1");
+	// the best durability of the messaging
+	properties.put("request.required.acks", "-1");
 	kafkaProducer = new kafka.javaapi.producer.Producer<String, byte[]>(
 		new ProducerConfig(properties));
     }
