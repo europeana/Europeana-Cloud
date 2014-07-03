@@ -32,7 +32,7 @@ public class CustomPartitioner implements Partitioner {
 	if (routingKey instanceof String) {
 	    return partition((String) routingKey, numPartitions);
 	}
-	throw new RuntimeException("Unsuppored as parttition key");
+	throw new RuntimeException("Unsuppored argument as parttition key");
     }
 
     /**
@@ -46,6 +46,6 @@ public class CustomPartitioner implements Partitioner {
      */
     public int partition(String routingKey, int numPartitions) {
 	final int hash = Integer.valueOf(routingKey);
-	return hash % numPartitions;
+	return Math.abs(hash % numPartitions);
     }
 }

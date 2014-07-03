@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.mock_impl;
 
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 
 /**
@@ -13,16 +14,15 @@ public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
      */
     @Override
     public boolean recordExistInUIS(String cloudId) {
-        return true;
+	return true;
     }
-
 
     /**
      * @inheritDoc
-     * @return true
+     * @return new DataProvider
      */
     @Override
-    public boolean providerExistsInUIS(String providerId) {
-        return true;
+    public DataProvider providerExistsInUIS(String providerId) {
+	return new DataProvider();
     }
 }

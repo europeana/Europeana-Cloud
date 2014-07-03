@@ -5,17 +5,19 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * ProducerWrapper with {@link CustomPartitioner} as routing partitions
  * algorithm is sending message to Kafka broker.
  */
+@Component
 public class ProducerWrapper {
 
     private static final Logger LOGGER = LoggerFactory
 	    .getLogger(ProducerWrapper.class);
 
-    private final kafka.javaapi.producer.Producer<String, String> kafkaProducer;
+    private final kafka.javaapi.producer.Producer<String, byte[]> kafkaProducer;
 
     private final String topic;
 
@@ -31,14 +33,14 @@ public class ProducerWrapper {
 	this.topic = topic;
 	final Properties properties = new Properties();
 	properties.put("metadata.broker.list", brokerList);
-	properties.put("serializer.class", "kafka.serializer.StringEncoder");
+	properties.put("serializer.class", "kafka.serializer.DefaultEncoder");
 	properties
 		.put("key.serializer.class", "kafka.serializer.StringEncoder");
 	properties.put("partitioner.class",
 		"eu.europeana.cloud.service.mcs.kafka.CustomPartitioner");
 	properties.put("producer.type", "sync");
 	properties.put("request.required.acks", "1");
-	kafkaProducer = new kafka.javaapi.producer.Producer<String, String>(
+	kafkaProducer = new kafka.javaapi.producer.Producer<String, byte[]>(
 		new ProducerConfig(properties));
     }
 
@@ -51,8 +53,10 @@ public class ProducerWrapper {
      * @param payload
      *            content of message
      */
-    public void send(String partitionRoutingKey, String payload) {
-	kafkaProducer
-		.send(new KeyedMessage(topic, partitionRoutingKey, payload));
+    public void send(int partitionRoutingKey, byte[] payload) {
+	// TODO change
+	final KeyedMessage<String, byte[]> message = new KeyedMessage(topic,
+		Integer.toString(partitionRoutingKey), payload);
+	kafkaProducer.send(message);
     }
 }
