@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
-import eu.europeana.cloud.client.uis.rest.zookeeper.ServiceFinder;
-import eu.europeana.cloud.client.uis.rest.zookeeper.ZookeeperService;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -19,6 +17,7 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
@@ -33,19 +32,8 @@ public class UISClient {
 
 	private UrlProvider urlProvider;
 	
-	/**
-	 * Asks Zookeeper for available UIS services. 
-	 */
-	private ServiceFinder serviceFinder;
-	
-	/**
-	 * Enables and constantly monitors the communication with Zookeeper by managing
-	 * a connection to the ZooKeeper ensemble.
-	 */
-	private ZookeeperService zS;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
-
+	
 	/**
 	 * Creates a new instance of this class.
 	 * 
@@ -54,22 +42,29 @@ public class UISClient {
 	 */
 	public UISClient() {
 
+		LOGGER.info("UISClient starting... no UIS-URL provided.");
+
+		try {
+			urlProvider = new UrlProvider();
+		} catch (final Exception e) {
+			LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
+		}
+
+		LOGGER.info("UISClient started successfully.");
+	}
+	
+	/**
+	 * Creates a new instance of this class.
+	 */
+	public UISClient(final ServiceProvider uisProvider)  {
+
 		LOGGER.info("UISClient starting...");
 
 		try {
-			
-			LOGGER.info("UISClient: no UIS-URL provided, I will ask Zookeeper to give me one.");
-			
-			zS = new ZookeeperService();
-			serviceFinder = zS.getServiceFinder();
-			
-			final String address = serviceFinder.getRoundRobinService().getAddress();
-			LOGGER.info("UISClient: Zookeeper reports this address as cool enough='{}'", address);
-			
-			urlProvider = new UrlProvider(address);
-			
+			final String uisUrl = uisProvider.getService().getListenAddress();
+			urlProvider = new UrlProvider(uisUrl);
 		} catch (final Exception e) {
-			LOGGER.error("Error while starting UISClient... {}", e.getMessage());
+			LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
 		}
 
 		LOGGER.info("UISClient started successfully.");
@@ -86,7 +81,7 @@ public class UISClient {
 		try {
 			urlProvider = new UrlProvider(uisUrl);
 		} catch (final Exception e) {
-			LOGGER.error("Error while starting UISClient... {}", e.getMessage());
+			LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
 		}
 
 		LOGGER.info("UISClient started successfully.");
