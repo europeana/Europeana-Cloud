@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -10,14 +11,14 @@
 	<artifactId>ecloud-service-mcs-rest</artifactId>
 	<packaging>war</packaging>
 	<name>Europeana Cloud: Metadata and Content Service REST</name>
-<properties>
+	<properties>
 		<main.directory>${project.parent.basedir}</main.directory>
 	</properties>
 	<profiles>
 		<profile>
-                    <activation>
-                        <activeByDefault>true</activeByDefault>
-                    </activation>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<id>persistent</id>
 			<properties>
 				<spring.config.dir>persistent</spring.config.dir>
@@ -29,21 +30,39 @@
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
-                </profile>
-                <profile> 
-                    <id>standalone</id>
-                    <properties>
-                        <spring.config.dir>standalone</spring.config.dir>
-                    </properties>
-                    <dependencies>
-                        <dependency>
-                            <groupId>eu.europeana.cloud</groupId>
-                            <artifactId>ecloud-service-mcs-persistent</artifactId>
-                            <version>${project.version}</version>
-                        </dependency>
-                    </dependencies>
-                </profile>
-        </profiles>
+		</profile>
+		<profile>
+			<id>zookeeper</id>
+			<properties>
+				<spring.config.dir>zookeeper</spring.config.dir>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-cos</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-mcs-persistent</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>standalone</id>
+			<properties>
+				<spring.config.dir>standalone</spring.config.dir>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-mcs-persistent</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 	<build>
 		<resources>
@@ -51,14 +70,13 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>persistent/</exclude>
-                                        <exclude>standalone/</exclude>
+					<exclude>standalone/</exclude>
 				</excludes>
 			</resource>
 		</resources>
-                <plugins>
-                    <!--
-                    copies spring config file from path defined in profile to resources dir
-                    -->
+		<plugins>
+			<!-- copies spring config file from path defined in profile to resources 
+				dir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
@@ -79,8 +97,8 @@
 						</configuration>
 					</execution>
 				</executions>
-                        </plugin>
-                      <!--configuration of miredot - REST API documentation generator. -->
+			</plugin>
+			<!--configuration of miredot - REST API documentation generator. -->
 			<plugin>
 				<groupId>com.qmino</groupId>
 				<artifactId>miredot-maven-plugin</artifactId>
@@ -340,12 +358,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		 <dependency>
-                        <groupId>org.cassandraunit</groupId>
-                        <artifactId>cassandra-unit</artifactId>
-                        <version>${version.cassandra-unit}</version>
-                        <scope>test</scope>
-                </dependency>
+		<dependency>
+			<groupId>org.cassandraunit</groupId>
+			<artifactId>cassandra-unit</artifactId>
+			<version>${version.cassandra-unit}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
