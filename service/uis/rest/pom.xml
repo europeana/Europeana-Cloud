@@ -45,7 +45,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>eu.europeana.cloud</groupId>
-					<artifactId>ecloud-service-uis-registration</artifactId>
+					<artifactId>ecloud-service-cos</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
