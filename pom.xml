@@ -73,6 +73,7 @@
     <modules>
         <module>common</module>
         <module>integration</module>
+		<module>service/cos</module>
         <module>service/mcs</module>
         <module>service/uis</module>
         <module>tools</module>
