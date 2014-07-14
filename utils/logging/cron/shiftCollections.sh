@@ -73,7 +73,7 @@ java -cp "${classPath}" $zkClass -cmd upconfig -zkhost $zkHost -confdir $configT
 newCoreCall="$solrHTTP/admin/cores?action=CREATE&name=$curName&replicationFactor=1&numShards=1"
 curl "$newCoreCall" -H -d
 
-#change alias from previous-day-core current-day-core
+#change alias from previous-day-core to current-day-core
 #if alias exists it will be replaced - like atomic 'move' command (luckily!)
 moveAliasCall="$solrHTTP/admin/collections?action=CREATEALIAS&name=$curAlias&collections=$curName"
 curl "$moveAliasCall" -H -d
