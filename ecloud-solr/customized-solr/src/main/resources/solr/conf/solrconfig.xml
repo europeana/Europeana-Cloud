@@ -325,7 +325,7 @@
           -->
          <autoCommit> 
            <maxTime>60000</maxTime> 
-           <openSearcher>false</openSearcher> 
+           <openSearcher>true</openSearcher> 
          </autoCommit>
     
         <!-- softAutoCommit is like autoCommit except it causes a
