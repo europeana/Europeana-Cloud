@@ -1,0 +1,10 @@
+# Here are examples of log messages in proper format.
+# If you enable reading from stdin in logstash config,
+# you can use them for debugging.
+
+2014-07-10T13:10:20.123Z uis uis02 - ERROR: We are loosing the grip.
+2014-07-10T14:10:20.123Z mcs mcs02 - WARN: We are loosing the touch.
+2014-07-10T12:10:20.123Z uis uis02 - ERROR: We are loosing the apple.
+2014-07-10T11:10:20.123Z mcs mcs02 - WARN: We are loosing the maple.
+
+
