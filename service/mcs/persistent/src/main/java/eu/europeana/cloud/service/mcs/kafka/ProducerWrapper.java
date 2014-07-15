@@ -55,7 +55,6 @@ public class ProducerWrapper {
      *            content of message
      */
     public void send(int partitionRoutingKey, byte[] payload) {
-	// TODO change
 	final KeyedMessage<String, byte[]> message = new KeyedMessage(topic,
 		Integer.toString(partitionRoutingKey), payload);
 	kafkaProducer.send(message);

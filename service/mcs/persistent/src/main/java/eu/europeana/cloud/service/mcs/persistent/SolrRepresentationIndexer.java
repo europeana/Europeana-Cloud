@@ -228,7 +228,6 @@ public class SolrRepresentationIndexer {
 	return jo;
     }
 
-    // TODO change
     private byte[] serialize(Serializable in) {
 	return SerializationUtils.serialize(in);
     }

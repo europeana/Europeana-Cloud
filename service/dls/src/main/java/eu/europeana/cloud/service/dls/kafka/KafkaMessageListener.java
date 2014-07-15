@@ -37,8 +37,10 @@ public class KafkaMessageListener implements IKafkaMessageListener {
 	    messageDispatcher.routeMessage(message);
 	} catch (Exception e) {
 	    // when message is malformed
-	    LOGGER.error("Message rejected! Cause:" + e + "\n" + e.getMessage()
-		    + "\nRejected message body:" + new String(messageBytes));
+	    LOGGER.error("Message rejected! Cause:" + e + "\n" + e.getMessage());
+	    if (messageBytes != null)
+		LOGGER.error("\nRejected message body:"
+			+ new String(messageBytes));
 	}
     }
 }

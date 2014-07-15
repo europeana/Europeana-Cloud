@@ -54,10 +54,26 @@ public class MessageDispatherTest {
 	// when
 	try {
 	    messageDispatcher.routeMessage(message);
-	    fail("No expected exception!");
+	    fail("Not thrown expected exception!");
 	} catch (Exception e) {
 	    // expected exception
 	    assertTrue(e instanceof NoAppropriateListenerException);
+	}
+    }
+
+    @Test
+    public void shouldThrowsNullPointerExceptionWhenNoListenerDefined() {
+	// given
+	RemoveRepresentationMessage message = null;
+	// no route defined in messageDispatcher
+
+	// when
+	try {
+	    messageDispatcher.routeMessage(message);
+	    fail("Not thrown expected exception!");
+	} catch (Exception e) {
+	    // expected exception
+	    assertTrue(e instanceof NullPointerException);
 	}
     }
 
