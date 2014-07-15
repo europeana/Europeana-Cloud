@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.DataProvider;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,7 +40,6 @@ public class CassandraDataSetService implements DataSetService {
 
     @Autowired
     private UISClientHandler uis;
-
 
     /**
      * @inheritDoc
@@ -93,141 +93,148 @@ public class CassandraDataSetService implements DataSetService {
         return new ResultSlice<Representation>(nextResultToken, representations);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void addAssignment(String providerId, String dataSetId,
+	    String recordId, String schema, String version)
+	    throws DataSetNotExistsException, RepresentationNotExistsException {
+	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+
+	if (ds == null) {
+	    throw new DataSetNotExistsException();
+	}
+
+	// check if representation exists
+	Representation rep;
+	if (version == null) {
+	    rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
+	    if (rep == null) {
+		throw new RepresentationNotExistsException();
+	    }
+	} else {
+	    rep = recordDAO.getRepresentation(recordId, schema, version);
+
+	    if (rep == null) {
+		throw new RepresentationNotExistsException();
+	    }
+	}
+
+	// now - when everything is validated - add assignment
+	dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
+		version);
+	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	representationIndexer.addAssignment(rep.getVersion(),
+		new CompoundDataSetId(providerId, dataSetId),
+		dataProvider.getPartitionKey());
+    }
 
     /**
      * @inheritDoc
      */
     @Override
-    public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-            throws DataSetNotExistsException, RepresentationNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+    public void removeAssignment(String providerId, String dataSetId,
+	    String recordId, String schema) throws DataSetNotExistsException {
+	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+	if (ds == null) {
+	    throw new DataSetNotExistsException();
+	}
 
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
-
-        // check if representation exists
-        Representation rep;
-        if (version == null) {
-            rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
-            if (rep == null) {
-                throw new RepresentationNotExistsException();
-            }
-        } else {
-            rep = recordDAO.getRepresentation(recordId, schema, version);
-
-            if (rep == null) {
-                throw new RepresentationNotExistsException();
-            }
-        }
-
-        // now - when everything is validated - add assignment
-        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema, version);
-
-        representationIndexer.addAssignment(rep.getVersion(), new CompoundDataSetId(providerId, dataSetId));
+	dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	representationIndexer.removeAssignment(recordId, schema,
+		new CompoundDataSetId(providerId, dataSetId),
+		dataProvider.getPartitionKey());
     }
-
 
     /**
      * @inheritDoc
      */
     @Override
-    public void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
-            throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
+    public DataSet createDataSet(String providerId, String dataSetId,
+	    String description) throws ProviderNotExistsException,
+	    DataSetAlreadyExistsException {
+	Date now = new Date();
+	if (uis.providerExistsInUIS(providerId) == null) {
+	    throw new ProviderNotExistsException();
+	}
 
-        dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+	// check if dataset exists
+	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+	if (ds != null) {
+	    throw new DataSetAlreadyExistsException();
+	}
 
-        representationIndexer.removeAssignment(recordId, schema, new CompoundDataSetId(providerId, dataSetId));
+	return dataSetDAO
+		.createDataSet(providerId, dataSetId, description, now);
     }
-
 
     /**
      * @inheritDoc
      */
     @Override
-    public DataSet createDataSet(String providerId, String dataSetId, String description)
-            throws ProviderNotExistsException, DataSetAlreadyExistsException {
-        Date now = new Date();
-        if (!uis.providerExistsInUIS(providerId)) {
-            throw new ProviderNotExistsException();
-        }
+    public DataSet updateDataSet(String providerId, String dataSetId,
+	    String description) throws DataSetNotExistsException {
+	Date now = new Date();
 
-        // check if dataset exists
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        if (ds != null) {
-            throw new DataSetAlreadyExistsException();
-        }
-
-        return dataSetDAO.createDataSet(providerId, dataSetId, description, now);
+	// check if dataset exists
+	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+	if (ds == null) {
+	    throw new DataSetNotExistsException("Provider " + providerId
+		    + " does not have data set with id " + dataSetId);
+	}
+	return dataSetDAO
+		.createDataSet(providerId, dataSetId, description, now);
     }
-
 
     /**
      * @inheritDoc
      */
     @Override
-    public DataSet updateDataSet(String providerId, String dataSetId, String description)
-            throws DataSetNotExistsException {
-        Date now = new Date();
+    public ResultSlice<DataSet> getDataSets(String providerId,
+	    String thresholdDatasetId, int limit) {
 
-        // check if dataset exists
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        if (ds == null) {
-            throw new DataSetNotExistsException("Provider " + providerId + " does not have data set with id "
-                    + dataSetId);
-        }
-        return dataSetDAO.createDataSet(providerId, dataSetId, description, now);
+	List<DataSet> dataSets = dataSetDAO.getDataSets(providerId,
+		thresholdDatasetId, limit + 1);
+	String nextDataSet = null;
+	if (dataSets.size() == limit + 1) {
+	    DataSet nextResult = dataSets.get(limit);
+	    nextDataSet = nextResult.getId();
+	    dataSets.remove(limit);
+	}
+	return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
-
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public ResultSlice<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit) {
-
-        List<DataSet> dataSets = dataSetDAO.getDataSets(providerId, thresholdDatasetId, limit + 1);
-        String nextDataSet = null;
-        if (dataSets.size() == limit + 1) {
-            DataSet nextResult = dataSets.get(limit);
-            nextDataSet = nextResult.getId();
-            dataSets.remove(limit);
-        }
-        return new ResultSlice<DataSet>(nextDataSet, dataSets);
-    }
-
 
     /**
      * @inheritDoc
      */
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+	    throws DataSetNotExistsException {
+	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
-        dataSetDAO.deleteDataSet(providerId, dataSetId);
-
-        representationIndexer.removeAssignmentsFromDataSet(new CompoundDataSetId(providerId, dataSetId));
+	if (ds == null) {
+	    throw new DataSetNotExistsException();
+	}
+	dataSetDAO.deleteDataSet(providerId, dataSetId);
+	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	representationIndexer.removeAssignmentsFromDataSet(
+		new CompoundDataSetId(providerId, dataSetId),
+		dataProvider.getPartitionKey());
     }
-
 
     private String encodeParams(String... parts) {
-        byte[] paramsJoined = Joiner.on('\n').join(parts).getBytes(Charset.forName("UTF-8"));
-        return BaseEncoding.base32().encode(paramsJoined);
+	byte[] paramsJoined = Joiner.on('\n').join(parts)
+		.getBytes(Charset.forName("UTF-8"));
+	return BaseEncoding.base32().encode(paramsJoined);
     }
 
-
     private List<String> decodeParams(String encodedParams) {
-        byte[] paramsDecoded = BaseEncoding.base32().decode(encodedParams);
-        String paramsDecodedString = new String(paramsDecoded, Charset.forName("UTF-8"));
-        return Splitter.on('\n').splitToList(paramsDecodedString);
+	byte[] paramsDecoded = BaseEncoding.base32().decode(encodedParams);
+	String paramsDecodedString = new String(paramsDecoded,
+		Charset.forName("UTF-8"));
+	return Splitter.on('\n').splitToList(paramsDecodedString);
     }
 
 }

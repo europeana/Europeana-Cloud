@@ -63,7 +63,7 @@ public class DataSetResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProvider.setId("testprov");
         uisHandler = applicationContext.getBean(UISClientHandler.class);
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(new DataProvider()).when(uisHandler).providerExistsInUIS(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);

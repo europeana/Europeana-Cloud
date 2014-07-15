@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -46,74 +47,70 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     private static final String providerId = "provider";
 
-
     @After
     public void cleanUp() {
-        Mockito.reset(uisHandler);
+	Mockito.reset(uisHandler);
     }
-
 
     @Test
-    public void shouldCreateDataSet()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given properties of data set
-        String dsName = "ds";
-        String description = "description of data set";
+    public void shouldCreateDataSet() throws Exception {
+	makeUISProviderSuccess();
+	// given properties of data set
+	String dsName = "ds";
+	String description = "description of data set";
 
-        // when new data set is created
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, description);
+	// when new data set is created
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		description);
 
-        // the created data set should properties as given for construction
-        assertThat(ds.getId(), is(dsName));
-        assertThat(ds.getDescription(), is(description));
-        assertThat(ds.getProviderId(), is(providerId));
+	// the created data set should properties as given for construction
+	assertThat(ds.getId(), is(dsName));
+	assertThat(ds.getDescription(), is(description));
+	assertThat(ds.getProviderId(), is(providerId));
     }
-
 
     @Test
-    public void shouldCreateDataSetWithEmptyDescription()
-            throws Exception {
+    public void shouldCreateDataSetWithEmptyDescription() throws Exception {
 
-        makeUISProviderSuccess();
-        // given properties of data set
-        String dsName = "ds_empty_description";
-        String description = null;
+	makeUISProviderSuccess();
+	// given properties of data set
+	String dsName = "ds_empty_description";
+	String description = null;
 
-        // when new data set is created
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, description);
+	// when new data set is created
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		description);
 
-        ResultSlice<DataSet> dataSets = cassandraDataSetService.getDataSets(providerId, null, 50);
-        List<DataSet> results = dataSets.getResults();
-        assertTrue(results.contains(ds));
+	ResultSlice<DataSet> dataSets = cassandraDataSetService.getDataSets(
+		providerId, null, 50);
+	List<DataSet> results = dataSets.getResults();
+	assertTrue(results.contains(ds));
     }
-
 
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldNotAssignToNotExistingDataSet()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given all objects exist except for dataset
-        Representation r = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+    public void shouldNotAssignToNotExistingDataSet() throws Exception {
+	makeUISProviderSuccess();
+	// given all objects exist except for dataset
+	Representation r = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
 
-        // when trying to add assignment - error is expected
-        cassandraDataSetService.addAssignment(providerId, "not-existing", r.getCloudId(), r.getRepresentationName(),
-            r.getVersion());
+	// when trying to add assignment - error is expected
+	cassandraDataSetService.addAssignment(providerId, "not-existing",
+		r.getCloudId(), r.getRepresentationName(), r.getVersion());
     }
-
 
     @Test(expected = RepresentationNotExistsException.class)
-    public void shouldNotAssignNotExistingRepresentation()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given all objects exist except for representation
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds", "description of this set");
+    public void shouldNotAssignNotExistingRepresentation() throws Exception {
+	makeUISProviderSuccess();
+	// given all objects exist except for representation
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds",
+		"description of this set");
 
-        // when trying to add assignment - error is expected
-        String version = new com.eaio.uuid.UUID().toString();
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), "cloud-id", "schema", version);
+	// when trying to add assignment - error is expected
+	String version = new com.eaio.uuid.UUID().toString();
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		"cloud-id", "schema", version);
     }
-
 
     @Test
     public void shouldAssignRepresentationsToDataSet()
@@ -139,108 +136,115 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(new HashSet<>(assignedRepresentations), is(new HashSet<>(Arrays.asList(r1, r2))));
     }
 
-
     @Test
-    public void shouldRemoveAssignmentsFromDataSet()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given some representations in data set
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-        Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
-        Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
+    public void shouldRemoveAssignmentsFromDataSet() throws Exception {
+	makeUISProviderSuccess();
+	// given some representations in data set
+	String dsName = "ds";
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
+	Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
+	Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
+		"schema", providerId);
 
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
-            r1.getRepresentationName(), r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
-            r2.getRepresentationName(), r2.getVersion());
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		r2.getCloudId(), r2.getRepresentationName(), r2.getVersion());
 
-        // when one of the representation is removed from data set
-        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
-            r1.getRepresentationName());
+	// when one of the representation is removed from data set
+	cassandraDataSetService.removeAssignment(ds.getProviderId(),
+		ds.getId(), r1.getCloudId(), r1.getRepresentationName());
 
-        // then only one representation should remain assigned in data set
-        List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-            ds.getId(), null, 10000).getResults();
-        assertThat(assignedRepresentations, is(Arrays.asList(r2)));
+	// then only one representation should remain assigned in data set
+	List<Representation> assignedRepresentations = cassandraDataSetService
+		.listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
+		.getResults();
+	assertThat(assignedRepresentations, is(Arrays.asList(r2)));
     }
 
-
     @Test
-    public void shouldDeleteDataSetWithAssignments()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given particular data set and representations in it
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-        Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
-        Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", providerId);
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
-            r1.getRepresentationName(), r1.getVersion());
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
-            r2.getRepresentationName(), r2.getVersion());
+    public void shouldDeleteDataSetWithAssignments() throws Exception {
+	makeUISProviderSuccess();
+	// given particular data set and representations in it
+	String dsName = "ds";
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
+	Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
+	Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
+		"schema", providerId);
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		r2.getCloudId(), r2.getRepresentationName(), r2.getVersion());
 
-        // when this particular data set is removed
-        cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId());
+	// when this particular data set is removed
+	cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId());
 
-        // then this data set no longer exists
-        List<DataSet> dataSets = cassandraDataSetService.getDataSets(providerId, null, 10000).getResults();
-        assertTrue(dataSets.isEmpty());
+	// then this data set no longer exists
+	List<DataSet> dataSets = cassandraDataSetService.getDataSets(
+		providerId, null, 10000).getResults();
+	assertTrue(dataSets.isEmpty());
 
-        // and, even after recreating data set with the same name, nothing is assigned to it
-        ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-        List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-            ds.getId(), null, 10000).getResults();
-        assertTrue(assignedRepresentations.isEmpty());
+	// and, even after recreating data set with the same name, nothing is
+	// assigned to it
+	ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
+	List<Representation> assignedRepresentations = cassandraDataSetService
+		.listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
+		.getResults();
+	assertTrue(assignedRepresentations.isEmpty());
 
     }
-
 
     @Test(expected = DataSetNotExistsException.class)
     public void shouldThrowExceptionWhenDeletingNotExistingDataSet()
-            throws Exception {
-        cassandraDataSetService.deleteDataSet("xxx", "xxx");
+	    throws Exception {
+	cassandraDataSetService.deleteDataSet("xxx", "xxx");
     }
-
 
     @Test
-    public void shouldAssignMostRecentVersionToDataSet()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given data set and multiple versions of the same representation
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
-        Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
-        Representation r2 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
-        Representation r3 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+    public void shouldAssignMostRecentVersionToDataSet() throws Exception {
+	makeUISProviderSuccess();
+	// given data set and multiple versions of the same representation
+	String dsName = "ds";
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
+	Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
+	insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+	Representation r3 = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
 
-        //when assigned representation without specyfying version
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
-            r1.getRepresentationName(), null);
+	// when assigned representation without specyfying version
+	cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+		r1.getCloudId(), r1.getRepresentationName(), null);
 
-        // then the most recent version should be returned
-        List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-            ds.getId(), null, 10000).getResults();
-        assertThat(assignedRepresentations, is(Arrays.asList(r3)));
+	// then the most recent version should be returned
+	List<Representation> assignedRepresentations = cassandraDataSetService
+		.listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
+		.getResults();
+	assertThat(assignedRepresentations, is(Arrays.asList(r3)));
     }
-
 
     @Test
-    public void shouldCreateAndGetDataSet()
-            throws Exception {
-        makeUISProviderSuccess();
-        // given
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
+    public void shouldCreateAndGetDataSet() throws Exception {
+	makeUISProviderSuccess();
+	// given
+	String dsName = "ds";
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
 
-        // when data sets for this provider are fetched
-        List<DataSet> dataSets = cassandraDataSetService.getDataSets(providerId, null, 10000).getResults();
+	// when data sets for this provider are fetched
+	List<DataSet> dataSets = cassandraDataSetService.getDataSets(
+		providerId, null, 10000).getResults();
 
-        // then those data sets should contain only the one inserted
-        assertThat(dataSets.size(), is(1));
-        assertThat(dataSets.get(0), is(ds));
+	// then those data sets should contain only the one inserted
+	assertThat(dataSets.size(), is(1));
+	assertThat(dataSets.get(0), is(ds));
     }
-
 
     @Test
     public void shouldReturnPagedDataSets()
@@ -274,58 +278,59 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(insertedDataSetIds, is(fetchedDataSets));
     }
 
-
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider()
-            throws Exception {
-        makeUISProviderFailure();
-        cassandraDataSetService.createDataSet("not-existing-provider", "ds", "description");
+	    throws Exception {
+	makeUISProviderFailure();
+	cassandraDataSetService.createDataSet("not-existing-provider", "ds",
+		"description");
     }
-
 
     @Test(expected = DataSetAlreadyExistsException.class)
     public void shouldNotCreateTwoDatasetsWithSameNameForProvider()
-            throws Exception {
-        String dsName = "ds";
-        makeUISProviderSuccess();
-        cassandraDataSetService.createDataSet(providerId, dsName, "description");
-        cassandraDataSetService.createDataSet(providerId, dsName, "description of another");
+	    throws Exception {
+	String dsName = "ds";
+	makeUISProviderSuccess();
+	cassandraDataSetService
+		.createDataSet(providerId, dsName, "description");
+	cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of another");
     }
 
-
-    private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
-            throws Exception {
-        makeUISSuccess();
-        makeUISProviderSuccess();
-        Representation r = cassandraRecordService.createRepresentation(cloudId, schema, providerId);
-        byte[] dummyContent = { 1, 2, 3 };
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
-        Representation persistRepresentation = cassandraRecordService.persistRepresentation(r.getCloudId(),
-            r.getRepresentationName(), r.getVersion());
-        return persistRepresentation;
+    private Representation insertDummyPersistentRepresentation(String cloudId,
+	    String schema, String providerId) throws Exception {
+	makeUISSuccess();
+	makeUISProviderSuccess();
+	Representation r = cassandraRecordService.createRepresentation(cloudId,
+		schema, providerId);
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null);
+	cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
+	Representation persistRepresentation = cassandraRecordService
+		.persistRepresentation(r.getCloudId(),
+			r.getRepresentationName(), r.getVersion());
+	return persistRepresentation;
     }
-
 
     private void makeUISProviderSuccess() {
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+	Mockito.doReturn(new DataProvider()).when(uisHandler)
+		.providerExistsInUIS(Mockito.anyString());
     }
-
 
     private void makeUISProviderFailure() {
-        Mockito.doReturn(false).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+	Mockito.doReturn(null).when(uisHandler)
+		.providerExistsInUIS(Mockito.anyString());
     }
 
+    private void makeUISSuccess() throws RecordNotExistsException {
 
-    private void makeUISSuccess()
-            throws RecordNotExistsException {
-
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+	Mockito.doReturn(true).when(uisHandler)
+		.recordExistInUIS(Mockito.anyString());
     }
 
-
-    private void makeUISFailure()
-            throws RecordNotExistsException {
-        Mockito.doReturn(false).when(uisHandler).recordExistInUIS(Mockito.anyString());
+    private void makeUISFailure() throws RecordNotExistsException {
+	Mockito.doReturn(false).when(uisHandler)
+		.recordExistInUIS(Mockito.anyString());
     }
 }

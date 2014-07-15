@@ -1,12 +1,15 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.model.DataProvider;
+
 /**
  * Interface for MCS->UIS communication.
  */
 public interface UISClientHandler {
 
     /**
-     * Checks if given cloudId exist in Unique Identifiers Service. Throws SystemException in case of UIS error.
+     * Checks if given cloudId exist in Unique Identifiers Service. Throws
+     * SystemException in case of UIS error.
      * 
      * @param cloudId
      *            cloud id
@@ -14,15 +17,14 @@ public interface UISClientHandler {
      */
     boolean recordExistInUIS(String cloudId);
 
-
     /**
-     * Checks if provider with given id exist in Unique Identifiers Service. Throws SystemException in case of UIS
-     * error.
+     * Checks if provider with given id exist in Unique Identifiers Service.
+     * Throws SystemException in case of UIS error.
      * 
      * @param providerId
      *            provider identifier
-     * @return true if provider exists in UIS, false otherwise
+     * @return DataProvider from UIS
      */
-    boolean providerExistsInUIS(String providerId);
+    DataProvider providerExistsInUIS(String providerId);
 
 }

@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.ReadTimeoutException;
+import eu.europeana.cloud.common.model.DataProvider;
 
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -40,55 +41,55 @@ public class ServiceExceptionTranslatorAspectTest {
     @Autowired
     private UISClientHandler uis;
 
-
     @Test
-    public void shouldTranslateExceptionInRecordService()
-            throws Exception {
-        // prepare failure
-        Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(uis).providerExistsInUIS("prov");
+    public void shouldTranslateExceptionInRecordService() throws Exception {
+	// prepare failure
+	Mockito.doThrow(new NoHostAvailableException(new HashMap())).when(uis)
+		.providerExistsInUIS("prov");
 
-        // execute method to throw prepared exception and catch it
-        try {
-            cassandraRecordService.createRepresentation("id", "dc", "prov");
-        } catch (SystemException e) {
-            // our wrapper should be caused by original exception
-            Assert.assertTrue(e.getCause() instanceof NoHostAvailableException);
-        }
+	// execute method to throw prepared exception and catch it
+	try {
+	    cassandraRecordService.createRepresentation("id", "dc", "prov");
+	} catch (SystemException e) {
+	    // our wrapper should be caused by original exception
+	    Assert.assertTrue(e.getCause() instanceof NoHostAvailableException);
+	}
 
     }
 
-
     @Test
-    public void shouldTranslateExceptionInDataSetService()
-            throws Exception {
-        Mockito.doReturn(true).when(uis).providerExistsInUIS(Mockito.anyString());
-        // prepare failure
-        Mockito.doThrow(new ReadTimeoutException(ConsistencyLevel.ALL, 1, 1, false)).when(cassandraDataSetDAO)
-                .getDataSet(Mockito.anyString(), Mockito.anyString());
+    public void shouldTranslateExceptionInDataSetService() throws Exception {
+	Mockito.doReturn(new DataProvider()).when(uis)
+		.providerExistsInUIS(Mockito.anyString());
+	// prepare failure
+	Mockito.doThrow(
+		new ReadTimeoutException(ConsistencyLevel.ALL, 1, 1, false))
+		.when(cassandraDataSetDAO)
+		.getDataSet(Mockito.anyString(), Mockito.anyString());
 
-        // execute method to throw prepared exception and catch it
-        try {
-            dataSetService.updateDataSet("prov", "ds", "");
-        } catch (SystemException e) {
-            // our wrapper should be caused by original exception
-            Assert.assertTrue(e.getCause() instanceof ReadTimeoutException);
-        }
+	// execute method to throw prepared exception and catch it
+	try {
+	    dataSetService.updateDataSet("prov", "ds", "");
+	} catch (SystemException e) {
+	    // our wrapper should be caused by original exception
+	    Assert.assertTrue(e.getCause() instanceof ReadTimeoutException);
+	}
 
     }
-
 
     @Test
     public void shouldTranslateExceptionInDataProviderService()
-            throws Exception {
-        // prepare failure
-        Mockito.doThrow(new ContainerNotFoundException()).when(uis).providerExistsInUIS(Mockito.anyString());
+	    throws Exception {
+	// prepare failure
+	Mockito.doThrow(new ContainerNotFoundException()).when(uis)
+		.providerExistsInUIS(Mockito.anyString());
 
-        // execute method to throw prepared exception and catch it
-        try {
-            uis.providerExistsInUIS("prov");
-        } catch (ContainerNotFoundException e) {
-            // our wrapper should be caused by original exception
-            Assert.assertTrue(e instanceof ContainerNotFoundException);
-        }
+	// execute method to throw prepared exception and catch it
+	try {
+	    uis.providerExistsInUIS("prov");
+	} catch (ContainerNotFoundException e) {
+	    // our wrapper should be caused by original exception
+	    Assert.assertTrue(e instanceof ContainerNotFoundException);
+	}
     }
 }

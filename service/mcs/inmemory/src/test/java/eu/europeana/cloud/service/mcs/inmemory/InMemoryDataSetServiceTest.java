@@ -46,7 +46,7 @@ public class InMemoryDataSetServiceTest {
             throws Exception {
         datasetDao = mock(InMemoryDataSetDAO.class);
         uisHandler = mock(UISClientHandler.class);
-        Mockito.doReturn(true).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(new DataProvider()).when(uisHandler).providerExistsInUIS(Mockito.anyString());
 
         representations = new ArrayList<>();
         representations = Lists.newArrayList();

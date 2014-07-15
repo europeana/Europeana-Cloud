@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dls.services;
 
+import com.github.ddth.kafka.IKafkaMessageListener;
+import com.github.ddth.kafka.KafkaConsumer;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +20,15 @@ public class SearchRecordService {
     @Autowired
     private SolrDAO solrDAO;
 
-
     /**
      * Searches for specified representations and returns result in slices.
      * 
      * @param searchParams
      *            search parameters.
      * @param thresholdParam
-     *            if null - will return first result slice. Result slices contain token for next pages, which should be
-     *            provided in this parameter for subsequent result slices.
+     *            if null - will return first result slice. Result slices
+     *            contain token for next pages, which should be provided in this
+     *            parameter for subsequent result slices.
      * @param limit
      *            max number of results in one slice.
      * @return found representations.
@@ -48,5 +50,4 @@ public class SearchRecordService {
         }
         return new ResultSlice<>(nextResultToken, foundRepresenations);
     }
-
 }

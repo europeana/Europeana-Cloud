@@ -8,13 +8,23 @@ import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.kafka.ProducerWrapper;
+import eu.europeana.cloud.service.mcs.messages.AddAssignmentMessage;
+import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
+import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
+import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentMessage;
+import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentsFromDataSetMessage;
+import eu.europeana.cloud.service.mcs.messages.RemoveRecordRepresentationsMessage;
+import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationMessage;
+import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationVersionMessage;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import org.apache.commons.lang.SerializationUtils;
+import static org.apache.commons.lang.SerializationUtils.serialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +44,7 @@ public class SolrRepresentationIndexer {
     private CassandraDataSetDAO cassandraDataSetDAO;
 
     @Autowired(required = true)
-    private RabbitTemplate template;
-
-    // @Autowired
-    // private ProducerWrapper producerWrapper;
+    private ProducerWrapper producerWrapper;
 
     private final Gson gson = new GsonBuilder().setDateFormat(
 	    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
@@ -51,24 +58,27 @@ public class SolrRepresentationIndexer {
      * 
      * @param representation
      *            representation version.
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void insertRepresentation(Representation representation) {
+    public void insertRepresentation(Representation representation,
+	    int partitionKey) {
 
 	if (!representation.isPersistent()) {
-	    template.convertAndSend("records.representations.versions.add",
-		    prepareInsertRepresentationMessage(representation));
-	    // producerWrapper.send("1", gson.toJson(new InsertRepresentation(
-	    // prepareInsertRepresentationMessage(representation))));
+	    producerWrapper
+		    .send(partitionKey,
+			    serialize(new InsertRepresentationMessage(
+				    prepareInsertRepresentationMessage(representation))));
 
 	} else {
 	    Collection<CompoundDataSetId> dataSetIds = cassandraDataSetDAO
 		    .getDataSetAssignments(representation.getCloudId(),
 			    representation.getRepresentationName(), null);
-
-	    template.convertAndSend(
-		    "records.representations.versions.addPersistent",
-		    prepareInsertPersistentRepresentationMessage(
-			    representation, dataSetIds));
+	    producerWrapper.send(
+		    partitionKey,
+		    serialize(new InsertRepresentationPersistentMessage(
+			    prepareInsertPersistentRepresentationMessage(
+				    representation, dataSetIds))));
 	}
     }
 
@@ -92,10 +102,13 @@ public class SolrRepresentationIndexer {
      * 
      * @param versionId
      *            representation version id
+     * 
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void removeRepresentationVersion(String versionId) {
-	template.convertAndSend(
-		"records.representations.versions.deleteVersion", versionId);
+    public void removeRepresentationVersion(String versionId, int partitionKey) {
+	producerWrapper.send(partitionKey,
+		serialize(new RemoveRepresentationVersionMessage(versionId)));
     }
 
     /**
@@ -105,10 +118,16 @@ public class SolrRepresentationIndexer {
      *            record id
      * @param representationName
      *            representation's schema
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void removeRepresentation(String cloudId, String representationName) {
-	template.convertAndSend("records.representations.delete",
-		prepareRemoveRepresentationMsg(cloudId, representationName));
+    public void removeRepresentation(String cloudId, String representationName,
+	    int partitionKey) {
+	producerWrapper.send(
+		partitionKey,
+		serialize(new RemoveRepresentationMessage(
+			prepareRemoveRepresentationMsg(cloudId,
+				representationName))));
     }
 
     private String prepareRemoveRepresentationMsg(String cloudId,
@@ -123,9 +142,13 @@ public class SolrRepresentationIndexer {
      * Removes all record's representations with all their versions from index.
      * 
      * @param cloudId
+     *            record id
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void removeRecordRepresentations(String cloudId) {
-	template.convertAndSend("records.representations.deleteAll", cloudId);
+    public void removeRecordRepresentations(String cloudId, int partitionKey) {
+	producerWrapper.send(partitionKey,
+		serialize(new RemoveRecordRepresentationsMessage(cloudId)));
     }
 
     /**
@@ -133,15 +156,21 @@ public class SolrRepresentationIndexer {
      * version).
      * 
      * @param cloudId
+     *            record id
      * @param representationName
+     *            representation's schema
      * @param dataSetId
+     *            dataset id with owner's (provider's) id.
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
     public void removeAssignment(String cloudId, String representationName,
-	    CompoundDataSetId dataSetId) {
-	template.convertAndSend(
-		"datasets.assignments.delete",
-		prepareRemoveAssignmentMessage(cloudId, representationName,
-			dataSetId));
+	    CompoundDataSetId dataSetId, int partitionKey) {
+	producerWrapper.send(
+		partitionKey,
+		serialize(new RemoveAssignmentMessage(
+			prepareRemoveAssignmentMessage(cloudId,
+				representationName, dataSetId))));
     }
 
     private String prepareRemoveAssignmentMessage(String cloudId,
@@ -159,10 +188,13 @@ public class SolrRepresentationIndexer {
      *            representation version id.
      * @param dataSetId
      *            dataset id with owner's (provider's) id.
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void addAssignment(String versionId, CompoundDataSetId dataSetId) {
-	template.convertAndSend("datasets.assignments.add",
-		prepareAddAssignmentMsg(versionId, dataSetId));
+    public void addAssignment(String versionId, CompoundDataSetId dataSetId,
+	    int partitionKey) {
+	producerWrapper.send(partitionKey, serialize(new AddAssignmentMessage(
+		prepareAddAssignmentMsg(versionId, dataSetId))));
     }
 
     private String prepareAddAssignmentMsg(String versionId,
@@ -178,10 +210,15 @@ public class SolrRepresentationIndexer {
      * 
      * @param compoundDataSetId
      *            dataset id with owner's (provider's) id.
+     * @param partitionKey
+     *            using to route message to different partitions.
      */
-    public void removeAssignmentsFromDataSet(CompoundDataSetId compoundDataSetId) {
-	template.convertAndSend("datasets.assignments.deleteAll",
-		gson.toJson(compoundDataSetId));
+    public void removeAssignmentsFromDataSet(
+	    CompoundDataSetId compoundDataSetId, int partitionKey) {
+	producerWrapper.send(
+		partitionKey,
+		serialize(new RemoveAssignmentsFromDataSetMessage(gson
+			.toJson(compoundDataSetId))));
     }
 
     private JsonObject prepareCompoundDataSetIdJson(CompoundDataSetId dataSetId) {
@@ -189,5 +226,10 @@ public class SolrRepresentationIndexer {
 	JsonObject jo = new JsonObject();
 	jo.add(ParamConstants.F_DATASET_PROVIDER_ID, elem);
 	return jo;
+    }
+
+    // TODO change
+    private byte[] serialize(Serializable in) {
+	return SerializationUtils.serialize(in);
     }
 }

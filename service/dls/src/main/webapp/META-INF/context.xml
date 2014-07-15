@@ -5,11 +5,11 @@
         global="mcs/solr/url"
         type="java.lang.String"/>
 <ResourceLink
-        name="rabbit/host"
-        global="rabbit/host"
+        name="kafka/zookeeperList"
+        global="kafka/zookeeperList"
         type="java.lang.String"/>
 <ResourceLink
-        name="rabbit/port"
-        global="rabbit/port"
-        type="java.lang.Integer"/>   
+        name="kafka/topic"
+        global="kafka/topic"
+        type="java.lang.String"/>   
 </Context>

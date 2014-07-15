@@ -29,7 +29,6 @@ public class ServiceUISClientHandler implements UISClientHandler {
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
 
-
     @Override
     public boolean recordExistInUIS(String cloudId) {
         boolean exists = false;
@@ -43,16 +42,14 @@ public class ServiceUISClientHandler implements UISClientHandler {
         return exists;
     }
 
-
     @Override
-    public boolean providerExistsInUIS(String providerId) {
-        boolean exists = false;
-        try {
-            DataProvider provider = dataProviderService.getProvider(providerId);
-            exists = provider != null;
-        } catch (ProviderDoesNotExistException e) {
-            // ignore
-        }
-        return exists;
+    public DataProvider providerExistsInUIS(String providerId) {
+	DataProvider result = null;
+	try {
+	    result = dataProviderService.getProvider(providerId);
+	} catch (ProviderDoesNotExistException e) {
+	    // ignore
+	}
+	return result;
     }
 }
