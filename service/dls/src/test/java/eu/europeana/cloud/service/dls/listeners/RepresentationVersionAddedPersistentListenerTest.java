@@ -7,13 +7,14 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
+import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -21,14 +22,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/testContext.xml"})
+@ContextConfiguration(value = { "classpath:/testContext.xml" })
 public class RepresentationVersionAddedPersistentListenerTest {
 
     @Autowired
@@ -37,13 +36,12 @@ public class RepresentationVersionAddedPersistentListenerTest {
     @Autowired
     SolrDAO solrDAO;
 
-    private static final Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-            .create();
+    private static final Gson gson = new GsonBuilder().setDateFormat(
+	    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
 
-    @After
+    @Before
     public void cleanUp() {
-        Mockito.reset(solrDAO);
+	Mockito.reset(solrDAO);
     }
 
     @Test
@@ -65,8 +63,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
-        Message message = new Message(prepareInsertPersistentRepresentationMessage(representation, dataSetIds).getBytes(), new MessageProperties());
-
+        InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(representation, dataSetIds));
         //when
         listener.onMessage(message);
 
@@ -78,37 +75,37 @@ public class RepresentationVersionAddedPersistentListenerTest {
 
     @Test
     public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
-            throws Exception {
-        //given
-        Message message = new Message(null, new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+	    throws Exception {
+	// given
+	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
+		null);
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedEmptyMessage()
-            throws Exception {
-        //given
-        Message message = new Message("".getBytes(), new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+    public void shouldNotCallDAOWhenReceivedEmptyMessage() throws Exception {
+	// given
+	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
+		"");
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedNullMap()
-            throws Exception {
-        //given
-        HashMap<String, Object> map = null;
-
-        Message message = new Message(gson.toJson(map).getBytes(), new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+    public void shouldNotCallDAOWhenReceivedNullMap() throws Exception {
+	// given
+	HashMap<String, Object> map = null;
+	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
+		gson.toJson(map));
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
     @Test
@@ -116,8 +113,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
             throws Exception {
         //given
         HashMap<String, Object> map = new LinkedHashMap<>();
-
-        Message message = new Message(gson.toJson(map).getBytes(), new MessageProperties());
+        InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(gson.toJson(map));
         //when
         listener.onMessage(message);
         //then
@@ -135,7 +131,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId1));
         dataSetIds.add(new CompoundDataSetId(providerId, dataSetId2));
 
-        Message message = new Message(prepareInsertPersistentRepresentationMessage(null, dataSetIds).getBytes(), new MessageProperties());
+        InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(null, dataSetIds));
         //when
         listener.onMessage(message);
         //then
@@ -155,8 +151,8 @@ public class RepresentationVersionAddedPersistentListenerTest {
         Date creationDate = Calendar.getInstance().getTime();
 
         Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(representation, null));
 
-        Message message = new Message(prepareInsertPersistentRepresentationMessage(representation, null).getBytes(), new MessageProperties());
         //when
         listener.onMessage(message);
         //then

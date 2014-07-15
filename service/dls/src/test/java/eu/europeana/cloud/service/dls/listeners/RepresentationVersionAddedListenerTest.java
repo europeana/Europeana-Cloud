@@ -5,10 +5,11 @@ import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
+import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -16,14 +17,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/testContext.xml"})
+@ContextConfiguration(value = { "classpath:/testContext.xml" })
 public class RepresentationVersionAddedListenerTest {
 
     @Autowired
@@ -32,13 +31,12 @@ public class RepresentationVersionAddedListenerTest {
     @Autowired
     SolrDAO solrDAO;
 
-    private static final Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-            .create();
+    private static final Gson gson = new GsonBuilder().setDateFormat(
+	    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
 
-    @After
+    @Before
     public void cleanUp() {
-        Mockito.reset(solrDAO);
+	Mockito.reset(solrDAO);
     }
 
     @Test
@@ -54,8 +52,7 @@ public class RepresentationVersionAddedListenerTest {
         Date creationDate = Calendar.getInstance().getTime();
 
         Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
-        Message message = new Message(prepareInsertRepresentationMessage(representation).getBytes(), new MessageProperties());
-
+        InsertRepresentationMessage message = new InsertRepresentationMessage(prepareInsertRepresentationMessage(representation));
         //when
         listener.onMessage(message);
 
@@ -67,38 +64,41 @@ public class RepresentationVersionAddedListenerTest {
 
     @Test
     public void shouldNotCallDAOWhenReceivedMessageWithNullBody()
-            throws Exception {
-        //given
-        Message message = new Message(null, new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+	    throws Exception {
+	// given
+	InsertRepresentationMessage message = new InsertRepresentationMessage(
+		null);
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
     @Test
-    public void shouldNotCallDAOWhenReceivedEmptyMessage()
-            throws Exception {
-        //given
-        Message message = new Message("".getBytes(), new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+    public void shouldNotCallDAOWhenReceivedEmptyMessage() throws Exception {
+	// given
+	InsertRepresentationMessage message = new InsertRepresentationMessage(
+		"");
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
     @Test
     public void shouldNotCallDAOWhenReceivedNullRepresentation()
-            throws Exception {
-        //given
-        Message message = new Message(prepareInsertRepresentationMessage(null).getBytes(), new MessageProperties());
-        //when
-        listener.onMessage(message);
-        //then
-        verifyZeroInteractions(solrDAO);
+	    throws Exception {
+	// given
+	InsertRepresentationMessage message = new InsertRepresentationMessage(
+		prepareInsertRepresentationMessage(null));
+	// when
+	listener.onMessage(message);
+	// then
+	verifyZeroInteractions(solrDAO);
     }
 
-    private String prepareInsertRepresentationMessage(Representation representation) {
-        return gson.toJson(representation);
+    private String prepareInsertRepresentationMessage(
+	    Representation representation) {
+	return gson.toJson(representation);
     }
 }
