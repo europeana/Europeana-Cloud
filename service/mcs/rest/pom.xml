@@ -259,6 +259,12 @@
 			<artifactId>ecloud-service-mcs-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-mcs-persistent</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>joda-time</groupId>
