@@ -8,7 +8,7 @@ set -u
 shopt -s nullglob
 
 
-numPreserve=1
+numPreserve=7
 solrHTTP='http://localhost:8080/solr'
 #dataDirRoot="/home/$USER/install/solr/dataDirRoot"
 dataDirRoot="/home/$USER/install/solr/coreRoot"

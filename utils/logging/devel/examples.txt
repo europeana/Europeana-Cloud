@@ -2,13 +2,15 @@
 # If you enable reading from stdin in logstash config,
 # you can use them for debugging.
 
-2014-07-14T13:10:20.123Z uis uis01 - ERROR: We are loosing the grip.
-2014-07-14T14:10:20.123Z mcs mcs01 - WARN: We are loosing the touch.
-2014-07-14T12:10:20.123Z uis uis02 - ERROR: We are loosing the apple.
-2014-07-14T11:10:20.123Z mcs mcs02 - WARN: We are loosing the maple.
+2014-07-15T13:10:20.123Z uis uis01 - ERROR: We are loosing the grip.
+2014-07-15T14:10:20.123Z mcs mcs01 - WARN: We are loosing the touch.
+2014-07-15T12:10:20.123Z uis uis02 - ERROR: We are loosing the apple.
+2014-07-15T11:10:20.123Z mcs mcs02 - WARN: We are loosing the maple.
+2014-07-15T13:10:20.123Z mcs mcs02 - WARN: We are loosing the maple.
+2014-07-15T13:10:20.123Z uis uis02 - WARN: We are loosing the maple.
+2014-07-15T14:10:20.123Z uis uis02 - ERROR: We are loosing the maple.
 
-2014-07-14T13:10:20.123Z mcs mcs02 - WARN: We are loosing the maple.
-2014-07-14T13:10:20.123Z uis uis02 - WARN: We are loosing the maple.
-2014-07-14T14:10:20.123Z uis uis02 - ERROR: We are loosing the maple.
-
+2014-07-16T13:10:20.123Z mcs mcs02 - WARN: Message 1.
+2014-07-16T13:10:20.123Z uis uis02 - WARN: Message 1.
+2014-07-16T14:10:20.123Z uis uis02 - ERROR: Message 2.
 
