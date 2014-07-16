@@ -19,8 +19,8 @@ class LogStash::Filters::MetricsParser < LogStash::Filters::Base
 
 	public
 	def register
+		@previous = Hash.new{|hash, key| hash[key] = Hash.new}
 		@pending = []
-		@previous = 0
 	end #def register
 
 	public
@@ -32,24 +32,30 @@ class LogStash::Filters::MetricsParser < LogStash::Filters::Base
 			
 			#parse key to three parts: priority.instance.period
 			if ( result = /([^.]*)\.([^.]*)\.([^.]*)/.match(key) )
-
-				#next if ( not result or result.size != 3 )
 				
+				evPriority=result[1]
+				evInstance=result[2]
+				evPeriod=result[3]
+
 				#if field is specified, create event only for this field
-				next if (@field and @field != result[3]) 
-					
+				next if (@field and @field != evPeriod) 
+				
 				newEvent = LogStash::Event.new
-				newEvent["priority"]=result[1]
-				newEvent["instance"]=result[2]
-				newEvent["period"]=result[3]
+				newEvent["priority"]=evPriority
+				newEvent["instance"]=evInstance
+				newEvent["period"]=evPeriod
 				newEvent["value"]=value
 
 				#if field was specified, count diff
 				if (@field)
 					#count diff
 					curVal = value.to_i
-					newEvent["diff"] = curVal - @previous 
-					@previous = curVal
+					newEvent["diff"] = curVal;
+					#if we already have previous value, substract it
+					if ( @previous[evPriority][evInstance] )   
+						newEvent["diff"] -= @previous[evPriority][evInstance]
+					end
+					@previous[evPriority][evInstance] = curVal;
 				end
 
 				#prepare event for sending
