@@ -22,7 +22,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <solr.home>/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr</solr.home>
-        <solr.data.dir>/home/solr/data/</solr.data.dir>
     </properties>
 
     <profiles>
@@ -32,6 +31,7 @@
             </activation>
             <id>standard</id>
             <properties>
+				<solr.data.dir>/home/solr/data</solr.data.dir>
                 <solr.resources.dir>standard</solr.resources.dir>
             </properties>
         </profile>
