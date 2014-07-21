@@ -18,5 +18,7 @@ zkHome="/home/$USER/install/zookeeper/zookeeper"
 zkHost='hell15:2181'
 solrLibDir="/home/$USER/install/tomcat/tomcat/webapps/solr/WEB-INF/lib"
 
-./shiftCollections.sh $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir
+scriptAbsolutePath=/home/$USER/ecloud/repo/utils/logging/cron/shiftCollections.sh
+
+$scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir
 
