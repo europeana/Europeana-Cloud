@@ -13,7 +13,7 @@
         <field name="@timestamp" type="date" indexed="false" stored="false" required="false" multiValued="false"/>
         <field name="day" type="string" indexed="false" stored="false" required="false" multiValued="false"/>
         <field name="event_timestamp" type="date" indexed="true" stored="true" required="true" multiValued="false"/>
-        <field name="host" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
+        <!--field name="host" type="string" indexed="true" stored="true" required="false" multiValued="false"/-->
         <field name="priority" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="category" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="instance" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
