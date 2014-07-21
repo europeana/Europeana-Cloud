@@ -1,12 +1,18 @@
 #!/bin/bash
 
-#issue commit for solr core: core-current
+#issue commit for solr core specified as first argument
 
 #exit script of first failed command
 set -e
 #forbid using unset variables in bash script
 set -u
 shopt -s nullglob
+
+if [ $# -ne 1 ]
+then
+	echo usage: "commitCore.sh <collection-name>"
+	exit -1
+fi
 
 CORE=$1
 SOLR_HTTP='http://localhost:8080/solr'
