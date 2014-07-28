@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * MessageDispatcher routing message based on message subtype to appropriate
+ * MessageDispatcher routs message based on message subtype to an appropriate
  * message listener.
- * 
  */
 @Component
 public class MessageDispatcher implements Dispatcher {
@@ -21,7 +20,7 @@ public class MessageDispatcher implements Dispatcher {
     private static final Logger LOGGER = LoggerFactory
 	    .getLogger(MessageDispatcher.class);
 
-    private Map<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>> listenersMap = new HashMap<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>>();
+    private Map<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>> listenersMap = new HashMap<>();
 
     public void setListenersMap(
 	    Map<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>> listenersMap) {

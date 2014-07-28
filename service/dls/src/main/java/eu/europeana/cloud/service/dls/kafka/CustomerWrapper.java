@@ -13,8 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class CustomerWrapper {
 
-    private static final Logger LOGGER = LoggerFactory
-	    .getLogger(CustomerWrapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerWrapper.class);
 
     private static final String GROUP_ID = "ecloud";
 
@@ -25,37 +24,39 @@ public class CustomerWrapper {
     @Autowired(required = true)
     private KafkaMessageListener messageListener;
 
+
     /**
      * Constructor method.
      * 
      * @param zookeeperList
-     *            list of zookeepers manages kafka brokers instances in format
-     *            "host1:port,host2:port,host3:port" or
+     *            list of zookeepers managing kafka brokers instances in format "host1:port,host2:port,host3:port" or
      *            "host1:port,host2:port,host3:port/chroot"
      * @param topic
-     *            topic which messages are received
+     *            topic from which messages are received
      */
     public CustomerWrapper(String zookeeperList, String topic) {
-	consumer = new KafkaConsumer(zookeeperList, GROUP_ID);
-	this.topic = topic;
+        consumer = new KafkaConsumer(zookeeperList, GROUP_ID);
+        this.topic = topic;
 
     }
+
 
     /**
      * Initialize method.
      */
     @PostConstruct
     public void init() {
-	consumer.init();
-	consumer.addMessageListener(topic, messageListener);
+        consumer.init();
+        consumer.addMessageListener(topic, messageListener);
     }
+
 
     /**
      * Destroying method.
      */
     @PreDestroy
     public void destroy() {
-	consumer.destroy();
+        consumer.destroy();
     }
 
 }

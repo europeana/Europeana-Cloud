@@ -43,7 +43,7 @@ public class KafkaMessageListenerTest {
     }
 
     @Test
-    public void shouldSuccessfullyOnMessage() {
+    public void shouldSuccessfullyCallOnMessage() {
 	// given
 	final ArgumentCaptor<AbstractMessage> argument = ArgumentCaptor
 		.forClass(AbstractMessage.class);
