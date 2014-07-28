@@ -4,7 +4,7 @@ import kafka.producer.Partitioner;
 import kafka.utils.VerifiableProperties;
 
 /**
- * Routing messages to different partitions via routingKey.
+ * Used to route messages to different partitions using routingKey.
  * 
  */
 public class CustomPartitioner implements Partitioner {
@@ -18,22 +18,24 @@ public class CustomPartitioner implements Partitioner {
     public CustomPartitioner(VerifiableProperties props) {
     }
 
+
     /**
-     * Routing messages to different partitions via routingKey.
+     * Returns partition id for given routing key and number of partitions.
      * 
      * @param routingKey
      *            used to route message to partitions
      * @param numPartitions
      *            number of partitions
-     * @return number of routed partition
+     * @return partition id
      */
     @Override
     public int partition(Object routingKey, int numPartitions) {
-	if (routingKey instanceof String) {
-	    return partition((String) routingKey, numPartitions);
-	}
-	throw new RuntimeException("Unsuppored argument as parttition key");
+        if (routingKey instanceof String) {
+            return getPartitionIdFromStringRoutingKey((String) routingKey, numPartitions);
+        }
+        throw new RuntimeException("Unsuppored argument as parttition key");
     }
+
 
     /**
      * Routing messages to different partitions via routingKey.
@@ -44,8 +46,8 @@ public class CustomPartitioner implements Partitioner {
      *            number of partitions
      * @return number of routed partition
      */
-    public int partition(String routingKey, int numPartitions) {
-	final int hash = Integer.valueOf(routingKey);
-	return Math.abs(hash % numPartitions);
+    private int getPartitionIdFromStringRoutingKey(String routingKey, int numPartitions) {
+        final int hash = Integer.valueOf(routingKey);
+        return Math.abs(hash % numPartitions);
     }
 }

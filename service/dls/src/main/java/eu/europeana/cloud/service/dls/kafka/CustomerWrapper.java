@@ -3,17 +3,15 @@ package eu.europeana.cloud.service.dls.kafka;
 import com.github.ddth.kafka.KafkaConsumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * CustomerWrapper create message listener message from Kafka broker.
+ * CustomerWrapper - wrapper for {@link com.github.ddth.kafka.KafkaConsumer} and
+ * {@link eu.europeana.cloud.service.dls.kafka.KafkaMessageListener}.
  * 
  */
 public class CustomerWrapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerWrapper.class);
 
     private static final String GROUP_ID = "ecloud";
 
@@ -29,7 +27,7 @@ public class CustomerWrapper {
      * Constructor method.
      * 
      * @param zookeeperList
-     *            list of zookeepers managing kafka brokers instances in format "host1:port,host2:port,host3:port" or
+     *            list of zookeepers managing kafka broker instances in format "host1:port,host2:port,host3:port" or
      *            "host1:port,host2:port,host3:port/chroot"
      * @param topic
      *            topic from which messages are received

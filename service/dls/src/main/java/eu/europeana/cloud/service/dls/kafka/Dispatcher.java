@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dls.kafka;
 
 /**
- * Dispatcher routing message based on message subtype to appropriate
- * message listener.
+ * Dispatcher routes message to an appropriate message listener based on message class.
  * 
  */
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 
 public interface Dispatcher {
     /**
-     * Routing message based on message subtype to appropriate message listener.
+     * Routes message to an appropriate message listener based on message class.
      * 
      * @param message
      *            to be routed
