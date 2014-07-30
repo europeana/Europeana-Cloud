@@ -6,6 +6,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,9 +76,28 @@ public class UISClient {
 	 * 
 	 * @param uisUrl The URL of some UIS instance to connect to.
 	 */
+	public UISClient(final String uisUrl, final String username, final String password) {
+		LOGGER.info("UISClient starting...");
+		
+		client.register(new HttpBasicAuthFilter(username, password));
+
+		try {
+			urlProvider = new UrlProvider(uisUrl);
+		} catch (final Exception e) {
+			LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
+		}
+
+		LOGGER.info("UISClient started successfully.");
+	}
+	
+	/**
+	 * Creates a new instance of this class.
+	 * 
+	 * @param uisUrl The URL of some UIS instance to connect to.
+	 */
 	public UISClient(final String uisUrl) {
 		LOGGER.info("UISClient starting...");
-
+		
 		try {
 			urlProvider = new UrlProvider(uisUrl);
 		} catch (final Exception e) {
