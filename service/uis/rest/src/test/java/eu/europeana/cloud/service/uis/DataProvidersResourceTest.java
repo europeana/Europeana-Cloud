@@ -23,7 +23,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
+import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.JerseyConfig;
 
 /**
@@ -47,7 +47,7 @@ public class DataProvidersResourceTest extends JerseyTest {
 	public void mockUp() {
 		ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
 		dataProviderService = applicationContext.getBean(DataProviderService.class);
-		dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
+		dataProvidersWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
 	}
 
 	/**
