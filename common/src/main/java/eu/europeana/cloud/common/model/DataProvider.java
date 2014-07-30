@@ -2,6 +2,7 @@ package eu.europeana.cloud.common.model;
 
 import java.net.URI;
 import java.util.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -11,6 +12,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class DataProvider {
 
+	public DataProvider() {
+	}
+	
+	public DataProvider(final String id) {
+		this.id = id;
+	}
+	
     /**
      * The provider id.
      */
@@ -33,7 +41,7 @@ public class DataProvider {
 
 
     public String getId() {
-        return id;
+        return "1";
     }
 
 
@@ -101,5 +109,10 @@ public class DataProvider {
             return false;
         }
         return true;
+    }
+    
+    @Override
+    public String toString() {
+    	return super.toString();
     }
 }
