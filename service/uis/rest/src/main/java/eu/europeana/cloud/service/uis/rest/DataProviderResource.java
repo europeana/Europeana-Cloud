@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.uis.rest;
 
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_LOCALID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -20,7 +19,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.qmino.miredot.annotations.ReturnType;
@@ -36,6 +46,7 @@ import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 
@@ -43,7 +54,7 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
  * Resource for DataProvider.
  * 
  */
-@Path("/data-providers/{" + P_PROVIDER + "}")
+@Path("/data-providers")
 @Component
 @Scope("request")
 public class DataProviderResource {
@@ -54,18 +65,19 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
-    @PathParam(P_PROVIDER)
-    private String providerId;
-
     @PathParam(P_LOCALID)
     private String localId;
 
     @PathParam(P_CLOUDID)
     private String cloudId;
 
-    @Context
-    private UriInfo uriInfo;
+	@Autowired
+	private MutableAclService mutableAclService;
 
+	@Value("${numberOfElementsOnPage}")
+	private int numberOfElementsOnPage;
+	
+	private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName(); 
 
     /**
      * Gets provider.
@@ -75,8 +87,10 @@ public class DataProviderResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public DataProvider getProvider()
+	@Path("{providerId}")
+    public DataProvider getProvider(@PathParam("providerId") String providerId)
             throws ProviderDoesNotExistException {
+    	
         return providerService.getProvider(providerId);
     }
 
@@ -90,8 +104,11 @@ public class DataProviderResource {
      * @statuscode 204 object has been updated.
      */
     @PUT
+	@Path("{providerId}")
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public void updateProvider(DataProviderProperties dataProviderProperties)
+    @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
+    public void updateProvider(@Context UriInfo uriInfo, 
+    		DataProviderProperties dataProviderProperties, @PathParam("providerId") String providerId)
             throws ProviderDoesNotExistException {
         DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);
         EnrichUriUtil.enrich(uriInfo, provider);
@@ -108,10 +125,11 @@ public class DataProviderResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-    @Path("localIds")
+	@Path("{id}/localIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    public Response getLocalIdsByProvider(@PathParam("id") String providerId,
+    			@QueryParam(UISParamConstants.Q_FROM) String from,
     			@QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
     				throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -135,10 +153,11 @@ public class DataProviderResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-    @Path("cloudIds")
+    @Path("{id}/cloudIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getCloudIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    public Response getCloudIdsByProvider(@PathParam("id") String providerId,
+    			@QueryParam(UISParamConstants.Q_FROM) String from,
     			@QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
     					throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -161,9 +180,10 @@ public class DataProviderResource {
      * @throws RecordDatasetEmptyException
      */
     @POST
-    @Path("cloudIds/{" + P_CLOUDID + "}")
+    @Path("{id}/cloudIds/{" + P_CLOUDID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    public Response createIdMapping(@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+    public Response createIdMapping(@PathParam("id") String providerId, 
+    		@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
         if (localId != null) {
@@ -183,12 +203,77 @@ public class DataProviderResource {
      * @throws RecordIdDoesNotExistException
      */
     @DELETE
-    @Path("localIds/{" + P_LOCALID + "}")
+    @Path("{id}/localIds/{" + P_LOCALID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    public Response removeIdMapping()
+    public Response removeIdMapping(@PathParam("id") String providerId)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
         uniqueIdentifierService.removeIdMapping(providerId, localId);
         return Response.ok("Mapping marked as deleted").build();
     }
+    
+	/**
+	 * Lists all providers. Result is returned in slices.
+	 * 
+	 * @param startFrom
+	 *            reference to next slice of result.
+	 * @return slice of result.
+	 */
+	@GET
+	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	public ResultSlice<DataProvider> getProviders(@QueryParam(UISParamConstants.Q_FROM) String startFrom) {
+		return providerService.getProviders(startFrom, numberOfElementsOnPage);
+	}
+	
+	/**
+	 * Creates a new data provider. Response contains uri to created resource in
+	 * as content location.
+	 * 
+	 * @param dataProviderProperties
+	 *            data provider properties.
+	 * @param providerId
+	 *            data provider id (required)
+	 * @return URI to created resource in content location
+	 * @throws ProviderAlreadyExistsException
+	 *             provider already * exists.
+	 * @statuscode 201 object has been created.
+	 */
+	@POST
+	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@PreAuthorize("isAuthenticated()")
+	public Response createProvider(@Context UriInfo uriInfo, 
+			DataProviderProperties dataProviderProperties,
+			@QueryParam(UISParamConstants.Q_PROVIDER) String providerId) throws ProviderAlreadyExistsException {
 
+		DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
+		EnrichUriUtil.enrich(uriInfo, provider);
+		
+		// provider created => let's assign permissions to the owner
+        String creatorName = getUsername(); 
+        ObjectIdentity providerIdentity = new ObjectIdentityImpl(DATA_PROVIDER_CLASS_NAME, providerId);
+        
+		MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
+
+		providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
+		
+		mutableAclService.updateAcl(providerAcl);
+    	
+		return Response.created(provider.getUri()).build();
+	}
+	
+	/**
+	 * @return Name of the currently logged in user
+	 */
+    private String getUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) auth.getPrincipal()).getUsername();
+        } else {
+            return auth.getPrincipal().toString();
+        }
+    }
 }

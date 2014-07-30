@@ -12,12 +12,23 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.qmino.miredot.annotations.ReturnType;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
@@ -38,14 +49,20 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 @Path("/")
 @Scope("request")
 public class BasicUniqueIdResource{
+	
 	@Autowired
 	private UniqueIdentifierService uniqueIdentifierService;
+	
+	@Autowired
+	private MutableAclService mutableAclService;
 
 	private static final String CLOUDID = "cloudId";
 	
 	@PathParam(CLOUDID)
 	private String cloudId;
 	
+	private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName(); 
+
 	/**
 	 * Invoke the generation of a cloud identifier using the provider identifier and a record identifier
 	 * @param providerId 
@@ -61,12 +78,31 @@ public class BasicUniqueIdResource{
 	@Path("cloudIds")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@ReturnType("eu.europeana.cloud.common.model.CloudId")
+	@PreAuthorize("isAuthenticated()")
 	public Response createCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId, @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
 			throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
 			RecordDatasetEmptyException, CloudIdDoesNotExistException {
+		
+		final CloudId cloudId = (localId != null) ? 
+				(uniqueIdentifierService.createCloudId(providerId, localId)) : 
+					(uniqueIdentifierService.createCloudId(providerId));
+		
+		final Response response = Response.ok().entity(cloudId).build();
+				
+		// CloudId created => let's assign permissions to the owner
+        String creatorName = getUsername(); 
+        ObjectIdentity providerIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, providerId);
+        
+		MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
 
-		return localId != null ? Response.ok().entity(uniqueIdentifierService.createCloudId(providerId, localId))
-				.build() : Response.ok().entity(uniqueIdentifierService.createCloudId(providerId)).build();
+		providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+		providerAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
+		
+		mutableAclService.updateAcl(providerAcl);
+		
+		return response;
 	}
 
 	/**
@@ -119,9 +155,24 @@ public class BasicUniqueIdResource{
 	@DELETE
 	@Path("cloudIds/{"+CLOUDID+"}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @PreAuthorize("hasPermission(#cloudId, 'eu.europeana.cloud.common.model.CloudId', delete)")
 	public Response deleteCloudId() throws DatabaseConnectionException,
 			CloudIdDoesNotExistException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
+		
 		uniqueIdentifierService.deleteCloudId(cloudId);
 		return Response.ok("CloudId marked as deleted").build();
 	}
+	
+	/**
+	 * @return Name of the currently logged in user
+	 */
+    private String getUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) auth.getPrincipal()).getUsername();
+        } else {
+            return auth.getPrincipal().toString();
+        }
+    }
 }
