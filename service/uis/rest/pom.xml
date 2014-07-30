@@ -36,6 +36,114 @@
 		</profile>
 
 		<profile>
+			<id>persistent-authorization</id>
+			<activation>
+				<property>
+					<name>persistent-authorization</name>
+				</property>
+			</activation>
+			<dependencies>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<id>copy-authorization-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/resources/persistent-authorization</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>persistent-authentication</id>
+			<activation>
+				<property>
+					<name>persistent-authentication</name>
+				</property>
+			</activation>
+			<dependencies>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<id>copy-authentication-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/resources/persistent-authentication</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>inmemory-authentication</id>
+			<activation>
+				<property>
+					<name>inmemory-authentication</name>
+				</property>
+			</activation>
+			<dependencies>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<id>copy-security-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/resources/inmemory-authentication</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
 			<id>zookeeper</id>
 			<activation>
 				<property>
@@ -94,18 +202,19 @@
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- Log4j 2 implementation -->
+
+		<!-- Authentication + Authorization -->
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>${log4j2_version}</version>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-aas-authorization</artifactId>
+			<version>${project.version}</version>
 		</dependency>
-		<!-- SLF4J to Log4j 2 binding -->
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.0-beta6</version>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-aas-authentication</artifactId>
+			<version>${project.version}</version>
 		</dependency>
+
 		<!-- SLF4J API -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -121,22 +230,18 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
 		</dependency>
-		<!-- Commson Logging to Log4j 2 binding -->
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-jcl</artifactId>
-			<version>${log4j2_version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.7</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-flume-ng</artifactId>
-			<version>${log4j2_version}</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>${log4j2_version}</version>
-		</dependency>
+		<!-- -->
+
+		<!-- -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
@@ -163,13 +268,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 			<scope>compile</scope>
-			<exclusions>
-				<!--without jcl - because we use log4j through slf4j -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -211,6 +309,35 @@
 			<artifactId>miredot-annotations</artifactId>
 			<version>1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.10</artifactId>
+			<version>0.8.1.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>zookeeper</artifactId>
+					<groupId>org.apache.zookeeper</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${version.spring-framework}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 
@@ -221,6 +348,10 @@
 					<exclude>persistent/</exclude>
 					<exclude>inmemory/</exclude>
 					<exclude>zookeeper/</exclude>
+					
+					<exclude>persistent-authentication/</exclude>
+					<exclude>persistent-authorization/</exclude>
+					<exclude>inmemory-authentication/</exclude>
 				</excludes>
 			</resource>
 		</resources>
