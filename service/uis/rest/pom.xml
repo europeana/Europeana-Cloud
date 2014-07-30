@@ -38,6 +38,7 @@
 		<profile>
 			<id>persistent-authorization</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>persistent-authorization</name>
 				</property>
@@ -74,6 +75,7 @@
 		<profile>
 			<id>persistent-authentication</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>persistent-authentication</name>
 				</property>
