@@ -101,7 +101,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 	 */
 	@Test
 	public void shouldReturnPagedProviderList() throws ProviderAlreadyExistsException {
-		int providerCount = 1000;
+		int providerCount = 100;
 		List<String> insertedProviderIds = new ArrayList<>(providerCount);
 
 		// insert random providers
