@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     <version>0.2-SNAPSHOT</version>
     <inceptionYear>2013</inceptionYear>
-    <name>Europeana Cloud: Parent Module</name>
+    <name>Europeana Cloud</name>
     <organization>
         <url>http://pro.europeana.eu/web/europeana-cloud</url>
         <name>Europeana Cloud Development Team</name>
