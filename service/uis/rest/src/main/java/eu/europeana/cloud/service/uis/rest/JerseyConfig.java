@@ -40,5 +40,6 @@ public class JerseyConfig extends ResourceConfig {
 		register(ProviderAlreadyExistsExceptionMapper.class);
 		register(BasicUniqueIdResource.class);
 		register(DataProviderResource.class);
+        register(DataProvidersResource.class);
 	}
 }
