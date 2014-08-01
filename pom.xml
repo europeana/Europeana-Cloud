@@ -72,14 +72,14 @@
     </developers>
     <modules>
         <module>common</module>
-        <module>integration</module>
-		<module>service/aas</module>
-		<module>service/cos</module>
-        <module>service/mcs</module>
         <module>service/uis</module>
-        <module>tools</module>
-        <module>service/dls</module>
         <module>ecloud-solr</module>
+        <module>service/dls</module>
+        <module>service/mcs</module>
+<!-- 		<module>service/aas</module> -->
+<!-- 		<module>service/cos</module> -->
+<!--         <module>tools</module> -->
+<!--         <module>integration</module> -->
     </modules>
     <repositories>
         <repository>
