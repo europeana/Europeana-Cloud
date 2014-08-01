@@ -73,9 +73,9 @@
     <modules>
         <module>common</module>
         <module>service/uis</module>
-        <module>ecloud-solr</module>
-        <module>service/dls</module>
-        <module>service/mcs</module>
+<!--         <module>ecloud-solr</module> -->
+<!--         <module>service/dls</module> -->
+<!--         <module>service/mcs</module> -->
 <!-- 		<module>service/aas</module> -->
 <!-- 		<module>service/cos</module> -->
 <!--         <module>tools</module> -->
