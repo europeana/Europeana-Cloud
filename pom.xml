@@ -79,7 +79,7 @@
 		<module>service/cos</module>
 		<module>service/aas</module>
         <module>tools</module>
-<!--         <module>integration</module> -->
+        <module>integration</module>
     </modules>
     <repositories>
         <repository>
