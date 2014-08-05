@@ -10,7 +10,7 @@
 
 	<artifactId>ecloud-service-aas-authorization</artifactId>
 	<packaging>jar</packaging>
-	<name>Europeana Cloud: Authorization service with spring security and cassandra</name>
+	<name>Europeana Cloud: Authentication Authorization Service Authorization</name>
 
 	<licenses>
 		<license>

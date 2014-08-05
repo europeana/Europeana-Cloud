@@ -7,7 +7,7 @@
         <version>0.2-SNAPSHOT</version>
     </parent>
     <groupId>eu.europeana.cloud.service.mcs</groupId>
-    <name>MCS cleaner</name>
+    <name>Europeana Cloud: Metadata and Content Service Cleaner</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -10,7 +10,7 @@
 
 	<artifactId>ecloud-service-mcs-persistent</artifactId>
 	<packaging>jar</packaging>
-	<name>Europeana Cloud: Metadata and Content Service Persistent Implementation</name>
+	<name>Europeana Cloud: Metadata and Content Service Persistent</name>
 
 	<properties>
 		<main.directory>${project.parent.basedir}</main.directory>
