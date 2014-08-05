@@ -10,7 +10,7 @@
 	<artifactId>ecloud-service-uis-rest-client-java</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Europeana Cloud: Unique Identifier Service REST Client</name>
+	<name>Europeana Cloud: Unique Identifier Service REST Java Client</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

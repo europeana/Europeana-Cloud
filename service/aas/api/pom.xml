@@ -10,7 +10,7 @@
 
 	<artifactId>ecloud-service-aas-api</artifactId>
 	<packaging>jar</packaging>
-	<name>Europeana Cloud: Authentication Authorization service API</name>
+	<name>Europeana Cloud: Authentication Authorization Service API</name>
 
 	<dependencies>
 		<dependency>

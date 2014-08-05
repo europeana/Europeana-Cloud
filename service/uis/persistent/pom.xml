@@ -12,7 +12,7 @@
 
 	<artifactId>ecloud-service-uis-persistent</artifactId>
 	<packaging>jar</packaging>
-	<name>Europeana Cloud: Unique Identifier Service Cassandra Implementation</name>
+	<name>Europeana Cloud: Unique Identifier Service Persistent</name>
 	<properties>
 		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
 	</properties>
