@@ -1,17 +1,22 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <url>http://maven.apache.org</url>
+    
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
         <version>0.2-SNAPSHOT</version>
     </parent>
+    
     <groupId>eu.europeana.cloud.service.mcs</groupId>
-    <name>Europeana Cloud: Metadata and Content Service Cleaner</name>
-    <url>http://maven.apache.org</url>
+    <artifactId>ecloud-service-mcs-utils</artifactId>
+    <name>Europeana Cloud: Metadata and Content Service Utilities</name>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    
     <dependencies>
         <!--logging -->
         <dependency>
@@ -58,5 +63,4 @@
             <type>jar</type>
         </dependency>
     </dependencies>
-    <artifactId>ecloud-service-mcs-utils</artifactId>
 </project>
