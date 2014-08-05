@@ -10,7 +10,7 @@
 	<artifactId>ecloud-service-uis-inmemory</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Europeana Cloud: Unique Identifier Service InMemory Implementation</name>
+	<name>Europeana Cloud: Unique Identifier Service InMemory</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
