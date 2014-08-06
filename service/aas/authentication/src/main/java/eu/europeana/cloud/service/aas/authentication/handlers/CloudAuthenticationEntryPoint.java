@@ -15,7 +15,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  *
  * @author emmanouil.koufakis@theeuropeanlibrary.org
  */
-public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class CloudAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
