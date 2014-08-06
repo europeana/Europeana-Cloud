@@ -30,7 +30,7 @@ public class ServiceUISClientHandler implements UISClientHandler {
     private UniqueIdentifierService uniqueIdentifierService;
 
     @Override
-    public boolean recordExistInUIS(String cloudId) {
+    public boolean existsCloudId(String cloudId) {
         boolean exists = false;
         try {
             List<CloudId> ids = uniqueIdentifierService.getLocalIdsByCloudId(cloudId);
@@ -43,7 +43,7 @@ public class ServiceUISClientHandler implements UISClientHandler {
     }
 
     @Override
-    public DataProvider providerExistsInUIS(String providerId) {
+    public DataProvider getProvider(String providerId) {
 	DataProvider result = null;
 	try {
 	    result = dataProviderService.getProvider(providerId);
@@ -51,5 +51,16 @@ public class ServiceUISClientHandler implements UISClientHandler {
 	    // ignore
 	}
 	return result;
+    }
+    
+    @Override
+    public boolean existsProvider(String providerId) {
+	DataProvider result = null;
+	try {
+	    result = dataProviderService.getProvider(providerId);
+	} catch (ProviderDoesNotExistException e) {
+	    // ignore
+	}
+	return result != null;
     }
 }
