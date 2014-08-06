@@ -10,7 +10,7 @@ shopt -s nullglob
 
 numPreserve=7
 solrHTTP='http://localhost:8080/solr'
-#dataDirRoot="/home/$USER/install/solr/dataDirRoot"
+#it might be necessary to substitute all $USER with actual user for script to work in cron
 dataDirRoot="/home/$USER/install/solr/coreRoot"
 configSrcDir="/home/$USER/ecloud/repo/solr/custom/src/main/resources/solr_files/log_analysis/solr/conf"
 configTempDir="/home/$USER/install/solr/configTemp"
