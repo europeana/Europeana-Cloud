@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.aas.authentication;
 
+import eu.europeana.cloud.common.model.User;
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -12,33 +13,17 @@ import org.springframework.security.core.userdetails.UserDetails;
  * (username, password..)
  *
  * @author emmanouil.koufakis@theeuropeanlibrary.org
- *
  */
-public class CloudUserDetails implements UserDetails {
+public class SpringUser extends User implements UserDetails {
 
-    private final String username;
-
-    private final String password;
-
-    public CloudUserDetails(final String username, final String password) {
-        this.username = username;
-        this.password = password;
+    public SpringUser(final String username, final String password) {
+        super(username, password);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // TODO 
         return null;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
     }
 
     @Override

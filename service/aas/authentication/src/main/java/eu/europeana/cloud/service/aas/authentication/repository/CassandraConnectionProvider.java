@@ -44,10 +44,10 @@ public class CassandraConnectionProvider {
      * @throws IOException
      */
     public CassandraConnectionProvider(final String host, final String port, final String keyspaceName, final String username, final String password,
-            final boolean createTables) throws IOException {
+            final boolean create) throws IOException {
 
         LOGGER.info("DatabaseService starting... host='{}', port='{}', keyspaceName='{}', create='{}',username='{}'",
-                host, port, keyspaceName, createTables, username);
+                host, port, keyspaceName, create, username);
 
         this.host = host;
         this.port = port;
@@ -57,7 +57,7 @@ public class CassandraConnectionProvider {
                 .withCredentials(username, password).build();
         session = cluster.connect(keyspaceName);
 
-        if (createTables) {
+        if (create) {
             LOGGER.info("DatabaseService creating tables...");
             session = cluster.connect();
             List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-aas.cql").getPath()));

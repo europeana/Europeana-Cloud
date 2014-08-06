@@ -4,142 +4,174 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
-import eu.europeana.cloud.service.aas.authentication.CloudUserDetails;
-import org.springframework.security.core.userdetails.UserDetails;
+import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.User;
+import eu.europeana.cloud.service.aas.authentication.SpringUser;
+import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
+import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
+import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
 
 /**
- * Used to create / retrieve / update <code>User</code> objects from ecloud's
- * database.
+ * Used to create / retrieve / update <code>CloudUser</code> objects from
+ * ecloud's database.
  *
  * @author emmanouil.koufakis@theeuropeanlibrary.org
- *
  */
 public class CassandraUserDAO {
 
     private static final Log LOGGER = LogFactory.getLog(CassandraUserDAO.class);
 
-    private Session session;
-
-    private ConsistencyLevel cassandraConsistencyLevel;
-
-    private PreparedStatement createUserStatement;
-
-    private PreparedStatement updateUserStatement;
+    private CassandraConnectionProvider provider;
 
     private PreparedStatement selectUserStatement;
+    private PreparedStatement createUserStatement;
+    private PreparedStatement updateUserStatement;
+    private PreparedStatement deleteUserStatement;
 
     /**
      * Constructs a new <code>CassandraUserDAO</code>.
      *
-     * @param session the <code>Session</code> to use for connectivity with
+     * @param provider the <code>Session</code> to use for connectivity with
      * Cassandra.
      */
-    public CassandraUserDAO(final CassandraConnectionProvider databaseService) {
-        this(databaseService.getSession(), databaseService.getConsistencyLevel());
-    }
-
-    /**
-     * Constructs a new <code>CassandraUserDAO</code>.
-     *
-     * Used to create / retrieve / update <code>User</code> objects from
-     * ecloud's database.
-     *
-     * @param session session the <code>Session</code> to use for connectivity
-     * with Cassandra.
-     * @param cassandraConsistencyLevel Consistency Level for Cassandra.
-     */
-    public CassandraUserDAO(final Session session, final ConsistencyLevel cassandraConsistencyLevel) {
-
+    public CassandraUserDAO(final CassandraConnectionProvider provider) {
         LOGGER.info("CassandraUserDAO starting...");
-
-        this.session = session;
-        this.cassandraConsistencyLevel = cassandraConsistencyLevel;
+        this.provider = provider;
         prepareStatements();
-
         LOGGER.info("CassandraUserDAO started successfully.");
     }
 
-    public UserDetails getUser(final String username) {
-        return retrieveUser(username);
-    }
-
     private void prepareStatements() {
-        createUserStatement = session.prepare(
-                "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?) IF NOT EXISTS;");
-        createUserStatement.setConsistencyLevel(cassandraConsistencyLevel);
+        selectUserStatement = provider.getSession().prepare(
+                "SELECT username, password FROM users WHERE username = ?");
+        selectUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
-        updateUserStatement = session.prepare(
-                "INSERT INTO data_providers(provider_id, properties, creation_date) VALUES (?,?,?);");
-        updateUserStatement.setConsistencyLevel(cassandraConsistencyLevel);
+        createUserStatement = provider.getSession().prepare(
+                "INSERT INTO users(username, password) VALUES (?,?) IF NOT EXISTS;");
+        createUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
-        selectUserStatement = session.prepare(
-                "SELECT username, password FROM USERS WHERE username = ?");
-        selectUserStatement.setConsistencyLevel(cassandraConsistencyLevel);
+        updateUserStatement = provider.getSession().prepare(
+                "UPDATE users SET password = ? WHERE username = ?;");
+        updateUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
+
+        deleteUserStatement = provider.getSession().prepare(
+                "DELETE FROM users WHERE username = ?;");
+        deleteUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
     }
 
-    private UserDetails retrieveUser(final String userName)
-            throws NoHostAvailableException, QueryExecutionException {
+    public SpringUser getUser(final String username)
+            throws DatabaseConnectionException, UserDoesNotExistException {
+        try {
+            BoundStatement boundStatement = selectUserStatement.bind(username);
+            ResultSet rs = provider.getSession().execute(boundStatement);
+            Row result = rs.one();
+            if (result == null) {
+                throw new UserDoesNotExistException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getHttpCode(),
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getErrorInfo(username)));
 
-        BoundStatement boundStatement = selectUserStatement.bind(userName);
-        ResultSet rs = session.execute(boundStatement);
-        Row result = rs.one();
-        if (result == null) {
-            return null;
+            }
+            return mapUser(result);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
         }
-        return mapUser(result);
     }
 
-    private void createUser(final String userName, final String password)
-            throws NoHostAvailableException, QueryExecutionException {
+    public void createUser(final User user)
+            throws DatabaseConnectionException, UserExistsException {
+        try {
+            BoundStatement boundStatement = selectUserStatement.bind(user.getUsername());
+            ResultSet rs = provider.getSession().execute(boundStatement);
+            Row result = rs.one();
+            if (result != null) {
+                throw new UserExistsException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getHttpCode(),
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getErrorInfo(user.getUsername())));
 
-//        BoundStatement boundStatement = createUserStatement.bind(userName, propertiesToMap(properties), date);
-//        session.execute(boundStatement);
+            }
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
+
+        try {
+            BoundStatement boundStatement = createUserStatement.bind(user.getUsername(), user.getPassword());
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
     }
 
-    private UserDetails mapUser(final Row row) {
+    public void updateUser(final User user)
+            throws DatabaseConnectionException, UserDoesNotExistException {
+        try {
+            BoundStatement boundStatement = selectUserStatement.bind(user.getUsername());
+            ResultSet rs = provider.getSession().execute(boundStatement);
+            Row result = rs.one();
+            if (result == null) {
+                throw new UserDoesNotExistException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getHttpCode(),
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getErrorInfo(user.getUsername())));
+
+            }
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
+
+        try {
+            BoundStatement boundStatement = updateUserStatement.bind(user.getUsername(), user.getPassword());
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
+    }
+
+    public void deleteUser(final String username)
+            throws DatabaseConnectionException, UserDoesNotExistException {
+        try {
+            BoundStatement boundStatement = selectUserStatement.bind(username);
+            ResultSet rs = provider.getSession().execute(boundStatement);
+            Row result = rs.one();
+            if (result == null) {
+                throw new UserDoesNotExistException(new IdentifierErrorInfo(
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getHttpCode(),
+                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getErrorInfo(username)));
+
+            }
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
+
+        try {
+            BoundStatement boundStatement = deleteUserStatement.bind(username);
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
+        }
+    }
+
+    private SpringUser mapUser(final Row row) {
         final String username = row.getString("username");
         final String password = row.getString("password");
-
-        UserDetails user = new CloudUserDetails(username, password);
+        SpringUser user = new SpringUser(username, password);
         return user;
     }
-
-    /**
-     * private Map<String, String> propertiesToMap(DataProviderProperties
-     * properties) { Map<String, String> map = new HashMap<>(); Method[] methods
-     * = DataProviderProperties.class.getDeclaredMethods(); for (Method m :
-     * methods) { if (m.getName().startsWith("get")) { Object value; try { value
-     * = m.invoke(properties); if (value != null) {
-     * map.put(m.getName().substring(3), value.toString()); } } catch
-     * (IllegalAccessException | IllegalArgumentException |
-     * InvocationTargetException ex) { LOGGER.error(ex.getMessage()); } } }
-     * return map; }
-     *
-     *
-     * private DataProviderProperties mapToProperties(Map<String, String> map) {
-     * DataProviderProperties properties = new DataProviderProperties();
-     * Method[] methods = DataProviderProperties.class.getDeclaredMethods(); for
-     * (Method m : methods) { if (m.getName().startsWith("set")) { String
-     * propName = m.getName().substring(3); String propValue =
-     * map.get(propName); if (propValue != null) { try { m.invoke(properties,
-     * propValue); } catch (IllegalAccessException | IllegalArgumentException |
-     * InvocationTargetException ex) { LOGGER.error(ex.getMessage()); } } } }
-     * return properties; }
-     */
-    /**
-     * Retrieve the consistency level of the queries
-     *
-     * @return QUORUM consistency level
-     */
-    public ConsistencyLevel getConsistencyLevel() {
-        return cassandraConsistencyLevel;
-    }
-
 }
