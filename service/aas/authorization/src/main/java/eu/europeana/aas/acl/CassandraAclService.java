@@ -43,10 +43,10 @@ import org.springframework.util.Assert;
 
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.acl.repository.AclRepository;
 
 /**
- * Implementation of {@link AclService} using the {@link CassandraAclRepository} to access ACLs stored in Cassandra.
+ * Implementation of {@link AclService} using the {@link AclRepository} to access ACLs stored in Cassandra.
  * 
  * @author Rigas Grigoropoulos
  *
@@ -55,7 +55,7 @@ public class CassandraAclService implements AclService {
 
 	private static final Log LOG = LogFactory.getLog(CassandraAclService.class);
 
-	protected final CassandraAclRepository aclRepository;
+	protected final AclRepository aclRepository;
 	protected final AclCache aclCache;
 	private PermissionFactory permissionFactory;
 	private AclAuthorizationStrategy aclAuthorizationStrategy;
@@ -66,13 +66,13 @@ public class CassandraAclService implements AclService {
 	/**
 	 * Constructs a new <code>CassandraAclService</code> object.
 	 * 
-	 * @param aclRepository the {@link CassandraAclRepository} to use for access to the database.
+	 * @param aclRepository the {@link AclRepository} to use for access to the database.
 	 * @param aclCache the {@link AclCache} to use (can be <code>null</code>).
 	 * @param grantingStrategy the {@link PermissionGrantingStrategy} to use when creating {@link Acl} objects.
 	 * @param aclAuthorizationStrategy the {@link AclAuthorizationStrategy} to use when creating {@link Acl} objects.
 	 * @param permissionFactory the {@link PermissionFactory} to use when creating {@link AccessControlEntry} objects.
 	 */
-	public CassandraAclService(CassandraAclRepository aclRepository, AclCache aclCache, PermissionGrantingStrategy grantingStrategy,
+	public CassandraAclService(AclRepository aclRepository, AclCache aclCache, PermissionGrantingStrategy grantingStrategy,
 			AclAuthorizationStrategy aclAuthorizationStrategy, PermissionFactory permissionFactory) {
 		this.aclRepository = aclRepository;
 		this.aclCache = aclCache;
@@ -188,7 +188,7 @@ public class CassandraAclService implements AclService {
 	}
 
 	/**
-	 * Request Acls from the {@link CassandraAclRepository} and convert results.
+	 * Request Acls from the {@link AclRepository} and convert results.
 	 * 
 	 * @param objects a list of {@link ObjectIdentity} objects to lookup.
 	 * @return a map with {@link ObjectIdentity} instances as keys and {@link Acl} instances as values.

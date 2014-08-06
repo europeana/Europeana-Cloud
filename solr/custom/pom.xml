@@ -8,9 +8,9 @@
         <version>0.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>customized-solr</artifactId>
+    <artifactId>ecloud-solr-custom</artifactId>
     <packaging>war</packaging>
-    <name>Customized Solr</name>
+    <name>Europeana Cloud: Solr Customized</name>
 
     <dependencies>
         <dependency>

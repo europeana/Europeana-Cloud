@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
  * @author emmanouil.koufakis@theeuropeanlibrary.org
  *
  */
-public class EcloudSecuritySuccessHandlerImpl extends SimpleUrlAuthenticationSuccessHandler {
+public class CloudAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private RequestCache requestCache = new HttpSessionRequestCache();
 

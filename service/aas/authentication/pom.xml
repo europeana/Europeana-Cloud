@@ -20,12 +20,6 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-aas-api</artifactId>
-			<version>0.2-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>

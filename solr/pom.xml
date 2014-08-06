@@ -12,11 +12,11 @@
     <packaging>pom</packaging>
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-solr</artifactId>
-    <name>Europeana Cloud Solr</name>
+    <name>Europeana Cloud: Solr</name>
     
     <modules>
-        <module>customized-solr</module>
-        <module>solr-distr</module>
+        <module>custom</module>
+        <module>distr</module>
     </modules>
 
     <properties>

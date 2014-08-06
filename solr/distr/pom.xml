@@ -9,14 +9,14 @@
         <version>0.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>solr-distr</artifactId>
+    <artifactId>ecloud-solr-distr</artifactId>
     <packaging>war</packaging>
-    <name>Solr Package</name>
+    <name>Europeana Cloud: Solr Package</name>
    
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
-            <artifactId>customized-solr</artifactId>
+            <artifactId>ecloud-solr-custom</artifactId>
             <version>${parent.version}</version>
             <type>war</type>
         </dependency>

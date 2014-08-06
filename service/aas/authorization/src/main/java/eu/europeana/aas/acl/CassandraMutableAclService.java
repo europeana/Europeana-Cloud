@@ -38,12 +38,12 @@ import org.springframework.util.Assert;
 
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.acl.repository.AclRepository;
 import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 
 /**
- * Provides support for creating and storing {@link Acl} instances in Cassandra, using the {@link CassandraAclRepository}.
+ * Provides support for creating and storing {@link Acl} instances in Cassandra, using the {@link AclRepository}.
  * 
  * @author Rigas Grigoropoulos
  *
@@ -55,13 +55,13 @@ public class CassandraMutableAclService extends CassandraAclService implements M
 	/**
 	 * Constructs a new <code>CassandraMutableAclService</code> object.
 	 * 
-	 * @param aclRepository the {@link CassandraAclRepository} to use for access to the database.
+	 * @param aclRepository the {@link AclRepository} to use for access to the database.
 	 * @param aclCache the {@link AclCache} to use (can be <code>null</code>).
 	 * @param grantingStrategy the {@link PermissionGrantingStrategy} to use when creating {@link Acl} objects.
 	 * @param aclAuthorizationStrategy the {@link AclAuthorizationStrategy} to use when creating {@link Acl} objects.
 	 * @param permissionFactory the {@link PermissionFactory} to use when creating {@link AccessControlEntry} objects.
 	 */
-	public CassandraMutableAclService(CassandraAclRepository aclRepository, AclCache aclCache,
+	public CassandraMutableAclService(AclRepository aclRepository, AclCache aclCache,
 			PermissionGrantingStrategy grantingStrategy, AclAuthorizationStrategy aclAuthorizationStrategy, PermissionFactory permissionFactory) {
 		super(aclRepository, aclCache, grantingStrategy, aclAuthorizationStrategy, permissionFactory);
 	}

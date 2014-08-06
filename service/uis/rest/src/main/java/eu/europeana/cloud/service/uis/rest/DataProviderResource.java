@@ -96,7 +96,7 @@ public class DataProviderResource {
      */
     @PUT
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-//    @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")    
+    @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")    
     public void updateProvider(DataProviderProperties dataProviderProperties)
             throws ProviderDoesNotExistException {
         DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);

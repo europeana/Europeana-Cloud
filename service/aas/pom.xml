@@ -16,7 +16,6 @@
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
     <modules>
-        <module>api</module>
         <module>authorization</module>
         <module>authentication</module>
     </modules>

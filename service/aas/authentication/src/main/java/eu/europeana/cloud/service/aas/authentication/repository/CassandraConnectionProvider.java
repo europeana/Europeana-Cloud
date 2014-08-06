@@ -19,7 +19,7 @@ import com.datastax.driver.core.Session;
  * 
  * @author Yorgos.Mamakis@ kb.nl
  */
-public class DatabaseService {
+public class CassandraConnectionProvider {
 
 	private Session session;
 	private String host;
@@ -27,7 +27,7 @@ public class DatabaseService {
 
 	private String keyspaceName;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
 	/**
 	 * Initialization of the database connection.
@@ -42,7 +42,7 @@ public class DatabaseService {
 	 * @param create If true a user + password table will be created in the database.
 	 * @throws IOException
 	 */
-	public DatabaseService(final String host, final String port, final String keyspaceName, final String username, final String password,
+	public CassandraConnectionProvider(final String host, final String port, final String keyspaceName, final String username, final String password,
 			final boolean createTables) throws IOException {
 
         LOGGER.info("DatabaseService starting... host='{}', port='{}', keyspaceName='{}', create='{}',username='{}'",
