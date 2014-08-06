@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/jee
+  http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+  http://www.springframework.org/schema/context
+  http://www.springframework.org/schema/context/spring-context.xsd">
+    <context:annotation-config />
+    
+    <bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
+        <constructor-arg name="host">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="username">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
+        </constructor-arg>
+        <constructor-arg name="create">
+            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="userDao"
+              class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">
+        <constructor-arg name="provider" ref="provider" />
+    </bean>
+
+    <bean id="service"
+              class="eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService" />
+        <constructor-arg name="userDao" ref="userDao" />
+    </bean>
+
+    <bean id="authenticationResource"
+          class="eu.europeana.cloud.service.aas.rest.AuthenticationResource" />
+</beans>
