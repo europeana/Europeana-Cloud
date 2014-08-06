@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.persistent;
 
 import java.util.List;
 
@@ -12,7 +12,8 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.database.dao;
+package eu.europeana.cloud.service.uis.persistent.dao;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,7 +21,7 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.uis.database.DatabaseService;
+import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -29,7 +29,7 @@ import eu.europeana.cloud.service.uis.database.DatabaseService;
 @Repository
 public class CassandraDataProviderDAO {
 
-    private DatabaseService dbService;
+    private CassandraConnectionProvider dbService;
 
     private PreparedStatement updateProviderStatement;
 
@@ -46,7 +46,7 @@ public class CassandraDataProviderDAO {
      * Creates a new instance of this class.
      * @param dbService
      */
-    public CassandraDataProviderDAO(DatabaseService dbService){
+    public CassandraDataProviderDAO(CassandraConnectionProvider dbService){
     	this.dbService = dbService;
     	prepareStatements();
     }

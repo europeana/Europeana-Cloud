@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.persistent;
 
+import eu.europeana.cloud.service.uis.persistent.CassandraDataProviderService;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;

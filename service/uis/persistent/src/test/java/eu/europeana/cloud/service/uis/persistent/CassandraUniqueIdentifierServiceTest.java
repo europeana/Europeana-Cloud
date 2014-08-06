@@ -1,5 +1,7 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.persistent;
 
+import eu.europeana.cloud.service.uis.persistent.CassandraUniqueIdentifierService;
+import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -15,10 +17,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.uis.database.DatabaseService;
-import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
-import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -33,19 +34,19 @@ import eu.europeana.cloud.service.uis.exception.RecordExistsException;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:/default-context.xml" })
-public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
+public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 	@Autowired
-	private PersistentUniqueIdentifierService service;
+	private CassandraUniqueIdentifierService service;
 	@Autowired
-	private DatabaseService dbService;
+	private CassandraConnectionProvider dbService;
 	@Autowired
 	private CassandraDataProviderDAO dataProviderDao;
 	
 	@Autowired
-	private LocalIdDao localIdDao;
+	private CassandraLocalIdDAO localIdDao;
 	
 	@Autowired
-	private CloudIdDao cloudIdDao;
+	private CassandraCloudIdDAO cloudIdDao;
 	
 	/**
 	 * Prepare the unit tests
@@ -54,11 +55,11 @@ public class PersistentUniqueIdentifierServiceTest extends CassandraTestBase {
 	public void prepare(){
 		@SuppressWarnings("resource")
 		ApplicationContext context = new ClassPathXmlApplicationContext("default-context.xml");
-		dbService = (DatabaseService) context.getBean("dbService");
-		service = (PersistentUniqueIdentifierService) context.getBean("service");
+		dbService = (CassandraConnectionProvider) context.getBean("dbService");
+		service = (CassandraUniqueIdentifierService) context.getBean("service");
 		dataProviderDao = (CassandraDataProviderDAO) context.getBean("dataProviderDao");
-		localIdDao = (LocalIdDao) context.getBean("localIdDao");
-		cloudIdDao = (CloudIdDao) context.getBean("cloudIdDao");
+		localIdDao = (CassandraLocalIdDAO) context.getBean("localIdDao");
+		cloudIdDao = (CassandraCloudIdDAO) context.getBean("cloudIdDao");
 	}
 	
 	/**

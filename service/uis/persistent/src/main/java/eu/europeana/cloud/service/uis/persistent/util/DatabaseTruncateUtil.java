@@ -1,9 +1,9 @@
 /* DatabaseTruncateUtil.java - created on Jan 10, 2014, Copyright (c) 2013 Europeana Foundation, all rights reserved */
-package eu.europeana.cloud.service.uis.database.dao.util;
+package eu.europeana.cloud.service.uis.persistent.util;
 
 import java.util.List;
 
-import eu.europeana.cloud.service.uis.database.DatabaseService;
+import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 
 /**
  * Truncate table functionality for the Console application
@@ -14,14 +14,14 @@ import eu.europeana.cloud.service.uis.database.DatabaseService;
 public final class DatabaseTruncateUtil {
 
 	
-	private DatabaseService dbService;
+	private CassandraConnectionProvider dbService;
 
 	/**
 	 * 
 	 * Creates a new instance of this class.
 	 * @param dbService 
 	 */
-	public DatabaseTruncateUtil(DatabaseService dbService){
+	public DatabaseTruncateUtil(CassandraConnectionProvider dbService){
 		this.dbService = dbService;
 	}
 

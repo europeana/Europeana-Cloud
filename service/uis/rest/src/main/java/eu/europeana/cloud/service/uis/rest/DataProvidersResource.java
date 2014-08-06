@@ -28,7 +28,7 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
  * Resource for DataProviders.
  * 
  */
-@Path("/dataproviders")
+@Path("/data-providers")
 @Component
 @Scope("request")
 public class DataProvidersResource {

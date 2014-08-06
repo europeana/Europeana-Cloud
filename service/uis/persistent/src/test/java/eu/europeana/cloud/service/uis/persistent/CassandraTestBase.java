@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.persistent;
 
 import java.io.IOException;
 

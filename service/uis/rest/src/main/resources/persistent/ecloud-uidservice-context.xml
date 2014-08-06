@@ -1,68 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:jee="http://www.springframework.org/schema/jee"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
   http://www.springframework.org/schema/beans/spring-beans.xsd
   http://www.springframework.org/schema/jee
   http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
-	<context:annotation-config />
-	<bean id="uniqueIdService"
-		class="eu.europeana.cloud.service.uis.PersistentUniqueIdentifierService">
-		<constructor-arg name="cloudIdDao" ref="cloudIdDao" />
-		<constructor-arg name="localIdDao" ref="localIdDao" />
-		<constructor-arg name="dataProviderDao" ref="dataProviderDao"/>
-	</bean>
-	
-	<bean id="dataProviderService" class="eu.europeana.cloud.service.uis.CassandraDataProviderService"/>
-	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.database.dao.CloudIdDao">
-		<constructor-arg name="dbService" ref="dbService" />
-	</bean>
+    <context:annotation-config />
+    
+    <bean id="uniqueIdService"
+          class="eu.europeana.cloud.service.uis.persistent.CassandraUniqueIdentifierService">
+        <constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+        <constructor-arg name="localIdDao" ref="localIdDao" />
+        <constructor-arg name="dataProviderDao" ref="dataProviderDao"/>
+    </bean>
+    <bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO">
+        <constructor-arg name="dbService" ref="dbService" />
+    </bean>
+    <bean id="localIdDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO">
+        <constructor-arg name="dbService" ref="dbService" />
+    </bean>
+    
+    <bean id="dataProviderService" class="eu.europeana.cloud.service.uis.persistent.CassandraDataProviderService"/>
+    <bean id="dataProviderDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO">
+        <constructor-arg name="dbService" ref="dbService"/>
+    </bean>
 
-	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.database.dao.LocalIdDao">
-		<constructor-arg name="dbService" ref="dbService" />
-	</bean>
-	
-	<bean id="dataProviderDao" class="eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO">
-		<constructor-arg name="dbService" ref="dbService"/>
-	</bean>
-	
-	<bean id="dbService" class="eu.europeana.cloud.service.uis.database.DatabaseService">
-		<constructor-arg name="host">
-			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
-		</constructor-arg>
-		<constructor-arg name="port">
-			<jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>
-		</constructor-arg>
-		<constructor-arg name="keyspaceName">
-			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
-		</constructor-arg>
-		<constructor-arg name="username">
-			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
-		</constructor-arg>
-		<constructor-arg name="password">
-			<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
-		</constructor-arg>
-                <constructor-arg name="create">
-			<jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
-		</constructor-arg>
-	</bean>
+    <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
+        <constructor-arg name="host">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="username">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
+        </constructor-arg>
+        <constructor-arg name="create">
+            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
+        </constructor-arg>
+    </bean>
 
-<bean id="mappings"
-		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="properties">
-			<value>
-				numberOfElementsOnPage=100
-			</value>
-		</property>
-	</bean>
+    <bean id="mappings"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties">
+            <value>
+                numberOfElementsOnPage=100
+            </value>
+        </property>
+    </bean>
 	
-	<bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
-	<bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
+    <bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
+    <bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
 	
-	<bean id="uniqueIdResource"
-		class="eu.europeana.cloud.service.uis.rest.BasicUniqueIdResource" />
+    <bean id="uniqueIdResource"
+          class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
 </beans>

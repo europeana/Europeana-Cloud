@@ -46,9 +46,9 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
  * @since Oct 17, 2013
  */
 @Component
-@Path("/")
+@Path("/cloudIds")
 @Scope("request")
-public class BasicUniqueIdResource {
+public class UniqueIdentifierResource {
 
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
@@ -77,7 +77,7 @@ public class BasicUniqueIdResource {
      * @throws CloudIdDoesNotExistException
      */
     @POST
-    @Path("cloudIds")
+//    @Path("cloudIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
@@ -124,7 +124,7 @@ public class BasicUniqueIdResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-    @Path("cloudIds")
+//    @Path("cloudIds")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
@@ -144,7 +144,8 @@ public class BasicUniqueIdResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-    @Path("cloudIds/{" + CLOUDID + "}")
+//    @Path("cloudIds/{" + CLOUDID + "}")
+    @Path("{" + CLOUDID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
     public Response getLocalIds() throws DatabaseConnectionException, CloudIdDoesNotExistException,
@@ -164,7 +165,8 @@ public class BasicUniqueIdResource {
      * @throws RecordIdDoesNotExistException
      */
     @DELETE
-    @Path("cloudIds/{" + CLOUDID + "}")
+//    @Path("cloudIds/{" + CLOUDID + "}")
+    @Path("{" + CLOUDID + "}")
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @PreAuthorize("hasPermission(#cloudId, 'eu.europeana.cloud.common.model.CloudId', delete)")
     public Response deleteCloudId() throws DatabaseConnectionException,

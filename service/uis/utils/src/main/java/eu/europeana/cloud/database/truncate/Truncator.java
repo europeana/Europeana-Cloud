@@ -3,8 +3,8 @@ package eu.europeana.cloud.database.truncate;
 
 import com.google.common.collect.ImmutableList;
 
-import eu.europeana.cloud.service.uis.database.DatabaseService;
-import eu.europeana.cloud.service.uis.database.dao.util.DatabaseTruncateUtil;
+import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
+import eu.europeana.cloud.service.uis.persistent.util.DatabaseTruncateUtil;
 
 /**
  * Database truncator class
@@ -14,14 +14,14 @@ import eu.europeana.cloud.service.uis.database.dao.util.DatabaseTruncateUtil;
  */
 public class Truncator {
 
-	private DatabaseService dbService;
+	private CassandraConnectionProvider dbService;
 
 	/**
 	 * Creates a new instance of this class.
 	 * 
 	 * @param dbService
 	 */
-	public Truncator(DatabaseService dbService) {
+	public Truncator(CassandraConnectionProvider dbService) {
 		this.dbService = dbService;
 	}
 

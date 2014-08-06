@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:jee="http://www.springframework.org/schema/jee"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
   http://www.springframework.org/schema/beans/spring-beans.xsd
   http://www.springframework.org/schema/jee
   http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
-	<context:annotation-config />
+    <context:annotation-config />
 	
-	<bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
-		<constructor-arg name="serviceId" value="MANOS_PC_1" />
-		<constructor-arg name="serviceName" value="UIS" />
+    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
+        <constructor-arg name="serviceId" value="MANOS_PC_1" />
+        <constructor-arg name="serviceName" value="UIS" />
 		
-		<!-- TODO: https://jira.man.poznan.pl/jira/browse/ECL-194 -->
-		<constructor-arg name="listenAddress" value="http://localhost:8080/ecloud-service-uis-rest/" />
+        <!-- TODO: https://jira.man.poznan.pl/jira/browse/ECL-194 -->
+        <constructor-arg name="listenAddress" value="http://localhost:8080/ecloud-service-uis-rest/" />
 		
-		<constructor-arg name="datacenterLocation" value="ULCC" />
-	</bean>
+        <constructor-arg name="datacenterLocation" value="ULCC" />
+    </bean>
 	
-	<bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
-		<!-- 
-		Zookeeper address, this could be a single address in case only one Zookeeper is deployed, e.g 127.0.0.1:2181
-		OR
-		a comma seperated list of Zookeeper addresses, e.g localhost:2181,localhost:2182,localhost:2183
-		-->
-		<constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181"/>
-		<constructor-arg name="zookeeperConnectionTimeout" value="1000"/>
+    <bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
+        <!-- 
+        Zookeeper address, this could be a single address in case only one Zookeeper is deployed, e.g 127.0.0.1:2181
+        OR
+        a comma seperated list of Zookeeper addresses, e.g localhost:2181,localhost:2182,localhost:2183
+        -->
+        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181"/>
+        <constructor-arg name="zookeeperConnectionTimeout" value="1000"/>
 		
-		<!-- 
-		How much time (in ms) it will take until Zookeeper notices the crash and notifies the clients. 
-		The smaller this number is the sooner zookeeper notices failures. 
-		-->
-		<constructor-arg name="zookeeperSessionTimeout" value="1000"/>
+        <!-- 
+        How much time (in ms) it will take until Zookeeper notices the crash and notifies the clients. 
+        The smaller this number is the sooner zookeeper notices failures. 
+        -->
+        <constructor-arg name="zookeeperSessionTimeout" value="1000"/>
 		
-		<constructor-arg name="zookeeperPath" value="/eCloud/serviceDiscovery"/>
-	</bean>
+        <constructor-arg name="zookeeperPath" value="/eCloud/serviceDiscovery"/>
+    </bean>
 	
-	<bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
-		<constructor-arg name="zookeeper" ref="zookeeperService"/>
-		<constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
-	</bean>
+    <bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
+        <constructor-arg name="zookeeper" ref="zookeeperService"/>
+        <constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
+    </bean>
 	
 </beans>

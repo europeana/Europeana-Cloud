@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis;
+package eu.europeana.cloud.service.uis.persistent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +11,10 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.database.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.database.dao.CloudIdDao;
-import eu.europeana.cloud.service.uis.database.dao.LocalIdDao;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
@@ -28,33 +29,32 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  * Cassandra implementation of the Unique Identifier Service
  * 
  * @author Yorgos.Mamakis@ kb.nl
- * 
  */
 @Service
-public class PersistentUniqueIdentifierService implements
+public class CassandraUniqueIdentifierService implements
 		UniqueIdentifierService {
 
-	private CloudIdDao cloudIdDao;
-	private LocalIdDao localIdDao;
+	private CassandraCloudIdDAO cloudIdDao;
+	private CassandraLocalIdDAO localIdDao;
 	private CassandraDataProviderDAO dataProviderDao;
 	private String host;
 	private String keyspace;
 	private String port;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(PersistentUniqueIdentifierService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CassandraUniqueIdentifierService.class);
 
 	
 	/**
 	 * Initialization of the service with its DAOs
 	 * 
 	 * @param cloudIdDao
-	 *            The cloud identifier Dao
+	 *            cloud identifier DAO
 	 * @param localIdDao
-	 *            The local identifier Dao
+	 *            local identifier DAO
 	 * @param dataProviderDao 
 	 */
-	public PersistentUniqueIdentifierService(CloudIdDao cloudIdDao,
-			LocalIdDao localIdDao,CassandraDataProviderDAO dataProviderDao) {
+	public CassandraUniqueIdentifierService(CassandraCloudIdDAO cloudIdDao,
+			CassandraLocalIdDAO localIdDao,CassandraDataProviderDAO dataProviderDao) {
         LOGGER.info("PersistentUniqueIdentifierService starting...");
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
