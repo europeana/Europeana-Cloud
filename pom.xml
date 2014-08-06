@@ -72,7 +72,7 @@
     </developers>
     <modules>
         <module>common</module>
-        <module>ecloud-solr</module>
+        <module>solr</module>
         <module>service/uis</module>
         <module>service/dls</module>
         <module>service/mcs</module>
