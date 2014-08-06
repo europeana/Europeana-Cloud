@@ -24,6 +24,10 @@ public class CassandraAuthenticationService implements UserDetailsService, Authe
     @Autowired
     private CassandraUserDAO userDao;
 
+    public CassandraAuthenticationService() {
+        // nothing todo
+    }
+    
     public CassandraAuthenticationService(CassandraUserDAO userDao) {
         this.userDao = userDao;
     }
