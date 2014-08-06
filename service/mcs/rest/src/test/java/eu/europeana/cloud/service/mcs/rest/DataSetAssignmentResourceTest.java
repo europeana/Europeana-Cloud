@@ -69,9 +69,11 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 	recordService = applicationContext.getBean(RecordService.class);
 	uisHandler = applicationContext.getBean(UISClientHandler.class);
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS(Mockito.anyString());
+		.getProvider(Mockito.anyString());
 	Mockito.doReturn(true).when(uisHandler)
-		.recordExistInUIS(Mockito.anyString());
+		.existsCloudId(Mockito.anyString());
+	Mockito.doReturn(true).when(uisHandler)
+		.existsProvider(Mockito.anyString());
 	dataSetAssignmentWebTarget = target(DataSetAssignmentsResource.class
 		.getAnnotation(Path.class).value());
 	dataProvider.setId("dataProv");

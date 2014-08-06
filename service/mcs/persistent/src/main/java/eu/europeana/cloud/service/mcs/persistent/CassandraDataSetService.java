@@ -124,7 +124,7 @@ public class CassandraDataSetService implements DataSetService {
 	// now - when everything is validated - add assignment
 	dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
 		version);
-	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	DataProvider dataProvider = uis.getProvider(providerId);
 	representationIndexer.addAssignment(rep.getVersion(),
 		new CompoundDataSetId(providerId, dataSetId),
 		dataProvider.getPartitionKey());
@@ -142,7 +142,7 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 	dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
-	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	DataProvider dataProvider = uis.getProvider(providerId);
 	representationIndexer.removeAssignment(recordId, schema,
 		new CompoundDataSetId(providerId, dataSetId),
 		dataProvider.getPartitionKey());
@@ -156,7 +156,7 @@ public class CassandraDataSetService implements DataSetService {
 	    String description) throws ProviderNotExistsException,
 	    DataSetAlreadyExistsException {
 	Date now = new Date();
-	if (uis.providerExistsInUIS(providerId) == null) {
+	if (uis.getProvider(providerId) == null) {
 	    throw new ProviderNotExistsException();
 	}
 
@@ -218,7 +218,7 @@ public class CassandraDataSetService implements DataSetService {
 	    throw new DataSetNotExistsException();
 	}
 	dataSetDAO.deleteDataSet(providerId, dataSetId);
-	DataProvider dataProvider = uis.providerExistsInUIS(providerId);
+	DataProvider dataProvider = uis.getProvider(providerId);
 	representationIndexer.removeAssignmentsFromDataSet(
 		new CompoundDataSetId(providerId, dataSetId),
 		dataProvider.getPartitionKey());

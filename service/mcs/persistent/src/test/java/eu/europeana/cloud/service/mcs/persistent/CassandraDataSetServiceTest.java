@@ -315,22 +315,21 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     private void makeUISProviderSuccess() {
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS(Mockito.anyString());
+		.getProvider(Mockito.anyString());
     }
 
     private void makeUISProviderFailure() {
 	Mockito.doReturn(null).when(uisHandler)
-		.providerExistsInUIS(Mockito.anyString());
+		.getProvider(Mockito.anyString());
     }
 
     private void makeUISSuccess() throws RecordNotExistsException {
-
 	Mockito.doReturn(true).when(uisHandler)
-		.recordExistInUIS(Mockito.anyString());
+		.existsCloudId(Mockito.anyString());
     }
 
     private void makeUISFailure() throws RecordNotExistsException {
 	Mockito.doReturn(false).when(uisHandler)
-		.recordExistInUIS(Mockito.anyString());
+		.existsCloudId(Mockito.anyString());
     }
 }

@@ -46,8 +46,8 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
     public void shouldRemainConsistentWhenSwiftNotWorks() throws Exception {
 
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS(providerId);
-	Mockito.doReturn(true).when(uisHandler).recordExistInUIS("id");
+		.getProvider(providerId);
+	Mockito.doReturn(true).when(uisHandler).existsCloudId("id");
 	// prepare failure
 	Mockito.doThrow(new MockException()).when(swiftContentDAO)
 		.putContent(anyString(), any(InputStream.class));

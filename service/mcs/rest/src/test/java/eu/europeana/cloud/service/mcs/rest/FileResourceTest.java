@@ -70,9 +70,9 @@ public class FileResourceTest extends JerseyTest {
 	DataProvider dataProvider = new DataProvider();
 	dataProvider.setId("1");
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS("1");
+		.getProvider("1");
 	Mockito.doReturn(true).when(uisHandler)
-		.recordExistInUIS(Mockito.anyString());
+		.existsCloudId(Mockito.anyString());
 	rep = recordService.createRepresentation("1", "1", "1");
 	file = new File();
 	file.setFileName("fileName");

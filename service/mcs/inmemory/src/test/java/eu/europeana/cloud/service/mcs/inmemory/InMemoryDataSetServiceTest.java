@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.collect.Lists;
+import eu.europeana.cloud.common.model.DataProvider;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -46,7 +47,7 @@ public class InMemoryDataSetServiceTest {
             throws Exception {
         datasetDao = mock(InMemoryDataSetDAO.class);
         uisHandler = mock(UISClientHandler.class);
-        Mockito.doReturn(new DataProvider()).when(uisHandler).providerExistsInUIS(Mockito.anyString());
+        Mockito.doReturn(new DataProvider()).when(uisHandler).existsProvider(Mockito.anyString());
 
         representations = new ArrayList<>();
         representations = Lists.newArrayList();

@@ -121,7 +121,7 @@ public class InMemoryDataSetService implements DataSetService {
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
         // only to check if dataprovider exists
-        if (!uisHandler.providerExistsInUIS(providerId)) {
+        if (!uisHandler.existsProvider(providerId)) {
             throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
         }
 

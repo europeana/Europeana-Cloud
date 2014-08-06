@@ -61,7 +61,7 @@ public class CassandraRecordService implements RecordService {
     @Override
     public Record getRecord(String cloudId) throws RecordNotExistsException {
 	Record record = null;
-	if (uis.recordExistInUIS(cloudId)) {
+	if (uis.existsCloudId(cloudId)) {
 	    record = recordDAO.getRecord(cloudId);
 	    if (record.getRepresentations().isEmpty()) {
 		throw new RecordNotExistsException(cloudId);
@@ -78,7 +78,7 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void deleteRecord(String cloudId) throws RecordNotExistsException,
 	    RepresentationNotExistsException {
-	if (uis.recordExistInUIS(cloudId)) {
+	if (uis.existsCloudId(cloudId)) {
 	    List<Representation> allRecordRepresentationsInAllVersions = recordDAO
 		    .listRepresentationVersions(cloudId);
 	    if (allRecordRepresentationsInAllVersions.isEmpty()) {
@@ -96,7 +96,7 @@ public class CassandraRecordService implements RecordService {
 		if (!(repVersion.getDataProvider()).equalsIgnoreCase(dPId)) {
 		    dPId = repVersion.getDataProvider();
 		    representationIndexer.removeRecordRepresentations(cloudId,
-			    uis.providerExistsInUIS(dPId).getPartitionKey());
+			    uis.getProvider(dPId).getPartitionKey());
 		}
 		for (File f : repVersion.getFiles()) {
 		    try {
@@ -136,7 +136,7 @@ public class CassandraRecordService implements RecordService {
 		// send only one message per DataProvider
 		dPId = rep.getDataProvider();
 		representationIndexer.removeRepresentation(globalId, schema,
-			uis.providerExistsInUIS(dPId).getPartitionKey());
+			uis.getProvider(dPId).getPartitionKey());
 	    }
 	    for (File f : rep.getFiles()) {
 		try {
@@ -164,11 +164,11 @@ public class CassandraRecordService implements RecordService {
 	Date now = new Date();
 	DataProvider dataProvider;
 	// check if data provider exists
-	if ((dataProvider = uis.providerExistsInUIS(providerId)) == null) {
+	if ((dataProvider = uis.getProvider(providerId)) == null) {
 	    throw new ProviderNotExistsException(String.format(
 		    "Provider %s does not exist.", providerId));
 	}
-	if (uis.recordExistInUIS(cloudId)) {
+	if (uis.existsCloudId(cloudId)) {
 	    Representation rep = recordDAO.createRepresentation(cloudId,
 		    representationName, providerId, now);
 	    representationIndexer.insertRepresentation(rep,
@@ -226,7 +226,7 @@ public class CassandraRecordService implements RecordService {
 	}
 
 	representationIndexer.removeRepresentationVersion(version, uis
-		.providerExistsInUIS(rep.getDataProvider()).getPartitionKey());
+		.getProvider(rep.getDataProvider()).getPartitionKey());
 
 	for (File f : rep.getFiles()) {
 	    try {
@@ -273,7 +273,7 @@ public class CassandraRecordService implements RecordService {
 	rep.setCreationDate(now);
 
 	representationIndexer.insertRepresentation(rep, uis
-		.providerExistsInUIS(rep.getDataProvider()).getPartitionKey());
+		.getProvider(rep.getDataProvider()).getPartitionKey());
 
 	return rep;
     }
@@ -416,7 +416,7 @@ public class CassandraRecordService implements RecordService {
 	Representation copiedRep = recordDAO.createRepresentation(globalId,
 		schema, srcRep.getDataProvider(), now);
 	representationIndexer.insertRepresentation(copiedRep, uis
-		.providerExistsInUIS(srcRep.getDataProvider())
+		.getProvider(srcRep.getDataProvider())
 		.getPartitionKey());
 	for (File srcFile : srcRep.getFiles()) {
 	    File copiedFile = new File(srcFile);

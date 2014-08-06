@@ -50,12 +50,10 @@ public class DataSetResourceTest extends JerseyTest {
 
     private UISClientHandler uisHandler;
 
-
     @Override
     public Application configure() {
         return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
     }
-
 
     @Before
     public void mockUp()
@@ -63,13 +61,16 @@ public class DataSetResourceTest extends JerseyTest {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         dataProvider.setId("testprov");
         uisHandler = applicationContext.getBean(UISClientHandler.class);
-        Mockito.doReturn(new DataProvider()).when(uisHandler).providerExistsInUIS(Mockito.anyString());
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        Mockito.doReturn(new DataProvider()).when(uisHandler)
+                .getProvider(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler)
+                .existsCloudId(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler)
+                .existsProvider(Mockito.anyString());
         dataSetService = applicationContext.getBean(DataSetService.class);
         recordService = applicationContext.getBean(RecordService.class);
         dataSetWebTarget = target(DataSetResource.class.getAnnotation(Path.class).value());
     }
-
 
     @Test
     public void shouldUpdateDataset()
@@ -81,7 +82,7 @@ public class DataSetResourceTest extends JerseyTest {
 
         // when you add data set for a provider 
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-            P_DATASET, dataSetId);
+                P_DATASET, dataSetId);
         Response updateResponse = dataSetWebTarget.request().put(Entity.form(new Form(F_DESCRIPTION, description)));
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), updateResponse.getStatus());
 
@@ -92,7 +93,6 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(dataSetId, ds.getId());
         assertEquals(description, ds.getDescription());
     }
-
 
     @Test
     public void shouldDeleteDataset()
@@ -108,17 +108,16 @@ public class DataSetResourceTest extends JerseyTest {
 
         // when you delete it for one provider
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-            P_DATASET, dataSetId);
+                P_DATASET, dataSetId);
         Response deleteResponse = dataSetWebTarget.request().delete();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
 
         // than deleted dataset should not be in service and non-deleted should remain
         assertTrue("Expecting no dataset for provier service",
-            dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
+                dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
         assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults()
                 .size());
     }
-
 
     @Test
     public void shouldListRepresentationsFromDataset()
@@ -131,13 +130,13 @@ public class DataSetResourceTest extends JerseyTest {
         Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getCloudId(), r1_1.getRepresentationName(),
-            null);
+                null);
         dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getCloudId(), r2_1.getRepresentationName(),
-            r2_1.getVersion());
+                r2_1.getVersion());
 
         // when you list dataset contents
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-            P_DATASET, dataSetId);
+                P_DATASET, dataSetId);
         Response listDataset = dataSetWebTarget.request().get();
         assertEquals(Response.Status.OK.getStatusCode(), listDataset.getStatus());
         List<Representation> dataSetContents = listDataset.readEntity(ResultSlice.class).getResults();
@@ -156,11 +155,10 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(r2_1, r2FromDataset);
     }
 
-
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
             throws Exception {
         Representation r = recordService.createRepresentation(cloudId, schema, providerId);
-        byte[] dummyContent = { 1, 2, 3 };
+        byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));
 

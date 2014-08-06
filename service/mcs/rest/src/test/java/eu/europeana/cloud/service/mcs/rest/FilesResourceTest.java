@@ -60,8 +60,8 @@ public class FilesResourceTest extends JerseyTest {
         recordService = applicationContext.getBean(RecordService.class);
 
         uisHandler = applicationContext.getBean(UISClientHandler.class);
-        Mockito.doReturn(new DataProvider()).when(uisHandler).providerExistsInUIS(Mockito.anyString());
-        Mockito.doReturn(true).when(uisHandler).recordExistInUIS(Mockito.anyString());
+        Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
         DataProvider dp = new DataProvider();
         dp.setId("1");
 

@@ -26,7 +26,7 @@ import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/uisIntegrationTestContext.xml" })
+@ContextConfiguration(value = {"classpath:/uisIntegrationTestContext.xml"})
 public class UISHandlerTest {
 
     @Autowired
@@ -35,52 +35,46 @@ public class UISHandlerTest {
     @Autowired
     private UISClient uisClient;
 
-
     @After
     public void cleanUp() {
         Mockito.reset(uisClient);
     }
-
 
     @Test(expected = SystemException.class)
     public void shouldThrowExWhenRecordWhenUISFailure()
             throws Exception {
         String cloudId = "cloudId";
         Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-            new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
-                            .getErrorInfo("")))));
-        handler.recordExistInUIS(cloudId);
+                new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
+                                        IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
+                                        .getErrorInfo("")))));
+        handler.existsCloudId(cloudId);
     }
-
 
     @Test
     public void shouldFailIfRecordNotFoundInUIS()
             throws Exception {
         String cloudId = "cloudId";
         Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-            new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("", ""))));
-        assertFalse(handler.recordExistInUIS(cloudId));
+                new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("", ""))));
+        assertFalse(handler.existsCloudId(cloudId));
     }
-
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExWhenGotNullFromUIS()
             throws Exception {
         String cloudId = "cloudId";
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(null);
-        handler.recordExistInUIS(cloudId);
+        handler.existsCloudId(cloudId);
     }
-
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExWhenGotEmptyListFromUIS()
             throws Exception {
         String cloudId = "cloudId";
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(new ResultSlice<CloudId>());
-        handler.recordExistInUIS(cloudId);
+        handler.existsCloudId(cloudId);
     }
-
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExWhenCloudIdNotOnListFromUIS()
@@ -95,9 +89,8 @@ public class UISHandlerTest {
 
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 
-        handler.recordExistInUIS(cloudId);
+        handler.existsCloudId(cloudId);
     }
-
 
     @Test
     public void shouldReturnTrueWhenRecordExistsInUIS()
@@ -112,7 +105,7 @@ public class UISHandlerTest {
 
         Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 
-        assertTrue(handler.recordExistInUIS(cloudId));
+        assertTrue(handler.existsCloudId(cloudId));
     }
 
 }

@@ -71,7 +71,7 @@ public class DataSetsResourceTest extends JerseyTest {
     @Test
     public void shouldCreateDataset() throws Exception {
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS("provId");
+		.getProvider("provId");
 	// given
 	String datasetId = "dataset";
 	String description = "dataset description";
@@ -105,7 +105,7 @@ public class DataSetsResourceTest extends JerseyTest {
     public void shouldRequireDatasetIdParameterOnCreate() {
 	// given
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS("notexisting");
+		.getProvider("notexisting");
 	String description = "dataset description";
 
 	// when you try to add data set without id
@@ -124,7 +124,7 @@ public class DataSetsResourceTest extends JerseyTest {
     @Test
     public void shouldNotCreateTwoDatasetsWithSameId() throws Exception {
 	Mockito.doReturn(new DataProvider()).when(uisHandler)
-		.providerExistsInUIS("provId");
+		.getProvider("provId");
 	// given that there is a dataset with certain id
 	String dataSetId = "dataset";
 	dataSetService.createDataSet("provId", dataSetId, "");
@@ -148,7 +148,7 @@ public class DataSetsResourceTest extends JerseyTest {
 	    throws DataSetAlreadyExistsException, ProviderNotExistsException {
 
 	Mockito.doReturn(null).when(uisHandler)
-		.providerExistsInUIS("notexisting");
+		.getProvider("notexisting");
 
 	// when you try to add dataset to this not existing provider
 	dataSetsWebTarget = dataSetsWebTarget.resolveTemplate(P_PROVIDER,

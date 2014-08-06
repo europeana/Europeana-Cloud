@@ -119,7 +119,7 @@ public class InMemoryRecordService implements RecordService {
     @Override
     public Representation createRepresentation(String globalId, String representationName, String providerId)
             throws RecordNotExistsException, ProviderNotExistsException {
-        if (!uisHandler.providerExistsInUIS(providerId)) {
+        if (!uisHandler.existsProvider(providerId)) {
             throw new ProviderNotExistsException((String.format("Provider %s does not exist.", providerId)));
         }
         return recordDAO.createRepresentation(globalId, representationName, providerId);

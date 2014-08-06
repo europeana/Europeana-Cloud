@@ -8,21 +8,18 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
  */
 public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
 
-    /**
-     * @inheritDoc
-     * @return true
-     */
     @Override
-    public boolean recordExistInUIS(String cloudId) {
-	return true;
+    public boolean existsCloudId(String cloudId) {
+        return true;
     }
 
-    /**
-     * @inheritDoc
-     * @return new DataProvider
-     */
     @Override
-    public DataProvider providerExistsInUIS(String providerId) {
-	return new DataProvider();
+    public boolean existsProvider(String cloudId) {
+        return true;
+    }
+
+    @Override
+    public DataProvider getProvider(String providerId) {
+        return new DataProvider();
     }
 }

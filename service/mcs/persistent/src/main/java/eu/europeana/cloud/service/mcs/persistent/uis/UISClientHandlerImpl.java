@@ -25,7 +25,7 @@ public class UISClientHandlerImpl implements UISClientHandler {
      * @inheritDoc
      */
     @Override
-    public boolean recordExistInUIS(String cloudId) {
+    public boolean existsCloudId(String cloudId) {
 	boolean result = false;
 	try {
 	    ResultSlice<CloudId> records = uisClient.getRecordId(cloudId);
@@ -57,12 +57,30 @@ public class UISClientHandlerImpl implements UISClientHandler {
 	}
 	return result;
     }
+    
+     /**
+     * @inheritDoc
+     */
+    @Override
+    public boolean existsProvider(String providerId) {
+	DataProvider result;
+	try {
+	    result = uisClient.getDataProvider(providerId);
+	} catch (CloudException e) {
+	    if (e.getCause() instanceof ProviderDoesNotExistException) {
+		result = null;
+	    } else {
+		throw new SystemException(e);
+	    }
+	}
+	return result != null;
+    }
 
     /**
      * @inheritDoc
      */
     @Override
-    public DataProvider providerExistsInUIS(String providerId) {
+    public DataProvider getProvider(String providerId) {
 	DataProvider result;
 	try {
 	    result = uisClient.getDataProvider(providerId);
