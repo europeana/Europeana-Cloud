@@ -34,7 +34,7 @@
                         <overlays>
                             <overlay>
                                 <groupId>eu.europeana.cloud</groupId>
-                                <artifactId>customized-solr</artifactId>
+                                <artifactId>ecloud-solr-custom</artifactId>
                                 <filtered>true</filtered>
                                 <excludes>
                                     <exclude>META-INF/maven/**</exclude>
