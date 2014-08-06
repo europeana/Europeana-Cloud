@@ -12,11 +12,14 @@
     <artifactId>ecloud-service-aas</artifactId>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Authentication Authorization Service</name>
+    
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
+    
     <modules>
         <module>authorization</module>
         <module>authentication</module>
+        <module>rest</module>
     </modules>
 </project>
