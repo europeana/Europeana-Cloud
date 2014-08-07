@@ -53,7 +53,7 @@ public class DataProvidersResource {
 
     @Autowired
     private MutableAclService mutableAclService;
-    
+
     private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
 
     /**
@@ -64,7 +64,6 @@ public class DataProvidersResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-//    @PreAuthorize("isAuthenticated()")
     public ResultSlice<DataProvider> getProviders(
             @QueryParam(UISParamConstants.Q_FROM) String startFrom) {
         return providerService.getProviders(startFrom, numberOfElementsOnPage);
