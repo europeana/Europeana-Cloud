@@ -17,7 +17,7 @@
     <b:bean id="cloudSecurityFailureHandler"
                 class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 
-    <http entry-point-ref="cloudAuthenticationEntryPoint" create-session="stateless">
+    <http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
         <http-basic />
         <headers />
         <form-login 
@@ -35,7 +35,7 @@
             class="org.springframework.security.authentication.event.LoggerListener" />
 	
     <!-- Delegates authorization to method calls. -->
-    <global-method-security pre-post-annotations="enabled">
+    <global-method-security pre-post-annotations="enabled" secured-annotations="enabled" proxy-target-class="true">
         <expression-handler ref="expressionHandler" />
     </global-method-security>
 
