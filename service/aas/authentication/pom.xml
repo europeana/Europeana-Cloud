@@ -188,8 +188,8 @@
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
-		
     </dependencies>
+    
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>

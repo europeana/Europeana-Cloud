@@ -18,10 +18,10 @@ import eu.europeana.cloud.service.aas.authentication.repository.CassandraConnect
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 
 /**
- * Persistent Unique Identifier Service Unit tests
+ * Authentication Service Unit tests
  *
- * @author Yorgos.Mamakis@ kb.nl
- * @since Dec 17, 2013
+ * @author Markus.Muhr@theeuropeanlibrary.org
+ * @since Aug 07, 2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:/default-context.xml"})

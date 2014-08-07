@@ -43,9 +43,9 @@ import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
  * Implementation of <code>AclRepository</code> using the DataStax Java Driver.
  *
  * @author Rigas Grigoropoulos
- *
+ * @author Markus.Muhr@theeuropeanlibrary.org
  */
-public class CassandraAclRepository implements AclRepository {
+public final class CassandraAclRepository implements AclRepository {
 
     private static final Log LOG = LogFactory.getLog(CassandraAclRepository.class);
 
@@ -57,20 +57,21 @@ public class CassandraAclRepository implements AclRepository {
     private static final String[] CHILD_KEYS = new String[]{"id", "childId", "objId", "objClass"};
     private static final String[] ACL_KEYS = new String[]{"id", "aclOrder", "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess", "isAuditFailure"};
 
-    private String replicationStrategy = "SimpleStrategy";
-    private int replicationFactor = 3;
-
+//    private String replicationStrategy = "SimpleStrategy";
+//    private int replicationFactor = 3;
     private final Session session;
     private final String keyspace;
 
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code>.
      *
-     * @param session the <code>Session</code> to use for connectivity with
-     * Cassandra.
+     * @param provider providing the <code>Session</code> to use for
+     * connectivity with Cassandra.
+     * @param initSchema whether the keyspace and schema for storing ACLs should
+     * // * be created.
      */
-    public CassandraAclRepository(CassandraConnectionProvider databaseService, boolean initSchema) {
-        this(databaseService.getSession(), databaseService.getKeyspaceName(), initSchema);
+    public CassandraAclRepository(CassandraConnectionProvider provider, boolean initSchema) {
+        this(provider.getSession(), provider.getKeyspaceName(), initSchema);
     }
 
     /**
@@ -78,77 +79,79 @@ public class CassandraAclRepository implements AclRepository {
      *
      * @param session the <code>Session</code> to use for connectivity with
      * Cassandra.
+     * @param keyspace whether the keyspace and schema for storing ACLs should
+     * be created.
      */
     public CassandraAclRepository(Session session, String keyspace) {
         this.session = session;
         this.keyspace = keyspace;
     }
 
+//    /**
+//     * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
+//     * creates the Cassandra keyspace and schema for storing ACLs.
+//     *
+//     * @param session the <code>Session</code> to use for connectivity with
+//     * Cassandra.
+//     * @param initSchema whether the keyspace and schema for storing ACLs should
+//     * be created.
+//     * @param replicationStrategy the replication strategy to use when creating
+//     * the keyspace.
+//     * @param replicationFactor the replication factor to use when creating the
+//     * keyspace.
+//     */
+//    public CassandraAclRepository(Session session, String keyspace, boolean initSchema, String replicationStrategy, int replicationFactor) {
+//        this(session, keyspace);
+//        if (initSchema) {
+////            this.replicationFactor = replicationFactor;
+////            this.replicationStrategy = replicationStrategy;
+//
+////            createkeyspace();
+//            createAoisTable();
+//            createChilrenTable();
+//            createAclsTable();
+//        }
+//    }
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
      * creates the Cassandra keyspace and schema for storing ACLs.
      *
      * @param session the <code>Session</code> to use for connectivity with
      * Cassandra.
-     * @param initSchema whether the keyspace and schema for storing ACLs should
+     * @param keyspace whether the keyspace and schema for storing ACLs should
      * be created.
-     * @param replicationStrategy the replication strategy to use when creating
-     * the keyspace.
-     * @param replicationFactor the replication factor to use when creating the
-     * keyspace.
-     */
-    public CassandraAclRepository(Session session, String keyspace, boolean initSchema, String replicationStrategy, int replicationFactor) {
-        this(session, keyspace);
-        if (initSchema) {
-            this.replicationFactor = replicationFactor;
-            this.replicationStrategy = replicationStrategy;
-
-            createkeyspace();
-            createAoisTable();
-            createChilrenTable();
-            createAclsTable();
-        }
-    }
-
-    /**
-     * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
-     * creates the Cassandra keyspace and schema for storing ACLs.
-     *
-     * @param session the <code>Session</code> to use for connectivity with
-     * Cassandra.
      * @param initSchema whether the keyspace and schema for storing ACLs should
      * be created.
      */
     public CassandraAclRepository(Session session, String keyspace, boolean initSchema) {
         this(session, keyspace);
         if (initSchema) {
-            createkeyspace();
+//            createkeyspace();
             createAoisTable();
             createChilrenTable();
             createAclsTable();
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#findAcls(java.util.List)
-     */
+    @Override
     public Map<AclObjectIdentity, Set<AclEntry>> findAcls(List<AclObjectIdentity> objectIdsToLookup) {
         assertAclObjectIdentityList(objectIdsToLookup);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("BEGIN findAcls: objectIdentities: " + objectIdsToLookup);
         }
-        Map<AclObjectIdentity, Set<AclEntry>> resultMap = new HashMap<AclObjectIdentity, Set<AclEntry>>();
+        Map<AclObjectIdentity, Set<AclEntry>> resultMap = new HashMap<>();
 
-        List<String> ids = new ArrayList<String>();
+        List<String> ids = new ArrayList<>();
         for (AclObjectIdentity entry : objectIdsToLookup) {
             ids.add(entry.getRowId());
         }
 
         ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE).where(QueryBuilder.in("id", ids.toArray())));
         for (Row row : resultSet.all()) {
-            resultMap.put(convertToAclObjectIdentity(row, true), new TreeSet<AclEntry>(new Comparator<AclEntry>() {
+            resultMap.put(convertToAclObjectIdentity(row, true), new TreeSet<>(new Comparator<AclEntry>() {
 
+                @Override
                 public int compare(AclEntry o1, AclEntry o2) {
                     return new Integer(o1.getOrder()).compareTo(o2.getOrder());
                 }
@@ -183,9 +186,7 @@ public class CassandraAclRepository implements AclRepository {
         return resultMap;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#findAclObjectIdentity(org.springframework.security.acls.cassandra.model.AclObjectIdentity)
-     */
+    @Override
     public AclObjectIdentity findAclObjectIdentity(AclObjectIdentity objectId) {
         assertAclObjectIdentity(objectId);
 
@@ -202,16 +203,14 @@ public class CassandraAclRepository implements AclRepository {
         return objectIdentity;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#findAclObjectIdentityChildren(org.springframework.security.acls.cassandra.model.AclObjectIdentity)
-     */
+    @Override
     public List<AclObjectIdentity> findAclObjectIdentityChildren(AclObjectIdentity objectId) {
         assertAclObjectIdentity(objectId);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("BEGIN findAclObjectIdentityChildren: objectIdentity: " + objectId);
         }
-        List<AclObjectIdentity> result = new ArrayList<AclObjectIdentity>();
+        List<AclObjectIdentity> result = new ArrayList<>();
 
         ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, CHILDREN_TABLE)
                 .where(QueryBuilder.eq("id", objectId.getRowId())));
@@ -225,9 +224,7 @@ public class CassandraAclRepository implements AclRepository {
         return result;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#deleteAcls(java.util.List)
-     */
+    @Override
     public void deleteAcls(List<AclObjectIdentity> objectIdsToDelete) {
         assertAclObjectIdentityList(objectIdsToDelete);
 
@@ -235,7 +232,7 @@ public class CassandraAclRepository implements AclRepository {
             LOG.debug("BEGIN deleteAcls: objectIdsToDelete: " + objectIdsToDelete);
         }
 
-        List<String> ids = new ArrayList<String>();
+        List<String> ids = new ArrayList<>();
         for (AclObjectIdentity entry : objectIdsToDelete) {
             ids.add(entry.getRowId());
         }
@@ -249,9 +246,7 @@ public class CassandraAclRepository implements AclRepository {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#saveAcl(org.springframework.security.acls.cassandra.model.AclObjectIdentity)
-     */
+    @Override
     public void saveAcl(AclObjectIdentity aoi) throws AclAlreadyExistsException {
         assertAclObjectIdentity(aoi);
 
@@ -278,9 +273,7 @@ public class CassandraAclRepository implements AclRepository {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.acls.cassandra.repository.AclRepository#updateAcl(org.springframework.security.acls.cassandra.model.AclObjectIdentity, java.util.List)
-     */
+    @Override
     public void updateAcl(AclObjectIdentity aoi, List<AclEntry> entries) throws AclNotFoundException {
         assertAclObjectIdentity(aoi);
 
@@ -451,19 +444,18 @@ public class CassandraAclRepository implements AclRepository {
         }
     }
 
-    /**
-     * Creates the schema for the 'SpringSecurityAclCassandra' keyspace.
-     */
-    public void createkeyspace() {
-        try {
-            session.execute("CREATE keyspace " + keyspace
-                    + " WITH replication " + "= {'class':'" + replicationStrategy + "', 'replication_factor':" + replicationFactor + "};");
-        } catch (AlreadyExistsException e) {
-            LOG.warn(e);
-        }
-    }
-
-    public Session getSession() {
-        return session;
-    }
+//    /**
+//     * Creates the schema for the 'SpringSecurityAclCassandra' keyspace.
+//     */
+//    public void createkeyspace() {
+//        try {
+//            session.execute("CREATE keyspace " + keyspace
+//                    + " WITH replication " + "= {'class':'" + replicationStrategy + "', 'replication_factor':" + replicationFactor + "};");
+//        } catch (AlreadyExistsException e) {
+//            LOG.warn(e);
+//        }
+//    }
+//    public Session getSession() {
+//        return session;
+//    }
 }
