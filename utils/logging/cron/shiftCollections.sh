@@ -50,7 +50,7 @@ curDataDir="$dataDirRoot/$curName"
 mkdir -p $curDataDir
 
 #create configTempDir for config files
-mkdir $configTempDir
+mkdir -p $configTempDir
 #copy config files to configTempDir  
 cp $configSrcDir/schema.xml $configTempDir
 cp $configSrcDir/solrconfig.xml $configTempDir

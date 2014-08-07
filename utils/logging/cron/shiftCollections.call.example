@@ -10,11 +10,12 @@ shopt -s nullglob
 
 numPreserve=7
 solrHTTP='http://localhost:8080/solr'
-#dataDirRoot="/home/$USER/install/solr/dataDirRoot"
+#it might be necessary to substitute all $USER with actual user for script to work in cron
 dataDirRoot="/home/$USER/install/solr/coreRoot"
-configSrcDir="/home/$USER/ecloud/repo/ecloud-solr/customized-solr/src/main/resources/solr_files/log_analysis/solr/conf"
+configSrcDir="/home/$USER/ecloud/repo/solr/custom/src/main/resources/solr_files/log_analysis/solr/conf"
 configTempDir="/home/$USER/install/solr/configTemp"
-zkHome="/home/$USER/install/zookeeper/zookeeper"
+#we don't need zookeeper to run on the same machine, but we need its lib directory, so you can install/copy it alone
+zkHome="/home/$USER/zookeeper/zookeeper"
 zkHost='hell15:2181'
 solrLibDir="/home/$USER/install/tomcat/tomcat/webapps/solr/WEB-INF/lib"
 
