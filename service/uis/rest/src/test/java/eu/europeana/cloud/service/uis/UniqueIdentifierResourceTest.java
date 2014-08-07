@@ -49,7 +49,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 23, 2013
  */
-public class CloudIdResourceTest extends JerseyTest {
+public class UniqueIdentifierResourceTest extends JerseyTest {
 
     private UniqueIdentifierService uniqueIdentifierService;
     private String providerId = "providerId";
@@ -69,7 +69,7 @@ public class CloudIdResourceTest extends JerseyTest {
                 .registerClasses(RecordExistsExceptionMapper.class)
                 .registerClasses(RecordIdDoesNotExistExceptionMapper.class)
                 .registerClasses(UniqueIdentifierResource.class)
-                .property("contextConfigLocation", "classpath:ecloud-uidservice-context-test.xml");
+                .property("contextConfigLocation", "classpath:uis-context-test.xml");
     }
 
     /**
@@ -89,7 +89,6 @@ public class CloudIdResourceTest extends JerseyTest {
      */
     @Test
     public void testCreateCloudId() throws Exception {
-
         CloudId originalGid = createCloudId(providerId, recordId);
         when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
         // Create a single object test
@@ -100,7 +99,6 @@ public class CloudIdResourceTest extends JerseyTest {
         assertEquals(originalGid.getId(), retrieveCreate.getId());
         assertEquals(originalGid.getLocalId().getProviderId(), retrieveCreate.getLocalId().getProviderId());
         assertEquals(originalGid.getLocalId().getRecordId(), retrieveCreate.getLocalId().getRecordId());
-
     }
 
     /**

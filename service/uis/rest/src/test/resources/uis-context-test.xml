@@ -6,6 +6,7 @@
   http://www.springframework.org/schema/beans/spring-beans.xsd
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
+    
     <bean class="eu.europeana.cloud.service.uis.ApplicationContextUtils" />
 
     <bean id="uniqueIdentifierService" name="uniqueIdentifierService" class="org.mockito.Mockito"
@@ -26,4 +27,5 @@
             </value>
         </property>
     </bean>
+   
 </beans>

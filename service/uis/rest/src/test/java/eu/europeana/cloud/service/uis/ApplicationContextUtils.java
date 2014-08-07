@@ -6,13 +6,15 @@ import org.springframework.context.ApplicationContextAware;
 
 /**
  * Class exposing the Application Context
+ *
  * @author Yorgos.Mamakis@ kb.nl
  *
  */
 public class ApplicationContextUtils implements ApplicationContextAware {
-	/**
-	 * The Spring application context
-	 */
+
+    /**
+     * The Spring application context
+     */
     private static ApplicationContext applicationContext;
 
     /**

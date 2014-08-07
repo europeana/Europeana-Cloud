@@ -31,96 +31,100 @@ import eu.europeana.cloud.service.uis.rest.JerseyConfig;
  */
 public class DataProvidersResourceTest extends JerseyTest {
 
-	private DataProviderService dataProviderService;
+    private DataProviderService dataProviderService;
 
-	private WebTarget dataProvidersWebTarget;
+    private WebTarget dataProvidersWebTarget;
 
-	@Override
-	public Application configure() {
-		return new JerseyConfig().property("contextConfigLocation", "classpath:/ecloud-uidservice-context-test.xml");
-	}
+    @Override
+    public Application configure() {
+        return new JerseyConfig().property("contextConfigLocation", "classpath:/*-context-test.xml");
+    }
 
-	/**
-	 * Get the mocks form the application context
-	 */
-	@Before
-	public void mockUp() {
-		ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-		dataProviderService = applicationContext.getBean(DataProviderService.class);
-		dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
-	}
+    /**
+     * Get the mocks form the application context
+     */
+    @Before
+    public void mockUp() {
+        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+        dataProviderService = applicationContext.getBean(DataProviderService.class);
+        dataProvidersWebTarget = target(DataProvidersResource.class.getAnnotation(Path.class).value());
+    }
 
-	/**
-	 * Test return empty list when provider does not exist
-	 */
-	@Test
-	public void shouldReturnEmptyListOfProvidersIfNoneExists() {
-		// given there is no provider
-		Mockito.when(dataProviderService.getProviders(Mockito.anyString(), Mockito.anyInt())).thenReturn(
-				new ResultSlice<DataProvider>());
-		// when you list all providers
-		Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
-		assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
-		@SuppressWarnings("unchecked")
-		ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
+    /**
+     * Test return empty list when provider does not exist
+     */
+    @Test
+    public void shouldReturnEmptyListOfProvidersIfNoneExists() {
+        // given there is no provider
+        Mockito.when(dataProviderService.getProviders(Mockito.anyString(), Mockito.anyInt())).thenReturn(
+                new ResultSlice<DataProvider>());
+        // when you list all providers
+        Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
+        @SuppressWarnings("unchecked")
+        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
 
-		// then you should get empty list
-		assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
-	}
+        // then you should get empty list
+        assertTrue("Expected empty list of data providers", dataProviders.getResults().isEmpty());
+    }
 
-	/**
-	 * Create a new provider
-	 * @throws ProviderDoesNotExistException
-	 * @throws ProviderAlreadyExistsException
-	 */
-	@Test
-	public void shouldCreateProvider() throws ProviderDoesNotExistException, ProviderAlreadyExistsException {
-		// given certain provider data
-		DataProviderProperties properties = new DataProviderProperties();
-		properties.setOrganisationName("Organizacja");
-		properties.setRemarks("Remarks");
-		String providerName = "provident";
-		DataProvider dp  = new DataProvider();
-		dp.setId(providerName);
-		dp.setProperties(properties);
-		Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
-		Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
-		// when you put the provider into storage
-		WebTarget providentWebTarget = dataProvidersWebTarget.queryParam(ParamConstants.F_PROVIDER, providerName);
-		Response putResponse = providentWebTarget.request().post(Entity.json(properties));
-		assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
+    /**
+     * Create a new provider
+     *
+     * @throws ProviderDoesNotExistException
+     * @throws ProviderAlreadyExistsException
+     */
+    @Test
+    public void shouldCreateProvider() throws ProviderDoesNotExistException, ProviderAlreadyExistsException {
+        // given certain provider data
+        DataProviderProperties properties = new DataProviderProperties();
+        properties.setOrganisationName("Organizacja");
+        properties.setRemarks("Remarks");
+        String providerName = "provident";
+        DataProvider dp = new DataProvider();
+        dp.setId(providerName);
+        dp.setProperties(properties);
+        Mockito.when(dataProviderService.createProvider(providerName, properties)).thenReturn(dp);
+        Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
+        // when you put the provider into storage
+        WebTarget providentWebTarget = dataProvidersWebTarget.queryParam(ParamConstants.F_PROVIDER, providerName);
+        Response putResponse = providentWebTarget.request().post(Entity.json(properties));
+        assertEquals(Response.Status.CREATED.getStatusCode(), putResponse.getStatus());
 
-		// then the inserted provider should be in service
-		DataProvider provider = dataProviderService.getProvider(providerName);
-		assertEquals(providerName, provider.getId());
-		assertEquals(properties, provider.getProperties());
-	}
+        // then the inserted provider should be in service
+        DataProvider provider = dataProviderService.getProvider(providerName);
+        assertEquals(providerName, provider.getId());
+        assertEquals(properties, provider.getProperties());
+    }
 
-	/**
-	 * Return a newly created provider
-	 * @throws ProviderAlreadyExistsException
-	 */
-	@Test
-	public void shouldReturnInsertedProviderOnList() throws ProviderAlreadyExistsException {
-		// given one provider in service
-		String providerName = "provident";
-		ResultSlice<DataProvider> dpSlice = new ResultSlice<DataProvider>();
-		final DataProvider dp = new DataProvider();
-		dp.setId(providerName);
-		dpSlice.setResults(new ArrayList<DataProvider>(){{
-			add(dp);
-		}});
-		Mockito.when(dataProviderService.getProviders(Mockito.anyString(), Mockito.anyInt())).thenReturn(
-				dpSlice);
+    /**
+     * Return a newly created provider
+     *
+     * @throws ProviderAlreadyExistsException
+     */
+    @Test
+    public void shouldReturnInsertedProviderOnList() throws ProviderAlreadyExistsException {
+        // given one provider in service
+        String providerName = "provident";
+        ResultSlice<DataProvider> dpSlice = new ResultSlice<>();
+        final DataProvider dp = new DataProvider();
+        dp.setId(providerName);
+        dpSlice.setResults(new ArrayList<DataProvider>() {
+            {
+                add(dp);
+            }
+        });
+        Mockito.when(dataProviderService.getProviders(Mockito.anyString(), Mockito.anyInt())).thenReturn(
+                dpSlice);
 
-		// when you list all providers
-		Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
-		assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
-		@SuppressWarnings("unchecked")
-		ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
+        // when you list all providers
+        Response listDataProvidersResponse = dataProvidersWebTarget.request().get();
+        assertEquals(Response.Status.OK.getStatusCode(), listDataProvidersResponse.getStatus());
+        @SuppressWarnings("unchecked")
+        ResultSlice<DataProvider> dataProviders = listDataProvidersResponse.readEntity(ResultSlice.class);
 
-		// then there should be exactly one provider, the same as inserted
-		assertEquals("Expected single data provider on list", 1, dataProviders.getResults().size());
-		assertEquals("Wrong provider identifier", providerName, dataProviders.getResults().get(0).getId());
-	}
+        // then there should be exactly one provider, the same as inserted
+        assertEquals("Expected single data provider on list", 1, dataProviders.getResults().size());
+        assertEquals("Wrong provider identifier", providerName, dataProviders.getResults().get(0).getId());
+    }
 }

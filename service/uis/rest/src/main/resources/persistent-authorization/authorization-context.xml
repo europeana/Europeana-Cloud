@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:jee="http://www.springframework.org/schema/jee"
        xmlns:security="http://www.springframework.org/schema/security"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,12 +18,12 @@
     <!-- -->
 
     <!-- Custom success handler, answers requests with 200 OK. -->
-    <bean id="ecloudSecuritySuccessHandler"
-              class="eu.europeana.cloud.service.aas.authentication.handlers.EcloudSecuritySuccessHandlerImpl" />
+    <bean id="cloudSecuritySuccessHandler"
+            class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
 
     <!-- Custom failure handler, answers requests with 401. -->
-    <bean id="ecloudSecurityFailureHandler"
-              class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
+    <bean id="cloudSecurityFailureHandler"
+                class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 
     <!-- -->
     <!-- ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= -->
@@ -39,19 +40,35 @@
     </bean>
 
     <bean id="aclRepository"
-              class="eu.europeana.aas.acl.repository.CassandraAclRepositoryImpl">
-        <constructor-arg ref="cassandraAclSecurityDatabaseService" />
+              class="eu.europeana.aas.acl.repository.CassandraAclRepository">
+        <constructor-arg ref="cassandraProvider" />
         <constructor-arg name="initSchema" value="true" />
     </bean>
 
-    <bean id="cassandraAclSecurityDatabaseService" class="eu.europeana.aas.acl.repository.DatabaseService">
-        <constructor-arg name="host" value="localhost" />
+    <bean id="cassandraProvider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
+<!--        <constructor-arg name="host" value="localhost" />
         <constructor-arg name="port" value="9042" />
 
-        <constructor-arg name="keyspaceName" value="ECLOUD_PERMISSIONS" />
+        <constructor-arg name="keyspaceName" value="aas_permissions" />
 
         <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />
+        <constructor-arg name="password" value="" />-->
+
+         <constructor-arg name="host">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authorization-keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="username">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
+        </constructor-arg>
     </bean>
 
     <bean id="permissionGrantingStrategy"

@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <b:beans xmlns="http://www.springframework.org/schema/security"
+         xmlns:jee="http://www.springframework.org/schema/jee"
          xmlns:b="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
                         http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
-
+   
     <!-- -->
     <!-- - Ecloud persistent authentication application context. Users are stored and retrieved from Cassandra. - -->
     <!-- -->
+    <b:bean id="cloudAuthenticationEntryPoint"
+            class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint" />
+    
+    <b:bean id="cloudSecuritySuccessHandler"
+            class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
 
-    <b:bean id="restAuthenticationEntryPoint"
-                class="eu.europeana.cloud.service.aas.authentication.handlers.RestAuthenticationEntryPoint" />
-	
-    <http entry-point-ref="restAuthenticationEntryPoint" create-session="stateless">
-		
+    <b:bean id="cloudSecurityFailureHandler"
+                class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
+
+    <http entry-point-ref="cloudAuthenticationEntryPoint" create-session="stateless">
         <http-basic />
         <headers />
-
         <form-login 
-            authentication-success-handler-ref="ecloudSecuritySuccessHandler"
-            authentication-failure-handler-ref="ecloudSecurityFailureHandler"
+            authentication-success-handler-ref="cloudSecuritySuccessHandler"
+            authentication-failure-handler-ref="cloudSecurityFailureHandler"
         />
     </http>
 	
     <authentication-manager alias="authenticationManager">
-        <authentication-provider user-service-ref="cassandraUserService"></authentication-provider>
+        <authentication-provider user-service-ref="authenticationService"></authentication-provider>
     </authentication-manager>
 	
     <!-- Automatically receives AuthenticationEvent messages -->
     <b:bean id="loggerListener"
-                class="org.springframework.security.authentication.event.LoggerListener" />
+            class="org.springframework.security.authentication.event.LoggerListener" />
 	
     <!-- Delegates authorization to method calls. -->
     <global-method-security pre-post-annotations="enabled">
@@ -36,28 +40,46 @@
     </global-method-security>
 
     <b:bean id="encoder"
-                class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+            class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
-	
-    <b:bean id="cassandraUsernamePasswordDatabaseService" class="eu.europeana.cloud.service.aas.authentication.repository.DatabaseService">
-        <b:constructor-arg name="host" value="localhost" />
+    <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
+<!--        <b:constructor-arg name="host" value="localhost" />
         <b:constructor-arg name="port" value="9042" />
 
-        <b:constructor-arg name="keyspaceName" value="ecloud_uis" />
+        <b:constructor-arg name="keyspaceName" value="aas_test" />
 
         <b:constructor-arg name="username" value="" />
         <b:constructor-arg name="password" value="" />
-
-        <b:constructor-arg name="createTables" value="true" />
+        
+        <b:constructor-arg name="create" value="false" />-->
+        
+        <b:constructor-arg name="host">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
+        </b:constructor-arg>
+        <b:constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
+        </b:constructor-arg>
+        <b:constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authentication-keyspace"/>
+        </b:constructor-arg>
+        <b:constructor-arg name="username">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
+        </b:constructor-arg>
+        <b:constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
+        </b:constructor-arg>
+        <b:constructor-arg name="create">
+            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/aas/cassandra/autoCreateTables"/>
+        </b:constructor-arg>
     </b:bean>
 	
     <b:bean id="userDAO" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">
-        <b:constructor-arg ref="cassandraUsernamePasswordDatabaseService" />
+        <b:constructor-arg ref="provider" />
     </b:bean>
 	
-    <b:bean id="cassandraUserService" class="eu.europeana.cloud.service.aas.authentication.SpringSecurityUserServiceImpl"></b:bean>
+    <b:bean id="authenticationService" class="eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService"></b:bean>
 
 </b:beans>
