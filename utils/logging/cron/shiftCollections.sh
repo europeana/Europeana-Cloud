@@ -81,17 +81,9 @@ curl "$moveAliasCall" -H -d
 #obtain the list of existing collections
 selectColCall="$solrHTTP/admin/collections?action=LIST"
 
+#if call to xmllint is the last one in pipe chain
+#script will end if xmllint errors
 existingColsOutput=`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/arr[@name='collections']/str" -`
-if [ $existingColsOutput == 'XPath set is empty' ]
-then
-	>&2 echo "Error parsing response from Solr (existing collections)."
-	exit 3;
-fi
-if [ $existingColsOutput == 'Unknown option*']
-then
-	>&2 echo "Xmllint does not know --xpath option (upgrade Libxml2)."
-	exit 4;
-fi
 existingCols=(`echo $existingColsOutput | sed -e 's|<str>\([^<>]\+\)</str>|\1\n|g'`)
 
 #DEBUG
