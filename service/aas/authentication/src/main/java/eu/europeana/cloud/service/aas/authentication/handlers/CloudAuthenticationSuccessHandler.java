@@ -33,6 +33,7 @@ public class CloudAuthenticationSuccessHandler extends SimpleUrlAuthenticationSu
             clearAuthenticationAttributes(request);
             return;
         }
+        
         String targetUrlParam = getTargetUrlParameter();
         if (isAlwaysUseDefaultTargetUrl()
                 || (targetUrlParam != null && StringUtils.hasText(request
