@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.exception;
 
+/**
+ * Base class for all exceptions that may be thrown in MCS.
+ */
 public class MCSException extends Exception {
      /**
      * Constructs a MCSException with no specified detail message.
