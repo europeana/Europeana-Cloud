@@ -28,6 +28,9 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Exposes API related to files. 
+ */
 public class FileServiceClient {
 
     private final Client client;
