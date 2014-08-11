@@ -54,6 +54,7 @@ public class RepresentationVersionAddedListener implements
     @Autowired
     SolrDAO solrDao;
 
+    @Override
     public void onMessage(InsertRepresentationMessage message) {
         String messageText = message.getPayload();
         
