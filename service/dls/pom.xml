@@ -225,7 +225,22 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!--configuration of miredot - REST API documentation generator. -->
+            <plugin>
+                <groupId>com.qmino</groupId>
+                <artifactId>miredot-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>restdoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                  
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
