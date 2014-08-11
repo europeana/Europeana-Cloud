@@ -238,7 +238,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                  
+                  <licence>UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZGxzfDIwMTYtMDgtMTF8dHJ1ZSNNQ3dDRkdmRXFwL1lQS3Nucy9LMFZ4MVdSMU5BWmxQNUFoUmlwTHNtTytERUJjeCs5QUsrdWRWejJNbVJ6UT09</licence>
                 </configuration>
             </plugin>
         </plugins>
