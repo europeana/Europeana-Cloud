@@ -47,7 +47,8 @@ curName="core-$curDate"
 
 #create dataDir for new core
 curDataDir="$dataDirRoot/$curName"
-mkdir -p $curDataDir
+#let the solr (tomcat) create the folder for core, so that owns it 
+#mkdir -p $curDataDir
 
 #create configTempDir for config files
 mkdir -p $configTempDir
