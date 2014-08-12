@@ -47,7 +47,6 @@ curName="core-$curDate"
 
 #create dataDir for new core
 curDataDir="$dataDirRoot/$curName"
-#let the solr (tomcat) create the folder for core, so that owns it 
 #mkdir -p $curDataDir
 
 #create configTempDir for config files
@@ -80,12 +79,12 @@ moveAliasCall="$solrHTTP/admin/collections?action=CREATEALIAS&name=$curAlias&col
 curl "$moveAliasCall" -H -d
 
 #obtain the list of existing collections
-selectColCall="$solrHTTP/admin/collections?action=LIST"
+selectColCall="$solrHTTP/admin/cores?action=STATUS"
 
 #if call to xmllint is the last one in pipe chain
 #script will end if xmllint errors
-existingColsOutput=`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/arr[@name='collections']/str" -`
-existingCols=(`echo $existingColsOutput | sed -e 's|<str>\([^<>]\+\)</str>|\1\n|g'`)
+existingColsOutput=`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/lst[@name='status']/lst/@name" -`
+existingCols=(`echo $existingColsOutput | sed -e 's|name="\([^"]\+\)"|\1\n|g'`)
 
 #DEBUG
 #for ((i=0; i < ${#existingCols[@]}; i++))
