@@ -1,21 +1,23 @@
 package eu.europeana.aas.acl;
 
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Authentication Service Unit tests
@@ -51,26 +53,29 @@ public class CassandraAclServiceTest extends CassandraTestBase {
      *
      * @throws Exception expected = UserExistsException.class
      */
-    @Test()
+    @Test(expected = NotFoundException.class)
     public void testCreateAndRetrieve() throws Exception {
+        TestingAuthenticationToken auth = new TestingAuthenticationToken(creator, creator);
+        auth.setAuthenticated(true);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
         ObjectIdentity obj = new ObjectIdentityImpl(testKey,
                 testValue);
 
-//        MutableAcl acl = mutableAclService.createAcl(obj);
-//
-//        acl.insertAce(0, BasePermission.READ, new PrincipalSid(creator), true);
-//        acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creator), true);
-//        acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creator), true);
-//        acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creator),
-//                true);
-//
-//        mutableAclService.updateAcl(acl);
-//
-//        Acl readAcl = mutableAclService.readAclById(obj);
-//        Assert.assertEquals(acl.getEntries().size(), readAcl.getEntries().size());
-//
-//        readAcl = mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
-//                creator));
-//        Assert.assertNull(readAcl);
+        MutableAcl acl = mutableAclService.createAcl(obj);
+
+        acl.insertAce(0, BasePermission.READ, new PrincipalSid(creator), true);
+        acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creator), true);
+        acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creator), true);
+        acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creator),
+                true);
+
+        mutableAclService.updateAcl(acl);
+
+        Acl readAcl = mutableAclService.readAclById(obj);
+        Assert.assertEquals(acl.getEntries().size(), readAcl.getEntries().size());
+
+        mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
+                creator));
     }
 }
