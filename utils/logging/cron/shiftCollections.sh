@@ -81,7 +81,10 @@ curl "$moveAliasCall" -H -d
 #obtain the list of existing collections
 selectColCall="$solrHTTP/admin/collections?action=LIST"
 
-existingCols=(`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/arr[@name='collections']/str" - | sed -e 's|<str>\([^<>]\+\)</str>|\1\n|g'`)
+#if call to xmllint is the last one in pipe chain
+#script will end if xmllint errors
+existingColsOutput=`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/arr[@name='collections']/str" -`
+existingCols=(`echo $existingColsOutput | sed -e 's|<str>\([^<>]\+\)</str>|\1\n|g'`)
 
 #DEBUG
 #for ((i=0; i < ${#existingCols[@]}; i++))

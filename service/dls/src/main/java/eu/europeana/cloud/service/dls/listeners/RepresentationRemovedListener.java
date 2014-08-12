@@ -53,6 +53,7 @@ public class RepresentationRemovedListener implements
 
     private final Gson gson = new Gson();
 
+    @Override
     public void onMessage(RemoveRepresentationMessage message) {
         String messageText = message.getPayload();
         

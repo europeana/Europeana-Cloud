@@ -11,31 +11,46 @@ public abstract class AbstractMessage implements Serializable {
 
     String payload;
 
+
+    /**
+     * Constructs message with given payload
+     * 
+     * @param payload
+     *            message payload
+     */
     public AbstractMessage(String payload) {
-	this.payload = payload;
+        this.payload = payload;
     }
 
+
+    /**
+     * Returns message payload.
+     * 
+     * @return
+     */
     public String getPayload() {
-	return payload;
+        return payload;
     }
+
 
     @Override
     public int hashCode() {
-	return payload.hashCode();
+        return payload.hashCode();
     }
+
 
     @Override
     public boolean equals(Object obj) {
-	if (obj == null) {
-	    return false;
-	}
-	if (getClass() != obj.getClass()) {
-	    return false;
-	}
-	final AbstractMessage other = (AbstractMessage) obj;
-	if (!Objects.equals(this.payload, other.payload)) {
-	    return false;
-	}
-	return true;
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AbstractMessage other = (AbstractMessage) obj;
+        if (!Objects.equals(this.payload, other.payload)) {
+            return false;
+        }
+        return true;
     }
 }
