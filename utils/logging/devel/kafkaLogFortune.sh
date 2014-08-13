@@ -8,21 +8,21 @@ set -e
 set -u
 shopt -s nullglob
 
-if [ $# -ne 4 ]
+if [ $# -ne 3 ]
 then
-	echo usage: "kafkaLogFortune.sh <brokerList> <topic> <sleepInterval> <timeSpectrum>"
+	echo usage: "kafkaLogFortune.sh <producerCall> <sleepInterval> <timeSpectrum>"
 	exit -1
 fi
 
 ###parameters
-producerCall="$HOME/kafka/kafka/bin/kafka-console-producer.sh --broker-list $1 --topic $2"
-sleepInterval=$3 #in seconds, can be fractional
-timeSpectrum=$4 #from how many minutes from before to draw from
+producerCall="$1"
+sleepInterval=$2 #in seconds, can be fractional
+timeSpectrum=$3 #from how many minutes from before to draw from
 
 ###values to draw from
 priorityArray=("FATAL" "ERROR" "WARN" "INFO" "DEBUG" "TRACE")
 serviceTypeArray=("mcs" "uis" "dls")
-serviceIdArray=("mcs01" "mcs02" "uis01" "uis02" "dls01" "dls02")
+serviceIdArray=("01" "02" "03" "04")
 
 ###functions
 #this works because it treats all passed parameters as an array
@@ -56,7 +56,7 @@ do
 	serviceId=$(drawFromArray "${serviceIdArray[@]}")
 	priority=$(drawFromArray "${priorityArray[@]}")
 	message=$(drawMessage)
-	echo "$timestamp $serviceType $serviceId - ${priority}: $message" | $producerCall
+	echo "$timestamp $serviceType $serviceType$serviceId - ${priority}: $message" | $producerCall
 	sleep $sleepInterval
 done
 
