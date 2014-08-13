@@ -1,0 +1,9 @@
+#!/bin/bash
+
+brokerList="203.1.2.3:9092,203.4.5.6:9092"
+topic="elog"
+sleepInterval=1
+timeSpectrum=480
+script="$HOME/ecloud/repo/utils/logging/devel/kafkaLogFortune.sh"
+
+$script "$brokerList" "$topic" "$sleepInterval" "$timeSpectrum"

@@ -8,11 +8,16 @@ set -e
 set -u
 shopt -s nullglob
 
+if [ $# -ne 4 ]
+then
+	echo usage: "kafkaLogFortune.sh <brokerList> <topic> <sleepInterval> <timeSpectrum>"
+	exit -1
+fi
 
 ###parameters
-producerCall="$HOME/kafka/kafka/bin/kafka-console-producer.sh --broker-list 150.254.164.5:9092,150.254.164.6:9092 --topic elog"
-sleepInterval=1 #in seconds, can be fractional
-timeSpectrum=480 #from how many minutes from before to draw from
+producerCall="$HOME/kafka/kafka/bin/kafka-console-producer.sh --broker-list $1 --topic $2"
+sleepInterval=$3 #in seconds, can be fractional
+timeSpectrum=$4 #from how many minutes from before to draw from
 
 ###values to draw from
 priorityArray=("FATAL" "ERROR" "WARN" "INFO" "DEBUG" "TRACE")
