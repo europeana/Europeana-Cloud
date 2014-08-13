@@ -43,7 +43,7 @@ function drawMessage
 function drawTimestamp
 {
 	local minutesAgo=$(shuf -i0-$timeSpectrum -n1)
-	echo `date -u --date="$minutesAgo minutes ago" +"%Y-%m-%dT%H:%M:%S.%3N"`
+	echo `date -u --date="$minutesAgo minutes ago" +"%Y-%m-%dT%H:%M:%S.%3NZ"`
 }
 
 ###program
