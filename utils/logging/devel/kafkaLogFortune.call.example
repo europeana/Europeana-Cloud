@@ -5,6 +5,6 @@ topic="elog"
 sleepInterval=1
 timeSpectrum=480
 script="$HOME/ecloud/repo/utils/logging/devel/kafkaLogFortune.sh"
-producerCall="\"$HOME/kafka/kafka/bin/kafka-console-producer.sh --broker-list $brokerList --topic $topic\""
+producerCall="$HOME/kafka/kafka/bin/kafka-console-producer.sh --broker-list $brokerList --topic $topic"
 
 $script "$producerCall" "$sleepInterval" "$timeSpectrum"
