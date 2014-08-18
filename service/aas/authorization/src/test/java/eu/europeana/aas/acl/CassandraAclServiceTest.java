@@ -73,7 +73,7 @@ public class CassandraAclServiceTest extends CassandraTestBase {
         mutableAclService.updateAcl(acl);
 
         Acl readAcl = mutableAclService.readAclById(obj);
-        Assert.assertEquals(acl.getEntries().size(), readAcl.getEntries().size());
+        Assert.assertTrue(acl.getEntries().size() == readAcl.getEntries().size());
 
         mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
                 creator));
