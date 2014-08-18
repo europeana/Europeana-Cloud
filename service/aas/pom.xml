@@ -18,8 +18,8 @@
     </properties>
     
     <modules>
-        <module>authorization</module>
         <module>authentication</module>
+        <module>authorization</module>
         <module>rest</module>
     </modules>
 </project>
