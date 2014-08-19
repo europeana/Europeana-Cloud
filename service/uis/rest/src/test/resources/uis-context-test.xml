@@ -14,6 +14,7 @@
         <constructor-arg
             value="eu.europeana.cloud.service.uis.UniqueIdentifierService" />
     </bean>
+    
     <bean id="dataProviderService" name="dataProviderService" class="org.mockito.Mockito" factory-method="mock" >
         <constructor-arg
             value="eu.europeana.cloud.service.uis.DataProviderService" />

@@ -39,7 +39,6 @@ import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import org.springframework.security.acls.model.MutableAclService;
 
 /**
  * Resource for DataProvider.
@@ -67,9 +66,6 @@ public class DataProviderResource {
 
     @Context
     private UriInfo uriInfo;
-
-    @Autowired
-    private MutableAclService mutableAclService;
 
     /**
      * Gets provider.

@@ -18,6 +18,7 @@ import javax.ws.rs.QueryParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,23 +38,19 @@ public class DataSetAssignmentsResource {
     @Autowired
     private DataSetService dataSetService;
 
-
     /**
      * Assigns representation into a data set.
-     * 
-     * @param recordId
-     *            cloud id of record (required)
-     * @param schema
-     *            schema of representation (required)
-     * @param representationVersion
-     *            version of representation. If not provided, latest persistent version will be assigned to data set.
-     * @throws DataSetNotExistsException
-     *             no such data set exists
-     * @throws RepresentationNotExistsException
-     *             no such representation exists.
+     *
+     * @param recordId cloud id of record (required)
+     * @param schema schema of representation (required)
+     * @param representationVersion version of representation. If not provided,
+     * latest persistent version will be assigned to data set.
+     * @throws DataSetNotExistsException no such data set exists
+     * @throws RepresentationNotExistsException no such representation exists.
      * @statuscode 204 object assigned.
      */
     @POST
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void addAssignment(@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
             @FormParam(F_VER) String representationVersion)
             throws DataSetNotExistsException, RepresentationNotExistsException {
@@ -62,18 +59,16 @@ public class DataSetAssignmentsResource {
         dataSetService.addAssignment(providerId, dataSetId, recordId, schema, representationVersion);
     }
 
-
     /**
-     * Unassigns representation from data set. If representation was not assigned to data set, nothing happens.
-     * 
-     * @param recordId
-     *            cloud id of record (required)
-     * @param schema
-     *            schema of representation (required)
-     * @throws DataSetNotExistsException
-     *             no such data set exists
+     * Unassigns representation from data set. If representation was not
+     * assigned to data set, nothing happens.
+     *
+     * @param recordId cloud id of record (required)
+     * @param schema schema of representation (required)
+     * @throws DataSetNotExistsException no such data set exists
      */
     @DELETE
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
             throws DataSetNotExistsException {
         ParamUtil.require(F_CLOUDID, recordId);

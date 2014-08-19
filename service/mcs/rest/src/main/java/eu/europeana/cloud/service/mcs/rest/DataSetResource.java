@@ -24,6 +24,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Resource to manage data sets.
@@ -44,48 +45,44 @@ public class DataSetResource {
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
-
-
+    
     /**
      * Deletes data set.
-     * 
-     * @throws DataSetNotExistsException
-     *             data set not exists.
+     *
+     * @throws DataSetNotExistsException data set not exists.
      */
     @DELETE
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet()
             throws DataSetNotExistsException {
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
 
-
     /**
-     * Lists representation versions from data set. Result is returned in slices.
-     * 
-     * @param startFrom
-     *            reference to next slice of result. If not provided, first slice of result will be returned.
+     * Lists representation versions from data set. Result is returned in
+     * slices.
+     *
+     * @param startFrom reference to next slice of result. If not provided,
+     * first slice of result will be returned.
      * @return slice of representation version list.
-     * @throws DataSetNotExistsException
-     *             no such data set exists.
+     * @throws DataSetNotExistsException no such data set exists.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ResultSlice<Representation> getDataSetContents(@QueryParam(F_START_FROM) String startFrom)
             throws DataSetNotExistsException {
         return dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
     }
 
-
     /**
      * Updates description of data set.
-     * 
-     * @param description
-     *            description of data set
-     * @throws DataSetNotExistsException
-     *             no such data set exists.
+     *
+     * @param description description of data set
+     * @throws DataSetNotExistsException no such data set exists.
      * @statuscode 204 object has been updated.
      */
     @PUT
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(@FormParam(F_DESCRIPTION) String description)
             throws DataSetNotExistsException {
         dataSetService.updateDataSet(providerId, dataSetId, description);

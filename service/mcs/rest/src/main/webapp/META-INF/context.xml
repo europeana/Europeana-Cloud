@@ -68,4 +68,39 @@
         name="kafka/topic"
         global="kafka/topic"
         type="java.lang.String"/>   
+    
+    <ResourceLink
+        name="aas/cassandra/host"
+        global="aas/cassandra/host"
+        type="java.lang.String"/>
+    
+    <ResourceLink 
+        name="aas/cassandra/port"
+        global="aas/cassandra/port"
+        type="java.lang.Integer" />
+    
+    <ResourceLink
+        name="aas/cassandra/authorization-keyspace"
+        global="aas/cassandra/authorization-keyspace"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="aas/cassandra/authentication-keyspace"
+        global="aas/cassandra/authentication-keyspace"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="aas/cassandra/user"
+        global="aas/cassandra/user"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="aas/cassandra/password"
+        global="aas/cassandra/password"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="aas/cassandra/autoCreateTables"
+        global="aas/cassandra/autoCreateTables"
+        type="java.lang.Boolean"/>
 </Context>

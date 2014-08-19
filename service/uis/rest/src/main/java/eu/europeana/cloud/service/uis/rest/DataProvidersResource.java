@@ -20,6 +20,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,9 +30,6 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Resource for DataProviders.
@@ -90,7 +88,7 @@ public class DataProvidersResource {
         EnrichUriUtil.enrich(uriInfo, provider);
 
         // provider created => let's assign permissions to the owner
-        String creatorName = getUsername();
+        String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
             ObjectIdentity providerIdentity = new ObjectIdentityImpl(DATA_PROVIDER_CLASS_NAME,
                     providerId);
@@ -107,21 +105,5 @@ public class DataProvidersResource {
         }
 
         return Response.created(provider.getUri()).build();
-    }
-
-    /**
-     * @return Name of the currently logged in user
-     */
-    private String getUsername() {
-        String username = null;
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            if (auth.getPrincipal() instanceof UserDetails) {
-                username = ((UserDetails) auth.getPrincipal()).getUsername();
-            } else {
-                username = auth.getPrincipal().toString();
-            }
-        }
-        return username;
     }
 }

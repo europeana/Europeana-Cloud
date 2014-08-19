@@ -24,9 +24,17 @@ import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 
 /**
  * Resource to get and create data set.
@@ -48,42 +56,62 @@ public class DataSetsResource {
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
+    @Autowired
+    private MutableAclService mutableAclService;
+
+    private final String DATASET_CLASS_NAME = DataSet.class.getName();
 
     /**
      * Returns all data sets for a provider. Result is returned in slices.
-     * 
-     * @param startFrom
-     *            reference to next slice of result. If not provided, first slice of result will be returned.
+     *
+     * @param startFrom reference to next slice of result. If not provided,
+     * first slice of result will be returned.
      * @return slice of data sets for given provider.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ResultSlice<DataSet> getDataSets(@QueryParam(F_START_FROM) String startFrom) {
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
-
     /**
      * Creates new data set.
-     * 
-     * @param dataSetId
-     *            identifier of data set (required).
-     * @param description
-     *            description of data set.
+     *
+     * @param dataSetId identifier of data set (required).
+     * @param description description of data set.
      * @return URI to newly created data set in content-location.
-     * @throws ProviderNotExistsException
-     *             data provider does not exist.
-     * @throws eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
-     *             data set with this id already exists
+     * @throws ProviderNotExistsException data provider does not exist.
+     * @throws
+     * eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
+     * data set with this id already exists
      * @statuscode 201 object has been created.
      */
     @POST
+    @PreAuthorize("isAuthenticated()")
     public Response createDataSet(@FormParam(F_DATASET) String dataSetId, @FormParam(F_DESCRIPTION) String description)
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
         ParamUtil.require(F_DATASET, dataSetId);
 
         DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
         EnrichUriUtil.enrich(uriInfo, dataSet);
-        return Response.created(dataSet.getUri()).build();
+        final Response response = Response.created(dataSet.getUri()).build();
+        
+        String creatorName = SpringUserUtils.getUsername();
+        if (creatorName != null) {
+            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
+                    providerId + "/" + dataSetId);
+
+            MutableAcl cloudIdAcl = mutableAclService.createAcl(dataSetIdentity);
+
+            cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+            cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+            cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+            cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
+                    true);
+
+            mutableAclService.updateAcl(cloudIdAcl);
+        }
+        
+        return response;
     }
 }

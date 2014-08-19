@@ -21,6 +21,7 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
@@ -34,9 +35,6 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Implementation of the Unique Identifier Service.
@@ -92,7 +90,7 @@ public class UniqueIdentifierResource {
         final Response response = Response.ok().entity(cId).build();
 
         // CloudId created => let's assign permissions to the owner
-        String creatorName = getUsername();
+        String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
             ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME,
                     cId.getId());
@@ -174,21 +172,5 @@ public class UniqueIdentifierResource {
             RecordIdDoesNotExistException {
         uniqueIdentifierService.deleteCloudId(cloudId);
         return Response.ok("CloudId marked as deleted").build();
-    }
-
-    /**
-     * @return Name of the currently logged in user
-     */
-    private String getUsername() {
-        String username = null;
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            if (auth.getPrincipal() instanceof UserDetails) {
-                username = ((UserDetails) auth.getPrincipal()).getUsername();
-            } else {
-                username = auth.getPrincipal().toString();
-            }
-        }
-        return username;
     }
 }
