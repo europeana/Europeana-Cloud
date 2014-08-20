@@ -154,7 +154,7 @@ public interface UniqueIdentifierService {
      * Expose information about the database host entry;
      * @return The host IP
      */
-    String getHost();
+    String getHostList();
     
     /**
      * Expose information about the keyspaceName

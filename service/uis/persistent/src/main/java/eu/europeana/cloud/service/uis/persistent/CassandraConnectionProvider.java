@@ -23,7 +23,7 @@ import com.datastax.driver.core.Session;
 public class CassandraConnectionProvider {
 
 	private Session session;
-	private String host;
+	private String hostList;
 	private String port;
 
 	private String keyspaceName;
@@ -33,8 +33,8 @@ public class CassandraConnectionProvider {
 	/**
 	 * Initialization of the database connection
 	 * 
-	 * @param host
-	 *            The host to connect to
+	 * @param hosts
+	 *            Comma separated list of hosts to connect to
 	 * @param port
 	 *            The port to connect to
 	 * @param keyspaceName
@@ -48,33 +48,34 @@ public class CassandraConnectionProvider {
 	 *            Create the database
 	 * @throws IOException
 	 */
-	public CassandraConnectionProvider(String host, String port, String keyspaceName, String username, String password,
+	public CassandraConnectionProvider(String hosts, String port, String keyspaceName, String username, String password,
 			boolean create) throws IOException {
 
-        LOGGER.info("DatabaseService starting... host='{}', port='{}', keyspaceName='{}', create='{}',username='{}'",
-        		host, port, keyspaceName, create, username);
-		this.host = host;
+                LOGGER.info("DatabaseService starting... host='{}', port='{}', keyspaceName='{}', create='{}',username='{}'",
+        		hosts, port, keyspaceName, create, username);
+		this.hostList = hosts;
 		this.port = port;
 		this.keyspaceName = keyspaceName;
-		Cluster cluster = new Cluster.Builder().addContactPoints(host).withPort(Integer.parseInt(port))
+                String[] contactPoints = hosts.split(",");
+		Cluster cluster = new Cluster.Builder().addContactPoints(contactPoints).withPort(Integer.parseInt(port))
 				.withCredentials(username, password).build();
 		if (create) {
-	        LOGGER.info("DatabaseService creating tables...");
-			session = cluster.connect();
-			List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
-			int i = 0;
-			for (String query : cql) {
-				if (i < 2) {
-					session.execute(String.format(query, keyspaceName));
-				} else {
-					session.execute(query);
-				}
-				i++;
-			}
-	        LOGGER.info("DatabaseService tables created successfully.");
+                    LOGGER.info("DatabaseService creating tables...");
+                            session = cluster.connect();
+                            List<String> cql = FileUtils.readLines(new File(getClass().getResource("/cassandra-uis.cql").getPath()));
+                            int i = 0;
+                            for (String query : cql) {
+                                    if (i < 2) {
+                                            session.execute(String.format(query, keyspaceName));
+                                    } else {
+                                            session.execute(query);
+                                    }
+                                    i++;
+                            }
+                    LOGGER.info("DatabaseService tables created successfully.");
 		}
-		session = cluster.connect(keyspaceName);
-        LOGGER.info("DatabaseService started successfully.");
+                session = cluster.connect(keyspaceName);
+                LOGGER.info("DatabaseService started successfully.");
 	}
 
 	/**
@@ -88,12 +89,12 @@ public class CassandraConnectionProvider {
 	}
 
 	/**
-	 * Expose the contact server IP address
+	 * Expose the contact servers IP address
 	 * 
 	 * @return The host name
 	 */
-	public String getHost() {
-		return host;
+	public String getHostList() {
+		return hostList;
 	}
 
 	/**

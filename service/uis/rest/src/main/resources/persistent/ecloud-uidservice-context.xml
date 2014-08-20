@@ -30,18 +30,8 @@
     </bean>
 
     <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
-<!--        <constructor-arg name="host" value="localhost" />
-        <constructor-arg name="port" value="9042" />
-
-        <constructor-arg name="keyspaceName" value="uis_test4" />
-
-        <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />
-        
-        <constructor-arg name="create" value="false" />-->
-        
-        <constructor-arg name="host">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
+        <constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/hosts"/>
         </constructor-arg>
         <constructor-arg name="port">
             <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>

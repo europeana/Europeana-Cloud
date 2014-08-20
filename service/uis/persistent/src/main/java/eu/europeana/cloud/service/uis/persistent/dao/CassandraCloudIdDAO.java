@@ -24,7 +24,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  */
 public class CassandraCloudIdDAO {
 
-    private String host;
+    private String hostList;
     private String keyspaceName;
     private String port;
     private CassandraConnectionProvider dbService;
@@ -39,7 +39,7 @@ public class CassandraCloudIdDAO {
      */
     public CassandraCloudIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
-        this.host = dbService.getHost();
+        this.hostList = dbService.getHostList();
         this.port = dbService.getPort();
         this.keyspaceName = dbService.getKeyspaceName();
         prepareStatements();
@@ -83,7 +83,7 @@ public class CassandraCloudIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
     }
 
@@ -123,7 +123,7 @@ public class CassandraCloudIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
         CloudId cId = new CloudId();
         LocalId lId = new LocalId();
@@ -143,7 +143,7 @@ public class CassandraCloudIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
     }
 
@@ -153,8 +153,8 @@ public class CassandraCloudIdDAO {
     }
 
     
-    public String getHost() {
-        return host;
+    public String getHostList() {
+        return hostList;
     }
 
     

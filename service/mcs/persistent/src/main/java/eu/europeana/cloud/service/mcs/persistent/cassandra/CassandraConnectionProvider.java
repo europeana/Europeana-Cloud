@@ -30,15 +30,16 @@ public class CassandraConnectionProvider {
     /**
      * Constructor. Use it when your Cassandra cluster does not support authentication.
      * 
-     * @param host
-     *            cassandra node host
+     * @param hosts
+     *            cassandra node hosts, comma separated
      * @param port
      *            cassandra node cql service port
      * @param keyspaceName
      *            name of keyspace
      */
-    public CassandraConnectionProvider(String host, int port, String keyspaceName) {
-        cluster = Cluster.builder().addContactPoint(host).withPort(port).build();
+    public CassandraConnectionProvider(String hosts, int port, String keyspaceName) {
+        String[] contactPoints = hosts.split(",");
+        cluster = Cluster.builder().addContactPoints(contactPoints).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
         LOGGER.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {
@@ -47,12 +48,12 @@ public class CassandraConnectionProvider {
         session = cluster.connect(keyspaceName);
     }
 
-
+    
     /**
      * Constructor. Use it when your Cassandra cluster does support authentication.
      * 
-     * @param host
-     *            cassandra node host
+     * @param hosts
+     *            cassandra node hosts, comma separated
      * @param port
      *            cassandra node cql service port
      * @param keyspaceName
@@ -62,8 +63,9 @@ public class CassandraConnectionProvider {
      * @param password
      *            password
      */
-    public CassandraConnectionProvider(String host, int port, String keyspaceName, String userName, String password) {
-        cluster = Cluster.builder().addContactPoint(host).withCredentials(userName, password).withPort(port).build();
+    public CassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
+        String[] contactPoints = hosts.split(",");
+        cluster = Cluster.builder().addContactPoints(contactPoints).withCredentials(userName, password).withPort(port).build();
         Metadata metadata = cluster.getMetadata();
         LOGGER.info("Connected to cluster: {}", metadata.getClusterName());
         for (Host h : metadata.getAllHosts()) {

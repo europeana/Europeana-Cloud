@@ -113,7 +113,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testCreateCloudIdDbException() throws Exception {
         Throwable databaseException = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
                         uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenThrow(databaseException);
@@ -124,12 +124,12 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
                 errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getErrorCode());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
                 errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getDetails());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
     /**
@@ -184,7 +184,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testGetCloudIdDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
                         uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.getCloudId(providerId, recordId)).thenThrow(exception);
@@ -195,12 +195,12 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
                 errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getErrorCode());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
                 errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getDetails());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
     /**
@@ -259,7 +259,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testGetLocalIdsDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
                         uniqueIdentifierService.getPort(), "")));
 
         when(uniqueIdentifierService.getLocalIdsByCloudId("cloudId")).thenThrow(exception);
@@ -269,12 +269,12 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
                 errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getErrorCode());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
                 errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getDetails());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
     /**
@@ -323,7 +323,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void testDeleteCloudIdDBException() throws Exception {
         Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
                 IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
                         uniqueIdentifierService.getPort(), "")));
 
         doThrow(exception).when(uniqueIdentifierService).deleteCloudId("cloudId");
@@ -334,12 +334,12 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
         ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
         StringUtils.equals(
                 errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getErrorCode());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getErrorCode());
         StringUtils.equals(
                 errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHost(),
-                        uniqueIdentifierService.getHost(), "").getDetails());
+                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                        uniqueIdentifierService.getHostList(), "").getDetails());
     }
 
     /**

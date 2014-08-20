@@ -9,7 +9,7 @@
     <context:annotation-config/>
     
     <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
-        <constructor-arg name="host" value="localhost" />
+        <constructor-arg name="hosts" value="localhost" />
         <constructor-arg name="port" value="29142" />
         <constructor-arg name="keyspaceName" value="uis_test4" />
         <constructor-arg name="username" value="" />

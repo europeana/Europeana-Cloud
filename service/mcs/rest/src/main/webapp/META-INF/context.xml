@@ -6,7 +6,7 @@
 	
 	  <GlobalNamingResources>
 	
-          <Environment name="mcs/cassandra/host" value="CASSANDRA_HOST"
+          <Environment name="mcs/cassandra/hosts" value="CASSANDRA_HOST"
                                type="java.lang.String" override="false"/>
     [...]-->
     
@@ -51,8 +51,8 @@
     <!-- MCS -->
     
     <ResourceLink
-        name="mcs/cassandra/host"
-        global="mcs/cassandra/host"
+        name="mcs/cassandra/hosts"
+        global="mcs/cassandra/hosts"
         type="java.lang.String"/>
     
     <ResourceLink 

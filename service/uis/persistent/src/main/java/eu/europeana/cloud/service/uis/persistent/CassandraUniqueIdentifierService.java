@@ -37,7 +37,7 @@ public class CassandraUniqueIdentifierService implements
 	private CassandraCloudIdDAO cloudIdDao;
 	private CassandraLocalIdDAO localIdDao;
 	private CassandraDataProviderDAO dataProviderDao;
-	private String host;
+	private String hostList;
 	private String keyspace;
 	private String port;
 	
@@ -59,7 +59,7 @@ public class CassandraUniqueIdentifierService implements
 		this.cloudIdDao = cloudIdDao;
 		this.localIdDao = localIdDao;
 		this.dataProviderDao = dataProviderDao;
-		this.host = cloudIdDao.getHost();
+		this.hostList = cloudIdDao.getHostList();
 		this.keyspace = cloudIdDao.getKeyspace();
 		this.port = cloudIdDao.getPort();
         LOGGER.info("PersistentUniqueIdentifierService started successfully...");
@@ -294,8 +294,8 @@ public class CassandraUniqueIdentifierService implements
 	}
 
 	@Override
-	public String getHost() {
-		return this.host;
+	public String getHostList() {
+		return this.hostList;
 	}
 
 	@Override

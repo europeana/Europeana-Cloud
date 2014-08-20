@@ -6,7 +6,7 @@
 	
 	  <GlobalNamingResources>
 	
-          <Environment name="uis/cassandra/host" value="CASSANDRA_HOST"
+          <Environment name="uis/cassandra/hosts" value="CASSANDRA_HOST"
                                type="java.lang.String" override="false"/>
     [...]-->
     
@@ -51,8 +51,8 @@
     <!-- UIS -->
     
     <ResourceLink
-        name="uis/cassandra/host"
-        global="uis/cassandra/host"
+        name="uis/cassandra/hosts"
+        global="uis/cassandra/hosts"
         type="java.lang.String"/>
     
     <ResourceLink 

@@ -14,7 +14,7 @@
     <!--connection provider - with options the same as in embedded cassandra-->
     <bean id="cassandraConnectionProvider"
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="host" type="java.lang.String" value="localhost"/>
+        <constructor-arg name="hosts" type="java.lang.String" value="localhost"/>
         <constructor-arg name="port" type="int" value="19142"/>
         <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
     </bean>

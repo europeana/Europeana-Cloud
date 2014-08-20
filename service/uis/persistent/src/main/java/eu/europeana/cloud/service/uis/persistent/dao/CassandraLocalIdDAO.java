@@ -26,7 +26,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  */
 public class CassandraLocalIdDAO {
 
-    private String host;
+    private String hostList;
     private String port;
     private String keyspaceName;
     private CassandraConnectionProvider dbService;
@@ -44,7 +44,7 @@ public class CassandraLocalIdDAO {
      */
     public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
-        this.host = dbService.getHost();
+        this.hostList = dbService.getHostList();
         this.port = dbService.getPort();
         this.keyspaceName = dbService.getKeyspaceName();
         prepareStatements();
@@ -86,7 +86,7 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
     }
 
@@ -116,7 +116,7 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
         List<CloudId> cIds = new ArrayList<>();
         CloudId cId = new CloudId();
@@ -135,7 +135,7 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
     }
 
@@ -145,12 +145,12 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(host, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
     }
 
-    public String getHost() {
-        return host;
+    public String getHostList() {
+        return hostList;
     }
 
     public String getKeyspace() {
