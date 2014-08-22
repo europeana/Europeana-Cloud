@@ -21,8 +21,13 @@
         type="java.lang.Integer" />
     
     <ResourceLink
-        name="aas/cassandra/keyspace"
-        global="aas/cassandra/keyspace"
+        name="aas/cassandra/authorization-keyspace"
+        global="aas/cassandra/authorization-keyspace"
+        type="java.lang.String"/>
+    
+    <ResourceLink
+        name="aas/cassandra/authentication-keyspace"
+        global="aas/cassandra/authentication-keyspace"
         type="java.lang.String"/>
     
     <ResourceLink

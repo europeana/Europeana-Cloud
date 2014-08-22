@@ -13,22 +13,22 @@
     
     <bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
         <constructor-arg name="host">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/host"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
         </constructor-arg>
         <constructor-arg name="port">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/uis/cassandra/port"/>
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
         </constructor-arg>
         <constructor-arg name="keyspaceName">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authorization-keyspace"/>
         </constructor-arg>
         <constructor-arg name="username">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
         </constructor-arg>
         <constructor-arg name="password">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
         </constructor-arg>
         <constructor-arg name="create">
-            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
+            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/aas/cassandra/autoCreateTables"/>
         </constructor-arg>
     </bean>
     
