@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dls.kafka;
 
-import eu.europeana.cloud.common.exceptions.NoAppropriateListenerException;
-import eu.europeana.cloud.service.dls.listeners.MessageListener;
-import eu.europeana.cloud.service.dls.listeners.RepresentationRemovedListener;
-import eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener;
+import eu.europeana.cloud.common.exceptions.NoAppropriateMessageProcessorException;
+import eu.europeana.cloud.service.dls.listeners.MessageProcessor;
+import eu.europeana.cloud.service.dls.listeners.RepresentationRemovedMessageProcessor;
+import eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedMessageProcessor;
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
 import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationMessage;
@@ -34,12 +34,12 @@ public class MessageDispatherTest {
 	String messagePayload = "test";
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		messagePayload);
-	MessageListener<RemoveRepresentationMessage> messageListener = mock(RepresentationRemovedListener.class);
+	MessageProcessor<RemoveRepresentationMessage> messageListener = mock(RepresentationRemovedMessageProcessor.class);
 	mockDispatcherClass(message, messageListener);
 	// when
 	messageDispatcher.routeMessage(message);
 	// then
-	verify(messageListener, times(1)).onMessage(message);
+	verify(messageListener, times(1)).processMessage(message);
 	verifyNoMoreInteractions(messageListener);
     }
 
@@ -57,7 +57,7 @@ public class MessageDispatherTest {
 	    fail("Not thrown expected exception!");
 	} catch (Exception e) {
 	    // expected exception
-	    assertTrue(e instanceof NoAppropriateListenerException);
+	    assertTrue(e instanceof NoAppropriateMessageProcessorException);
 	}
     }
 
@@ -85,7 +85,7 @@ public class MessageDispatherTest {
 		messagePayload);
 	InsertRepresentationMessage iRMessage = new InsertRepresentationMessage(
 		messagePayload);
-	MessageListener<InsertRepresentationMessage> iRMessageListener = mock(RepresentationVersionAddedListener.class);
+	MessageProcessor<InsertRepresentationMessage> iRMessageListener = mock(RepresentationVersionAddedMessageProcessor.class);
 	mockDispatcherClass(iRMessage, iRMessageListener);
 
 	// no route to RemoveRepresentationMessage defined in messageDispatcher
@@ -95,7 +95,7 @@ public class MessageDispatherTest {
 	    fail("No expected exception!");
 	} catch (Exception e) {
 	    // expected exception
-	    assertTrue(e instanceof NoAppropriateListenerException);
+	    assertTrue(e instanceof NoAppropriateMessageProcessorException);
 	    verifyZeroInteractions(iRMessageListener);
 	}
     }
@@ -104,31 +104,31 @@ public class MessageDispatherTest {
     public void shouldRouteMessageWhenTwoListeners() {
         // given
         String messagePayload = "test";
-        Map<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>> listenersMap
+        Map<Class<? extends AbstractMessage>, MessageProcessor<? extends AbstractMessage>> listenersMap
                 = new HashMap<>();
 
         // InsertRepresentationMessage add to map
         InsertRepresentationMessage iRMessage = new InsertRepresentationMessage(
                 messagePayload);
-        MessageListener<InsertRepresentationMessage> iRMessageListener = mock(RepresentationVersionAddedListener.class);
+        MessageProcessor<InsertRepresentationMessage> iRMessageListener = mock(RepresentationVersionAddedMessageProcessor.class);
         listenersMap.put(iRMessage.getClass(), iRMessageListener);
         // RemoveRepresentationMessage add to map   
         RemoveRepresentationMessage rRMessage = new RemoveRepresentationMessage(
                 messagePayload);
-        MessageListener<RemoveRepresentationMessage> rRMessageListener = mock(RepresentationRemovedListener.class);
+        MessageProcessor<RemoveRepresentationMessage> rRMessageListener = mock(RepresentationRemovedMessageProcessor.class);
         listenersMap.put(rRMessage.getClass(), rRMessageListener);
         messageDispatcher.setListenersMap(listenersMap);
 
         // when
         messageDispatcher.routeMessage(iRMessage);
         // then
-        verify(iRMessageListener, times(1)).onMessage(iRMessage);
+        verify(iRMessageListener, times(1)).processMessage(iRMessage);
         verifyNoMoreInteractions(iRMessageListener);
         verifyZeroInteractions(rRMessageListener);
     }
 
-    private <T extends AbstractMessage> void mockDispatcherClass(T messageClass, MessageListener<T> messageListener) {
-        Map<Class<? extends AbstractMessage>, MessageListener<? extends AbstractMessage>> listenersMap
+    private <T extends AbstractMessage> void mockDispatcherClass(T messageClass, MessageProcessor<T> messageListener) {
+        Map<Class<? extends AbstractMessage>, MessageProcessor<? extends AbstractMessage>> listenersMap
                 = new HashMap<>();
         listenersMap.put(messageClass.getClass(), messageListener);
         messageDispatcher.setListenersMap(listenersMap);

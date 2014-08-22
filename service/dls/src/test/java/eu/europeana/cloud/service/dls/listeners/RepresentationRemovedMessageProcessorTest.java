@@ -19,10 +19,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class RepresentationRemovedListenerTest {
+public class RepresentationRemovedMessageProcessorTest {
 
     @Autowired
-    RepresentationRemovedListener listener;
+    RepresentationRemovedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -42,7 +42,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		prepareRemoveRepresentationMessage(cloudId, representationName));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verify(solrDAO, times(1)).removeRepresentation(cloudId,
 		representationName);
@@ -56,7 +56,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -67,7 +67,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		"");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -80,7 +80,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		prepareRemoveRepresentationMessage(cloudId, representationName));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -93,7 +93,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		prepareRemoveRepresentationMessage(cloudId, representationName));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -107,7 +107,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		prepareRemoveRepresentationMessage(cloudId, representationName));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -121,7 +121,7 @@ public class RepresentationRemovedListenerTest {
 	RemoveRepresentationMessage message = new RemoveRepresentationMessage(
 		prepareRemoveRepresentationMessage(cloudId, representationName));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }

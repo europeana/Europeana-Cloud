@@ -18,10 +18,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class AllDataSetAssignmentsRemovedListenerTest {
+public class AllDataSetAssignmentsRemovedMessageProcessorTest {
 
     @Autowired
-    AllDataSetAssignmentsRemovedListener listener;
+    AllDataSetAssignmentsRemovedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -43,7 +43,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verify(solrDAO, times(1))
 		.removeAssignmentFromDataSet(compoundDataSetId);
@@ -57,7 +57,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -68,7 +68,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		"");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -81,7 +81,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -96,7 +96,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 
 	// then
 	verifyZeroInteractions(solrDAO);
@@ -112,7 +112,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 
 	// then
 	verifyZeroInteractions(solrDAO);
@@ -128,7 +128,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 
 	// then
 	verifyZeroInteractions(solrDAO);
@@ -144,7 +144,7 @@ public class AllDataSetAssignmentsRemovedListenerTest {
 	RemoveAssignmentsFromDataSetMessage message = new RemoveAssignmentsFromDataSetMessage(
 		prepareAllDataSetAssignmentsRemovedMessage(compoundDataSetId));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 
 	// then
 	verifyZeroInteractions(solrDAO);

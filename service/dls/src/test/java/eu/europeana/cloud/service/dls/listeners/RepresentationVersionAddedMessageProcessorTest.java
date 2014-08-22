@@ -23,10 +23,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class RepresentationVersionAddedListenerTest {
+public class RepresentationVersionAddedMessageProcessorTest {
 
     @Autowired
-    RepresentationVersionAddedListener listener;
+    RepresentationVersionAddedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -54,7 +54,7 @@ public class RepresentationVersionAddedListenerTest {
         Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
         InsertRepresentationMessage message = new InsertRepresentationMessage(prepareInsertRepresentationMessage(representation));
         //when
-        listener.onMessage(message);
+        listener.processMessage(message);
 
         //then
         verify(solrDAO, times(1)).insertRepresentation(representation, null);
@@ -69,7 +69,7 @@ public class RepresentationVersionAddedListenerTest {
 	InsertRepresentationMessage message = new InsertRepresentationMessage(
 		null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -80,7 +80,7 @@ public class RepresentationVersionAddedListenerTest {
 	InsertRepresentationMessage message = new InsertRepresentationMessage(
 		"");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -92,7 +92,7 @@ public class RepresentationVersionAddedListenerTest {
 	InsertRepresentationMessage message = new InsertRepresentationMessage(
 		prepareInsertRepresentationMessage(null));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }

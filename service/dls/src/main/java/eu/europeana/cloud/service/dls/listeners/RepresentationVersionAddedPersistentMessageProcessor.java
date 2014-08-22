@@ -21,11 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about adding a new persistent
+ * Processor that processes messages about adding a new persistent
  * {@link eu.europeana.cloud.common.model.Representation representation} version
  * to a certain {@link eu.europeana.cloud.common.model.Record record}.
  * 
- * It receives messages with
+ * It processes messages with
  * <code>records.representations.versions.addPersistent</code> routing key.
  * Message text should be a map serialised to Json, holding
  * {@link Representation} object, and a list of {@link CompoundDataSetId}
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  * representation} creation time). The list of ids can be empty, but cannot be
  * <code>null</code>.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#insertRepresentation(Representation, Collection)
  * SolrDAO.insertRepresentation(Representation,
  * Collection&lt;CompoundDataSetId&gt;)} so that Solr index is updated (the
@@ -53,16 +53,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.insertRepresentation(Representation, Collection&lt;CompoundDataSetId&gt;)</code>
  * method in MCS.
  */
 @Component
-public class RepresentationVersionAddedPersistentListener implements
-	MessageListener<InsertRepresentationPersistentMessage> {
+public class RepresentationVersionAddedPersistentMessageProcessor implements
+	MessageProcessor<InsertRepresentationPersistentMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RepresentationVersionAddedPersistentListener.class);
+	    .getLogger(RepresentationVersionAddedPersistentMessageProcessor.class);
     private static final Gson gson = new GsonBuilder().setDateFormat(
 	    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
 
@@ -70,7 +70,7 @@ public class RepresentationVersionAddedPersistentListener implements
     SolrDAO solrDao;
 
     @Override
-    public void onMessage(InsertRepresentationPersistentMessage message) {
+    public void processMessage(InsertRepresentationPersistentMessage message) {
         String messageText = message.getPayload();
         
         if (messageText == null || messageText.isEmpty()) {

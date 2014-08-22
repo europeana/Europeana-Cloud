@@ -28,10 +28,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class RepresentationVersionAddedPersistentListenerTest {
+public class RepresentationVersionAddedPersistentMessageProcessorTest {
 
     @Autowired
-    RepresentationVersionAddedPersistentListener listener;
+    RepresentationVersionAddedPersistentMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -65,7 +65,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
 
         InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(representation, dataSetIds));
         //when
-        listener.onMessage(message);
+        listener.processMessage(message);
 
         //then
         verify(solrDAO, times(1)).insertRepresentation(representation, dataSetIds);
@@ -80,7 +80,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
 	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
 		null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -91,7 +91,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
 	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
 		"");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -103,7 +103,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
 	InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(
 		gson.toJson(map));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -115,7 +115,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
         HashMap<String, Object> map = new LinkedHashMap<>();
         InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(gson.toJson(map));
         //when
-        listener.onMessage(message);
+        listener.processMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
     }
@@ -133,7 +133,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
 
         InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(null, dataSetIds));
         //when
-        listener.onMessage(message);
+        listener.processMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
     }
@@ -154,7 +154,7 @@ public class RepresentationVersionAddedPersistentListenerTest {
         InsertRepresentationPersistentMessage message = new InsertRepresentationPersistentMessage(prepareInsertPersistentRepresentationMessage(representation, null));
 
         //when
-        listener.onMessage(message);
+        listener.processMessage(message);
         //then
         verifyZeroInteractions(solrDAO);
     }

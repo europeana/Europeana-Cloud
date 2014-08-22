@@ -15,17 +15,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about removing a
+ * Processor that processes messages about removing a
  * {@link eu.europeana.cloud.common.model.Representation representation} of
  * certain representation name in all versions from a
  * {@link eu.europeana.cloud.common.model.Record record} of certain cloudId.
  * 
- * It receives messages with <code>records.representations.delete</code> routing
- * key. Message text should be Json including a property containing
+ * It processes messages with <code>records.representations.delete</code>
+ * routing key. Message text should be Json including a property containing
  * representation name and a property containing cloudId of the
  * {@link eu.europeana.cloud.common.model.Record record}.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeRepresentation(String, String)}
  * so that Solr index is updated ({@link eu.europeana.cloud.common.model.Record
  * record} will hold no versions of this
@@ -37,16 +37,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeRepresentation(String, String)}</code>
  * method in MCS.
  */
 @Component
-public class RepresentationRemovedListener implements
-	MessageListener<RemoveRepresentationMessage> {
+public class RepresentationRemovedMessageProcessor implements
+	MessageProcessor<RemoveRepresentationMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RepresentationRemovedListener.class);
+	    .getLogger(RepresentationRemovedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDao;
@@ -54,7 +54,7 @@ public class RepresentationRemovedListener implements
     private final Gson gson = new Gson();
 
     @Override
-    public void onMessage(RemoveRepresentationMessage message) {
+    public void processMessage(RemoveRepresentationMessage message) {
         String messageText = message.getPayload();
         
         if (messageText == null || messageText.isEmpty()) {

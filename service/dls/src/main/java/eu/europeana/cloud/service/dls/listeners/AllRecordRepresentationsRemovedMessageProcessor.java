@@ -36,17 +36,17 @@ import org.springframework.stereotype.Component;
  * method in MCS.
  */
 @Component
-public class AllRecordRepresentationsRemovedListener implements
-	MessageListener<RemoveRecordRepresentationsMessage> {
+public class AllRecordRepresentationsRemovedMessageProcessor implements
+	MessageProcessor<RemoveRecordRepresentationsMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RepresentationRemovedListener.class);
+	    .getLogger(RepresentationRemovedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDAO;
 
     @Override
-    public void onMessage(RemoveRecordRepresentationsMessage message) {
+    public void processMessage(RemoveRecordRepresentationsMessage message) {
        String messageText = message.getPayload();
        
         if (messageText == null || messageText.isEmpty()) {

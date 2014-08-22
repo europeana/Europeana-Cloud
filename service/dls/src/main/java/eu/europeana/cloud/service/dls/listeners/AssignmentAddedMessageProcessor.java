@@ -17,15 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about adding an assignment of
+ * Processor that processes messages about adding an assignment of
  * {@link eu.europeana.cloud.common.model.Representation representation} version
  * a certain {@link eu.europeana.cloud.common.model.DataSet data set}.
  * 
- * It receives messages with <code>datasets.assignments.delete</code> routing
+ * It processes messages with <code>datasets.assignments.delete</code> routing
  * key. Message text should be Json including {@link CompoundDataSetId} object
  * and property containing id of representation version.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#addAssignment(String, CompoundDataSetId)}
  * so that Solr index is updated (
  * {@link eu.europeana.cloud.common.model.DataSet data set} will have new
@@ -36,16 +36,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.addAssignment(String, CompoundDataSetId)}</code>
  * method in MCS.
  */
 @Component
-public class AssignmentAddedListener implements
-	MessageListener<AddAssignmentMessage> {
+public class AssignmentAddedMessageProcessor implements
+	MessageProcessor<AddAssignmentMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(AssignmentAddedListener.class);
+	    .getLogger(AssignmentAddedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDao;
@@ -53,7 +53,7 @@ public class AssignmentAddedListener implements
     private static final Gson gson = new Gson();
 
     @Override
-    public void onMessage(AddAssignmentMessage message) {
+    public void processMessage(AddAssignmentMessage message) {
        String messageText = message.getPayload();
        
         if (messageText == null || messageText.isEmpty()) {

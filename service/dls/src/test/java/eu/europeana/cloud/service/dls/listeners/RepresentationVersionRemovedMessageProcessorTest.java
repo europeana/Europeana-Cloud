@@ -16,10 +16,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class RepresentationVersionRemovedListenerTest {
+public class RepresentationVersionRemovedMessageProcessorTest {
 
     @Autowired
-    RepresentationVersionRemovedListener listener;
+    RepresentationVersionRemovedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -36,7 +36,7 @@ public class RepresentationVersionRemovedListenerTest {
 	RemoveRepresentationVersionMessage message = new RemoveRepresentationVersionMessage(
 		versionId);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verify(solrDAO, times(1)).removeRepresentationVersion(versionId);
 	verifyNoMoreInteractions(solrDAO);
@@ -49,7 +49,7 @@ public class RepresentationVersionRemovedListenerTest {
 	RemoveRepresentationVersionMessage message = new RemoveRepresentationVersionMessage(
 		null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -62,7 +62,7 @@ public class RepresentationVersionRemovedListenerTest {
 	RemoveRepresentationVersionMessage message = new RemoveRepresentationVersionMessage(
 		versionId);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }

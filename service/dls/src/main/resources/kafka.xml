@@ -9,14 +9,14 @@
     
  
     <!--    Create listeners to MessageDispatcher-->
-    <bean id="allDataSetAssignmentsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AllDataSetAssignmentsRemovedListener"/>
-    <bean id="allRecordRepresentationsRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedListener"/>
-    <bean id="assignmentAddedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentAddedListener"/>
-    <bean id="assignmentRemovedListener" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedListener"/>
-    <bean id="representationRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationRemovedListener"/>
-    <bean id="representationVersionAddedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedListener"/>
-    <bean id="representationVersionAddedPersistentListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentListener"/>
-    <bean id="representationVersionRemovedListener" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionRemovedListener"/>
+    <bean id="allDataSetAssignmentsRemovedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.AllDataSetAssignmentsRemovedMessageProcessor"/>
+    <bean id="allRecordRepresentationsRemovedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.AllRecordRepresentationsRemovedMessageProcessor"/>
+    <bean id="assignmentAddedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.AssignmentAddedMessageProcessor"/>
+    <bean id="assignmentRemovedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.AssignmentRemovedMessageProcessor"/>
+    <bean id="representationRemovedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.RepresentationRemovedMessageProcessor"/>
+    <bean id="representationVersionAddedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedMessageProcessor"/>
+    <bean id="representationVersionAddedPersistentMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedPersistentMessageProcessor"/>
+    <bean id="representationVersionRemovedMessageProcessor" class="eu.europeana.cloud.service.dls.listeners.RepresentationVersionRemovedMessageProcessor"/>
     <!--    Create message type classes to MessageDispatcher-->
     <bean id="RemoveAssignmentsFromDataSetMessageClass" factory-method="forName" class="java.lang.Class">
         <constructor-arg value="eu.europeana.cloud.service.mcs.messages.RemoveAssignmentsFromDataSetMessage" />
@@ -46,14 +46,14 @@
     <bean id="messageDispatcher" class="eu.europeana.cloud.service.dls.kafka.MessageDispatcher" >
         <property name="listenersMap">
             <map>
-                <entry key-ref="RemoveAssignmentsFromDataSetMessageClass" value-ref="allDataSetAssignmentsRemovedListener" />
-                <entry key-ref="RemoveRecordRepresentationsMessageClass" value-ref="allRecordRepresentationsRemovedListener" />
-                <entry key-ref="AddAssignmentMessageClass" value-ref="assignmentAddedListener" />
-                <entry key-ref="RemoveAssignmentMessageClass" value-ref="assignmentRemovedListener" />
-                <entry key-ref="RemoveRepresentationMessageClass" value-ref="representationRemovedListener" />
-                <entry key-ref="InsertRepresentationMessageClass" value-ref="representationVersionAddedListener" />
-                <entry key-ref="InsertRepresentationPersistentMessageClass" value-ref="representationVersionAddedPersistentListener" />
-                <entry key-ref="RemoveRepresentationVersionMessageClass" value-ref="representationVersionRemovedListener" />   
+                <entry key-ref="RemoveAssignmentsFromDataSetMessageClass" value-ref="allDataSetAssignmentsRemovedMessageProcessor" />
+                <entry key-ref="RemoveRecordRepresentationsMessageClass" value-ref="allRecordRepresentationsRemovedMessageProcessor" />
+                <entry key-ref="AddAssignmentMessageClass" value-ref="assignmentAddedMessageProcessor" />
+                <entry key-ref="RemoveAssignmentMessageClass" value-ref="assignmentRemovedMessageProcessor" />
+                <entry key-ref="RemoveRepresentationMessageClass" value-ref="representationRemovedMessageProcessor" />
+                <entry key-ref="InsertRepresentationMessageClass" value-ref="representationVersionAddedMessageProcessor" />
+                <entry key-ref="InsertRepresentationPersistentMessageClass" value-ref="representationVersionAddedPersistentMessageProcessor" />
+                <entry key-ref="RemoveRepresentationVersionMessageClass" value-ref="representationVersionRemovedMessageProcessor" />   
             </map>
         </property>
     </bean>

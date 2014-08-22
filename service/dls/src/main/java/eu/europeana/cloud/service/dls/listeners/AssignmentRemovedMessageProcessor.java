@@ -18,12 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about removing an assignment of
+ * Processor that processes messages about removing an assignment of
  * {@link eu.europeana.cloud.common.model.Representation representation} of
  * certain representation name to a certain
  * {@link eu.europeana.cloud.common.model.DataSet data set}.
  * 
- * It receives messages with <code>datasets.assignments.delete</code> routing
+ * It processes messages with <code>datasets.assignments.delete</code> routing
  * key. Message text should be Json including {@link CompoundDataSetId} object,
  * a property containing representation name and a property containing cloudId
  * of the {@link eu.europeana.cloud.common.model.Record record}. We need the
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.common.model.Representation representation}
  * versions of the provided representation name, as no version id is included.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignment(String, String, Collection)
  * SolrDAO.removeAssignment(String, String,
  * Collection&lt;CompoundDataSetId&gt;)} so that Solr index is updated (
@@ -44,16 +44,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeAssignment(String, String, CompoundDataSetId)}</code>
  * method in MCS.
  */
 @Component
-public class AssignmentRemovedListener implements
-	MessageListener<RemoveAssignmentMessage> {
+public class AssignmentRemovedMessageProcessor implements
+	MessageProcessor<RemoveAssignmentMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(AssignmentRemovedListener.class);
+	    .getLogger(AssignmentRemovedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDao;
@@ -61,7 +61,7 @@ public class AssignmentRemovedListener implements
     private static final Gson gson = new Gson();
 
     @Override
-    public void onMessage(RemoveAssignmentMessage message) {
+    public void processMessage(RemoveAssignmentMessage message) {
         String messageText = message.getPayload();
 
         if (messageText == null || messageText.isEmpty()) {

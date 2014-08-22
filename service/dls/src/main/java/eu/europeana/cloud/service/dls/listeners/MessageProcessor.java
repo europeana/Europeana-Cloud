@@ -3,17 +3,16 @@ package eu.europeana.cloud.service.dls.listeners;
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 
 /**
- * A MessageListener object is used to receive asynchronously delivered
- * messages.
+ * A MessageProcessor object is used to processing messages.
  * 
  * @param <T>
  *            extends {@link AbstractMessage}
  */
-public interface MessageListener<T extends AbstractMessage> {
+public interface MessageProcessor<T extends AbstractMessage> {
     /**
-     * Passes a message to the listener.
+     * Process message.
      * 
      * @param message
      */
-    public void onMessage(T message);
+    public void processMessage(T message);
 }

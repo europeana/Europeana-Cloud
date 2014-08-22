@@ -13,17 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about adding a new/updating
+ * Processor that processes messages about adding a new/updating
  * {@link eu.europeana.cloud.common.model.Representation representation} version
  * of a certain {@link eu.europeana.cloud.common.model.Record record}.
  * 
- * It receives messages with <code>records.representations.versions.add</code>
+ * It processes messages with <code>records.representations.versions.add</code>
  * routing key. Message text should be a {@link Representation} object,
  * serialised to Json. {@link Representation} object contains all necessary
  * information (cloudId of the {@link eu.europeana.cloud.common.model.Record
  * record} it belongs to, version etc.).
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#insertRepresentation(Representation, Collection)
  * SolrDAO.insertRepresentation(Representation,
  * Collection&lt;CompoundDataSetId&gt;)} (with second argument being
@@ -38,16 +38,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.insertRepresentation(Representation)}</code>
  * method in MCS.
  */
 @Component
-public class RepresentationVersionAddedListener implements
-	MessageListener<InsertRepresentationMessage> {
+public class RepresentationVersionAddedMessageProcessor implements
+	MessageProcessor<InsertRepresentationMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RepresentationVersionAddedListener.class);
+	    .getLogger(RepresentationVersionAddedMessageProcessor.class);
     private static final Gson gson = new GsonBuilder().setDateFormat(
 	    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
 
@@ -55,7 +55,7 @@ public class RepresentationVersionAddedListener implements
     SolrDAO solrDao;
 
     @Override
-    public void onMessage(InsertRepresentationMessage message) {
+    public void processMessage(InsertRepresentationMessage message) {
         String messageText = message.getPayload();
         
         if (messageText == null || messageText.isEmpty()) {

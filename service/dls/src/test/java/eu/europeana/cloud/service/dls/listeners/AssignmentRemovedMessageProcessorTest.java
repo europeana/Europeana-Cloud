@@ -22,10 +22,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class AssignmentRemovedListenerTest {
+public class AssignmentRemovedMessageProcessorTest {
 
     @Autowired
-    AssignmentRemovedListener listener;
+    AssignmentRemovedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -48,7 +48,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verify(solrDAO, times(1)).removeAssignment(cloudId, representationName,
 		Collections.singletonList(ds));
@@ -62,7 +62,7 @@ public class AssignmentRemovedListenerTest {
 	// given
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -72,7 +72,7 @@ public class AssignmentRemovedListenerTest {
 	// given
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage("");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -88,7 +88,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -104,7 +104,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -121,7 +121,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -138,7 +138,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -153,7 +153,7 @@ public class AssignmentRemovedListenerTest {
 		prepareRemoveAssginmentMessage(cloudId, representationName,
 			null));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -170,7 +170,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -186,7 +186,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -202,7 +202,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -218,7 +218,7 @@ public class AssignmentRemovedListenerTest {
 	RemoveAssignmentMessage message = new RemoveAssignmentMessage(
 		prepareRemoveAssginmentMessage(cloudId, representationName, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }

@@ -13,14 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about removing all assignments from a
+ * Processor that processes messages about removing all assignments from a
  * certain {@link eu.europeana.cloud.common.model.DataSet data set}.
  * 
- * It receives messages with <code>datasets.assignments.deleteAll</code> routing
+ * It process messages with <code>datasets.assignments.deleteAll</code> routing
  * key. Message text should be a {@link CompoundDataSetId} object, serialised to
  * Json.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeAssignmentFromDataSet(CompoundDataSetId)}
  * so that Solr index is updated (the
  * {@link eu.europeana.cloud.common.model.DataSet data set} will have no
@@ -32,16 +32,16 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeAssignmentsFromDataSet(CompoundDataSetId)</code>
  * method in MCS.
  */
 @Component
-public class AllDataSetAssignmentsRemovedListener implements
-	MessageListener<RemoveAssignmentsFromDataSetMessage> {
+public class AllDataSetAssignmentsRemovedMessageProcessor implements
+	MessageProcessor<RemoveAssignmentsFromDataSetMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(AllDataSetAssignmentsRemovedListener.class);
+	    .getLogger(AllDataSetAssignmentsRemovedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDAO;
@@ -49,7 +49,7 @@ public class AllDataSetAssignmentsRemovedListener implements
     private final Gson gson = new Gson();
 
     @Override
-    public void onMessage(RemoveAssignmentsFromDataSetMessage message) {
+    public void processMessage(RemoveAssignmentsFromDataSetMessage message) {
         String messageText = message.getPayload();
 
         if (messageText == null || messageText.isEmpty()) {

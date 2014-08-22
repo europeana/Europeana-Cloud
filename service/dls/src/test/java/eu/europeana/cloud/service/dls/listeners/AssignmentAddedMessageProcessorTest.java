@@ -21,10 +21,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testContext.xml" })
-public class AssignmentAddedListenerTest {
+public class AssignmentAddedMessageProcessorTest {
 
     @Autowired
-    AssignmentAddedListener listener;
+    AssignmentAddedMessageProcessor listener;
 
     @Autowired
     SolrDAO solrDAO;
@@ -44,7 +44,7 @@ public class AssignmentAddedListenerTest {
 	CompoundDataSetId ds = new CompoundDataSetId(provider, dataSet);
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
-	listener.onMessage(message);
+	listener.processMessage(message);
 	verify(solrDAO, times(1)).addAssignment(version, ds);
 	verifyNoMoreInteractions(solrDAO);
 
@@ -56,7 +56,7 @@ public class AssignmentAddedListenerTest {
 	// given
 	AddAssignmentMessage message = new AddAssignmentMessage(null);
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -66,7 +66,7 @@ public class AssignmentAddedListenerTest {
 	// given
 	AddAssignmentMessage message = new AddAssignmentMessage("");
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -81,7 +81,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -96,7 +96,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -110,7 +110,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -125,7 +125,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -140,7 +140,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -155,7 +155,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }
@@ -170,7 +170,7 @@ public class AssignmentAddedListenerTest {
 	AddAssignmentMessage message = new AddAssignmentMessage(
 		prepareAddAssignmentMessage(version, ds));
 	// when
-	listener.onMessage(message);
+	listener.processMessage(message);
 	// then
 	verifyZeroInteractions(solrDAO);
     }

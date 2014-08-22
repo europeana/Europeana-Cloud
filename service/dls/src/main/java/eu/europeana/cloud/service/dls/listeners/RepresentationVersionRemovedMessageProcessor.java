@@ -12,18 +12,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that processes messages about removing a
+ * Processor that processes messages about removing a
  * {@link eu.europeana.cloud.common.model.Representation representation} version
  * from a certain {@link eu.europeana.cloud.common.model.Record record}.
  * 
- * It receives messages with
+ * It processes messages with
  * <code>records.representations.versions.deleteVersion</code> routing key.
  * Message text should be a representation version (directly sent value).
  * Representation version id uniquely identifies {@link Representation
  * representation} in the whole system, so it is know from which
  * {@link eu.europeana.cloud.common.model.Record record} to remove it.
  * 
- * After receiving properly formed message, listener calls
+ * After processing properly formed message, processor calls
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO#removeRepresentationVersion(String)}
  * so that Solr index is updated ({@link eu.europeana.cloud.common.model.Record
  * record} will not hold this representation version in updated index).
@@ -33,22 +33,22 @@ import org.springframework.stereotype.Component;
  * {@link eu.europeana.cloud.service.dls.solr.SolrDAO} fails, an information is
  * also logged.
  * 
- * Messages for this listener are produced by
+ * Messages for this processor are produced by
  * <code>eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer.removeRepresentationVersion(String)}</code>
  * method in MCS.
  */
 @Component
-public class RepresentationVersionRemovedListener implements
-	MessageListener<RemoveRepresentationVersionMessage> {
+public class RepresentationVersionRemovedMessageProcessor implements
+	MessageProcessor<RemoveRepresentationVersionMessage> {
 
     private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RepresentationVersionRemovedListener.class);
+	    .getLogger(RepresentationVersionRemovedMessageProcessor.class);
 
     @Autowired
     SolrDAO solrDao;
 
     @Override
-    public void onMessage(RemoveRepresentationVersionMessage message) {
+    public void processMessage(RemoveRepresentationVersionMessage message) {
         String messageText = message.getPayload();
         
         if (messageText == null || messageText.isEmpty()) {
