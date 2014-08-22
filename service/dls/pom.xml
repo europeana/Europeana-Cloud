@@ -20,8 +20,6 @@
     </properties>
     
     <dependencies>
-
-
         <!--Jersey -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -82,7 +80,7 @@
             <artifactId>jersey-media-multipart</artifactId>
         </dependency>
        
-         <!--logging -->
+        <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
@@ -238,7 +236,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                  <licence>UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZGxzfDIwMTYtMDgtMTF8dHJ1ZSNNQ3dDRkdmRXFwL1lQS3Nucy9LMFZ4MVdSMU5BWmxQNUFoUmlwTHNtTytERUJjeCs5QUsrdWRWejJNbVJ6UT09</licence>
+                    <licence>UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZGxzfDIwMTYtMDgtMTF8dHJ1ZSNNQ3dDRkdmRXFwL1lQS3Nucy9LMFZ4MVdSMU5BWmxQNUFoUmlwTHNtTytERUJjeCs5QUsrdWRWejJNbVJ6UT09</licence>
                 </configuration>
             </plugin>
         </plugins>
