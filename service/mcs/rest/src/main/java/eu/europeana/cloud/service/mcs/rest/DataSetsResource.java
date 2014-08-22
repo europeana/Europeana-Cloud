@@ -101,15 +101,15 @@ public class DataSetsResource {
             ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
                     providerId + "/" + dataSetId);
 
-            MutableAcl cloudIdAcl = mutableAclService.createAcl(dataSetIdentity);
+            MutableAcl datasetAcl = mutableAclService.createAcl(dataSetIdentity);
 
-            cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
+            datasetAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
                     true);
 
-            mutableAclService.updateAcl(cloudIdAcl);
+            mutableAclService.updateAcl(datasetAcl);
         }
         
         return response;

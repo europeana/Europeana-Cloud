@@ -31,6 +31,7 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * FilesResource
@@ -39,6 +40,8 @@ import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 @Component
 @Scope("request")
 public class FilesResource {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
 
     @Autowired
     private RecordService recordService;
@@ -55,36 +58,36 @@ public class FilesResource {
     @PathParam(P_VER)
     private String version;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
-
-
     /**
-     * Adds a new file to representation version. URI to created resource will be returned in response as content
-     * location. Consumes multipart content - form data:
+     * Adds a new file to representation version. URI to created resource will
+     * be returned in response as content location. Consumes multipart content -
+     * form data:
      * <ul>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_NAME} - file name</li>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} -
+     * file mime type</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_NAME} -
+     * file name</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} -
+     * binary stream of file content (required)</li>
      * </ul>
-     * 
-     * @param mimeType
-     *            mime type of file
-     * @param data
-     *            binary stream of file content (required)
-     * @param fileName
-     *            name of creating file. If fileName does not provided by POST request fileName will assigned
-     *            automatically by service.
-     * @return empty response with tag (content md5) and URI to created resource in content location.
+     *
+     * @param mimeType mime type of file
+     * @param data binary stream of file content (required)
+     * @param fileName name of creating file. If fileName does not provided by
+     * POST request fileName will assigned automatically by service.
+     * @return empty response with tag (content md5) and URI to created resource
+     * in content location.
      * @statuscode 201 object has been created.
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version
-     * @throws CannotModifyPersistentRepresentationException
-     *             specified representation version is persistent and modifying its files is not allowed.
-     * @throws FileAlreadyExistsException
-     *             specified file already exist.
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version
+     * @throws CannotModifyPersistentRepresentationException specified
+     * representation version is persistent and modifying its files is not
+     * allowed.
+     * @throws FileAlreadyExistsException specified file already exist.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data,
             @FormDataParam(F_FILE_NAME) String fileName)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
@@ -94,7 +97,6 @@ public class FilesResource {
         File f = new File();
         f.setMimeType(mimeType);
         if (fileName != null) {
-
             try {
                 File temp = recordService.getFile(globalId, schema, version, fileName);
                 if (temp != null) {

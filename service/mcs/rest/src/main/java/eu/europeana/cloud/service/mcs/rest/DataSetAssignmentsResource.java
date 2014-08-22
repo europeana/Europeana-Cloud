@@ -50,7 +50,7 @@ public class DataSetAssignmentsResource {
      * @statuscode 204 object assigned.
      */
     @POST
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void addAssignment(@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
             @FormParam(F_VER) String representationVersion)
             throws DataSetNotExistsException, RepresentationNotExistsException {

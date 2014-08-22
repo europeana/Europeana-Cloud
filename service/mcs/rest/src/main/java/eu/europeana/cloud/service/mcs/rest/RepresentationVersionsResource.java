@@ -40,16 +40,15 @@ public class RepresentationVersionsResource {
     @PathParam(P_REPRESENTATIONNAME)
     private String representation;
 
-
     /**
-     * Lists all versions of record represenation. Temporary versions will be included in returned list.
-     * 
+     * Lists all versions of record represenation. Temporary versions will be
+     * included in returned list.
+     *
      * @return list of all representation versions
-     * @throws RepresentationNotExistsException
-     *             representation does not exist.
+     * @throws RepresentationNotExistsException representation does not exist.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<Representation> listVersions()
             throws RepresentationNotExistsException {
         List<Representation> representationVersions = recordService
@@ -59,7 +58,6 @@ public class RepresentationVersionsResource {
         }
         return representationVersions;
     }
-
 
     private void prepare(Representation representationVersion) {
         EnrichUriUtil.enrich(uriInfo, representationVersion);

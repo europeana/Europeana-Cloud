@@ -52,7 +52,7 @@ public class DataSetResource {
      * @throws DataSetNotExistsException data set not exists.
      */
     @DELETE
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet()
             throws DataSetNotExistsException {
         dataSetService.deleteDataSet(providerId, dataSetId);
@@ -82,7 +82,7 @@ public class DataSetResource {
      * @statuscode 204 object has been updated.
      */
     @PUT
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(@FormParam(F_DESCRIPTION) String description)
             throws DataSetNotExistsException {
         dataSetService.updateDataSet(providerId, dataSetId, description);

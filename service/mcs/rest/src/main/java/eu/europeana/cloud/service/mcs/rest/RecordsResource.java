@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Resource representing records.
@@ -39,16 +40,15 @@ public class RecordsResource {
     @PathParam(P_CLOUDID)
     private String globalId;
 
-
     /**
      * Returns record with all its latest persistent representations.
-     * 
+     *
      * @return record.
-     * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier Service.
+     * @throws RecordNotExistsException provided id is not known to Unique
+     * Identifier Service.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord()
             throws RecordNotExistsException {
         Record record = recordService.getRecord(globalId);
@@ -56,26 +56,26 @@ public class RecordsResource {
         return record;
     }
 
-
     /**
-     * Deletes record with all its representations in all versions. Does not remove mapping from Unique Identifier
-     * Service.
-     * 
-     * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier Service.
-     * @throws RepresentationNotExistsException
-     *             thrown if no representation can be found for requested record. Service cannot delete such record.
+     * Deletes record with all its representations in all versions. Does not
+     * remove mapping from Unique Identifier Service.
+     *
+     * @throws RecordNotExistsException provided id is not known to Unique
+     * Identifier Service.
+     * @throws RepresentationNotExistsException thrown if no representation can
+     * be found for requested record. Service cannot delete such record.
      */
     @DELETE
+    @PreAuthorize("hasPermission(#globalId, 'eu.europeana.cloud.common.model.Record', delete)")
     public void deleteRecord()
             throws RecordNotExistsException, RepresentationNotExistsException {
         recordService.deleteRecord(globalId);
     }
 
-
     /**
-     * Removes unimportant (at this point) information from record to reduce response size.
-     * 
+     * Removes unimportant (at this point) information from record to reduce
+     * response size.
+     *
      * @param record
      */
     private void prepare(Record record) {

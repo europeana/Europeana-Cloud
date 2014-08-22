@@ -23,6 +23,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,18 +49,20 @@ public class RepresentationVersionResource {
     @PathParam(P_VER)
     private String version;
 
-
     /**
-     * Returns representation in specified version. If Version = LATEST, will redirect to actual latest persistent
-     * version at the moment of invoking this method.
-     * 
-     * @return representation in requested version WITH LIST OF FILES IN THIS REPRESENTATION
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
-     * @statuscode 307 if requested version is "LATEST" - redirect to latest persistent version.
+     * Returns representation in specified version. If Version = LATEST, will
+     * redirect to actual latest persistent version at the moment of invoking
+     * this method.
+     *
+     * @return representation in requested version WITH LIST OF FILES IN THIS
+     * REPRESENTATION
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
+     * @statuscode 307 if requested version is "LATEST" - redirect to latest
+     * persistent version.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response getRepresentationVersion()
             throws RepresentationNotExistsException {
         // handle "LATEST" keyword
@@ -77,36 +80,36 @@ public class RepresentationVersionResource {
         return Response.ok(rep).build();
     }
 
-
     /**
      * Deletes representation version.
-     * 
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
-     * @throws CannotModifyPersistentRepresentationException
-     *             representation in specified version is persitent and as such cannot be removed.
+     *
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
+     * @throws CannotModifyPersistentRepresentationException representation in
+     * specified version is persitent and as such cannot be removed.
      */
     @DELETE
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteRepresentation()
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         recordService.deleteRepresentation(globalId, schema, version);
     }
 
-
     /**
      * Persists temporary representation.
-     * 
+     *
      * @return URI to persisted representation in content-location
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
-     * @throws CannotModifyPersistentRepresentationException
-     *             representation version is already persistent.
-     * @throws CannotPersistEmptyRepresentationException
-     *             representation version has no file attached and as such cannot be made persistent.
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
+     * @throws CannotModifyPersistentRepresentationException representation
+     * version is already persistent.
+     * @throws CannotPersistEmptyRepresentationException representation version
+     * has no file attached and as such cannot be made persistent.
      * @statuscode 201 representation is made persistent.
      */
     @POST
     @Path("/persist")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
     public Response persistRepresentation()
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException {
@@ -115,25 +118,25 @@ public class RepresentationVersionResource {
         return Response.created(persistentVersion.getUri()).build();
     }
 
-
     /**
-     * Copies all information with all files and their content from one representation version to a new temporary one.
-     * 
+     * Copies all information with all files and their content from one
+     * representation version to a new temporary one.
+     *
      * @return uri to created representation in content-location
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
      * @statuscode 201 representation has been copied to a new one.
-     * 
+     *
      */
     @POST
     @Path("/copy")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
     public Response copyRepresentation()
             throws RepresentationNotExistsException {
         Representation copiedRep = recordService.copyRepresentation(globalId, schema, version);
         prepare(copiedRep);
         return Response.created(copiedRep.getUri()).build();
     }
-
 
     private void prepare(Representation representationVersion) {
         EnrichUriUtil.enrich(uriInfo, representationVersion);

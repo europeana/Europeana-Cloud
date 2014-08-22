@@ -36,23 +36,21 @@ public class RepresentationsResource {
     @PathParam(P_CLOUDID)
     private String globalId;
 
-
     /**
      * Returns list of all latest persistent versions of record representation.
-     * 
+     *
      * @return list of representations
-     * @throws RecordNotExistsException
-     *             provided id is not known to Unique Identifier Service.
+     * @throws RecordNotExistsException provided id is not known to Unique
+     * Identifier Service.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<Representation> getRepresentations()
             throws RecordNotExistsException {
         List<Representation> representationInfos = recordService.getRecord(globalId).getRepresentations();
         prepare(representationInfos);
         return representationInfos;
     }
-
 
     private void prepare(List<Representation> representationInfos) {
         for (Representation representationInfo : representationInfos) {

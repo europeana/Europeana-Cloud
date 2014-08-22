@@ -37,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,30 +69,30 @@ public class FileResource {
 
     private static final String HEADER_RANGE = "Range";
 
-
     /**
-     * Modify file operation. Updates file in representation version. MD5 of uploaded data is returned as tag. Consumes
-     * multipart content - form data:
+     * Modify file operation. Updates file in representation version. MD5 of
+     * uploaded data is returned as tag. Consumes multipart content - form data:
      * <ul>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} - file mime type</li>
-     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} - binary stream of file content (required)</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} -
+     * file mime type</li>
+     * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} -
+     * binary stream of file content (required)</li>
      * </ul>
-     * 
-     * @param mimeType
-     *            mime type of file
-     * @param data
-     *            binary stream of file content (required)
+     *
+     * @param mimeType mime type of file
+     * @param data binary stream of file content (required)
      * @return uri of uploaded content file in content-location
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
-     * @throws CannotModifyPersistentRepresentationException
-     *             specified representation version is persistent and modifying its files is not allowed.
-     * @throws FileNotExistsException
-     *             specified file does not exist.
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
+     * @throws CannotModifyPersistentRepresentationException specified
+     * representation version is persistent and modifying its files is not
+     * allowed.
+     * @throws FileNotExistsException specified file does not exist.
      * @statuscode 204 object has been updated.
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileNotExistsException {
@@ -110,25 +111,27 @@ public class FileResource {
         return Response.status(Response.Status.NO_CONTENT).location(f.getContentUri()).tag(f.getMd5()).build();
     }
 
-
     /**
-     * Returns file content. Basic support for HTTP "Range" header is implemented for retrieving only a part of content
-     * is implemented (Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1, <a
-     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>). For instance:
+     * Returns file content. Basic support for HTTP "Range" header is
+     * implemented for retrieving only a part of content is implemented
+     * (Description of Range header can be found in Hypertext Transfer Protocol
+     * HTTP/1.1, <a
+     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section
+     * 14.35 Range</a>). For instance:
      * <ul>
      * <li><b>Range: bytes=10-15</b> - retrieve bytes from 10 to 15 of content
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
      * </ul>
-     * 
-     * @param range
-     *            range of bytes to return (optional)
-     * @return file content @throws RepresentationNotExistsException representation does not exist in specified version.
+     *
+     * @param range range of bytes to return (optional)
+     * @return file content @throws RepresentationNotExistsException
+     * representation does not exist in specified version.
      * @throws RepresentationNotExistsException
-     * @throws WrongContentRangeException
-     *             wrong value in "Range" header
+     * @throws WrongContentRangeException wrong value in "Range" header
      * @throws FileNotExistsException
      */
     @GET
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', read)")
     public Response getFile(@HeaderParam(HEADER_RANGE) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
@@ -153,13 +156,12 @@ public class FileResource {
 
         // stream output
         StreamingOutput output = new StreamingOutput() {
-
             @Override
             public void write(OutputStream output)
                     throws IOException, WebApplicationException {
                 try {
                     recordService.getContent(globalId, schema, version, fileName, contentRange.start, contentRange.end,
-                        output);
+                            output);
                 } catch (RepresentationNotExistsException ex) {
                     throw new WebApplicationException(new UnitedExceptionMapper().toResponse(ex));
                 } catch (FileNotExistsException ex) {
@@ -173,28 +175,30 @@ public class FileResource {
         return Response.status(status).entity(output).tag(md5).build();
     }
 
-
     /**
      * Deletes file from representation version.
-     * 
-     * @throws RepresentationNotExistsException
-     *             representation does not exist in specified version.
-     * @throws FileNotExistsException
-     *             representation version does not have file with specified name.
-     * @throws CannotModifyPersistentRepresentationException
-     *             specified representation version is persistent and deleting its files is not allowed.
+     *
+     * @throws RepresentationNotExistsException representation does not exist in
+     * specified version.
+     * @throws FileNotExistsException representation version does not have file
+     * with specified name.
+     * @throws CannotModifyPersistentRepresentationException specified
+     * representation version is persistent and deleting its files is not
+     * allowed.
      */
     @DELETE
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteFile()
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException {
         recordService.deleteContent(globalId, schema, version, fileName);
     }
 
-
     /**
-     * Description of Range header can be found in Hypertext Transfer Protocol HTTP/1.1, <a
-     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section 14.35 Range</a>.
+     * Description of Range header can be found in Hypertext Transfer Protocol
+     * HTTP/1.1, <a
+     * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section
+     * 14.35 Range</a>.
      */
     static class ContentRange {
 
@@ -202,27 +206,22 @@ public class FileResource {
 
         private static final Pattern BYTES_PATTERN = Pattern.compile("bytes=(?<start>\\d+)[-](?<end>\\d*)");
 
-
         ContentRange(long start, long end) {
             this.start = start;
             this.end = end;
         }
 
-
         boolean isSpecified() {
             return start != -1 || end != -1;
         }
-
 
         long getStart() {
             return start;
         }
 
-
         long getEnd() {
             return end;
         }
-
 
         static ContentRange parse(String range)
                 throws WrongContentRangeException {
