@@ -43,187 +43,190 @@ import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 
 /**
- * Provides support for creating and storing {@link Acl} instances in Cassandra, using the {@link AclRepository}.
- * 
+ * Provides support for creating and storing {@link Acl} instances in Cassandra,
+ * using the {@link AclRepository}.
+ *
  * @author Rigas Grigoropoulos
  *
  */
 public class CassandraMutableAclService extends CassandraAclService implements MutableAclService {
 
-	private static final Log LOG = LogFactory.getLog(CassandraMutableAclService.class);
+    private static final Log LOG = LogFactory.getLog(CassandraMutableAclService.class);
 
-	/**
-	 * Constructs a new <code>CassandraMutableAclService</code> object.
-	 * 
-	 * @param aclRepository the {@link AclRepository} to use for access to the database.
-	 * @param aclCache the {@link AclCache} to use (can be <code>null</code>).
-	 * @param grantingStrategy the {@link PermissionGrantingStrategy} to use when creating {@link Acl} objects.
-	 * @param aclAuthorizationStrategy the {@link AclAuthorizationStrategy} to use when creating {@link Acl} objects.
-	 * @param permissionFactory the {@link PermissionFactory} to use when creating {@link AccessControlEntry} objects.
-	 */
-	public CassandraMutableAclService(AclRepository aclRepository, AclCache aclCache,
-			PermissionGrantingStrategy grantingStrategy, AclAuthorizationStrategy aclAuthorizationStrategy, PermissionFactory permissionFactory) {
-		super(aclRepository, aclCache, grantingStrategy, aclAuthorizationStrategy, permissionFactory);
-	}
+    /**
+     * Constructs a new <code>CassandraMutableAclService</code> object.
+     *
+     * @param aclRepository the {@link AclRepository} to use for access to the
+     * database.
+     * @param aclCache the {@link AclCache} to use (can be <code>null</code>).
+     * @param grantingStrategy the {@link PermissionGrantingStrategy} to use
+     * when creating {@link Acl} objects.
+     * @param aclAuthorizationStrategy the {@link AclAuthorizationStrategy} to
+     * use when creating {@link Acl} objects.
+     * @param permissionFactory the {@link PermissionFactory} to use when
+     * creating {@link AccessControlEntry} objects.
+     */
+    public CassandraMutableAclService(AclRepository aclRepository, AclCache aclCache,
+            PermissionGrantingStrategy grantingStrategy, AclAuthorizationStrategy aclAuthorizationStrategy, PermissionFactory permissionFactory) {
+        super(aclRepository, aclCache, grantingStrategy, aclAuthorizationStrategy, permissionFactory);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.acls.model.MutableAclService#createAcl(org.springframework.security.acls.model.ObjectIdentity)
-	 */
-	public MutableAcl createAcl(ObjectIdentity objectIdentity) throws AlreadyExistsException {
-		Assert.notNull(objectIdentity, "Object Identity required");
-		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("BEGIN createAcl: objectIdentity: " + objectIdentity);
-		}
-		
-		// Need to retrieve the current principal, in order to know who "owns"
-		// this ACL (can be changed later on)
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		PrincipalSid sid = new PrincipalSid(auth);
+    @Override
+    public MutableAcl createAcl(ObjectIdentity objectIdentity) throws AlreadyExistsException {
+        Assert.notNull(objectIdentity, "Object Identity required");
 
-		AclObjectIdentity newAoi = new AclObjectIdentity(objectIdentity);
-		newAoi.setOwnerId(sid.getPrincipal());
-		newAoi.setOwnerPrincipal(true);
-		newAoi.setEntriesInheriting(false);
-		
-		try {
-			aclRepository.saveAcl(newAoi);
-		} catch (AclAlreadyExistsException e) {
-			throw new AlreadyExistsException(e.getMessage(), e);
-		}		
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("BEGIN createAcl: objectIdentity: " + objectIdentity);
+        }
 
-		// Retrieve the ACL via superclass (ensures cache registration, proper retrieval etc)
-		Acl acl = readAclById(objectIdentity);
-		Assert.isInstanceOf(MutableAcl.class, acl, "MutableAcl should be been returned");
+        // Need to retrieve the current principal, in order to know who "owns"
+        // this ACL (can be changed later on)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        PrincipalSid sid = new PrincipalSid(auth);
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("END createAcl: acl: " + acl);
-		} 
-		return (MutableAcl) acl;
-	}
+        AclObjectIdentity newAoi = new AclObjectIdentity(objectIdentity);
+        newAoi.setOwnerId(sid.getPrincipal());
+        newAoi.setOwnerPrincipal(true);
+        newAoi.setEntriesInheriting(false);
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.acls.model.MutableAclService#deleteAcl(org.springframework.security.acls.model.ObjectIdentity, boolean)
-	 */
-	public void deleteAcl(ObjectIdentity objectIdentity, boolean deleteChildren) throws ChildrenExistException {
-		Assert.notNull(objectIdentity, "Object Identity required");
-		Assert.notNull(objectIdentity.getIdentifier(), "Object Identity doesn't provide an identifier");
-		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("BEGIN deleteAcl: objectIdentity: " + objectIdentity + ", deleteChildren: " + deleteChildren);
-		}
+        try {
+            aclRepository.saveAcl(newAoi);
+        } catch (AclAlreadyExistsException e) {
+            throw new AlreadyExistsException(e.getMessage(), e);
+        }
 
-		List<AclObjectIdentity> objIdsToDelete = new ArrayList<AclObjectIdentity>();
-		List<ObjectIdentity> objectsToDelete = new ArrayList<ObjectIdentity>();
-		objectsToDelete.add(objectIdentity);		
+        // Retrieve the ACL via superclass (ensures cache registration, proper retrieval etc)
+        Acl acl = readAclById(objectIdentity);
+        Assert.isInstanceOf(MutableAcl.class, acl, "MutableAcl should be been returned");
 
-		List<ObjectIdentity> children = findChildren(objectIdentity);
-		if (deleteChildren) {
-			for (ObjectIdentity child : children) {
-				objectsToDelete.addAll(calculateChildrenReccursively(child));			
-			}
-		} else if (children != null && !children.isEmpty()) {
-			throw new ChildrenExistException("Cannot delete '" + objectIdentity + "' (has " + children.size()
-					+ " children)");
-		}
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("END createAcl: acl: " + acl);
+        }
+        return (MutableAcl) acl;
+    }
 
-		for (ObjectIdentity objId : objectsToDelete) {
-			objIdsToDelete.add(new AclObjectIdentity(objId));
-		}
-		aclRepository.deleteAcls(objIdsToDelete);
+    @Override
+    public void deleteAcl(ObjectIdentity objectIdentity, boolean deleteChildren) throws ChildrenExistException {
+        Assert.notNull(objectIdentity, "Object Identity required");
+        Assert.notNull(objectIdentity.getIdentifier(), "Object Identity doesn't provide an identifier");
 
-		// Clear the cache
-		if (aclCache != null) {
-			for (ObjectIdentity obj : objectsToDelete) {
-				aclCache.evictFromCache(obj);
-			}
-		}
-		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("END deleteAcl");
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.security.acls.model.MutableAclService#updateAcl(org.springframework.security.acls.model.MutableAcl)
-	 */
-	public MutableAcl updateAcl(MutableAcl acl) throws NotFoundException {
-		Assert.notNull(acl, "MutableAcl required");
-		Assert.notNull(acl.getObjectIdentity(), "Object Identity required");
-		Assert.notNull(acl.getObjectIdentity().getIdentifier(), "Object Identity doesn't provide an identifier");
-		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("BEGIN updateAcl: acl: " + acl);
-		}		
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("BEGIN deleteAcl: objectIdentity: " + objectIdentity + ", deleteChildren: " + deleteChildren);
+        }
 
-		try {
-			aclRepository.updateAcl(new AclObjectIdentity(acl), convertToAclEntries(acl));
-		} catch (AclNotFoundException e) {
-			throw new NotFoundException(e.getMessage(), e);
-		}		
+        List<AclObjectIdentity> objIdsToDelete = new ArrayList<>();
+        List<ObjectIdentity> objectsToDelete = new ArrayList<>();
+        objectsToDelete.add(objectIdentity);
 
-		// Clear the cache, including children
-		clearCacheIncludingChildren(acl.getObjectIdentity());
-		
-		// Retrieve the ACL via superclass (ensures cache registration, proper retrieval etc)
-		MutableAcl result = (MutableAcl) readAclById(acl.getObjectIdentity());
-		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("END updateAcl: acl: " + result);
-		}
-		return result;
-	}
+        List<ObjectIdentity> children = findChildren(objectIdentity);
+        if (deleteChildren) {
+            for (ObjectIdentity child : children) {
+                objectsToDelete.addAll(calculateChildrenReccursively(child));
+            }
+        } else if (children != null && !children.isEmpty()) {
+            throw new ChildrenExistException("Cannot delete '" + objectIdentity + "' (has " + children.size()
+                    + " children)");
+        }
 
-	/**
-	 * Finds the complete children hierarchy starting from the provided {@link ObjectIdentity}.
-	 * 
-	 * @param rootChild the root {@link ObjectIdentity} to start looking for children.
-	 * @return a list of all child {@link ObjectIdentity} objects, including the provided root object.
-	 */
-	private List<ObjectIdentity> calculateChildrenReccursively(ObjectIdentity rootChild) {
-		List<ObjectIdentity> result = new ArrayList<ObjectIdentity>();
-		result.add(rootChild);
-		List<ObjectIdentity> children = findChildren(rootChild);
-		if (children != null) {
-			for (ObjectIdentity child : children) {
-				result.addAll(calculateChildrenReccursively(child));
-			}
-		}
-		return result;		
-	}
+        for (ObjectIdentity objId : objectsToDelete) {
+            objIdsToDelete.add(new AclObjectIdentity(objId));
+        }
+        aclRepository.deleteAcls(objIdsToDelete);
 
-	/**
-	 * Converts an {@link Acl} to a list of {@link AclEntry} objects.
-	 * 
-	 * @param acl the {@link Acl} to convert.
-	 * @return the list of derived {@link AclEntry} objects.
-	 */
-	private List<AclEntry> convertToAclEntries(Acl acl) {
-		List<AclEntry> result = new ArrayList<AclEntry>();
-		
-		for (AccessControlEntry entry : acl.getEntries()) {
-			result.add(new AclEntry(entry));
-		}		
-		return result;
-	}
+        // Clear the cache
+        if (aclCache != null) {
+            for (ObjectIdentity obj : objectsToDelete) {
+                aclCache.evictFromCache(obj);
+            }
+        }
 
-	/**
-	 * Evicts the provided {@link ObjectIdentity} and the complete children hierarchy from the cache.
-	 * 
-	 * @param objectIdentity the parent {@link ObjectIdentity} to evict.
-	 */
-	private void clearCacheIncludingChildren(ObjectIdentity objectIdentity) {
-		Assert.notNull(objectIdentity, "ObjectIdentity required");
-		List<ObjectIdentity> children = findChildren(objectIdentity);
-		if (children != null) {
-			for (ObjectIdentity child : children) {
-				clearCacheIncludingChildren(child);
-			}
-		}
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("END deleteAcl");
+        }
+    }
 
-		if (aclCache != null) {
-			aclCache.evictFromCache(objectIdentity);
-		}
-	}
+    @Override
+    public MutableAcl updateAcl(MutableAcl acl) throws NotFoundException {
+        Assert.notNull(acl, "MutableAcl required");
+        Assert.notNull(acl.getObjectIdentity(), "Object Identity required");
+        Assert.notNull(acl.getObjectIdentity().getIdentifier(), "Object Identity doesn't provide an identifier");
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("BEGIN updateAcl: acl: " + acl);
+        }
+
+        try {
+            aclRepository.updateAcl(new AclObjectIdentity(acl), convertToAclEntries(acl));
+        } catch (AclNotFoundException e) {
+            throw new NotFoundException(e.getMessage(), e);
+        }
+
+        // Clear the cache, including children
+        clearCacheIncludingChildren(acl.getObjectIdentity());
+
+        // Retrieve the ACL via superclass (ensures cache registration, proper retrieval etc)
+        MutableAcl result = (MutableAcl) readAclById(acl.getObjectIdentity());
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("END updateAcl: acl: " + result);
+        }
+        return result;
+    }
+
+    /**
+     * Finds the complete children hierarchy starting from the provided
+     * {@link ObjectIdentity}.
+     *
+     * @param rootChild the root {@link ObjectIdentity} to start looking for
+     * children.
+     * @return a list of all child {@link ObjectIdentity} objects, including the
+     * provided root object.
+     */
+    private List<ObjectIdentity> calculateChildrenReccursively(ObjectIdentity rootChild) {
+        List<ObjectIdentity> result = new ArrayList<>();
+        result.add(rootChild);
+        List<ObjectIdentity> children = findChildren(rootChild);
+        if (children != null) {
+            for (ObjectIdentity child : children) {
+                result.addAll(calculateChildrenReccursively(child));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Converts an {@link Acl} to a list of {@link AclEntry} objects.
+     *
+     * @param acl the {@link Acl} to convert.
+     * @return the list of derived {@link AclEntry} objects.
+     */
+    private List<AclEntry> convertToAclEntries(Acl acl) {
+        List<AclEntry> result = new ArrayList<>();
+
+        for (AccessControlEntry entry : acl.getEntries()) {
+            result.add(new AclEntry(entry));
+        }
+        return result;
+    }
+
+    /**
+     * Evicts the provided {@link ObjectIdentity} and the complete children
+     * hierarchy from the cache.
+     *
+     * @param objectIdentity the parent {@link ObjectIdentity} to evict.
+     */
+    private void clearCacheIncludingChildren(ObjectIdentity objectIdentity) {
+        Assert.notNull(objectIdentity, "ObjectIdentity required");
+        List<ObjectIdentity> children = findChildren(objectIdentity);
+        if (children != null) {
+            for (ObjectIdentity child : children) {
+                clearCacheIncludingChildren(child);
+            }
+        }
+
+        if (aclCache != null) {
+            aclCache.evictFromCache(objectIdentity);
+        }
+    }
 
 }

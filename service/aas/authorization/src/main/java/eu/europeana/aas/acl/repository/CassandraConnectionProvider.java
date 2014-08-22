@@ -14,7 +14,7 @@ import com.datastax.driver.core.Session;
 /**
  * Database service providing the connection to the database
  *
- * @author Yorgos.Mamakis@ kb.nl
+ * @author Emmanouil.Koufakis@theeuropeanlibrary.org
  *
  */
 public class CassandraConnectionProvider {

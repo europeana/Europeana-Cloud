@@ -389,7 +389,8 @@ public final class CassandraAclRepository implements AclRepository {
      */
     public void createAoisTable() {
         try {
-            session.execute("CREATE TABLE " + keyspace + ".aois ("
+//            session.execute("CREATE TABLE " + keyspace + ".aois ("
+            session.execute("CREATE TABLE aois ("
                     + "id varchar PRIMARY KEY,"
                     + "objId varchar,"
                     + "objClass varchar,"
@@ -409,8 +410,9 @@ public final class CassandraAclRepository implements AclRepository {
      * children.
      */
     public void createChilrenTable() {
-        try {
-            session.execute("CREATE TABLE " + keyspace + ".children ("
+        try {            
+//            session.execute("CREATE TABLE " + keyspace + ".children ("
+            session.execute("CREATE TABLE children ("
                     + "id varchar,"
                     + "childId varchar,"
                     + "objId varchar,"
@@ -428,7 +430,8 @@ public final class CassandraAclRepository implements AclRepository {
      */
     public void createAclsTable() {
         try {
-            session.execute("CREATE TABLE " + keyspace + ".acls ("
+//            session.execute("CREATE TABLE " + keyspace + ".acls ("
+            session.execute("CREATE TABLE acls ("
                     + "id varchar,"
                     + "sid varchar,"
                     + "aclOrder int,"
