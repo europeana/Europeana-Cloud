@@ -55,17 +55,11 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
-    @PathParam(P_PROVIDER)
-    private String providerId;
-
     @PathParam(P_LOCALID)
     private String localId;
 
     @PathParam(P_CLOUDID)
     private String cloudId;
-
-    @Context
-    private UriInfo uriInfo;
 
     /**
      * Gets provider.
@@ -75,13 +69,13 @@ public class DataProviderResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public DataProvider getProvider()
+    public DataProvider getProvider(@PathParam(P_PROVIDER) String providerId)
             throws ProviderDoesNotExistException {
         return providerService.getProvider(providerId);
     }
 
     /**
-     * Updates data provider information. *
+     * Updates data provider information.
      *
      * @param dataProviderProperties data provider properties.
      * @throws ProviderDoesNotExistException
@@ -90,7 +84,9 @@ public class DataProviderResource {
     @PUT
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
-    public void updateProvider(DataProviderProperties dataProviderProperties)
+    public void updateProvider(DataProviderProperties dataProviderProperties,
+    		@PathParam(P_PROVIDER) String providerId,
+    		@Context UriInfo uriInfo)
             throws ProviderDoesNotExistException {
         DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);
         EnrichUriUtil.enrich(uriInfo, provider);
@@ -111,7 +107,8 @@ public class DataProviderResource {
     @Path("localIds")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    public Response getLocalIdsByProvider(@PathParam(P_PROVIDER) String providerId,
+    		@QueryParam(UISParamConstants.Q_FROM) String from,
             @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -137,7 +134,8 @@ public class DataProviderResource {
     @Path("cloudIds")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getCloudIdsByProvider(@QueryParam(UISParamConstants.Q_FROM) String from,
+    public Response getCloudIdsByProvider(@PathParam(P_PROVIDER) String providerId,
+    		@QueryParam(UISParamConstants.Q_FROM) String from,
             @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -163,7 +161,8 @@ public class DataProviderResource {
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createIdMapping(@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+    public Response createIdMapping(@PathParam(P_PROVIDER) String providerId,
+    		@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
         if (localId != null) {
@@ -184,7 +183,7 @@ public class DataProviderResource {
     @DELETE
     @Path("localIds/{" + P_LOCALID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response removeIdMapping()
+    public Response removeIdMapping(@PathParam(P_PROVIDER) String providerId)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
         uniqueIdentifierService.removeIdMapping(providerId, localId);
         return Response.ok("Mapping marked as deleted").build();
