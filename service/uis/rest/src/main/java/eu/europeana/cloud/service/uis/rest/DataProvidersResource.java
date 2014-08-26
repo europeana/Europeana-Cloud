@@ -43,9 +43,6 @@ public class DataProvidersResource {
     @Autowired
     private DataProviderService providerService;
 
-    @Context
-    private UriInfo uriInfo;
-
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
@@ -81,7 +78,8 @@ public class DataProvidersResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @PreAuthorize("isAuthenticated()")
-    public Response createProvider(DataProviderProperties dataProviderProperties,
+    public Response createProvider(@Context UriInfo uriInfo, 
+    		DataProviderProperties dataProviderProperties,
             @QueryParam(UISParamConstants.Q_PROVIDER) String providerId)
             throws ProviderAlreadyExistsException {
         DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
