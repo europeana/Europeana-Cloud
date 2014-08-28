@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						">
+
+    <context:annotation-config/>
+
+    <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
+        <constructor-arg ref="aclRepository" />
+        <constructor-arg name="aclCache">
+            <null />
+        </constructor-arg>
+        <constructor-arg ref="permissionGrantingStrategy" />
+        <constructor-arg ref="authorizationStrategy" />
+        <constructor-arg ref="permissionFactory" />
+    </bean>
+
+    <bean id="aclRepository"
+              class="eu.europeana.aas.acl.repository.CassandraAclRepository">
+        <constructor-arg ref="provider" />
+        <constructor-arg name="initSchema" value="true" />
+    </bean>
+
+    <bean id="provider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
+        <constructor-arg name="host" value="localhost" />
+        <constructor-arg name="port" value="29142" />
+        <constructor-arg name="keyspaceName" value="aas_test" />
+        <constructor-arg name="username" value="" />
+        <constructor-arg name="password" value="" />
+    </bean>
+
+    <bean id="permissionGrantingStrategy"
+              class="org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy">
+        <constructor-arg>
+            <bean id="auditLogger"
+                              class="org.springframework.security.acls.domain.ConsoleAuditLogger" />
+        </constructor-arg>
+    </bean>
+
+    <bean id="permissionFactory"
+              class="org.springframework.security.acls.domain.DefaultPermissionFactory" />
+
+    <bean id="authorizationStrategy"
+              class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
+        <constructor-arg>
+            <array>
+                <bean
+                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                    <constructor-arg value="ROLE_ADMIN" />
+                </bean>
+                <bean
+                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                    <constructor-arg value="ROLE_ADMIN" />
+                </bean>
+                <bean
+                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                    <constructor-arg value="ROLE_ADMIN" />
+                </bean>
+            </array>
+        </constructor-arg>
+    </bean>
+    
+    <!-- -->
+    <!-- ========= Let's tell spring security to use our (Cassandra) ACL service when evaluating permission expressions. ========= -->
+    <!-- -->
+
+    <bean id="expressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+        <property name="permissionEvaluator" ref="permissionEvaluator" />
+        <property name="permissionCacheOptimizer">
+            <bean
+                class="org.springframework.security.acls.AclPermissionCacheOptimizer">
+                <constructor-arg ref="aclService" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="permissionEvaluator"
+              class="org.springframework.security.acls.AclPermissionEvaluator">
+        <constructor-arg ref="aclService" />
+    </bean>
+    
+</beans>
