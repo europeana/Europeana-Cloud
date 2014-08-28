@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/context
+  http://www.springframework.org/schema/context/spring-context.xsd">
+  
+    <!-- -->
+    <!-- Beans for the Authentication - Authorization tests.  - -->
+    <!-- -->
+    
+    <bean class="eu.europeana.cloud.service.uis.ApplicationContextUtils" />
+
+    <bean id="dataProviderService" name="dataProviderService" class="org.mockito.Mockito" factory-method="mock" >
+        <constructor-arg
+            value="eu.europeana.cloud.service.uis.DataProviderService" />
+    </bean>
+    
+    <bean id="uniqueIdentifierService" name="uniqueIdentifierService" class="org.mockito.Mockito" factory-method="mock" >
+        <constructor-arg
+            value="eu.europeana.cloud.service.uis.UniqueIdentifierService" />
+    </bean>
+    
+    <bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
+    <bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
+    <bean id="uniqueIdResource" class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
+    
+    <bean id="mappings"
+              class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties">
+            <value>
+                numberOfElementsOnPage=100
+            </value>
+        </property>
+    </bean>
+   
+</beans>
