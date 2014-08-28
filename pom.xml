@@ -125,6 +125,7 @@
         <version.swift>1.6.0</version.swift>
         <version.keystone>1.6.3</version.keystone>
         <version.gson>2.2.1</version.gson>
+        <!-- TODO ECL-317 -->
         <version.kafka>0.8.1.1</version.kafka>
         <version.cassandra-unit>2.0.2.1</version.cassandra-unit>
         <main.directory>${project.basedir}</main.directory>
