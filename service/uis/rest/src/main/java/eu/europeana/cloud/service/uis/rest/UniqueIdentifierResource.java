@@ -13,6 +13,12 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import com.qmino.miredot.annotations.ReturnType;
@@ -29,12 +35,6 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
 
 /**
  * Implementation of the Unique Identifier Service.
@@ -51,9 +51,6 @@ public class UniqueIdentifierResource {
     private UniqueIdentifierService uniqueIdentifierService;
 
     private static final String CLOUDID = "cloudId";
-
-    @PathParam(CLOUDID)
-    private String cloudId;
 
     @Autowired
     private MutableAclService       mutableAclService;
@@ -74,7 +71,6 @@ public class UniqueIdentifierResource {
      * @throws CloudIdDoesNotExistException
      */
     @POST
-//    @Path("cloudIds")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     @PreAuthorize("isAuthenticated()")
@@ -121,7 +117,6 @@ public class UniqueIdentifierResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-//    @Path("cloudIds")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public Response getCloudId(@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
@@ -141,11 +136,10 @@ public class UniqueIdentifierResource {
      * @throws RecordDatasetEmptyException
      */
     @GET
-//    @Path("cloudIds/{" + CLOUDID + "}")
     @Path("{" + CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIds() throws DatabaseConnectionException, CloudIdDoesNotExistException,
+    public Response getLocalIds(@PathParam(CLOUDID) String cloudId	) throws DatabaseConnectionException, CloudIdDoesNotExistException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
         pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
@@ -163,11 +157,10 @@ public class UniqueIdentifierResource {
      * @throws RecordIdDoesNotExistException
      */
     @DELETE
-//    @Path("cloudIds/{" + CLOUDID + "}")
     @Path("{" + CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#cloudId, 'eu.europeana.cloud.common.model.CloudId', delete)")
-    public Response deleteCloudId() throws DatabaseConnectionException,
+    public Response deleteCloudId(@PathParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
             CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordIdDoesNotExistException {
         uniqueIdentifierService.deleteCloudId(cloudId);
