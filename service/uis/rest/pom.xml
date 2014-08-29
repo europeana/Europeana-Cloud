@@ -245,6 +245,14 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
         </dependency>
+        <!--for sending logs via kafka-->
+        <dependency>
+            <!-- forked kafka with fixed appender issue KAFKA-847 -->
+            <!-- TODO ECL-317 -->
+            <groupId>eu.europeana.cloud.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+        </dependency>
+
                 
         <dependency>
             <groupId>org.apache.commons</groupId>

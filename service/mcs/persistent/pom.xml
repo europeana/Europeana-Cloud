@@ -112,7 +112,6 @@
             <!-- forked kafka with fixed appender issue KAFKA-847 -->
             <groupId>eu.europeana.cloud.kafka</groupId>
             <artifactId>kafka_2.10</artifactId>
-            <version>0.8.1</version> 
         </dependency>
 	
         <!--logging -->

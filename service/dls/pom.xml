@@ -41,7 +41,6 @@
             <!-- TODO ECL-317 -->
             <groupId>eu.europeana.cloud.kafka</groupId>
             <artifactId>kafka_2.10</artifactId>
-            <version>0.8.1</version> 
         </dependency>
         <dependency>
             <groupId>com.github.ddth</groupId>
