@@ -37,7 +37,7 @@ public class DataProvidersResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:/*-context-test.xml");
+        return new JerseyConfig().property("contextConfigLocation", "classpath:/uis-context-test.xml");
     }
 
     /**
