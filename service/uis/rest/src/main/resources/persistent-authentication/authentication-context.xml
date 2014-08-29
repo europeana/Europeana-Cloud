@@ -51,6 +51,7 @@
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
     <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
+        <!--
         <b:constructor-arg name="host" value="localhost" />
         <b:constructor-arg name="port" value="9042" />
 
@@ -60,8 +61,8 @@
         <b:constructor-arg name="password" value="" />
         
         <b:constructor-arg name="create" value="false" />
+        -->
         
-        <!--
         <b:constructor-arg name="host">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
         </b:constructor-arg>
@@ -80,7 +81,6 @@
         <b:constructor-arg name="create">
             <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/aas/cassandra/autoCreateTables"/>
         </b:constructor-arg>
-        -->
     </b:bean>
 	
     <b:bean id="userDAO" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">
