@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -37,7 +38,6 @@ public class UisAATest extends AbstractSecurityTest {
     private UniqueIdentifierService uniqueIdentifierService;
     
 	@Autowired
-	@NotNull
 	private UniqueIdentifierResource uisResource;
 
 	private final static String PROVIDER_ID = "Russell_Stringer_Bell";
@@ -104,17 +104,11 @@ public class UisAATest extends AbstractSecurityTest {
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
     }	
-	
-	@Test
-    public void shouldThrowExceptionWhenUnknowUserTriesToCreateClientID() throws DatabaseConnectionException, RecordExistsException,
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+    public void shouldThrowExceptionWhenUnknowUserTriesToCreateCloudID() throws DatabaseConnectionException, RecordExistsException,
     	ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdDoesNotExistException  {
 
-        CloudId cloudId = new CloudId();
-        cloudId.setId(CLOUD_ID);
-		
-        Mockito.when(uniqueIdentifierService.createCloudId(Mockito.anyString(), Mockito.anyString())).thenReturn(cloudId);
-        
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
     }	
 
@@ -143,7 +137,7 @@ public class UisAATest extends AbstractSecurityTest {
 		
         Mockito.when(uniqueIdentifierService.createCloudId(Mockito.anyString(), Mockito.anyString())).thenReturn(cloudId);
         
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
 		uisResource.deleteCloudId(CLOUD_ID);
     }
