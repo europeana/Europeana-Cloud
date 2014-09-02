@@ -23,15 +23,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * FilesResource
@@ -45,6 +52,9 @@ public class FilesResource {
 
     @Autowired
     private RecordService recordService;
+    
+    @Autowired
+    private MutableAclService mutableAclService;
 
     @Context
     private UriInfo uriInfo;
@@ -57,6 +67,8 @@ public class FilesResource {
 
     @PathParam(P_VER)
     private String version;
+    
+    private final String FILE_CLASS_NAME = File.class.getName();
 
     /**
      * Adds a new file to representation version. URI to created resource will
@@ -87,7 +99,7 @@ public class FilesResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
+    @PreAuthorize("isAuthenticated()")
     public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data,
             @FormDataParam(F_FILE_NAME) String fileName)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
@@ -112,6 +124,23 @@ public class FilesResource {
 
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
         LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ", globalId, schema, version, f.getContentUri()));
+        
+        String creatorName = SpringUserUtils.getUsername();
+        if (creatorName != null) {
+            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(FILE_CLASS_NAME,
+            		globalId + "/" + schema + "/" + version);
+
+            MutableAcl datasetAcl = mutableAclService.createAcl(dataSetIdentity);
+
+            datasetAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+            datasetAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
+                    true);
+
+            mutableAclService.updateAcl(datasetAcl);
+        }
+        
         return Response.created(f.getContentUri()).tag(f.getMd5()).build();
     }
 }
