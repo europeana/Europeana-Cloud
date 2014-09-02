@@ -1,19 +1,11 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_FILENAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.P_FILENAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +32,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
 
 /**
  * Resource to manage representation version's files with their content.
@@ -78,7 +78,8 @@ public class FileResource {
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
+    		+ " 'eu.europeana.cloud.common.model.File', write)")
     public Response sendFile(@Context UriInfo uriInfo,
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
@@ -182,7 +183,8 @@ public class FileResource {
      * allowed.
      */
     @DELETE
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
+    		+ " 'eu.europeana.cloud.common.model.File', delete)")
     public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 
     		@PathParam(P_VER) String version,
     		@PathParam(P_FILENAME) String fileName)

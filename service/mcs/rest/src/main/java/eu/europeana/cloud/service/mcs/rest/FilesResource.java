@@ -120,7 +120,7 @@ public class FilesResource {
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
             ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(FILE_CLASS_NAME,
-            		globalId + "/" + schema + "/" + version);
+            		globalId + "/" + schema + "/" + version + "/" + fileName);
 
             MutableAcl datasetAcl = mutableAclService.createAcl(dataSetIdentity);
 
