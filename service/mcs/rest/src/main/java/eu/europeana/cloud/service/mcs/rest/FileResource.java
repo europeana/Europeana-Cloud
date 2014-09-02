@@ -10,6 +10,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
 import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_FILENAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
@@ -52,21 +53,6 @@ public class FileResource {
     @Autowired
     private RecordService recordService;
 
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
-    @PathParam(P_REPRESENTATIONNAME)
-    private String schema;
-
-    @PathParam(P_VER)
-    private String version;
-
-    @PathParam(P_FILENAME)
-    private String fileName;
-
     private static final String HEADER_RANGE = "Range";
 
     /**
@@ -93,7 +79,12 @@ public class FileResource {
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
+    public Response sendFile(@Context UriInfo uriInfo,
+    		@PathParam(P_CLOUDID) String globalId,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@PathParam(P_VER) String version,
+    		@PathParam(P_FILENAME) String fileName,
+    		@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
@@ -131,8 +122,12 @@ public class FileResource {
      * @throws FileNotExistsException
      */
     @GET
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', read)")
-    public Response getFile(@HeaderParam(HEADER_RANGE) String range)
+    @PreAuthorize("isAuthenticated()")
+    public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
+    		@PathParam(P_REPRESENTATIONNAME) final String schema,
+    		@PathParam(P_VER) final String version,
+    		@PathParam(P_FILENAME) final String fileName,
+    		@HeaderParam(HEADER_RANGE) String range)
             throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
 
         // extract range
@@ -188,7 +183,9 @@ public class FileResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
-    public void deleteFile()
+    public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 
+    		@PathParam(P_VER) String version,
+    		@PathParam(P_FILENAME) String fileName)
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException {
         recordService.deleteContent(globalId, schema, version, fileName);
