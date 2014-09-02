@@ -56,18 +56,6 @@ public class FilesResource {
     @Autowired
     private MutableAclService mutableAclService;
 
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
-    @PathParam(P_REPRESENTATIONNAME)
-    private String schema;
-
-    @PathParam(P_VER)
-    private String version;
-    
     private final String FILE_CLASS_NAME = File.class.getName();
 
     /**
@@ -100,7 +88,11 @@ public class FilesResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @PreAuthorize("isAuthenticated()")
-    public Response sendFile(@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data,
+    public Response sendFile(@Context UriInfo uriInfo,
+    		@PathParam(P_CLOUDID) final String globalId, 
+    		@PathParam(P_REPRESENTATIONNAME) final String schema,
+    		@PathParam(P_VER) final String version,
+    		@FormDataParam(F_FILE_MIME) String mimeType, @FormDataParam(F_FILE_DATA) InputStream data,
             @FormDataParam(F_FILE_NAME) String fileName)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileAlreadyExistsException {
