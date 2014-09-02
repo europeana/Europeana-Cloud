@@ -99,8 +99,8 @@ public class DataSetsResource {
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
             ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
-                    providerId + "/" + dataSetId);
-
+            		dataSetId + "/" + providerId);
+             
             MutableAcl datasetAcl = mutableAclService.createAcl(dataSetIdentity);
 
             datasetAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
