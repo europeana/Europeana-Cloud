@@ -123,7 +123,8 @@ public class FileResource {
      * @throws FileNotExistsException
      */
     @GET
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
+    		+ " 'eu.europeana.cloud.common.model.File', read)")
     public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
     		@PathParam(P_REPRESENTATIONNAME) final String schema,
     		@PathParam(P_VER) final String version,
