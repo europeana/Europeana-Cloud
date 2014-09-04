@@ -76,6 +76,11 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	@Before
 	public void mockUp() throws Exception {
 		
+		DataSet dataset = new DataSet();
+		dataset.setId(DATASET_ID);
+		dataset.setProviderId(PROVIDER_ID);
+		dataset.setDescription(DESCRIPTION);
+		
 		uriInfo = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
@@ -93,6 +98,8 @@ public class DataSetsAATest extends AbstractSecurityTest {
 				.existsCloudId(Mockito.anyString());
 		Mockito.doReturn(true).when(uisHandler)
 				.existsProvider(Mockito.anyString());
+		
+		Mockito.doReturn(dataset).when(dataSetService).createDataSet(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 	}
 	
 
@@ -163,11 +170,11 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	}
 
 	/**
-	 * Makes sure Van Persie cannot delete datasets that belong to Christiano
+	 * Makes sure Van Persie cannot delete datasets that belong to Cristiano
 	 * Ronaldo.
 	 */
 	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosCloudIds()
+	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
 			throws ProviderNotExistsException, DataSetAlreadyExistsException,
 			DataSetNotExistsException {
 
