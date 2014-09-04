@@ -28,6 +28,7 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -35,6 +36,7 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 
 /**
@@ -47,15 +49,6 @@ public class RepresentationResource {
 
     @Autowired
     private RecordService recordService;
-
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
-    @PathParam(P_REPRESENTATIONNAME)
-    private String schema;
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -73,10 +66,12 @@ public class RepresentationResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Representation getRepresentation()
+    public Representation getRepresentation(@Context UriInfo uriInfo,
+    		@PathParam(P_CLOUDID) String globalId,
+    		@PathParam(P_REPRESENTATIONNAME) String schema)
             throws RepresentationNotExistsException {
         Representation info = recordService.getRepresentation(globalId, schema);
-        prepare(info);
+        prepare(uriInfo, info);
         return info;
     }
 
@@ -87,7 +82,8 @@ public class RepresentationResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema), 'eu.europeana.cloud.common.model.Representation', delete)")
-    public void deleteRepresentation()
+    public void deleteRepresentation(@PathParam(P_CLOUDID) String globalId,
+    		@PathParam(P_REPRESENTATIONNAME) String schema)
             throws RepresentationNotExistsException {
         recordService.deleteRepresentation(globalId, schema);
     }
@@ -106,7 +102,10 @@ public class RepresentationResource {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @PreAuthorize("isAuthenticated()")
-    public Response createRepresentation(@FormParam(F_PROVIDER) String providerId)
+    public Response createRepresentation(@Context UriInfo uriInfo,
+    		@PathParam(P_CLOUDID) String globalId,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@FormParam(F_PROVIDER) String providerId)
             throws RecordNotExistsException, ProviderNotExistsException {
         ParamUtil.require(F_PROVIDER, providerId);
         Representation version = recordService.createRepresentation(globalId, schema, providerId);
@@ -163,7 +162,7 @@ public class RepresentationResource {
         return Response.created(version.getUri()).build();
     }
 
-    private void prepare(Representation representation) {
+    private void prepare(UriInfo uriInfo, Representation representation) {
         representation.setFiles(null);
         EnrichUriUtil.enrich(uriInfo, representation);
     }
