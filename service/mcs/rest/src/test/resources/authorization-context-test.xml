@@ -28,10 +28,8 @@
         <constructor-arg name="host" value="localhost" />
         <constructor-arg name="port" value="19142" />
         <constructor-arg name="keyspaceName" value="ecloud_test" />
-        <!-- 
         <constructor-arg name="username" value="" />
         <constructor-arg name="password" value="" />
-         -->
     </bean>
 
     <bean id="permissionGrantingStrategy"
