@@ -18,18 +18,18 @@
         <constructor-arg ref="permissionFactory" />
     </bean>
 
+    <bean id="provider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
+        <constructor-arg name="host" value="localhost" />
+        <constructor-arg name="port" value="19142" />
+        <constructor-arg name="keyspaceName" value="ecloud_aas_tests" />
+        <constructor-arg name="username" value="" />
+        <constructor-arg name="password" value="" />
+    </bean>
+    
     <bean id="aclRepository"
               class="eu.europeana.aas.acl.repository.CassandraAclRepository">
         <constructor-arg ref="provider" />
         <constructor-arg name="initSchema" value="true" />
-    </bean>
-
-    <bean id="provider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
-        <constructor-arg name="host" value="localhost" />
-        <constructor-arg name="port" value="19142" />
-        <constructor-arg name="keyspaceName" value="ecloud_test" />
-        <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />
     </bean>
 
     <bean id="permissionGrantingStrategy"

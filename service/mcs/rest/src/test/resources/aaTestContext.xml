@@ -24,7 +24,7 @@
               class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
         <constructor-arg name="host" type="java.lang.String" value="localhost"/>
         <constructor-arg name="port" type="int" value="19142"/>
-        <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
+        <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_aas_tests"/>
     </bean>
 
     <bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>

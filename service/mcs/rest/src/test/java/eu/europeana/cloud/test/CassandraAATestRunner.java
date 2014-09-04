@@ -32,7 +32,7 @@ public abstract class CassandraAATestRunner {
 
 	public static final int PORT = 19142;
 
-	public static final String KEYSPACE = "ecloud_test";
+	public static final String KEYSPACE = "ecloud_aas_tests";
 
 	public static final String CASSANDRA_CONFIG_FILE = "cassandra.yaml";
 
