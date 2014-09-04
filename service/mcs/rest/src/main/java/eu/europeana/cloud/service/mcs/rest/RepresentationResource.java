@@ -81,7 +81,7 @@ public class RepresentationResource {
      * @throws RepresentationNotExistsException Representation does not exist.
      */
     @DELETE
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema), 'eu.europeana.cloud.common.model.Representation', delete)")
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
     public void deleteRepresentation(@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema)
             throws RepresentationNotExistsException {
