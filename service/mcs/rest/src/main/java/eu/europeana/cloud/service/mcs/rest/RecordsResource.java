@@ -60,7 +60,7 @@ public class RecordsResource {
      * be found for requested record. Service cannot delete such record.
      */
     @DELETE
-    @PreAuthorize("hasPermission(#globalId, 'eu.europeana.cloud.common.model.Record', delete)")
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
     public void deleteRecord(@PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException, RepresentationNotExistsException {
         recordService.deleteRecord(globalId);
