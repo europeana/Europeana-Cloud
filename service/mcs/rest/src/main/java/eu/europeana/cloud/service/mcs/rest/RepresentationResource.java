@@ -113,38 +113,7 @@ public class RepresentationResource {
 
         String creatorName = SpringUserUtils.getUsername();
         if (creatorName != null) {
-            ObjectIdentity recordIdentity = new ObjectIdentityImpl(RECORD_CLASS_NAME,
-                    globalId);
-
-            Acl exist = mutableAclService.readAclById(recordIdentity);
-            if (exist == null) {
-                MutableAcl recordAcl = mutableAclService.createAcl(recordIdentity);
-
-                recordAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-                recordAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-                recordAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-                recordAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
-                        true);
-
-                mutableAclService.updateAcl(recordAcl);
-            }
-
-            ObjectIdentity representationIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                    globalId + "/" + schema);
-
-            exist = mutableAclService.readAclById(representationIdentity);
-            if (exist == null) {
-                MutableAcl representationAcl = mutableAclService.createAcl(representationIdentity);
-
-                representationAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-                representationAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-                representationAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-                representationAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
-                        true);
-
-                mutableAclService.updateAcl(representationAcl);
-            }
-
+        	
             ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                     globalId + "/" + schema + "/" + version.getVersion());
 
