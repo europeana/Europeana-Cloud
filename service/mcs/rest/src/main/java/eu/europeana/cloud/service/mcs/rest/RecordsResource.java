@@ -34,12 +34,6 @@ public class RecordsResource {
     @Autowired
     private RecordService recordService;
 
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
     /**
      * Returns record with all its latest persistent representations.
      *
@@ -49,10 +43,10 @@ public class RecordsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Record getRecord()
+    public Record getRecord(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {
         Record record = recordService.getRecord(globalId);
-        prepare(record);
+        prepare(uriInfo, record);
         return record;
     }
 
@@ -67,7 +61,7 @@ public class RecordsResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId, 'eu.europeana.cloud.common.model.Record', delete)")
-    public void deleteRecord()
+    public void deleteRecord(@PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException, RepresentationNotExistsException {
         recordService.deleteRecord(globalId);
     }
@@ -78,7 +72,7 @@ public class RecordsResource {
      *
      * @param record
      */
-    private void prepare(Record record) {
+    private void prepare(@Context UriInfo uriInfo, Record record) {
         EnrichUriUtil.enrich(uriInfo, record);
         for (Representation representation : record.getRepresentations()) {
             representation.setFiles(null);
