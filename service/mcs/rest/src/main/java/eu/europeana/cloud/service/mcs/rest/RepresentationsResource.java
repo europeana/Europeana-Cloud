@@ -30,12 +30,6 @@ public class RepresentationsResource {
     @Autowired
     private RecordService recordService;
 
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
     /**
      * Returns list of all latest persistent versions of record representation.
      *
@@ -45,14 +39,14 @@ public class RepresentationsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Representation> getRepresentations()
+    public List<Representation> getRepresentations(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {
         List<Representation> representationInfos = recordService.getRecord(globalId).getRepresentations();
-        prepare(representationInfos);
+        prepare(uriInfo, representationInfos);
         return representationInfos;
     }
 
-    private void prepare(List<Representation> representationInfos) {
+    private void prepare(UriInfo uriInfo, List<Representation> representationInfos) {
         for (Representation representationInfo : representationInfos) {
             representationInfo.setFiles(null);
             EnrichUriUtil.enrich(uriInfo, representationInfo);

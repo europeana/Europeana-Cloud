@@ -1,34 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:jee="http://www.springframework.org/schema/jee"
-       xmlns:security="http://www.springframework.org/schema/security"
-       xmlns:context="http://www.springframework.org/schema/context"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-2.0.1.xsd
-                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
-						http://www.springframework.org/schema/context
-						http://www.springframework.org/schema/context/spring-context.xsd
-                        ">
-                        
-    <context:component-scan base-package="eu.europeana.aas.acl.*" />
-	
-    <!-- -->
-    <!-- - Ecloud persistent authorization application context. Permissions are stored in cassandra. - -->
-    <!-- -->
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						">
 
-    <!-- Custom success handler, answers requests with 200 OK. -->
-    <bean id="cloudSecuritySuccessHandler"
-            class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
-
-    <!-- Custom failure handler, answers requests with 401. -->
-    <bean id="cloudSecurityFailureHandler"
-                class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
-
-    <!-- -->
-    <!-- ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= -->
-    <!-- -->
+    <context:annotation-config/>
 
     <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
@@ -40,38 +18,18 @@
         <constructor-arg ref="permissionFactory" />
     </bean>
 
-    <bean id="aclRepository"
-              class="eu.europeana.aas.acl.repository.CassandraAclRepository">
-        <constructor-arg ref="cassandraProvider" />
-        <constructor-arg name="initSchema" value="true" />
-    </bean>
-
-    <bean id="cassandraProvider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
-		<!--        
-		<constructor-arg name="host" value="localhost" />
-        <constructor-arg name="port" value="9042" />
-
-        <constructor-arg name="keyspaceName" value="aas_permissions" />
-
+    <bean id="provider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
+        <constructor-arg name="host" value="localhost" />
+        <constructor-arg name="port" value="19142" />
+        <constructor-arg name="keyspaceName" value="ecloud_aas_tests" />
         <constructor-arg name="username" value="" />
         <constructor-arg name="password" value="" />
-        -->
-
-         <constructor-arg name="host">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
-        </constructor-arg>
-        <constructor-arg name="port">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
-        </constructor-arg>
-        <constructor-arg name="keyspaceName">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authorization-keyspace"/>
-        </constructor-arg>
-        <constructor-arg name="username">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
-        </constructor-arg>
-        <constructor-arg name="password">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
-        </constructor-arg>
+    </bean>
+    
+    <bean id="aclRepository"
+              class="eu.europeana.aas.acl.repository.CassandraAclRepository">
+        <constructor-arg ref="provider" />
+        <constructor-arg name="initSchema" value="true" />
     </bean>
 
     <bean id="permissionGrantingStrategy"
@@ -104,7 +62,7 @@
             </array>
         </constructor-arg>
     </bean>
-
+    
     <!-- -->
     <!-- ========= Let's tell spring security to use our (Cassandra) ACL service when evaluating permission expressions. ========= -->
     <!-- -->
@@ -123,5 +81,5 @@
               class="org.springframework.security.acls.AclPermissionEvaluator">
         <constructor-arg ref="aclService" />
     </bean>
-
+    
 </beans>

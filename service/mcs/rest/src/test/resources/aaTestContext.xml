@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+    <import resource="classpath:config.xml" />
+    <task:annotation-driven/>
+
+    <bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils"/>
+
+    <context:component-scan
+        base-package="eu.europeana.cloud.service.mcs.rest"/>
+
+    <context:annotation-config/>
+
+    <!--connection provider - with options the same as in embedded cassandra-->
+    <bean id="cassandraConnectionProvider"
+              class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="host" type="java.lang.String" value="localhost"/>
+        <constructor-arg name="port" type="int" value="19142"/>
+        <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_aas_tests"/>
+    </bean>
+
+    <bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
+    <!--  
+    <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
+    -->
+    <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
+    <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+    <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
+        <constructor-arg name="provider" type="java.lang.String" value="transient"/>
+        <constructor-arg name="container" type="java.lang.String" value="test_container"/>
+        <constructor-arg name="endpoint" type="java.lang.String" value=""/>
+        <constructor-arg name="user" type="java.lang.String" value="test_user"/>
+        <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
+    </bean>
+    <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+    
+    <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
+    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
+    <mockito:mock id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
+    <mockito:mock id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.RecordService"/>
+    
+    <bean id="dataSetsResource" class="eu.europeana.cloud.service.mcs.rest.DataSetsResource"/>
+    <bean id="dataSetResource" class="eu.europeana.cloud.service.mcs.rest.DataSetResource"/>
+    <bean id="fileResource" class="eu.europeana.cloud.service.mcs.rest.FileResource"/>
+    <bean id="filesResource" class="eu.europeana.cloud.service.mcs.rest.FilesResource"/>
+    <bean id="recordsResource" class="eu.europeana.cloud.service.mcs.rest.RecordsResource"/>
+    <bean id="representationResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationResource"/>
+    <bean id="representationsResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationsResource"/>
+    <bean id="representationVersionResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource"/>
+    
+    <!--spy on everything-->
+    <mockito:spy beanName="cassandraConnectionProvider"/>
+    <mockito:spy beanName="dataProviderDAO"/>
+    <mockito:spy beanName="cassandraDataSetDAO"/>
+    <!--  
+    <mockito:spy beanName="cassandraRecordService"/>
+    -->
+    <mockito:spy beanName="cassandraRecordDAO"/>
+    <mockito:spy beanName="swiftContentDAO"/>
+    <mockito:spy beanName="swiftConnectionProvider"/>
+</beans>

@@ -37,18 +37,6 @@ public class RepresentationVersionResource {
     @Autowired
     private RecordService recordService;
 
-    @Context
-    private UriInfo uriInfo;
-
-    @PathParam(P_CLOUDID)
-    private String globalId;
-
-    @PathParam(P_REPRESENTATIONNAME)
-    private String schema;
-
-    @PathParam(P_VER)
-    private String version;
-
     /**
      * Returns representation in specified version. If Version = LATEST, will
      * redirect to actual latest persistent version at the moment of invoking
@@ -63,7 +51,10 @@ public class RepresentationVersionResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response getRepresentationVersion()
+    public Response getRepresentationVersion(@Context UriInfo uriInfo,
+    		@PathParam(P_VER) String version,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException {
         // handle "LATEST" keyword
         if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
@@ -76,7 +67,7 @@ public class RepresentationVersionResource {
             }
         }
         Representation rep = recordService.getRepresentation(globalId, schema, version);
-        prepare(rep);
+        prepare(uriInfo, rep);
         return Response.ok(rep).build();
     }
 
@@ -90,7 +81,9 @@ public class RepresentationVersionResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
-    public void deleteRepresentation()
+    public void deleteRepresentation(@PathParam(P_VER) String version,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         recordService.deleteRepresentation(globalId, schema, version);
     }
@@ -109,12 +102,16 @@ public class RepresentationVersionResource {
      */
     @POST
     @Path("/persist")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response persistRepresentation()
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
+    public Response persistRepresentation(@Context UriInfo uriInfo, 
+    		@PathParam(P_VER) String version,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException {
         Representation persistentVersion = recordService.persistRepresentation(globalId, schema, version);
-        prepare(persistentVersion);
+        prepare(uriInfo, persistentVersion);
         return Response.created(persistentVersion.getUri()).build();
     }
 
@@ -130,15 +127,19 @@ public class RepresentationVersionResource {
      */
     @POST
     @Path("/copy")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
-    public Response copyRepresentation()
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', read)")
+    public Response copyRepresentation(@Context UriInfo uriInfo, 
+    		@PathParam(P_VER) String version,
+    		@PathParam(P_REPRESENTATIONNAME) String schema,
+    		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException {
         Representation copiedRep = recordService.copyRepresentation(globalId, schema, version);
-        prepare(copiedRep);
+        prepare(uriInfo, copiedRep);
         return Response.created(copiedRep.getUri()).build();
     }
 
-    private void prepare(Representation representationVersion) {
+    private void prepare(UriInfo uriInfo, Representation representationVersion) {
         EnrichUriUtil.enrich(uriInfo, representationVersion);
     }
 }

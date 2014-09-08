@@ -24,6 +24,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
@@ -37,12 +38,6 @@ public class DataSetResource {
     @Autowired
     private DataSetService dataSetService;
 
-    @PathParam(P_PROVIDER)
-    private String providerId;
-
-    @PathParam(P_DATASET)
-    private String dataSetId;
-
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
     
@@ -53,7 +48,7 @@ public class DataSetResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
-    public void deleteDataSet()
+    public void deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
             throws DataSetNotExistsException {
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
@@ -69,7 +64,9 @@ public class DataSetResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public ResultSlice<Representation> getDataSetContents(@QueryParam(F_START_FROM) String startFrom)
+    public ResultSlice<Representation> getDataSetContents(@PathParam(P_DATASET) String dataSetId,
+    		@PathParam(P_PROVIDER) String providerId,
+    		@QueryParam(F_START_FROM) String startFrom)
             throws DataSetNotExistsException {
         return dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
     }
@@ -83,7 +80,9 @@ public class DataSetResource {
      */
     @PUT
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void updateDataSet(@FormParam(F_DESCRIPTION) String description)
+    public void updateDataSet(@PathParam(P_DATASET) String dataSetId,
+    		@PathParam(P_PROVIDER) String providerId,
+    		@FormParam(F_DESCRIPTION) String description)
             throws DataSetNotExistsException {
         dataSetService.updateDataSet(providerId, dataSetId, description);
     }
