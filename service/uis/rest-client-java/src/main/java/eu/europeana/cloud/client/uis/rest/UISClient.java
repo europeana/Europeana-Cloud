@@ -70,9 +70,30 @@ public class UISClient {
 
         LOGGER.info("UISClient started successfully.");
     }
+    
+    /**
+     * Creates a new instance of this class. Same as {@link #UISClient(ServiceProvider)}
+     * but includes username and password to perform authenticated requests.
+     */
+    public UISClient(final ServiceProvider uisProvider, final String username, final String password) {
+
+        LOGGER.info("UISClient starting...");
+        
+        client.register(new HttpBasicAuthFilter(username, password));
+
+        try {
+            final String uisUrl = uisProvider.getService().getListenAddress();
+            urlProvider = new UrlProvider(uisUrl);
+        } catch (final Exception e) {
+            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
+        }
+
+        LOGGER.info("UISClient started successfully.");
+    }
 
     /**
-     * Creates a new instance of this class.
+     * Creates a new instance of this class. Same as {@link #UISClient(String)}
+     * but includes username and password to perform authenticated requests.
      *
      * @param uisUrl The URL of some UIS instance to connect to.
      */
