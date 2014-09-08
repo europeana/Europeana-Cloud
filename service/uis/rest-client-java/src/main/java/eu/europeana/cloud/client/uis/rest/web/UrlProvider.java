@@ -28,14 +28,10 @@ public class UrlProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlProvider.class);
 	
-	private static final int CONNECTION_TIMEOUT = 1000;
+	private static final int CONNECTION_TIMEOUT = 10000;
 
-	private static final int SESSION_TIMEOUT = 1000;
+	private static final int SESSION_TIMEOUT = 10000;
 
-	private static final String PREFERRED_DATACENTER = "ULCC";
-	
-	private static final String KEYSPACE = "/eCloud/serviceDiscovery";
-	
 	private static final String UIS_SERVICE_KEY = "UIS";
 	
 	/**
@@ -49,6 +45,8 @@ public class UrlProvider {
 		LOGGER.info("Starting UrlProvider, no URL provided");
 		
 		String zkAddress = null;
+		String preferredDatacenter = null;
+		String serviceDiscoveryPath = null;
 		
 		Properties props = new Properties();
 		InputStream is = null;
@@ -56,6 +54,8 @@ public class UrlProvider {
 			is = new FileInputStream(new File("src/main/resources/client.properties"));
 			props.load(is);
 			zkAddress = props.getProperty("coordination.service.URL");
+			preferredDatacenter = props.getProperty("coordination.service.PREFERRED_DATACENTER");
+			serviceDiscoveryPath = props.getProperty("coordination.service.SERVICE_DISCOVERY_PATH");
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 		} finally {
@@ -64,9 +64,9 @@ public class UrlProvider {
 			}
 		}
 
-		ZookeeperService zS = new ZookeeperService(zkAddress, CONNECTION_TIMEOUT, SESSION_TIMEOUT, KEYSPACE);
+		ZookeeperService zS = new ZookeeperService(zkAddress, CONNECTION_TIMEOUT, SESSION_TIMEOUT, serviceDiscoveryPath);
 		ZookeeperServiceDiscovery serviceDiscovery = new ZookeeperServiceDiscovery(zS, UIS_SERVICE_KEY);
-		provider = new ServiceProviderImpl(serviceDiscovery, PREFERRED_DATACENTER);
+		provider = new ServiceProviderImpl(serviceDiscovery, preferredDatacenter);
 		
 		baseUrl = provider.getService().getListenAddress();
 
