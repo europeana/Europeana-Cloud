@@ -10,38 +10,56 @@
   http://www.springframework.org/schema/context
   http://www.springframework.org/schema/context/spring-context.xsd">
     <context:annotation-config />
-	
+    
+	<!--  
     <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
         <constructor-arg name="serviceId" value="MANOS_PC_1" />
         <constructor-arg name="serviceName" value="UIS" />
-		
-        <!-- TODO: https://jira.man.poznan.pl/jira/browse/ECL-194 -->
         <constructor-arg name="listenAddress" value="http://localhost:8080/ecloud-service-uis-rest/" />
-		
         <constructor-arg name="datacenterLocation" value="ULCC" />
     </bean>
-	
+    
     <bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
-        <!-- 
-        Zookeeper address, this could be a single address in case only one Zookeeper is deployed, e.g 127.0.0.1:2181
-        OR
-        a comma seperated list of Zookeeper addresses, e.g localhost:2181,localhost:2182,localhost:2183
-        -->
-        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181"/>
-        <constructor-arg name="zookeeperConnectionTimeout" value="1000"/>
-		
-        <!-- 
-        How much time (in ms) it will take until Zookeeper notices the crash and notifies the clients. 
-        The smaller this number is the sooner zookeeper notices failures. 
-        -->
-        <constructor-arg name="zookeeperSessionTimeout" value="1000"/>
-		
-        <constructor-arg name="zookeeperPath" value="/eCloud/serviceDiscovery"/>
+        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181" />
+        <constructor-arg name="zookeeperConnectionTimeout" value="10000" />
+        <constructor-arg name="zookeeperSessionTimeout" value="10000" />
+        <constructor-arg name="zookeeperPath" value="/eCloud/serviceDiscovery/ISTI/pro" />
     </bean>
+    -->
 	
+    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
+    	
+        <constructor-arg name="serviceId" value="MANOS_PC_1" />
+        <constructor-arg name="serviceName" value="UIS" />
+        
+        <constructor-arg name="listenAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/listenAddress"/>
+        </constructor-arg>
+        
+        <constructor-arg name="datacenterLocation">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/datacenterLocation"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperAddress"/>
+        </constructor-arg>
+        
+        <constructor-arg name="zookeeperConnectionTimeout">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperConnectionTimeout"/>
+        </constructor-arg>
+        <constructor-arg name="zookeeperSessionTimeout">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperSessionTimeout"/>
+        </constructor-arg>
+        
+        <constructor-arg name="zookeeperPath">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
+        </constructor-arg>
+    </bean>
+       
     <bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
         <constructor-arg name="zookeeper" ref="zookeeperService"/>
         <constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
     </bean>
-	
 </beans>

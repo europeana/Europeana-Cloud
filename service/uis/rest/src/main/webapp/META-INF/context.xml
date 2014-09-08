@@ -10,6 +10,8 @@
                                type="java.lang.String" override="false"/>
     [...]-->
 	
+    <!-- UIS -->
+    
     <ResourceLink
         name="uis/cassandra/host"
         global="uis/cassandra/host"
@@ -34,11 +36,25 @@
         name="uis/cassandra/password"
         global="uis/cassandra/password"
         type="java.lang.String"/>
-    
+        
     <ResourceLink
         name="uis/cassandra/autoCreateTables"
         global="uis/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
+        
+    <!-- UIS registration of service in COS -->
+    
+   <ResourceLink
+        name="uis/listenAddress"
+        global="uis/listenAddress"
+        type="java.lang.String"/>
+        
+   <ResourceLink
+        name="uis/datacenterLocation"
+        global="uis/datacenterLocation"
+        type="java.lang.String"/>
+        
+    <!-- AAS -->
     
     <ResourceLink
         name="aas/cassandra/host"
@@ -74,4 +90,26 @@
         name="aas/cassandra/autoCreateTables"
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
+        
+    <!-- COS -->
+    
+   <ResourceLink
+        name="cos/zookeeper/zookeeperAddress"
+        global="cos/zookeeper/zookeeperAddress"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/zookeeper/zookeeperConnectionTimeout"
+        global="cos/zookeeper/zookeeperConnectionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperSessionTimeout"
+        global="cos/zookeeper/zookeeperSessionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperPath"
+        global="cos/zookeeper/zookeeperPath"
+        type="java.lang.String"/>            
 </Context>
