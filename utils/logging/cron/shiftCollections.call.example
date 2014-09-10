@@ -27,4 +27,6 @@ scriptAbsolutePath=/home/$USER/ecloud/repo/utils/logging/cron/shiftCollections.s
 $scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir
 #use this version if your server time is not UTC (for timezones that are 'later' than UTC, e.g. Warsaw):
 #echo "/bin/bash $scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir" | at `date -d '00:00 utc' +%H:%M`
+#if everything works as expected you can redirect the output of command to dev null so it does not clutter the mailbox
+#echo "/bin/bash $scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir > /dev/null 2>&1" | at `date -d '00:00 utc' +%H:%M`
 
