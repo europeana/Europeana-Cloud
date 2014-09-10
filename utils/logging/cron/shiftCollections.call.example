@@ -7,6 +7,8 @@ set -u
 #wildcard * 
 shopt -s nullglob
 
+#this script is intended to be run by cron, but it can also be called manually for test purposes
+#it might be not sh compatible, so cron call should begin with /bin/bash
 
 numPreserve=7
 solrHTTP='http://localhost:8080/solr'
@@ -23,4 +25,6 @@ solrLibDir="/home/$USER/install/tomcat/tomcat/webapps/solr/WEB-INF/lib"
 scriptAbsolutePath=/home/$USER/ecloud/repo/utils/logging/cron/shiftCollections.sh
 
 $scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir
+#use this version if your server time is not UTC (for timezones that are 'later' than UTC, e.g. Warsaw):
+#echo "/bin/bash $scriptAbsolutePath $numPreserve $solrHTTP $dataDirRoot $configSrcDir $configTempDir $zkHome $zkHost $solrLibDir" | at `date -d '00:00 utc' +%H:%M`
 
