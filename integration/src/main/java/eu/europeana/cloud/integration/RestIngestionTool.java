@@ -33,6 +33,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.common.web.UISParamConstants;
 
 /**
  * This is a command line tool to ingest a new data set.
@@ -184,7 +185,7 @@ public class RestIngestionTool {
 
         DataProviderProperties dp = new DataProviderProperties(providerId, "", "", "", "", "",
                 "Ingesion Tool Provider", "");
-        Response resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/data-providers")
+        Response resp = client.target(baseUrl + UIS_PREFIX + "/data-providers")
                 .queryParam("providerId", providerId).request().post(Entity.json(dp));
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             System.out.println("Provider '" + providerId + "' has been created!");
@@ -228,13 +229,15 @@ public class RestIngestionTool {
             int endIdx = input.getName().lastIndexOf(".");
             String localId = endIdx > 0 ? input.getName().substring(0, endIdx) : input.getName();
             CloudId cloudId;
-            resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/getCloudId").queryParam("providerId", providerId)
+            resp = client.target(baseUrl + UIS_PREFIX + "/cloudIds").queryParam("providerId", providerId)
                     .queryParam("recordId", localId).request().get();
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 cloudId = resp.readEntity(CloudId.class);
             } else {
-                resp = client.target(baseUrl + UIS_PREFIX + "/uniqueId/createCloudIdLocal")
-                        .queryParam("providerId", providerId).queryParam("recordId", localId).request().get();
+                resp = client.target(baseUrl + UIS_PREFIX +  "/cloudIds")
+                        .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                        .queryParam(UISParamConstants.Q_RECORD_ID, localId).request()
+                        .post(null);
                 if (resp.getStatus() == Status.OK.getStatusCode()) {
                     cloudId = resp.readEntity(CloudId.class);
                 } else {

@@ -28,7 +28,7 @@ import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 
 /**
  * This is a command line tool to ingest a new data set.
- * 
+ *
  * @author Markus Muhr (markus.muhr@kb.nl)
  * @since Jan 20, 2014
  */
@@ -47,10 +47,9 @@ public class ServiceIngestionTool {
     @Autowired
     private UniqueIdentifierService uniqueIdentifierService;
 
-
     /**
      * Available operations for this tool.
-     * 
+     *
      * @author Markus Muhr (markus.muhr@kb.nl)
      * @since Jan 19, 2012
      */
@@ -72,18 +71,16 @@ public class ServiceIngestionTool {
         /**
          * description for option
          */
-        private String description;
-
+        private final String description;
 
         /**
          * Creates a new instance of this class.
-         * 
+         *
          * @param description
          */
         private Operation(String description) {
             this.description = description;
         }
-
 
         /**
          * @return description for option
@@ -93,22 +90,20 @@ public class ServiceIngestionTool {
         }
     }
 
-
-    @Option(name = "-o", aliases = { "--operation" }, required = true)
+    @Option(name = "-o", aliases = {"--operation"}, required = true)
     private Operation operation;
 
-    @Option(name = "-p", aliases = { "--provider" }, usage = "Provider for which a dataset should be ingested")
+    @Option(name = "-p", aliases = {"--provider"}, usage = "Provider for which a dataset should be ingested")
     private String providerId;
 
-    @Option(name = "-d", aliases = { "--dataset" }, usage = "Dataset for which the data should be ingested")
+    @Option(name = "-d", aliases = {"--dataset"}, usage = "Dataset for which the data should be ingested")
     private String dataSetId;
 
-    @Option(name = "-s", aliases = { "--schema" }, usage = "Schema specifying the format of the dataset!")
+    @Option(name = "-s", aliases = {"--schema"}, usage = "Schema specifying the format of the dataset!")
     private String schema;
 
-    @Option(name = "-f", aliases = { "--file" }, metaVar = "DIR", usage = "Directory with files to be ingested!")
+    @Option(name = "-f", aliases = {"--file"}, metaVar = "DIR", usage = "Directory with files to be ingested!")
     private String directory;
-
 
     /**
      * Runs operations for this tool.
@@ -139,10 +134,9 @@ public class ServiceIngestionTool {
         }
     }
 
-
     /**
      * Ingestion of a data set.
-     * 
+     *
      * @throws Exception
      */
     private void ingestDataSet()
@@ -165,30 +159,27 @@ public class ServiceIngestionTool {
         Iterator<java.io.File> iter = FileUtils.iterateFiles(new java.io.File(directory), null, true);
         while (iter.hasNext()) {
             java.io.File input = iter.next();
-            FileInputStream is = new FileInputStream(input);
+            try (FileInputStream is = new FileInputStream(input)) {
+                File file = new File();
+                file.setFileName(input.getName());
+                file.setMimeType("text");
 
-            File file = new File();
-            file.setFileName(input.getName());
-            file.setMimeType("text");
+                CloudId cloudId = uniqueIdentifierService.createCloudId(providerId, input.getName());
 
-            CloudId cloudId = uniqueIdentifierService.createCloudId(providerId, input.getName());
+                Representation represantation = recordService.createRepresentation(cloudId.getId(), schema, providerId);
+                recordService.putContent(cloudId.getId(), represantation.getRepresentationName(),
+                        represantation.getVersion(), file, is);
+                recordService.persistRepresentation(cloudId.getId(), schema, represantation.getVersion());
 
-            Representation represantation = recordService.createRepresentation(cloudId.getId(), schema, providerId);
-            recordService.putContent(cloudId.getId(), represantation.getRepresentationName(),
-                represantation.getVersion(), file, is);
-            recordService.persistRepresentation(cloudId.getId(), schema, represantation.getVersion());
-
-            dataSetService.addAssignment(providerId, dataSetId, represantation.getCloudId(),
-                represantation.getRepresentationName(), represantation.getVersion());
-
-            is.close();
+                dataSetService.addAssignment(providerId, dataSetId, represantation.getCloudId(),
+                        represantation.getRepresentationName(), represantation.getVersion());
+            }
         }
     }
 
-
     /**
      * Reads a data set to a directory!
-     * 
+     *
      * @throws Exception
      */
     private void readDataSet()
@@ -196,18 +187,17 @@ public class ServiceIngestionTool {
         ResultSlice<Representation> dataset = dataSetService
                 .listDataSet(providerId, dataSetId, null, Integer.MAX_VALUE);
         for (Representation representation : dataset.getResults()) {
-            FileOutputStream os = new FileOutputStream(new java.io.File(directory + "/"
-                    + representation.getFiles().get(0).getFileName()));
-            recordService.getContent(representation.getCloudId(), representation.getRepresentationName(),
-                representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
-            os.close();
+            try (FileOutputStream os = new FileOutputStream(new java.io.File(directory + "/"
+                    + representation.getFiles().get(0).getFileName()))) {
+                recordService.getContent(representation.getCloudId(), representation.getRepresentationName(),
+                        representation.getVersion(), representation.getFiles().get(0).getFileName(), os);
+            }
         }
     }
 
-
     /**
      * Delete a data set!
-     * 
+     *
      * @throws Exception
      */
     private void deleteDataSet()
@@ -217,33 +207,30 @@ public class ServiceIngestionTool {
         for (Representation representation : dataset.getResults()) {
             recordService.deleteRepresentation(representation.getCloudId(), representation.getRepresentationName());
             dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
-                representation.getRepresentationName());
+                    representation.getRepresentationName());
         }
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
-
 
     /**
      * @param args
      */
     public static void main(String[] args) {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inmemoryIngestionToolContext.xml");
-        ServiceIngestionTool tool = context.getBean(ServiceIngestionTool.class);
-
-        // IngestionTool tool = new IngestionTool();
-        CmdLineParser parser = new CmdLineParser(tool);
-        try {
-            parser.parseArgument(args);
-            tool.run();
-        } catch (CmdLineException e) {
-            // handling of wrong arguments
-            System.err.println(e.getMessage());
-            parser.printUsage(System.err);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace(System.err);
+        try (ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inmemoryIngestionToolContext.xml")) {
+            ServiceIngestionTool tool = context.getBean(ServiceIngestionTool.class);
+            // IngestionTool tool = new IngestionTool();
+            CmdLineParser parser = new CmdLineParser(tool);
+            try {
+                parser.parseArgument(args);
+                tool.run();
+            } catch (CmdLineException e) {
+                // handling of wrong arguments
+                System.err.println(e.getMessage());
+                parser.printUsage(System.err);
+            } catch (Throwable e) {
+                System.err.println(e.getMessage());
+                e.printStackTrace(System.err);
+            }
         }
-
-        context.close();
     }
 }
