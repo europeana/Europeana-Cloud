@@ -1,55 +1,222 @@
 !tape
 name: UISClient/updateProvider
 interactions:
-- recorded: 2014-03-10T10:17:43.203Z
+- recorded: 2014-09-17T14:07:23.953Z
   request:
     method: POST
-    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers?providerId=updateProviderTest_Id
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=updateProviderTest_PROVIDER_ID_12
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Content-Length: '219'
       Content-Type: application/json
-      Host: localhost:8081
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
     body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
   response:
     status: 201
     headers:
-      Date: Mon, 10 Mar 2014 10:17:43 GMT
-      Location: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 14:07:23 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_12
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: !!binary ""
-- recorded: 2014-03-10T10:17:43.321Z
+- recorded: 2014-09-17T14:07:24.036Z
   request:
     method: PUT
-    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_12
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Content-Length: '227'
       Content-Type: application/json
-      Host: localhost:8081
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
     body: '{"contactPerson":"person2","digitalLibraryURL":"url2","digitalLibraryWebsite":"url2","officialAddress":"Address2","organisationName":"Name2","organisationWebsite":"website2","organisationWebsiteURL":"url2","remarks":"remarks2"}'
   response:
     status: 204
     headers:
-      Date: Mon, 10 Mar 2014 10:17:43 GMT
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 14:07:23 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-- recorded: 2014-03-10T10:17:43.631Z
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+- recorded: 2014-09-17T14:07:24.081Z
   request:
     method: GET
-    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_12
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8081
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 200
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 10:17:43 GMT
+      Date: Wed, 17 Sep 2014 14:07:23 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><dataProvider><id>updateProviderTest_Id</id><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties><uri>http://localhost:8081/ecloud-service-uis-rest/data-providers/updateProviderTest_Id</uri></dataProvider>
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><dataProvider><id>updateProviderTest_PROVIDER_ID_12</id><partitionKey>1703380746</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>
+- recorded: 2014-09-17T15:07:09.178Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=updateProviderTest_PROVIDER_ID_143
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:07:09 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_143
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T15:07:09.316Z
+  request:
+    method: PUT
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_143
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '227'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person2","digitalLibraryURL":"url2","digitalLibraryWebsite":"url2","officialAddress":"Address2","organisationName":"Name2","organisationWebsite":"website2","organisationWebsiteURL":"url2","remarks":"remarks2"}'
+  response:
+    status: 204
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:07:09 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+- recorded: 2014-09-17T15:07:09.435Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDER_ID_143
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:07:09 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><dataProvider><id>updateProviderTest_PROVIDER_ID_143</id><partitionKey>1265195687</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>
+- recorded: 2014-09-17T15:09:52.531Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=updateProviderTest_PROVIDERID
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:09:52 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T15:09:52.631Z
+  request:
+    method: PUT
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '227'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person2","digitalLibraryURL":"url2","digitalLibraryWebsite":"url2","officialAddress":"Address2","organisationName":"Name2","organisationWebsite":"website2","organisationWebsiteURL":"url2","remarks":"remarks2"}'
+  response:
+    status: 204
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:09:52 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+- recorded: 2014-09-17T15:09:52.690Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:09:52 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><dataProvider><id>updateProviderTest_PROVIDERID</id><partitionKey>103212895</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>

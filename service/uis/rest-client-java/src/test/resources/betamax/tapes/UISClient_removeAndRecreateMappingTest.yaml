@@ -1,67 +1,394 @@
 !tape
 name: UISClient/removeAndRecreateMappingTest
 interactions:
-- recorded: 2014-03-10T10:17:45.488Z
+- recorded: 2014-09-17T14:07:25.655Z
   request:
     method: POST
-    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds?providerId=TEST_PROVIDER
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=removeAndRecreateMappingTest_PROVIDER_ID_12
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8081
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Connection: close
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 14:07:24 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_12
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T14:07:25.696Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDER_ID_12
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 200
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 10:17:44 GMT
+      Date: Wed, 17 Sep 2014 14:07:24 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></cloudId>
-- recorded: 2014-03-10T10:17:45.554Z
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>32LHS7MR2BF</id><localId><providerId>removeAndRecreateMappingTest_PROVIDER_ID_12</providerId><recordId>1649K682JF2</recordId></localId></cloudId>
+- recorded: 2014-09-17T14:07:25.724Z
   request:
     method: DELETE
-    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/TEST_PROVIDER/localIds/BPBC59M0TJ6
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_12/LOCALID/1649K682JF2
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8081
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
-    status: 200
+    status: 404
     headers:
-      Content-Type: application/json
-      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Language: en
+      Content-Type: text/html;charset=utf-8
+      Date: Wed, 17 Sep 2014 14:07:24 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: Mapping marked as deleted
-- recorded: 2014-03-10T10:17:45.662Z
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: '<html><head><title>Apache Tomcat/7.0.52 - Error report</title><style><!--H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;} H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;}
+      H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;} BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;} B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;} P
+      {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A {color : black;}A.name {color : black;}HR {color : #525D76;}--></style> </head><body><h1>HTTP Status 404 - Not Found</h1><HR size="1" noshade="noshade"><p><b>type</b> Status
+      report</p><p><b>message</b> <u>Not Found</u></p><p><b>description</b> <u>The requested resource is not available.</u></p><HR size="1" noshade="noshade"><h3>Apache Tomcat/7.0.52</h3></body></html>'
+- recorded: 2014-09-17T14:17:42.883Z
   request:
     method: POST
-    uri: http://localhost:8081/ecloud-service-uis-rest/data-providers/TEST_PROVIDER/cloudIds/86LHPSFG0RT?recordId=BPBC59M0TJ6
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=removeAndRecreateMappingTest_PROVIDER_ID_13
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8081
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 14:17:42 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_13
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T14:17:43.197Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDER_ID_13
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 200
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Date: Wed, 17 Sep 2014 14:17:42 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></cloudId>
-- recorded: 2014-03-10T10:17:45.745Z
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>2KSNQKJNVNP</id><localId><providerId>removeAndRecreateMappingTest_PROVIDER_ID_13</providerId><recordId>7D484BV206M</recordId></localId></cloudId>
+- recorded: 2014-09-17T14:17:43.303Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_13/LOCALID/7D484BV206M
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 404
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Language: en
+      Content-Type: text/html;charset=utf-8
+      Date: Wed, 17 Sep 2014 14:17:42 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: '<html><head><title>Apache Tomcat/7.0.52 - Error report</title><style><!--H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;} H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;}
+      H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;} BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;} B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;} P
+      {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A {color : black;}A.name {color : black;}HR {color : #525D76;}--></style> </head><body><h1>HTTP Status 404 - Not Found</h1><HR size="1" noshade="noshade"><p><b>type</b> Status
+      report</p><p><b>message</b> <u>Not Found</u></p><p><b>description</b> <u>The requested resource is not available.</u></p><HR size="1" noshade="noshade"><h3>Apache Tomcat/7.0.52</h3></body></html>'
+- recorded: 2014-09-17T15:07:10.968Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=removeAndRecreateMappingTest_PROVIDER_ID_1675764
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Connection: close
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:07:10 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_1675764
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T15:07:11.037Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDER_ID_1675764
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:07:10 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>1NJ40XTRGD4</id><localId><providerId>removeAndRecreateMappingTest_PROVIDER_ID_1675764</providerId><recordId>RS1LZFPB5WW</recordId></localId></cloudId>
+- recorded: 2014-09-17T15:07:11.083Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_1675764/localIds/RS1LZFPB5WW
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/json
+      Date: Wed, 17 Sep 2014 15:07:10 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: Mapping marked as deleted
+- recorded: 2014-09-17T15:07:11.122Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDER_ID_1675764/cloudIds/1NJ40XTRGD4?recordId=RS1LZFPB5WW
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:07:10 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>1NJ40XTRGD4</id><localId><providerId>removeAndRecreateMappingTest_PROVIDER_ID_1675764</providerId><recordId>RS1LZFPB5WW</recordId></localId></cloudId>
+- recorded: 2014-09-17T15:07:11.161Z
   request:
     method: GET
-    uri: http://localhost:8081/ecloud-service-uis-rest/cloudIds/86LHPSFG0RT
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds/1NJ40XTRGD4
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8081
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_51)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 200
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 10:17:45 GMT
+      Date: Wed, 17 Sep 2014 15:07:10 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></results><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>86LHPSFG0RT</id><localId><providerId>TEST_PROVIDER</providerId><recordId>BPBC59M0TJ6</recordId></localId></results></resultSlice>
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>1NJ40XTRGD4</id><localId><providerId>removeAndRecreateMappingTest_PROVIDER_ID_1675764</providerId><recordId>RS1LZFPB5WW</recordId></localId></results></resultSlice>
+- recorded: 2014-09-17T15:09:54.297Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers?providerId=removeAndRecreateMappingTest_PROVIDERID
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Connection: close
+      Content-Length: '219'
+      Content-Type: application/json
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: '{"contactPerson":"person","digitalLibraryURL":"url","digitalLibraryWebsite":"url","officialAddress":"Address","organisationName":"Name","organisationWebsite":"website","organisationWebsiteURL":"url","remarks":"remarks"}'
+  response:
+    status: 201
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Wed, 17 Sep 2014 15:09:53 GMT
+      Expires: '0'
+      Location: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDERID
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: !!binary ""
+- recorded: 2014-09-17T15:09:54.376Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDERID
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:09:53 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>
+- recorded: 2014-09-17T15:09:54.414Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDERID/localIds/C5M2JGHNCXQ
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/json
+      Date: Wed, 17 Sep 2014 15:09:53 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: Mapping marked as deleted
+- recorded: 2014-09-17T15:09:54.454Z
+  request:
+    method: POST
+    uri: http://localhost:8080/ecloud-service-uis-rest/data-providers/removeAndRecreateMappingTest_PROVIDERID/cloudIds/1VP8GL0D73Z?recordId=C5M2JGHNCXQ
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:09:53 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>
+- recorded: 2014-09-17T15:09:54.492Z
+  request:
+    method: GET
+    uri: http://localhost:8080/ecloud-service-uis-rest/cloudIds/1VP8GL0D73Z
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 17 Sep 2014 15:09:54 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cloudId"><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></results></resultSlice>
