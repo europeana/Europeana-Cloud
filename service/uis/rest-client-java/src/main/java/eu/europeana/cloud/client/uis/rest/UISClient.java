@@ -20,6 +20,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import java.io.IOException;
 
 /**
  * The REST API client for the Unique Identifier Service.
@@ -42,12 +43,11 @@ public class UISClient {
      * instances and connect to one of them.
      */
     public UISClient() {
-
         LOGGER.info("UISClient starting... no UIS-URL provided.");
 
         try {
             urlProvider = new UrlProvider();
-        } catch (final Exception e) {
+        } catch (final IOException e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
 
@@ -56,9 +56,10 @@ public class UISClient {
 
     /**
      * Creates a new instance of this class.
+     *
+     * @param uisProvider
      */
     public UISClient(final ServiceProvider uisProvider) {
-
         LOGGER.info("UISClient starting...");
 
         try {
@@ -70,15 +71,19 @@ public class UISClient {
 
         LOGGER.info("UISClient started successfully.");
     }
-    
+
     /**
-     * Creates a new instance of this class. Same as {@link #UISClient(ServiceProvider)}
-     * but includes username and password to perform authenticated requests.
+     * Creates a new instance of this class. Same as
+     * {@link #UISClient(ServiceProvider)} but includes username and password to
+     * perform authenticated requests.
+     *
+     * @param uisProvider
+     * @param username
+     * @param password
      */
     public UISClient(final ServiceProvider uisProvider, final String username, final String password) {
-
         LOGGER.info("UISClient starting...");
-        
+
         client.register(new HttpBasicAuthFilter(username, password));
 
         try {
@@ -96,6 +101,8 @@ public class UISClient {
      * but includes username and password to perform authenticated requests.
      *
      * @param uisUrl The URL of some UIS instance to connect to.
+     * @param username
+     * @param password
      */
     public UISClient(final String uisUrl, final String username, final String password) {
         LOGGER.info("UISClient starting...");
