@@ -1,5 +1,22 @@
 package eu.europeana.cloud.mcs.driver;
 
+import java.net.URI;
+import java.util.List;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -10,19 +27,6 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.net.URI;
-import java.util.List;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Exposes API related to records.
@@ -90,6 +94,17 @@ public class RecordServiceClient {
      */
     public RecordServiceClient(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+    
+    /**
+     * Creates instance of RecordServiceClient. Same as {@link #RecordServiceClient(String)}
+     * but includes username and password to perform authenticated requests.
+     *
+     * @param baseUrl URL of the MCS Rest Service
+     */
+    public RecordServiceClient(String baseUrl, final String username, final String password) {
+        this.baseUrl = baseUrl;
+        client.register(new HttpBasicAuthFilter(username, password));
     }
 
     /**
