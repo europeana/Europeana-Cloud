@@ -1,19 +1,11 @@
 package eu.europeana.cloud.mcs.driver;
 
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.ParamConstants;
 import static eu.europeana.cloud.common.web.ParamConstants.H_RANGE;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.net.URI;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
@@ -23,10 +15,20 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * Exposes API related to files. 
@@ -53,7 +55,18 @@ public class FileServiceClient {
         client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
         this.baseUrl = baseUrl;
     }
-
+    
+    /**
+     * Creates instance of FileServiceClient. Same as {@link #FileServiceClient(String)}
+     * but includes username and password to perform authenticated requests.
+     *
+     * @param baseUrl URL of the MCS Rest Service
+     */
+    public FileServiceClient(String baseUrl, final String username, final String password) {
+        client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
+        client.register(new HttpBasicAuthFilter(username, password));
+        this.baseUrl = baseUrl;
+    }
 
     /**
      * Function returns file content.
