@@ -18,14 +18,18 @@ import javax.ws.rs.core.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-
-import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Resource to manage data sets.
@@ -37,9 +41,14 @@ public class DataSetResource {
 
     @Autowired
     private DataSetService dataSetService;
+    
+    @Autowired
+    private MutableAclService mutableAclService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
+    
+    private final String DATASET_CLASS_NAME = DataSet.class.getName();
     
     /**
      * Deletes data set.
@@ -50,7 +59,16 @@ public class DataSetResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
             throws DataSetNotExistsException {
+    	
         dataSetService.deleteDataSet(providerId, dataSetId);
+        
+        // let's delete the permissions as well
+        String ownersName = SpringUserUtils.getUsername();
+        if (ownersName != null) {
+            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
+            		dataSetId + "/" + providerId);
+            mutableAclService.deleteAcl(dataSetIdentity, false);
+        }
     }
 
     /**
