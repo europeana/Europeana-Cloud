@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <b:beans xmlns="http://www.springframework.org/schema/security"
+         xmlns:b="http://www.springframework.org/schema/beans" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:jee="http://www.springframework.org/schema/jee"
-         xmlns:b="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
-   
+         xsi:schemaLocation="http://www.springframework.org/schema/beans 
+         	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         	http://www.springframework.org/schema/jee
+  			http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+            http://www.springframework.org/schema/security 
+            http://www.springframework.org/schema/security/spring-security.xsd">
+            
     <!-- -->
     <!-- - Ecloud persistent authentication application context. Users are stored and retrieved from Cassandra. - -->
     <!-- -->
@@ -46,15 +51,17 @@
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
     <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
-<!--        <b:constructor-arg name="host" value="localhost" />
+        <!--
+        <b:constructor-arg name="host" value="localhost" />
         <b:constructor-arg name="port" value="9042" />
 
-        <b:constructor-arg name="keyspaceName" value="aas_test" />
+        <b:constructor-arg name="keyspaceName" value="ecloud_uis" />
 
         <b:constructor-arg name="username" value="" />
         <b:constructor-arg name="password" value="" />
         
-        <b:constructor-arg name="create" value="false" />-->
+        <b:constructor-arg name="create" value="false" />
+        -->
         
         <b:constructor-arg name="host">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>

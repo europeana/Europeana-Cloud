@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+    <context:annotation-config/>
+    <import resource="classpath:config.xml" />
+	
+    <context:component-scan
+        base-package="eu.europeana.cloud.service.mcs.rest"/>
+	
+    <aop:aspectj-autoproxy/>
+    <bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
+
+    <!--connection provider - with options the same as in embedded cassandra-->
+    <bean id="cassandraConnectionProvider"
+          class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
+        
+        <constructor-arg name="host">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/host"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/mcs/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="userName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/cassandra/password"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
+    <bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
+
+    <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
+    <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
+    <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+    
+    <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
+        <constructor-arg name="provider" >
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/provider"/>
+        </constructor-arg>
+        <constructor-arg name="container">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/container"/>
+        </constructor-arg>
+        <constructor-arg name="endpoint">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/endpoint"/>
+        </constructor-arg>
+        <constructor-arg name="user">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/mcs/swift/password"/>
+        </constructor-arg>
+    </bean>    
+    
+    <bean id="solrRepresentationIndexer" 
+          class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+        
+    <bean id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper" >
+        <constructor-arg name="brokerList">
+            <jee:jndi-lookup expected-type="java.lang.String" 
+                             jndi-name="java:comp/env/kafka/brokerList"/>
+        </constructor-arg>
+        <constructor-arg name="topic">
+            <jee:jndi-lookup expected-type="java.lang.String" 
+                             jndi-name="java:comp/env/kafka/topic"/>
+        </constructor-arg>
+    </bean>
+    <bean id="uisHandler" class="eu.europeana.cloud.service.mcs.mock_impl.AlwaysSuccessfulUISClientHandler"/>
+
+</beans>
