@@ -29,12 +29,6 @@ import org.springframework.stereotype.Component;
 @Scope("request")
 public class DataSetAssignmentsResource {
 
-    @PathParam(P_PROVIDER)
-    private String providerId;
-
-    @PathParam(P_DATASET)
-    private String dataSetId;
-
     @Autowired
     private DataSetService dataSetService;
 
@@ -51,7 +45,9 @@ public class DataSetAssignmentsResource {
      */
     @POST
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void addAssignment(@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
+    public void addAssignment(@PathParam(P_PROVIDER) String providerId,
+    		@PathParam(P_DATASET) String dataSetId,
+    		@FormParam(F_CLOUDID) String recordId, @FormParam(F_REPRESENTATIONNAME) String schema,
             @FormParam(F_VER) String representationVersion)
             throws DataSetNotExistsException, RepresentationNotExistsException {
         ParamUtil.require(F_CLOUDID, recordId);
@@ -69,7 +65,9 @@ public class DataSetAssignmentsResource {
      */
     @DELETE
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void removeAssignment(@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
+    public void removeAssignment(@PathParam(P_PROVIDER) String providerId,
+    		@PathParam(P_DATASET) String dataSetId,
+    		@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
             throws DataSetNotExistsException {
         ParamUtil.require(F_CLOUDID, recordId);
         ParamUtil.require(F_REPRESENTATIONNAME, schema);
