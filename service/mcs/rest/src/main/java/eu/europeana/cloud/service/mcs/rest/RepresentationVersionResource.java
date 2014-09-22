@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -24,6 +25,12 @@ import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,6 +43,11 @@ public class RepresentationVersionResource {
 
     @Autowired
     private RecordService recordService;
+    
+    @Autowired
+    private MutableAclService mutableAclService;
+    
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
      * Returns representation in specified version. If Version = LATEST, will
@@ -136,6 +148,24 @@ public class RepresentationVersionResource {
             throws RepresentationNotExistsException {
         Representation copiedRep = recordService.copyRepresentation(globalId, schema, version);
         prepare(uriInfo, copiedRep);
+        
+        String copiedReprOwner = SpringUserUtils.getUsername();
+        if (copiedReprOwner != null) {
+        	
+            ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
+                    globalId + "/" + schema + "/" + copiedRep.getVersion());
+
+            MutableAcl versionAcl = mutableAclService.createAcl(versionIdentity);
+
+            versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(copiedReprOwner), true);
+            versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(copiedReprOwner), true);
+            versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(copiedReprOwner), true);
+            versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(copiedReprOwner),
+                    true);
+
+            mutableAclService.updateAcl(versionAcl);
+        }
+        
         return Response.created(copiedRep.getUri()).build();
     }
 
