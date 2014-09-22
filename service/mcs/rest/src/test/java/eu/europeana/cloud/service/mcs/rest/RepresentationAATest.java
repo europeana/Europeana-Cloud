@@ -57,11 +57,14 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	private static final String PROVIDER_ID = "provider";
 	private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
 	
+	private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
+	
 	private UriInfo URI_INFO;
 	
 	private Record record;
 	
 	private Representation representation;
+	private Representation copiedRepresentation;
 	
 	/**
 	 * Pre-defined users
@@ -85,6 +88,11 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representation.setCloudId(GLOBAL_ID);
 		representation.setRepresentationName(REPRESENTATION_NAME);
 		representation.setVersion(VERSION);
+
+		copiedRepresentation = new Representation();
+		copiedRepresentation.setCloudId(GLOBAL_ID);
+		copiedRepresentation.setRepresentationName(REPRESENTATION_NAME);
+		copiedRepresentation.setVersion(COPIED_REPRESENTATION_VERSION);
 		
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
@@ -104,7 +112,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(representation).when(recordService).persistRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		Mockito.doReturn(representation).when(recordService).copyRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		Mockito.doReturn(copiedRepresentation).when(recordService).copyRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
 	
@@ -247,6 +255,18 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		representationVersionResource.copyRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+	}
+	
+	@Test
+	public void shouldBeAbleDeleteCopiedRepresentation() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException {
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationVersionResource.copyRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		
+		representationVersionResource.deleteRepresentation(COPIED_REPRESENTATION_VERSION, SCHEMA, GLOBAL_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
