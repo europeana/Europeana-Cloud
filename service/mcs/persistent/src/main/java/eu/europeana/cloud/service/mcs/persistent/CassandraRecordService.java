@@ -304,15 +304,11 @@ public class CassandraRecordService implements RecordService {
 
 	boolean isCreate = true; // if it is create file operation or update
 	// content
-	if (file.getFileName() == null) {
-	    file.setFileName(UUID.randomUUID().toString());
-	} else {
-	    for (File f : representation.getFiles()) {
+	for (File f : representation.getFiles()) {
 		if (f.getFileName().equals(file.getFileName())) {
 		    isCreate = false;
 		    break;
 		}
-	    }
 	}
 
 	String keyForFile = generateKeyForFile(globalId, schema, version,
