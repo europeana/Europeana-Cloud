@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public enum McsErrorCode {
 
+	ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION,
     CANNOT_MODIFY_PERSISTENT_REPRESENTATION,
     DATASET_ALREADY_EXISTS,
     DATASET_NOT_EXISTS,
