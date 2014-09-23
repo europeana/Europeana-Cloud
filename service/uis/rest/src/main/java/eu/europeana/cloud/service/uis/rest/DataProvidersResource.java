@@ -43,7 +43,7 @@ public class DataProvidersResource {
     @Autowired
     private DataProviderService providerService;
 
-    @Value("${numberOfElementsOnPage}")
+    @Value("${uis.numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
     @Autowired

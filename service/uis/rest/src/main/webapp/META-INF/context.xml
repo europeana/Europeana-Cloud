@@ -45,8 +45,8 @@
     <!-- UIS registration of service in COS -->
     
    <ResourceLink
-        name="uis/listenAddress"
-        global="uis/listenAddress"
+        name="uis/serviceAddress"
+        global="uis/serviceAddress"
         type="java.lang.String"/>
         
    <ResourceLink
