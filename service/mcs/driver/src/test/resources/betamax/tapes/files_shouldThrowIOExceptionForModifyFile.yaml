@@ -23,3 +23,31 @@ interactions:
       ETag: '"e0b2ac158446e3169a8ca9e9d084bd42"'
       Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/12c068c9-461d-484e-878f-099c5fca447f
       Server: Apache-Coyote/1.1
+- recorded: 2014-09-23T16:38:10.556Z
+  request:
+    method: PUT
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '318'
+      Content-Type: multipart/form-data; boundary=Boundary_17_281505124_1411490289982
+      Host: ecloud.eanadev.org:8080
+      MIME-Version: '1.0'
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: "--Boundary_17_281505124_1411490289982\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=\"mimeType\"\r\n\r\ntext/plain\r\n--Boundary_17_281505124_1411490289982\r\nContent-Type: application/octet-stream\r\nContent-Disposition: form-data;\
+      \ name=\"data\"\r\n\r\nTest_123456789_123456\r\n--Boundary_17_281505124_1411490289982--\r\n"
+  response:
+    status: 204
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Tue, 23 Sep 2014 16:30:28 GMT
+      ETag: '"e0b2ac158446e3169a8ca9e9d084bd42"'
+      Expires: '0'
+      Location: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
