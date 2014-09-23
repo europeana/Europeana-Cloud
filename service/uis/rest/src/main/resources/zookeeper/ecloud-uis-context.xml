@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/jee
+  http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+  http://www.springframework.org/schema/context
+  http://www.springframework.org/schema/context/spring-context.xsd">
+  
+    <context:annotation-config />
+	<context:property-placeholder properties-ref="configurationLoader"/>
+    
+    <bean id="uniqueIdService"
+          class="eu.europeana.cloud.service.uis.persistent.CassandraUniqueIdentifierService">
+        <constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+        <constructor-arg name="localIdDao" ref="localIdDao" />
+        <constructor-arg name="dataProviderDao" ref="dataProviderDao"/>
+    </bean>
+    <bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO">
+        <constructor-arg name="dbService" ref="dbService" />
+    </bean>
+    <bean id="localIdDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO">
+        <constructor-arg name="dbService" ref="dbService" />
+    </bean>
+    
+    <bean id="dataProviderService" class="eu.europeana.cloud.service.uis.persistent.CassandraDataProviderService"/>
+    <bean id="dataProviderDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO">
+        <constructor-arg name="dbService" ref="dbService"/>
+    </bean>
+
+    <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
+        
+        <constructor-arg name="host" value="${uis.cassandra.host}" />
+        <constructor-arg name="port" value="${uis.cassandra.port}" />
+
+        <constructor-arg name="keyspaceName" value="${uis.cassandra.keyspace}" />
+
+        <constructor-arg name="username" value="${uis.cassandra.user}" />
+        <constructor-arg name="password" value="${uis.cassandra.password}" />
+        <constructor-arg name="create" value="${uis.cassandra.create}" />
+    </bean>
+    
+    <bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
+    <bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
+	
+    <bean id="uniqueIdResource"
+          class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
+          
+	<!-- Advertises this UIS instance in Zookeeper -->
+    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
+        <constructor-arg name="serviceType" value="UIS" />
+        
+        <constructor-arg name="serviceAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/serviceAddress"/>
+        </constructor-arg>
+        
+        <constructor-arg name="datacenterLocation">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/datacenterLocation"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperAddress"/>
+        </constructor-arg>
+        
+        <constructor-arg name="zookeeperConnectionTimeout">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperConnectionTimeout"/>
+        </constructor-arg>
+        <constructor-arg name="zookeeperSessionTimeout">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperSessionTimeout"/>
+        </constructor-arg>
+        
+        <constructor-arg name="zookeeperPath">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
+        </constructor-arg>
+    </bean>
+       
+    <bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
+        <constructor-arg name="zookeeper" ref="zookeeperService"/>
+        <constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
+    </bean>
+    
+    <!-- Loads properties saved in Zookeeper  -->
+	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
+  		<property name="zookeeperService" ref="zookeeperService"/>
+  		<property name="configurationSettingsPath" value="/eCloud/configuration/ISTI/pro"/>
+	</bean>
+            
+  	<import resource="authentication.xml"/>
+  	<import resource="authorization.xml"/>
+</beans>
