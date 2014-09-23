@@ -1,15 +1,13 @@
 !tape
-name: records_shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion
+name: records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteRepresentationVersionWhenInvalidVersion
 interactions:
-- recorded: 2014-09-23T12:34:52.262Z
+- recorded: 2014-09-23T12:34:57.713Z
   request:
-    method: POST
-    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6013/copy
+    method: DELETE
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/noSuchVersion
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
-      Content-Length: '0'
-      Content-Type: application/x-www-form-urlencoded
       Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
@@ -18,7 +16,7 @@ interactions:
     headers:
       Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Tue, 23 Sep 2014 12:27:10 GMT
+      Date: Tue, 23 Sep 2014 12:27:16 GMT
       Expires: '0'
       Pragma: no-cache
       Server: Apache-Coyote/1.1

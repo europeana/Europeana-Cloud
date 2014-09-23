@@ -1,35 +1,28 @@
 !tape
 name: records_shouldNotAllowToDeletePersistenRepresentation
 interactions:
-- recorded: 2014-03-03T14:52:32.957Z
+- recorded: 2014-09-23T12:35:01.571Z
   request:
-    method: GET
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012
+    method: POST
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/persist
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8080
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Content-Length: '0'
+      Content-Type: application/x-www-form-urlencoded
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
-  response:
-    status: 200
-    headers:
-      Content-Type: application/xml
-      Date: Mon, 03 Mar 2014 14:52:32 GMT
-      Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions</allVersionsUri><creationDate>2014-03-03T14:43:24.396+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>24</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012/files/97df6b37-2593-46b5-b741-84f755b8ccb5</contentUri><date>2014-03-03T14:43:18.349+01:00</date><fileName>97df6b37-2593-46b5-b741-84f755b8ccb5</fileName><md5>fad216b328837cadf9f7ae0ba54a8340</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><cloudId>J93T5R6615H</cloudId><representationName>schema22</representationName><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012</uri><version>67565180-a2d9-11e3-8a55-1c6f653f6012</version></representation>
-- recorded: 2014-03-03T14:52:33.228Z
-  request:
-    method: DELETE
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/67565180-a2d9-11e3-8a55-1c6f653f6012
-    headers:
-      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8080
-      Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 405
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 03 Mar 2014 14:52:32 GMT
+      Date: Tue, 23 Sep 2014 12:27:20 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>

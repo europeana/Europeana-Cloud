@@ -1,40 +1,55 @@
 !tape
 name: records_shouldNotPersistEmptyRepresentation
 interactions:
-- recorded: 2014-03-10T09:43:17.033Z
+- recorded: 2014-09-23T12:34:36.206Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Connection: close
       Content-Length: '22'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8080
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
     body: providerId=Provider001
   response:
     status: 201
     headers:
-      Date: Mon, 10 Mar 2014 09:43:16 GMT
-      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/6814dec0-a838-11e3-8892-1c6f653f6012
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Tue, 23 Sep 2014 12:26:54 GMT
+      Expires: '0'
+      Location: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e787f5f0-431c-11e4-8576-00163eefc9c8
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: !!binary ""
-- recorded: 2014-03-10T09:43:17.247Z
+- recorded: 2014-09-23T12:34:36.294Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/6814dec0-a838-11e3-8892-1c6f653f6012/persist
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e787f5f0-431c-11e4-8576-00163eefc9c8/persist
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Content-Length: '0'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8080
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 405
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 09:43:16 GMT
+      Date: Tue, 23 Sep 2014 12:26:55 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><errorCode>CANNOT_PERSIST_EMPTY_REPRESENTATION</errorCode></errorInfo>

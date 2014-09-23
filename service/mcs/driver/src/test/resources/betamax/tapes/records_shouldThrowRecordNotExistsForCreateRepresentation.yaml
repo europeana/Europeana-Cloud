@@ -1,23 +1,30 @@
 !tape
 name: records_shouldThrowRecordNotExistsForCreateRepresentation
 interactions:
-- recorded: 2014-02-26T10:38:15.832Z
+- recorded: 2014-09-23T12:35:00.924Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema_000001
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord/representations/schema_000001
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Connection: close
       Content-Length: '22'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8080
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
     body: providerId=Provider001
   response:
     status: 404
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Wed, 26 Feb 2014 10:38:15 GMT
+      Date: Tue, 23 Sep 2014 12:27:19 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: noSuchRecord</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'

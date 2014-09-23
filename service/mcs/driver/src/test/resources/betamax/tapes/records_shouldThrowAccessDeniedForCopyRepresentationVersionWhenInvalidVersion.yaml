@@ -1,10 +1,10 @@
 !tape
-name: records_shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion
+name: records_shouldThrowAccessDeniedForCopyRepresentationVersionWhenInvalidVersion
 interactions:
-- recorded: 2014-09-23T12:34:52.262Z
+- recorded: 2014-09-23T12:34:42.474Z
   request:
     method: POST
-    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6013/copy
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions/noSuchVersion/copy
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
@@ -18,7 +18,7 @@ interactions:
     headers:
       Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Tue, 23 Sep 2014 12:27:10 GMT
+      Date: Tue, 23 Sep 2014 12:27:01 GMT
       Expires: '0'
       Pragma: no-cache
       Server: Apache-Coyote/1.1

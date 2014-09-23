@@ -1,78 +1,107 @@
 !tape
 name: records_shouldPersistAfterAddingFiles
 interactions:
-- recorded: 2014-03-10T09:39:50.878Z
+- recorded: 2014-09-23T12:34:32.399Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Connection: close
       Content-Length: '22'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8080
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
     body: providerId=Provider001
   response:
     status: 201
     headers:
-      Date: Mon, 10 Mar 2014 09:39:50 GMT
-      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Tue, 23 Sep 2014 12:26:50 GMT
+      Expires: '0'
+      Location: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: !!binary ""
-- recorded: 2014-03-10T09:39:52.057Z
+- recorded: 2014-09-23T12:34:32.685Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012/files
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8/files
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Content-Length: '321'
-      Content-Type: multipart/form-data; boundary=Boundary_1_1122741431_1394444391054
-      Host: localhost:8080
+      Content-Type: multipart/form-data; boundary=Boundary_1_1184927841_1411475672456
+      Host: ecloud.eanadev.org:8080
       MIME-Version: '1.0'
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
-    body: "--Boundary_1_1122741431_1394444391054\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=\"mimeType\"\r\n\r\ntext/plain\r\n--Boundary_1_1122741431_1394444391054\r\nContent-Type: application/octet-stream\r\nContent-Disposition: form-data;\
-      \ name=\"data\"\r\n\r\nThe content of the file.\r\n--Boundary_1_1122741431_1394444391054--\r\n"
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
+    body: "--Boundary_1_1184927841_1411475672456\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=\"mimeType\"\r\n\r\ntext/plain\r\n--Boundary_1_1184927841_1411475672456\r\nContent-Type: application/octet-stream\r\nContent-Disposition: form-data;\
+      \ name=\"data\"\r\n\r\nThe content of the file.\r\n--Boundary_1_1184927841_1411475672456--\r\n"
   response:
     status: 201
     headers:
-      Date: Mon, 10 Mar 2014 09:39:52 GMT
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Tue, 23 Sep 2014 12:26:51 GMT
       ETag: '"fad216b328837cadf9f7ae0ba54a8340"'
-      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012/files/f3e61bba-da95-4135-bd97-abd7e6f8785b
+      Expires: '0'
+      Location: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8/files/efedee6f-e592-448a-b4d0-41eba6ec9d32
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: !!binary ""
-- recorded: 2014-03-10T09:39:52.110Z
+- recorded: 2014-09-23T12:34:32.792Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012/persist
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8/persist
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
       Content-Length: '0'
       Content-Type: application/x-www-form-urlencoded
-      Host: localhost:8080
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 201
     headers:
-      Date: Mon, 10 Mar 2014 09:39:52 GMT
-      Location: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Tue, 23 Sep 2014 12:26:51 GMT
+      Expires: '0'
+      Location: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
     body: !!binary ""
-- recorded: 2014-03-10T09:39:52.188Z
+- recorded: 2014-09-23T12:34:32.871Z
   request:
     method: GET
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8080
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
     status: 200
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Mon, 10 Mar 2014 09:39:52 GMT
+      Date: Tue, 23 Sep 2014 12:26:51 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions</allVersionsUri><cloudId>J93T5R6615H</cloudId><creationDate>2014-03-10T10:39:52.085+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>24</contentLength><contentUri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012/files/f3e61bba-da95-4135-bd97-abd7e6f8785b</contentUri><date>2014-03-10T10:39:51.083+01:00</date><fileName>f3e61bba-da95-4135-bd97-abd7e6f8785b</fileName><md5>fad216b328837cadf9f7ae0ba54a8340</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>schema33</representationName><uri>http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema33/versions/ed357ca0-a837-11e3-8892-1c6f653f6012</uri><version>ed357ca0-a837-11e3-8892-1c6f653f6012</version></representation>
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T14:26:51.645+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>24</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8/files/efedee6f-e592-448a-b4d0-41eba6ec9d32</contentUri><date>2014-09-23T14:26:51.416+02:00</date><fileName>efedee6f-e592-448a-b4d0-41eba6ec9d32</fileName><md5>fad216b328837cadf9f7ae0ba54a8340</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>schema33</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8</uri><version>e542e7f0-431c-11e4-8576-00163eefc9c8</version></representation>

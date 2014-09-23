@@ -1,19 +1,26 @@
 !tape
 name: records_shouldThrowRecordNotExistsForDeleteRecord
 interactions:
-- recorded: 2014-02-26T15:33:45.856Z
+- recorded: 2014-09-23T12:34:57.072Z
   request:
     method: DELETE
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord
+    uri: http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/noSuchRecord
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Host: localhost:8080
+      Authorization: Basic Q3Jpc3RpYW5vOlJvbmFsZG8=
+      Host: ecloud.eanadev.org:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
+      User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_65)
   response:
-    status: 404
+    status: 405
     headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Wed, 26 Feb 2014 15:33:45 GMT
+      Date: Tue, 23 Sep 2014 12:27:15 GMT
+      Expires: '0'
+      Pragma: no-cache
       Server: Apache-Coyote/1.1
-    body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>There is no record with provided global id: noSuchRecord</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>'
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>
