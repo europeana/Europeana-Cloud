@@ -29,6 +29,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 
 /**
@@ -101,7 +102,7 @@ public class DataSetResource {
     public void updateDataSet(@PathParam(P_DATASET) String dataSetId,
     		@PathParam(P_PROVIDER) String providerId,
     		@FormParam(F_DESCRIPTION) String description)
-            throws DataSetNotExistsException {
+            throws AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException {
         dataSetService.updateDataSet(providerId, dataSetId, description);
     }
 }

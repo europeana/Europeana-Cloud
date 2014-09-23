@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -53,6 +54,8 @@ public class MCSExceptionProvider {
         String details = errorInfo.getDetails();
 
         switch (errorCode) {
+        	case ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION:
+                return new AccessDeniedOrObjectDoesNotExistException(details);
             case CANNOT_MODIFY_PERSISTENT_REPRESENTATION:
                 return new CannotModifyPersistentRepresentationException(details);
             case DATASET_ALREADY_EXISTS:

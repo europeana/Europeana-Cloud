@@ -128,7 +128,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateDataset()
 			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException {
+			DataSetNotExistsException, eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException {
 
 		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
 	}
@@ -144,7 +144,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToUpdateDataset()
 			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException {
+			DataSetNotExistsException, eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
