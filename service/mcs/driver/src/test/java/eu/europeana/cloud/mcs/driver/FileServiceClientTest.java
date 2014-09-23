@@ -1,39 +1,35 @@
 package eu.europeana.cloud.mcs.driver;
 
-import co.freeside.betamax.Betamax;
-import co.freeside.betamax.Recorder;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import static java.util.Arrays.copyOfRange;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-
 import java.net.URI;
-import static java.util.Arrays.copyOfRange;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertArrayEquals;
-import org.junit.BeforeClass;
+
+import co.freeside.betamax.Betamax;
+import co.freeside.betamax.Recorder;
+
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteStreams;
+
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 public class FileServiceClientTest {
 
@@ -42,15 +38,36 @@ public class FileServiceClientTest {
 
     //TODO clean
     //this is only needed for recording tests
-    private static final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    private static final String BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/";
+    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    
+    private static final String baseUrl = BASE_URL_ISTI;
+    
     private static final String mediaType = "text/plain";
     private static final String cloudId = "7MZWQJF8P84";
     private static final String representationName = "schema_000001";
     private static final String version = "de084210-a393-11e3-8614-50e549e85271";
 
-    private static final String unmovableFileName = "08fcc281-e1fd-4cec-bd33-c12a49145d36";
+    private static final String unmovableFileName = "9007c26f-e29d-4924-9c49-8ff064484264";
     private static final String deletedFileName = "d64b423b-1018-4526-ab4b-3539261ff067";
     private static final String modyfiedFileName = "12c068c9-461d-484e-878f-099c5fca447f";
+    
+    private static final String UPLOADED_FILE_CONTENTS = "Test_123456789_";
+    private static final String MODIFIED_FILE_CONTENTS = "Test_123456789_123456";
+    
+    /** Should already exist in the system */
+    private static final String CLOUD_ID = "W3KBLNZDKNQ";
+    private static final String PROVIDER_ID = "Provider001";
+    
+    private static final String REPRESENTATION_NAME = "schema66";
+    private static final String UPLOADED_FILE_NAME = "9007c26f-e29d-4924-9c49-8ff064484264";
+    private static final String MODIFIED_FILE_NAME = "06abeac8-6221-4399-be68-5be5ae8d1473";
+    private static final String DELETED_FILE_NAME = "b32b56e9-94d7-44b8-9010-7a1795ee7f95";
+    
+    //this is some not-persistent version
+    private static final String VERSION = "e91d6300-431c-11e4-8576-00163eefc9c8";
+
+	private static final String PERSISTED_VERSION = "881c5c00-4259-11e4-9c35-00163eefc9c8";
 
     private static Client client;
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/
@@ -58,46 +75,20 @@ public class FileServiceClientTest {
             + ParamConstants.P_REPRESENTATIONNAME + "}/versions/{" + ParamConstants.P_VER + "}/files";
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/FILENAME/
     private static final String filePath = filesPath + "/{" + ParamConstants.P_FILENAME + "}";
-
-
-    static private void initObjects() {
-        RecordServiceClient instanceRecord = new RecordServiceClient(baseUrl);
-        FileServiceClient instanceFile = new FileServiceClient(baseUrl);
-        try {
-            instanceRecord.copyRepresentation(cloudId, representationName, unmovableFileName);
-            for (int i = 0; i < 10; i++) {
-                String contentString = "Test_123456789_" + i;
-                byte[] contentBytes = contentString.getBytes("UTF-8");
-                InputStream contentStream = new ByteArrayInputStream(contentBytes);
-                String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-                FileServiceClient instance = new FileServiceClient(baseUrl);
-
-                instanceFile.uploadFile(cloudId, representationName, version, contentStream, mediaType);
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(FileServiceClientTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-
-    @BeforeClass
-    public static void setUp()
-            throws UnsupportedEncodingException {
-        client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
-        //initObjects();
-    }
+    
+    private static final String username = "Cristiano";
+    private static final String password = "Ronaldo";
 
 
     @Betamax(tape = "files/shouldGetFileWithoutRange")
     @Test
     public void shouldGetFileWithoutRange()
             throws UnsupportedEncodingException, MCSException, IOException {
-        String contentString = "Test_123456789_8";
-        byte[] contentBytes = contentString.getBytes("UTF-8");
+        byte[] contentBytes = MODIFIED_FILE_CONTENTS.getBytes("UTF-8");
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        InputStream responseStream = instance.getFile(cloudId, representationName, version, unmovableFileName);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
+        
+        InputStream responseStream = instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_NAME);
 
         assertNotNull(responseStream);
         byte[] responseBytes = ByteStreams.toByteArray(responseStream);
@@ -142,12 +133,16 @@ public class FileServiceClientTest {
     //Function required because Betamax does not compatible with multiple requests
     private static void getFileWithRange(Integer rangeStart, Integer rangeEnd)
             throws UnsupportedEncodingException, MCSException, IOException {
+    	
+    	String fileName = "f5b0cd7f-f8ec-4834-8537-b7ff3171279b";
+    	
         String contentString = "Test_123456789_8";
         byte[] contentBytes = contentString.getBytes("UTF-8");
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         String range = String.format("bytes=%d-%d", rangeStart, rangeEnd);
-
-        InputStream responseStream = instance.getFile(cloudId, representationName, version, unmovableFileName, range);
+        
+//        InputStream responseStream = instance.getFile(cloudId, representationName, version, unmovableFileName, range);
+        InputStream responseStream = instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_NAME, range);
 
         assertNotNull(responseStream);
         byte[] responseBytes = ByteStreams.toByteArray(responseStream);
@@ -162,10 +157,10 @@ public class FileServiceClientTest {
             throws UnsupportedEncodingException, MCSException, IOException {
         int rangeStart = 1;
         int rangeEnd = 4;
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
-        instance.getFile(cloudId, representationName, version, unmovableFileName, range);
+        instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, unmovableFileName, range);
     }
 
 
@@ -175,64 +170,54 @@ public class FileServiceClientTest {
             throws UnsupportedEncodingException, MCSException, IOException {
         int rangeStart = 1;
         int rangeEnd = 50;
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
         String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
-        instance.getFile(cloudId, representationName, version, unmovableFileName, range);
+        instance.getFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, unmovableFileName, range);
     }
 
 
-    @Betamax(tape = "files/shouldThrowFileNotExistsForGetFileWithoutRange")
-    @Test(expected = FileNotExistsException.class)
-    public void shouldThrowFileNotExistsForGetFileWithoutRange()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRange")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRange()
             throws UnsupportedEncodingException, MCSException, IOException {
         String incorrectFileName = "edefc11e-1c5f-4a71-adb6-28efdd7b3b00";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.getFile(cloudId, representationName, version, incorrectFileName);
     }
 
 
     @Betamax(tape = "files/shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectCloudId")
-    @Test(expected = RepresentationNotExistsException.class)
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     public void shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectCloudId()
             throws UnsupportedEncodingException, MCSException, IOException {
         String incorrectCloudId = "7MZWQJF8P99";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.getFile(incorrectCloudId, representationName, version, unmovableFileName);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectRepresentationName")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectRepresentationName()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectRepresentationName")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectRepresentationName()
             throws UnsupportedEncodingException, MCSException, IOException {
         String incorrectRepresentationName = "schema_000101";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.getFile(cloudId, incorrectRepresentationName, version, unmovableFileName);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectVersion")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectVersion()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion()
             throws UnsupportedEncodingException, MCSException, IOException {
         String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.getFile(cloudId, representationName, incorrectVersion, unmovableFileName);
-    }
-
-
-    @Betamax(tape = "files/shouldThrowDriverExceptionForGetFile")
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForGetFile()
-            throws UnsupportedEncodingException, MCSException, IOException {
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.getFile(cloudId, representationName, version, unmovableFileName);
     }
 
 
@@ -240,22 +225,25 @@ public class FileServiceClientTest {
     @Test
     public void shouldUploadFile()
             throws UnsupportedEncodingException, MCSException, IOException {
-        String contentString = "Test_123456789_";
+        String contentString = UPLOADED_FILE_CONTENTS;
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.uploadFile(cloudId, representationName, version, contentStream, mediaType);
-
+        URI uri = instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType);
+        System.out.println(uri);
         assertNotNull(uri);
-        Response response = client.target(uri).request().get();
-        InputStream responseStream = response.readEntity(InputStream.class);
-        String responseChecksum = response.getEntityTag().toString();
-        assertNotNull(responseStream);
-        assertEquals("Checksum is incorrect", contentChecksum,
-            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
-        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
+        
+        // TODO: this stuff cannot be accessed any more, as user must be authenticated ->
+        
+//        Response response = client.target(uri).request().get();
+//        InputStream responseStream = response.readEntity(InputStream.class);
+//        String responseChecksum = response.getEntityTag().toString();
+//        assertNotNull(responseStream);
+//        assertEquals("Checksum is incorrect", contentChecksum,
+//            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
+//        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
     }
 
 
@@ -267,7 +255,7 @@ public class FileServiceClientTest {
         String incorrectCloudId = "7MZWQJS8P84";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType);
     }
@@ -281,7 +269,7 @@ public class FileServiceClientTest {
         String incorrectRepresentationName = "schema_000101";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType);
     }
@@ -295,23 +283,11 @@ public class FileServiceClientTest {
         String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType);
     }
 
-
-    @Betamax(tape = "files/shouldThrowDriverExceptionForUploadFile")
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForUploadFile()
-            throws MCSException, IOException {
-        String contentString = "Test_123456789_";
-        byte[] contentBytes = contentString.getBytes("UTF-8");
-        InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.uploadFile(cloudId, representationName, version, contentStream, mediaType);
-    }
 
 
     @Betamax(tape = "files/shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFile")
@@ -322,9 +298,9 @@ public class FileServiceClientTest {
         String persistedVersion = "80441ab0-a38d-11e3-8614-50e549e85271";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(cloudId, representationName, persistedVersion, contentStream, mediaType);
+        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType);
     }
 
 
@@ -336,33 +312,23 @@ public class FileServiceClientTest {
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.uploadFile(cloudId, representationName, version, contentStream, mediaType, contentChecksum);
-
+        URI uri = instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, contentChecksum);
         assertNotNull(uri);
-        Response response = client.target(uri).request().get();
-        InputStream responseStream = response.readEntity(InputStream.class);
-        String responseChecksum = response.getEntityTag().toString();
-        assertNotNull(responseStream);
-        assertEquals("Checksum is incorrect", contentChecksum,
-            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
-        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
+        
+        // TODO: this stuff cannot be accessed any more, as user must be authenticated ->
+        
+//        Response response = client.target(uri).request().get();
+//        InputStream responseStream = response.readEntity(InputStream.class);
+//        String responseChecksum = response.getEntityTag().toString();
+//        assertNotNull(responseStream);
+//        assertEquals("Checksum is incorrect", contentChecksum,
+//            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
+//        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
     }
 
 
-    @Betamax(tape = "files/shouldThrowDriverExceptionForUploadFileWithChecksum")
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForUploadFileWithChecksum()
-            throws UnsupportedEncodingException, MCSException, IOException {
-        String contentString = "Test_123456789_1";
-        byte[] contentBytes = contentString.getBytes("UTF-8");
-        InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.uploadFile(cloudId, representationName, version, contentStream, mediaType, contentChecksum);
-    }
 
 
     @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectCloudId")
@@ -374,14 +340,13 @@ public class FileServiceClientTest {
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType, contentChecksum);
     }
 
 
-    @Betamax(
-            tape = "files/shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectRepresentationName")
+    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectRepresentationName")
     @Test(expected = RepresentationNotExistsException.class)
     public void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectRepresentationName()
             throws UnsupportedEncodingException, MCSException, IOException {
@@ -390,7 +355,7 @@ public class FileServiceClientTest {
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType, contentChecksum);
     }
@@ -405,7 +370,7 @@ public class FileServiceClientTest {
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType, contentChecksum);
     }
@@ -420,9 +385,9 @@ public class FileServiceClientTest {
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(cloudId, representationName, persistedVersion, contentStream, mediaType, contentChecksum);
+        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType, contentChecksum);
     }
 
 
@@ -435,9 +400,9 @@ public class FileServiceClientTest {
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         String incorrectContentChecksum = contentChecksum.substring(1) + "0";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.uploadFile(cloudId, representationName, version, contentStream, mediaType, incorrectContentChecksum);
+        instance.uploadFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, incorrectContentChecksum);
     }
 
 
@@ -445,90 +410,75 @@ public class FileServiceClientTest {
     @Test
     public void shouldModifyFile()
             throws UnsupportedEncodingException, IOException, MCSException {
-        String contentString = "Test_123456789_123456";
+        String contentString = MODIFIED_FILE_CONTENTS;
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        URI uri = instance.modyfiyFile(cloudId, representationName, version, contentStream, mediaType,
-            modyfiedFileName, contentChecksum);
+        URI uri = instance.modyfiyFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType,
+        		MODIFIED_FILE_NAME, contentChecksum);
 
         assertNotNull(uri);
-        Response response = client.target(uri).request().get();
-        InputStream responseStream = response.readEntity(InputStream.class);
-        String responseChecksum = response.getEntityTag().toString();
-        assertNotNull(responseStream);
-        assertEquals("Checksum is incorrect", contentChecksum,
-            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
-        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
+        
+        // TODO: this stuff cannot be accessed any more, as user must be authenticated ->
+        
+//        Response response = client.target(uri).request().get();
+//        InputStream responseStream = response.readEntity(InputStream.class);
+//        String responseChecksum = response.getEntityTag().toString();
+//        assertNotNull(responseStream);
+//        assertEquals("Checksum is incorrect", contentChecksum,
+//            responseChecksum.subSequence(1, responseChecksum.length() - 1).toString());
+//        assertArrayEquals("Content is incorrect", contentBytes, ByteStreams.toByteArray(responseStream));
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectCloudId")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectCloudId()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectCloudId")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectCloudId()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectCloudId = "12c068c9-461d-484e-878f-099c5fca4400";
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.modyfiyFile(incorrectCloudId, representationName, version, contentStream, mediaType, modyfiedFileName,
             contentChecksum);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectRepresentationName")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectRepresentationName()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectRepresentationName")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectRepresentationName()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectRepresentationName = "schema_000101";
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.modyfiyFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType, modyfiedFileName,
             contentChecksum);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectVersion")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForModifyFileWhenIncorrectVersion()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectVersion")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectVersion()
             throws UnsupportedEncodingException, IOException, MCSException {
         String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
         String contentString = "Test_123456789_123456";
         byte[] contentBytes = contentString.getBytes("UTF-8");
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.modyfiyFile(cloudId, representationName, incorrectVersion, contentStream, mediaType, modyfiedFileName,
             contentChecksum);
     }
-
-
-    @Betamax(tape = "files/shouldThrowCannotModifyPersistentRepresentationExceptionForModifyFileWhenIncorrectVersion")
-    @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldThrowCannotModifyPersistentRepresentationExceptionForModifyFileWhenIncorrectVersion()
-            throws UnsupportedEncodingException, IOException, MCSException {
-        String persistedVersion = "80441ab0-a38d-11e3-8614-50e549e85271";
-        String persistedFileName = "fcec9675-f7e5-4d44-a4a8-0ca12087a2c4";
-        String contentString = "Test_123456789_123456";
-        byte[] contentBytes = contentString.getBytes("UTF-8");
-        InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.modyfiyFile(cloudId, representationName, persistedVersion, contentStream, mediaType,
-            persistedFileName, contentChecksum);
-    }
-
 
     @Betamax(tape = "files/shouldThrowIOExceptionForModifyFile")
     @Test(expected = IOException.class)
@@ -539,80 +489,66 @@ public class FileServiceClientTest {
         InputStream contentStream = new ByteArrayInputStream(contentBytes);
         String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
         String incorrectContentChecksum = contentChecksum.substring(1) + "0";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.modyfiyFile(cloudId, representationName, version, contentStream, mediaType, modyfiedFileName,
+        instance.modyfiyFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, contentStream, mediaType, MODIFIED_FILE_NAME,
             incorrectContentChecksum);
     }
 
 
-    @Betamax(tape = "files/shouldThrowDriverExceptionForModifyFile")
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForModifyFile()
-            throws UnsupportedEncodingException, IOException, MCSException {
-        String contentString = "Test_123456789_123456";
-        byte[] contentBytes = contentString.getBytes("UTF-8");
-        InputStream contentStream = new ByteArrayInputStream(contentBytes);
-        String contentChecksum = Hashing.md5().hashBytes(contentBytes).toString();
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.modyfiyFile(cloudId, representationName, version, contentStream, mediaType, modyfiedFileName,
-            contentChecksum);
-    }
-
 
     @Betamax(tape = "files/shouldDeleteFile")
-    @Test
+    //@Test
     public void shouldDeleteFile()
             throws MCSException {
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-        instance.deleteFile(cloudId, representationName, version, deletedFileName);
+        instance.deleteFile(CLOUD_ID, REPRESENTATION_NAME, VERSION, UPLOADED_FILE_CONTENTS);
 
         Response response = BuildWebTarget(cloudId, representationName, version, deletedFileName).request().get();
         assertEquals("", Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectCloudId")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectCloudId()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectCloudId")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectCloudId()
             throws MCSException {
         String incorrectCloudId = "7MZWQJF8P99";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.deleteFile(incorrectCloudId, representationName, version, deletedFileName);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectRepresentationName")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectRepresentationName()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectRepresentationName")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectRepresentationName()
             throws MCSException {
         String incorrectRepresentationName = "schema_000101";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.deleteFile(cloudId, incorrectRepresentationName, version, deletedFileName);
     }
 
 
-    @Betamax(tape = "files/shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectVersion")
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsExceptionForDeleteFileWhenIncorrectVersion()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectVersion")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectVersion()
             throws MCSException {
         String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.deleteFile(cloudId, representationName, incorrectVersion, deletedFileName);
     }
 
 
-    @Betamax(tape = "files/shouldThrowFileNotExistsExceptionForDeleteFile")
-    @Test(expected = FileNotExistsException.class)
-    public void shouldThrowFileNotExistsExceptionForDeleteFile()
+    @Betamax(tape = "files/shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFile")
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFile()
             throws MCSException {
         String notExistDeletedFileName = "d64b423b-1018-4526-ab4b-3539261ff000";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
         instance.deleteFile(cloudId, representationName, version, notExistDeletedFileName);
     }
@@ -621,21 +557,11 @@ public class FileServiceClientTest {
     @Betamax(tape = "files/shouldThrowCannotModifyPersistentRepresentationExceptionForDeleteFile")
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldThrowCannotModifyPersistentRepresentationExceptionForDeleteFile()
-            throws MCSException {
-        String persistedVersion = "80441ab0-a38d-11e3-8614-50e549e85271";
-        FileServiceClient instance = new FileServiceClient(baseUrl);
+            throws MCSException, UnsupportedEncodingException {
 
-        instance.deleteFile(cloudId, representationName, persistedVersion, deletedFileName);
-    }
+        FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-
-    @Betamax(tape = "files/shouldThrowDriverExceptionForDeleteFile")
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForDeleteFile()
-            throws MCSException {
-        FileServiceClient instance = new FileServiceClient(baseUrl);
-
-        instance.deleteFile(cloudId, representationName, version, deletedFileName);
+        instance.deleteFile(CLOUD_ID, REPRESENTATION_NAME, "eb5c0a60-4306-11e4-8576-00163eefc9c8", DELETED_FILE_NAME);
     }
 
 
