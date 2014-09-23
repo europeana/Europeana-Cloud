@@ -17,8 +17,10 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Maps exceptions thrown by services to {@link Response}.
@@ -28,7 +30,6 @@ public class UnitedExceptionMapper {
     static final int UNPROCESSABLE_ENTITY = 422;
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
-
 
     /**
      * Maps {@link CannotModifyPersistentRepresentationException} to {@link Response}. Returns a response with HTTP
@@ -185,6 +186,13 @@ public class UnitedExceptionMapper {
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(RuntimeException exception) {
+    	
+    	if (exception instanceof AccessDeniedException) {
+            return buildResponse(Response.Status.METHOD_NOT_ALLOWED, 
+            		McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION,
+                exception);
+    	}
+
         LOGGER.error("Unexpected error occured.", exception);
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
