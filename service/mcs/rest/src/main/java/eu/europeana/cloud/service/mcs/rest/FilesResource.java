@@ -110,20 +110,22 @@ public class FilesResource {
 		File f = new File();
 		f.setMimeType(mimeType);
 
+		if (fileName != null) {
+			try {
+				File temp = recordService.getFile(globalId, schema, version,
+						fileName);
+				if (temp != null) {
+					throw new FileAlreadyExistsException(fileName);
+				}
+			} catch (FileNotExistsException e) {
+				// file does not exist, so continue and add it
+			}
+		}
+
 		if (fileName == null) {
 			fileName = UUID.randomUUID().toString();
 		}
 		f.setFileName(fileName);
-
-		try {
-			File temp = recordService.getFile(globalId, schema, version,
-					fileName);
-			if (temp != null) {
-				throw new FileAlreadyExistsException(fileName);
-			}
-		} catch (FileNotExistsException e) {
-			// file does not exist, so continue and add it
-		}
 		recordService.putContent(globalId, schema, version, f, data);
 
 		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
