@@ -14,7 +14,7 @@ import eu.europeana.cloud.service.coordination.configuration.ZookeeperDynamicPro
  */
 public class DynamicSwiftConnectionProviderTest {
 
-	@Test
+	//	@Test
 	public void shouldGetDynamicProperty() {
 		
 		ZookeeperService zK = new ZookeeperService("ecloud.eanadev.org:2181", 10000, 10000, "/eCloud");
