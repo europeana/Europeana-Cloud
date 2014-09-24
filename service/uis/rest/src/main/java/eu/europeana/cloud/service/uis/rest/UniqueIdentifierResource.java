@@ -163,7 +163,11 @@ public class UniqueIdentifierResource {
     public Response deleteCloudId(@PathParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
             CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordIdDoesNotExistException {
+    	
         uniqueIdentifierService.deleteCloudId(cloudId);
+        // let's delete the permissions as well
+        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME,cloudId);
+        mutableAclService.deleteAcl(dataSetIdentity, false);
         return Response.ok("CloudId marked as deleted").build();
     }
 }
