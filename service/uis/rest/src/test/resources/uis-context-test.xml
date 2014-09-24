@@ -24,7 +24,7 @@
               class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="properties">
             <value>
-                numberOfElementsOnPage=100
+                uis.numberOfElementsOnPage=100
             </value>
         </property>
     </bean>
