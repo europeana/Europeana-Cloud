@@ -168,6 +168,18 @@ public class FilesAATest extends AbstractSecurityTest {
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
 	}
 	
+	@Test
+	public void shouldBeAbleToRecreateDeletedFile() throws RepresentationNotExistsException, 
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException {
+
+		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+	}
+	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosFiles() throws RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException {

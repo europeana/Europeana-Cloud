@@ -31,9 +31,13 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -54,6 +58,11 @@ public class FileResource {
     private RecordService recordService;
 
     private static final String HEADER_RANGE = "Range";
+
+	@Autowired
+	private MutableAclService mutableAclService;
+
+	private final String FILE_CLASS_NAME = File.class.getName();
 
     /**
      * Modify file operation. Updates file in representation version. MD5 of
@@ -192,6 +201,11 @@ public class FileResource {
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException {
         recordService.deleteContent(globalId, schema, version, fileName);
+        
+        // let's delete the permissions as well
+        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(FILE_CLASS_NAME,
+            		globalId + "/" + schema + "/" + version + "/" + fileName);
+        mutableAclService.deleteAcl(dataSetIdentity, false);
     }
 
     /**
