@@ -21,4 +21,14 @@ public interface DynamicPropertyManager {
 	 * @return the current value of the specified {{dynamicProperty}}
 	 */
 	String getCurrentValue(final String dynamicProperty);
+
+	/**
+	 * Subscribes for updates on the specified dynamicProperty.
+	 */
+	void addUpdateListener(DynamicPropertyListener l, String dynamicProperty);
+
+	/**
+	 * Removes the listener.
+	 */
+	void removeUpdateListener(DynamicPropertyListener l);
 }

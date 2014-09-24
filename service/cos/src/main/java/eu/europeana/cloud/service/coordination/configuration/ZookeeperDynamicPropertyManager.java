@@ -4,9 +4,13 @@ package eu.europeana.cloud.service.coordination.configuration;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.io.Closeables;
@@ -50,7 +54,7 @@ public class ZookeeperDynamicPropertyManager implements DynamicPropertyManager, 
 
     private final Charset charset = Charset.forName("UTF-8");
     
-    private List<DynamicPropertyListener> listeners = new CopyOnWriteArrayList<DynamicPropertyListener>();
+    private ConcurrentMap<String, DynamicPropertyListener> listeners = new ConcurrentHashMap<String, DynamicPropertyListener>();
 
     /**
      * Creates the pathChildrenCache using the CuratorFramework client and ZK root path node for the config
@@ -62,6 +66,12 @@ public class ZookeeperDynamicPropertyManager implements DynamicPropertyManager, 
         this.client = zookeeperService.getClient();
         this.configRootPath = configRootPath;        
         this.pathChildrenCache = new PathChildrenCache(client, configRootPath, true);
+        
+        try {
+			start();
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage());
+		}
     }    
 
     /** 
@@ -102,9 +112,9 @@ public class ZookeeperDynamicPropertyManager implements DynamicPropertyManager, 
                         deleted.put(key, stringValue);
                     }
 
-                    // TODO
-                    String update = "update!";
-                    fireEvent(update);
+                    fireEvent(added);
+                    fireEvent(changed);
+                    fireEvent(deleted);
                 }
             }
         });
@@ -130,26 +140,35 @@ public class ZookeeperDynamicPropertyManager implements DynamicPropertyManager, 
         return all;
     }
 
-    public void addUpdateListener(DynamicPropertyListener l) {
+    @Override
+    public void addUpdateListener(DynamicPropertyListener l, String dynamicProperty) {
         if (l != null) {
-            listeners.add(l);
+            listeners.put(dynamicProperty, l);
         }
     }
 
+    @Override
     public void removeUpdateListener(DynamicPropertyListener l) {
         if (l != null) {
             listeners.remove(l);
         }
     }
 
-    protected void fireEvent(String dynamicPropertyUpdate) {
-        for (DynamicPropertyListener l : listeners) {
-            try {
-                l.onUpdate(dynamicPropertyUpdate);
-            } catch (Throwable ex) {
-            	LOGGER.error("Error in invoking WatchedUpdateListener", ex);
-            }
-        }
+    protected void fireEvent(Map<String, Object>  updatedProperties) {
+    	
+    	if (updatedProperties == null) {
+    		return;
+    	}
+    	
+    	Iterator<String> dynamicPropertiesIter = listeners.keySet().iterator();
+    	while (dynamicPropertiesIter.hasNext()) {
+    		String dynamicProperty = dynamicPropertiesIter.next();
+    		
+    		Object dynamicPropertyValue = updatedProperties.get(dynamicProperty);
+    		if (dynamicPropertyValue != null) {
+    			listeners.get(dynamicProperty).onUpdate((String) dynamicPropertyValue);
+    		}
+    	}
     }
 
     private String removeRootPath(String nodePath) {
