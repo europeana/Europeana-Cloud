@@ -98,6 +98,11 @@ public class RepresentationVersionResource {
     		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
         recordService.deleteRepresentation(globalId, schema, version);
+        
+        // let's delete the permissions as well
+        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
+            		globalId + "/" + schema + "/" + version);
+        mutableAclService.deleteAcl(dataSetIdentity, false);
     }
 
     /**

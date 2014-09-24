@@ -177,6 +177,17 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationVersionResource.deleteRepresentation(VERSION, SCHEMA, GLOBAL_ID);
 	}
 	
+	@Test
+	public void shouldBeAbleToRecreateDeletedRepresentation() 
+			throws RecordNotExistsException, ProviderNotExistsException, 
+				RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationVersionResource.deleteRepresentation(VERSION, SCHEMA, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+	}
+	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosRepresentations()
 			throws RecordNotExistsException, ProviderNotExistsException,
