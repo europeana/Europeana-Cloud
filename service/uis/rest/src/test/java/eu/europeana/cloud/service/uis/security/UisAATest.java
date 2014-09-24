@@ -143,6 +143,24 @@ public class UisAATest extends AbstractSecurityTest {
     }
 	
 	/**
+	 * Makes sure the person who a deleted cloudId can be recreated.
+	 */
+	@Test
+    public void shouldBeAbleToRecreateDeletedCloudID() throws ProviderDoesNotExistException, ProviderAlreadyExistsException, 
+    	URISyntaxException, DatabaseConnectionException, RecordExistsException, RecordDatasetEmptyException, CloudIdDoesNotExistException, RecordIdDoesNotExistException {
+		
+        CloudId cloudId = new CloudId();
+        cloudId.setId(CLOUD_ID);
+		
+        Mockito.when(uniqueIdentifierService.createCloudId(Mockito.anyString(), Mockito.anyString())).thenReturn(cloudId);
+        
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
+		uisResource.deleteCloudId(CLOUD_ID);
+		uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
+    }
+	
+	/**
 	 * Makes sure Van Persie cannot delete cloud id's that belong to Christiano Ronaldo.
 	 */
 	@Test(expected = AccessDeniedException.class)
