@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import eu.europeana.cloud.common.service.ServiceProperties;
+import eu.europeana.cloud.service.coordination.ServiceProperties;
+
 
 /**
  * Asks Zookeeper for available UIS services. 
