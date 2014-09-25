@@ -47,11 +47,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.acls.model.MutableAclService;
 
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationVersionResourceTest extends JerseyTest {
 
     private RecordService recordService;
+    
+    private MutableAclService mutableAclService;
 
     static final private String globalId = "1";
     static final private String schema = "DC";
@@ -83,6 +86,7 @@ public class RepresentationVersionResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         recordService = applicationContext.getBean(RecordService.class);
+        mutableAclService = applicationContext.getBean(MutableAclService.class);
         Mockito.reset(recordService);
     }
 

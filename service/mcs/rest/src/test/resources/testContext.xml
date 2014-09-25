@@ -11,6 +11,12 @@
 			value="eu.europeana.cloud.service.mcs.RecordService"/>
 	</bean>
 	
+	<bean id="mutableAclService" name="mutableAclService" class="org.mockito.Mockito"
+		  factory-method="mock">
+		<constructor-arg
+			value="org.springframework.security.acls.model.MutableAclService"/>
+	</bean>
+	
 	<import resource="classpath:config.xml" />
 
 </beans>
