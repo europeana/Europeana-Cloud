@@ -19,6 +19,13 @@
         <constructor-arg
             value="eu.europeana.cloud.service.uis.DataProviderService" />
     </bean>
+    
+	<bean id="mutableAclService" name="mutableAclService" class="org.mockito.Mockito"
+		  factory-method="mock">
+		<constructor-arg
+			value="org.springframework.security.acls.model.MutableAclService"/>
+	</bean>
+	
 		
     <bean id="mappings"
               class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">

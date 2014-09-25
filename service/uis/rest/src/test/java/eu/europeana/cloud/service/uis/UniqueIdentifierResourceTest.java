@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.acls.model.MutableAclService;
 
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
@@ -52,6 +53,7 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 public class UniqueIdentifierResourceTest extends JerseyTest {
 
     private UniqueIdentifierService uniqueIdentifierService;
+    private MutableAclService mutableAclService;
     private String providerId = "providerId";
     private String recordId = "recordId";
 
@@ -79,6 +81,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public void mockUp() {
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         uniqueIdentifierService = applicationContext.getBean(UniqueIdentifierService.class);
+        mutableAclService = applicationContext.getBean(MutableAclService.class);
         Mockito.reset(uniqueIdentifierService);
     }
 
