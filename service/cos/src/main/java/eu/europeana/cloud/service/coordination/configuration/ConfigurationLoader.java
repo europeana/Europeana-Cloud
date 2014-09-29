@@ -35,7 +35,7 @@ public class ConfigurationLoader extends AbstractFactoryBean<Properties> impleme
 	}
 
 	private byte[] loadFromZk() throws Exception {
-		return zookeeperService.getClient().getData().forPath(configurationSettingsPath);
+		return zookeeperService.getClient().getData().forPath(zookeeperService.getZookeeperPath() + configurationSettingsPath);
 	}
 
 	@Override

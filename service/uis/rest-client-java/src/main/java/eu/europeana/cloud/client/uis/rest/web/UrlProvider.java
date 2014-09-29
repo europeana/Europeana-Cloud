@@ -65,7 +65,7 @@ public class UrlProvider {
 		}
 
 		ZookeeperService zS = new ZookeeperService(zkAddress, CONNECTION_TIMEOUT, SESSION_TIMEOUT, serviceDiscoveryPath);
-		ZookeeperServiceDiscovery serviceDiscovery = new ZookeeperServiceDiscovery(zS, UIS_SERVICE_KEY);
+		ZookeeperServiceDiscovery serviceDiscovery = new ZookeeperServiceDiscovery(zS, "",UIS_SERVICE_KEY);
 		provider = new ServiceProviderImpl(serviceDiscovery, preferredDatacenter);
 		
 		baseUrl = provider.getService().getListenAddress();

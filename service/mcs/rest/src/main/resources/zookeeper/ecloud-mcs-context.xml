@@ -31,7 +31,7 @@
 
         <constructor-arg name="keyspaceName" value="${mcs.cassandra.keyspace}" />
 
-        <constructor-arg name="username" value="${mcs.cassandra.user}" />
+        <constructor-arg name="userName" value="${mcs.cassandra.user}" />
         <constructor-arg name="password" value="${mcs.cassandra.password}" />
     </bean>
 
@@ -85,13 +85,14 @@
 	
 	<bean id="uisServiceDiscovery" class="eu.europeana.cloud.service.coordination.discovery.ZookeeperServiceDiscovery">
 		<constructor-arg name="zookeeper" ref="zookeeperService"/>
+  		<constructor-arg name="discoveryPath" value="/discovery"/>
 		<constructor-arg name="serviceType" value="UIS"/>
 	</bean>
 	
 	<bean id="uisProvider" class="eu.europeana.cloud.service.coordination.provider.ServiceProviderImpl">
 		<constructor-arg name="serviceDiscovery" ref="uisServiceDiscovery"/> 
         <constructor-arg name="preferredDatacenter">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/preferredDatacenter"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/datacenterLocation"/>
         </constructor-arg>
 	</bean>
 	
@@ -103,11 +104,10 @@
     
     <!-- MCS Registration in Zookeeper -->
     <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
-		<constructor-arg name="serviceId" value="MCS_1" />
 		<constructor-arg name="serviceName" value="MCS" />
 		
         <constructor-arg name="listenAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/mcs/listenAddress"/>
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/listenAddress"/>
         </constructor-arg>
         
         <constructor-arg name="datacenterLocation">
@@ -117,18 +117,14 @@
 	
 	<bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
 		<constructor-arg name="zookeeper" ref="zookeeperService"/>
+  		<constructor-arg name="discoveryPath" value="/discovery"/>
 		<constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
 	</bean>
 	
 	<!-- Loads properties saved in Zookeeper  -->
 	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
   		<property name="zookeeperService" ref="zookeeperService"/>
-  		<!-- 
-        <property name="configurationSettingsPath">
-           		<jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/configurationSettingsPath"/>
-        </property>
-  		-->
-  		<property name="configurationSettingsPath" value="/eCloud/v2/ISTI/configuration/test"/>
+  		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
             
   	<import resource="authentication.xml"/>

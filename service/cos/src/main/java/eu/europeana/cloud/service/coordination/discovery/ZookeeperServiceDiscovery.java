@@ -47,14 +47,14 @@ public class ZookeeperServiceDiscovery implements EcloudServiceDiscovery {
 	 * @param zookeeper service that provides the connection with Zookeeper.
 	 * @param serviceType Type of service to search for, e.g UIS.
 	 */
-    public ZookeeperServiceDiscovery(final ZookeeperService zookeeper, final String serviceType) {
+    public ZookeeperServiceDiscovery(final ZookeeperService zookeeper, final String discoveryPath, final String serviceType) {
     	
     	this.serviceType = serviceType;
 
 		final InstanceSerializer<ServiceProperties> instanceSerializer = new JsonInstanceSerializer<ServiceProperties>(ServiceProperties.class);
     	
         discovery = ServiceDiscoveryBuilder.builder(ServiceProperties.class)
-            .basePath(zookeeper.getZookeeperPath())
+            .basePath(zookeeper.getZookeeperPath() + discoveryPath)
             .client(zookeeper.getClient())
             .serializer(instanceSerializer)
             .build();

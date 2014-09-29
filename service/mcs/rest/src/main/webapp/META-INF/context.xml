@@ -9,7 +9,47 @@
           <Environment name="mcs/cassandra/host" value="CASSANDRA_HOST"
                                type="java.lang.String" override="false"/>
     [...]-->
+    
+   <!-- MCS registration of service in COS -->
+   
+   <ResourceLink
+        name="cos/listenAddress"
+        global="cos/listenAddress"
+        type="java.lang.String"/>
+         
+   <!-- COS -->
+    
+   <ResourceLink
+        name="cos/zookeeper/zookeeperAddress"
+        global="cos/zookeeper/zookeeperAddress"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/zookeeper/zookeeperConnectionTimeout"
+        global="cos/zookeeper/zookeeperConnectionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperSessionTimeout"
+        global="cos/zookeeper/zookeeperSessionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperPath"
+        global="cos/zookeeper/zookeeperPath"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/datacenterLocation"
+        global="cos/datacenterLocation"
+        type="java.lang.String"/>             
+           
+    <!--  -->
+   	<!-- Properties bellow this line are only needed if cos profile is not activated -->
+   	<!--  -->
 	
+    <!-- MCS -->
+    
     <ResourceLink
         name="mcs/cassandra/host"
         global="mcs/cassandra/host"
@@ -69,6 +109,8 @@
         global="kafka/topic"
         type="java.lang.String"/>   
     
+    <!-- AAS -->
+    
     <ResourceLink
         name="aas/cassandra/host"
         global="aas/cassandra/host"
@@ -103,4 +145,5 @@
         name="aas/cassandra/autoCreateTables"
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
+        
 </Context>

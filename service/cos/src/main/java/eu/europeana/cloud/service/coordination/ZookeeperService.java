@@ -60,12 +60,15 @@ public class ZookeeperService {
 		// Let's make sure the path exists
 		try {
 		    new EnsurePath(zookeeperPath).ensure(zkClient.getZookeeperClient());
+			LOGGER.info("ZookeeperService started successfully.");
+			
 		} catch (final Exception e) {
-			LOGGER.error("ZooKeeper zNode='{}' not found... Exception='{}'", zookeeperPath, e.getMessage());
+			LOGGER.error("ZooKeeper base path '{}' not found... Exception='{}'. "
+					+ " The path must be manually created in zookeeper,"
+					+ " and is needed for configuration settings retrieval and service registration."
+					, zookeeperPath, e.getMessage());
 		    throw Throwables.propagate(e);
 		}
-		
-		LOGGER.info("ZookeeperService started successfully.");
 	}
 	
 	/**
