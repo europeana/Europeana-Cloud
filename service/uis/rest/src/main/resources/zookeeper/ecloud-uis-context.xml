@@ -37,7 +37,7 @@
 
         <constructor-arg name="keyspaceName" value="${uis.cassandra.keyspace}" />
 
-        <constructor-arg name="username" value="${uis.cassandra.user}" />
+        <constructor-arg name="userName" value="${uis.cassandra.user}" />
         <constructor-arg name="password" value="${uis.cassandra.password}" />
     </bean>
     
