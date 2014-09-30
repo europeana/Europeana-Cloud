@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.uis.persistent;
 
-import eu.europeana.cloud.service.uis.persistent.CassandraUniqueIdentifierService;
-import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;

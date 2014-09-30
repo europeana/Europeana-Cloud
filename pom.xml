@@ -73,6 +73,7 @@
     <modules>
         <module>common</module>
         <module>solr</module>
+        <module>cassandra-connector</module>
         <module>service/uis</module>
         <module>service/dls</module>
         <module>service/mcs</module>

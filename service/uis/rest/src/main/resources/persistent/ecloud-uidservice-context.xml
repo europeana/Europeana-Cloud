@@ -29,7 +29,7 @@
         <constructor-arg name="dbService" ref="dbService"/>
     </bean>
 
-    <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
+    <bean id="dbService"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/hosts"/>
         </constructor-arg>
@@ -39,14 +39,11 @@
         <constructor-arg name="keyspaceName">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/keyspace"/>
         </constructor-arg>
-        <constructor-arg name="username">
+        <constructor-arg name="userName">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/user"/>
         </constructor-arg>
         <constructor-arg name="password">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/uis/cassandra/password"/>
-        </constructor-arg>
-        <constructor-arg name="create">
-            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/uis/cassandra/autoCreateTables"/>
         </constructor-arg>
     </bean>
 

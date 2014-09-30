@@ -25,3 +25,6 @@ nbactions.xml
 /service/aas/rest/target//service/dls/target/
 
 **/.vagrant
+/cassandra-connector/target/
+/cassandra-connector/cass/target/
+/cass/target/

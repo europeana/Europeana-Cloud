@@ -7,14 +7,13 @@
 						">
 
     <context:annotation-config/>
-    
-    <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
-        <constructor-arg name="hosts" value="localhost" />
-        <constructor-arg name="port" value="29142" />
-        <constructor-arg name="keyspaceName" value="uis_test4" />
-        <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />
-        <constructor-arg name="create" value="true"/>
+
+    <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" type="java.lang.String" value="localhost" />
+        <constructor-arg name="port" type="int" value="29142" />
+        <constructor-arg name="keyspaceName" type="java.lang.String" value="uis_test4" />
+        <constructor-arg name="userName" type="java.lang.String" value="" />
+        <constructor-arg name="password" type="java.lang.String" value="" />
     </bean>
     
     <bean id="cassandraDataProviderService"

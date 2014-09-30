@@ -20,6 +20,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.gson.Gson;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;

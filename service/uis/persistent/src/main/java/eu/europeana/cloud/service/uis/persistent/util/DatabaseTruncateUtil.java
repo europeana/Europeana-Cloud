@@ -1,9 +1,9 @@
 /* DatabaseTruncateUtil.java - created on Jan 10, 2014, Copyright (c) 2013 Europeana Foundation, all rights reserved */
 package eu.europeana.cloud.service.uis.persistent.util;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import java.util.List;
 
-import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 
 /**
  * Truncate table functionality for the Console application

@@ -31,15 +31,14 @@
         <constructor-arg name="dbService" ref="dbService"/>
     </bean>
 
-    <bean id="dbService" class="eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider">
-        <constructor-arg name="host" value="${uis.cassandra.host}" />
+    <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="${uis.cassandra.host}" />
         <constructor-arg name="port" value="${uis.cassandra.port}" />
 
         <constructor-arg name="keyspaceName" value="${uis.cassandra.keyspace}" />
 
         <constructor-arg name="username" value="${uis.cassandra.user}" />
         <constructor-arg name="password" value="${uis.cassandra.password}" />
-        <constructor-arg name="create" value="${uis.cassandra.create}" />
     </bean>
     
     <bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>

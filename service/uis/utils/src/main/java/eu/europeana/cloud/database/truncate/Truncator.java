@@ -2,8 +2,8 @@
 package eu.europeana.cloud.database.truncate;
 
 import com.google.common.collect.ImmutableList;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
-import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 import eu.europeana.cloud.service.uis.persistent.util.DatabaseTruncateUtil;
 
 /**

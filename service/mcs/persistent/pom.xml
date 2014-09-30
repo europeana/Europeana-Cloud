@@ -36,6 +36,12 @@
         </dependency>
 
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-cassandra-connector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <scope>compile</scope>

@@ -25,8 +25,8 @@
           
     <!--connection provider - with options the same as in embedded cassandra-->
     <bean id="cassandraConnectionProvider"
-          class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="host" value="${mcs.cassandra.host}" />
+          class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="${mcs.cassandra.host}" />
         <constructor-arg name="port" value="${mcs.cassandra.port}" />
 
         <constructor-arg name="keyspaceName" value="${mcs.cassandra.keyspace}" />

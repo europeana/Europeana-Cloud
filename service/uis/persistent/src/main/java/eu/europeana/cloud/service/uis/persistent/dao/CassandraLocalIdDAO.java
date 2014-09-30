@@ -7,12 +7,12 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.service.uis.persistent.CassandraConnectionProvider;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
@@ -44,7 +44,7 @@ public class CassandraLocalIdDAO {
      */
     public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
-        this.hostList = dbService.getHostList();
+        this.hostList = dbService.getHosts();
         this.port = dbService.getPort();
         this.keyspaceName = dbService.getKeyspaceName();
         prepareStatements();
