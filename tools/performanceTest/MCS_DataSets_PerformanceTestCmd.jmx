@@ -9,57 +9,57 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="host" elementType="Argument">
             <stringProp name="Argument.name">host</stringProp>
-            <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.value">${__P(host)}</stringProp>
             <stringProp name="Argument.desc">Hostname</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="port" elementType="Argument">
             <stringProp name="Argument.name">port</stringProp>
-            <stringProp name="Argument.value">8080</stringProp>
+            <stringProp name="Argument.value">${__P(port)}</stringProp>
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="uis-name" elementType="Argument">
             <stringProp name="Argument.name">uis-name</stringProp>
-            <stringProp name="Argument.value">/uis</stringProp>
+            <stringProp name="Argument.value">${__P(uis-name)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="mcs-name" elementType="Argument">
             <stringProp name="Argument.name">mcs-name</stringProp>
-            <stringProp name="Argument.value">/mcs</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="rampUpPeriod" elementType="Argument">
-            <stringProp name="Argument.name">rampUpPeriod</stringProp>
-            <stringProp name="Argument.value">1</stringProp>
-            <stringProp name="Argument.desc">Ramp-up period</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="loops" elementType="Argument">
-            <stringProp name="Argument.name">loops</stringProp>
-            <stringProp name="Argument.value">4</stringProp>
+            <stringProp name="Argument.value">${__P(mcs-name)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="threads" elementType="Argument">
             <stringProp name="Argument.name">threads</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">${__P(threads)}</stringProp>
             <stringProp name="Argument.desc">Number of threads</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="rampUpPeriod" elementType="Argument">
+            <stringProp name="Argument.name">rampUpPeriod</stringProp>
+            <stringProp name="Argument.value">${__P(rampUpPeriod)}</stringProp>
+            <stringProp name="Argument.desc">Ramp-up period</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="recordsPerProvider" elementType="Argument">
             <stringProp name="Argument.name">recordsPerProvider</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">${__P(recordsPerProvider)}</stringProp>
             <stringProp name="Argument.desc">Number of records</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="datasetsPerProvider" elementType="Argument">
             <stringProp name="Argument.name">datasetsPerProvider</stringProp>
-            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.value">${__P(datasetsPerProvider)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="representationNamePerCloudId" elementType="Argument">
             <stringProp name="Argument.name">representationNamePerCloudId</stringProp>
-            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.value">${__P(representationNamePerCloudId)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="loops" elementType="Argument">
+            <stringProp name="Argument.name">loops</stringProp>
+            <stringProp name="Argument.value">${__P(loops)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="varSeparator" elementType="Argument">
@@ -67,39 +67,44 @@
             <stringProp name="Argument.value">!_&amp;_!</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="mimeTypeFile" elementType="Argument">
-            <stringProp name="Argument.name">mimeTypeFile</stringProp>
-            <stringProp name="Argument.value">application/xml</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="uploadedFileDirectory" elementType="Argument">
             <stringProp name="Argument.name">uploadedFileDirectory</stringProp>
             <stringProp name="Argument.value">${__BeanShell(import org.apache.jmeter.services.FileServer; FileServer.getFileServer().getBaseDir();)}${__BeanShell(File.separator,)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="mimeTypeFile" elementType="Argument">
+            <stringProp name="Argument.name">mimeTypeFile</stringProp>
+            <stringProp name="Argument.value">${__P(mimeTypeFile)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
           <elementProp name="uloadedFileName" elementType="Argument">
             <stringProp name="Argument.name">uloadedFileName</stringProp>
-            <stringProp name="Argument.value">example_metadata.xml</stringProp>
+            <stringProp name="Argument.value">${__P(uloadedFileName)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="connectTimeout" elementType="Argument">
             <stringProp name="Argument.name">connectTimeout</stringProp>
-            <stringProp name="Argument.value">200</stringProp>
+            <stringProp name="Argument.value">${__P(connectTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="responseTimeout" elementType="Argument">
             <stringProp name="Argument.name">responseTimeout</stringProp>
-            <stringProp name="Argument.value">2000</stringProp>
+            <stringProp name="Argument.value">${__P(responseTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="interTreadQueueTimeOut" elementType="Argument">
             <stringProp name="Argument.name">interTreadQueueTimeOut</stringProp>
-            <stringProp name="Argument.value">50</stringProp>
+            <stringProp name="Argument.value">${__P(interTreadQueueTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="interThreadGroupTimeGap" elementType="Argument">
             <stringProp name="Argument.name">interThreadGroupTimeGap</stringProp>
-            <stringProp name="Argument.value">200</stringProp>
+            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="outputFilessuffix" elementType="Argument">
+            <stringProp name="Argument.name">outputFilessuffix</stringProp>
+            <stringProp name="Argument.value">${__P(outputFilessuffix)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -1466,7 +1471,7 @@
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -2230,24 +2235,28 @@
             <message>true</message>
             <threadName>true</threadName>
             <dataType>true</dataType>
-            <encoding>false</encoding>
+            <encoding>true</encoding>
             <assertions>true</assertions>
             <subresults>true</subresults>
             <responseData>true</responseData>
-            <samplerData>false</samplerData>
+            <samplerData>true</samplerData>
             <xml>false</xml>
             <fieldNames>true</fieldNames>
             <responseHeaders>true</responseHeaders>
             <requestHeaders>true</requestHeaders>
             <responseDataOnError>false</responseDataOnError>
-            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
             <url>true</url>
+            <fileName>true</fileName>
+            <hostname>true</hostname>
             <threadCounts>true</threadCounts>
+            <sampleCount>true</sampleCount>
+            <idleTime>true</idleTime>
           </value>
         </objProp>
-        <stringProp name="filename">MCS_DataSet_PerformanceTest${START.YMD}_${START.MS}.csv</stringProp>
+        <stringProp name="filename">MCS_DataSet_PerformanceTest${outputFilessuffix}.csv</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">

@@ -9,67 +9,67 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="host" elementType="Argument">
             <stringProp name="Argument.name">host</stringProp>
-            <stringProp name="Argument.value">${__P(host,localhost)}</stringProp>
+            <stringProp name="Argument.value">${__P(host)}</stringProp>
             <stringProp name="Argument.desc">Hostname</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="port" elementType="Argument">
             <stringProp name="Argument.name">port</stringProp>
-            <stringProp name="Argument.value">${__P(port,8080)}</stringProp>
+            <stringProp name="Argument.value">${__P(port)}</stringProp>
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="uis-name" elementType="Argument">
             <stringProp name="Argument.name">uis-name</stringProp>
-            <stringProp name="Argument.value">${__P(uis-name,/ble)}</stringProp>
+            <stringProp name="Argument.value">${__P(uis-name)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="threads" elementType="Argument">
             <stringProp name="Argument.name">threads</stringProp>
-            <stringProp name="Argument.value">${__P(threads,1)}</stringProp>
+            <stringProp name="Argument.value">${__P(threads)}</stringProp>
             <stringProp name="Argument.desc">Number of threads</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="recordsPerProvider" elementType="Argument">
             <stringProp name="Argument.name">recordsPerProvider</stringProp>
-            <stringProp name="Argument.value">${__P(recordsPerProviderm,1)}</stringProp>
+            <stringProp name="Argument.value">${__P(recordsPerProvider)}</stringProp>
             <stringProp name="Argument.desc">Number of records</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="rampUpPeriod" elementType="Argument">
             <stringProp name="Argument.name">rampUpPeriod</stringProp>
-            <stringProp name="Argument.value">${__P(rampUpPeriod,1)}</stringProp>
+            <stringProp name="Argument.value">${__P(rampUpPeriod)}</stringProp>
             <stringProp name="Argument.desc">Ramp-up period</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="loops" elementType="Argument">
             <stringProp name="Argument.name">loops</stringProp>
-            <stringProp name="Argument.value">${__P(loops,1)}</stringProp>
+            <stringProp name="Argument.value">${__P(loops)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="connectTimeOut" elementType="Argument">
             <stringProp name="Argument.name">connectTimeOut</stringProp>
-            <stringProp name="Argument.value">${__P(connectTimeOutm,100)}</stringProp>
+            <stringProp name="Argument.value">${__P(connectTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="responseTimeOut" elementType="Argument">
             <stringProp name="Argument.name">responseTimeOut</stringProp>
-            <stringProp name="Argument.value">${__P(responseTimeOut,1000)}</stringProp>
+            <stringProp name="Argument.value">${__P(responseTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="interTreadQueueTimeOut" elementType="Argument">
             <stringProp name="Argument.name">interTreadQueueTimeOut</stringProp>
-            <stringProp name="Argument.value">${__P(interTreadQueueTimeOut,30)}</stringProp>
+            <stringProp name="Argument.value">${__P(interTreadQueueTimeOut)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="interThreadGroupTimeGap" elementType="Argument">
             <stringProp name="Argument.name">interThreadGroupTimeGap</stringProp>
-            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap,200)}</stringProp>
+            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="outputFilessuffix" elementType="Argument">
             <stringProp name="Argument.name">outputFilessuffix</stringProp>
-            <stringProp name="Argument.value">${__P(outputFilessuffix,__)}</stringProp>
+            <stringProp name="Argument.value">${__P(outputFilessuffix)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -185,6 +185,45 @@
             </collectionProp>
           </HeaderManager>
           <hashTree/>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
+            <stringProp name="CounterConfig.start"></stringProp>
+            <stringProp name="CounterConfig.end"></stringProp>
+            <stringProp name="CounterConfig.incr"></stringProp>
+            <stringProp name="CounterConfig.name">tesetowy____________________ee</stringProp>
+            <stringProp name="CounterConfig.format"></stringProp>
+            <boolProp name="CounterConfig.per_user">false</boolProp>
+          </CounterConfig>
+          <hashTree/>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+              <stringProp name="-1268780174">Creation_Index</stringProp>
+              <stringProp name="-677479680">Creation_Index2</stringProp>
+              <stringProp name="-677479679">Creation_Index3</stringProp>
+              <stringProp name="-677479678">Creation_Index4</stringProp>
+              <stringProp name="-677479677">Creation_Index5</stringProp>
+              <stringProp name="-677479676">Creation_Index6</stringProp>
+              <stringProp name="-677479675">Creation_Index7</stringProp>
+              <stringProp name="-677479674">Creation_Index8</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="-195801139">
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+                <stringProp name="-1032067542">${__fifoSize(Creation_Index)}</stringProp>
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1929315599">${__fifoSize(Creation_Index3)}</stringProp>
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1929313677">${__fifoSize(Creation_Index5)}</stringProp>
+                <stringProp name="-1929312716">${__fifoSize(Creation_Index6)}</stringProp>
+                <stringProp name="-1929311755">${__fifoSize(Creation_Index7)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response cod Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49587">201</stringProp>
@@ -193,13 +232,6 @@
             <boolProp name="Assertion.assume_success">false</boolProp>
             <intProp name="Assertion.test_type">1</intProp>
           </ResponseAssertion>
-          <hashTree/>
-          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
-            <boolProp name="displayJMeterProperties">false</boolProp>
-            <boolProp name="displayJMeterVariables">true</boolProp>
-            <boolProp name="displaySamplerProperties">true</boolProp>
-            <boolProp name="displaySystemProperties">false</boolProp>
-          </DebugPostProcessor>
           <hashTree/>
           <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="true">
             <stringProp name="Value">${timeCreation}_${__threadNum()}_${loop_counter}</stringProp>
@@ -246,6 +278,13 @@
             <stringProp name="FifoName">Creation_IndeTest</stringProp>
           </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
           <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
         </hashTree>
       </hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="true">
@@ -270,6 +309,43 @@
           <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
         </BeanShellSampler>
         <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+              <stringProp name="-1268780174">Creation_Index</stringProp>
+              <stringProp name="-677479680">Creation_Index2</stringProp>
+              <stringProp name="-677479679">Creation_Index3</stringProp>
+              <stringProp name="-677479678">Creation_Index4</stringProp>
+              <stringProp name="-677479677">Creation_Index5</stringProp>
+              <stringProp name="-677479676">Creation_Index6</stringProp>
+              <stringProp name="-677479675">Creation_Index7</stringProp>
+              <stringProp name="-677479674">Creation_Index8</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="-195801139">
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+                <stringProp name="-1032067542">${__fifoSize(Creation_Index)}</stringProp>
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1929315599">${__fifoSize(Creation_Index3)}</stringProp>
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1929313677">${__fifoSize(Creation_Index5)}</stringProp>
+                <stringProp name="-1929312716">${__fifoSize(Creation_Index6)}</stringProp>
+                <stringProp name="-1929311755">${__fifoSize(Creation_Index7)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
           </ConstantTimer>
@@ -305,7 +381,7 @@
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
           <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
           <boolProp name="HTTPSampler.monitor">false</boolProp>
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
@@ -366,6 +442,54 @@
           <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
         </BeanShellSampler>
         <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+              <stringProp name="-1268780174">Creation_Index</stringProp>
+              <stringProp name="-677479680">Creation_Index2</stringProp>
+              <stringProp name="-677479679">Creation_Index3</stringProp>
+              <stringProp name="-677479678">Creation_Index4</stringProp>
+              <stringProp name="-677479677">Creation_Index5</stringProp>
+              <stringProp name="-677479676">Creation_Index6</stringProp>
+              <stringProp name="-677479675">Creation_Index7</stringProp>
+              <stringProp name="-677479674">Creation_Index8</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="-195801139">
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+                <stringProp name="-1032067542">${__fifoSize(Creation_Index)}</stringProp>
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1929315599">${__fifoSize(Creation_Index3)}</stringProp>
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1929313677">${__fifoSize(Creation_Index5)}</stringProp>
+                <stringProp name="-1929312716">${__fifoSize(Creation_Index6)}</stringProp>
+                <stringProp name="-1929311755">${__fifoSize(Creation_Index7)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+            <stringProp name="Assertion.scope">variable</stringProp>
+            <stringProp name="Scope.variable">test_size</stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
           </ConstantTimer>
@@ -584,6 +708,38 @@
           <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
         </BeanShellSampler>
         <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="-1687635540">
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+            <stringProp name="Assertion.scope">variable</stringProp>
+            <stringProp name="Scope.variable">test_size</stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
           </ConstantTimer>
@@ -678,6 +834,11 @@
           </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
           <hashTree/>
           <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="true">
+            <stringProp name="Value">${cloudId}</stringProp>
+            <stringProp name="FifoName">Cloud_Id2</stringProp>
+          </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
+          <hashTree/>
+          <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="true">
             <stringProp name="Value">${providerPrefix}${creationIndex}/cloudIds/${cloudId}?recordId=${recordPrefix}${creationIndex}</stringProp>
             <stringProp name="FifoName">create_mapping_request</stringProp>
           </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
@@ -706,6 +867,80 @@
           <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
         </BeanShellSampler>
         <hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+            <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="886842323">Cloud_Id2_size</stringProp>
+              <stringProp name="-303108098">Cloud_Id2_size_correct</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="-232526793">
+                <stringProp name="-1464956131">${__fifoSize(Cloud_Id2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+              <stringProp name="-1268780174">Creation_Index</stringProp>
+              <stringProp name="-677479680">Creation_Index2</stringProp>
+              <stringProp name="-677479679">Creation_Index3</stringProp>
+              <stringProp name="-677479678">Creation_Index4</stringProp>
+              <stringProp name="-677479677">Creation_Index5</stringProp>
+              <stringProp name="-677479676">Creation_Index6</stringProp>
+              <stringProp name="-677479675">Creation_Index7</stringProp>
+              <stringProp name="-677479674">Creation_Index8</stringProp>
+              <stringProp name="1578117420">Cloud_Id1</stringProp>
+              <stringProp name="1578117421">Cloud_Id2</stringProp>
+              <stringProp name="-1715371301">create_mapping_request</stringProp>
+              <stringProp name="0"></stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="1328595487">
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+                <stringProp name="-1032067542">${__fifoSize(Creation_Index)}</stringProp>
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1929315599">${__fifoSize(Creation_Index3)}</stringProp>
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1929313677">${__fifoSize(Creation_Index5)}</stringProp>
+                <stringProp name="-1929312716">${__fifoSize(Creation_Index6)}</stringProp>
+                <stringProp name="-1929311755">${__fifoSize(Creation_Index7)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+                <stringProp name="-1464957092">${__fifoSize(Cloud_Id1)}</stringProp>
+                <stringProp name="-1464956131">${__fifoSize(Cloud_Id2)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+                <stringProp name="0"></stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+            <stringProp name="Assertion.scope">variable</stringProp>
+            <stringProp name="Scope.variable">Cloud_Id2_size</stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
           </ConstantTimer>
@@ -770,6 +1005,44 @@
             <boolProp name="Assertion.assume_success">false</boolProp>
             <intProp name="Assertion.test_type">1</intProp>
           </ResponseAssertion>
+          <hashTree/>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="-1180147826">test_size</stringProp>
+              <stringProp name="-95600455">test_size_correct</stringProp>
+              <stringProp name="-1268780174">Creation_Index</stringProp>
+              <stringProp name="-677479680">Creation_Index2</stringProp>
+              <stringProp name="-677479679">Creation_Index3</stringProp>
+              <stringProp name="-677479678">Creation_Index4</stringProp>
+              <stringProp name="-677479677">Creation_Index5</stringProp>
+              <stringProp name="-677479676">Creation_Index6</stringProp>
+              <stringProp name="-677479675">Creation_Index7</stringProp>
+              <stringProp name="-677479674">Creation_Index8</stringProp>
+              <stringProp name="1578117420">Cloud_Id1</stringProp>
+              <stringProp name="1578117421">Cloud_Id2</stringProp>
+              <stringProp name="-1715371301">create_mapping_request</stringProp>
+              <stringProp name="0"></stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="1328595487">
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+                <stringProp name="-1032067542">${__fifoSize(Creation_Index)}</stringProp>
+                <stringProp name="-1929316560">${__fifoSize(Creation_Index2)}</stringProp>
+                <stringProp name="-1929315599">${__fifoSize(Creation_Index3)}</stringProp>
+                <stringProp name="-1929314638">${__fifoSize(Creation_Index4)}</stringProp>
+                <stringProp name="-1929313677">${__fifoSize(Creation_Index5)}</stringProp>
+                <stringProp name="-1929312716">${__fifoSize(Creation_Index6)}</stringProp>
+                <stringProp name="-1929311755">${__fifoSize(Creation_Index7)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+                <stringProp name="-1464957092">${__fifoSize(Cloud_Id1)}</stringProp>
+                <stringProp name="-1464956131">${__fifoSize(Cloud_Id2)}</stringProp>
+                <stringProp name="-1929310794">${__fifoSize(Creation_Index8)}</stringProp>
+                <stringProp name="0"></stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
           <hashTree/>
           <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
             <boolProp name="displayJMeterProperties">false</boolProp>
@@ -873,11 +1146,6 @@
             <boolProp name="displaySamplerProperties">true</boolProp>
             <boolProp name="displaySystemProperties">false</boolProp>
           </DebugPostProcessor>
-          <hashTree/>
-          <kg.apc.jmeter.modifiers.FifoPutPostProcessor guiclass="kg.apc.jmeter.modifiers.FifoPutPostProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPutPostProcessor" testname="jp@gc - Inter-Thread Communication PostProcessor" enabled="true">
-            <stringProp name="Value">${cloudId}</stringProp>
-            <stringProp name="FifoName">Cloud_Id2</stringProp>
-          </kg.apc.jmeter.modifiers.FifoPutPostProcessor>
           <hashTree/>
         </hashTree>
       </hashTree>
@@ -1148,7 +1416,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1379,6 +1647,36 @@
           <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
         </BeanShellSampler>
         <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="886842323">Cloud_Id2_size</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="986041428">
+                <stringProp name="-1464956131">${__fifoSize(Cloud_Id2)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1316044778">${__jexl(${threads}*${loops})}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+            <stringProp name="Assertion.scope">variable</stringProp>
+            <stringProp name="Scope.variable">Cloud_Id2_size</stringProp>
+          </ResponseAssertion>
+          <hashTree/>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">${interThreadGroupTimeGap}</stringProp>
           </ConstantTimer>
@@ -1420,6 +1718,25 @@
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Parametry użytkownika" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="973680655">test!!!!!!!!!!!!!</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="986041428">
+                <stringProp name="-1464956131">${__fifoSize(Cloud_Id2)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">false</boolProp>
+          </UserParameters>
+          <hashTree/>
+          <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySamplerProperties">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugPostProcessor>
+          <hashTree/>
           <kg.apc.jmeter.modifiers.FifoPopPreProcessor guiclass="kg.apc.jmeter.modifiers.FifoPopPreProcessorGui" testclass="kg.apc.jmeter.modifiers.FifoPopPreProcessor" testname="jp@gc - Inter-Thread Communication PreProcessor" enabled="true">
             <stringProp name="Timeout">${interTreadQueueTimeOut}</stringProp>
             <stringProp name="Variable">cloudId</stringProp>
@@ -1455,6 +1772,38 @@
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>false</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">true</boolProp>
         <objProp>
           <name>saveConfig</name>
           <value class="SampleSaveConfiguration">
@@ -1567,17 +1916,21 @@
             <assertions>true</assertions>
             <subresults>true</subresults>
             <responseData>true</responseData>
-            <samplerData>false</samplerData>
+            <samplerData>true</samplerData>
             <xml>false</xml>
             <fieldNames>true</fieldNames>
             <responseHeaders>true</responseHeaders>
             <requestHeaders>true</requestHeaders>
             <responseDataOnError>false</responseDataOnError>
-            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
             <url>true</url>
+            <fileName>true</fileName>
+            <hostname>true</hostname>
             <threadCounts>true</threadCounts>
+            <sampleCount>true</sampleCount>
+            <idleTime>true</idleTime>
           </value>
         </objProp>
         <stringProp name="filename">UIS_PerformanceTest_${outputFilessuffix}.csv</stringProp>
