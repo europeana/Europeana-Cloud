@@ -23,17 +23,17 @@
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
-			<id>pro</id>
+			<id>persistent</id>
 			<properties>
-				<spring.config.dir>pro</spring.config.dir>
+				<spring.config.dir>persistent</spring.config.dir>
 			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>eu.europeana.cloud</groupId>
-					<artifactId>ecloud-service-mcs-persistent</artifactId>
-					<version>${project.version}</version>
-				</dependency>
-			</dependencies>
+		</profile>
+		
+		<profile>
+			<id>zookeeper</id>
+			<properties>
+				<spring.config.dir>zookeeper</spring.config.dir>
+			</properties>
 		</profile>
 	</profiles>
 
@@ -184,7 +184,7 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<excludes>
-					<exclude>pro/</exclude>
+					<exclude>zookeeper/</exclude>
 					<exclude>persistent/</exclude>
 				</excludes>
 			</resource>
