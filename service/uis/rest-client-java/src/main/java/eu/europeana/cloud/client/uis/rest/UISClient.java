@@ -10,6 +10,8 @@ import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.europeana.cloud.client.uis.rest.web.DynamicUrlProvider;
+import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
@@ -20,6 +22,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+
 import java.io.IOException;
 
 /**
@@ -39,14 +42,15 @@ public class UISClient {
     /**
      * Creates a new instance of this class.
      *
-     * Since no URL is provided, the client will search for all running UIS
-     * instances and connect to one of them.
+     * Since no URL is provided, 
+	 * default properties will be read from the properties file.
+	 * 
      */
     public UISClient() {
         LOGGER.info("UISClient starting... no UIS-URL provided.");
 
         try {
-            urlProvider = new UrlProvider();
+            urlProvider = new DynamicUrlProvider();
         } catch (final IOException e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
@@ -57,14 +61,34 @@ public class UISClient {
     /**
      * Creates a new instance of this class.
      *
+     * Since no URL is provided, default properties will be read from the properties file.
+     * Same as {@link #UISClient()} but includes username and password to
+     * perform authenticated requests.
+     */
+    public UISClient(final String username, final String password) {
+        LOGGER.info("UISClient starting... no UIS-URL provided.");
+
+        try {
+            urlProvider = new DynamicUrlProvider();
+        } catch (final IOException e) {
+            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
+        }
+
+        LOGGER.info("UISClient started successfully.");
+    }
+
+
+    /**
+     * Creates a new instance of this class. 
+     * UIS url is dynamically provided from the specified {@link ServiceProvider}
+     *
      * @param uisProvider
      */
     public UISClient(final ServiceProvider uisProvider) {
         LOGGER.info("UISClient starting...");
 
         try {
-            final String uisUrl = uisProvider.getService().getListenAddress();
-            urlProvider = new UrlProvider(uisUrl);
+            urlProvider = new DynamicUrlProvider(uisProvider);
         } catch (final Exception e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
@@ -77,9 +101,6 @@ public class UISClient {
      * {@link #UISClient(ServiceProvider)} but includes username and password to
      * perform authenticated requests.
      *
-     * @param uisProvider
-     * @param username
-     * @param password
      */
     public UISClient(final ServiceProvider uisProvider, final String username, final String password) {
         LOGGER.info("UISClient starting...");
@@ -87,8 +108,7 @@ public class UISClient {
         client.register(new HttpBasicAuthFilter(username, password));
 
         try {
-            final String uisUrl = uisProvider.getService().getListenAddress();
-            urlProvider = new UrlProvider(uisUrl);
+            urlProvider = new DynamicUrlProvider(uisProvider);
         } catch (final Exception e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
@@ -100,9 +120,6 @@ public class UISClient {
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
      *
-     * @param uisUrl The URL of some UIS instance to connect to.
-     * @param username
-     * @param password
      */
     public UISClient(final String uisUrl, final String username, final String password) {
         LOGGER.info("UISClient starting...");
@@ -110,7 +127,7 @@ public class UISClient {
         client.register(new HttpBasicAuthFilter(username, password));
 
         try {
-            urlProvider = new UrlProvider(uisUrl);
+            urlProvider = new StaticUrlProvider(uisUrl);
         } catch (final Exception e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
@@ -119,7 +136,7 @@ public class UISClient {
     }
 
     /**
-     * Creates a new instance of this class.
+     * Creates a new instance of this class, with a static UIS url.
      *
      * @param uisUrl The URL of some UIS instance to connect to.
      */
@@ -127,7 +144,7 @@ public class UISClient {
         LOGGER.info("UISClient starting...");
 
         try {
-            urlProvider = new UrlProvider(uisUrl);
+            urlProvider = new StaticUrlProvider(uisUrl);
         } catch (final Exception e) {
             LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
         }
