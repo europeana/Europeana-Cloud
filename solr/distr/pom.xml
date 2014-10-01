@@ -17,7 +17,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-solr-custom</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.version}</version>
             <type>war</type>
         </dependency>
     </dependencies>
