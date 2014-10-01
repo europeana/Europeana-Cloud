@@ -1,15 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context antiJARLocking="true" path="/DataLookupService">
- <ResourceLink
-        name="mcs/solr/url"
-        global="mcs/solr/url"
+
+   <!-- DLS registration of service in COS -->
+   
+   <ResourceLink
+        name="cos/listenAddress"
+        global="cos/listenAddress"
         type="java.lang.String"/>
-<ResourceLink
-        name="kafka/zookeeperList"
-        global="kafka/zookeeperList"
-        type="java.lang.String"/>
-<ResourceLink
-        name="kafka/topic"
-        global="kafka/topic"
-        type="java.lang.String"/>   
+         
+   <!-- COS -->
+    
+   <ResourceLink
+        name="cos/zookeeper/zookeeperAddress"
+        global="cos/zookeeper/zookeeperAddress"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/zookeeper/zookeeperConnectionTimeout"
+        global="cos/zookeeper/zookeeperConnectionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperSessionTimeout"
+        global="cos/zookeeper/zookeeperSessionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperPath"
+        global="cos/zookeeper/zookeeperPath"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/datacenterLocation"
+        global="cos/datacenterLocation"
+        type="java.lang.String"/>          
+        
+   <!-- DLS  -->
+   
+	<ResourceLink name="mcs/solr/url" global="mcs/solr/url"
+		type="java.lang.String" />
+		
+	<ResourceLink name="kafka/zookeeperList" global="kafka/zookeeperList"
+		type="java.lang.String" />
+		
+	<ResourceLink name="kafka/topic" global="kafka/topic"
+		type="java.lang.String" />
+
 </Context>
