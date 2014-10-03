@@ -83,7 +83,13 @@ echo '' >> $tempDir/tools/gmond-run.sh
 echo 'gmond -c $INSTALL_ROOT/etc/gmond.conf' >> $tempDir/tools/gmond-run.sh
 chmod u+x $tempDir/tools/gmond-run.sh
 
+#add script for setting variables
+scriptDir=`dirname $0`
+cp $scriptDir/exportVariables.sh $tempDir
+
 #copy everything to the remote server
 scp -r $tempDir/* $sshAddress:
+#run script for setting bash variables
+ssh $sshAddress ./exportVariables.sh
 #run gmond deamon
-ssh $sshAddress tools/gmond-run.sh
+ssh $sshAddress 'source .bashrc ; ./tools/gmond-run.sh'
