@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -157,9 +158,9 @@
 					<artifactId>ecloud-service-cos</artifactId>
 					<version>${project.version}</version>
 				</dependency>
+				<!-- forked kafka with fixed appender issue KAFKA-847 -->
+				<!-- TODO ECL-317 -->
 				<dependency>
-					<!-- forked kafka with fixed appender issue KAFKA-847 -->
-					<!-- TODO ECL-317 -->
 					<groupId>eu.europeana.cloud.kafka</groupId>
 					<artifactId>kafka_2.10</artifactId>
 					<exclusions>
@@ -349,17 +350,6 @@
 			<groupId>com.qmino</groupId>
 			<artifactId>miredot-annotations</artifactId>
 			<version>1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.10</artifactId>
-			<version>0.8.1.1</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>zookeeper</artifactId>
-					<groupId>org.apache.zookeeper</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
