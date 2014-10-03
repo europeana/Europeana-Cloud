@@ -38,15 +38,33 @@ sendIterval=60
 gridName=ecloud
 
 
-##prepare files for sending - fill parameters in installation files and target host script
-#create temporary folder for configuring files
+###prepare files for sending - fill parameters in installation files and target host script
+##create temporary folder for configuring files
 rm -rf $tempDir
 mkdir -p $tempDir/install
 cp -r $sourceDir/* $tempDir/install
-#configure gmond.conf
+
+##configure gmond.conf
 sed -i "s/user\ =\ nobody/user\ =\ $user/g" $tempDir/install/etc/gmond.conf
 sed -i "s/send_metadata_interval\ =\ 0/send_metadata_interval\ =\ 60/g" $tempDir/install/etc/gmond.conf
+sed -i "s/# override_hostname\ =\ \"mywebserver.domain.com\"/override_hostname\ =\ $hostnameShort/g" $tempDir/install/etc/gmond.conf
+
 #remove udp_send_channel, mark where it was
 perl -0777 -pi -e "s/\nudp_send_channel\ {\n([^}]*)}/\nXXX/g" $tempDir/install/etc/gmond.conf
+#for all agregators, set one udp_send_channel:
+#first, prepare text
+###udp_send_channel {
+###  host = $a
+###  port = 8649
+###  ttl = 1
+###}
+#then replace XXX with it
 
+#remove some setting from udp_recv
+perl -0777 -pi -e "s/\n\ \ bind\ =\ 239.2.11.71//g" $tempDir/install/etc/gmond.conf
+#if we don't want to receive, remove udp_recv entirely
+if [ $receive -ne 1 ]
+then
+	perl -0777 -pi -e "s/\nudp_recv_channel\ {\n([^}]*)}/\n/g" $tempDir/install/etc/gmond.conf
+fi
 
