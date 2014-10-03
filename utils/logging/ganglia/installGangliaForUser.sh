@@ -1,9 +1,5 @@
 #!/bin/bash
 
-set -e
-set -u
-shopt -s nullglob
-
 #what is script for?
 #install Gmond locally for user that ran the script
 #softDir is a dir where unpacked software folders reside
@@ -37,7 +33,9 @@ done
 #'non-fake' installation = on final host)
 scriptDir=`dirname $0`
 $scriptDir/exportVariables.sh
+set -a
 . $HOME/.bashrc
+set +a
 
 #install needed software
 echo -e '\ninstalling Confuse (1/3)...\n'
@@ -57,5 +55,5 @@ cd $ourDir/$GANGLIA
 ./configure --prefix=$HOME/install
 make
 make install
-
+$HOME/install/sbin/gmond --default_config > $HOME/install/etc/gmond.conf
 
