@@ -10,6 +10,7 @@
 GANGLIA='ganglia-3.6.0'
 CONFUSE='confuse-2.7'
 PCRE='pcre-8.35'
+APR='apr-1.5.1'
 
 #handle parameters
 if [ $# -ne 1 ]
@@ -23,7 +24,7 @@ ourDir=$HOME/soft
 #create directories to work with
 mkdir -p $ourDir $HOME/install
 #copy installation files to our folder
-for s in $GANGLIA $CONFUSE $PCRE
+for s in $GANGLIA $CONFUSE $PCRE $APR
 do
 	cp -r $softDir/$s $ourDir/$s
 done
@@ -38,19 +39,25 @@ set -a
 set +a
 
 #install needed software
-echo -e '\ninstalling Confuse (1/3)...\n'
+echo -e '\ninstalling Confuse (1/4)...\n'
 cd $ourDir/$CONFUSE
 ./configure --prefix=$HOME/install --enable-shared
 make
 make install
 
-echo -e '\ninstalling PCRE (2/3)...\n'
+echo -e '\ninstalling PCRE (2/4)...\n'
 cd $ourDir/$PCRE
 ./configure --prefix=$HOME/install
 make
 make install
 
-echo -e '\ninstalling Ganglia (3/3)...\n'
+echo -e '\ninstalling APR (3/4)...\n'
+cd $ourDir/$APR
+./configure --prefix=$HOME/install
+make
+make install
+
+echo -e '\ninstalling Ganglia (4/4)...\n'
 cd $ourDir/$GANGLIA
 ./configure --prefix=$HOME/install
 make

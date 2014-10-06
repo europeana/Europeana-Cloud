@@ -69,6 +69,7 @@ done
 perl -0777 -pi -e "s/\nXXX/$channelText/g" $tempDir/install/etc/gmond.conf
 
 #remove some setting from udp_recv
+perl -0777 -pi -e "s/\n\ \ mcast_join\ =\ 239.2.11.71//g" $tempDir/install/etc/gmond.conf
 perl -0777 -pi -e "s/\n\ \ bind\ =\ 239.2.11.71//g" $tempDir/install/etc/gmond.conf
 #if we don't want to receive, remove udp_recv entirely
 if [ $receive -ne 1 ]
@@ -78,14 +79,15 @@ fi
 
 #add script for running gmond to files for sending
 mkdir -p $tempDir/tools
+#set the variables directly in script
+scriptDir=`dirname $0`
+cp $scriptDir/exportVariables.sh $tempDir
 echo 'INSTALL_ROOT=$HOME/install' >> $tempDir/tools/gmond-run.sh
 echo '' >> $tempDir/tools/gmond-run.sh
 echo 'gmond -c $INSTALL_ROOT/etc/gmond.conf' >> $tempDir/tools/gmond-run.sh
 chmod u+x $tempDir/tools/gmond-run.sh
 
 #add script for setting variables
-scriptDir=`dirname $0`
-cp $scriptDir/exportVariables.sh $tempDir
 
 #copy everything to the remote server
 scp -r $tempDir/* $sshAddress:

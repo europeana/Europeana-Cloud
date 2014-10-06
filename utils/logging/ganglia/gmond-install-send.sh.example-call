@@ -1,0 +1,2 @@
+#this is example call of the program for configuring and sending Gmond files and running Gmond on remote host machine
+./gmond-install-send.sh /home/freyja/ecloud/gmondInstall/install-synat installTemp 203.0.113.1 cluster01 user01 myLovelyNickname 1 203.0.113.1 203.0.113.10
