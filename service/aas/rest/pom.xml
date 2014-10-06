@@ -237,9 +237,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<licence> <!-- MireDot free open source license, valid until 2014-12-12 -->
-						UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNC0xMi0xMnx0cnVlI01DMENGR0hUL0l4bnF0eXZZcGgyWGh6aDczaDRPTFdnQWhVQWtDM0VLc3cvWVpObWhwQ3dWaFJZRDloS215WT0=
-					</licence>
+					<licence>
+                                            UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtYWFzLXJlc3R8MjAxNi0xMC0wNnx0cnVlI01Dd0NGRlo5ZDIxTXJWNTBmUmgxUGZZc2tJWmpsYmp2QWhSa2tWZjZ3OWN0TU1hTVVvRG5qcWZKcDVtU3hRPT0=
+                                        </licence>
 					<statusCodes>
 						<statusCode>
 							<httpCode>200</httpCode>
