@@ -20,7 +20,7 @@ public class DynamicSwiftConnectionProviderTest {
 		ZookeeperService zK = new ZookeeperService("ecloud.eanadev.org:2181", 10000, 10000, "/eCloud");
 		DynamicPropertyManager dynamicPropertyManager = new ZookeeperDynamicPropertyManager(zK, "/eCloud/v2/ISTI/configuration/dynamicProperties");
 		
-		DynamicSwiftConnectionProvider dP = new DynamicSwiftConnectionProvider(dynamicPropertyManager);
+		ZookeeperSwiftConnectionProvider dP = new ZookeeperSwiftConnectionProvider(dynamicPropertyManager);
 		
 		// lets try to get the current address (its stored in zookeeper as -> "ecloud:user:password:endpoint")
 		String address_1 = dP.getSwiftConnectionAddress();

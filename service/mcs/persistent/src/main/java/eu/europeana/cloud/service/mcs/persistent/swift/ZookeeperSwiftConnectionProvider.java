@@ -5,16 +5,16 @@ import eu.europeana.cloud.service.coordination.configuration.DynamicPropertyList
 import eu.europeana.cloud.service.coordination.configuration.DynamicPropertyManager;
 
 /**
- * Example of a {@link DynamicSwiftConnectionProvider}.
+ * Example of a {@link ZookeeperSwiftConnectionProvider}.
  * 
  */
-public class DynamicSwiftConnectionProvider implements DynamicPropertyListener {
+public class ZookeeperSwiftConnectionProvider implements DynamicPropertyListener {
 	
 	private final static String SWIFT_DYNAMIC_PROPERTY_NAME = "mcs.swift.addresslist";
 	
 	private DynamicPropertyManager dynamicPropertyManager;
 
-	public DynamicSwiftConnectionProvider(final DynamicPropertyManager dynamicPropertyManager) {
+	public ZookeeperSwiftConnectionProvider(final DynamicPropertyManager dynamicPropertyManager) {
 		
 		this.dynamicPropertyManager = dynamicPropertyManager;
 		dynamicPropertyManager.addUpdateListener(this, SWIFT_DYNAMIC_PROPERTY_NAME);
