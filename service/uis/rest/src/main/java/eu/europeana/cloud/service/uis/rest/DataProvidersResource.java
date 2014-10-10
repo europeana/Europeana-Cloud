@@ -33,7 +33,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 
 /**
  * Resource for DataProviders.
- *
+ * 
  */
 @Path("/data-providers")
 @Component
@@ -49,59 +49,69 @@ public class DataProvidersResource {
     @Autowired
     private MutableAclService mutableAclService;
 
-    private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
+    private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class
+	    .getName();
 
     /**
      * Lists all providers. Result is returned in slices.
-     *
-     * @param startFrom reference to next slice of result.
+     * 
+     * @param startFrom
+     *            reference to next slice of result.
      * @return slice of result.
      */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public ResultSlice<DataProvider> getProviders(
-            @QueryParam(UISParamConstants.Q_FROM) String startFrom) {
-        return providerService.getProviders(startFrom, numberOfElementsOnPage);
+	    @QueryParam(UISParamConstants.Q_FROM) String startFrom) {
+	return providerService.getProviders(startFrom, numberOfElementsOnPage);
     }
 
     /**
      * Creates a new data provider. Response contains uri to created resource in
      * as content location.
-     *
-     * @param dataProviderProperties data provider properties.
-     * @param providerId data provider id (required)
+     * 
+     * @param dataProviderProperties
+     *            data provider properties.
+     * @param providerId
+     *            data provider id (required)
      * @return URI to created resource in content location
-     * @throws ProviderAlreadyExistsException provider already * exists.
+     * @throws ProviderAlreadyExistsException
+     *             provider already * exists.
      * @statuscode 201 object has been created.
      */
     @POST
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PreAuthorize("isAuthenticated()")
-    public Response createProvider(@Context UriInfo uriInfo, 
-    		DataProviderProperties dataProviderProperties,
-            @QueryParam(UISParamConstants.Q_PROVIDER) String providerId)
-            throws ProviderAlreadyExistsException {
-        DataProvider provider = providerService.createProvider(providerId, dataProviderProperties);
-        EnrichUriUtil.enrich(uriInfo, provider);
+    public Response createProvider(@Context UriInfo uriInfo,
+	    DataProviderProperties dataProviderProperties,
+	    @QueryParam(UISParamConstants.Q_PROVIDER) String providerId)
+	    throws ProviderAlreadyExistsException {
+	DataProvider provider = providerService.createProvider(providerId,
+		dataProviderProperties);
+	EnrichUriUtil.enrich(uriInfo, provider);
 
-        // provider created => let's assign permissions to the owner
-        String creatorName = SpringUserUtils.getUsername();
-        if (creatorName != null) {
-            ObjectIdentity providerIdentity = new ObjectIdentityImpl(DATA_PROVIDER_CLASS_NAME,
-                    providerId);
+	// provider created => let's assign permissions to the owner
+	String creatorName = SpringUserUtils.getUsername();
+	if (creatorName != null) {
+	    ObjectIdentity providerIdentity = new ObjectIdentityImpl(
+		    DATA_PROVIDER_CLASS_NAME, providerId);
 
-            MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
+	    MutableAcl providerAcl = mutableAclService
+		    .createAcl(providerIdentity);
 
-            providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            providerAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName),
-                    true);
+	    providerAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
+		    creatorName), true);
+	    providerAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
+		    creatorName), true);
+	    providerAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
+		    creatorName), true);
+	    providerAcl.insertAce(3, BasePermission.ADMINISTRATION,
+		    new PrincipalSid(creatorName), true);
 
-            mutableAclService.updateAcl(providerAcl);
-        }
+	    mutableAclService.updateAcl(providerAcl);
+	}
 
-        return Response.created(provider.getUri()).build();
+	return Response.created(provider.getUri()).build();
     }
 }

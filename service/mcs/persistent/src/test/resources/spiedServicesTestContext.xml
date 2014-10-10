@@ -25,7 +25,7 @@
     <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
     <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
-    <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
+    <bean id="SimpleSwiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" type="java.lang.String" value="transient"/>
         <constructor-arg name="container" type="java.lang.String" value="test_container"/>
         <constructor-arg name="endpoint" type="java.lang.String" value=""/>
@@ -45,7 +45,7 @@
     <mockito:spy beanName="cassandraRecordService"/>
     <mockito:spy beanName="cassandraRecordDAO"/>
     <mockito:spy beanName="swiftContentDAO"/>
-    <mockito:spy beanName="swiftConnectionProvider"/>
+    <mockito:spy beanName="SimpleSwiftConnectionProvider"/>
     <mockito:spy beanName="sorlConnector"/>
     <mockito:spy beanName="solrRepresentationIndexer"/>
     

@@ -48,7 +48,7 @@
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
 
     <bean id="swiftConnectionProvider" 
-          class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider">
+          class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" value="${mcs.swift.provider}" />
         <constructor-arg name="container" value="${mcs.swift.container}" />
 
