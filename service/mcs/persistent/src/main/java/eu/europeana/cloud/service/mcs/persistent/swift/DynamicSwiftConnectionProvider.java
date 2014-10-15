@@ -23,8 +23,8 @@ public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
     private final List<SwiftConnectionProvider> proxys;
     private List<BlobStore> blobStores;
 
-    @Autowired(required = true)
-    private DynamicBlobStore dynamicBlobStore;
+    @Autowired
+    private DBlobStore dynamicBlobStore;
 
     private final String container;
 

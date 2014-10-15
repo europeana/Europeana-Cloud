@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.aspects;
 
+import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.RetryOnFailure;
 import javax.annotation.PostConstruct;
@@ -21,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RetryBlobStoreExecutor {
 
     @Autowired
-    DynamicBlobStore dynamicBlobStore;
-
-    private static final Logger LOGGER = LoggerFactory
-	    .getLogger(RetryBlobStoreExecutor.class);
+    DBlobStore dynamicBlobStore;
 
     private int numberOfExecution;
 

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
 import com.google.common.collect.Iterators;
+import eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -16,15 +17,20 @@ import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.blobstore.options.PutOptions;
 import org.jclouds.domain.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Manage switching between many jClouds {@link BlobStore}.
  */
-public class DynamicBlobStore implements BlobStore {
+public class DynamicBlobStore implements DBlobStore {
 
     private List<BlobStore> blobStores;
     private BlobStore activeInstance;
     private Iterator<BlobStore> blobIterator;
+    private static final Logger LOGGER = LoggerFactory
+	    .getLogger(DynamicBlobStore.class);
 
     /**
      * Set list of {@link BlobStore}.
@@ -35,24 +41,23 @@ public class DynamicBlobStore implements BlobStore {
 	this.blobStores = blobStores;
 	blobIterator = Iterators.cycle(blobStores);
 	activeInstance = blobIterator.next();
-	// @TODO} inform zookeeepr
+	// @TODO zookeeper
     }
 
     /**
-     * Return number of blobStores.
-     * 
-     * @return
+     * {@inheritDoc }
      */
     public int getInstanceNumber() {
 	return blobStores.size();
     }
 
     /**
-     * Switch cycle between {@link BlobStore}.
+     * {@inheritDoc }
      */
     public void switchInstance() {
-	// inform zookeeper
+	// @TODO zookeeper
 	activeInstance = blobIterator.next();
+	LOGGER.info("Switch OpenStack Endpoint Instance");
     }
 
     /**
