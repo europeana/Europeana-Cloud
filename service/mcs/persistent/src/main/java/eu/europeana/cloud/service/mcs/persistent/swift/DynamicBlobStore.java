@@ -54,10 +54,14 @@ public class DynamicBlobStore implements DBlobStore {
     /**
      * {@inheritDoc }
      */
-    public void switchInstance() {
+    public void switchOnFailureInstance() {
 	// @TODO zookeeper
 	activeInstance = blobIterator.next();
 	LOGGER.info("Switch OpenStack Endpoint Instance");
+    }
+
+    private BlobStore getActiveInstance() {
+	return activeInstance;
     }
 
     /**
@@ -65,7 +69,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public BlobStoreContext getContext() {
-	return activeInstance.getContext();
+	return getActiveInstance().getContext();
     }
 
     /**
@@ -74,7 +78,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public boolean blobExists(String container, String name) {
-	return activeInstance.blobExists(container, name);
+	return getActiveInstance().blobExists(container, name);
     }
 
     /**
@@ -83,7 +87,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public BlobBuilder blobBuilder(String name) {
-	return activeInstance.blobBuilder(name);
+	return getActiveInstance().blobBuilder(name);
     }
 
     /**
@@ -92,8 +96,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public String putBlob(String container, Blob blob) {
-	BlobStore bs = activeInstance;
-	return bs.putBlob(container, blob);
+	return getActiveInstance().putBlob(container, blob);
 
     }
 
@@ -103,7 +106,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public Blob getBlob(String container, String name) {
-	return activeInstance.getBlob(container, name);
+	return getActiveInstance().getBlob(container, name);
 
     }
 
@@ -113,7 +116,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public Blob getBlob(String container, String name, GetOptions options) {
-	return activeInstance.getBlob(container, name, options);
+	return getActiveInstance().getBlob(container, name, options);
     }
 
     /**
@@ -122,7 +125,7 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public void removeBlob(String container, String name) {
-	activeInstance.removeBlob(container, name);
+	getActiveInstance().removeBlob(container, name);
     }
 
     /**
@@ -130,7 +133,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public Set<? extends Location> listAssignableLocations() {
-	return activeInstance.listAssignableLocations();
+	return getActiveInstance().listAssignableLocations();
     }
 
     /**
@@ -138,7 +141,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public PageSet<? extends StorageMetadata> list() {
-	return activeInstance.list();
+	return getActiveInstance().list();
     }
 
     /**
@@ -146,7 +149,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public boolean containerExists(String container) {
-	return activeInstance.containerExists(container);
+	return getActiveInstance().containerExists(container);
     }
 
     /**
@@ -154,7 +157,8 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public boolean createContainerInLocation(Location location, String container) {
-	return activeInstance.createContainerInLocation(location, container);
+	return getActiveInstance().createContainerInLocation(location,
+		container);
     }
 
     /**
@@ -163,8 +167,8 @@ public class DynamicBlobStore implements DBlobStore {
     @Override
     public boolean createContainerInLocation(Location location,
 	    String container, CreateContainerOptions options) {
-	return activeInstance.createContainerInLocation(location, container,
-		options);
+	return getActiveInstance().createContainerInLocation(location,
+		container, options);
     }
 
     /**
@@ -172,7 +176,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public PageSet<? extends StorageMetadata> list(String container) {
-	return activeInstance.list(container);
+	return getActiveInstance().list(container);
     }
 
     /**
@@ -181,7 +185,7 @@ public class DynamicBlobStore implements DBlobStore {
     @Override
     public PageSet<? extends StorageMetadata> list(String container,
 	    ListContainerOptions options) {
-	return activeInstance.list(container, options);
+	return getActiveInstance().list(container, options);
     }
 
     /**
@@ -189,7 +193,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void clearContainer(String container) {
-	activeInstance.clearContainer(container);
+	getActiveInstance().clearContainer(container);
     }
 
     /**
@@ -197,7 +201,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void clearContainer(String container, ListContainerOptions options) {
-	activeInstance.clearContainer(container, options);
+	getActiveInstance().clearContainer(container, options);
     }
 
     /**
@@ -205,7 +209,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void deleteContainer(String container) {
-	activeInstance.deleteContainer(container);
+	getActiveInstance().deleteContainer(container);
     }
 
     /**
@@ -213,7 +217,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public boolean directoryExists(String container, String directory) {
-	return activeInstance.directoryExists(container, directory);
+	return getActiveInstance().directoryExists(container, directory);
     }
 
     /**
@@ -221,7 +225,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void createDirectory(String container, String directory) {
-	activeInstance.createDirectory(container, directory);
+	getActiveInstance().createDirectory(container, directory);
     }
 
     /**
@@ -229,7 +233,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void deleteDirectory(String containerName, String name) {
-	activeInstance.deleteDirectory(containerName, name);
+	getActiveInstance().deleteDirectory(containerName, name);
     }
 
     /**
@@ -237,7 +241,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public String putBlob(String container, Blob blob, PutOptions options) {
-	return activeInstance.putBlob(container, blob, options);
+	return getActiveInstance().putBlob(container, blob, options);
     }
 
     /**
@@ -245,7 +249,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public BlobMetadata blobMetadata(String container, String name) {
-	return activeInstance.blobMetadata(container, name);
+	return getActiveInstance().blobMetadata(container, name);
     }
 
     /**
@@ -253,7 +257,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public long countBlobs(String container) {
-	return activeInstance.countBlobs(container);
+	return getActiveInstance().countBlobs(container);
     }
 
     /**
@@ -261,6 +265,6 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public long countBlobs(String container, ListContainerOptions options) {
-	return activeInstance.countBlobs(container, options);
+	return getActiveInstance().countBlobs(container, options);
     }
 }

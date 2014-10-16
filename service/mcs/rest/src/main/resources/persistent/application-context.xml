@@ -80,7 +80,7 @@
         </constructor-arg>
         <constructor-arg name="endpointsList">
             <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/mcs/swift/endpoint"/>
+                             jndi-name="java:comp/env/mcs/swift/endpointList"/>
         </constructor-arg>
         <constructor-arg name="user">
             <jee:jndi-lookup expected-type="java.lang.String" 

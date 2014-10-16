@@ -51,7 +51,7 @@ public class RetryBlobStoreExecutor {
 		    throw new RuntimeException(
 			    "All instances of Swift are down");
 		}
-		dynamicBlobStore.switchInstance();
+		dynamicBlobStore.switchOnFailureInstance();
 	    }
 	}
     }
