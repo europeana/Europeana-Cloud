@@ -75,6 +75,7 @@
         <module>cassandra-connector</module>
         <module>service/uis</module>
         <module>service/dls</module>
+        <module>service/dps</module>
         <module>service/mcs</module>
         <module>service/cos</module>
         <module>service/aas</module>
