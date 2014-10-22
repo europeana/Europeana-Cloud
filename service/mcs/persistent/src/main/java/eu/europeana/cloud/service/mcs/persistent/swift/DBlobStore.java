@@ -22,5 +22,12 @@ public interface DBlobStore extends BlobStore {
     /**
      * Switch cycle between {@link BlobStore}.
      */
-    public void switchOnFailureInstance();
+    public void switchInstance();
+
+    /**
+     * Return {@link DynamicBlobStore} with sub
+     * 
+     * @return
+     */
+    public DynamicBlobStore getDynamicBlobStoreWithoutActiveInstance();
 }

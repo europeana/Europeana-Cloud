@@ -16,8 +16,8 @@ public class DynamicSwiftConnectionProviderTest {
     // @Test
     public void shouldGetDynamicProperty() {
 
-	ZookeeperService zK = new ZookeeperService("192.168.12.42:2181", 10000,
-		10000, "/zk");
+	ZookeeperService zK = new ZookeeperService("ecloud.eanadev.org:2181",
+		10000, 10000, "/eCloud");
 	DynamicPropertyManager dynamicPropertyManager = new ZookeeperDynamicPropertyManager(
 		zK, "/eCloud/v2/ISTI/configuration/dynamicProperties");
 	fail();

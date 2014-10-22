@@ -3,11 +3,20 @@ package eu.europeana.cloud.service.mcs.persistent.aspects;
 import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.RetryOnFailure;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
 import javax.annotation.PostConstruct;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.jclouds.http.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +33,14 @@ public class RetryBlobStoreExecutor {
     @Autowired
     DBlobStore dynamicBlobStore;
 
-    private int numberOfExecution;
+    private int numberOfRetries;
+
+    private static final Logger LOGGER = LoggerFactory
+	    .getLogger(RetryBlobStoreExecutor.class);
 
     @PostConstruct
     public void init() {
-	numberOfExecution = dynamicBlobStore.getInstanceNumber();
+	numberOfRetries = dynamicBlobStore.getInstanceNumber() - 1;
     }
 
     @Pointcut("execution(* eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore.*(..))")
@@ -41,18 +53,32 @@ public class RetryBlobStoreExecutor {
 
     @Around("isDynamicBlobStoreFunction() && isMarkedAsRetryOnFailure()")
     public Object retry(ProceedingJoinPoint pjp) throws Throwable {
-	int executionCount = 1;
-	while (true) {
-	    try {
-		return pjp.proceed();
-	    } catch (HttpResponseException e) {
+	try {
+	    return pjp.proceed();
+	} catch (HttpResponseException e) {
+	    DynamicBlobStore failureBlobStore = dynamicBlobStore
+		    .getDynamicBlobStoreWithoutActiveInstance();
+	    return retryOnFailure(failureBlobStore, pjp.getSignature(),
+		    pjp.getArgs());
+	}
+    }
 
-		if (++executionCount > numberOfExecution) {
-		    throw new RuntimeException(
-			    "All instances of Swift are down");
+    private Object retryOnFailure(DynamicBlobStore failureBlobStore,
+	    Signature signature, Object[] args) throws NoSuchMethodException,
+	    IllegalAccessException, Throwable {
+	for (int i = 0; i < numberOfRetries; i++) {
+	    try {
+		final Method method = ((MethodSignature) signature).getMethod();
+		Object o = method.invoke(failureBlobStore, args);
+		return o;
+	    } catch (InvocationTargetException e) {
+		if (e.getTargetException() instanceof HttpResponseException) {
+		    LOGGER.info("Failrue of the proxy switch in to next.");
+		    continue;
 		}
-		dynamicBlobStore.switchOnFailureInstance();
+		throw e.getTargetException();
 	    }
 	}
+	throw new RuntimeException("All instances of Swift are down");
     }
 }

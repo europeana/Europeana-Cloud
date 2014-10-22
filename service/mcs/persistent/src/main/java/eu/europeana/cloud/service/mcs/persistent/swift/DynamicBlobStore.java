@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent.swift;
 
 import com.google.common.collect.Iterators;
 import eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -29,8 +30,32 @@ public class DynamicBlobStore implements DBlobStore {
     private List<BlobStore> blobStores;
     private BlobStore activeInstance;
     private Iterator<BlobStore> blobIterator;
-    private static final Logger LOGGER = LoggerFactory
-	    .getLogger(DynamicBlobStore.class);
+
+    public DynamicBlobStore() {
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param blobStores
+     * @param activeInstance
+     * @param blobIterator
+     */
+    private DynamicBlobStore(List<BlobStore> blobStores,
+	    Iterator<BlobStore> blobIterator) {
+	this.blobStores = blobStores;
+	this.blobIterator = blobIterator;
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    public DynamicBlobStore getDynamicBlobStoreWithoutActiveInstance() {
+        List<BlobStore> bStore = new ArrayList<>(blobStores);
+        bStore.remove(activeInstance);
+        Iterator<BlobStore> blobIterator = Iterators.cycle(bStore);
+        return new DynamicBlobStore(bStore, blobIterator);
+    }
 
     /**
      * Set list of {@link BlobStore}.
@@ -40,7 +65,6 @@ public class DynamicBlobStore implements DBlobStore {
     public void setBlobStores(List<BlobStore> blobStores) {
 	this.blobStores = blobStores;
 	blobIterator = Iterators.cycle(blobStores);
-	activeInstance = blobIterator.next();
 	// @TODO zookeeper
     }
 
@@ -54,13 +78,12 @@ public class DynamicBlobStore implements DBlobStore {
     /**
      * {@inheritDoc }
      */
-    public void switchOnFailureInstance() {
-	// @TODO zookeeper
+    public void switchInstance() {
 	activeInstance = blobIterator.next();
-	LOGGER.info("Switch OpenStack Endpoint Instance");
     }
 
     private BlobStore getActiveInstance() {
+	switchInstance();
 	return activeInstance;
     }
 
