@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -230,6 +231,6 @@ public class UnitedExceptionMapper {
 
 
     private static Response buildResponse(int httpStatusCode, McsErrorCode errorCode, Exception e) {
-        return Response.status(httpStatusCode).entity(new ErrorInfo(errorCode.name(), e.getMessage())).build();
+        return Response.status(httpStatusCode).type(MediaType.APPLICATION_XML).entity(new ErrorInfo(errorCode.name(), e.getMessage())).build();
     }
 }
