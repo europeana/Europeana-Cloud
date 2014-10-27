@@ -43,12 +43,24 @@ sudo sed -i -e '$i \<user username="admin" password="password" roles="manager-gu
 \<Environment name="mcs/swift/user" type="java.lang.String" value="admin"/\>\
 \<Environment name="mcs/swift/password" type="java.lang.String" value="admin"/\>\
 \<Environment name="mcs/swift/endpoint" type="java.lang.String" value="http://172.168.0.210:8080/v2.0"/\>\
+\<!-- MCS Solr specific configuration --\>
+\<Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/"/\>
+\<Environment name="mcs/uis-url" value="http://localhost:8080/ecloud-service-uis-rest-0.1-SNAPSHOT/" type="java.lang.String" override="false"/\>
 \<!-- MCS Solr specific configuration --\>\
 \<Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/"/\>\
 \<Environment name="mcs/uis-url" value="http://localhost:8080/ecloud-service-uis-rest-0.1-SNAPSHOT/" type="java.lang.String" override="false"/\>\
-\<!-- RabbitMQ local specific configuration --\>\
-\<Environment name="rabbit/host" type="java.lang.String" value="localhost"/\>\
-\<Environment name="rabbit/port" type="java.lang.Integer" value="5672"/\>' /etc/tomcat7/server.xml
+\<!-- Kafka local specific configuration --\>\
+\<Environment name="kafka/brokerList" type="java.lang.String" value="localhost:9093,localhost:9094"/\>\
+\<Environment name="kafka/zookeeperList" type="java.lang.String" value="localhost:2181,host2:2181"/\>\
+\<Environment name="kafka/topic" type="java.lang.String" value="topic"/\>\
+\<!-- AAS local specific configuration -->\
+\<Environment name="aas/cassandra/host" type="java.lang.String" value="localhost"/\>\
+\<Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/\>\
+\<Environment name="aas/cassandra/user" type="java.lang.String" value=""/\>\
+\<Environment name="aas/cassandra/password" type="java.lang.String" value=""/\>\
+\<Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas"/\>\
+\<Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas"/\>\
+\<Environment name="aas/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/\>' /etc/tomcat7/server.xml
 
 ## install zookeeper
 cd
