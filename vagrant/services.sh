@@ -24,7 +24,7 @@ JAVA_HOME=/usr/lib/jvm/java-7-oracle" | sudo tee -a /etc/default/tomcat7
 sudo sed -i -e '$i \<user username="admin" password="password" roles="manager-gui,admin-gui"/> \n' /etc/tomcat7/tomcat-users.xml 
 
 #add tomcat enviromental variables
-sudo sed -i '/\<GlobalNamingResources\>/ a\
+ -i '/\<GlobalNamingResources\>/ a\
 \<!-- UIS local specific configuration --\>\
 \<Environment name="uis/cassandra/host" type="java.lang.String" value="172.16.0.150"/\>\
 \<Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/\>\
@@ -50,7 +50,37 @@ sudo sed -i '/\<GlobalNamingResources\>/ a\
 \<Environment name="rabbit/host" type="java.lang.String" value="localhost"/\>\
 \<Environment name="rabbit/port" type="java.lang.Integer" value="5672"/\>' /etc/tomcat7/server.xml
 
+## install zookeeper
+cd
+curl -O http://ftp.nluug.nl/internet/apache/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+tar -xzf zookeeper-3.4.6.tar.gz
+cd zookeeper-3.4.6
 
+sudo cp /vagrant/conf/zoo.cfg ./conf/zoo.cfg
+touch /var/zookeeper/myid
+echo -e "1" > /var/zookeeper/myid
+
+sudo bin/zkServer.sh start
+
+
+##install kafka
+cd
+curl -O http://apache.cs.uu.nl/dist/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz
+tar -xzf kafka_2.10-0.8.1.1.tgz
+cd kafka_2.10-0.8.1.1
+
+#cp config/server.properties config/server-1.properties
+echo -e "broker.id=1
+port=9093
+log.dir=/tmp/kafka-logs-1" > config/server-1.properties
+#start kafka
+sudo bin/kafka-server-start.sh config/server-1.properties &
+
+echo -e "broker.id=2
+port=9094
+log.dir=/tmp/kafka-logs-2" > config/server-2.properties
+#start kafka
+sudo bin/kafka-server-start.sh config/server-2.properties &
 
 
 

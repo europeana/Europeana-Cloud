@@ -65,3 +65,14 @@ cqlsh -u cassandra -p cassandra -f /vagrant/conf/auth.cql
 cqlsh -u cassandra -p cassandra -f /vagrant/conf/schema.cql
 
 
+## install zookeeper
+cd
+curl -O http://ftp.nluug.nl/internet/apache/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+tar -xzf zookeeper-3.4.6.tar.gz
+cd zookeeper-3.4.6
+
+sudo cp /vagrant/conf/zoo.cfg ./conf/zoo.cfg
+touch /var/zookeeper/myid
+echo -e "2" > /var/zookeeper/myid
+sudo bin/zkServer.sh start
+
