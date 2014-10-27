@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dls.kafka;
 import com.github.ddth.kafka.KafkaConsumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.yammer.metrics.Metrics;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -55,6 +57,7 @@ public class CustomerWrapper {
     @PreDestroy
     public void destroy() {
         consumer.destroy();
+        Metrics.defaultRegistry().shutdown();
     }
 
 }
