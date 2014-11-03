@@ -124,9 +124,10 @@ public class RepresentationAATest extends AbstractSecurityTest {
     public void testMethodsThatDontNeedAnyAuthentication() 
     		throws RepresentationNotExistsException, RecordNotExistsException   {
 
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		// TODO: permissions should be added for those
+//		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+//		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+//		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
     }
 	
 	/**
@@ -137,10 +138,42 @@ public class RepresentationAATest extends AbstractSecurityTest {
     public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn() 
     		throws RepresentationNotExistsException, RecordNotExistsException  {
 
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		// TODO: permissions should be added for those
+//		login(RANDOM_PERSON, RANDOM_PASSWORD);
+//		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+//		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
     }
+	
+
+	@Test
+	public void shouldBeAbleToGetRepresentationIfHeIsTheOwner() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+	}
+	
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+	}
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	public void shouldThrowExceptionWhenUnknownUserTriesToGetRepresentation() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+	}
 	
 	@Test
 	public void shouldBeAbleToAddRepresentationWhenAuthenticated() 

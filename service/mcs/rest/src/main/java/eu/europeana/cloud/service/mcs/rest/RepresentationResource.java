@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.Record;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
@@ -20,24 +19,23 @@ import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.NotFoundException;
-import org.springframework.security.acls.model.ObjectIdentity;
 
 /**
  * Resource to manage representations.
@@ -66,6 +64,12 @@ public class RepresentationResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @PostAuthorize(
+    		"hasPermission"
+    		+ "( "
+    		+ " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
+    		+ " 'eu.europeana.cloud.common.model.Representation', read"
+    		+ ")")
     public Representation getRepresentation(@Context UriInfo uriInfo,
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema)
