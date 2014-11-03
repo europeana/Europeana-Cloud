@@ -13,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
@@ -28,14 +27,13 @@ import org.springframework.stereotype.Component;
 import eu.europeana.cloud.common.model.Representation;
 
 /**
- * Resource to authorize other users to read / write specific versions.
+ * Resource to authorize other users to read specific versions.
  *
  * @author Markus Muhr (markus.muhr@theeuropeanlibrary.org)
  * @since 22.08.2014
  */
 @Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 @Component
-@Scope("request")
 public class RepresentationVersionAuthorizationResource {
 
     @Autowired

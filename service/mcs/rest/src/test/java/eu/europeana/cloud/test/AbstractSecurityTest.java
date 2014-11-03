@@ -26,11 +26,15 @@ import org.springframework.test.context.ContextConfiguration;
 
     @After
     public void clear() {
-        SecurityContextHolder.clearContext();
+    	logoutEveryone();
     }
 
     protected void login(String name, String password) {
         Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
         SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+    }
+    
+    protected void logoutEveryone() {
+        SecurityContextHolder.clearContext();
     }
 }
