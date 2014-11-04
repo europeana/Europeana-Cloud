@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
@@ -26,6 +27,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,16 +57,21 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	private static final String SCHEMA = "CIRCLE";
 	private static final String VERSION = "KIT_KAT";
 	private static final String PROVIDER_ID = "provider";
+	
 	private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
+	private static final String REPRESENTATION_NO_PERMISSIONS_NAME = "REPRESENTATION_NO_PERMISSIONS_NAME";
 	
 	private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
+	private static final String REPRESENTATION_NO_PERMISSIONS_FOR_VERSION = "KIT_KAT_NO_PERMISSIONS_FOR";
 	
 	private UriInfo URI_INFO;
 	
 	private Record record;
+	private Record recordWithManyRepresentations;
 	
 	private Representation representation;
 	private Representation copiedRepresentation;
+	private Representation representationYouDontHavePermissionsFor;
 	
 	/**
 	 * Pre-defined users
@@ -93,12 +100,20 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		copiedRepresentation.setCloudId(GLOBAL_ID);
 		copiedRepresentation.setRepresentationName(REPRESENTATION_NAME);
 		copiedRepresentation.setVersion(COPIED_REPRESENTATION_VERSION);
+
+		representationYouDontHavePermissionsFor = new Representation();
+		representationYouDontHavePermissionsFor.setCloudId(GLOBAL_ID);
+		representationYouDontHavePermissionsFor.setRepresentationName(REPRESENTATION_NO_PERMISSIONS_NAME);
+		representationYouDontHavePermissionsFor.setVersion(REPRESENTATION_NO_PERMISSIONS_FOR_VERSION);
 		
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
 		record.setRepresentations(ImmutableList.of(representation));
 		
-		
+		recordWithManyRepresentations = new Record();
+		recordWithManyRepresentations.setCloudId(GLOBAL_ID);
+		recordWithManyRepresentations.setRepresentations(ImmutableList.of(representation, representationYouDontHavePermissionsFor));
+
 		URI_INFO = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
@@ -114,6 +129,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(representation).when(recordService).persistRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(copiedRepresentation).when(recordService).copyRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
+		Mockito.doReturn(recordWithManyRepresentations).when(recordService).getRecord(Mockito.anyString());
 	}
 	
 	/**
@@ -184,7 +200,65 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	}
 	
 	// -- DELETE -- //
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		
+		logoutEveryone();
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		
+		assertEquals(r.size(), 0);
+	}
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		
+		assertEquals(r.size(), 1);
+	}
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		Mockito.doReturn(representation)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		Mockito.doReturn(representationYouDontHavePermissionsFor)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(RONALD_PASSWORD, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.size(), 0);
+	}
 	
+	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		Mockito.doReturn(representation)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		Mockito.doReturn(representationYouDontHavePermissionsFor)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(RONALD_PASSWORD, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.size(), 1);
+	}
+
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteRepresentation() 
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
