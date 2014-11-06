@@ -104,7 +104,7 @@
           </elementProp>
           <elementProp name="interThreadGroupTimeGap" elementType="Argument">
             <stringProp name="Argument.name">interThreadGroupTimeGap</stringProp>
-            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap,0)}</stringProp>
+            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap,100)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="outputFilessuffix" elementType="Argument">

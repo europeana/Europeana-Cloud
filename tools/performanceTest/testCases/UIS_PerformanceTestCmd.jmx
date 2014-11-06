@@ -9,7 +9,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="host" elementType="Argument">
             <stringProp name="Argument.name">host</stringProp>
-            <stringProp name="Argument.value">${__P(host,heliopsis.man.poznan.pl)}</stringProp>
+            <stringProp name="Argument.value">${__P(host,localhost)}</stringProp>
             <stringProp name="Argument.desc">Hostname</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -49,12 +49,12 @@
           </elementProp>
           <elementProp name="connectTimeOut" elementType="Argument">
             <stringProp name="Argument.name">connectTimeOut</stringProp>
-            <stringProp name="Argument.value">${__P(connectTimeOut,1000)}</stringProp>
+            <stringProp name="Argument.value">${__P(connectTimeOut,10000)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="responseTimeOut" elementType="Argument">
             <stringProp name="Argument.name">responseTimeOut</stringProp>
-            <stringProp name="Argument.value">${__P(responseTimeOut,1000)}</stringProp>
+            <stringProp name="Argument.value">${__P(responseTimeOut,10000)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="interTreadQueueTimeOut" elementType="Argument">
@@ -64,7 +64,7 @@
           </elementProp>
           <elementProp name="interThreadGroupTimeGap" elementType="Argument">
             <stringProp name="Argument.name">interThreadGroupTimeGap</stringProp>
-            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap,0)}</stringProp>
+            <stringProp name="Argument.value">${__P(interThreadGroupTimeGap,100)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="outputFilessuffix" elementType="Argument">

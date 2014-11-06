@@ -148,12 +148,12 @@ echo "</body></html>" >> ${resultDir}/${timestamp}.html
 }
 
 echo $@ > ${resultDir}/test.parms
-uisTest
-sleep $interTestDelay
+#uisTest
+#sleep $interTestDelay
 mcsDataSetTest
-sleep $interTestDelay
-mcsRepresentationTest
-sleep $gangliaDelay
-gangliaDownload
+#sleep $interTestDelay
+#mcsRepresentationTest
+#sleep $gangliaDelay
+#gangliaDownload
 
 
