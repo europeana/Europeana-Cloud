@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.aas.authentication.repository;
 
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -8,6 +11,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
@@ -48,7 +52,7 @@ public class CassandraUserDAO {
 
     private void prepareStatements() {
         selectUserStatement = provider.getSession().prepare(
-                "SELECT username, password FROM users WHERE username = ?");
+                "SELECT * FROM users WHERE username = ?");
         selectUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         createUserStatement = provider.getSession().prepare(
@@ -169,9 +173,11 @@ public class CassandraUserDAO {
     }
 
     private SpringUser mapUser(final Row row) {
+    	
         final String username = row.getString("username");
         final String password = row.getString("password");
-        SpringUser user = new SpringUser(username, password);
+        final Set<String> roles = row.getSet("roles", String.class);
+        SpringUser user = new SpringUser(username, password, roles);
         return user;
     }
 }
