@@ -1,6 +1,8 @@
 package eu.europeana.cloud.common.model;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * This class represents a user in the cloud environment.
@@ -13,7 +15,10 @@ public class User {
     private String username;
 
     private String password;
-
+    
+    /** for example: 'ROLE_ADMIN' if the current user is an admin */
+    private Set<String> roles = new HashSet<String>(0);
+    
     public User() {
         this.username = null;
         this.password = null;
@@ -22,6 +27,12 @@ public class User {
     public User(final String username, final String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public User(final String username, final String password, final Set<String> roles) {
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
     }
 
     public String getPassword() {
@@ -39,12 +50,15 @@ public class User {
     public void setUsername(final String username) {
         this.username = username;
     }
+    
+    public Set<String> getRoles() {
+		return roles;
+	}
 
     @Override
     public int hashCode() {
         int hash = 7;
         hash = 89 * hash + Objects.hashCode(this.username);
-        hash = 89 * hash + Objects.hashCode(this.password);
         return hash;
     }
 
@@ -58,9 +72,6 @@ public class User {
         }
         final User other = (User) obj;
         if (!Objects.equals(this.username, other.username)) {
-            return false;
-        }
-        if (!Objects.equals(this.password, other.password)) {
             return false;
         }
         return true;

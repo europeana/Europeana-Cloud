@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.aas.authentication.repository;
 
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -11,6 +10,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.google.common.collect.ImmutableSet;
 
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.User;
@@ -21,7 +21,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.UserExistsExcepti
 import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
 
 /**
- * Used to create / retrieve / update <code>CloudUser</code> objects from
+ * Used to create / retrieve / update <code>User</code> objects from
  * ecloud's database.
  *
  * @author emmanouil.koufakis@theeuropeanlibrary.org
@@ -36,6 +36,9 @@ public class CassandraUserDAO {
     private PreparedStatement createUserStatement;
     private PreparedStatement updateUserStatement;
     private PreparedStatement deleteUserStatement;
+    
+    /** Default roles for all users of ecloud (that don't have admin, or other superpowers) */
+    private static Set<String> DEFAULT_USER_ROLES = ImmutableSet.of("ROLE_USER");
 
     /**
      * Constructs a new <code>CassandraUserDAO</code>.
@@ -56,7 +59,7 @@ public class CassandraUserDAO {
         selectUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         createUserStatement = provider.getSession().prepare(
-                "INSERT INTO users(username, password) VALUES (?,?) IF NOT EXISTS;");
+                "INSERT INTO users(username, password, roles) VALUES (?,?,?) IF NOT EXISTS;");
         createUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         updateUserStatement = provider.getSession().prepare(
@@ -96,8 +99,8 @@ public class CassandraUserDAO {
             Row result = rs.one();
             if (result != null) {
                 throw new UserExistsException(new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getHttpCode(),
-                        IdentifierErrorTemplate.USER_DOES_NOT_EXIST.getErrorInfo(user.getUsername())));
+                        IdentifierErrorTemplate.USER_EXISTS.getHttpCode(),
+                        IdentifierErrorTemplate.USER_EXISTS.getErrorInfo(user.getUsername())));
 
             }
         } catch (NoHostAvailableException e) {
@@ -107,7 +110,7 @@ public class CassandraUserDAO {
         }
 
         try {
-            BoundStatement boundStatement = createUserStatement.bind(user.getUsername(), user.getPassword());
+            BoundStatement boundStatement = createUserStatement.bind(user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
