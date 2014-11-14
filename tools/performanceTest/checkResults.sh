@@ -4,7 +4,7 @@ set -e;
 set -u;
 
 sh  ~/performanceTest/performanceTestScript.sh localhost 9090 1 1 "-n" 2 2 > ~/performanceTest/results.txt
-cmd=( $(cat results.txt | grep Err | sed -e 's/.\+Err:[^0-9]\+\([0-9]\+\).\+/\1/g'))
+cmd=( $(cat ~/performanceTest/results.txt | grep Err | sed -e 's/.\+Err:[^0-9]\+\([0-9]\+\).\+/\1/g'))
 
 errors=0
 for ((i=0; i < ${#cmd[@]}; i++));
