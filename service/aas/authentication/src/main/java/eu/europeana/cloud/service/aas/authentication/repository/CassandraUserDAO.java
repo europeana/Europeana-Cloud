@@ -93,25 +93,16 @@ public class CassandraUserDAO {
 
     public void createUser(final User user)
             throws DatabaseConnectionException, UserExistsException {
+        
         try {
-            BoundStatement boundStatement = selectUserStatement.bind(user.getUsername());
-            ResultSet rs = provider.getSession().execute(boundStatement);
-            Row result = rs.one();
-            if (result != null) {
+            if(userAlreadyExistsInDB(user.getUsername())){
                 throw new UserExistsException(new IdentifierErrorInfo(
                         IdentifierErrorTemplate.USER_EXISTS.getHttpCode(),
                         IdentifierErrorTemplate.USER_EXISTS.getErrorInfo(user.getUsername())));
-
+            }else{
+                BoundStatement boundStatement = createUserStatement.bind(user.getUsername(), user.getPassword());
+                provider.getSession().execute(boundStatement);
             }
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(provider.getHost(), provider.getPort(), e.getMessage())));
-        }
-
-        try {
-            BoundStatement boundStatement = createUserStatement.bind(user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
-            provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -182,5 +173,16 @@ public class CassandraUserDAO {
         final Set<String> roles = row.getSet("roles", String.class);
         SpringUser user = new SpringUser(username, password, roles);
         return user;
+    }
+    
+    private boolean userAlreadyExistsInDB(String userName){
+        BoundStatement boundStatement = selectUserStatement.bind(userName);
+        ResultSet rs = provider.getSession().execute(boundStatement);
+        Row result = rs.one();
+        if(result != null){
+            return true;
+        }else{
+            return false;
+        }
     }
 }
