@@ -75,7 +75,7 @@ public class RecordsResource {
     private void prepare(@Context UriInfo uriInfo, Record record) {
         EnrichUriUtil.enrich(uriInfo, record);
         for (Representation representation : record.getRepresentations()) {
-            representation.setFiles(null);
+//            representation.setFiles(null);
             representation.setCloudId(null);
         }
     }

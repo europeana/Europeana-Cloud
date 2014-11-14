@@ -146,7 +146,7 @@ public class RepresentationResource {
     }
 
     private void prepare(UriInfo uriInfo, Representation representation) {
-	representation.setFiles(null);
+//	representation.setFiles(null);
 	EnrichUriUtil.enrich(uriInfo, representation);
     }
 }
