@@ -2,7 +2,9 @@
 /.settings
 /.classpath
 /.project
-/performanceTest/*.csv
-/performanceTest/*.log
-/performanceTest/*.html
-/performanceTest/*.jpg
+performanceTest/*
+!performanceTest/*.sh
+!performanceTest/testCases/*.jmx
+!performanceTest/testCases/*.xml
+
+

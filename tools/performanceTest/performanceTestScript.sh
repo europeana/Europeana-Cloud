@@ -112,7 +112,7 @@ uloadedLargeFileName="test.file${timestamp}"
 graphTypes=('mem_report' 'load_report' 'cpu_report' 'network_report');
 gangliaDelay=$interThreadGroupTimeGap #in seconds
 
-resultDir="./${timestamp}"
+resultDir="./pTest${timestamp}"
 
 
 mkdir -p "${resultDir}"
