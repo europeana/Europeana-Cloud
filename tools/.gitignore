@@ -2,3 +2,7 @@
 /.settings
 /.classpath
 /.project
+/performanceTest/*.csv
+/performanceTest/*.log
+/performanceTest/*.html
+/performanceTest/*.jpg

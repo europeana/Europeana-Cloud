@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="2.6" jmeter="2.11 r1554548">
+<jmeterTestPlan version="1.2" properties="2.7" jmeter="2.12 r1636949">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test plan (requires Standard Set of plugins)" enabled="true">
       <stringProp name="TestPlan.comments">Please configure variables below. This test requires Standard Set of plugins from http://jmeter-plugins.org. </stringProp>
@@ -89,12 +89,12 @@
           </elementProp>
           <elementProp name="user" elementType="Argument">
             <stringProp name="Argument.name">user</stringProp>
-            <stringProp name="Argument.value">${__P(user,Cristiano)}</stringProp>
+            <stringProp name="Argument.value">${__P(user,admin)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="password" elementType="Argument">
             <stringProp name="Argument.name">password</stringProp>
-            <stringProp name="Argument.value">${__P(password,Ronaldo)}</stringProp>
+            <stringProp name="Argument.value">${__P(password,admin)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -1797,6 +1797,7 @@
             <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
@@ -1829,6 +1830,7 @@
             <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
@@ -1861,6 +1863,7 @@
             <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
@@ -1893,6 +1896,7 @@
             <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
@@ -2001,6 +2005,7 @@
             <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
