@@ -22,7 +22,7 @@ http://sonar.eanadev.org/job/oncommit-eCloud/MCS_REST_API/
 
 # Usage
 
-## Set-up a provider
+## Setting-up a provider
 
 The `UISClient` must be initialized as the first step.
 
@@ -33,7 +33,7 @@ UISClient uisClient = new UISClient("UIS-url", "username", "password");
 ### Creating a data provider
 
 
-Create `DataProviderProperties` with information about the provider (name, website, etc).
+First create `DataProviderProperties` with information about some provider (name, website, etc).
 
 ```java
 DataProviderProperties providerProperties = new DataProviderProperties("Sveriges nationalbibliotek", "address", "organisationWebsite", "organisationWebsiteURL", "digitalLibraryWebsite", "digitalLibraryURL", "contactPerson", "remarks");
@@ -64,16 +64,16 @@ RecordServiceClient recordClient = new RecordServiceClient("baseUrl", "username"
 FileServiceClient fileClient = new FileServiceClient("baseUrl", "username", "password");
 ```
 
-It is assumed a `Provider` and a `CloudId` are already inserted in the system, as shown in the previous section.
-
 ### Creating a representation  
+
+It is assumed a `Provider` and a `CloudId` are already inserted in the system, as shown in the previous section.
 
 ```java
 // CloudId created in previous step
-URI uriRepr = recordClient.createRepresentation(cloudId.getId(), "edm", "providerId");
+URI reprUri = recordClient.createRepresentation(cloudId.getId(), "edm", "providerId");
 ```
 
-On every call of `createRepresentation()` a new `Representation` is created (without the old ones being removed). The representation can be accessed by the URI returned. 
+On every call of `createRepresentation()` a new `Representation` is created (the old ones still remain alive). The representation can be accessed by the URI returned. 
 
 For example:
 ```java
@@ -109,7 +109,7 @@ String myXml = "<myxml><someElement /></myxml>";
         
 byte[] bytes = myXml.getBytes("UTF-8");
 InputStream contentStream = new ByteArrayInputStream(bytes);
-String mediaType = "text/plain";
+String mediaType = "text/xml";
 
 URI myXmlUri = fileClient.uploadFile(cloudId.getId(), "edm", "b17c4f60-70d0-11e4-8fe1-00163eefc9c8", contentStream, mediaType);
 ```
@@ -162,8 +162,8 @@ For the `FileServiceClient` and `RecordServiceClient`:
 The following details can be used to connect to an eCloud playground environment.
 
 ```java
-String UIS_BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-String MCS_BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-uis-rest-0.3-SNAPSHOT";
+String UIS_BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-uis-rest-0.3-SNAPSHOT";
+String MCS_BASE_URL_ISTI = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
 
 UISClient uisClient = new UISClient(UIS_BASE_URL_ISTI, "Cristiano", "Ronaldo");
 RecordServiceClient recordClient = new RecordServiceClient(MCS_BASE_URL_ISTI, "Cristiano", "Ronaldo");
