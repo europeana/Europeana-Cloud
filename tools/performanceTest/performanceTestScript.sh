@@ -269,14 +269,4 @@ sleep $gangliaDelay
 gangliaDownload;
 fi
 
-#############################
-## Print errors on stdout  ##
-#############################
-
-echo "#############################"
-echo Test cases with errors output:
-cat $resultDir/err*
-
-echo "#############################"
-echo 'There were errors in tests:'
-ls  $resultDir/err* | sed "s/pTest${timestamp}\/err\.(.*)_${timestamp}\.csv/1/p"
+echo "results have timestamp ${timestamp}"
