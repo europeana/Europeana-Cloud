@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RecordNotExistsExceptionMapper;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExistsExceptionMapper;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Date;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -64,15 +63,14 @@ public class RecordsResourceTest extends JerseyTest {
         String globalId = "global1";
         Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, "DC", "1", null, null,
                 "FBC", Lists.newArrayList(new File("dc.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-                        "2013-10-21", 12345L, URI.create("http://examplecloud.eu/records/" + globalId
-                                + "/representations/DC/versions/1/dc.xml"))), false, new Date())));
+                        "2013-10-21", 12345L, URI.create("http://localhost:9998/records/" + globalId
+                                + "/representations/DC/versions/1/files/dc.xml"))), false, new Date())));
         Record expected = new Record(record);
         Representation expectedRepresentation = expected.getRepresentations().get(0);
         // prepare expected representation: 
-        // - erase record id and files
+        // - erase record id 
         // - set URIs
         expectedRepresentation.setCloudId(null);
-        expectedRepresentation.setFiles(Collections.<File> emptyList());
         expectedRepresentation.setAllVersionsUri(URI.create(getBaseUri() + "records/" + globalId
                 + "/representations/DC/versions"));
         expectedRepresentation.setUri(URI.create(getBaseUri() + "records/" + globalId
