@@ -3,6 +3,8 @@
 set -e;
 set -u;
 
+sh ~/performanceTest/checkApps.sh
+
 sh  ~/performanceTest/performanceTestScript.sh localhost 9090 1 1 "-n" 2 2 > ~/performanceTest/results.txt
 
 timestamp=( $(cat ~/performanceTest/results.txt |  sed -nr 's/results have timestamp (.+)/\1/p'))
