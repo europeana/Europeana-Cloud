@@ -63,7 +63,7 @@
 <Environment name="kafka/topic" type="java.lang.String" value="topic"/>
  
 <!-- AAS local specific configuration -->
-<Environment name="aas/cassandra/host" type="java.lang.String" value="localhost"/>
+<Environment name="aas/cassandra/hosts" type="java.lang.String" value="localhost"/>
 <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/>
 <Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas"/>
 <Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas"/>
