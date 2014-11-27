@@ -83,6 +83,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-cassandra-connector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>${commons-logging.version}</version>

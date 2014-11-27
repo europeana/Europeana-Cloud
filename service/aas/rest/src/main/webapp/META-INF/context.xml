@@ -51,8 +51,8 @@
     <!-- AAS -->
     
     <ResourceLink
-        name="aas/cassandra/host"
-        global="aas/cassandra/host"
+        name="aas/cassandra/hosts"
+        global="aas/cassandra/hosts"
         type="java.lang.String"/>
     
     <ResourceLink 

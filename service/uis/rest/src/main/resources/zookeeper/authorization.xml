@@ -46,24 +46,14 @@
         <constructor-arg name="initSchema" value="true" />
     </bean>
 
-    <bean id="cassandraProvider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
-        <constructor-arg name="host" value="${aas.cassandra.host}" />
+    <bean id="cassandraProvider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="${aas.cassandra.host}" />
         <constructor-arg name="port" value="${aas.cassandra.port}" />
 
         <constructor-arg name="keyspaceName" value="${aas.cassandra.authorization-keyspace}" />
 
         <constructor-arg name="username" value="${aas.cassandra.user}" />
         <constructor-arg name="password" value="${aas.cassandra.password}" />
-
-		<!--   
-		<constructor-arg name="host" value="localhost" />
-        <constructor-arg name="port" value="9042" />
-
-        <constructor-arg name="keyspaceName" value="ecloud_aas" />
-
-        <constructor-arg name="username" value="" />
-        <constructor-arg name="password" value="" />     
-        -->
     </bean>
 
     <bean id="permissionGrantingStrategy"

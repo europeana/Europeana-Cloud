@@ -20,7 +20,7 @@
             class="eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler" />
 
     <b:bean id="cloudSecurityFailureHandler"
-                class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
+            class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 
     <http entry-point-ref="cloudAuthenticationEntryPoint" use-expressions="true" create-session="stateless">
         <http-basic />
@@ -50,21 +50,9 @@
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
-    <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
-        <!--
-        <b:constructor-arg name="host" value="localhost" />
-        <b:constructor-arg name="port" value="9042" />
-
-        <b:constructor-arg name="keyspaceName" value="ecloud_uis" />
-
-        <b:constructor-arg name="username" value="" />
-        <b:constructor-arg name="password" value="" />
-        
-        <b:constructor-arg name="create" value="false" />
-        -->
-        
-        <b:constructor-arg name="host">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
+    <b:bean id="provider"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <b:constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/hosts"/>
         </b:constructor-arg>
         <b:constructor-arg name="port">
             <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
@@ -72,14 +60,11 @@
         <b:constructor-arg name="keyspaceName">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authentication-keyspace"/>
         </b:constructor-arg>
-        <b:constructor-arg name="username">
+        <b:constructor-arg name="userName">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
         </b:constructor-arg>
         <b:constructor-arg name="password">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="create">
-            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/aas/cassandra/autoCreateTables"/>
         </b:constructor-arg>
     </b:bean>
 	

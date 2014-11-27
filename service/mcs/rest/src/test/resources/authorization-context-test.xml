@@ -18,33 +18,33 @@
         <constructor-arg ref="permissionFactory" />
     </bean>
 
-    <bean id="provider" class="eu.europeana.aas.acl.repository.CassandraConnectionProvider">
-        <constructor-arg name="host" value="localhost" />
+    <bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="localhost" />
         <constructor-arg name="port" value="19142" />
         <constructor-arg name="keyspaceName" value="ecloud_aas_tests" />
-        <constructor-arg name="username" value="" />
+        <constructor-arg name="userName" value="" />
         <constructor-arg name="password" value="" />
     </bean>
     
     <bean id="aclRepository"
-              class="eu.europeana.aas.acl.repository.CassandraAclRepository">
+          class="eu.europeana.aas.acl.repository.CassandraAclRepository">
         <constructor-arg ref="provider" />
         <constructor-arg name="initSchema" value="true" />
     </bean>
 
     <bean id="permissionGrantingStrategy"
-              class="org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy">
+          class="org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy">
         <constructor-arg>
             <bean id="auditLogger"
-                              class="org.springframework.security.acls.domain.ConsoleAuditLogger" />
+                  class="org.springframework.security.acls.domain.ConsoleAuditLogger" />
         </constructor-arg>
     </bean>
 
     <bean id="permissionFactory"
-              class="org.springframework.security.acls.domain.DefaultPermissionFactory" />
+          class="org.springframework.security.acls.domain.DefaultPermissionFactory" />
 
     <bean id="authorizationStrategy"
-              class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
+          class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
         <constructor-arg>
             <array>
                 <bean
@@ -78,7 +78,7 @@
     </bean>
 
     <bean id="permissionEvaluator"
-              class="org.springframework.security.acls.AclPermissionEvaluator">
+          class="org.springframework.security.acls.AclPermissionEvaluator">
         <constructor-arg ref="aclService" />
     </bean>
     

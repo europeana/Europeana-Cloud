@@ -50,10 +50,10 @@
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
-    <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider"
+    <b:bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider"
     	depends-on="configurationLoader">
     	
-        <b:constructor-arg name="host" value="${aas.cassandra.host}" />
+        <b:constructor-arg name="hosts" value="${aas.cassandra.host}" />
         <b:constructor-arg name="port" value="${aas.cassandra.port}" />
 
         <b:constructor-arg name="keyspaceName" value="${aas.cassandra.authentication-keyspace}" />
@@ -61,28 +61,6 @@
         <b:constructor-arg name="username" value="${aas.cassandra.user}" />
         <b:constructor-arg name="password" value="${aas.cassandra.password}" />
         
-        <b:constructor-arg name="create" value="${aas.cassandra.autoCreateTables}" />
-        
-        <!--
-        <b:constructor-arg name="host">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/host"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="port">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="keyspaceName">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authentication-keyspace"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="username">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="password">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
-        </b:constructor-arg>
-        <b:constructor-arg name="create">
-            <jee:jndi-lookup expected-type="java.lang.Boolean" jndi-name="java:comp/env/aas/cassandra/autoCreateTables"/>
-        </b:constructor-arg>
-        -->
     </b:bean>
 	
     <b:bean id="userDAO" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">
