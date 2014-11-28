@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.UserExistsExcepti
 import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
+import org.junit.After;
 
 /**
  * Authentication Service Unit tests
@@ -39,12 +40,19 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
      */
     @Before
     public void prepare() {
+	createKeyspaces();
 	@SuppressWarnings("resource")
 	ApplicationContext context = new ClassPathXmlApplicationContext(
 		"default-context.xml");
 	provider = (CassandraConnectionProvider) context.getBean("provider");
 	service = (CassandraAuthenticationService) context.getBean("service");
 	dao = (CassandraUserDAO) context.getBean("dao");
+
+    }
+
+    @After
+    public void clean() {
+	dropAllKeyspaces();
     }
 
     /**

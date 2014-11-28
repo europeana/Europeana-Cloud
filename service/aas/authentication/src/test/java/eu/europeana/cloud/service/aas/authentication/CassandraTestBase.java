@@ -19,7 +19,8 @@ import com.datastax.driver.core.Session;
  */
 public abstract class CassandraTestBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestBase.class);
+    private static final Logger LOGGER = LoggerFactory
+	    .getLogger(CassandraTestBase.class);
 
     private static boolean serverRunning = false;
 
@@ -50,62 +51,56 @@ public abstract class CassandraTestBase {
      * Creates a new instance of this class.
      */
     public CassandraTestBase() {
-        synchronized (CassandraTestBase.class) {
-            if (!serverRunning) {
-                try {
-                    LOGGER.info("Starting embedded Cassandra...");
-                    EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
-                    try {
-                        Thread.sleep(10000l);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException("Caused by InterruptedException", e);
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Cannot start embedded Cassandra!", e);
-                    throw new RuntimeException("Cannot start embedded Cassandra!", e);
-                }
-                cluster = Cluster.builder().addContactPoint("localhost").withPort(PORT).build();
-                try {
-                    LOGGER.info("Initializing keyspace...");
-                    initKeyspace();
-                } catch (IOException e) {
-                    LOGGER.error("Cannot initialize keyspace!", e);
-                    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-                    throw new RuntimeException("Cannot initialize keyspace!", e);
-                }
-
-                serverRunning = true;
-
-            }
-        }
+	synchronized (CassandraTestBase.class) {
+	    if (!serverRunning) {
+		try {
+		    LOGGER.info("Starting embedded Cassandra...");
+		    EmbeddedCassandraServerHelper
+			    .startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
+		    try {
+			Thread.sleep(10000l);
+		    } catch (InterruptedException e) {
+			throw new RuntimeException(
+				"Caused by InterruptedException", e);
+		    }
+		} catch (Exception e) {
+		    LOGGER.error("Cannot start embedded Cassandra!", e);
+		    throw new RuntimeException(
+			    "Cannot start embedded Cassandra!", e);
+		}
+		cluster = Cluster.builder().addContactPoint("localhost")
+			.withPort(PORT).build();
+		createKeyspaces();
+		serverRunning = true;
+	    }
+	}
     }
 
     /**
      * @return The session to connect
      */
     protected Session getSession() {
-        return cluster.connect(KEYSPACE);
+	return cluster.connect(KEYSPACE);
+    }
+
+    public void createKeyspaces() {
+	try {
+	    LOGGER.info("Initializing keyspaces...");
+	    initKeyspace();
+	} catch (IOException e) {
+	    LOGGER.error("Cannot Initialize keyspaces!", e);
+	    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+	    throw new RuntimeException("Cannot Initialize keyspaces!", e);
+	}
+    }
+
+    public void dropAllKeyspaces() {
+	LOGGER.info("Drop all keyspaces...");
+	EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
     private void initKeyspace() throws IOException {
-        CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
-        dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
-    }
-
-    /**
-     * Truncate the tables
-     */
-    @After
-    public void truncateAll() {
-        LOGGER.info("Truncating all tables");
-        Session session = getSession();
-        ResultSet rs = session
-                .execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" + KEYSPACE
-                        + "';");
-        for (Row r : rs.all()) {
-            String tableName = r.getString("columnfamily_name");
-            LOGGER.info("Truncating table: " + tableName);
-            session.execute("TRUNCATE " + tableName);
-        }
+	CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
+	dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
     }
 }

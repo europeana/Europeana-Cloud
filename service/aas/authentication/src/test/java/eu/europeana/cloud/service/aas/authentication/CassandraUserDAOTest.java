@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
+import org.junit.After;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:/default-context.xml" })
@@ -30,11 +31,19 @@ public class CassandraUserDAOTest extends CassandraTestBase {
      */
     @Before
     public void prepare() {
+	createKeyspaces();
 	@SuppressWarnings("resource")
 	ApplicationContext context = new ClassPathXmlApplicationContext(
 		"default-context.xml");
+
 	provider = (CassandraConnectionProvider) context.getBean("provider");
 	dao = (CassandraUserDAO) context.getBean("dao");
+
+    }
+
+    @After
+    public void clean() {
+	dropAllKeyspaces();
     }
 
     @Test
