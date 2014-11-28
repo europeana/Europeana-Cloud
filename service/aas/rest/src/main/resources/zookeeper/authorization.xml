@@ -43,7 +43,7 @@
     <bean id="aclRepository"
           class="eu.europeana.aas.acl.repository.CassandraAclRepository">
         <constructor-arg ref="cassandraProvider" />
-        <constructor-arg name="initSchema" value="true" />
+        <constructor-arg name="initSchema" value="false" />
     </bean>
 
     <bean id="cassandraProvider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">

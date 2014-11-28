@@ -50,7 +50,7 @@
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
-    <b:bean id="provider"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+  <b:bean id="provider"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <b:constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/hosts"/>
         </b:constructor-arg>

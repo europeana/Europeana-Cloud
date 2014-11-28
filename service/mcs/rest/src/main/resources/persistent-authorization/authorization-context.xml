@@ -32,7 +32,23 @@
     <!-- -->
     <!-- ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= -->
     <!-- -->
-
+ <bean id="provider1"  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/hosts"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/aas/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/authorization-keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="userName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/aas/cassandra/password"/>
+        </constructor-arg>
+    </bean>
     <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
         <constructor-arg name="aclCache">
@@ -45,8 +61,8 @@
 
     <bean id="aclRepository"
           class="eu.europeana.aas.acl.repository.CassandraAclRepository">
-        <constructor-arg ref="provider" />
-        <constructor-arg name="initSchema" value="true" />
+        <constructor-arg ref="provider1" />
+        <constructor-arg name="initSchema" value="false" />
     </bean>
 
     <bean id="permissionGrantingStrategy"
