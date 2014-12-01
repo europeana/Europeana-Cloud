@@ -38,99 +38,119 @@ import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 /**
  * Implementation of <code>AclRepository</code> using the DataStax Java Driver.
- *
+ * 
  * @author Rigas Grigoropoulos
  * @author Markus.Muhr@theeuropeanlibrary.org
  */
 public final class CassandraAclRepository implements AclRepository {
 
-    private static final Log LOG = LogFactory.getLog(CassandraAclRepository.class);
+    private static final Log LOG = LogFactory
+	    .getLog(CassandraAclRepository.class);
 
     private static final String AOI_TABLE = "aois";
     private static final String CHILDREN_TABLE = "children";
     private static final String ACL_TABLE = "acls";
 
-    private static final String[] AOI_KEYS = new String[]{"id", "objId", "objClass", "isInheriting", "owner", "isOwnerPrincipal", "parentObjId", "parentObjClass"};
-    private static final String[] CHILD_KEYS = new String[]{"id", "childId", "objId", "objClass"};
-    private static final String[] ACL_KEYS = new String[]{"id", "aclOrder", "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess", "isAuditFailure"};
+    private static final String[] AOI_KEYS = new String[] { "id", "objId",
+	    "objClass", "isInheriting", "owner", "isOwnerPrincipal",
+	    "parentObjId", "parentObjClass" };
+    private static final String[] CHILD_KEYS = new String[] { "id", "childId",
+	    "objId", "objClass" };
+    private static final String[] ACL_KEYS = new String[] { "id", "aclOrder",
+	    "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess",
+	    "isAuditFailure" };
 
-//    private String replicationStrategy = "SimpleStrategy";
-//    private int replicationFactor = 3;
+    // private String replicationStrategy = "SimpleStrategy";
+    // private int replicationFactor = 3;
     private final Session session;
     private final String keyspace;
 
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code>.
-     *
-     * @param provider providing the <code>Session</code> to use for
-     * connectivity with Cassandra.
-     * @param initSchema whether the keyspace and schema for storing ACLs should
-     * // * be created.
+     * 
+     * @param provider
+     *            providing the <code>Session</code> to use for connectivity
+     *            with Cassandra.
+     * @param initSchema
+     *            whether the keyspace and schema for storing ACLs should // *
+     *            be created.
      */
-    public CassandraAclRepository(CassandraConnectionProvider provider, boolean initSchema) {
-        this(provider.getSession(), provider.getKeyspaceName(), initSchema);
+    public CassandraAclRepository(CassandraConnectionProvider provider,
+	    boolean initSchema) {
+	this(provider.getSession(), provider.getKeyspaceName(), initSchema);
     }
 
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code>.
-     *
-     * @param session the <code>Session</code> to use for connectivity with
-     * Cassandra.
-     * @param keyspace whether the keyspace and schema for storing ACLs should
-     * be created.
+     * 
+     * @param session
+     *            the <code>Session</code> to use for connectivity with
+     *            Cassandra.
+     * @param keyspace
+     *            whether the keyspace and schema for storing ACLs should be
+     *            created.
      */
     public CassandraAclRepository(Session session, String keyspace) {
-        this.session = session;
-        this.keyspace = keyspace;
+	this.session = session;
+	this.keyspace = keyspace;
     }
 
-//    /**
-//     * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
-//     * creates the Cassandra keyspace and schema for storing ACLs.
-//     *
-//     * @param session the <code>Session</code> to use for connectivity with
-//     * Cassandra.
-//     * @param initSchema whether the keyspace and schema for storing ACLs should
-//     * be created.
-//     * @param replicationStrategy the replication strategy to use when creating
-//     * the keyspace.
-//     * @param replicationFactor the replication factor to use when creating the
-//     * keyspace.
-//     */
-//    public CassandraAclRepository(Session session, String keyspace, boolean initSchema, String replicationStrategy, int replicationFactor) {
-//        this(session, keyspace);
-//        if (initSchema) {
-////            this.replicationFactor = replicationFactor;
-////            this.replicationStrategy = replicationStrategy;
-//
-////            createkeyspace();
-//            createAoisTable();
-//            createChilrenTable();
-//            createAclsTable();
-//        }
-//    }
+    // /**
+    // * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
+    // * creates the Cassandra keyspace and schema for storing ACLs.
+    // *
+    // * @param session the <code>Session</code> to use for connectivity with
+    // * Cassandra.
+    // * @param initSchema whether the keyspace and schema for storing ACLs
+    // should
+    // * be created.
+    // * @param replicationStrategy the replication strategy to use when
+    // creating
+    // * the keyspace.
+    // * @param replicationFactor the replication factor to use when creating
+    // the
+    // * keyspace.
+    // */
+    // public CassandraAclRepository(Session session, String keyspace, boolean
+    // initSchema, String replicationStrategy, int replicationFactor) {
+    // this(session, keyspace);
+    // if (initSchema) {
+    // // this.replicationFactor = replicationFactor;
+    // // this.replicationStrategy = replicationStrategy;
+    //
+    // // createkeyspace();
+    // createAoisTable();
+    // createChilrenTable();
+    // createAclsTable();
+    // }
+    // }
     /**
      * Constructs a new <code>CassandraAclRepositoryImpl</code> and optionally
      * creates the Cassandra keyspace and schema for storing ACLs.
-     *
-     * @param session the <code>Session</code> to use for connectivity with
-     * Cassandra.
-     * @param keyspace whether the keyspace and schema for storing ACLs should
-     * be created.
-     * @param initSchema whether the keyspace and schema for storing ACLs should
-     * be created.
+     * 
+     * @param session
+     *            the <code>Session</code> to use for connectivity with
+     *            Cassandra.
+     * @param keyspace
+     *            whether the keyspace and schema for storing ACLs should be
+     *            created.
+     * @param initSchema
+     *            whether the keyspace and schema for storing ACLs should be
+     *            created.
      */
-    public CassandraAclRepository(Session session, String keyspace, boolean initSchema) {
-        this(session, keyspace);
-        if (initSchema) {
-//            createkeyspace();
-            createAoisTable();
-            createChilrenTable();
-            createAclsTable();
-        }
+    public CassandraAclRepository(Session session, String keyspace,
+	    boolean initSchema) {
+	this(session, keyspace);
+	if (initSchema) {
+	    // createkeyspace();
+	    createAoisTable();
+	    createChilrenTable();
+	    createAclsTable();
+	}
     }
 
     @Override
@@ -147,7 +167,8 @@ public final class CassandraAclRepository implements AclRepository {
             ids.add(entry.getRowId());
         }
 
-        ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE).where(QueryBuilder.in("id", ids.toArray())));
+        ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE)
+                .where(QueryBuilder.in("id", ids.toArray())));
         for (Row row : resultSet.all()) {
             resultMap.put(convertToAclObjectIdentity(row, true), new TreeSet<>(new Comparator<AclEntry>() {
 
@@ -158,7 +179,8 @@ public final class CassandraAclRepository implements AclRepository {
             }));
         }
 
-        resultSet = session.execute(QueryBuilder.select().all().from(keyspace, ACL_TABLE).where(QueryBuilder.in("id", ids.toArray())));
+        resultSet = session.execute(QueryBuilder.select().all().from(keyspace, ACL_TABLE)
+                .where(QueryBuilder.in("id", ids.toArray())));
         for (Row row : resultSet.all()) {
             String aoiId = row.getString("id");
 
@@ -188,19 +210,24 @@ public final class CassandraAclRepository implements AclRepository {
 
     @Override
     public AclObjectIdentity findAclObjectIdentity(AclObjectIdentity objectId) {
-        assertAclObjectIdentity(objectId);
+	assertAclObjectIdentity(objectId);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("BEGIN findAclObjectIdentity: objectIdentity: " + objectId);
-        }
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("BEGIN findAclObjectIdentity: objectIdentity: "
+		    + objectId);
+	}
 
-        Row row = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE).where(QueryBuilder.eq("id", objectId.getRowId()))).one();
-        AclObjectIdentity objectIdentity = convertToAclObjectIdentity(row, true);
+	Row row = session.execute(
+		QueryBuilder.select().all().from(keyspace, AOI_TABLE)
+			.where(QueryBuilder.eq("id", objectId.getRowId())))
+		.one();
+	AclObjectIdentity objectIdentity = convertToAclObjectIdentity(row, true);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("END findAclObjectIdentity: objectIdentity: " + objectIdentity);
-        }
-        return objectIdentity;
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("END findAclObjectIdentity: objectIdentity: "
+		    + objectIdentity);
+	}
+	return objectIdentity;
     }
 
     @Override
@@ -238,7 +265,8 @@ public final class CassandraAclRepository implements AclRepository {
         }
         Batch batch = QueryBuilder.batch();
         batch.add(QueryBuilder.delete().all().from(keyspace, AOI_TABLE).where(QueryBuilder.in("id", ids.toArray())));
-        batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE).where(QueryBuilder.in("id", ids.toArray())));
+        batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE)
+                .where(QueryBuilder.in("id", ids.toArray())));
         session.execute(batch);
 
         if (LOG.isDebugEnabled()) {
@@ -248,139 +276,178 @@ public final class CassandraAclRepository implements AclRepository {
 
     @Override
     public void saveAcl(AclObjectIdentity aoi) throws AclAlreadyExistsException {
-        assertAclObjectIdentity(aoi);
+	assertAclObjectIdentity(aoi);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("BEGIN saveAcl: aclObjectIdentity: " + aoi);
-        }
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("BEGIN saveAcl: aclObjectIdentity: " + aoi);
+	}
 
-        // Check this object identity hasn't already been persisted
-        if (findAclObjectIdentity(aoi) != null) {
-            throw new AclAlreadyExistsException("Object identity '" + aoi + "' already exists");
-        }
+	// Check this object identity hasn't already been persisted
+	if (findAclObjectIdentity(aoi) != null) {
+	    throw new AclAlreadyExistsException("Object identity '" + aoi
+		    + "' already exists");
+	}
 
-        Batch batch = QueryBuilder.batch();
-        batch.add(QueryBuilder.insertInto(keyspace, AOI_TABLE).values(AOI_KEYS, new Object[]{aoi.getRowId(), aoi.getId(), aoi.getObjectClass(), aoi.isEntriesInheriting(),
-            aoi.getOwnerId(), aoi.isOwnerPrincipal(), aoi.getParentObjectId(), aoi.getParentObjectClass()}));
+	Batch batch = QueryBuilder.batch();
+	batch.add(QueryBuilder.insertInto(keyspace, AOI_TABLE).values(
+		AOI_KEYS,
+		new Object[] { aoi.getRowId(), aoi.getId(),
+			aoi.getObjectClass(), aoi.isEntriesInheriting(),
+			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
+			aoi.getParentObjectId(), aoi.getParentObjectClass() }));
 
-        if (aoi.getParentRowId() != null) {
-            batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(CHILD_KEYS, new Object[]{aoi.getParentRowId(), aoi.getRowId(), aoi.getId(), aoi.getObjectClass()}));
-        }
-        session.execute(batch);
+	if (aoi.getParentRowId() != null) {
+	    batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(
+		    CHILD_KEYS,
+		    new Object[] { aoi.getParentRowId(), aoi.getRowId(),
+			    aoi.getId(), aoi.getObjectClass() }));
+	}
+	session.execute(batch);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("END saveAcl");
-        }
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("END saveAcl");
+	}
     }
 
     @Override
-    public void updateAcl(AclObjectIdentity aoi, List<AclEntry> entries) throws AclNotFoundException {
-        assertAclObjectIdentity(aoi);
+    public void updateAcl(AclObjectIdentity aoi, List<AclEntry> entries)
+	    throws AclNotFoundException {
+	assertAclObjectIdentity(aoi);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("BEGIN updateAcl: aclObjectIdentity: " + aoi + ", entries: " + entries);
-        }
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("BEGIN updateAcl: aclObjectIdentity: " + aoi
+		    + ", entries: " + entries);
+	}
 
-        // Check this object identity is already persisted
-        AclObjectIdentity persistedAoi = findAclObjectIdentity(aoi);
-        if (persistedAoi == null) {
-            throw new AclNotFoundException("Object identity '" + aoi + "' does not exist");
-        }
+	// Check this object identity is already persisted
+	AclObjectIdentity persistedAoi = findAclObjectIdentity(aoi);
+	if (persistedAoi == null) {
+	    throw new AclNotFoundException("Object identity '" + aoi
+		    + "' does not exist");
+	}
 
-        // Update AOI & delete existing ACLs
-        Batch batch = QueryBuilder.batch();
-        batch.add(QueryBuilder.insertInto(keyspace, AOI_TABLE).values(AOI_KEYS, new Object[]{aoi.getRowId(), aoi.getId(), aoi.getObjectClass(), aoi.isEntriesInheriting(),
-            aoi.getOwnerId(), aoi.isOwnerPrincipal(), aoi.getParentObjectId(), aoi.getParentObjectClass()}));
-        batch.add(QueryBuilder.delete().all().from(keyspace, ACL_TABLE).where(QueryBuilder.eq("id", aoi.getRowId())));
+	// Update AOI & delete existing ACLs
+	Batch batch = QueryBuilder.batch();
+	batch.add(QueryBuilder.insertInto(keyspace, AOI_TABLE).values(
+		AOI_KEYS,
+		new Object[] { aoi.getRowId(), aoi.getId(),
+			aoi.getObjectClass(), aoi.isEntriesInheriting(),
+			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
+			aoi.getParentObjectId(), aoi.getParentObjectClass() }));
+	batch.add(QueryBuilder.delete().all().from(keyspace, ACL_TABLE)
+		.where(QueryBuilder.eq("id", aoi.getRowId())));
 
-        // Check if parent is different and delete from children table
-        boolean parentChanged = false;
-        if (!(persistedAoi.getParentRowId() == null ? aoi.getParentRowId() == null : persistedAoi.getParentRowId().equals(aoi.getParentRowId()))) {
-            parentChanged = true;
+	// Check if parent is different and delete from children table
+	boolean parentChanged = false;
+	if (!(persistedAoi.getParentRowId() == null ? aoi.getParentRowId() == null
+		: persistedAoi.getParentRowId().equals(aoi.getParentRowId()))) {
+	    parentChanged = true;
 
-            if (persistedAoi.getParentRowId() != null) {
-                batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE).where(QueryBuilder.eq("id", persistedAoi.getParentRowId())).and(QueryBuilder.eq("childId", aoi.getRowId())));
-            }
-        }
-        session.execute(batch);
+	    if (persistedAoi.getParentRowId() != null) {
+		batch.add(QueryBuilder
+			.delete()
+			.all()
+			.from(keyspace, CHILDREN_TABLE)
+			.where(QueryBuilder.eq("id",
+				persistedAoi.getParentRowId()))
+			.and(QueryBuilder.eq("childId", aoi.getRowId())));
+	    }
+	}
+	session.execute(batch);
 
-        // Update ACLs & children table	
-        batch = QueryBuilder.batch();
-        boolean executeBatch = false;
+	// Update ACLs & children table
+	batch = QueryBuilder.batch();
+	boolean executeBatch = false;
 
-        if (entries != null && !entries.isEmpty()) {
-            for (AclEntry entry : entries) {
-                batch.add(QueryBuilder.insertInto(keyspace, ACL_TABLE).values(ACL_KEYS, new Object[]{aoi.getRowId(), entry.getOrder(), entry.getSid(), entry.getMask(), entry.isSidPrincipal(),
-                    entry.isGranting(), entry.isAuditSuccess(), entry.isAuditFailure()}));
-            }
-            executeBatch = true;
-        }
-        if (parentChanged) {
-            if (aoi.getParentRowId() != null) {
-                batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(CHILD_KEYS, new Object[]{aoi.getParentRowId(), aoi.getRowId(), aoi.getId(), aoi.getObjectClass()}));
-            }
-            executeBatch = true;
-        }
-        if (executeBatch) {
-            session.execute(batch);
-        }
+	if (entries != null && !entries.isEmpty()) {
+	    for (AclEntry entry : entries) {
+		batch.add(QueryBuilder.insertInto(keyspace, ACL_TABLE)
+			.values(ACL_KEYS,
+				new Object[] { aoi.getRowId(),
+					entry.getOrder(), entry.getSid(),
+					entry.getMask(),
+					entry.isSidPrincipal(),
+					entry.isGranting(),
+					entry.isAuditSuccess(),
+					entry.isAuditFailure() }));
+	    }
+	    executeBatch = true;
+	}
+	if (parentChanged) {
+	    if (aoi.getParentRowId() != null) {
+		batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE)
+			.values(CHILD_KEYS,
+				new Object[] { aoi.getParentRowId(),
+					aoi.getRowId(), aoi.getId(),
+					aoi.getObjectClass() }));
+	    }
+	    executeBatch = true;
+	}
+	if (executeBatch) {
+	    session.execute(batch);
+	}
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("END updateAcl");
-        }
+	if (LOG.isDebugEnabled()) {
+	    LOG.debug("END updateAcl");
+	}
     }
 
     /**
      * Validates all <code>AclObjectIdentity</code> objects in the list.
-     *
-     * @param aoiList a list of <code>AclObjectIdentity</code> objects to
-     * validate.
+     * 
+     * @param aoiList
+     *            a list of <code>AclObjectIdentity</code> objects to validate.
      */
     private void assertAclObjectIdentityList(List<AclObjectIdentity> aoiList) {
-        Assert.notEmpty(aoiList, "The AclObjectIdentity list cannot be empty");
-        for (AclObjectIdentity aoi : aoiList) {
-            assertAclObjectIdentity(aoi);
-        }
+	Assert.notEmpty(aoiList, "The AclObjectIdentity list cannot be empty");
+	for (AclObjectIdentity aoi : aoiList) {
+	    assertAclObjectIdentity(aoi);
+	}
     }
 
     /**
      * Validates an <code>AclObjectIdentity</code> object.
-     *
-     * @param aoi the <code>AclObjectIdentity</code> object to validate.
+     * 
+     * @param aoi
+     *            the <code>AclObjectIdentity</code> object to validate.
      */
     private void assertAclObjectIdentity(AclObjectIdentity aoi) {
-        Assert.notNull(aoi, "The AclObjectIdentity cannot be null");
-        Assert.notNull(aoi.getId(), "The AclObjectIdentity id cannot be null");
-        Assert.notNull(aoi.getObjectClass(), "The AclObjectIdentity objectClass cannot be null");
+	Assert.notNull(aoi, "The AclObjectIdentity cannot be null");
+	Assert.notNull(aoi.getId(), "The AclObjectIdentity id cannot be null");
+	Assert.notNull(aoi.getObjectClass(),
+		"The AclObjectIdentity objectClass cannot be null");
     }
 
     /**
      * Converts a <code>Row</code> from a Cassandra result to an
      * <code>AclObjectIdentity</code> object.
-     *
-     * @param row the <code>Row</code> representing an
-     * <code>AclObjectIdentity</code>.
-     * @param fullObject whether the returned <code>AclObjectIdentity</code>
-     * object will contain only identification parameters or will be fully
-     * populated.
+     * 
+     * @param row
+     *            the <code>Row</code> representing an
+     *            <code>AclObjectIdentity</code>.
+     * @param fullObject
+     *            whether the returned <code>AclObjectIdentity</code> object
+     *            will contain only identification parameters or will be fully
+     *            populated.
      * @return an <code>AclObjectIdentity</code> object with the values
-     * retrieved from Cassandra.
+     *         retrieved from Cassandra.
      */
-    private AclObjectIdentity convertToAclObjectIdentity(Row row, boolean fullObject) {
-        AclObjectIdentity result = null;
-        if (row != null) {
-            result = new AclObjectIdentity();
-            result.setId(row.getString("objId"));
-            result.setObjectClass(row.getString("objClass"));
-            if (fullObject) {
-                result.setOwnerId(row.getString("owner"));
-                result.setEntriesInheriting(row.getBool("isInheriting"));
-                result.setOwnerPrincipal(row.getBool("isOwnerPrincipal"));
-                result.setParentObjectClass(row.getString("parentObjClass"));
-                result.setParentObjectId(row.getString("parentObjId"));
-            }
-        }
-        return result;
+    private AclObjectIdentity convertToAclObjectIdentity(Row row,
+	    boolean fullObject) {
+	AclObjectIdentity result = null;
+	if (row != null) {
+	    result = new AclObjectIdentity();
+	    result.setId(row.getString("objId"));
+	    result.setObjectClass(row.getString("objClass"));
+	    if (fullObject) {
+		result.setOwnerId(row.getString("owner"));
+		result.setEntriesInheriting(row.getBool("isInheriting"));
+		result.setOwnerPrincipal(row.getBool("isOwnerPrincipal"));
+		result.setParentObjectClass(row.getString("parentObjClass"));
+		result.setParentObjectId(row.getString("parentObjId"));
+	    }
+	}
+	return result;
     }
 
     /**
@@ -388,21 +455,16 @@ public final class CassandraAclRepository implements AclRepository {
      * representations.
      */
     public void createAoisTable() {
-        try {
-//            session.execute("CREATE TABLE " + keyspace + ".aois ("
-            session.execute("CREATE TABLE aois ("
-                    + "id varchar PRIMARY KEY,"
-                    + "objId varchar,"
-                    + "objClass varchar,"
-                    + "isInheriting boolean,"
-                    + "owner varchar,"
-                    + "isOwnerPrincipal boolean,"
-                    + "parentObjId varchar,"
-                    + "parentObjClass varchar"
-                    + ");");
-        } catch (AlreadyExistsException e) {
-            LOG.warn(e);
-        }
+	try {
+	    // session.execute("CREATE TABLE " + keyspace + ".aois ("
+	    session.execute("CREATE TABLE aois (" + "id varchar PRIMARY KEY,"
+		    + "objId varchar," + "objClass varchar,"
+		    + "isInheriting boolean," + "owner varchar,"
+		    + "isOwnerPrincipal boolean," + "parentObjId varchar,"
+		    + "parentObjClass varchar" + ");");
+	} catch (AlreadyExistsException e) {
+	    LOG.warn(e);
+	}
     }
 
     /**
@@ -410,18 +472,14 @@ public final class CassandraAclRepository implements AclRepository {
      * children.
      */
     public void createChilrenTable() {
-        try {            
-//            session.execute("CREATE TABLE " + keyspace + ".children ("
-            session.execute("CREATE TABLE children ("
-                    + "id varchar,"
-                    + "childId varchar,"
-                    + "objId varchar,"
-                    + "objClass varchar,"
-                    + "PRIMARY KEY (id, childId)"
-                    + ");");
-        } catch (AlreadyExistsException e) {
-            LOG.warn(e);
-        }
+	try {
+	    // session.execute("CREATE TABLE " + keyspace + ".children ("
+	    session.execute("CREATE TABLE children (" + "id varchar,"
+		    + "childId varchar," + "objId varchar,"
+		    + "objClass varchar," + "PRIMARY KEY (id, childId)" + ");");
+	} catch (AlreadyExistsException e) {
+	    LOG.warn(e);
+	}
     }
 
     /**
@@ -429,36 +487,31 @@ public final class CassandraAclRepository implements AclRepository {
      * representations.
      */
     public void createAclsTable() {
-        try {
-//            session.execute("CREATE TABLE " + keyspace + ".acls ("
-            session.execute("CREATE TABLE acls ("
-                    + "id varchar,"
-                    + "sid varchar,"
-                    + "aclOrder int,"
-                    + "mask int,"
-                    + "isSidPrincipal boolean,"
-                    + "isGranting boolean,"
-                    + "isAuditSuccess boolean,"
-                    + "isAuditFailure boolean,"
-                    + "PRIMARY KEY (id, sid, aclOrder)"
-                    + ");");
-        } catch (AlreadyExistsException e) {
-            LOG.warn(e);
-        }
+	try {
+	    // session.execute("CREATE TABLE " + keyspace + ".acls ("
+	    session.execute("CREATE TABLE acls (" + "id varchar,"
+		    + "sid varchar," + "aclOrder int," + "mask int,"
+		    + "isSidPrincipal boolean," + "isGranting boolean,"
+		    + "isAuditSuccess boolean," + "isAuditFailure boolean,"
+		    + "PRIMARY KEY (id, sid, aclOrder)" + ");");
+	} catch (AlreadyExistsException e) {
+	    LOG.warn(e);
+	}
     }
 
-//    /**
-//     * Creates the schema for the 'SpringSecurityAclCassandra' keyspace.
-//     */
-//    public void createkeyspace() {
-//        try {
-//            session.execute("CREATE keyspace " + keyspace
-//                    + " WITH replication " + "= {'class':'" + replicationStrategy + "', 'replication_factor':" + replicationFactor + "};");
-//        } catch (AlreadyExistsException e) {
-//            LOG.warn(e);
-//        }
-//    }
-//    public Session getSession() {
-//        return session;
-//    }
+    // /**
+    // * Creates the schema for the 'SpringSecurityAclCassandra' keyspace.
+    // */
+    // public void createkeyspace() {
+    // try {
+    // session.execute("CREATE keyspace " + keyspace
+    // + " WITH replication " + "= {'class':'" + replicationStrategy +
+    // "', 'replication_factor':" + replicationFactor + "};");
+    // } catch (AlreadyExistsException e) {
+    // LOG.warn(e);
+    // }
+    // }
+    // public Session getSession() {
+    // return session;
+    // }
 }

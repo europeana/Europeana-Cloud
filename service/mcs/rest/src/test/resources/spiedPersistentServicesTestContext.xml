@@ -20,7 +20,7 @@
     <context:annotation-config/>
 
 	<!--connection provider - with options the same as in embedded cassandra-->
-	<bean id="cassandraConnectionProvider"
+	<bean id="dbService"
 		  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts" type="java.lang.String" value="localhost"/>
         <constructor-arg name="port" type="int" value="19142"/>
@@ -46,7 +46,7 @@
     <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
     
     <!--spy on everything-->
-    <mockito:spy beanName="cassandraConnectionProvider"/>
+    <mockito:spy beanName="dbService"/>
     <mockito:spy beanName="dataProviderDAO"/>
     <mockito:spy beanName="cassandraDataSetService"/>
     <mockito:spy beanName="cassandraDataSetDAO"/>

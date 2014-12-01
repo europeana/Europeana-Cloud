@@ -26,6 +26,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as
@@ -38,6 +39,7 @@ public class CassandraRecordDAO {
     private final Gson gson = new Gson();
 
     @Autowired
+    @Qualifier("dbService")
     private CassandraConnectionProvider connectionProvider;
 
     private PreparedStatement insertRepresentationStatement;
@@ -250,7 +252,7 @@ public class CassandraRecordDAO {
 		}
 	    }
 	} catch (RepresentationNotExistsException ex) { // don't rethrow, just
-							// return null
+	    // return null
 	    return null;
 	}
 	return null;

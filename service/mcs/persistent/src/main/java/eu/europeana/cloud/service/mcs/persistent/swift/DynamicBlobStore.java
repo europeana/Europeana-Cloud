@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
 import com.google.common.collect.Iterators;
-import eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,9 +17,6 @@ import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.blobstore.options.PutOptions;
 import org.jclouds.domain.Location;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Manage switching between many jClouds {@link BlobStore}.
@@ -65,7 +61,6 @@ public class DynamicBlobStore implements DBlobStore {
     public void setBlobStores(List<BlobStore> blobStores) {
 	this.blobStores = blobStores;
 	blobIterator = Iterators.cycle(blobStores);
-	// @TODO zookeeper
     }
 
     /**
@@ -79,7 +74,10 @@ public class DynamicBlobStore implements DBlobStore {
      * {@inheritDoc }
      */
     public void switchInstance() {
-	activeInstance = blobIterator.next();
+	synchronized (blobIterator) {
+	    activeInstance = blobIterator.next();
+	}
+
     }
 
     private BlobStore getActiveInstance() {

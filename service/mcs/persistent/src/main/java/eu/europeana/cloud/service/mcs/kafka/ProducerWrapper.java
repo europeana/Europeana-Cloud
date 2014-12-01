@@ -59,4 +59,5 @@ public class ProducerWrapper {
 		Integer.toString(partitionRoutingKey), payload);
 	kafkaProducer.send(message);
     }
+
 }

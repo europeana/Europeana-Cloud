@@ -50,28 +50,14 @@
     <!-- -->
     <!-- ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= -->
     <!-- -->
-    <b:bean id="provider" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraConnectionProvider">
-        <!--
-        <b:constructor-arg name="host" value="localhost" />
-        <b:constructor-arg name="port" value="9042" />
-
-        <b:constructor-arg name="keyspaceName" value="ecloud_uis" />
-
-        <b:constructor-arg name="username" value="" />
-        <b:constructor-arg name="password" value="" />
-        
-        <b:constructor-arg name="create" value="false" />
-        -->
-        
-        <b:constructor-arg name="host" value="${aas.cassandra.host}" />
+    <b:bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <b:constructor-arg name="hosts" value="${aas.cassandra.host}" />
         <b:constructor-arg name="port" value="${aas.cassandra.port}" />
 
         <b:constructor-arg name="keyspaceName" value="${aas.cassandra.authentication-keyspace}" />
 
         <b:constructor-arg name="username" value="${aas.cassandra.user}" />
         <b:constructor-arg name="password" value="${aas.cassandra.password}" />
-        
-        <b:constructor-arg name="create" value="${aas.cassandra.autoCreateTables}" />
     </b:bean>
 	
     <b:bean id="userDAO" class="eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO">

@@ -26,13 +26,13 @@ sudo sed -i -e '$i \<user username="admin" password="password" roles="manager-gu
 #add tomcat enviromental variables
  -i '/\<GlobalNamingResources\>/ a\
 \<!-- UIS local specific configuration --\>\
-\<Environment name="uis/cassandra/host" type="java.lang.String" value="172.16.0.150"/\>\
+\<Environment name="uis/cassandra/hosts" type="java.lang.String" value="172.16.0.150"/\>\
 \<Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/\>\
 \<Environment name="uis/cassandra/user" type="java.lang.String" value="cassandra"/\>\
 \<Environment name="uis/cassandra/password" type="java.lang.String" value="cassandra"/\>\
 \<Environment name="uis/cassandra/keyspace" type="java.lang.String" value="ecloud_uis"/\>\
 \<!-- MCS local Cassandra specific configuration --\>\
-\<Environment name="mcs/cassandra/host" type="java.lang.String" value="172.16.0.150"/\>\
+\<Environment name="mcs/cassandra/hosts" type="java.lang.String" value="172.16.0.150"/\>\
 \<Environment name="mcs/cassandra/port" type="java.lang.Integer" value="9042"/\>\
 \<Environment name="mcs/cassandra/user" type="java.lang.String" value="cassandra"/\>\
 \<Environment name="mcs/cassandra/password" type="java.lang.String" value="cassandra"/\>\
@@ -54,7 +54,7 @@ sudo sed -i -e '$i \<user username="admin" password="password" roles="manager-gu
 \<Environment name="kafka/zookeeperList" type="java.lang.String" value="localhost:2181,host2:2181"/\>\
 \<Environment name="kafka/topic" type="java.lang.String" value="topic"/\>\
 \<!-- AAS local specific configuration -->\
-\<Environment name="aas/cassandra/host" type="java.lang.String" value="localhost"/\>\
+\<Environment name="aas/cassandra/hosts" type="java.lang.String" value="localhost"/\>\
 \<Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/\>\
 \<Environment name="aas/cassandra/user" type="java.lang.String" value=""/\>\
 \<Environment name="aas/cassandra/password" type="java.lang.String" value=""/\>\

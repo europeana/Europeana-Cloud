@@ -12,11 +12,12 @@
     <context:annotation-config/>
 
     <!--connection provider - with options the same as in embedded cassandra-->
-    <bean id="cassandraConnectionProvider"
-          class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" type="java.lang.String" value="localhost"/>
-        <constructor-arg name="port" type="int" value="19142"/>
-        <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_test"/>
+    <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="localhost" />
+        <constructor-arg name="port" value="19142" />
+        <constructor-arg name="keyspaceName" value="ecloud_test" />
+        <constructor-arg name="userName" value="" />
+        <constructor-arg name="password" value="" />
     </bean>
 
     <bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
@@ -39,7 +40,7 @@
     <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
     
     <!--spy on everything-->
-    <mockito:spy beanName="cassandraConnectionProvider"/>
+    <mockito:spy beanName="dbService"/>
     <mockito:spy beanName="cassandraDataSetService"/>
     <mockito:spy beanName="cassandraDataSetDAO"/>
     <mockito:spy beanName="cassandraRecordService"/>
