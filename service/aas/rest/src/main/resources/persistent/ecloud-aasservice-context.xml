@@ -77,6 +77,8 @@
     
     
 	
-    <b:bean id="authenticationService" class="eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService"></b:bean>
+    <b:bean id="authenticationService" class="eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService">
+        <b:constructor-arg name="userDao" ref="userDAO"/>
+    </b:bean>
 
 </b:beans>
