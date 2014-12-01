@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" path="/ContentServiceApi">
+	
+  <!--Below are references to global resources that should be defined in Tomcat's server.xml to be available and used
+	by application. Define those variables in GlobalNamingResources section of mentioned file, e.g.:
+	
+	  <GlobalNamingResources>
+	
+          <Environment name="mcs/cassandra/hosts" value="CASSANDRA_HOST"
+                               type="java.lang.String" override="false"/>
+    [...]-->
+    
+   <!-- DPS registration of service in COS -->
+   
+   <ResourceLink
+        name="cos/listenAddress"
+        global="cos/listenAddress"
+        type="java.lang.String"/>
+         
+   <!-- COS -->
+    
+   <ResourceLink
+        name="cos/zookeeper/zookeeperAddress"
+        global="cos/zookeeper/zookeeperAddress"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/zookeeper/zookeeperConnectionTimeout"
+        global="cos/zookeeper/zookeeperConnectionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperSessionTimeout"
+        global="cos/zookeeper/zookeeperSessionTimeout"
+        type="java.lang.Integer"/>       
+        
+    <ResourceLink
+        name="cos/zookeeper/zookeeperPath"
+        global="cos/zookeeper/zookeeperPath"
+        type="java.lang.String"/>        
+        
+   <ResourceLink
+        name="cos/datacenterLocation"
+        global="cos/datacenterLocation"
+        type="java.lang.String"/>       
+</Context>
