@@ -12,52 +12,12 @@
                         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
     <context:annotation-config/>    
-	<context:property-placeholder properties-ref="configurationLoader"/>
     <import resource="classpath:config.xml" />
 
     <context:component-scan
         base-package="eu.europeana.cloud.service.dps.rest"/>
+        
+    <bean id="uniqueIdResource"
+          class="eu.europeana.cloud.service.dps.rest.DpsResource" />
 
-	<!-- Zookeeper stuff -->
-	<bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
-        <constructor-arg name="zookeeperAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperAddress"/>
-        </constructor-arg>
-        
-        <constructor-arg name="zookeeperConnectionTimeout">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperConnectionTimeout"/>
-        </constructor-arg>
-        <constructor-arg name="zookeeperSessionTimeout">
-            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperSessionTimeout"/>
-        </constructor-arg>
-        
-        <constructor-arg name="zookeeperPath">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
-        </constructor-arg>
-	</bean>
-    
-    <!-- DPS Registration in Zookeeper -->
-    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
-		<constructor-arg name="serviceName" value="DPS" />
-		
-        <constructor-arg name="listenAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/listenAddress"/>
-        </constructor-arg>
-        
-        <constructor-arg name="datacenterLocation">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/datacenterLocation"/>
-        </constructor-arg>
-	</bean>
-	
-	<bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
-		<constructor-arg name="zookeeper" ref="zookeeperService"/>
-  		<constructor-arg name="discoveryPath" value="/discovery"/>
-		<constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
-	</bean>
-	
-	<!-- Loads properties saved in Zookeeper  -->
-	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
-  		<property name="zookeeperService" ref="zookeeperService"/>
-  		<property name="configurationSettingsPath" value="/configuration"/>
-	</bean>
 </beans>

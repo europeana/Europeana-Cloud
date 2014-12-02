@@ -22,6 +22,16 @@
             <param-name>javax.ws.rs.Application</param-name>
             <param-value>eu.europeana.cloud.service.dps.rest.JerseyConfig</param-value>
         </init-param>
+        
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>eu.europeana.cloud.service.uis.rest,org.codehaus.jackson.jaxrs</param-value>
+        </init-param>
+        <init-param>
+            <param-name>org.glassfish.jersey.moxy.json.MoxyJsonFeature</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        
         <load-on-startup>1</load-on-startup>
     </servlet>
     
