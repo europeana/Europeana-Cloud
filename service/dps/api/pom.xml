@@ -4,9 +4,8 @@
 
 	<parent>
 		<groupId>eu.europeana.cloud</groupId>
-		<artifactId>ecloud-parent</artifactId>
+		<artifactId>ecloud-service-dps</artifactId>
 		<version>0.3-SNAPSHOT</version>
-		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>ecloud-service-dps-api</artifactId>
@@ -18,6 +17,11 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
 		</dependency>
 	</dependencies>
 	

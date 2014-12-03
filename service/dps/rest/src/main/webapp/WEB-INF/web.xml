@@ -25,7 +25,7 @@
         
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>eu.europeana.cloud.service.uis.rest,org.codehaus.jackson.jaxrs</param-value>
+            <param-value>eu.europeana.cloud.service.dps,org.codehaus.jackson.jaxrs</param-value>
         </init-param>
         <init-param>
             <param-name>org.glassfish.jersey.moxy.json.MoxyJsonFeature</param-name>
