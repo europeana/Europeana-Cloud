@@ -14,11 +14,13 @@
 #    eg. --ganglia "http://localhost/ganglia" hour heliopsis apps+cluster           
 #
 # --Auth [username] [password]			Set basic authorization user and password.
+# --HTTP					Use http to probe.
+# --HTTPS					Use https to probe.
 #
-# --allTests					Runs all test cases.
-# --uisTest					Runs uisTest case.
-# --mcsDatasetTest				Runs mcsDatasetTest case.
-# --mcsRepresentationsTest			Runs mcsRepresentationsTest case.
+# --allTests 					Runs all test cases.
+# --uisTest or --1				Runs uisTest case.
+# --mcsDatasetTest or --2			Runs mcsDatasetTest case.
+# --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.					
 #
 #
 # Eg. performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
@@ -43,6 +45,7 @@ gangliaUrl=""
 gangliaPeriod="hour"
 gangliaNodeName="heliopsis"
 gangliaClusterName="apps+cluster"
+protocolType="HTTP"
 
 function setAllTestsOn() { 
 uisTest=true
@@ -51,7 +54,7 @@ mcsRepresentationsTest=true
 }
 
 function showHelp() {
-for i in {2..21}
+for i in {2..26}
 	do
        		echo `sed "$i!d" $0`
 	done
@@ -75,6 +78,11 @@ case $1 in
 --uisTest)  shift 1 ; uisTest=true; continue ;;
 --mcsDatasetTest)  shift 1 ; mcsDatasetTest=true; continue ;;
 --mcsRepresentationsTest) shift 1 ;  mcsRepresentationsTest=true; continue ;;
+--1)  shift 1 ; uisTest=true; continue ;;
+--2)  shift 1 ; mcsDatasetTest=true; continue ;;
+--3) shift 1 ;  mcsRepresentationsTest=true; continue ;;
+--HTTP) shift 1 ; protocolType="HTTP"; continue ;;
+--HTTPS) shift 1 ; protocolType="HTTPS"; continue ;;
 --Auth) shift 1; user=${1} ; shift 1 ; password=${1} ; shift 1 ;;
 --help) shift 1; showHelp ;;
 *) echo "Unsuppored paramiter ${1}"; shift 1 ;;
@@ -130,6 +138,7 @@ echo mcsRepresentationsTest=$mcsRepresentationsTest | tee -a ${resultDir}/test.p
 echo gangliaUrl=$gangliaUrl | tee -a ${resultDir}/test.parms
 echo user=$user | tee -a ${resultDir}/test.parms
 echo password=$password | tee -a ${resultDir}/test.parms
+echo protocolType=$protocolType | tee -a ${resultDir}/test.parms
 echo uisPath=$uisPath | tee -a ${resultDir}/test.parms
 echo mcsPath=$mcsPath | tee -a ${resultDir}/test.parms
 
@@ -152,6 +161,7 @@ jmeter $testMode \
 -JinterThreadGroupTimeGap=$interThreadGroupTimeGap \
 -JoutputFilessuffix=$outputFilessuffix \
 -JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
 -Juser=$user \
 -Jpassword=$password \
 -t ./testCases/UIS_PerformanceTestCmd.jmx -l ${resultDir}/UIS_PerformanceTest_${outputFilessuffix}.log
@@ -181,6 +191,7 @@ jmeter $testMode  \
 -JinterThreadGroupTimeGap=$interThreadGroupTimeGap \
 -JoutputFilessuffix=$outputFilessuffix \
 -JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
 -Juser=$user \
 -Jpassword=$password \
 -t ./testCases/MCS_DataSets_PerformanceTestCmd.jmx -l ${resultDir}/MCS_DataSets_PerformanceTest_$outputFilessuffix.log
@@ -219,6 +230,7 @@ jmeter $testMode \
 -JoutputFilessuffix=${sizeLargefile}_$outputFilessuffix \
 -JlargeFileSize=$sizeLargefile \
 -JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
 -Juser=$user \
 -Jpassword=$password \
 -t ./testCases/MCS_Representation_PerformanceTestCmd.jmx -l ${resultDir}/MCS_Representation_PerformanceTest_${sizeLargefile}_${outputFilessuffix}.log

@@ -122,6 +122,11 @@
             <stringProp name="Argument.value">${__P(password,admin)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="protocolType" elementType="Argument">
+            <stringProp name="Argument.name">protocolType</stringProp>
+            <stringProp name="Argument.value">${__P(protocolType,http)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
@@ -135,7 +140,7 @@
         <stringProp name="HTTPSampler.port">${port}</stringProp>
         <stringProp name="HTTPSampler.connect_timeout">${connectTimeout}</stringProp>
         <stringProp name="HTTPSampler.response_timeout">${responseTimeout}</stringProp>
-        <stringProp name="HTTPSampler.protocol"></stringProp>
+        <stringProp name="HTTPSampler.protocol">${protocolType}</stringProp>
         <stringProp name="HTTPSampler.contentEncoding"></stringProp>
         <stringProp name="HTTPSampler.path"></stringProp>
         <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
@@ -1849,7 +1854,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="get DataSet (doesn&apos;t work)" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="get DataSet" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1893,7 +1898,7 @@
             <boolProp name="CounterConfig.reset_on_tg_iteration">true</boolProp>
           </CounterConfig>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get DataSet Request (doesn&apos;t work)" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get DataSet Request" enabled="true">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
@@ -2655,7 +2660,7 @@
             <subresults>true</subresults>
             <responseData>true</responseData>
             <samplerData>true</samplerData>
-            <xml>false</xml>
+            <xml>true</xml>
             <fieldNames>true</fieldNames>
             <responseHeaders>true</responseHeaders>
             <requestHeaders>true</requestHeaders>
@@ -2671,7 +2676,7 @@
             <idleTime>true</idleTime>
           </value>
         </objProp>
-        <stringProp name="filename">${outputFilespreffix}err.MCS_DataSet_PerformanceTest${outputFilessuffix}.csv</stringProp>
+        <stringProp name="filename">${outputFilespreffix}err.MCS_DataSet_PerformanceTest${outputFilessuffix}.xml</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">

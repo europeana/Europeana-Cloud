@@ -2,9 +2,10 @@
 /.settings
 /.classpath
 /.project
-performanceTest/*
-!performanceTest/*.sh
-!performanceTest/testCases/*.jmx
-!performanceTest/testCases/*.xml
+performanceTest/*.log
+performanceTest/p*
+*.csv
+*.log
+*.parms
 
 

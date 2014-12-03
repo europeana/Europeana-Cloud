@@ -132,6 +132,11 @@
             <stringProp name="Argument.value">${__P(password,admin)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="protocolType" elementType="Argument">
+            <stringProp name="Argument.name">protocolType</stringProp>
+            <stringProp name="Argument.value">${__P(protocolType,http)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
@@ -145,7 +150,7 @@
         <stringProp name="HTTPSampler.port">${port}</stringProp>
         <stringProp name="HTTPSampler.connect_timeout">${connectTimeout}</stringProp>
         <stringProp name="HTTPSampler.response_timeout">${responseTimeout}</stringProp>
-        <stringProp name="HTTPSampler.protocol"></stringProp>
+        <stringProp name="HTTPSampler.protocol">${protocolType}</stringProp>
         <stringProp name="HTTPSampler.contentEncoding"></stringProp>
         <stringProp name="HTTPSampler.path"></stringProp>
         <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
@@ -422,7 +427,7 @@
               <stringProp name="-1198279056">size_Cloud_Id3</stringProp>
             </collectionProp>
             <collectionProp name="UserParameters.thread_values">
-              <collectionProp name="1258857595">
+              <collectionProp name="211589576">
                 <stringProp name="2140071152">${__fifoSize(${START.MS}Cloud_Id1)}</stringProp>
                 <stringProp name="2140072113">${__fifoSize(${START.MS}Cloud_Id2)}</stringProp>
                 <stringProp name="1052943385">${__fifoSize(${START.MS}cloudId_and_creationIndex1)}</stringProp>
@@ -3288,23 +3293,28 @@
             <message>true</message>
             <threadName>true</threadName>
             <dataType>true</dataType>
-            <encoding>false</encoding>
+            <encoding>true</encoding>
             <assertions>true</assertions>
             <subresults>true</subresults>
-            <responseData>false</responseData>
-            <samplerData>false</samplerData>
+            <responseData>true</responseData>
+            <samplerData>true</samplerData>
             <xml>false</xml>
-            <fieldNames>false</fieldNames>
-            <responseHeaders>false</responseHeaders>
-            <requestHeaders>false</requestHeaders>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>true</responseHeaders>
+            <requestHeaders>true</requestHeaders>
             <responseDataOnError>false</responseDataOnError>
-            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
             <assertionsResultsToSave>0</assertionsResultsToSave>
             <bytes>true</bytes>
+            <url>true</url>
+            <fileName>true</fileName>
+            <hostname>true</hostname>
             <threadCounts>true</threadCounts>
+            <sampleCount>true</sampleCount>
+            <idleTime>true</idleTime>
           </value>
         </objProp>
-        <stringProp name="filename"></stringProp>
+        <stringProp name="filename">ess.csv</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree Errors" enabled="true">
@@ -3463,7 +3473,7 @@
             <subresults>true</subresults>
             <responseData>true</responseData>
             <samplerData>true</samplerData>
-            <xml>false</xml>
+            <xml>true</xml>
             <fieldNames>true</fieldNames>
             <responseHeaders>true</responseHeaders>
             <requestHeaders>true</requestHeaders>
@@ -3479,7 +3489,7 @@
             <idleTime>true</idleTime>
           </value>
         </objProp>
-        <stringProp name="filename">${outputFilespreffix}err.MCS_Repepresentation_PerformanceTest${outputFilessuffix}.csv</stringProp>
+        <stringProp name="filename">${outputFilespreffix}err.MCS_Repepresentation_PerformanceTest${outputFilessuffix}.xml</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
