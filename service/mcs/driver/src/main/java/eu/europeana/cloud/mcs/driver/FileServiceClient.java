@@ -63,8 +63,9 @@ public class FileServiceClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl, final String username, final String password) {
-        client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
-        client.register(new HttpBasicAuthFilter(username, password));
+        client = JerseyClientBuilder.newClient()
+        			.register(MultiPartFeature.class)
+        				.register(new HttpBasicAuthFilter(username, password));
         this.baseUrl = baseUrl;
     }
 
@@ -154,7 +155,24 @@ public class FileServiceClient {
         }
     }
 
-
+    /**
+     * Function returns file content. 
+     */
+    public InputStream getFile(String fileUrl)
+            throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException,
+            DriverException, MCSException, IOException {
+    	
+    	Response response = client.target(fileUrl).request().get();
+        
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            InputStream contentResponse = response.readEntity(InputStream.class);
+            return contentResponse;
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+    
     /**
      * Uploads file content with checking checksum.
      * 
@@ -294,6 +312,25 @@ public class FileServiceClient {
             if (!expectedMd5.equals(response.getEntityTag().getValue())) {
                 throw new IOException("Incorrect MD5 checksum");
             }
+            return response.getLocation();
+
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+    
+    public URI modifyFile(String fileUrl, InputStream data, String mediaType)
+            throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            DriverException, MCSException {
+    	
+        WebTarget target = client.target(fileUrl);
+        
+        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        Response response = target.request().put(Entity.entity(multipart, multipart.getMediaType()));
+        
+        if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
             return response.getLocation();
 
         } else {
