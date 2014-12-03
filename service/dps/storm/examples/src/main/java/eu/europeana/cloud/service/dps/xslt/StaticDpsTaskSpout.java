@@ -49,9 +49,9 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 			List<String> files = task.getDataEntry(DpsTask.FILE_URLS);
 			System.out.println("files size=" + files.size());
 			
-			for (String file : files) {
-				System.out.println("emmiting..." + file);
-				collector.emit(new StormTask(file, taskParameters).toStormTuple());
+			for (String fileUrl : files) {
+				System.out.println("emmiting..." + fileUrl);
+				collector.emit(new StormTask(fileUrl, "", taskParameters).toStormTuple());
 			}
 			
 		} catch (Exception e) {

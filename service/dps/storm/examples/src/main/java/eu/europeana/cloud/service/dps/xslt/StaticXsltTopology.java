@@ -22,11 +22,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
-
-import com.google.common.collect.ImmutableList;
-
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.kafka.message.DpsKeys;
+import eu.europeana.cloud.service.dps.util.DpsTaskUtil;
 
 /**
  * Example ecloud topology:
@@ -47,7 +43,7 @@ public class StaticXsltTopology {
 
 		TopologyBuilder builder = new TopologyBuilder();
 		
-		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(generateDpsTask());
+		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
 		
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
@@ -76,25 +72,5 @@ public class StaticXsltTopology {
 			cluster.killTopology("test");
 			cluster.shutdown();
 		}
-	}
-	
-
-	/**
-	 * @return a random Task
-	 */
-	private static DpsTask generateDpsTask() {
-
-		DpsTask task = new DpsTask();
-		
-		final String fileUrl = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT/records/"
-				+ "L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8/files/ef9322a1-5416-4109-a727-2bdfecbf352d";
-		
-		final String xsltUrl = "http://myxslt.url.com";
-		
-		task.addDataEntry(DpsTask.FILE_URLS, ImmutableList.of(fileUrl));
-		task.addParameter(DpsKeys.XSLT_URL, xsltUrl);
-		task.addParameter(DpsKeys.OUTPUT_URL, fileUrl);
-		
-		return task;
 	}
 }

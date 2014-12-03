@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.dps.xslt;
 
+import java.io.InputStream;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +61,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
 			LOGGER.info("logger fetching file: {}", fileUrl);
 			System.out.println("fetching file: " + fileUrl);
-			file = getFileContent(fileUrl);
+			file = getFileContentAsString(fileUrl);
 			System.out.println("emmiting file:" + file);
 
 		} catch (Exception e) {
@@ -70,11 +72,10 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		collector.emit(new Values(fileUrl, file, xsltUrl));
 	}
 
-	private String getFileContent(String fileUrl) {
-
+	private String getFileContentAsString(String fileUrl) {
 		try {
-			String file = fileClient.getFileAsString(fileUrl);
-			return file;
+			InputStream stream = fileClient.getFile(fileUrl);
+			return IOUtils.toString(stream);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
