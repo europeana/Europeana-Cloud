@@ -97,6 +97,11 @@
             <stringProp name="Argument.value">${__P(password,admin)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="protocolType" elementType="Argument">
+            <stringProp name="Argument.name">protocolType</stringProp>
+            <stringProp name="Argument.value">${__P(protocolType,http)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
@@ -110,7 +115,7 @@
         <stringProp name="HTTPSampler.port">${port}</stringProp>
         <stringProp name="HTTPSampler.connect_timeout">${connectTimeOut}</stringProp>
         <stringProp name="HTTPSampler.response_timeout">${responseTimeOut}</stringProp>
-        <stringProp name="HTTPSampler.protocol"></stringProp>
+        <stringProp name="HTTPSampler.protocol">${protocolType}</stringProp>
         <stringProp name="HTTPSampler.contentEncoding"></stringProp>
         <stringProp name="HTTPSampler.path"></stringProp>
         <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
@@ -1492,7 +1497,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[helper] Delay" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1520,7 +1525,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="get list of records (doesn&apos;t work) ____________" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="get list of records " enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1535,7 +1540,7 @@
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get list of records (doesn&apos;t work) Request" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get list of records Request" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
@@ -1916,7 +1921,7 @@
             <message>true</message>
             <threadName>true</threadName>
             <dataType>true</dataType>
-            <encoding>false</encoding>
+            <encoding>true</encoding>
             <assertions>true</assertions>
             <subresults>true</subresults>
             <responseData>true</responseData>
@@ -1954,12 +1959,12 @@
             <message>true</message>
             <threadName>true</threadName>
             <dataType>true</dataType>
-            <encoding>false</encoding>
+            <encoding>true</encoding>
             <assertions>true</assertions>
             <subresults>true</subresults>
             <responseData>true</responseData>
             <samplerData>true</samplerData>
-            <xml>false</xml>
+            <xml>true</xml>
             <fieldNames>true</fieldNames>
             <responseHeaders>true</responseHeaders>
             <requestHeaders>true</requestHeaders>
@@ -1975,7 +1980,7 @@
             <idleTime>true</idleTime>
           </value>
         </objProp>
-        <stringProp name="filename">${outputFilespreffix}err.UIS_PerformanceTest_${outputFilessuffix}.csv</stringProp>
+        <stringProp name="filename">${outputFilespreffix}err.UIS_PerformanceTest_${outputFilessuffix}.xml</stringProp>
       </ResultCollector>
       <hashTree/>
       <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
