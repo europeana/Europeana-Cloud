@@ -9,11 +9,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import eu.europeana.cloud.service.dps.DpsService;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.util.DpsTaskUtil;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -23,6 +24,9 @@ import eu.europeana.cloud.service.dps.util.DpsTaskUtil;
 @Component
 @Scope("request")
 public class DpsResource {
+
+	@Autowired
+	private DpsService dps;
 	
 	//    @Autowired
     // TODO: not currently used. 
@@ -37,6 +41,7 @@ public class DpsResource {
     public Response submitTask(DpsTask task)  {
     	
     	if (task != null) {
+    		dps.submitTask(task);
         	return Response.ok().build();
     	}
     	return Response.notModified().build();
@@ -48,12 +53,9 @@ public class DpsResource {
     @GET
     @Path("/{type}")
     @Produces({MediaType.APPLICATION_JSON})
-    public DpsTask getTask(@PathParam("type") String providerId)  {
+    public DpsTask getTask(@PathParam("type") String taskType)  {
     	
-    	DpsTask task = DpsTaskUtil.generateDpsTask();
-    	if (task != null) {
-        	return task;
-    	}
-    	return null;
+    	DpsTask task = dps.fetchAndRemove();
+    	return task;
     }
 }
