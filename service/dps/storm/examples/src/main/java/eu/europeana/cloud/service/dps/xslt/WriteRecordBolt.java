@@ -7,15 +7,8 @@ import java.util.Map;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseRichBolt;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.kafka.message.DpsKeys;
-import eu.europeana.cloud.service.dps.kafka.message.StormTask;
-import eu.europeana.cloud.service.dps.kafka.message.StormTupleKeys;
+import eu.europeana.cloud.service.dps.DpsKeys;
 
 /**
  * Stores a Record on the cloud.

@@ -1,23 +1,9 @@
 package eu.europeana.cloud.service.dps.xslt;
 
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.kafka.message.DpsKeys;
-import eu.europeana.cloud.service.dps.kafka.message.DpsProcessingParams;
-import eu.europeana.cloud.service.dps.kafka.message.StormTask;
-import eu.europeana.cloud.service.dps.kafka.message.StormTupleKeys;
 
 /**
  */

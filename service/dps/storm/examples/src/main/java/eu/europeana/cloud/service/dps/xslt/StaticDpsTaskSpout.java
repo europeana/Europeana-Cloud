@@ -11,8 +11,6 @@ import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.kafka.message.StormTask;
-import eu.europeana.cloud.service.dps.kafka.message.StormTupleKeys;
 
 /**
  * Always uses the same DpsTask (instead of consuming tasks from a Kafka Topic)

@@ -12,8 +12,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.kafka.message.DpsKeys;
-import eu.europeana.cloud.service.dps.kafka.message.StormTask;
+import eu.europeana.cloud.service.dps.DpsKeys;
 
 /**
  */
