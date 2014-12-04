@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -27,6 +30,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	private FileServiceClient mcsClient;
 
 	private static final String mediaType = "text/plain";
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
 	public WriteRecordBolt(String ecloudMcsAddress, String username,
 			String password) {
@@ -62,10 +67,10 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			URI uri = null;
 
 			uri = mcsClient.modifyFile(fileUrl, contentStream, mediaType);
-			System.out.println("file modified, new URI:" + uri);
+			LOGGER.info("file modified, new URI:" + uri);
 
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			LOGGER.error(e.getMessage());
 		}
 	}
 }

@@ -59,12 +59,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
 			xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
 
 			LOGGER.info("logger fetching file: {}", fileUrl);
-			System.out.println("fetching file: " + fileUrl);
+			LOGGER.debug("fetching file: " + fileUrl);
 			file = getFileContentAsString(fileUrl);
-			System.out.println("emmiting file:" + file);
-
+			
 		} catch (Exception e) {
-			System.out.println("ReadFileBolt error:" + e.getMessage());
+			LOGGER.error("ReadFileBolt error:" + e.getMessage());
 		}
 
 		Utils.sleep(100);
@@ -76,7 +75,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 			InputStream stream = fileClient.getFile(fileUrl);
 			return IOUtils.toString(stream);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			LOGGER.error("ReadFileBolt error:" + e.getMessage());
 		}
 		return null;
 	}

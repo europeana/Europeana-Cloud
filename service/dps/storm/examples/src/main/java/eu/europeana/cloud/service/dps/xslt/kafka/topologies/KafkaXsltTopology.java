@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.kafka;
+package eu.europeana.cloud.service.dps.xslt.kafka.topologies;
 
 import java.util.Arrays;
 
@@ -16,26 +16,39 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
-import eu.europeana.cloud.service.dps.storm.bolts.ProcessDPSInputMessageBolt;
+import eu.europeana.cloud.service.dps.xslt.XsltBolt;
+import eu.europeana.cloud.service.dps.xslt.ReadFileBolt;
+import eu.europeana.cloud.service.dps.xslt.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.xslt.kafka.bolts.KafkaParseTaskBolt;
 
-public class EcloudXSLTTopology {
-	public static final Logger LOG = LoggerFactory.getLogger(EcloudXSLTTopology.class);
+public class KafkaXsltTopology {
+	
+    private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
+	private static String username = "Cristiano";
+	private static String password = "Ronaldo";
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(KafkaXsltTopology.class);
 
 	private final BrokerHosts brokerHosts;
 
-	public EcloudXSLTTopology(String kafkaZookeeper) {
+	public KafkaXsltTopology(String kafkaZookeeper) {
 		brokerHosts = new ZkHosts(kafkaZookeeper);
 	}
 
 	public StormTopology buildTopology() {
+				
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
+		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
+		
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, "franco_maria_topic", "", "storm");
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
+		
 		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 10);
-		builder.setBolt("processDPSmessage", new ProcessDPSInputMessageBolt()).shuffleGrouping("kafkaReader");
-		// builder.setBolt("loadRecord", new ...Bolt()).shuffleGrouping("processDPSmessage");
-		// builder.setBolt("tranformRecord", new ...Bolt()).shuffleGrouping("loadRecord");
-		// builder.setBolt("writeRecord", new ...Bolt()).shuffleGrouping("transformRecord");
+		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt()).shuffleGrouping("kafkaReader");
+		builder.setBolt("retrieveFileBolt", retrieveFileBolt).shuffleGrouping("parseKafkaInput");
+		builder.setBolt("xsltTransformationBolt", new XsltBolt()).shuffleGrouping("retrieveFileBolt");
+		builder.setBolt("writeRecordBolt", writeRecordBolt).shuffleGrouping("xsltTransformationBolt");
 		return builder.createTopology();
 	}
 
@@ -43,7 +56,7 @@ public class EcloudXSLTTopology {
 
 		// String kafkaZk = args[0];
 		String kafkaZk = "ecloud.eanadev.org:2181";
-		EcloudXSLTTopology kafkaSpoutTestTopology = new EcloudXSLTTopology(kafkaZk);
+		KafkaXsltTopology kafkaSpoutTestTopology = new KafkaXsltTopology(kafkaZk);
 		Config config = new Config();
 		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 

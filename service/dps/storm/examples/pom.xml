@@ -6,7 +6,7 @@
 		<groupId>eu.europeana.cloud</groupId>
 		<artifactId>ecloud-parent</artifactId>
 		<version>0.3-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>ecloud-service-dps-examples</artifactId>
 	<packaging>jar</packaging>
@@ -193,7 +193,7 @@
 					</execution>
 				</executions>
 			</plugin>
-
+ 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
