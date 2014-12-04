@@ -52,8 +52,12 @@ public class StaticXsltTopology {
 		
 		builder.setBolt("retrieveFileBolt", retrieveFileBolt, 1).shuffleGrouping(
 				"taskSpout");
-		builder.setBolt("writeRecordBolt", writeRecordBolt, 1).shuffleGrouping(
+		
+		builder.setBolt("xsltTransformationBolt", new XsltBolt(), 1).shuffleGrouping(
 				"retrieveFileBolt");
+		
+		builder.setBolt("writeRecordBolt", writeRecordBolt, 1).shuffleGrouping(
+				"xsltTransformationBolt");
 
 		Config conf = new Config();
 		conf.setDebug(true);

@@ -21,5 +21,6 @@
 		<module>api</module>
 		<module>rest</module>
 		<module>rest-client-java</module>
+        <module>storm/examples</module>
 	</modules>
 </project>
