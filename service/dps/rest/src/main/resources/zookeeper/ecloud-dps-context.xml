@@ -19,5 +19,9 @@
         
     <bean id="uniqueIdResource"
           class="eu.europeana.cloud.service.dps.rest.DpsResource" />
-
+          
+    <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
+        <constructor-arg name="kafkaTopic" value="franco_maria_topic" />
+        <constructor-arg name="kafkaBroker" value="ecloud.eanadev.org:9093" />
+    </bean>
 </beans>
