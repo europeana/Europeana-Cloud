@@ -1,9 +1,8 @@
 package eu.europeana.cloud.service.dps.util;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
-import java.util.Collection;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * An LRU cache, based on <code>LinkedHashMap</code>.
@@ -13,14 +12,14 @@ import java.util.ArrayList;
  * If the cache is full and another entry is added, the LRU (least recently
  * used) entry is dropped.
  * 
- * <p>
- * This class is thread-safe. All methods of this class are synchronized.
  * 
  * <p>
  * Author: Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland<br>
  * Multi-licensed: EPL / LGPL / GPL / AL / BSD.
  */
-public class LRUCache<K, V> {
+public class LRUCache<K, V> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final float hashTableLoadFactor = 0.75f;
 
@@ -60,7 +59,7 @@ public class LRUCache<K, V> {
 	 * @return the value associated to this key, or null if no value with this
 	 *         key exists in the cache.
 	 */
-	public synchronized V get(K key) {
+	public V get(K key) {
 		return map.get(key);
 	}
 
@@ -75,14 +74,14 @@ public class LRUCache<K, V> {
 	 * @param value
 	 *            a value to be associated with the specified key.
 	 */
-	public synchronized void put(K key, V value) {
+	public void put(K key, V value) {
 		map.put(key, value);
 	}
 
 	/**
 	 * Clears the cache.
 	 */
-	public synchronized void clear() {
+	public void clear() {
 		map.clear();
 	}
 
@@ -91,7 +90,7 @@ public class LRUCache<K, V> {
 	 * 
 	 * @return the number of entries currently in the cache.
 	 */
-	public synchronized int usedEntries() {
+	public int usedEntries() {
 		return map.size();
 	}
 	
@@ -111,17 +110,5 @@ public class LRUCache<K, V> {
 	
 	public double hitRate(){
 		return hits/(double)(hits+miss);
-	}
-
-	
-
-	/**
-	 * Returns a <code>Collection</code> that contains a copy of all cache
-	 * entries.
-	 * 
-	 * @return a <code>Collection</code> with a copy of the cache content.
-	 */
-	public synchronized Collection<Map.Entry<K, V>> getAll() {
-		return new ArrayList<Map.Entry<K, V>>(map.entrySet());
 	}
 }
