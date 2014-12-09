@@ -109,6 +109,7 @@ public class XsltBolt extends AbstractDpsBolt {
 		try {
 			transformer.transform(xmlDoc, out);
 		} catch (TransformerException e) {
+			System.out.println("xslt error:" + e.getMessage());
 			LOGGER.error("XsltBolt error:" + e.getMessage());
 		}
 

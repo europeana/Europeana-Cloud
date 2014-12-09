@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import com.google.common.collect.ImmutableList;
 
 /**
  * Parameters shared between Bolts and Spouts

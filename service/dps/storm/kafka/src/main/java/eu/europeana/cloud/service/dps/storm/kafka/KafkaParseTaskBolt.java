@@ -16,8 +16,8 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.storm.StormTask;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
-	public static final Logger LOG = LoggerFactory
-			.getLogger(KafkaParseTaskBolt.class);
+	
+	public static final Logger LOG = LoggerFactory.getLogger(KafkaParseTaskBolt.class);
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {

@@ -14,8 +14,12 @@
     <name>Europeana Cloud: DPS</name>
 
     <properties>
+    
+    	<version.storm_kafka>0.9.2-incubating</version.storm_kafka>
+    
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.directory>${project.parent.basedir}</main.directory>
+        
     </properties>
 	
     <modules>

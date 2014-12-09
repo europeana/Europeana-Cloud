@@ -67,6 +67,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			URI uri = null;
 
 			uri = mcsClient.modifyFile(fileUrl, contentStream, mediaType);
+			System.out.println("uri:" + uri);
 			LOGGER.info("file modified, new URI:" + uri);
 
 		} catch (Exception e) {
