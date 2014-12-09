@@ -9,10 +9,10 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     
-    <artifactId>ecloud-service-dps-storm-examples</artifactId>
+    <artifactId>ecloud-service-dps-storm-common</artifactId>
     <packaging>jar</packaging>
 
-    <name>Europeana Cloud: DPS Service Storm Examples</name>
+    <name>Europeana Cloud: DPS Service Storm Commons</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

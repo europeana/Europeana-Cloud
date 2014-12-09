@@ -9,10 +9,10 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     
-    <artifactId>ecloud-service-dps-storm-examples</artifactId>
+    <artifactId>ecloud-service-dps-storm-kafka</artifactId>
     <packaging>jar</packaging>
 
-    <name>Europeana Cloud: DPS Service Storm Examples</name>
+    <name>Europeana Cloud: DPS Service Storm Spout for Kafka Connection</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,6 +29,12 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 	

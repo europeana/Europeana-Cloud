@@ -6,13 +6,13 @@
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
         <version>0.3-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../../../pom.xml</relativePath>
     </parent>
-    
-    <artifactId>ecloud-service-dps-storm-examples</artifactId>
+        
+    <artifactId>ecloud-service-dps-storm-topology-xslt</artifactId>
     <packaging>jar</packaging>
 
-    <name>Europeana Cloud: DPS Service Storm Examples</name>
+    <name>Europeana Cloud: DPS Service Storm Topology for XSLT</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,31 @@
             <artifactId>ecloud-service-dps-rest-client-java</artifactId>
             <version>${project.version}</version>
         </dependency>
-	
+        
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-kafka</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-io</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-transform-xslt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+                	
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>

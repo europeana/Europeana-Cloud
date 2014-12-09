@@ -1,26 +1,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>eu.europeana.cloud</groupId>
-		<artifactId>ecloud-parent</artifactId>
-		<version>0.3-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
-	</parent>
-	<artifactId>ecloud-service-dps</artifactId>
-	<packaging>pom</packaging>
+    <parent>
+        <groupId>eu.europeana.cloud</groupId>
+        <artifactId>ecloud-parent</artifactId>
+        <version>0.3-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+        
+    <artifactId>ecloud-service-dps</artifactId>
+    <packaging>pom</packaging>
 
-	<name>Europeana Cloud: DPS</name>
+    <name>Europeana Cloud: DPS</name>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<main.directory>${project.parent.basedir}</main.directory>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <main.directory>${project.parent.basedir}</main.directory>
+    </properties>
 	
-	<modules>
-		<module>api</module>
-		<module>rest</module>
-		<module>rest-client-java</module>
-        <module>storm/examples</module>
-	</modules>
+    <modules>
+        <module>api</module>
+        <module>rest</module>
+        <module>rest-client-java</module>
+        <module>storm/common</module>
+        <module>storm/kafka</module>
+        <module>storm/io</module>
+        <module>storm/transform/xslt</module>
+        <module>storm/topology/xslt</module>
+        <module>storm/examples</module>  
+    </modules>
 </project>

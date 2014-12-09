@@ -28,3 +28,10 @@ nbactions.xml
 /cassandra-connector/target/
 /cassandra-connector/cass/target/
 /cass/target/
+/service/dps/rest/target/
+/service/dps/storm/common/target/
+/service/dps/storm/kafka/target/
+/service/dps/storm/io/target/
+/service/dps/storm/transform/xslt/target/
+/service/dps/storm/topology/xslt/target/
+/service/dps/storm/examples/target/
