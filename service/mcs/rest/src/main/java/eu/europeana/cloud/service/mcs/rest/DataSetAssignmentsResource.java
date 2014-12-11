@@ -64,7 +64,7 @@ public class DataSetAssignmentsResource {
      * @throws DataSetNotExistsException no such data set exists
      */
     @DELETE
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat($providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(@PathParam(P_PROVIDER) String providerId,
     		@PathParam(P_DATASET) String dataSetId,
     		@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
