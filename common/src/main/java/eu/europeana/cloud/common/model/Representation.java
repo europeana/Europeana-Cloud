@@ -206,6 +206,16 @@ public class Representation {
         this.creationDate = creationDate != null ? creationDate : null;
     }
 
+    /**
+     * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations() 
+     */
+    public String getId(){
+        return getACLId();
+    }
+    
+    private String getACLId(){
+        return this.getCloudId()+"/"+this.getRepresentationName()+"/"+this.getVersion();
+    }
 
     @Override
     public int hashCode() {
@@ -219,7 +229,6 @@ public class Representation {
         hash = 37 * hash + (this.persistent ? 1 : 0);
         return hash;
     }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -253,7 +262,6 @@ public class Representation {
         }
         return true;
     }
-
 
     @Override
     public String toString() {

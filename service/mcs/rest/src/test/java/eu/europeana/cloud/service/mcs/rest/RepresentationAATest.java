@@ -167,8 +167,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -280,8 +280,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 				RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationVersionResource.deleteRepresentation(VERSION, SCHEMA, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationVersionResource.deleteRepresentation(VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 	}
 	
 	@Test
@@ -290,9 +290,9 @@ public class RepresentationAATest extends AbstractSecurityTest {
 				RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationVersionResource.deleteRepresentation(VERSION, SCHEMA, GLOBAL_ID);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationVersionResource.deleteRepresentation(VERSION, REPRESENTATION_NAME, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -301,9 +301,9 @@ public class RepresentationAATest extends AbstractSecurityTest {
 				RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationVersionResource.deleteRepresentation(VERSION, SCHEMA, GLOBAL_ID);
+		representationVersionResource.deleteRepresentation(VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 	}
 
 	// -- PERSIST -- //
@@ -331,8 +331,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationVersionResource.persistRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationVersionResource.persistRepresentation(URI_INFO, VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -371,8 +371,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationVersionResource.copyRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationVersionResource.copyRepresentation(URI_INFO, VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 	}
 	
 	@Test
@@ -381,10 +381,10 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationVersionResource.copyRepresentation(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationVersionResource.copyRepresentation(URI_INFO, VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 		
-		representationVersionResource.deleteRepresentation(COPIED_REPRESENTATION_VERSION, SCHEMA, GLOBAL_ID);
+		representationVersionResource.deleteRepresentation(COPIED_REPRESENTATION_VERSION, REPRESENTATION_NAME, GLOBAL_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)

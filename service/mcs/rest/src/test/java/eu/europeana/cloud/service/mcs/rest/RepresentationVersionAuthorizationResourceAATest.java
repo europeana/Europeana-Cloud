@@ -136,10 +136,10 @@ public class RepresentationVersionAuthorizationResourceAATest extends AbstractSe
 				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
+		representationAuthorizationResource.updateAuthorization(GLOBAL_ID, REPRESENTATION_NAME, VERSION, VAN_PERSIE);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
 	}
 }

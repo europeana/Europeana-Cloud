@@ -116,16 +116,15 @@ public class RepresentationResource {
 	    @FormParam(F_PROVIDER) String providerId)
 	    throws RecordNotExistsException, ProviderNotExistsException {
 	ParamUtil.require(F_PROVIDER, providerId);
-	Representation version = recordService.createRepresentation(globalId,
+	Representation createdRepresentation = recordService.createRepresentation(globalId,
 		schema, providerId);
-	EnrichUriUtil.enrich(uriInfo, version);
+	EnrichUriUtil.enrich(uriInfo, createdRepresentation);
 
 	String creatorName = SpringUserUtils.getUsername();
 	if (creatorName != null) {
 
-	    ObjectIdentity versionIdentity = new ObjectIdentityImpl(
-		    REPRESENTATION_CLASS_NAME, globalId + "/" + schema + "/"
-			    + version.getVersion());
+		ObjectIdentity versionIdentity = new ObjectIdentityImpl(
+		    REPRESENTATION_CLASS_NAME, createdRepresentation.getId());
 
 	    MutableAcl versionAcl = mutableAclService
 		    .createAcl(versionIdentity);
@@ -142,7 +141,7 @@ public class RepresentationResource {
 	    mutableAclService.updateAcl(versionAcl);
 	}
 
-	return Response.created(version.getUri()).build();
+	return Response.created(createdRepresentation.getUri()).build();
     }
 
     private void prepare(UriInfo uriInfo, Representation representation) {
