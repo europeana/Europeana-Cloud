@@ -93,7 +93,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID);
-		dataProviderResource.removeIdMapping(PROVIDER_ID);
+		dataProviderResource.removeIdMapping(PROVIDER_ID, LOCAL_ID);
 		
 		dataProvidersResource.getProviders(PROVIDER_ID);
     }
@@ -114,7 +114,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID);
-		dataProviderResource.removeIdMapping(PROVIDER_ID);
+		dataProviderResource.removeIdMapping(PROVIDER_ID,LOCAL_ID);
 		
 		dataProvidersResource.getProviders(PROVIDER_ID);
     }
