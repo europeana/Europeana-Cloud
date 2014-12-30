@@ -25,10 +25,6 @@ echo Test cases with errors output:
 cat ~/pTest${timestamp}/err*
 
 echo -e  "\n#############################\n"
-echo 'There were errors in tests:'
-ls  ~/pTest${timestamp}/err* | sed "s/pTest${timestamp}\/err\.(.*)_${timestamp}\.csv/1/p"
-
-echo -e  "\n#############################\n"
 if [ $errors -gt 0 ] ; then
         echo "tests failed; there were $errors errors"
         exit 1;
