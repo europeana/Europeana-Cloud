@@ -22,7 +22,7 @@ rm ~/performanceTest/results.txt
 
 echo -e  "\n#############################\n"
 echo Test cases with errors output:
-cat ~/pTest${timestamp}/err*
+tail -n +1 -- ~/pTest${timestamp}/err*
 
 echo -e  "\n#############################\n"
 if [ $errors -gt 0 ] ; then
