@@ -55,9 +55,6 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
-    @PathParam(P_CLOUDID)
-    private String cloudId;
-
     /**
      * Gets provider.
      *
@@ -158,7 +155,9 @@ public class DataProviderResource {
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createIdMapping(@PathParam(P_PROVIDER) String providerId,
+    public Response createIdMapping(
+                @PathParam(P_PROVIDER) String providerId,
+                @PathParam(P_CLOUDID) String cloudId,                    
     		@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
