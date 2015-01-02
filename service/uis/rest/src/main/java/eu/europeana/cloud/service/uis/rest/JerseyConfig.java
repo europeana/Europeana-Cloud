@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyExceptionMappe
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordExistsExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistExceptionMapper;
+import eu.europeana.cloud.service.uis.exception.RuntimeExceptionMapper;
+import eu.europeana.cloud.service.uis.exception.WebApplicationsExceptionMapper;
 
 /**
  * Jersey Configuration for Exception Mappers and Resources
@@ -38,6 +40,8 @@ public class JerseyConfig extends ResourceConfig {
 		register(RecordExistsExceptionMapper.class);
 		register(RecordIdDoesNotExistExceptionMapper.class);
 		register(ProviderAlreadyExistsExceptionMapper.class);
+		register(WebApplicationsExceptionMapper.class);
+		register(RuntimeExceptionMapper.class);
 		register(UniqueIdentifierResource.class);
 		register(DataProviderResource.class);
         register(DataProvidersResource.class);

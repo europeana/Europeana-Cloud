@@ -1,9 +1,12 @@
 package eu.europeana.cloud.service.uis.exception;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * Generic class exposing the exceptions
@@ -77,6 +80,19 @@ public class UISExceptionMapper {
 	public Response toResponse(ProviderAlreadyExistsException e){
 		return buildResponse(e);
 	}
+
+	/**
+	 * @param e A {@link javax.ws.rs.WebApplicationException}
+	 * @return An API exception response corresponding to the exception
+	 */
+	public Response toResponse(WebApplicationException e){
+		return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_XML).entity(new ErrorInfo("OTHER", e.getMessage())).build();
+	}
+
+	public Response toResponse(RuntimeException e){
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_XML).entity(new ErrorInfo("OTHER", e.getMessage())).build();
+	}
+	
 	private Response buildResponse(GenericException e){
 		return Response.status(e.getErrorInfo().getHttpCode()).entity(e.getErrorInfo().getErrorInfo()).build();
 	}
