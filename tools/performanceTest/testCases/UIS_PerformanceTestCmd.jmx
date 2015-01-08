@@ -989,7 +989,7 @@
           </DebugPostProcessor>
           <hashTree/>
           <XPathExtractor guiclass="XPathExtractorGui" testclass="XPathExtractor" testname="XPath Extractor" enabled="true">
-            <stringProp name="XPathExtractor.default"></stringProp>
+            <stringProp name="XPathExtractor.default">not_found</stringProp>
             <stringProp name="XPathExtractor.refname">cloudId</stringProp>
             <stringProp name="XPathExtractor.xpathQuery">cloudId/id</stringProp>
             <boolProp name="XPathExtractor.validate">false</boolProp>
