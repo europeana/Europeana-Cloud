@@ -12,7 +12,7 @@ cmd=( $(cat ~/performanceTest/results.txt | grep Err | sed -e 's/.\+Err:[^0-9]\+
 
 errors=0
 for ((i=0; i < ${#cmd[@]}; i++));
-        do if [ ${cmd[$i]} -nq 0 ]; then
+        do if [ ${cmd[$i]} -ne 0 ]; then
                 ((errors+=1))
         fi;
 done;
