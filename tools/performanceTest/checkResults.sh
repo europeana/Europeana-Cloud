@@ -5,7 +5,7 @@ set -u;
 
 sh ~/performanceTest/checkApps.sh
 
-sh  ~/performanceTest/performanceTestScript.sh --host localhost --port 9090 --HTTP --threads 2 --loops 2 --Auth admin admin > ~/performanceTest/results.txt
+sh  ~/performanceTest/performanceTestScript.sh --host localhost --port 9090 --HTTP --threads 2 --loops 2 --Auth admin admin | tee ~/performanceTest/results.txt
 
 timestamp=( $(cat ~/performanceTest/results.txt |  sed -nr 's/results have timestamp (.+)/\1/p'))
 cmd=( $(cat ~/performanceTest/results.txt | grep Err | sed -e 's/.\+Err:[^0-9]\+\([0-9]\+\).\+/\1/g'))
@@ -26,6 +26,6 @@ tail -n +1 -- ~/pTest${timestamp}/err*
 
 echo -e  "\n#############################\n"
 if [ $errors -gt 0 ] ; then
-        echo "tests failed; there were $errors errors"
+        echo "tests failed; there were errors"
         exit 1;
 fi
