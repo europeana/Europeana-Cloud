@@ -210,8 +210,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<licence> <!-- MireDot free open source license, valid until 2017-01-15 -->
-                                                UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtbWNzfDIwMTctMDEtMTV8ZmFsc2UjTUN3Q0ZGazVjdHgvWDVTcEVTK0JENmdRWkU2VncyMDNBaFI1U25GWWNhMkZ0dTFGNmszNlZITEl5SUJPWmc9PQ==
+					<licence>
+                                            UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtbWNzLXJlc3R8MjAxNy0wMS0xNXxmYWxzZSNNQzBDRkdyREJmZjZRdzQvTlJaVTliKzZjZ3E5bU5JSUFoVUFsZWZBMVhSaDI2UGpqVy9venppa0dqdDBIRlk9
                                         </licence>
 					<statusCodes>
 						<statusCode>
