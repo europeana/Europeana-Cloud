@@ -10,6 +10,8 @@
     <artifactId>ecloud-solr-custom</artifactId>
     <packaging>war</packaging>
     <name>Europeana Cloud: Solr Customized</name>
+    
+
 
     <dependencies>
         <dependency>

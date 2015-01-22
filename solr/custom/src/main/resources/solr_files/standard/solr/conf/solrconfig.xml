@@ -974,6 +974,54 @@
          this is just a slave and remove  the <lst name="slave"> section
          if this is just a master.
       -->
+      <requestHandler name="/replication" class="solr.ReplicationHandler" >
+		<lst name="master">
+			<str name="enable">${enable.master:false}</str>
+			<str name="replicateAfter">commit</str>
+
+			<str name="confFiles">solrconfig.xml,schema.xml</str>
+			<str name="commitReserveDuration">00:00:10</str>
+		</lst>
+		
+		<lst name="slave">
+			<str name="enable">${enable.slave:false}</str>
+			<!--fully qualified url for the replication handler of master. It is possible to pass on this as
+			a request param for the fetchindex command-->
+
+			<str name="masterUrl">${solr.replication.masterUrl}</str>
+
+        <!--Interval in which the slave should poll master .Format is HH:mm:ss . If this is absent slave does not
+            poll automatically.
+
+			But a fetchindex can be triggered from the admin or the http API -->
+
+			<str name="pollInterval">01:00:00</str>
+
+			<!-- THE FOLLOWING PARAMETERS ARE USUALLY NOT REQUIRED-->
+
+			<!--to use compression while transferring the index files. The possible values are internal|external
+			if the value is 'external' make sure that your master Solr has the settings to honor the
+			accept-encoding header.
+			See here for details: http://wiki.apache.org/solr/SolrHttpCompression
+			If it is 'internal' everything will be taken care of automatically.
+			USE THIS ONLY IF YOUR BANDWIDTH IS LOW . THIS CAN ACTUALLY SLOWDOWN REPLICATION IN A LAN-->
+
+			<!--        <str name="compression">internal</str>-->
+
+			<!--The following values are used when the slave connects to the master to download the index files.
+			Default values implicitly set as 5000ms and 10000ms respectively. The user DOES NOT need to specify
+			these unless the bandwidth is extremely low or if there is an extremely high latency-->
+
+			<str name="httpConnTimeout">5000</str>
+			<str name="httpReadTimeout">10000</str>
+
+			<!-- If HTTP Basic authentication is enabled on the master, then the slave can be
+			configured with the following -->
+
+			<!--        <str name="httpBasicAuthUser">username</str>
+			<str name="httpBasicAuthPassword">password</str>-->
+		</lst>
+	</requestHandler>
    
 
     <!-- Search Components
