@@ -19,14 +19,14 @@
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="uis-name" elementType="Argument">
-            <stringProp name="Argument.name">uis-name</stringProp>
-            <stringProp name="Argument.value">${__P(uis-name,/uis)}</stringProp>
+          <elementProp name="uisName" elementType="Argument">
+            <stringProp name="Argument.name">uisName</stringProp>
+            <stringProp name="Argument.value">${__P(uisName,/uis)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="mcs-name" elementType="Argument">
-            <stringProp name="Argument.name">mcs-name</stringProp>
-            <stringProp name="Argument.value">${__P(mcs-name,/mcs)}</stringProp>
+          <elementProp name="mcsNsame" elementType="Argument">
+            <stringProp name="Argument.name">mcsName</stringProp>
+            <stringProp name="Argument.value">${__P(mcsName,/mcs)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="threads" elementType="Argument">
@@ -526,7 +526,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -624,7 +624,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${uis-name}/cloudIds?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}&amp;recordId=${recordPrefix}${timeCreation}_${__threadNum()}_${loop_counter}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${uisName}/cloudIds?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}&amp;recordId=${recordPrefix}${timeCreation}_${__threadNum()}_${loop_counter}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -818,7 +818,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -946,7 +946,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">PUT</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1037,7 +1037,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/</stringProp>
+          <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1202,7 +1202,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${representationName}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/records/${cloudId}/representations/${representationName}</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1440,7 +1440,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}/assignments</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}/assignments</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1625,7 +1625,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${representationName}/versions/${version}/files</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/records/${cloudId}/representations/${representationName}/versions/${version}/files</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1682,7 +1682,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${representationName}/versions/${version}/persist</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/records/${cloudId}/representations/${representationName}/versions/${version}/persist</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1828,7 +1828,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${representationName}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/records/${cloudId}/representations/${representationName}</stringProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1940,7 +1940,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2120,7 +2120,7 @@
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}/assignments</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}/assignments</stringProp>
               <stringProp name="HTTPSampler.method">DELETE</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2265,7 +2265,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2386,7 +2386,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">DELETE</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2506,7 +2506,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">${mcs-name}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
+            <stringProp name="HTTPSampler.path">${mcsName}/data-providers/${providerPrefix}${creationIndex}/data-sets/${datasetPrefix}${creationIndex}${datasetPerProvider}</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2669,7 +2669,7 @@ prev.setResponseOK();
               <stringProp name="HTTPSampler.response_timeout"></stringProp>
               <stringProp name="HTTPSampler.protocol"></stringProp>
               <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">${mcs-name}/records/${cloudId}/representations/${representationName}</stringProp>
+              <stringProp name="HTTPSampler.path">${mcsName}/records/${cloudId}/representations/${representationName}</stringProp>
               <stringProp name="HTTPSampler.method">DELETE</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2752,7 +2752,7 @@ prev.setResponseOK();
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds/${cloudId}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds/${cloudId}</stringProp>
           <stringProp name="HTTPSampler.method">DELETE</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
