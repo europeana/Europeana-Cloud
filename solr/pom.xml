@@ -20,7 +20,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <solr.home>/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr</solr.home>
+        <solr.replication.isMaster>true</solr.replication.isMaster>
+        <solr.replication.isSlave>false</solr.replication.isSlave>
+        <solr.replication.masterUrl>http://localhost:8080/solr</solr.replication.masterUrl>
     </properties>
+
 
     <profiles>
         <profile>
@@ -29,7 +33,7 @@
             </activation>
             <id>standard</id>
             <properties>
-				<solr.data.dir>/home/solr/data</solr.data.dir>
+                <solr.data.dir>/home/solr/data</solr.data.dir>
                 <solr.resources.dir>standard</solr.resources.dir>
             </properties>
         </profile>

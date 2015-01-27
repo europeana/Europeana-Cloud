@@ -32,7 +32,7 @@
               pathname="conf/tomcat-users.xml" />
 
 <!-- UIS local specific configuration -->
-<Environment name="uis/cassandra/hosts" type="java.lang.String" value="localhost"/>
+<Environment name="uis/cassandra/hosts" type="java.lang.String" value="150.254.155.228"/>
 <Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/>
 <Environment name="uis/cassandra/keyspace" type="java.lang.String" value="ecloud_uis"/>
 <Environment name="uis/cassandra/user" type="java.lang.String" value="cassandra"/>
@@ -40,7 +40,7 @@
  <Environment name="uis/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
 
 <!-- MCS local Cassandra specific configuration -->
-<Environment name="mcs/cassandra/hosts" type="java.lang.String" value="localhost"/>
+<Environment name="mcs/cassandra/hosts" type="java.lang.String" value="150.254.155.228"/>
 <Environment name="mcs/cassandra/port" type="java.lang.Integer" value="9042"/>
 <Environment name="mcs/cassandra/keyspace" type="java.lang.String" value="ecloud_mcs"/>
 <Environment name="mcs/cassandra/user" type="java.lang.String" value="cassandra"/>
@@ -63,7 +63,7 @@
 <Environment name="kafka/topic" type="java.lang.String" value="topic"/>
  
 <!-- AAS local specific configuration -->
-<Environment name="aas/cassandra/hosts" type="java.lang.String" value="localhost"/>
+<Environment name="aas/cassandra/hosts" type="java.lang.String" value="150.254.155.228"/>
 <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/>
 <Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas"/>
 <Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas"/>

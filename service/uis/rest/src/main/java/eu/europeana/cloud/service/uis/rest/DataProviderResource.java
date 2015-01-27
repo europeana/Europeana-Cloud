@@ -55,12 +55,6 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
-    @PathParam(P_LOCALID)
-    private String localId;
-
-    @PathParam(P_CLOUDID)
-    private String cloudId;
-
     /**
      * Gets provider.
      *
@@ -161,7 +155,9 @@ public class DataProviderResource {
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createIdMapping(@PathParam(P_PROVIDER) String providerId,
+    public Response createIdMapping(
+                @PathParam(P_PROVIDER) String providerId,
+                @PathParam(P_CLOUDID) String cloudId,                    
     		@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
@@ -183,7 +179,9 @@ public class DataProviderResource {
     @DELETE
     @Path("localIds/{" + P_LOCALID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response removeIdMapping(@PathParam(P_PROVIDER) String providerId)
+    public Response removeIdMapping(
+            @PathParam(P_PROVIDER) String providerId,
+            @PathParam(P_LOCALID) String localId)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
         uniqueIdentifierService.removeIdMapping(providerId, localId);
         return Response.ok("Mapping marked as deleted").build();

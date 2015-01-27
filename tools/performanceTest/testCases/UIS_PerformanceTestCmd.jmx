@@ -989,7 +989,7 @@
           </DebugPostProcessor>
           <hashTree/>
           <XPathExtractor guiclass="XPathExtractorGui" testclass="XPathExtractor" testname="XPath Extractor" enabled="true">
-            <stringProp name="XPathExtractor.default"></stringProp>
+            <stringProp name="XPathExtractor.default">not_found</stringProp>
             <stringProp name="XPathExtractor.refname">cloudId</stringProp>
             <stringProp name="XPathExtractor.xpathQuery">cloudId/id</stringProp>
             <boolProp name="XPathExtractor.validate">false</boolProp>
@@ -1566,13 +1566,22 @@
             <stringProp name="FifoName">${START.MS}Creation_IndeTest</stringProp>
           </kg.apc.jmeter.modifiers.FifoPopPreProcessor>
           <hashTree/>
+          <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="Post-procesor BeanShell" enabled="true">
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <boolProp name="resetInterpreter">false</boolProp>
+            <stringProp name="script">if (prev.getResponseCode().equals(&quot;404&quot;) == true) {
+prev.setResponseOK();
+}</stringProp>
+          </BeanShellPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response code Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="51512">404</stringProp>
+              <stringProp name="369599181">404 Not Found</stringProp>
             </collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">1</intProp>
+            <intProp name="Assertion.test_type">2</intProp>
           </ResponseAssertion>
           <hashTree/>
           <DebugPostProcessor guiclass="TestBeanGUI" testclass="DebugPostProcessor" testname="Debug PostProcessor" enabled="true">

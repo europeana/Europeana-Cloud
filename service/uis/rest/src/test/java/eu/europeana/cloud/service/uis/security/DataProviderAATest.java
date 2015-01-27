@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.ws.Response;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -92,8 +93,8 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		dataProviderResource.getProvider(PROVIDER_ID);
 		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
-		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID);
-		dataProviderResource.removeIdMapping(PROVIDER_ID);
+		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID, "SampleCloudId");
+		dataProviderResource.removeIdMapping(PROVIDER_ID, LOCAL_ID);
 		
 		dataProvidersResource.getProviders(PROVIDER_ID);
     }
@@ -113,8 +114,8 @@ public class DataProviderAATest extends AbstractSecurityTest {
 		dataProviderResource.getProvider(PROVIDER_ID);
 		dataProviderResource.getLocalIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
 		dataProviderResource.getCloudIdsByProvider(PROVIDER_ID, PROVIDER_ID , 100);
-		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID);
-		dataProviderResource.removeIdMapping(PROVIDER_ID);
+		dataProviderResource.createIdMapping(PROVIDER_ID, LOCAL_ID, "SampleCloudId");
+		dataProviderResource.removeIdMapping(PROVIDER_ID,LOCAL_ID);
 		
 		dataProvidersResource.getProviders(PROVIDER_ID);
     }
