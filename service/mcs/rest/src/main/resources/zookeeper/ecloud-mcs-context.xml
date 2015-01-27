@@ -24,7 +24,7 @@
           
           
     <!--connection provider - with options the same as in embedded cassandra-->
-    <bean id="cassandraConnectionProvider"
+    <bean id="dbService"
           class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts" value="${mcs.cassandra.host}" />
         <constructor-arg name="port" value="${mcs.cassandra.port}" />

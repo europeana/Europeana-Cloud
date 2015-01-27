@@ -21,7 +21,7 @@
     <bean id="serviceExceptionTranslator" class="eu.europeana.cloud.service.mcs.persistent.aspects.ServiceExceptionTranslator"/>
 
     <!--connection provider - with options the same as in embedded cassandra-->
-    <bean id="cassandraConnectionProvider"
+    <bean id="dbService"
           class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         
         <constructor-arg name="hosts">

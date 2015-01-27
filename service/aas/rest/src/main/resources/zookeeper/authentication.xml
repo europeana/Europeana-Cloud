@@ -58,7 +58,7 @@
 
         <b:constructor-arg name="keyspaceName" value="${aas.cassandra.authentication-keyspace}" />
 
-        <b:constructor-arg name="username" value="${aas.cassandra.user}" />
+        <b:constructor-arg name="userName" value="${aas.cassandra.user}" />
         <b:constructor-arg name="password" value="${aas.cassandra.password}" />
   
     </b:bean>

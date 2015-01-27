@@ -53,7 +53,7 @@
         <constructor-arg name="hosts" value="${aas.cassandra.host}" />
         <constructor-arg name="port" value="${aas.cassandra.port}" />
         <constructor-arg name="keyspaceName" value="${aas.cassandra.authorization-keyspace}" />
-        <constructor-arg name="username" value="${aas.cassandra.user}" />
+        <constructor-arg name="userName" value="${aas.cassandra.user}" />
         <constructor-arg name="password" value="${aas.cassandra.password}" />
     </bean>
 
