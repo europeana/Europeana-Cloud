@@ -12,6 +12,12 @@ import org.codehaus.jackson.map.annotate.JsonRootName;
  * 
  * Clients can then query Zookeeper, receive the properties and choose a service to connect to.
  * 
+ * Example: 
+ * 
+ * "serviceName":			"UIS"
+ * "listenAddress": 		"http://146.48.82.158:8080/ecloud-service-uis-rest-0.3-SNAPSHOT"
+ * "datacenterLocation": 	"ISTI"
+ * 
  * @author emmanouil.koufakis@theeuropeanlibrary.org
  */
 @JsonRootName("Service")
