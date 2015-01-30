@@ -4,6 +4,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -90,6 +92,12 @@ public class UISExceptionMapper {
 	}
 
 	public Response toResponse(RuntimeException e){
+		
+    	if (e instanceof AccessDeniedException) {
+            return Response.status(Response.Status.METHOD_NOT_ALLOWED)
+            		.type(MediaType.APPLICATION_XML)
+            		.entity(new ErrorInfo("OTHER", e.getMessage())).build();
+    	}
 		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_XML).entity(new ErrorInfo("OTHER", e.getMessage())).build();
 	}
 	
