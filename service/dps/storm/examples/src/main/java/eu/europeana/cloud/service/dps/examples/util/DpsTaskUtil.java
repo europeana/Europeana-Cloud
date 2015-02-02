@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.util;
+package eu.europeana.cloud.service.dps.examples.util;
 
 import com.google.common.collect.ImmutableList;
 

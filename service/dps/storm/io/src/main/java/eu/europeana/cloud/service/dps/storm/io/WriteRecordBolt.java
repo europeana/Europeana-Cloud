@@ -54,10 +54,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	@Override
 	public void execute(StormTask t) {
 
-		// Retrieves record by bytes
-		// final byte[] recordBytes = tuple.getBinaryByField("XML_CONTENT");
-		// final String record = new String(recordBytes);
-		
 		try {
 
 			final String record = t.getFileByteData();

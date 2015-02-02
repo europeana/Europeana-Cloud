@@ -7,7 +7,7 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import eu.europeana.cloud.service.dps.DpsService;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.util.DpsTaskUtil;
+import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 
 /**
  * Stores / retrieves dps tasks from / to Kafka topics.

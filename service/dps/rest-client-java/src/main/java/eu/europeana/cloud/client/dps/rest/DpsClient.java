@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 
 public class DpsClient {
 
-//	 private static final String BASE_URL =  "http://146.48.82.158:8080/hera-rest-administration/";
+//	 private static final String BASE_URL =  "http://146.48.82.158:8080/";
 	private static final String BASE_URL = "http://localhost:8080/ecloud-service-dps-rest";
     
 	private Client client = JerseyClientBuilder.newClient();

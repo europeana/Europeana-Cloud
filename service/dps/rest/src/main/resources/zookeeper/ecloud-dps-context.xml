@@ -17,7 +17,7 @@
     <context:component-scan
         base-package="eu.europeana.cloud.service.dps.rest"/>
         
-    <bean id="uniqueIdResource"
+    <bean id="dpsResource"
           class="eu.europeana.cloud.service.dps.rest.DpsResource" />
           
     <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">

@@ -13,7 +13,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.xslt.StormTask;
+import eu.europeana.cloud.service.dps.storm.StormTask;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
 	public static final Logger LOG = LoggerFactory

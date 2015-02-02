@@ -15,14 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.cloud.service.dps.xslt;
+package eu.europeana.cloud.service.dps.xslt.kafka.topologies;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
-import eu.europeana.cloud.service.dps.util.DpsTaskUtil;
+import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
+import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
 /**
  * Example ecloud topology:

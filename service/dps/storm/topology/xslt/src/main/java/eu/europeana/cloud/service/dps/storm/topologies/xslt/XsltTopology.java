@@ -52,6 +52,7 @@ public class XsltTopology {
     }
 
     public static void main(String[] args) throws Exception {
+    	
         // String kafkaZk = args[0];
         String kafkaZk = "ecloud.eanadev.org:2181";
         XsltTopology kafkaSpoutTestTopology = new XsltTopology(kafkaZk);

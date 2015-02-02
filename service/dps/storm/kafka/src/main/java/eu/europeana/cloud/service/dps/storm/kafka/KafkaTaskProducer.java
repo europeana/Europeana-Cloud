@@ -3,10 +3,10 @@ package eu.europeana.cloud.service.dps.storm.kafka;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import eu.europeana.cloud.service.dps.DpsTask;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import eu.europeana.cloud.service.dps.DpsTask;
 
 //import eu.europeana.cloud.service.dps.kafka.message.DPSMessage;
 

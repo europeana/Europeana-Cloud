@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.xslt;
+package eu.europeana.cloud.service.dps.examples;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +11,8 @@ import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.storm.StormTask;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 
 /**
  * Always uses the same DpsTask (instead of consuming tasks from a Kafka Topic)
