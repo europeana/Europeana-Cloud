@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import eu.europeana.cloud.service.dps.storm.StormTask;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -15,6 +13,8 @@ import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.DpsKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.StormTask;
 
 /**
  */
@@ -69,7 +69,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		}
 
 		Utils.sleep(100);
-		collector.emit(new Values(fileUrl, file, xsltUrl));
+		collector.emit(new StormTask(fileUrl, file, t.getParameters()).toStormTuple());
 	}
 
 	private String getFileContentAsString(String fileUrl) {
