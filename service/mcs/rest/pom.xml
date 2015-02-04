@@ -158,6 +158,69 @@
 				</dependency>
 			</dependencies>
 		</profile>
+        
+        <profile>
+            <id>kafkaLogging</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            
+            <dependencies>
+                <dependency>
+                    <groupId>eu.europeana.cloud</groupId>
+                    <artifactId>ecloud-service-cos</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>eu.europeana.cloud</groupId>
+                    <artifactId>ecloud-service-mcs-persistent</artifactId>
+                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>zookeeper</artifactId>
+                            <groupId>org.apache.zookeeper</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <!-- forked kafka with fixed appender issue KAFKA-847 -->
+                    <!-- TODO ECL-317 -->
+                    <groupId>eu.europeana.cloud.kafka</groupId>
+                    <artifactId>kafka_2.10</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>zookeeper</artifactId>
+                            <groupId>org.apache.zookeeper</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
+                        <executions>
+                            <execution>
+                                <id>copy-kafka-resources</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/resources/kafkaLogging</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 	</profiles>
 
 	<build>
@@ -170,6 +233,7 @@
 					<exclude>zookeeper/</exclude>
 					<exclude>persistent-authentication/</exclude>
 					<exclude>persistent-authorization/</exclude>
+                    <exclude>kafkaLogging/</exclude>
 				</excludes>
 			</resource>
 		</resources>
@@ -347,6 +411,12 @@
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>

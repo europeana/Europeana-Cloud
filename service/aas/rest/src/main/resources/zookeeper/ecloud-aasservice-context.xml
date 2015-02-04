@@ -39,6 +39,34 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
         </constructor-arg>
     </bean>
+    
+    <bean id="discoveryService" class="eu.europeana.cloud.service.coordination.discovery.ZookeeperServiceDiscovery">
+        <constructor-arg name="zookeeper" ref="zookeeperService"/>
+        <constructor-arg name="discoveryPath" value="/discovery"/>
+        <constructor-arg name="serviceType" value="AAS"/>
+    </bean>
+
+    <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
+        <constructor-arg name="serviceName" value="AAS" />
+
+        <constructor-arg name="listenAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/listenAddress"/>
+        </constructor-arg>
+
+        <constructor-arg name="datacenterLocation">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/datacenterLocation"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="serviceAdvertiser" class="eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser">
+        <constructor-arg name="zookeeper" ref="zookeeperService"/>
+        <constructor-arg name="discoveryPath" value="/discovery"/>
+        <constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
+    </bean>
+    
+    <bean id="loggerConf" class="eu.europeana.cloud.service.commons.logging.LoggingConfigurator">
+        <constructor-arg name="serviceAdvertiser" ref="serviceAdvertiser"/>
+    </bean>
        
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>

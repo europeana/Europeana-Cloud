@@ -32,6 +32,11 @@
 					<artifactId>ecloud-service-uis-persistent</artifactId>
 					<version>${project.version}</version>
 				</dependency>
+                <dependency>
+                    <groupId>eu.europeana.cloud</groupId>
+                    <artifactId>ecloud-service-cos</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
 			</dependencies>
 		</profile>
 
@@ -197,6 +202,34 @@
 				</plugins>
 			</build>
 		</profile>
+        <profile>
+            <id>kafkaLogging</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
+                        <executions>
+                            <execution>
+                                <id>copy-kafka-resources</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/resources/kafkaLogging</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 	</profiles>
 
 	<dependencies>
@@ -216,6 +249,12 @@
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
 
 		<!-- Authentication + Authorization -->
 		<dependency>
@@ -376,6 +415,7 @@
 					<exclude>persistent-authentication/</exclude>
 					<exclude>persistent-authorization/</exclude>
 					<exclude>inmemory-authentication/</exclude>
+                    <exclude>kafkaLogging/</exclude>
 				</excludes>
 			</resource>
 		</resources>
