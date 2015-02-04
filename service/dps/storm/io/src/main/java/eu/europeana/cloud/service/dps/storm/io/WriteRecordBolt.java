@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import eu.europeana.cloud.service.dps.storm.StormTask;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
@@ -14,6 +11,8 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.DpsKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.StormTask;
 
 /**
  * Stores a Record on the cloud.
@@ -55,16 +54,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	public void execute(StormTask t) {
 
 		try {
-
 			final String record = t.getFileByteData();
-			final String recordEdited = record + " edited by Storm!";
-			InputStream contentStream = new ByteArrayInputStream(
-					recordEdited.getBytes());
-
 			final String fileUrl = t.getParameter(DpsKeys.OUTPUT_URL);
+			
 			URI uri = null;
-
-			uri = mcsClient.modifyFile(fileUrl, contentStream, mediaType);
+			uri = mcsClient.uploadFile(fileUrl, new ByteArrayInputStream(record.getBytes()), mediaType);
+			
 			LOGGER.info("file modified, new URI:" + uri);
 
 		} catch (Exception e) {

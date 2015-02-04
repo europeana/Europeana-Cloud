@@ -267,7 +267,33 @@ public class FileServiceClient {
             throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
+    
 
+    /**
+     * Uploads file content without checking checksum.
+     * 
+     * @param versionUrl Path to the version where the file will be uploaded to.
+     * For example: 
+     * "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8"
+     */
+    public URI uploadFile(String versionUrl, InputStream data, String mediaType)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            MCSException {
+    	
+    	String filesPath = "/files";
+
+        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+            ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        
+    	Response response = client.target(versionUrl + filesPath).request().post(Entity.entity(multipart, multipart.getMediaType()));
+        
+        if (response.getStatus() == Status.CREATED.getStatusCode()) {
+            return response.getLocation();
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
 
     /**
      * Modifies existed file with checking checksum.
