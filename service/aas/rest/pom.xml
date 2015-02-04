@@ -34,6 +34,34 @@
 				<spring.config.dir>zookeeper</spring.config.dir>
 			</properties>
 		</profile>
+        <profile>
+            <id>kafkaLogging</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
+                        <executions>
+                            <execution>
+                                <id>copy-kafka-resources</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/resources/kafkaLogging</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 	</profiles>
 
 	<dependencies>
@@ -55,6 +83,12 @@
 			<artifactId>ecloud-service-cos</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
 		<!--logging -->
 		<dependency>
@@ -185,6 +219,7 @@
 				<excludes>
 					<exclude>zookeeper/</exclude>
 					<exclude>persistent/</exclude>
+                    <exclude>kafkaLogging/</exclude>
 				</excludes>
 			</resource>
 		</resources>

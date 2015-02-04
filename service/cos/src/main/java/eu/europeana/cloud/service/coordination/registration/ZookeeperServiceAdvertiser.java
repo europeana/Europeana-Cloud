@@ -13,6 +13,7 @@ import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceInstanceBuilder;
+import org.apache.curator.x.discovery.ServiceType;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ public final class ZookeeperServiceAdvertiser implements
 	 * List of properties that allow a client to connect to some UIS REST
 	 * Service.
 	 */
-	private final ServiceProperties serviceProperties;
+	private ServiceProperties serviceProperties;
 
 	ZookeeperServiceAdvertiser(final ZookeeperService zookeeper,
 			final String discoveryPath,
@@ -112,10 +113,29 @@ public final class ZookeeperServiceAdvertiser implements
 
 		try {
 			ServiceInstance<ServiceProperties> propertiesToBeRegisteredInZoo = convert(serviceProperties);
-			discovery.registerService(propertiesToBeRegisteredInZoo);
-			this.currentlyAdvertisedServiceProperties = serviceProperties;
-			this.currentlyAdvertisedServiceID = propertiesToBeRegisteredInZoo.getId();
-			LOGGER.info("ZookeeperServiceAdvertiser has advertised the service successfully.");
+            //
+            Collection<ServiceInstance<ServiceProperties>> serviceInstances = discovery.queryForInstances(serviceProperties.getServiceName());
+            Iterator<ServiceInstance<ServiceProperties>> instancesIterator = serviceInstances.iterator();
+            
+            String currentHostName = InetAddress.getLocalHost().getHostName(); 
+            while (instancesIterator.hasNext()){
+                ServiceInstance<ServiceProperties> instance = instancesIterator.next();
+                if(instance.getPayload().getServiceHostName().equals(currentHostName)){
+                    //this is the same instance do not add new one to zookeeper
+                    LOGGER.info("ZookeeperServiceAdvertiser has NOT advertised the service. Service with provided hostName already advertised in Zookeeper");
+                    this.currentlyAdvertisedServiceProperties = serviceProperties;
+                    this.currentlyAdvertisedServiceID = propertiesToBeRegisteredInZoo.getId();
+                    this.serviceProperties = instance.getPayload();
+                    return;
+                }
+            }
+            
+            discovery.registerService(propertiesToBeRegisteredInZoo);
+            LOGGER.info("ZookeeperServiceAdvertiser has advertised the service successfully.");
+            
+            this.currentlyAdvertisedServiceProperties = serviceProperties;
+            this.currentlyAdvertisedServiceID = propertiesToBeRegisteredInZoo.getId();
+            //
 			
 		} catch (final Exception e) {
 			this.currentlyAdvertisedServiceProperties = null;
@@ -142,8 +162,10 @@ public final class ZookeeperServiceAdvertiser implements
 	private static ServiceInstance<ServiceProperties> convert(
 			final ServiceProperties p) throws Exception {
 		
+        p.setServiceHostName(InetAddress.getLocalHost().getHostName());
+        p.setServiceUniqueName(InetAddress.getLocalHost().getHostName());
 		return ServiceInstance.<ServiceProperties> builder()
-				.name(p.getServiceName()).payload(p)
+				.name(p.getServiceName()).payload(p).serviceType(ServiceType.PERMANENT)
 				.address(p.getListenAddress()).build();
 	}
 
@@ -238,4 +260,8 @@ public final class ZookeeperServiceAdvertiser implements
 		
 		return null;
 	}
+    
+    public ServiceProperties getServiceProperties(){
+        return serviceProperties;
+    } 
 }

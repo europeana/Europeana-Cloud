@@ -28,6 +28,12 @@ public final class ServiceProperties {
 	
 	@JsonProperty("serviceName")
 	private final String serviceName;
+    
+    @JsonProperty("serviceHostName")
+    private String serviceHostname;
+
+    @JsonProperty("serviceUniqueName")
+    private String serviceUniqueName;
 	
 	@JsonProperty("datacenterLocation")
 	private final String datacenterLocation;
@@ -58,6 +64,21 @@ public final class ServiceProperties {
 	public void setListenAddress(final String listenAddress) {
 		this.listenAddress = listenAddress;
 	}
+    
+    public String getServiceHostName(){
+        return serviceHostname;
+    }
+    public void setServiceHostName(String serviceHostName){
+        this.serviceHostname = serviceHostName;
+    }
+    
+    public String getServiceUniqueName() {
+        return serviceUniqueName;
+    }
+
+    public void setServiceUniqueName(String serviceUniqueName) {
+        this.serviceUniqueName = serviceUniqueName;
+    }
 	
 	@Override
 	public String toString() {

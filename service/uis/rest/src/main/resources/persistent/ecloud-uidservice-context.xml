@@ -61,4 +61,10 @@
 	
     <bean id="uniqueIdResource"
           class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
+    
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.LoggingConfigurator">
+        <constructor-arg name="serviceAdvertiser">
+            <null/>
+        </constructor-arg>
+    </bean>
 </beans>

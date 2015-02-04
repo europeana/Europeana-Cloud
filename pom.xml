@@ -79,6 +79,7 @@
         <module>service/mcs</module>
         <module>service/cos</module>
         <module>service/aas</module>
+        <module>service/commons</module>
         <module>tools</module>
         <module>integration</module>
     </modules>

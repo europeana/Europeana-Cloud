@@ -105,6 +105,10 @@
   		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
             
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.LoggingConfigurator">
+        <constructor-arg name="serviceAdvertiser" ref="serviceAdvertiser"/>
+    </bean>
+            
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
 </beans>
