@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.xslt;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
 
 import javax.xml.transform.Source;
@@ -55,46 +54,22 @@ public class XsltBolt extends AbstractDpsBolt {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
 		}
 
-		// downloading XSLT from URL...
-		URL xslt = null;
+		Source xslDoc = null;
+		Source xmlDoc = null;
+		
 		try {
-			xslt = new URL(xsltUrl);
-		} catch (MalformedURLException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
+			xslDoc = new StreamSource(new URL(xsltUrl).openStream());
+			
+			InputStream stream = new ByteArrayInputStream(file.getBytes());
+			xmlDoc = new StreamSource(stream);
+			
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
-
-		URLConnection connection = null;
-		try {
-			connection = xslt.openConnection();
-		} catch (IOException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-		}
-
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(
-					connection.getInputStream()));
-		} catch (IOException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-		}
-
-		StringBuilder response = new StringBuilder();
-		String inputLine;
-
-		try {
-			while ((inputLine = in.readLine()) != null)
-				response.append(inputLine);
-			in.close();
-		} catch (IOException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-		}
-
-		String xsltSheet = response.toString();
-		Source xslDoc = new StreamSource(xsltSheet);
-		Source xmlDoc = new StreamSource(file);
+		
 		TransformerFactory tFactory = TransformerFactory.newInstance();
 		Transformer transformer = null;
-		StreamResult out = new StreamResult();
+		StringWriter writer = new StringWriter();
 
 		if (cache.containsKey(xsltUrl)) {
 			transformer = cache.get(xsltUrl);
@@ -108,12 +83,12 @@ public class XsltBolt extends AbstractDpsBolt {
 		}
 
 		try {
-			transformer.transform(xmlDoc, out);
+			transformer.transform(xmlDoc, new StreamResult(writer));
 		} catch (TransformerException e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
 		}
 
-		collector.emit(new Values(fileUrl, out.getWriter().toString(), t.getParameters()));
+		collector.emit(new Values(fileUrl, writer.toString(), t.getParameters()));
 	}
 
 	@Override
