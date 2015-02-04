@@ -12,6 +12,8 @@
 
     <artifactId>ecloud-service-commons</artifactId>
 
+    <name>Europeana Cloud: Services Commons</name>
+
     <dependencies>
         <dependency>
             <groupId>log4j</groupId>
