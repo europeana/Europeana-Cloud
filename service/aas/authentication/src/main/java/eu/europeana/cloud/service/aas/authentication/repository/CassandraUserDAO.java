@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectio
 import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
 import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Used to create / retrieve / update <code>User</code> objects from ecloud's
@@ -31,6 +32,7 @@ public class CassandraUserDAO {
 
     private static final Log LOGGER = LogFactory.getLog(CassandraUserDAO.class);
 
+    @Qualifier("dbService")
     private CassandraConnectionProvider provider;
 
     private PreparedStatement selectUserStatement;
