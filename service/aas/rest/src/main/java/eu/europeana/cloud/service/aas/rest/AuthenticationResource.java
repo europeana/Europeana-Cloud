@@ -23,7 +23,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.UserExistsExcepti
 
 /**
  * AAS: just a single call that creates an ecloud user
- *
+ * 
  */
 @Component
 @Path("/")
@@ -38,28 +38,31 @@ public class AuthenticationResource {
      */
     @POST
     @Path("/create-user")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public Response createCloudUser(@QueryParam(AASParamConstants.Q_USER_NAME) String username,
-    		@QueryParam(AASParamConstants.Q_PASSWORD) String password) throws DatabaseConnectionException, UserExistsException,
-    		InvalidUsernameException, InvalidPasswordException {
-    	
-        authenticationService.createUser(new User(username, password));
-        return Response.ok("Cloud user was created!").build();
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Response createCloudUser(
+	    @QueryParam(AASParamConstants.Q_USER_NAME) String username,
+	    @QueryParam(AASParamConstants.Q_PASSWORD) String password)
+	    throws DatabaseConnectionException, UserExistsException,
+	    InvalidUsernameException, InvalidPasswordException {
+
+	authenticationService.createUser(new User(username, password));
+	return Response.ok("Cloud user was created!").build();
     }
-    
+
     /**
      * Deletes a user with the specified username.
      */
     @POST
     @Path("/delete-user")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @PreAuthorize("hasRole('ROLE_ADMIN')") 
-    public Response deleteCloudUser(@QueryParam(AASParamConstants.Q_USER_NAME) String username)
-    		throws DatabaseConnectionException, UserDoesNotExistException {
-    	
-        authenticationService.deleteUser(username);
-        return Response.ok("Cloud user is gone. Bye bye.").build();
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Response deleteCloudUser(
+	    @QueryParam(AASParamConstants.Q_USER_NAME) String username)
+	    throws DatabaseConnectionException, UserDoesNotExistException {
+
+	authenticationService.deleteUser(username);
+	return Response.ok("Cloud user is gone. Bye bye.").build();
     }
 
     /**
@@ -67,13 +70,15 @@ public class AuthenticationResource {
      */
     @POST
     @Path("/update-user")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response updateCloudUser(@QueryParam(AASParamConstants.Q_USER_NAME) String username,
-    		@QueryParam(AASParamConstants.Q_PASSWORD) String password) throws DatabaseConnectionException,
-    			UserDoesNotExistException, InvalidPasswordException {
-    	
-        authenticationService.updateUser(new User(username, password));
-        return Response.ok("Cloud user updated.").build();
+    public Response updateCloudUser(
+	    @QueryParam(AASParamConstants.Q_USER_NAME) String username,
+	    @QueryParam(AASParamConstants.Q_PASSWORD) String password)
+	    throws DatabaseConnectionException, UserDoesNotExistException,
+	    InvalidPasswordException {
+
+	authenticationService.updateUser(new User(username, password));
+	return Response.ok("Cloud user updated.").build();
     }
 }
