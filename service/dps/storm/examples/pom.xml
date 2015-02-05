@@ -24,6 +24,16 @@
         	<groupId>eu.europeana.cloud</groupId>
         	<artifactId>ecloud-service-dps-storm-io</artifactId>
         	<version>${project.version}</version>
+        	<exclusions>
+        		<exclusion>
+        			<artifactId>jcl-over-slf4j</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        		<exclusion>
+        			<artifactId>slf4j-log4j12</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        	</exclusions>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -34,12 +44,32 @@
         	<groupId>eu.europeana.cloud</groupId>
         	<artifactId>ecloud-service-dps-storm-common</artifactId>
         	<version>${project.version}</version>
+        	<exclusions>
+        		<exclusion>
+        			<artifactId>jcl-over-slf4j</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        		<exclusion>
+        			<artifactId>slf4j-log4j12</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        	</exclusions>
         </dependency>
 		
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-rest-client-java</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>jcl-over-slf4j</artifactId>
+            		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>slf4j-log4j12</artifactId>
+            		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 	
         <dependency>
@@ -50,6 +80,10 @@
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                	<artifactId>jcl-over-slf4j</artifactId>
+                	<groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -63,6 +97,10 @@
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+                	<artifactId>jcl-over-slf4j</artifactId>
+                	<groupId>org.slf4j</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -75,6 +113,7 @@
         </dependency>
 		
         <!--logging -->
+        <!-- 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
@@ -91,7 +130,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
-        <!-- SLF4J extensions -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-ext</artifactId>
@@ -102,6 +140,7 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
         </dependency>
+         -->
 
         <dependency>
             <groupId>org.apache.storm</groupId>
@@ -154,6 +193,16 @@
         		ecloud-service-dps-storm-transform-xslt
         	</artifactId>
         	<version>0.3-SNAPSHOT</version>
+        	<exclusions>
+        		<exclusion>
+        			<artifactId>jcl-over-slf4j</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        		<exclusion>
+        			<artifactId>slf4j-log4j12</artifactId>
+        			<groupId>org.slf4j</groupId>
+        		</exclusion>
+        	</exclusions>
         </dependency>
     </dependencies>
 
