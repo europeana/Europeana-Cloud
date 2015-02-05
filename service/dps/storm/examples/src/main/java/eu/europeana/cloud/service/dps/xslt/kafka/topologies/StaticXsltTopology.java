@@ -20,6 +20,7 @@ package eu.europeana.cloud.service.dps.xslt.kafka.topologies;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
@@ -64,7 +65,7 @@ public class StaticXsltTopology {
 				"xsltTransformationBolt");
 
 		Config conf = new Config();
-		conf.setDebug(true);
+		conf.put(Config.TOPOLOGY_DEBUG, false);
 
 		if (args != null && args.length > 0) {
 
