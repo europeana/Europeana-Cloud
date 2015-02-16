@@ -166,4 +166,10 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     <b:bean id="encoder"
             class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
+    <b:bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.LoggingConfigurator">
+        <b:constructor-arg name="serviceAdvertiser">
+            <b:null/>
+        </b:constructor-arg>
+    </b:bean>
+
 </b:beans>
