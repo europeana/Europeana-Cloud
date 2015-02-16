@@ -25,14 +25,15 @@ import eu.europeana.cloud.service.dps.storm.StormTask;
 public class ReadFileBolt extends AbstractDpsBolt {
 
 	private OutputCollector collector;
-	
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
+
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(ReadFileBolt.class);
 
 	/** Properties to connect to eCloud */
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
-	
+
 	private transient CountMetric countMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
@@ -53,30 +54,31 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
 		this.collector = collector;
 		fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
-		
+
 		initMetrics(context);
 	}
 
 	void initMetrics(TopologyContext context) {
-		
+
 		countMetric = new CountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-	    
-	    context.registerMetric("execute_count", countMetric, 5);
-	    context.registerMetric("word_count", wordCountMetric, 60);
-	    context.registerMetric("word_length", wordLengthMeanMetric, 60);
+
+		context.registerMetric("ReadFileBolt, number of read records ",
+				countMetric, 15);
+		context.registerMetric("word_count", wordCountMetric, 15);
+		context.registerMetric("word_length", wordLengthMeanMetric, 15);
 	}
 
 	@Override
 	public void execute(StormTask t) {
-		
+
 		String file = null;
 		String fileUrl = null;
 		String xsltUrl = null;
 
 		try {
-			
+
 			fileUrl = t.getFileUrl();
 			xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
 
@@ -91,14 +93,16 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		}
 
 		Utils.sleep(100);
-		collector.emit(new StormTask(fileUrl, file, t.getParameters()).toStormTuple());
+		collector.emit(new StormTask(fileUrl, file, t.getParameters())
+				.toStormTuple());
 	}
-	
+
 	void updateMetrics(String word) {
-		
-	   countMetric.incr();
-	   wordCountMetric.scope(word).incr();
-	   wordLengthMeanMetric.update(word.length());
+
+		countMetric.incr();
+		wordCountMetric.scope(word).incr();
+		wordLengthMeanMetric.update(word.length());
+		LOGGER.info("ReadFileBolt: metrics updated");
 	}
 
 	private String getFileContentAsString(String fileUrl) {
