@@ -31,9 +31,8 @@
 					<artifactId>ecloud-service-cos</artifactId>
 					<version>${project.version}</version>
 				</dependency>
+				<!-- 
 				<dependency>
-					<!-- forked kafka with fixed appender issue KAFKA-847 -->
-					<!-- TODO ECL-317 -->
 					<groupId>eu.europeana.cloud.kafka</groupId>
 					<artifactId>kafka_2.10</artifactId>
 					<exclusions>
@@ -43,6 +42,7 @@
 						</exclusion>
 					</exclusions>
 				</dependency>
+				 -->
 			</dependencies>
 		</profile>
 	</profiles>

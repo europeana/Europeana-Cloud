@@ -18,4 +18,15 @@ public interface DpsService {
      * @return Pops a task from the list
      */
     DpsTask fetchAndRemove();
+    
+    /**
+     * @return Amount of records that have been processed 
+     * by the last bolt of a topology.
+     */
+    String getTaskProgress(String taskId);
+
+    /**
+     * @return Info messages for the specified task
+     */
+    String getTaskNotification(String taskId);
 }

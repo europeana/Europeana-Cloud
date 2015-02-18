@@ -51,11 +51,27 @@ public class DpsResource {
      * Submits a Task
      */
     @GET
-    @Path("/{type}")
+    @Path("{type}")
     @Produces({MediaType.APPLICATION_JSON})
     public DpsTask getTask(@PathParam("type") String taskType)  {
     	
     	DpsTask task = dps.fetchAndRemove();
     	return task;
+    }
+    
+    @GET
+    @Path("{taskId}/progress")
+    public String getTaskProgress(@PathParam("taskId") String taskId)  {
+    	
+    	String progress = dps.getTaskProgress(taskId);
+    	return progress;
+    }
+    
+    @GET
+    @Path("{taskId}/notification")
+    public String getTaskNotification(@PathParam("taskId") String taskId)  {
+    	
+    	String progress = dps.getTaskNotification(taskId);
+    	return progress;
     }
 }
