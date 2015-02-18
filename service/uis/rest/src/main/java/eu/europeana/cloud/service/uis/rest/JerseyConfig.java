@@ -30,7 +30,7 @@ public class JerseyConfig extends ResourceConfig {
 	public JerseyConfig(){
 		super();
         register(RequestContextFilter.class);
-        register(LoggingFilter.class);
+        register(eu.europeana.cloud.service.commons.logging.LoggingFilter.class);
 		register(CloudIdDoesNotExistExceptionMapper.class);
 		register(DatabaseConnectionExceptionMapper.class);
 		register(IdHasBeenMappedExceptionMapper.class);

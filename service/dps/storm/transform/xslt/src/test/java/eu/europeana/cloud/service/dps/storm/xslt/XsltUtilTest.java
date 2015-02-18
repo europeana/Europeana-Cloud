@@ -36,7 +36,7 @@ public final class XsltUtilTest {
 	// xslt hosted in ULCC
 	private final String ulccXsltUrl = "http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt";
 	
-	private final String sampleXmlFileName = "xmlForTesting.xml";
+	private final String sampleXmlFileName = "/xmlForTesting.xml";
     
 	@Test
 	public void shouldDownloadXsltFile() throws MalformedURLException,

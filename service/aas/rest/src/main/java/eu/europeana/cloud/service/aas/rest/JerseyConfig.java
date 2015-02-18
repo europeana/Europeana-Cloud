@@ -9,6 +9,9 @@ import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
+import javax.inject.Singleton;
+import java.util.Set;
+
 /**
  * Jersey Configuration for Exception Mappers and Resources
  *
@@ -23,7 +26,7 @@ public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
         super();
         register(RequestContextFilter.class);
-        register(LoggingFilter.class);
+        register(eu.europeana.cloud.service.commons.logging.LoggingFilter.class);
         register(DatabaseConnectionExceptionMapper.class);
         register(InvalidPasswordExceptionMapper.class);
         register(InvalidUsernameExceptionMapper.class);

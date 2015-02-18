@@ -15,6 +15,10 @@
         <field name="event_timestamp" type="date" indexed="true" stored="true" required="true" multiValued="false"/>
         <!--field name="host" type="string" indexed="true" stored="true" required="false" multiValued="false"/-->
         <field name="priority" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
+        <field name="responseCode" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
+        <field name="responseDuration" type="long" indexed="true" stored="true" required="false" multiValued="false"/>
+        <field name="clientIP" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
+        <field name="requestPath" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="category" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="instance" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="message" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
