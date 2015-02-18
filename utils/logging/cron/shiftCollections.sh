@@ -83,7 +83,7 @@ selectColCall="$solrHTTP/admin/cores?action=STATUS"
 
 #if call to xmllint is the last one in pipe chain
 #script will end if xmllint errors
-existingColsOutput=`curl -s "$selectColCall" -H -d | xmllint --xpath "/response/lst[@name='status']/lst/@name" -`
+existingColsOutput=`curl -s "$selectColCall" -H -d | /home/ecloud/install/bin/xmllint --xpath "/response/lst[@name='status']/lst/@name" -`
 existingCols=(`echo $existingColsOutput | sed -e 's|name="\([^"]\+\)"|\1\n|g'`)
 
 #DEBUG
