@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -22,10 +23,18 @@ public class DpsTask implements Serializable {
 	private Date startTime = null;
 	private Date createTime = new Date(System.currentTimeMillis());
 	private Date endTime = null;
+	
+	private long uuid;
 
 	public DpsTask() {
 		inputData = Maps.newHashMap();
 		parameters = Maps.newHashMap();
+		
+		uuid = UUID.randomUUID().getMostSignificantBits();
+	}
+	
+	public long getTaskId() {
+		return uuid;
 	}
 
 	public void addDataEntry(String dataType, List<String> data) {

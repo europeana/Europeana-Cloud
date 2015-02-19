@@ -21,7 +21,14 @@
           class="eu.europeana.cloud.service.dps.rest.DpsResource" />
           
     <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
-        <constructor-arg name="kafkaTopic" value="franco_maria_topic" />
+    
         <constructor-arg name="kafkaBroker" value="ecloud.eanadev.org:9093" />
+        
+        <constructor-arg name="submitTaskTopic" value="franco_maria_topic" />
+        <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
+        <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
+        
+        <constructor-arg name="kafkaGroupId" value="group_id" />
+        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181" />
     </bean>
 </beans>
