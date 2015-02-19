@@ -24,17 +24,21 @@ public class DpsTask implements Serializable {
 	private Date createTime = new Date(System.currentTimeMillis());
 	private Date endTime = null;
 	
-	private long uuid;
+	private long taskId;
 
 	public DpsTask() {
 		inputData = Maps.newHashMap();
 		parameters = Maps.newHashMap();
 		
-		uuid = UUID.randomUUID().getMostSignificantBits();
+		taskId = UUID.randomUUID().getMostSignificantBits();
 	}
 	
 	public long getTaskId() {
-		return uuid;
+		return taskId;
+	}
+	
+	private void setTaskId(long taskId) {
+		this.taskId = taskId;
 	}
 
 	public void addDataEntry(String dataType, List<String> data) {

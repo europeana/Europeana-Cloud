@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps;
 
 
 /**
- * Service to fetch / submit tasks
+ * Service to fetch / submit tasks and progress notifications
  */
 public interface DpsService {
 
@@ -15,9 +15,9 @@ public interface DpsService {
     void submitTask(DpsTask task);
     
     /**
-     * @return Pops a task from the list
+     * @return Fetches a task from the list
      */
-    DpsTask fetchAndRemove();
+    DpsTask fetchTask();
     
     /**
      * @return Amount of records that have been processed 

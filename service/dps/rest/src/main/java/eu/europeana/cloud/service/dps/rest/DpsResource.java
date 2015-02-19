@@ -55,7 +55,7 @@ public class DpsResource {
     @Produces({MediaType.APPLICATION_JSON})
     public DpsTask getTask(@PathParam("type") String taskType)  {
     	
-    	DpsTask task = dps.fetchAndRemove();
+    	DpsTask task = dps.fetchTask();
     	return task;
     }
     
