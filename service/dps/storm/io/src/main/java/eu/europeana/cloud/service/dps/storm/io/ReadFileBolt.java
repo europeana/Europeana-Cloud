@@ -13,11 +13,11 @@ import backtype.storm.metric.api.MultiCountMetric;
 import backtype.storm.metric.api.ReducedMetric;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.DpsKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.PersistentCountMetric;
 import eu.europeana.cloud.service.dps.storm.StormTask;
 
 /**
@@ -33,11 +33,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
-
+	
 	private transient CountMetric countMetric;
+	private transient PersistentCountMetric pCountMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
-
+	
 	private FileServiceClient fileClient;
 
 	public ReadFileBolt(String ecloudMcsAddress, String username,
@@ -61,13 +62,14 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	void initMetrics(TopologyContext context) {
 
 		countMetric = new CountMetric();
+		pCountMetric = new PersistentCountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-
-		context.registerMetric("ReadFileBolt, number of read records ",
-				countMetric, 15);
-		context.registerMetric("word_count", wordCountMetric, 15);
-		context.registerMetric("word_length", wordLengthMeanMetric, 15);
+		
+		context.registerMetric("read_records=>", countMetric, 1);
+		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
+		context.registerMetric("word_count=>", wordCountMetric, 1);
+		context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
 	}
 
 	@Override
@@ -98,8 +100,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	}
 
 	void updateMetrics(String word) {
-
+		
 		countMetric.incr();
+		pCountMetric.incr();
 		wordCountMetric.scope(word).incr();
 		wordLengthMeanMetric.update(word.length());
 		LOGGER.info("ReadFileBolt: metrics updated");
