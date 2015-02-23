@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 
     @After
     public void clear() {
-    	logoutEveryone();
+        SecurityContextHolder.clearContext();
     }
 
     protected void login(String name, String password) {
@@ -35,6 +35,6 @@ import org.springframework.test.context.ContextConfiguration;
     }
     
     protected void logoutEveryone() {
-        SecurityContextHolder.clearContext();
+        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false); 
     }
 }

@@ -43,7 +43,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RepresentationNotExi
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.VersionNotExistsExceptionMapper;
 
 @RunWith(JUnitParamsRunner.class)
-public class RepresentationVersionAuthorizationResourceTest extends JerseyTest {
+public class FileAuthorizationResourceTest extends JerseyTest {
 
     private MutableAclService mutableAclService;
 
@@ -62,7 +62,7 @@ public class RepresentationVersionAuthorizationResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new ResourceConfig().registerClasses(RepresentationVersionAuthorizationResource.class)
+        return new ResourceConfig().registerClasses(FileAuthorizationResource.class)
                 .registerClasses(RecordNotExistsExceptionMapper.class)
                 .registerClasses(RepresentationNotExistsExceptionMapper.class)
                 .registerClasses(VersionNotExistsExceptionMapper.class)
@@ -97,6 +97,8 @@ public class RepresentationVersionAuthorizationResourceTest extends JerseyTest {
         verify(mutableAclService, times(1)).readAclById(Mockito.any(ObjectIdentity.class));
         verify(mutableAclService, times(1)).updateAcl(Mockito.any(MutableAcl.class));
         verify(versionAcl, times(1)).insertAce(eq(0), eq(BasePermission.READ),Mockito.any(PrincipalSid.class), eq(true));
+        verify(versionAcl, times(1)).getEntries();
+        
         verifyNoMoreInteractions(mutableAclService);
         verifyNoMoreInteractions(versionAcl);
     }
@@ -117,7 +119,10 @@ public class RepresentationVersionAuthorizationResourceTest extends JerseyTest {
         assertThat(response.getStatus(), is(Response.ok().build().getStatus()));
         verify(mutableAclService, times(1)).readAclById(Mockito.any(ObjectIdentity.class));
         verify(mutableAclService, times(1)).updateAcl(Mockito.any(MutableAcl.class));
-        verify(versionAcl, times(1)).insertAce(eq(0), eq(BasePermission.READ),Mockito.any(PrincipalSid.class), eq(true));
+        
+        verify(versionAcl, times(2)).insertAce(eq(0), eq(BasePermission.READ),Mockito.any(PrincipalSid.class), eq(true));
+        verify(versionAcl, times(2)).getEntries();
+        
         verifyNoMoreInteractions(mutableAclService);
         verifyNoMoreInteractions(versionAcl);
     }

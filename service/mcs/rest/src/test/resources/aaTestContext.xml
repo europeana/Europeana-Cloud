@@ -55,7 +55,8 @@
     <bean id="representationResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationResource"/>
     <bean id="representationsResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationsResource"/>
     <bean id="representationVersionResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource"/>
-    <bean id="representationAuthorizationResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationVersionAuthorizationResource"/>
+    <bean id="fileAuthorizationResource" class="eu.europeana.cloud.service.mcs.rest.FileAuthorizationResource"/>
+    <bean id="representationVersionAuthorizationResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationVersionAuthorizationResource"/>
     
     <!--spy on everything-->
     <mockito:spy beanName="dbService"/>

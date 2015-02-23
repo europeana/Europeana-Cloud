@@ -35,7 +35,7 @@ public class JerseyConfig extends ResourceConfig {
 
         // filters
         register(RequestContextFilter.class);
-        register(eu.europeana.cloud.service.commons.logging.LoggingFilter.class);
+        register(LoggingFilter.class);
 
         // exception mappers
         register(CannotPersistEmptyRepresentationExceptionMapper.class);
@@ -60,6 +60,7 @@ public class JerseyConfig extends ResourceConfig {
         register(RepresentationVersionResource.class);
         register(RepresentationVersionsResource.class);
         register(RepresentationVersionAuthorizationResource.class);
+        register(FileAuthorizationResource.class);
         register(FilesResource.class);
         register(FileResource.class);
         register(DataSetResource.class);

@@ -40,12 +40,6 @@ public class RepresentationsResource {
      * Identifier Service.
      */
     @GET
-    @PostFilter(
-    		"hasPermission"
-    		+ "( "
-    		+ " (#globalId).concat('/').concat(filterObject.representationName).concat('/').concat(filterObject.version) ,"
-    		+ " 'eu.europeana.cloud.common.model.Representation', read"
-    		+ ")")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<Representation> getRepresentations(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {

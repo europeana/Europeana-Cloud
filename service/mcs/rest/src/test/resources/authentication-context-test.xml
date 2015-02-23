@@ -29,12 +29,13 @@
     <authentication-manager alias="authenticationManager"> 
         <authentication-provider> 
             <user-service>
-                <user name="admin" password="admin" authorities="ROLE_ADMIN"/> 
+                <user name="admin" password="admin" authorities="ROLE_ADMIN, ROLE_USER"/> 
                 <user name="Robin_Van_Persie" password="Feyenoord" authorities="ROLE_USER"/> 
                 <user name="Cristiano" password="Ronaldo" authorities="ROLE_USER"/> 
+                <user name="Anonymous" password="Anonymous" authorities="ROLE_ANONYMOUS"/> 
             </user-service> 
         </authentication-provider> 
-    </authentication-manager> 
+    </authentication-manager>  
 	
     <!-- Automatically receives AuthenticationEvent messages -->
     <b:bean id="loggerListener"

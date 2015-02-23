@@ -29,18 +29,16 @@ import eu.europeana.cloud.common.model.Representation;
 /**
  * Resource to authorize other users to read specific versions.
  *
- * @author Markus Muhr (markus.muhr@theeuropeanlibrary.org)
- * @since 22.08.2014
  */
 @Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 @Component
-public class RepresentationVersionAuthorizationResource {
+public class FileAuthorizationResource {
 
     @Autowired
     private MutableAclService mutableAclService;
-    
-    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
+    
     /**
      * Modify authorization of versions operation. Updates authorization. for a
      * specific representation version.
@@ -51,7 +49,8 @@ public class RepresentationVersionAuthorizationResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/users/{" + Q_USER_NAME + "}")
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response updateAuthorization(
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
@@ -59,7 +58,7 @@ public class RepresentationVersionAuthorizationResource {
     		@PathParam(Q_USER_NAME) String username
     		) {
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                globalId + "/" + schema + "/" + version);
+        		globalId + "/" + schema + "/" + version);
 
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
@@ -73,14 +72,15 @@ public class RepresentationVersionAuthorizationResource {
     }
     
     /**
-     * Gives read access to everyone (even anonymous users) for the specified version.
+     * Gives read access to everyone (even anonymous users) for the specified File.
      *
      * @return response tells you if authorization has been updated or not
      * @statuscode 204 object has been updated.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', write)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     @Path("/free")
     public Response giveReadAccessToEveryone(
     		@PathParam(P_CLOUDID) String globalId,
@@ -88,13 +88,16 @@ public class RepresentationVersionAuthorizationResource {
     		@PathParam(P_VER) String version) {
     	
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                globalId + "/" + schema + "/" + version);
+        		globalId + "/" + schema + "/" + version);
 
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
+        
         Sid anonRole = new GrantedAuthoritySid("ROLE_ANONYMOUS");
-
+        Sid userRole = new GrantedAuthoritySid("ROLE_USER");
+        
         if (versionAcl != null) {
             versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, anonRole, true);
+            versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, userRole, true);
             mutableAclService.updateAcl(versionAcl);
             return Response.ok("Authorization has been updated!").build();
         } else {

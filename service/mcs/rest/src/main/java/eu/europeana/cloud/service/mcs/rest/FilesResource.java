@@ -25,16 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
@@ -50,16 +44,13 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 @Scope("request")
 public class FilesResource {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger("RequestsLogger");
+	private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
 
 	@Autowired
 	private RecordService recordService;
 
 	@Autowired
 	private MutableAclService mutableAclService;
-
-	private final String FILE_CLASS_NAME = File.class.getName();
 
 	/**
 	 * Adds a new file to representation version. URI to created resource will
@@ -94,7 +85,8 @@ public class FilesResource {
 	 */
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
 	public Response sendFile(@Context UriInfo uriInfo,
 			@PathParam(P_CLOUDID) final String globalId,
 			@PathParam(P_REPRESENTATIONNAME) final String schema,
@@ -131,27 +123,6 @@ public class FilesResource {
 		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 		LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
 				globalId, schema, version, f.getContentUri()));
-
-		String creatorName = SpringUserUtils.getUsername();
-		if (creatorName != null) {
-			ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(
-					FILE_CLASS_NAME, globalId + "/" + schema + "/" + version
-							+ "/" + fileName);
-
-			MutableAcl datasetAcl = mutableAclService
-					.createAcl(dataSetIdentity);
-
-			datasetAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
-					creatorName), true);
-			datasetAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
-					creatorName), true);
-			datasetAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
-					creatorName), true);
-			datasetAcl.insertAce(3, BasePermission.ADMINISTRATION,
-					new PrincipalSid(creatorName), true);
-
-			mutableAclService.updateAcl(datasetAcl);
-		}
 
 		return Response.created(f.getContentUri()).tag(f.getMd5()).build();
 	}

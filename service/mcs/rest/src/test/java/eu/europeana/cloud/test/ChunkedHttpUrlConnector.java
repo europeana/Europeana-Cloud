@@ -18,7 +18,7 @@ import org.glassfish.jersey.internal.util.PropertiesHelper;
 public class ChunkedHttpUrlConnector extends HttpUrlConnector {
 
     public ChunkedHttpUrlConnector(final Configuration config) {
-        super(config, new HttpUrlConnector.ConnectionFactory() {
+        super(new HttpUrlConnector.ConnectionFactory() {
 
             @Override
             public HttpURLConnection getConnection(URL url)

@@ -37,7 +37,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -62,7 +62,7 @@ public class FileResource {
 	@Autowired
 	private MutableAclService mutableAclService;
 
-	private final String FILE_CLASS_NAME = File.class.getName();
+    private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
      * Modify file operation. Updates file in representation version. MD5 of
@@ -87,8 +87,8 @@ public class FileResource {
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
-    		+ " 'eu.europeana.cloud.common.model.File', write)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response sendFile(@Context UriInfo uriInfo,
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
@@ -132,8 +132,8 @@ public class FileResource {
      * @throws FileNotExistsException
      */
     @GET
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
-    		+ " 'eu.europeana.cloud.common.model.File', read)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response getFile(@PathParam(P_CLOUDID) final String globalId, 
     		@PathParam(P_REPRESENTATIONNAME) final String schema,
     		@PathParam(P_VER) final String version,
@@ -193,19 +193,15 @@ public class FileResource {
      * allowed.
      */
     @DELETE
-    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version).concat('/').concat(#fileName),"
-    		+ " 'eu.europeana.cloud.common.model.File', delete)")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
     public void deleteFile(@PathParam(P_CLOUDID) final String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, 
     		@PathParam(P_VER) String version,
     		@PathParam(P_FILENAME) String fileName)
             throws RepresentationNotExistsException, FileNotExistsException,
             CannotModifyPersistentRepresentationException {
+    	
         recordService.deleteContent(globalId, schema, version, fileName);
-        
-        // let's delete the permissions as well
-        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(FILE_CLASS_NAME,
-            		globalId + "/" + schema + "/" + version + "/" + fileName);
-        mutableAclService.deleteAcl(dataSetIdentity, false);
     }
 
     /**
