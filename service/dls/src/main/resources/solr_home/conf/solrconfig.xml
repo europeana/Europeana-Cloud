@@ -117,7 +117,7 @@
          persistent, and doesn't work with replication.
       -->
     <directoryFactory name="DirectoryFactory"
-                      class="${solr.directoryFactory:solr.RAMDirectoryFactory}"/>
+                      class="${solr.directoryFactory:solr.MMapDirectoryFactory}"/>
 
 
     <indexConfig>
