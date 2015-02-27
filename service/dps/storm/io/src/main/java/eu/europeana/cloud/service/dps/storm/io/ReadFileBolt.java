@@ -33,12 +33,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
-	
+
 	private transient CountMetric countMetric;
 	private transient PersistentCountMetric pCountMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
-	
+
 	private FileServiceClient fileClient;
 
 	public ReadFileBolt(String ecloudMcsAddress, String username,
@@ -65,7 +65,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric = new PersistentCountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-		
+
 		context.registerMetric("read_records=>", countMetric, 1);
 		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
 		context.registerMetric("word_count=>", wordCountMetric, 1);
@@ -79,20 +79,14 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		String fileUrl = null;
 		String xsltUrl = null;
 
-		try {
+		fileUrl = t.getFileUrl();
+		xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
 
-			fileUrl = t.getFileUrl();
-			xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
+		LOGGER.info("fetching file: {}", fileUrl);
+		LOGGER.debug("fetching file: " + fileUrl);
+		file = getFileContentAsString(fileUrl);
 
-			LOGGER.info("logger fetching file: {}", fileUrl);
-			LOGGER.debug("fetching file: " + fileUrl);
-			file = getFileContentAsString(fileUrl);
-
-			updateMetrics(file);
-
-		} catch (Exception e) {
-			LOGGER.error("ReadFileBolt error:" + e.getMessage());
-		}
+		updateMetrics(file);
 
 		Utils.sleep(100);
 		collector.emit(new StormTask(fileUrl, file, t.getParameters())
@@ -100,7 +94,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	}
 
 	void updateMetrics(String word) {
-		
+
 		countMetric.incr();
 		pCountMetric.incr();
 		wordCountMetric.scope(word).incr();

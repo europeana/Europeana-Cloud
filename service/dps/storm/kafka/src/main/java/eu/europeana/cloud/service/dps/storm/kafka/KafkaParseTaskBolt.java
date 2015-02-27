@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.kafka;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,12 +15,11 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.storm.StormTask;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
 
-	public static final Logger LOG = LoggerFactory
+	public static final Logger LOGGER = LoggerFactory
 			.getLogger(KafkaParseTaskBolt.class);
 
 	@Override
@@ -40,14 +40,19 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 		System.out.println("files size=" + files.size());
 
 		for (String fileUrl : files) {
-			System.out.println("emitting..." + fileUrl);
-			collector.emit(new StormTask(fileUrl, "", taskParameters)
-					.toStormTuple());
+			LOGGER.info("emitting..." + fileUrl);
+			List<Object> prova = new ArrayList<Object>();
+			prova.add(fileUrl);
+			prova.add("");
+			prova.add(taskParameters);
+			collector.emit(prova);
 		}
 	}
 
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("values"));
-    }
+	@Override
+	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+		declarer.declare(new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+				StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+				StormTupleKeys.PARAMETERS_TUPLE_KEY));
+	}
 }
