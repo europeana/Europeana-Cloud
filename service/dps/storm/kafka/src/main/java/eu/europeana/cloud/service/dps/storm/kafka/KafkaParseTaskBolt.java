@@ -26,6 +26,7 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 	public void execute(Tuple tuple, BasicOutputCollector collector) {
 		ObjectMapper mapper = new ObjectMapper();
 		DpsTask task = null;
+		String file = null;
 
 		try {
 			task = mapper.readValue(tuple.getString(0), DpsTask.class);
@@ -33,19 +34,19 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 			e.printStackTrace();
 		}
 
-		HashMap<String, String> taskParameters = task.getParameters();
-		System.out.println("taskParameters size=" + taskParameters.size());
-
 		List<String> files = task.getDataEntry(DpsTask.FILE_URLS);
-		System.out.println("files size=" + files.size());
+		LOGGER.info("files size=" + files.size());
+
+		HashMap<String, String> taskParameters = task.getParameters();
+		LOGGER.info("taskParameters size=" + taskParameters.size());
 
 		for (String fileUrl : files) {
-			LOGGER.info("emitting..." + fileUrl);
-			List<Object> prova = new ArrayList<Object>();
-			prova.add(fileUrl);
-			prova.add("");
-			prova.add(taskParameters);
-			collector.emit(prova);
+			LOGGER.info("emitting: " + fileUrl);
+			List<Object> currentTuple = new ArrayList<Object>();
+			currentTuple.add(fileUrl);
+			currentTuple.add(file);
+			currentTuple.add(taskParameters);
+			collector.emit(currentTuple);
 		}
 	}
 

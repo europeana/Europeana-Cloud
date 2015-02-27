@@ -58,8 +58,7 @@ public class XSLTTopology {
 
     public static void main(String[] args) throws Exception {
     	
-        // String kafkaZk = args[0];
-        String kafkaZk = "ecloud.eanadev.org:2181";
+        String kafkaZk = args[0];
         XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(kafkaZk);
         Config config = new Config();
         config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
@@ -67,19 +66,18 @@ public class XSLTTopology {
         StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology();
         
         if (args != null && args.length > 1) {
-            String name = args[0];
             String dockerIp = args[1];
-            String zkIp = args[2];
-            config.setNumWorkers(4);
-            config.setMaxTaskParallelism(4);
+            String name = args[2];
+            config.setNumWorkers(1);
+            config.setMaxTaskParallelism(1);
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
             config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(zkIp));
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } else {
-            config.setNumWorkers(2);
-            config.setMaxTaskParallelism(2);
+            config.setNumWorkers(1);
+            config.setMaxTaskParallelism(1);
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("XSLTTopology", config, stormTopology);
         }
