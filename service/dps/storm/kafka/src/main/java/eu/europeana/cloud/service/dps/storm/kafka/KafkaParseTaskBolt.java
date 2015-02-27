@@ -45,6 +45,13 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 			List<Object> currentTuple = new ArrayList<Object>();
 			currentTuple.add(fileUrl);
 			currentTuple.add(file);
+
+			if (taskParameters.containsKey("OUTPUT_EXT")) {
+				String outputUrl = fileUrl + "."
+						+ taskParameters.get("OUTPUT_EXT");
+				taskParameters.put("OUTPUT_URL", outputUrl);
+			}
+
 			currentTuple.add(taskParameters);
 			collector.emit(currentTuple);
 		}
