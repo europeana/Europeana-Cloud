@@ -16,22 +16,26 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.DpsTaskSpoutTest;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
-public class XsltTopology {
+public class XSLTTopology {
 
-    private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-    private static String username = "Cristiano";
-    private static String password = "Ronaldo";
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(XsltTopology.class);
+    //private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
+    private static String ecloudMcsAddress = "http://heliopsis.man.poznan.pl/mcs";
+    //private static String username = "Cristiano";
+    //private static String password = "Ronaldo";
+    private static String username = "ecloud_user";
+    private static String password = "ecloud_user";
+    
+    public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
     private final BrokerHosts brokerHosts;
 
-    public XsltTopology(String kafkaZookeeper) {
+    public XSLTTopology(String kafkaZookeeper) {
         brokerHosts = new ZkHosts(kafkaZookeeper);
     }
 
@@ -39,12 +43,13 @@ public class XsltTopology {
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
 
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, "franco_maria_topic", "", "storm");
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, "franco_maria_topic_2", "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 10);
+        builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 2);
         builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt()).shuffleGrouping("kafkaReader");
+        //builder.setSpout("testSpout", new DpsTaskSpoutTest(), 1);
         builder.setBolt("retrieveFileBolt", retrieveFileBolt).shuffleGrouping("parseKafkaInput");
         builder.setBolt("xsltTransformationBolt", new XsltBolt()).shuffleGrouping("retrieveFileBolt");
         builder.setBolt("writeRecordBolt", writeRecordBolt).shuffleGrouping("xsltTransformationBolt");
@@ -53,28 +58,28 @@ public class XsltTopology {
 
     public static void main(String[] args) throws Exception {
     	
-        // String kafkaZk = args[0];
-        String kafkaZk = "ecloud.eanadev.org:2181";
-        XsltTopology kafkaSpoutTestTopology = new XsltTopology(kafkaZk);
+        String kafkaZk = args[0];
+        XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(kafkaZk);
         Config config = new Config();
         config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
         StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology();
+        
         if (args != null && args.length > 1) {
-            String name = args[0];
             String dockerIp = args[1];
-            config.setNumWorkers(2);
-            config.setMaxTaskParallelism(5);
-            config.put(Config.NIMBUS_HOST, dockerIp);
+            String name = args[2];
+            config.setNumWorkers(1);
+            config.setMaxTaskParallelism(1);
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(dockerIp));
+            config.put(Config.NIMBUS_HOST, dockerIp);
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } else {
-            config.setNumWorkers(2);
-            config.setMaxTaskParallelism(2);
+            config.setNumWorkers(1);
+            config.setMaxTaskParallelism(1);
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("kafka", config, stormTopology);
+            cluster.submitTopology("XSLTTopology", config, stormTopology);
         }
     }
 }
