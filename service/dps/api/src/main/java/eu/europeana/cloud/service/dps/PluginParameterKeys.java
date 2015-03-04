@@ -3,9 +3,9 @@ package eu.europeana.cloud.service.dps;
 /**
  * Parameters for {@link DpsTask}
  */
-public final class DpsKeys {
+public final class PluginParameterKeys {
 	
-	private DpsKeys() {
+	private PluginParameterKeys() {
 	}
 
 	public static final String XSLT_URL = "XSLT_URL";

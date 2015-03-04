@@ -17,16 +17,24 @@ public class DpsTask implements Serializable {
 	public static final String DATASETS = "DATASETS";
 	public static final String FILE_URLS = "FILE_URLS";
 
-	HashMap<String, List<String>> inputData;
-	HashMap<String, String> parameters;
+	private HashMap<String, List<String>> inputData;
+	private HashMap<String, String> parameters;
 
 	private Date startTime = null;
 	private Date createTime = new Date(System.currentTimeMillis());
 	private Date endTime = null;
 	
 	private long taskId;
+	private String taskName;
 
 	public DpsTask() {
+		this("");
+	}
+	
+	public DpsTask(String taskName) {
+		
+		this.taskName = taskName;
+		
 		inputData = Maps.newHashMap();
 		parameters = Maps.newHashMap();
 		
@@ -35,6 +43,14 @@ public class DpsTask implements Serializable {
 	
 	public long getTaskId() {
 		return taskId;
+	}
+	
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+	
+	public String getTaskName() {
+		return taskName;
 	}
 	
 	private void setTaskId(long taskId) {

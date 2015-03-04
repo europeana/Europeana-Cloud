@@ -3,10 +3,10 @@ package eu.europeana.cloud.service.dps.xslt.kafka.producers;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import eu.europeana.cloud.service.dps.DpsTask;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import eu.europeana.cloud.service.dps.DpsTask;
 
 //import eu.europeana.cloud.service.dps.kafka.message.DPSMessage;
 
@@ -17,8 +17,7 @@ public class KafkaTaskProducer {
 		Properties props = new Properties();
 		props.put("metadata.broker.list", args[0]);
 		// props.put("serializer.class", "kafka.serializer.StringEncoder");
-		props.put("serializer.class",
-				"eu.europeana.cloud.service.dps.kafka.serializer.JsonEncoder");
+		props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.JsonEncoder");
 		// props.put("partitioner.class", "kafka.producer.SimplePartitioner");
 		props.put("request.required.acks", "1");
 

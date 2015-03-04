@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,22 +19,12 @@ import backtype.storm.task.IErrorReporter;
 import backtype.storm.task.TopologyContext;
 
 /*
- * Listens for all metrics, dumps them to log
- *
- * To use, add this to your topology's configuration:
- *   conf.registerMetricsConsumer(backtype.storm.metrics.LoggingMetricsConsumer.class, 1);
- *
- * Or edit the storm.yaml config file:
- *
- *   topology.metrics.consumer.register:
- *     - class: "backtype.storm.metrics.LoggingMetricsConsumer"
- *       parallelism.hint: 1
+ * Listens for, sends them to the proper Kafka topic.
  *
  */
 public class KafkaMetricsConsumer implements IMetricsConsumer {
 
-	public static final Logger LOG = LoggerFactory
-			.getLogger(KafkaMetricsConsumer.class);
+	public static final Logger LOG = LoggerFactory.getLogger(KafkaMetricsConsumer.class);
 
 	public static final String KAFKA_TOPIC_KEY = "kafka.topic";
 	public static final String KAFKA_BROKER_KEY = "kafka.broker";
@@ -54,17 +45,39 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 
 	private void parseConfig(@SuppressWarnings("rawtypes") Map conf) {
 
-		if (conf.containsKey(KAFKA_TOPIC_KEY)) {
-			kafkaTopic = (String) conf.get(KAFKA_TOPIC_KEY);
-		} else {
-			LOG.error("KAFKA_TOPIC not found");
-		}
-
-		if (conf.containsKey(KAFKA_BROKER_KEY)) {
-			kafkaBroker = (String) conf.get(KAFKA_BROKER_KEY);
-		} else {
-			LOG.error("KAFKA_BROKER not found");
-		}
+		// TODO fetching properties from Conf does not work right now
+		
+//		if (conf.containsKey(KafkaMetricsConsumer.KAFKA_TOPIC_KEY)) {
+//			kafkaTopic = (String) conf.get(KafkaMetricsConsumer.KAFKA_TOPIC_KEY);
+//		} else {
+//			Iterator i = conf.keySet().iterator();
+//			while(i.hasNext()) {
+//				Object n = conf.get(i.next());
+//				if (n instanceof String) {
+//					LOG.error((String)n);
+//				}
+//				else if (n instanceof Integer) {
+//				}
+//			}
+//			LOG.error("KAFKA_TOPIC not found");
+//		}
+//
+//		if (conf.containsKey(KafkaMetricsConsumer.KAFKA_BROKER_KEY)) {
+//			kafkaBroker = (String) conf.get(KafkaMetricsConsumer.KAFKA_BROKER_KEY);
+//		} else {
+//			Iterator i = conf.keySet().iterator();
+//			while(i.hasNext()) {
+//				Object n = conf.get(i.next());
+//				if (n instanceof String) {
+//					LOG.error((String)n);
+//				}
+//			}
+//			LOG.error("KAFKA_BROKER not found");
+//		}
+		
+		// TODO hardcoded Kafka properties
+		kafkaTopic = "storm_metrics_topic";
+		kafkaBroker = "ecloud.eanadev.org:9093";
 
 		Properties props = new Properties();
 		props.put("metadata.broker.list", kafkaBroker);
@@ -130,11 +143,11 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 	public void report(String s, int number) {
 		
 		LOG.info("Kafka: reporting: {}={}", s, number);
-		
+
+		String kafkaMessage = s + number;
 		String key = "";
 		KeyedMessage<String, String> data = new KeyedMessage<String, String>(
-				kafkaTopic, key, s);
-		
+				kafkaTopic, key, kafkaMessage);
 		p.send(data);
 	}
 

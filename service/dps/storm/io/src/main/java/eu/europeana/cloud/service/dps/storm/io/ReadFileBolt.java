@@ -15,10 +15,11 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.DpsKeys;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.PersistentCountMetric;
-import eu.europeana.cloud.service.dps.storm.StormTask;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.ZookeeperMultiCountMetric;
 
 /**
  */
@@ -33,12 +34,13 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
-
+	
 	private transient CountMetric countMetric;
 	private transient PersistentCountMetric pCountMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
-
+	private transient ZookeeperMultiCountMetric zMetric;
+	
 	private FileServiceClient fileClient;
 
 	public ReadFileBolt(String ecloudMcsAddress, String username,
@@ -65,40 +67,51 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric = new PersistentCountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-
+		zMetric = new ZookeeperMultiCountMetric();
+		
 		context.registerMetric("read_records=>", countMetric, 1);
 		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
 		context.registerMetric("word_count=>", wordCountMetric, 1);
 		context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
+		context.registerMetric("zMetric=>", zMetric, 1);
 	}
 
 	@Override
-	public void execute(StormTask t) {
+	public void execute(StormTaskTuple t) {
 
-		String file = null;
+		String fileData = null;
 		String fileUrl = null;
-		String xsltUrl = null;
 
-		fileUrl = t.getFileUrl();
-		xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
+		try {
 
-		LOGGER.info("fetching file: {}", fileUrl);
-		LOGGER.debug("fetching file: " + fileUrl);
-		file = getFileContentAsString(fileUrl);
+			fileUrl = t.getFileUrl();
 
-		updateMetrics(file);
+			LOGGER.info("getTaskId: {}", t.getTaskId());
+			LOGGER.info("logger fetching file: {}", fileUrl);
+			LOGGER.debug("fetching file: " + fileUrl);
+			
+			fileData = getFileContentAsString(fileUrl);
 
+			updateMetrics(t, fileData);
+
+		} catch (Exception e) {
+			LOGGER.error("ReadFileBolt error:" + e.getMessage());
+		}
+		
+		t.setFileUrl(fileUrl);
+		t.setFileData(fileData);
+		
 		Utils.sleep(100);
-		collector.emit(new StormTask(fileUrl, file, t.getParameters())
-				.toStormTuple());
+		collector.emit(t.toStormTuple());
 	}
 
-	void updateMetrics(String word) {
-
+	void updateMetrics(StormTaskTuple t, String word) {
+		
 		countMetric.incr();
 		pCountMetric.incr();
 		wordCountMetric.scope(word).incr();
 		wordLengthMeanMetric.update(word.length());
+		zMetric.incr(t.getTaskId(), t.getTaskName(), "progress");
 		LOGGER.info("ReadFileBolt: metrics updated");
 	}
 

@@ -11,7 +11,6 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
-import eu.europeana.cloud.service.dps.storm.SimpleLoggingMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -27,10 +26,21 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  * - Writes a File to eCloud
  */
 public class StaticXsltTopologyWithKafkaMetrics {
+
+    private static String ecloudMcsAddress_POLAND = "http://felicia.man.poznan.pl/mcs";
+    
+    private static String ecloudMcsAddress_ISTI = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
+    
+    private static String ecloudMcsAddress = ecloudMcsAddress_POLAND;
+    
+	private static String username_ISTI = "Cristiano";
+	private static String password_ISTI = "Ronaldo";
 	
-    private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-	private static String username = "Cristiano";
-	private static String password = "Ronaldo";
+	private static String username_poland = "Emmanouil_Koufakis";
+	private static String password_poland = "J9vdq9rpPy";
+	
+	private static String username = username_poland;
+	private static String password = password_poland;
 
 	private static String kafkaTopic = "storm_metrics_topic";
 	private static String kafkaBroker = "ecloud.eanadev.org:9093";
@@ -54,7 +64,7 @@ public class StaticXsltTopologyWithKafkaMetrics {
 		
 		builder.setBolt("writeRecordBolt", writeRecordBolt, 1).shuffleGrouping(
 				"xsltTransformationBolt");
-
+ 
 		Config conf = new Config();
 		conf.setDebug(true);
 		conf.put(Config.TOPOLOGY_DEBUG, true);
@@ -64,8 +74,6 @@ public class StaticXsltTopologyWithKafkaMetrics {
 	    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, kafkaTopic);
 	    conf.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, 1);
 	    
-//	    conf.registerMetricsConsumer(MetricReporter.class);
-	     
 		if (args != null && args.length > 0) {
 
 			conf.setNumWorkers(3);

@@ -13,11 +13,11 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.storm.StormTask;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
-	public static final Logger LOG = LoggerFactory
-			.getLogger(KafkaParseTaskBolt.class);
+	
+	public static final Logger LOG = LoggerFactory.getLogger(KafkaParseTaskBolt.class);
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -41,8 +41,7 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 
 		for (String fileUrl : files) {
 			System.out.println("emmiting..." + fileUrl);
-			collector.emit(new StormTask(fileUrl, "", taskParameters)
-					.toStormTuple());
+			collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), fileUrl, "", taskParameters).toStormTuple());
 		}
 	}
 }

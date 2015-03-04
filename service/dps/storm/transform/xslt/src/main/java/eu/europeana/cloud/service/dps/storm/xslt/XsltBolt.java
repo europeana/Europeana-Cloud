@@ -21,9 +21,9 @@ import org.slf4j.LoggerFactory;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Values;
-import eu.europeana.cloud.service.dps.DpsKeys;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTask;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 
 public class XsltBolt extends AbstractDpsBolt {
@@ -31,11 +31,10 @@ public class XsltBolt extends AbstractDpsBolt {
 	private OutputCollector collector;
 	public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
-			100);
+	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(100);
 
 	@Override
-	public void execute(StormTask t) {
+	public void execute(StormTaskTuple t) {
 
 		String file = null;
 		String fileUrl = null;
@@ -45,7 +44,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
 			fileUrl = t.getFileUrl();
 			file = t.getFileByteData();
-			xsltUrl = t.getParameter(DpsKeys.XSLT_URL);
+			xsltUrl = t.getParameter(PluginParameterKeys.XSLT_URL);
 
 			LOGGER.info("processing file: {}", fileUrl);
 			LOGGER.debug("xslt schema:" + xsltUrl);
@@ -87,8 +86,12 @@ public class XsltBolt extends AbstractDpsBolt {
 		} catch (TransformerException e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
 		}
+		
+		LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
 
-		collector.emit(new Values(fileUrl, writer.toString(), t.getParameters()));
+		// pass data to next Bolt
+		t.setFileData(writer.toString());
+		collector.emit(t.toStormTuple());
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
-import eu.europeana.cloud.service.dps.DpsKeys;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 
 /**
  * Always uses the same DpsTask (instead of consuming tasks from a Kafka Topic)
@@ -46,10 +46,10 @@ public class DpsTaskSpoutTest extends BaseRichSpout {
 			Utils.sleep(50);
 
 			HashMap<String, String> taskParameters = new HashMap<String, String>();
-			taskParameters.put(DpsKeys.XSLT_URL,
+			taskParameters.put(PluginParameterKeys.XSLT_URL,
 					"http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt");
 			taskParameters
-					.put(DpsKeys.OUTPUT_URL,
+					.put(PluginParameterKeys.OUTPUT_URL,
 							"http://heliopsis.man.poznan.pl/mcs/records/FJ0DL14CDQB/representations/oai-pmh/versions/c68eccb0-b7ad-11e4-93c4-00505682006e/files/46b0ab4b-78f2-45e3-aa97-658efff60e19.OUT");
 			LOGGER.info("emitting : " + fileUrl);
 			collector.emit(new StormTask(fileUrl, "", taskParameters)
