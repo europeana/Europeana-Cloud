@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.kafka;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,9 +12,11 @@ import org.slf4j.LoggerFactory;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
 
@@ -22,7 +25,14 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-	}
+        declarer.declare(new Fields(
+                StormTupleKeys.TASK_ID_TUPLE_KEY,
+                StormTupleKeys.TASK_NAME_TUPLE_KEY,
+                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+                StormTupleKeys.PARAMETERS_TUPLE_KEY));
+    }
+
 
 	@Override
 	public void execute(Tuple tuple, BasicOutputCollector collector) {
@@ -53,9 +63,16 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 //			}
 			
 			System.out.println("emmiting..." + fileUrl);
-			collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), fileUrl, "", taskParameters)
-					.toStormTuple());
 			
+			//List<Object> envelope = new ArrayList<Object>();
+			//envelope.add(task.getTaskId());
+			//envelope.add(task.getTaskName());
+			//envelope.add(fileUrl);
+			//envelope.add("");
+			//envelope.add(taskParameters);
+			collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), fileUrl, "", taskParameters).toStormTuple());
+			
+			//collector.emit(envelope);
 			
 		}
 	}

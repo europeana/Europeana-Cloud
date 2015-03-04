@@ -9,7 +9,7 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import eu.europeana.cloud.service.dps.DpsTask;
 
-public class KafkaXSLTTaskProducer {
+public class KafkaXSLTTaskProducerWithOutputURL {
 
 	public static void main(String[] args) {
 
@@ -41,6 +41,7 @@ public class KafkaXSLTTaskProducer {
 		records.add(args[2]);
 		msg.addDataEntry("FILE_URLS", records);
 		msg.addParameter("XSLT_URL", args[3]);
+		msg.addParameter("OUTPUT_URL", args[4]);
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
 				args[1], key, msg);
 		producer.send(data);
