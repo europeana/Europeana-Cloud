@@ -16,13 +16,17 @@ nbactions.xml
 /ecloud-solr/customized-solr/target/
 /ecloud-solr/solr-distr/target/
 
+/solr/custom/
+
 *ewa-nocommit*
 *ola-nocommit*
 /service/mcs/mcs-driver/target/
 /service/mcs/driver/target/
 /tools/ecloud-dlf-ingestion-tool/target/
 /service/dls/target/
-/service/aas/rest/target//service/dls/target/
+/service/aas/rest/target/
+/service/dls/target/
+/service/commons/target/
 
 **/.vagrant
 /cassandra-connector/target/

@@ -8,40 +8,31 @@ import javax.annotation.PostConstruct;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
-public class LoggingConfigurator {
+public abstract class LoggingConfigurator {
 
-    private static final String APPLICATION_INSTANCE_NAME_MARKER = "instanceName";
+    protected static final String APPLICATION_INSTANCE_NAME_MARKER = "instanceName";
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfigurator.class);
+    public abstract void configure();
 
-    private LoggerUpdater loggerUpdater;
-    private ZookeeperServiceAdvertiser serviceAdvertiser;
+    protected LoggerUpdater loggerUpdater = new LoggerUpdater();
 
-    public LoggingConfigurator(ZookeeperServiceAdvertiser serviceAdvertiser){
-        this.serviceAdvertiser = serviceAdvertiser;
-        loggerUpdater = new LoggerUpdater();
-    }
+    protected String readHostname(ZookeeperServiceAdvertiser serviceAdvertiser) {
 
-    @PostConstruct
-    public void configure(){
-
-        LOGGER.info("Start configuring logging system");
-        String hostname = readHostname(serviceAdvertiser);
-
-        Logger applicationRootLogger = Logger.getRootLogger();
-        loggerUpdater.update(applicationRootLogger, APPLICATION_INSTANCE_NAME_MARKER, hostname);
-
-        LOGGER.info("Logging system configuration finished");
-    }
-
-    private String readHostname(ZookeeperServiceAdvertiser serviceAdvertiser){
-        try{
-            if(serviceAdvertiser == null){
+        try {
+            if (serviceAdvertiser == null) {
                 return Inet4Address.getLocalHost().getHostName();
-            }else{
+            } else {
                 return serviceAdvertiser.getServiceProperties().getServiceUniqueName();
             }
-        }catch(UnknownHostException e){
+        } catch (UnknownHostException e) {
+            return "";
+        }
+    }
+
+    protected String readHostname() {
+        try {
+            return Inet4Address.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
             return "";
         }
     }

@@ -127,8 +127,10 @@
   		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
     
-    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.LoggingConfigurator">
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.ZookeeperLoggingConfigurator">
         <constructor-arg name="serviceAdvertiser" ref="serviceAdvertiser"/>
+        <constructor-arg name="kafkaBrokerList" value="${logging.kafkaBrokerList}"/>
+        <constructor-arg name="kafkaTopicName" value="${logging.kafkaTopicName}"/>
     </bean>
     
   	<import resource="authentication.xml"/>
