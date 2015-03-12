@@ -111,6 +111,12 @@
 			<artifactId>ecloud-service-aas-authentication</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.cassandraunit</groupId>
+			<artifactId>cassandra-unit</artifactId>
+			<version>${version.cassandra-unit}</version>
+		</dependency>
 	
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
