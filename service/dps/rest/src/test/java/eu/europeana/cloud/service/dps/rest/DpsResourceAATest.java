@@ -23,6 +23,10 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 	@Autowired
 	@NotNull
 	private DpsResource dpsResource;
+	
+	@Autowired
+	@NotNull
+	private TopologiesResource topologyResource;
 
 	@Autowired
 	@NotNull
@@ -49,10 +53,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 	@Before
 	public void mockUp() throws Exception {
-		//
-		// record = new Record();
-		// record.setCloudId(GLOBAL_ID);
-		//
+		
 		URI_INFO = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
@@ -78,4 +79,10 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 		dpsResource.submitTask(t, topology);
 	}
 
+	public void shouldBeAbleToAssignPermissionsWhenAdmin() {
+
+		login(ADMIN, ADMIN_PASSWORD);
+		String topology = "xsltTopology";
+		topologyResource.assignPersmissionsToTopology("krystian", topology);
+	}
 }
