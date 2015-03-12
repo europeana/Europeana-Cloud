@@ -34,7 +34,6 @@ public class KafkaDpsService implements DpsService {
 	private String kafkaGroupId;
 	private String zookeeperAddress;
 
-	private String submitTaskTopic;
 	private String genericTaskNotificationTopic;
 	private String taskProgressNotificationTopic;
 
@@ -43,7 +42,7 @@ public class KafkaDpsService implements DpsService {
 	private final static String ZOOKEEPER_SESSION_TIMEOUT = "400";
 	private final static String AUTOCOMMIT_INTERVAL = "200";
 
-	public KafkaDpsService(String kafkaBroker, String submitTaskTopic,
+	public KafkaDpsService(String kafkaBroker,
 			String genericTaskNotificationTopic,
 			String taskProgressNotificationTopic, String kafkaGroupId,
 			String zookeeperAddress) {
@@ -52,7 +51,6 @@ public class KafkaDpsService implements DpsService {
 		this.kafkaGroupId = kafkaGroupId;
 		this.zookeeperAddress = zookeeperAddress;
 
-		this.submitTaskTopic = submitTaskTopic;
 		this.genericTaskNotificationTopic = genericTaskNotificationTopic;
 		this.taskProgressNotificationTopic = taskProgressNotificationTopic;
 
@@ -67,19 +65,19 @@ public class KafkaDpsService implements DpsService {
 	}
 
 	@Override
-	public void submitTask(DpsTask task) {
+	public void submitTask(DpsTask task, String topology) {
 
 		String key = "";
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
-				submitTaskTopic, key, task);
+				topology, key, task);
 		producer.send(data);
 //		producer.close();
 	}
 
 	@Override
-	public DpsTask fetchTask() {
+	public DpsTask fetchTask(String topology) {
 
-		return fetchTaskFromKafka();
+		return fetchTaskFromKafka(topology);
 	}
 
 	@Override
@@ -145,9 +143,9 @@ public class KafkaDpsService implements DpsService {
 		return new String(m.message());
 	}
 	
-	private DpsTask fetchTaskFromKafka() {
+	private DpsTask fetchTaskFromKafka(String topology) {
 
-		MessageAndMetadata<byte[], byte[]> m = fetchKafkaMessage(submitTaskTopic);
+		MessageAndMetadata<byte[], byte[]> m = fetchKafkaMessage(topology);
 		
 		ObjectMapper mapper = new ObjectMapper();
 		DpsTask task = null;

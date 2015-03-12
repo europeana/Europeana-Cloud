@@ -37,11 +37,12 @@ public class DpsResource {
      * Submits a Task
      */
     @POST
+    @Path("{topology}")
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response submitTask(DpsTask task)  {
+    public Response submitTask(DpsTask task, @PathParam("topology") String topology)  {
     	
     	if (task != null) {
-    		dps.submitTask(task);
+    		dps.submitTask(task, topology);
         	return Response.ok().build();
     	}
     	return Response.notModified().build();
@@ -51,11 +52,11 @@ public class DpsResource {
      * Submits a Task
      */
     @GET
-    @Path("{type}")
+    @Path("{topology}")
     @Produces({MediaType.APPLICATION_JSON})
-    public DpsTask getTask(@PathParam("type") String taskType)  {
+    public DpsTask getTask(@PathParam("topology") String topology)  {
     	
-    	DpsTask task = dps.fetchTask();
+    	DpsTask task = dps.fetchTask(topology);
     	return task;
     }
     

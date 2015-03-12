@@ -12,12 +12,12 @@ public interface DpsService {
 	 * Depending on the task-type and the task-owner,
 	 * the {@link DpsTask} will be submitted to a different Storm topology
 	 */
-    void submitTask(DpsTask task);
+    void submitTask(DpsTask task, String topology);
     
     /**
      * @return Fetches a task from the list
      */
-    DpsTask fetchTask();
+    DpsTask fetchTask(String topology);
     
     /**
      * @return Amount of records that have been processed 

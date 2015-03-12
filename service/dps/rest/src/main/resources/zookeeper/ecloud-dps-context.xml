@@ -24,7 +24,6 @@
     
         <constructor-arg name="kafkaBroker" value="ecloud.eanadev.org:9093" />
         
-        <constructor-arg name="submitTaskTopic" value="franco_maria_topic" />
         <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
         <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
         
