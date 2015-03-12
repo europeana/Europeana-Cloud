@@ -268,5 +268,17 @@
 			<version>3.1.0</version>
 			<scope>test</scope>
 		</dependency>
+                
+                <!-- Authentication + Authorization -->
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-aas-authorization</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-aas-authentication</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

@@ -27,5 +27,6 @@ public class JerseyConfig extends ResourceConfig {
 
         // resources
         register(DpsResource.class);
+        register(TopologiesResource.class);
     }
 }
