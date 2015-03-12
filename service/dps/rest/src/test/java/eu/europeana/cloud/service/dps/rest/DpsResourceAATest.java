@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.rest;
 
-
 import java.net.URI;
 
 import javax.validation.constraints.NotNull;
@@ -20,19 +19,19 @@ import eu.europeana.cloud.service.dps.DpsTask;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
-	
+
 	@Autowired
 	@NotNull
 	private DpsResource dpsResource;
-	
+
 	@Autowired
 	@NotNull
 	private DpsService dpsService;
-	
+
 	private static final String GLOBAL_ID = "GLOBAL_ID";
-	
+
 	private UriInfo URI_INFO;
-	
+
 	/**
 	 * Pre-defined users
 	 */
@@ -47,32 +46,36 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 	private final static String ADMIN = "admin";
 	private final static String ADMIN_PASSWORD = "admin";
-	
+
 	@Before
 	public void mockUp() throws Exception {
-//		
-//		record = new Record();
-//		record.setCloudId(GLOBAL_ID);
-//		
+		//
+		// record = new Record();
+		// record.setCloudId(GLOBAL_ID);
+		//
 		URI_INFO = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 
-        Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
-        
-//		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
+		Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
+		Mockito.doReturn(uriBuilder).when(uriBuilder)
+				.path((Class) Mockito.anyObject());
+		Mockito.doReturn(new URI("")).when(uriBuilder)
+				.buildFromMap(Mockito.anyMap());
+		Mockito.doReturn(new URI("")).when(uriBuilder)
+				.buildFromMap(Mockito.anyMap());
+		Mockito.doReturn(new URI("")).when(URI_INFO)
+				.resolve((URI) Mockito.anyObject());
+
+		// Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
-	
-	
+
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask()  {
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() {
 
 		DpsTask t = new DpsTask("xsltTask");
 		String topology = "xsltTopology";
-		
+
 		dpsResource.submitTask(t, topology);
 	}
+
 }
