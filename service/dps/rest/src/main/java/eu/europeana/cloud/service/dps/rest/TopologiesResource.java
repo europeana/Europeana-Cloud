@@ -27,7 +27,6 @@ import org.springframework.security.acls.model.ObjectIdentity;
  */
 @Path("/topologies")
 @Component
-@Scope("request")
 public class TopologiesResource {
 
 	@Autowired
