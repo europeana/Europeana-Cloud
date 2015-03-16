@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.service.dps.DpsService;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -30,7 +30,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 public class TopologiesResource {
 
 	@Autowired
-	private DpsService dps;
+	private TaskExecutionReportService dps;
 	
 	@Autowired
         private MutableAclService mutableAclService;
@@ -53,6 +53,4 @@ public class TopologiesResource {
 
             return Response.ok().build();
         }
-        
- 
 }

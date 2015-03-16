@@ -2,9 +2,9 @@ package eu.europeana.cloud.service.dps;
 
 
 /**
- * Service to fetch / submit tasks and progress notifications
+ * Service to fetch / submit tasks
  */
-public interface DpsService {
+public interface TaskExecutionSubmitService {
 
 	/**
 	 * Submits a task for execution.
@@ -18,15 +18,4 @@ public interface DpsService {
      * @return Fetches a task from the list
      */
     DpsTask fetchTask(String topology);
-    
-    /**
-     * @return Amount of records that have been processed 
-     * by the last bolt of a topology.
-     */
-    String getTaskProgress(String taskId);
-
-    /**
-     * @return Info messages for the specified task
-     */
-    String getTaskNotification(String taskId);
 }

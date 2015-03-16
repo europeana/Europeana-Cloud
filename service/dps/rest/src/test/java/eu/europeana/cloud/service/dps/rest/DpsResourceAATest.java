@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.service.dps.DpsService;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.DpsTask;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -30,7 +30,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 	@Autowired
 	@NotNull
-	private DpsService dpsService;
+	private TaskExecutionReportService dpsService;
 
 	private static final String GLOBAL_ID = "GLOBAL_ID";
 
