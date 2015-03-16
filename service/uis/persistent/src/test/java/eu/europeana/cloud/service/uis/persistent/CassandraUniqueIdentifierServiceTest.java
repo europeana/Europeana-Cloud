@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
 import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -104,7 +105,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = CloudIdDoesNotExistException.class)
     public void testGetLocalIdsByCloudId() throws Exception {
-	List<CloudId> gid = service.getLocalIdsByCloudId(Base36
+	List<CloudId> gid = service.getLocalIdsByCloudId(IdGenerator
 		.encode("/test11/test11"));
 	CloudId gId = service.createCloudId("test11", "test11");
 	gid = service.getLocalIdsByCloudId(gId.getId());

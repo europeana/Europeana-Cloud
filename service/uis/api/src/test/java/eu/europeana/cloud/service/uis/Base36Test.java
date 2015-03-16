@@ -6,11 +6,8 @@ import org.junit.Test;
 
 import eu.europeana.cloud.service.uis.encoder.Base36;
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import org.junit.Ignore;
 
 /**
