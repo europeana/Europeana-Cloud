@@ -21,8 +21,10 @@ public class ProgressBolt extends AbstractDpsBolt {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBolt.class);
 
 	private transient ZookeeperMultiCountMetric zMetric;
+	private String zkAddress;
 	
-	public ProgressBolt() {
+	public ProgressBolt(String zkAddress) {
+		this.zkAddress = zkAddress;
 	}
 
 	@Override
@@ -34,7 +36,8 @@ public class ProgressBolt extends AbstractDpsBolt {
 	}
 
 	void initMetrics(TopologyContext context) {
-		zMetric = new ZookeeperMultiCountMetric();
+		
+		zMetric = new ZookeeperMultiCountMetric(zkAddress);
 		context.registerMetric("zMetric=>", zMetric, 1);
 	}
 
@@ -51,7 +54,7 @@ public class ProgressBolt extends AbstractDpsBolt {
 
 	private void updateProgress(StormTaskTuple t) {
 		
-		zMetric.incr(t.getTaskId(), t.getTaskName(), "progress");
+		zMetric.incr(t.getTaskId());
 		LOGGER.info("ProgressIncreaseBolt: progress updated");
 	}
 }

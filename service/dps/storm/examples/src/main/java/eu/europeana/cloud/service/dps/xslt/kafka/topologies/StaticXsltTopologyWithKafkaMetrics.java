@@ -32,6 +32,8 @@ public class StaticXsltTopologyWithKafkaMetrics {
     private static String ecloudMcsAddress_ISTI = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
     
     private static String ecloudMcsAddress = ecloudMcsAddress_POLAND;
+
+	private static String zkAddress = "ecloud.eanadev.org:2181";
     
 	private static String username_ISTI = "Cristiano";
 	private static String password_ISTI = "Ronaldo";
@@ -44,6 +46,7 @@ public class StaticXsltTopologyWithKafkaMetrics {
 
 	private static String kafkaTopic = "storm_metrics_topic";
 	private static String kafkaBroker = "ecloud.eanadev.org:9093";
+	
 
 	public static void main(String[] args) throws Exception {
 
@@ -51,7 +54,7 @@ public class StaticXsltTopologyWithKafkaMetrics {
 		
 		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
 		
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress, ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
 
 		builder.setSpout("taskSpout", taskSpout, 1);
