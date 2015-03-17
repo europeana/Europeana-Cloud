@@ -15,7 +15,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 public class DpsTaskUtil {
 	
 	// number of records to be included 
-	private final static int RECORD_COUNT = 1000;
+	private final static int RECORD_COUNT = 100;
 	
 	// Some Crappy hardcoded string for testing
 	private final static String FILE_URL = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT/records/"
@@ -58,7 +58,7 @@ public class DpsTaskUtil {
 		for(int i=0; i<RECORD_COUNT; i++) {
 			
 			// adding the input files!
-			records.add(POZNAN_INPUT_URL_MANOS);
+			records.add(SAMPLE_XML);
 		}
 		
 		task.addDataEntry(DpsTask.FILE_URLS, records);

@@ -40,7 +40,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	private transient PersistentCountMetric pCountMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
-	private transient ZookeeperMultiCountMetric zMetric;
 	
 	private FileServiceClient fileClient;
 
@@ -69,13 +68,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric = new PersistentCountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-		zMetric = new ZookeeperMultiCountMetric(zkAddress);
 		
 		context.registerMetric("read_records=>", countMetric, 1);
 		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
 		context.registerMetric("word_count=>", wordCountMetric, 1);
 		context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
-		context.registerMetric("zMetric=>", zMetric, 1);
 	}
 
 	@Override
@@ -113,7 +110,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric.incr();
 		wordCountMetric.scope(word).incr();
 		wordLengthMeanMetric.update(word.length());
-		zMetric.incr(t.getTaskId());
 		LOGGER.info("ReadFileBolt: metrics updated");
 	}
 

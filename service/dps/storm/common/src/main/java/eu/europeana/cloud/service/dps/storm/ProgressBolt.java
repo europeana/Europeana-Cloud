@@ -9,10 +9,14 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 
 /**
- * Increases progress for the current Task by 1 for every tuple received.
+ * Increases progress by 1 per Task / per tuple received.
+ * 
+ * Progress bolt can be placed at the end of a topology,
+ * to count the amount of records that are fully processed.
+ * 
+ * Right now only single Progress bolt is supported per Topology.
  * 
  * @author manos
- *
  */
 public class ProgressBolt extends AbstractDpsBolt {
 
@@ -45,6 +49,7 @@ public class ProgressBolt extends AbstractDpsBolt {
 	public void execute(StormTaskTuple t) {
 
 		try {
+			LOGGER.info("ProgressIncreaseBolt: updating progress");
 			updateProgress(t);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());

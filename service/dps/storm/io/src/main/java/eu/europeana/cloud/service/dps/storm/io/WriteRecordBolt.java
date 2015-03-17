@@ -73,6 +73,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			uri = mcsClient.uploadFile(outputUrl, new ByteArrayInputStream(record.getBytes()), mediaType);
 			
 			LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
+			
+			collector.emit(t.toStormTuple());
 
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
