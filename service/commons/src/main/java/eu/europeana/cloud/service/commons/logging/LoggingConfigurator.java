@@ -22,7 +22,7 @@ public abstract class LoggingConfigurator {
             if (serviceAdvertiser == null) {
                 return Inet4Address.getLocalHost().getHostName();
             } else {
-                return serviceAdvertiser.getServiceProperties().getServiceUniqueName();
+                return serviceAdvertiser.getServiceProperties().getListenAddress();
             }
         } catch (UnknownHostException e) {
             return "";
