@@ -31,7 +31,7 @@ public class JerseyConfig extends ResourceConfig {
         register(TopologyAlreadyExistsExceptionMapper.class);
 
         // resources
-        register(DpsResource.class);
+        register(TasksResource.class);
         register(TopologiesResource.class);
     }
 }

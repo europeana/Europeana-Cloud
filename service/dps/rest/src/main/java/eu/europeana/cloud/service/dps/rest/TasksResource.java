@@ -24,10 +24,9 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
  * Resource to fetch / submit Tasks to the DPS service
  * 
  */
-@Path("/tasks")
+@Path("/topologies/{topologyName}/tasks")
 @Component
-@Scope("request")
-public class DpsResource {
+public class TasksResource {
 
 	@Autowired
 	private TaskExecutionReportService reportService;
@@ -44,7 +43,6 @@ public class DpsResource {
 	 * Submits a Task
 	 */
 	@POST
-	@Path("{topology}")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@PreAuthorize("hasPermission(#topology," + TOPOLOGY_PREFIX + ", write)")
 	public Response submitTask(DpsTask task, @PathParam("topology") String topology) {
@@ -61,9 +59,8 @@ public class DpsResource {
 	 * Submits a Task
 	 */
 	@GET
-	@Path("{topology}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public DpsTask getTask(@PathParam("topology") String topology) {
+	public DpsTask getTask(@PathParam("topologyName") String topology) {
 
 		DpsTask task = submitService.fetchTask(topology);
 		return task;

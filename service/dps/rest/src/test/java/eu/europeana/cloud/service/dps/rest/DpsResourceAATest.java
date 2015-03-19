@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -22,7 +23,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 	@Autowired
 	@NotNull
-	private DpsResource dpsResource;
+	private TasksResource dpsResource;
 	
 	@Autowired
 	@NotNull
@@ -79,10 +80,27 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 		dpsResource.submitTask(t, topology);
 	}
 
+    @Test
 	public void shouldBeAbleToAssignPermissionsWhenAdmin() {
 
-		login(ADMIN, ADMIN_PASSWORD);
+        login(ADMIN, ADMIN_PASSWORD);
 		String topology = "xsltTopology";
 		topologyResource.assignPersmissionsToTopology("krystian", topology);
 	}
+    
+    @Test(expected = AuthenticationCredentialsNotFoundException.class)
+    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAssignPermissionsToTopology(){
+        String topology = "xsltTopology";
+        topologyResource.assignPersmissionsToTopology(RANDOM_PERSON, topology);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void shouldThrowExceptionWhenNonAdminUserTriesToAssignPermissionsToTopology(){
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        String topology = "xsltTopology";
+        topologyResource.assignPersmissionsToTopology(RANDOM_PERSON, topology);
+    }
+    
+    
+    
 }

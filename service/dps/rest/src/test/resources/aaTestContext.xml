@@ -16,7 +16,7 @@
         base-package="eu.europeana.cloud.service.dps.rest"/>
         
     <bean id="dpsResource"
-          class="eu.europeana.cloud.service.dps.rest.DpsResource" />
+          class="eu.europeana.cloud.service.dps.rest.TasksResource" />
           
     <bean id="topologyResource"
           class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
