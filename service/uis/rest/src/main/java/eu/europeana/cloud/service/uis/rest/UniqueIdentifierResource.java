@@ -53,10 +53,10 @@ public class UniqueIdentifierResource {
     private static final String CLOUDID = "cloudId";
 
     @Autowired
-    private MutableAclService       mutableAclService;
-    
-    private final String            CLOUD_ID_CLASS_NAME = CloudId.class.getName();
-    
+    private MutableAclService mutableAclService;
+
+    private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
+
     /**
      * Invoke the generation of a cloud identifier using the provider identifier
      * and a record identifier
@@ -106,7 +106,8 @@ public class UniqueIdentifierResource {
     }
 
     /**
-     * Invoke the generation of a cloud identifier using the provider identifier
+     * Retrieve cloud identifier information using the provider identifier and
+     * local identifier
      *
      * @param providerId
      * @param recordId
@@ -139,7 +140,7 @@ public class UniqueIdentifierResource {
     @Path("{" + CLOUDID + "}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIds(@PathParam(CLOUDID) String cloudId	) throws DatabaseConnectionException, CloudIdDoesNotExistException,
+    public Response getLocalIds(@PathParam(CLOUDID) String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
         pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
@@ -163,10 +164,10 @@ public class UniqueIdentifierResource {
     public Response deleteCloudId(@PathParam(CLOUDID) String cloudId) throws DatabaseConnectionException,
             CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordIdDoesNotExistException {
-    	
+
         uniqueIdentifierService.deleteCloudId(cloudId);
         // let's delete the permissions as well
-        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME,cloudId);
+        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cloudId);
         mutableAclService.deleteAcl(dataSetIdentity, false);
         return Response.ok("CloudId marked as deleted").build();
     }
