@@ -11,44 +11,12 @@
 
     <import resource="classpath:config.xml" />
     <task:annotation-driven/>
-
-    <context:component-scan
-        base-package="eu.europeana.cloud.service.dps.rest"/>
-        
-    <bean id="dpsResource"
-          class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
-          
-    <bean id="topologyResource"
-          class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
-         
     <context:annotation-config/>
 
-    <!--connection provider - with options the same as in embedded cassandra-->
-    <bean id="dbService"
-        class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" type="java.lang.String" value="localhost"/>
-        <constructor-arg name="port" type="int" value="19142"/>
-        <constructor-arg name="keyspaceName" type="java.lang.String" value="ecloud_aas_tests"/>
-        <constructor-arg name="userName" value="" />
-        <constructor-arg name="password" value="" />
-    </bean>
-    
-    <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
-    
-        <constructor-arg name="kafkaBroker" value="ecloud.eanadev.org:9093" />
+    <context:component-scan    base-package="eu.europeana.cloud.service.dps.rest"/>
         
-        <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
-        <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
-        
-        <constructor-arg name="kafkaGroupId" value="group_id" />
-        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181" />
-    </bean>
-    
-    <!--spy on everything-->
-    <mockito:spy beanName="dbService"/>
-    <mockito:spy beanName="dataProviderDAO"/>
-    <mockito:spy beanName="cassandraDataSetDAO"/>
-    <mockito:spy beanName="cassandraRecordDAO"/>
-    <mockito:spy beanName="swiftContentDAO"/>
-    <mockito:spy beanName="swiftConnectionProvider"/>
+    <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
+    <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
+         
+    <mockito:mock id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService"/>
 </beans>

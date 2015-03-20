@@ -28,13 +28,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @NotNull
     private TopologiesResource topologiesResource;
 
-    @Autowired
-    @NotNull
-    private TaskExecutionReportService dpsService;
-
-    private static final String GLOBAL_ID = "GLOBAL_ID";
-
-    private UriInfo URI_INFO;
+	@Autowired
+	@NotNull
+	private TaskExecutionReportService reportService;
 
     /**
      * Pre-defined users
@@ -52,24 +48,16 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private final static String ADMIN_PASSWORD = "admin";
 
     private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
+	private final static String PROGRESS = "100%";
+	private DpsTask TASK;
 
     @Before
     public void mockUp() throws Exception {
 
-        URI_INFO = Mockito.mock(UriInfo.class);
-        UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-
-        Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
-        Mockito.doReturn(uriBuilder).when(uriBuilder)
-                .path((Class) Mockito.anyObject());
-        Mockito.doReturn(new URI("")).when(uriBuilder)
-                .buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(uriBuilder)
-                .buildFromMap(Mockito.anyMap());
-        Mockito.doReturn(new URI("")).when(URI_INFO)
-                .resolve((URI) Mockito.anyObject());
-
-        // Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
+		TASK = new DpsTask("xsltTask");
+		TASK.getTaskId();
+		
+		 Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
     }
 
     /*
@@ -104,27 +92,37 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME);
     }
 
-//    @Test //TODO: does not work because of problems with Kafka communication
-    public void shouldBeAbleToReadProgressOfSubmittedTask() throws AccessDeniedOrObjectDoesNotExistException {
+    // -- progress report tests -- //
+   
+    @Test
+	public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException {
+    	
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.assignPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
-        logoutEveryone();
-        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME);
-        topologyTasksResource.getTaskProgress(sampleTask.getTaskId()+"");
-    }
 
-    @Test(expected = AccessDeniedException.class)
-    public void shouldNotBeAbleToReadProgressOfTaskThatIsNotOwnedByUser() throws AccessDeniedOrObjectDoesNotExistException {
-        login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.assignPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
-        logoutEveryone();
-        login(RONALDO, RONALD_PASSWORD);
-        DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME);
-        topologyTasksResource.getTaskProgress(sampleTask.getTaskId()+"");
-    }
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME);
+        topologyTasksResource.getTaskProgress("" + TASK.getTaskId());
+	}
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() throws AccessDeniedOrObjectDoesNotExistException {
+
+		topologyTasksResource.getTaskProgress("" + TASK.getTaskId());
+	}
+
     
+    @Test(expected = AccessDeniedException.class)
+	public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException {
+
+        login(ADMIN, ADMIN_PASSWORD);
+        topologiesResource.assignPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
+		
+        login(RONALDO, RONALD_PASSWORD);
+        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME);
+		
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        topologyTasksResource.getTaskProgress("" + TASK.getTaskId());
+	}
     
 }
