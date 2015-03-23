@@ -70,6 +70,7 @@ public class UniqueIdentifierResource {
      * @throws ProviderDoesNotExistException
      * @throws RecordDatasetEmptyException
      * @throws CloudIdDoesNotExistException
+     * @throws CloudIdAlreadyExistException
      */
     @POST
     @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })

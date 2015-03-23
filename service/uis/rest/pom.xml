@@ -512,6 +512,12 @@
                                 mapped to a cloud Id</defaultMessage>
                         </statusCode>
                         <statusCode>
+                            <httpCode>409</httpCode>
+                            <document>explicit:
+                                eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper</document>
+                            <defaultMessage>The cloudId already exists</defaultMessage>
+                        </statusCode>
+                        <statusCode>
                             <httpCode>500</httpCode>
                             <document>always</document>
                             <defaultMessage>Internal server exception. The service call did

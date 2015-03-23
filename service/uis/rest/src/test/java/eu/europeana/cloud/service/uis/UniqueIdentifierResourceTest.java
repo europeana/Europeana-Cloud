@@ -29,6 +29,8 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistExceptionMapper;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
@@ -64,6 +66,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
     public Application configure() {
 	return new ResourceConfig()
 		.registerClasses(CloudIdDoesNotExistExceptionMapper.class)
+		.registerClasses(CloudIdAlreadyExistExceptionMapper.class)
 		.registerClasses(DatabaseConnectionExceptionMapper.class)
 		.registerClasses(IdHasBeenMappedExceptionMapper.class)
 		.registerClasses(ProviderDoesNotExistExceptionMapper.class)
@@ -72,6 +75,7 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 		.registerClasses(RecordExistsExceptionMapper.class)
 		.registerClasses(RecordIdDoesNotExistExceptionMapper.class)
 		.registerClasses(UniqueIdentifierResource.class)
+
 		.property("contextConfigLocation",
 			"classpath:uis-context-test.xml");
     }
@@ -186,6 +190,42 @@ public class UniqueIdentifierResourceTest extends JerseyTest {
 		errorInfo.getDetails(),
 		IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId,
 			recordId).getDetails());
+    }
+
+    /**
+     * Test the a cloud id already exists for the record id
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testCreateCloudIdAlreadyExistException() throws Exception {
+	// given
+	Throwable exception = new CloudIdAlreadyExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST
+				.getErrorInfo(providerId, recordId)));
+
+	when(uniqueIdentifierService.createCloudId(providerId, recordId))
+		.thenThrow(exception);
+	// when
+	Response resp = target("/cloudIds")
+		.queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+		.queryParam(UISParamConstants.Q_RECORD_ID, recordId)
+		.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
+		.post(null);
+	// when
+	assertThat(resp.getStatus(), is(409));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(
+			providerId, recordId).getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(
+			providerId, recordId).getDetails());
     }
 
     /**

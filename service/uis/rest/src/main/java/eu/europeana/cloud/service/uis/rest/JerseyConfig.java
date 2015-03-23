@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.uis.rest;
 
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
@@ -24,26 +25,27 @@ import eu.europeana.cloud.service.uis.exception.WebApplicationsExceptionMapper;
  */
 public class JerseyConfig extends ResourceConfig {
 
-	/**
-	 * Creates a new instance of this class.
-	 */
-	public JerseyConfig(){
-		super();
-        register(RequestContextFilter.class);
-        register(eu.europeana.cloud.service.commons.logging.LoggingFilter.class);
-		register(CloudIdDoesNotExistExceptionMapper.class);
-		register(DatabaseConnectionExceptionMapper.class);
-		register(IdHasBeenMappedExceptionMapper.class);
-		register(ProviderDoesNotExistExceptionMapper.class);
-		register(RecordDatasetEmptyExceptionMapper.class);
-		register(RecordDoesNotExistExceptionMapper.class);
-		register(RecordExistsExceptionMapper.class);
-		register(RecordIdDoesNotExistExceptionMapper.class);
-		register(ProviderAlreadyExistsExceptionMapper.class);
-		register(WebApplicationsExceptionMapper.class);
-		register(RuntimeExceptionMapper.class);
-		register(UniqueIdentifierResource.class);
-		register(DataProviderResource.class);
-        register(DataProvidersResource.class);
-	}
+    /**
+     * Creates a new instance of this class.
+     */
+    public JerseyConfig() {
+	super();
+	register(RequestContextFilter.class);
+	register(CloudIdAlreadyExistExceptionMapper.class);
+	register(eu.europeana.cloud.service.commons.logging.LoggingFilter.class);
+	register(CloudIdDoesNotExistExceptionMapper.class);
+	register(DatabaseConnectionExceptionMapper.class);
+	register(IdHasBeenMappedExceptionMapper.class);
+	register(ProviderDoesNotExistExceptionMapper.class);
+	register(RecordDatasetEmptyExceptionMapper.class);
+	register(RecordDoesNotExistExceptionMapper.class);
+	register(RecordExistsExceptionMapper.class);
+	register(RecordIdDoesNotExistExceptionMapper.class);
+	register(ProviderAlreadyExistsExceptionMapper.class);
+	register(WebApplicationsExceptionMapper.class);
+	register(RuntimeExceptionMapper.class);
+	register(UniqueIdentifierResource.class);
+	register(DataProviderResource.class);
+	register(DataProvidersResource.class);
+    }
 }
