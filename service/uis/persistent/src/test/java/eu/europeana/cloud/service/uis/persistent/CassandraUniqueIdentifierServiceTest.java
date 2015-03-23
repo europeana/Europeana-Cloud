@@ -20,8 +20,8 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
-import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -29,7 +29,6 @@ import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Ignore;
@@ -222,13 +221,14 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     @Ignore
     public void createCloudIdCollisonTest() throws DatabaseConnectionException,
 	    RecordExistsException, ProviderDoesNotExistException,
-	    RecordDatasetEmptyException, CloudIdDoesNotExistException {
+	    RecordDatasetEmptyException, CloudIdDoesNotExistException,
+	    CloudIdAlreadyExistException {
 	// given
 	final Map<String, String> map = new HashMap<String, String>();
 	dataProviderDao.createOrUpdateProvider("testprovider",
 		new DataProviderProperties());
 	for (BigInteger bigCounter = BigInteger.ONE; bigCounter
-		.compareTo(new BigInteger("10000000")) < 0; bigCounter = bigCounter
+		.compareTo(new BigInteger("5000000")) < 0; bigCounter = bigCounter
 		.add(BigInteger.ONE)) {
 	    final String counterString = bigCounter.toString(32);
 

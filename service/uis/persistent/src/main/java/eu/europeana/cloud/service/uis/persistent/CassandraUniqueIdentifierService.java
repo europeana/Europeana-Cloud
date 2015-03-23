@@ -15,8 +15,8 @@ import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
 import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
-import eu.europeana.cloud.service.uis.encoder.Base36;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -71,7 +71,7 @@ public class CassandraUniqueIdentifierService implements
     public CloudId createCloudId(String... recordInfo)
 	    throws DatabaseConnectionException, RecordExistsException,
 	    ProviderDoesNotExistException, RecordDatasetEmptyException,
-	    CloudIdDoesNotExistException {
+	    CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 	LOGGER.info("createCloudId() creating cloudId");
 	String providerId = recordInfo[0];
 	LOGGER.info("createCloudId() creating cloudId providerId={}",
@@ -100,7 +100,8 @@ public class CassandraUniqueIdentifierService implements
 			    providerId, recordId)));
 	}
 	String id = IdGenerator.encode("/" + providerId + "/" + recordId);
-	List<CloudId> cloudIds = cloudIdDao.insert(id, providerId, recordId);
+	List<CloudId> cloudIds = cloudIdDao.insert(false, id, providerId,
+		recordId);
 	localIdDao.insert(providerId, recordId, id);
 	CloudId cloudId = new CloudId();
 	cloudId.setId(cloudIds.get(0).getId());
@@ -209,7 +210,8 @@ public class CassandraUniqueIdentifierService implements
     public CloudId createIdMapping(String cloudId, String providerId,
 	    String recordId) throws DatabaseConnectionException,
 	    CloudIdDoesNotExistException, IdHasBeenMappedException,
-	    ProviderDoesNotExistException, RecordDatasetEmptyException {
+	    ProviderDoesNotExistException, RecordDatasetEmptyException,
+	    CloudIdAlreadyExistException {
 	LOGGER.info(
 		"createIdMapping() creating mapping for cloudId='{}', providerId='{}', providerId='{}' ...",
 		cloudId, providerId, providerId);
@@ -249,7 +251,8 @@ public class CassandraUniqueIdentifierService implements
 	}
 
 	localIdDao.insert(providerId, recordId, cloudId);
-	cloudIdDao.insert(cloudId, providerId, recordId);
+
+	cloudIdDao.insert(false, cloudId, providerId, recordId);
 
 	CloudId newCloudId = new CloudId();
 	newCloudId.setId(cloudId);
@@ -332,7 +335,7 @@ public class CassandraUniqueIdentifierService implements
     public CloudId createIdMapping(String cloudId, String providerId)
 	    throws DatabaseConnectionException, CloudIdDoesNotExistException,
 	    IdHasBeenMappedException, ProviderDoesNotExistException,
-	    RecordDatasetEmptyException {
+	    RecordDatasetEmptyException, CloudIdAlreadyExistException {
 	LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'",
 		providerId);
 	return createIdMapping(cloudId, providerId,
