@@ -307,12 +307,6 @@
 								eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
 							<defaultMessage>The recordId does not exist</defaultMessage>
 						</statusCode>
-                                                <statusCode>
-							<httpCode>409</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException</document>
-							<defaultMessage>The cloudId already exist</defaultMessage>
-						</statusCode>
 						<statusCode>
 							<httpCode>409</httpCode>
 							<document>explicit:

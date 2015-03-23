@@ -514,7 +514,7 @@
                         <statusCode>
                             <httpCode>409</httpCode>
                             <document>explicit:
-                                eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistExceptionMapper</document>
+                                eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException</document>
                             <defaultMessage>The cloudId already exists</defaultMessage>
                         </statusCode>
                         <statusCode>
