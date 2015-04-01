@@ -66,6 +66,8 @@ public class RetrieveDatasetBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(Tuple t) {
+        // expects a tuple of two fields: providerId,datasetId
+        //
         try {
             System.out.println("i received a normal tuple");
             System.out.println(t.toString());

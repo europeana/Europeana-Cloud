@@ -39,3 +39,4 @@ nbactions.xml
 /service/dps/storm/transform/xslt/target/
 /service/dps/storm/topology/xslt/target/
 /service/dps/storm/examples/target/
+/service/dps/text/target/

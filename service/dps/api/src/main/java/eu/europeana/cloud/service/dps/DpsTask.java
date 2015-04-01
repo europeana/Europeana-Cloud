@@ -13,79 +13,78 @@ import com.google.common.collect.Maps;
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-	// INPUT DATA TYPES
-	public static final String DATASETS = "DATASETS";
-	public static final String FILE_URLS = "FILE_URLS";
+    // INPUT DATA TYPES
+    public static final String DATASETS = "DATASETS";
+    public static final String FILE_URLS = "FILE_URLS";
+    private HashMap<String, List<String>> inputData;
+    private HashMap<String, String> parameters;
 
-	private HashMap<String, List<String>> inputData;
-	private HashMap<String, String> parameters;
+    private Date startTime = null;
+    private Date createTime = new Date(System.currentTimeMillis());
+    private Date endTime = null;
 
-	private Date startTime = null;
-	private Date createTime = new Date(System.currentTimeMillis());
-	private Date endTime = null;
-	
-	private long taskId;
-	private String taskName;
+    private long taskId;
+    private String taskName;
 
-	public DpsTask() {
-		this("");
-	}
-	
-	public DpsTask(String taskName) {
-		
-		this.taskName = taskName;
-		
-		inputData = Maps.newHashMap();
-		parameters = Maps.newHashMap();
-		
-		taskId = UUID.randomUUID().getMostSignificantBits();
-	}
-	
-	public long getTaskId() {
-		return taskId;
-	}
-	
-	public void setTaskName(String taskName) {
-		this.taskName = taskName;
-	}
-	
-	public String getTaskName() {
-		return taskName;
-	}
-	
-	private void setTaskId(long taskId) {
-		this.taskId = taskId;
-	}
+    public DpsTask() {
+        this("");
+    }
 
-	public void addDataEntry(String dataType, List<String> data) {
-		inputData.put(dataType, data);
-	}
+    public DpsTask(String taskName) {
 
-	public void addParameter(String parameterKey, String parameterValue) {
-		parameters.put(parameterKey, parameterValue);
-	}
+        this.taskName = taskName;
 
-	public List<String> getDataEntry(String dataType) {
-		return inputData.get(dataType);
-	}
+        inputData = Maps.newHashMap();
+        parameters = Maps.newHashMap();
 
-	public String getParameter(String parameterKey) {
-		return parameters.get(parameterKey);
-	}
+        taskId = UUID.randomUUID().getMostSignificantBits();
+    }
 
-	public HashMap<String, String> getParameters() {
-		return parameters;
-	}
+    public long getTaskId() {
+        return taskId;
+    }
 
-	public void setParameters(HashMap<String, String> parameters) {
-		this.parameters = parameters;
-	}
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
 
-	public HashMap<String, List<String>> getInputData() {
-		return inputData;
-	}
+    public String getTaskName() {
+        return taskName;
+    }
 
-	public void setInputData(HashMap<String, List<String>> inputData) {
-		this.inputData = inputData;
-	}
+    private void setTaskId(long taskId) {
+        this.taskId = taskId;
+    }
+
+    public void addDataEntry(String dataType, List<String> data) {
+        inputData.put(dataType, data);
+    }
+
+    public void addParameter(String parameterKey, String parameterValue) {
+        parameters.put(parameterKey, parameterValue);
+    }
+
+    public List<String> getDataEntry(String dataType) {
+        return inputData.get(dataType);
+    }
+
+    public String getParameter(String parameterKey) {
+        return parameters.get(parameterKey);
+    }
+
+    public HashMap<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(HashMap<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
+    public HashMap<String, List<String>> getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(HashMap<String, List<String>> inputData) {
+        this.inputData = inputData;
+    }
 }
