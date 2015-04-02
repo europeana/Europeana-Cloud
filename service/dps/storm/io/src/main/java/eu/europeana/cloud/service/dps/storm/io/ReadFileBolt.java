@@ -101,7 +101,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		t.setFileUrl(fileUrl);
 		t.setFileData(fileData);
 		
-		Utils.sleep(100);
+		//Utils.sleep(100);
 		collector.emit(t.toStormTuple());
 	}
 

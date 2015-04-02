@@ -31,7 +31,8 @@ public class XsltBolt extends AbstractDpsBolt {
 	private OutputCollector collector;
 	public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(100);
+	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
+			100);
 
 	@Override
 	public void execute(StormTaskTuple t) {
@@ -55,17 +56,16 @@ public class XsltBolt extends AbstractDpsBolt {
 
 		Source xslDoc = null;
 		Source xmlDoc = null;
-		
+
 		try {
 			xslDoc = new StreamSource(new URL(xsltUrl).openStream());
-			
+
 			InputStream stream = new ByteArrayInputStream(file.getBytes());
 			xmlDoc = new StreamSource(stream);
-			
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		
+
 		TransformerFactory tFactory = TransformerFactory.newInstance();
 		Transformer transformer = null;
 		StringWriter writer = new StringWriter();
@@ -86,7 +86,7 @@ public class XsltBolt extends AbstractDpsBolt {
 		} catch (TransformerException e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
 		}
-		
+
 		LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
 
 		// pass data to next Bolt

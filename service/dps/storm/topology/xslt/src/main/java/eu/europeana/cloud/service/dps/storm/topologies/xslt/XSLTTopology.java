@@ -25,11 +25,11 @@ public class XSLTTopology {
 
 	// private static String ecloudMcsAddress =
 	// "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-	private static String ecloudMcsAddress = "http://felicia.man.poznan.pl/mcs";
+	private static String ecloudMcsAddress = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
 	// private static String username = "Cristiano";
 	// private static String password = "Ronaldo";
-	private static String username = "Emmanouil_Koufakis";
-	private static String password = "J9vdq9rpPy";
+	private static String username = "admin";
+	private static String password = "admin";
 
 	public static final Logger LOGGER = LoggerFactory
 			.getLogger(XSLTTopology.class);
@@ -57,10 +57,10 @@ public class XSLTTopology {
 		// builder.setSpout("testSpout", new DpsTaskSpoutTest(), 1);
 		builder.setBolt("retrieveFileBolt", retrieveFileBolt).shuffleGrouping(
 				"parseKafkaInput");
-		builder.setBolt("xsltTransformationBolt", new XsltBolt())
-				.shuffleGrouping("retrieveFileBolt");
+		//builder.setBolt("xsltTransformationBolt", new XsltBolt())
+			//	.shuffleGrouping("retrieveFileBolt");
 		builder.setBolt("writeRecordBolt", writeRecordBolt).shuffleGrouping(
-				"xsltTransformationBolt");
+				"retrieveFileBolt");
 		return builder.createTopology();
 	}
 

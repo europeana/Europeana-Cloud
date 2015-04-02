@@ -56,7 +56,11 @@ public class KafkaDatasetXSLTTaskProducer {
 
 		msg.addDataEntry("FILE_URLS", records);
 		msg.addParameter("XSLT_URL", args[3]);
-		msg.addParameter("OUTPUT_EXT", args[4]);
+
+		if (args.length == 5) {
+			msg.addParameter("OUTPUT_EXT", args[4]);
+		}
+		
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
 				args[1], key, msg);
 		producer.send(data);
