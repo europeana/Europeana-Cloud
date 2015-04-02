@@ -18,48 +18,35 @@ import kafka.producer.ProducerConfig;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import eu.europeana.cloud.service.dps.DpsService;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 
 /**
  * Stores / retrieves dps tasks and task progress notifications from / to Kafka
  * topics.
  */
-public class KafkaDpsService implements DpsService {
+public class KafkaSubmitService implements TaskExecutionSubmitService {
 
 	private Producer<String, DpsTask> producer;
 	private ConsumerConnector consumer;
 
-	private String kafkaBroker;
 	private String kafkaGroupId;
 	private String zookeeperAddress;
-
-	private String submitTaskTopic;
-	private String genericTaskNotificationTopic;
-	private String taskProgressNotificationTopic;
 
 	private final static String CONSUMER_TIMEOUT = "1000";
 	private final static String ZOOKEEPER_SYNC_TIME = "200";
 	private final static String ZOOKEEPER_SESSION_TIMEOUT = "400";
 	private final static String AUTOCOMMIT_INTERVAL = "200";
 
-	public KafkaDpsService(String kafkaBroker, String submitTaskTopic,
-			String genericTaskNotificationTopic,
-			String taskProgressNotificationTopic, String kafkaGroupId,
+	public KafkaSubmitService(String kafkaBroker, String kafkaGroupId,
 			String zookeeperAddress) {
 
-		this.kafkaBroker = kafkaBroker;
 		this.kafkaGroupId = kafkaGroupId;
 		this.zookeeperAddress = zookeeperAddress;
 
-		this.submitTaskTopic = submitTaskTopic;
-		this.genericTaskNotificationTopic = genericTaskNotificationTopic;
-		this.taskProgressNotificationTopic = taskProgressNotificationTopic;
-
 		Properties props = new Properties();
 		props.put("metadata.broker.list", kafkaBroker);
-		props.put("serializer.class",
-				"eu.europeana.cloud.service.dps.storm.JsonEncoder");
+		props.put("serializer.class", "eu.europeana.cloud.service.dps.service.kafka.util.JsonEncoder");
 		props.put("request.required.acks", "1");
 
 		ProducerConfig config = new ProducerConfig(props);
@@ -67,31 +54,18 @@ public class KafkaDpsService implements DpsService {
 	}
 
 	@Override
-	public void submitTask(DpsTask task) {
+	public void submitTask(DpsTask task, String topology) {
 
 		String key = "";
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
-				submitTaskTopic, key, task);
+				topology, key, task);
 		producer.send(data);
-//		producer.close();
 	}
 
 	@Override
-	public DpsTask fetchTask() {
+	public DpsTask fetchTask(String topology) {
 
-		return fetchTaskFromKafka();
-	}
-
-	@Override
-	public String getTaskProgress(String taskId) {
-
-		return fetchStringFromKafka(taskProgressNotificationTopic);
-	}
-
-	@Override
-	public String getTaskNotification(String taskId) {
-
-		return fetchStringFromKafka(genericTaskNotificationTopic);
+		return fetchTaskFromKafka(topology);
 	}
 
 	public MessageAndMetadata<byte[], byte[]> fetchKafkaMessage(final String topic) {
@@ -139,15 +113,9 @@ public class KafkaDpsService implements DpsService {
 		return new ConsumerConfig(props);
 	}
 
-	private String fetchStringFromKafka(final String topic) {
+	private DpsTask fetchTaskFromKafka(String topology) {
 
-		MessageAndMetadata<byte[], byte[]> m = fetchKafkaMessage(topic);
-		return new String(m.message());
-	}
-	
-	private DpsTask fetchTaskFromKafka() {
-
-		MessageAndMetadata<byte[], byte[]> m = fetchKafkaMessage(submitTaskTopic);
+		MessageAndMetadata<byte[], byte[]> m = fetchKafkaMessage(topology);
 		
 		ObjectMapper mapper = new ObjectMapper();
 		DpsTask task = null;

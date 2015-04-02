@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="2.7" jmeter="2.12 r1636949">
+<jmeterTestPlan version="1.2" properties="2.6" jmeter="2.11 r1554548">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test plan (requires Standard Set of plugins)" enabled="true">
       <stringProp name="TestPlan.comments">Please configure variables below. This test requires Standard Set of plugins from http://jmeter-plugins.org. </stringProp>
@@ -19,9 +19,9 @@
             <stringProp name="Argument.desc">Port</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="uis-name" elementType="Argument">
-            <stringProp name="Argument.name">uis-name</stringProp>
-            <stringProp name="Argument.value">${__P(uis-name,/uis)}</stringProp>
+          <elementProp name="uisName" elementType="Argument">
+            <stringProp name="Argument.name">uisName</stringProp>
+            <stringProp name="Argument.value">/uis</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="threads" elementType="Argument">
@@ -478,7 +478,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers?providerId=${providerPrefix}${timeCreation}_${__threadNum()}_${loop_counter}</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -662,7 +662,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -765,7 +765,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${providerPrefix}${creationIndex}/</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${providerPrefix}${creationIndex}/</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -852,7 +852,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${providerPrefix}${creationIndex}/</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${providerPrefix}${creationIndex}/</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -956,7 +956,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1067,7 +1067,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1195,7 +1195,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds/${cloudId}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds/${cloudId}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1282,7 +1282,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${providerPrefix}${creationIndex}/cloudIds</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${providerPrefix}${creationIndex}/cloudIds</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1369,7 +1369,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${providerPrefix}${creationIndex}/localIds</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${providerPrefix}${creationIndex}/localIds</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1463,7 +1463,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${providerPrefix}${creationIndex}/localIds/${recordPrefix}${creationIndex}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${providerPrefix}${creationIndex}/localIds/${recordPrefix}${creationIndex}</stringProp>
           <stringProp name="HTTPSampler.method">DELETE</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1550,7 +1550,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds?providerId=${providerPrefix}${creationIndex}&amp;recordId=${recordPrefix}${creationIndex}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1653,7 +1653,7 @@ prev.setResponseOK();
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/data-providers/${reqestPart}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/data-providers/${reqestPart}</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1750,7 +1750,7 @@ prev.setResponseOK();
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">${uis-name}/cloudIds/${cloudId}</stringProp>
+          <stringProp name="HTTPSampler.path">${uisName}/cloudIds/${cloudId}</stringProp>
           <stringProp name="HTTPSampler.method">DELETE</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

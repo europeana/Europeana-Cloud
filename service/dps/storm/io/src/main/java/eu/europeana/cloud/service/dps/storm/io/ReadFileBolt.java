@@ -31,6 +31,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 			.getLogger(ReadFileBolt.class);
 
 	/** Properties to connect to eCloud */
+	private String zkAddress;
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
@@ -39,13 +40,13 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	private transient PersistentCountMetric pCountMetric;
 	private transient MultiCountMetric wordCountMetric;
 	private transient ReducedMetric wordLengthMeanMetric;
-	private transient ZookeeperMultiCountMetric zMetric;
 	
 	private FileServiceClient fileClient;
 
-	public ReadFileBolt(String ecloudMcsAddress, String username,
+	public ReadFileBolt(String zkAddress, String ecloudMcsAddress, String username,
 			String password) {
 
+		this.zkAddress = zkAddress;
 		this.ecloudMcsAddress = ecloudMcsAddress;
 		this.username = username;
 		this.password = password;
@@ -67,13 +68,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric = new PersistentCountMetric();
 		wordCountMetric = new MultiCountMetric();
 		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-		zMetric = new ZookeeperMultiCountMetric();
 		
 		context.registerMetric("read_records=>", countMetric, 1);
 		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
 		context.registerMetric("word_count=>", wordCountMetric, 1);
 		context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
-		context.registerMetric("zMetric=>", zMetric, 1);
 	}
 
 	@Override
@@ -111,7 +110,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		pCountMetric.incr();
 		wordCountMetric.scope(word).incr();
 		wordLengthMeanMetric.update(word.length());
-		zMetric.incr(t.getTaskId(), t.getTaskName(), "progress");
 		LOGGER.info("ReadFileBolt: metrics updated");
 	}
 

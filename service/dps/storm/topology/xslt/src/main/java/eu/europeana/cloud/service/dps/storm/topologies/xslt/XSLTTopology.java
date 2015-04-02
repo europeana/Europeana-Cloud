@@ -28,8 +28,13 @@ public class XSLTTopology {
 	private static String ecloudMcsAddress = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
 	// private static String username = "Cristiano";
 	// private static String password = "Ronaldo";
+
 	private static String username = "admin";
 	private static String password = "admin";
+	//private static String username = "Emmanouil_Koufakis";
+	//private static String password = "J9vdq9rpPy";
+	private static String zkAddress = "ecloud.eanadev.org:2181";
+
 
 	public static final Logger LOGGER = LoggerFactory
 			.getLogger(XSLTTopology.class);
@@ -41,7 +46,7 @@ public class XSLTTopology {
 	}
 
 	public StormTopology buildTopology() {
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress,
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress, ecloudMcsAddress,
 				username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress,
 				username, password);

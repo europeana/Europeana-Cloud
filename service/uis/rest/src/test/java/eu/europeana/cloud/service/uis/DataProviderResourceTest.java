@@ -34,7 +34,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.uis.encoder.Base36;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -58,7 +58,8 @@ public class DataProviderResourceTest extends JerseyTest {
 
     @Override
     public Application configure() {
-        return new JerseyConfig().property("contextConfigLocation", "classpath:/uis-context-test.xml");
+	return new JerseyConfig().property("contextConfigLocation",
+		"classpath:/uis-context-test.xml");
     }
 
     /**
@@ -66,108 +67,131 @@ public class DataProviderResourceTest extends JerseyTest {
      */
     @Before
     public void mockUp() {
-        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
-        dataProviderService = applicationContext.getBean(DataProviderService.class);
-        uniqueIdentifierService = applicationContext.getBean(UniqueIdentifierService.class);
-        Mockito.reset(dataProviderService);
-        dataProviderWebTarget = target(DataProviderResource.class.getAnnotation(Path.class).value());
+	ApplicationContext applicationContext = ApplicationContextUtils
+		.getApplicationContext();
+	dataProviderService = applicationContext
+		.getBean(DataProviderService.class);
+	uniqueIdentifierService = applicationContext
+		.getBean(UniqueIdentifierService.class);
+	Mockito.reset(dataProviderService);
+	dataProviderWebTarget = target(DataProviderResource.class
+		.getAnnotation(Path.class).value());
     }
 
     /**
      * Update a provider
-     *
+     * 
      * @throws ProviderAlreadyExistsException
      * @throws ProviderDoesNotExistException
      * @throws MalformedURLException
      */
     @Test
-    public void shouldUpdateProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException,
-            MalformedURLException {
-        // given certain provider data
-        String providerName = "provident";
+    public void shouldUpdateProvider() throws ProviderAlreadyExistsException,
+	    ProviderDoesNotExistException, MalformedURLException {
+	// given certain provider data
+	String providerName = "provident";
 
-        DataProvider dp = new DataProvider();
-        dp.setId(providerName);
-        // when the provider is updated
-        DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
-        properties.setRemarks("Remarks");
-        dp.setProperties(properties);
-        Mockito.when(dataProviderService.updateProvider(providerName, properties)).thenReturn(dp);
-        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-        Response putResponse = providentWebTarget.request().put(Entity.json(properties));
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), putResponse.getStatus());
-        dp.setProperties(properties);
-        Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
-        // then the inserted provider should be in service
-        DataProvider retProvider = dataProviderService.getProvider(providerName);
-        assertEquals(providerName, retProvider.getId());
-        assertEquals(properties, retProvider.getProperties());
+	DataProvider dp = new DataProvider();
+	dp.setId(providerName);
+	// when the provider is updated
+	DataProviderProperties properties = new DataProviderProperties();
+	properties.setOrganisationName("Organizacja");
+	properties.setRemarks("Remarks");
+	dp.setProperties(properties);
+	Mockito.when(
+		dataProviderService.updateProvider(providerName, properties))
+		.thenReturn(dp);
+	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
+		ParamConstants.P_PROVIDER, providerName);
+	Response putResponse = providentWebTarget.request().put(
+		Entity.json(properties));
+	assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+		putResponse.getStatus());
+	dp.setProperties(properties);
+	Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(
+		dp);
+	// then the inserted provider should be in service
+	DataProvider retProvider = dataProviderService
+		.getProvider(providerName);
+	assertEquals(providerName, retProvider.getId());
+	assertEquals(properties, retProvider.getProperties());
     }
 
     /**
      * Get provider Unit tests
-     *
+     * 
      * @throws ProviderAlreadyExistsException
      * @throws ProviderDoesNotExistException
      */
     @Test
-    public void shouldGetProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
-        // given certain provider in service
-        DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
-        properties.setRemarks("Remarks");
-        String providerName = "provident";
+    public void shouldGetProvider() throws ProviderAlreadyExistsException,
+	    ProviderDoesNotExistException {
+	// given certain provider in service
+	DataProviderProperties properties = new DataProviderProperties();
+	properties.setOrganisationName("Organizacja");
+	properties.setRemarks("Remarks");
+	String providerName = "provident";
 
-        DataProvider dp = new DataProvider();
-        dp.setId(providerName);
+	DataProvider dp = new DataProvider();
+	dp.setId(providerName);
 
-        dp.setProperties(properties);
-        Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(dp);
-		// dataProviderService.createProvider(providerName, properties);
+	dp.setProperties(properties);
+	Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(
+		dp);
+	// dataProviderService.createProvider(providerName, properties);
 
-        // when you get provider by rest api
-        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, providerName);
-        Response getResponse = providentWebTarget.request().get();
-        assertEquals(Response.Status.OK.getStatusCode(), getResponse.getStatus());
-        DataProvider receivedDataProvider = getResponse.readEntity(DataProvider.class);
+	// when you get provider by rest api
+	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
+		ParamConstants.P_PROVIDER, providerName);
+	Response getResponse = providentWebTarget.request().get();
+	assertEquals(Response.Status.OK.getStatusCode(),
+		getResponse.getStatus());
+	DataProvider receivedDataProvider = getResponse
+		.readEntity(DataProvider.class);
 
-        // then received provider should be the same as inserted
-        assertEquals(providerName, receivedDataProvider.getId());
-        assertEquals(properties, receivedDataProvider.getProperties());
+	// then received provider should be the same as inserted
+	assertEquals(providerName, receivedDataProvider.getId());
+	assertEquals(properties, receivedDataProvider.getProperties());
     }
 
     /**
      * Test Non Existing provider
-     *
+     * 
      * @throws ProviderDoesNotExistException
      */
     @Test
-    public void shouldReturn404OnNotExistingProvider() throws ProviderDoesNotExistException {
-        // given there is no provider in service
-        Mockito.when(dataProviderService.getProvider("provident")).thenThrow(
-                new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("provident"))));
-        // when you get certain provider
-        WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(ParamConstants.P_PROVIDER, "provident");
-        Response getResponse = providentWebTarget.request().get();
+    public void shouldReturn404OnNotExistingProvider()
+	    throws ProviderDoesNotExistException {
+	// given there is no provider in service
+	Mockito.when(dataProviderService.getProvider("provident")).thenThrow(
+		new ProviderDoesNotExistException(new IdentifierErrorInfo(
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getErrorInfo("provident"))));
+	// when you get certain provider
+	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
+		ParamConstants.P_PROVIDER, "provident");
+	Response getResponse = providentWebTarget.request().get();
 
-        // then you should get error that such does not exist
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
-        ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
-        assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("provident").getErrorCode(),
-                deleteErrorInfo.getErrorCode());
+	// then you should get error that such does not exist
+	assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+		getResponse.getStatus());
+	ErrorInfo deleteErrorInfo = getResponse.readEntity(ErrorInfo.class);
+	assertEquals(IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+		.getErrorInfo("provident").getErrorCode(),
+		deleteErrorInfo.getErrorCode());
     }
 
     /**
      * Test the retrieval of local Ids by a provider
-     *
+     * 
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetLocalIdsByProvider() throws Exception {
+    public void testGetLocalIdsByProvider()
+            throws Exception {
         ResultSlice<CloudId> lidListWrapper = new ResultSlice<>();
         List<CloudId> localIdList = new ArrayList<>();
         localIdList.add(createCloudId("providerId", "recordId"));
@@ -186,61 +210,85 @@ public class DataProviderResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testGetLocalIdsByProviderDBException() throws Exception {
-        Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getPort(), "")));
+	Throwable exception = new DatabaseConnectionException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getHttpCode(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getPort(), "")));
 
-        when(uniqueIdentifierService.getLocalIdsByProvider("providerId", "recordId", 10000)).thenThrow(exception);
+	when(
+		uniqueIdentifierService.getLocalIdsByProvider("providerId",
+			"recordId", 10000)).thenThrow(exception);
 
-        Response resp = target("/data-providers/providerId/localIds").queryParam("from", "recordId").request().get();
-        assertThat(resp.getStatus(), is(500));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getErrorCode());
-        StringUtils.equals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getDetails());
+	Response resp = target("/data-providers/providerId/localIds")
+		.queryParam("from", "recordId").request().get();
+	assertThat(resp.getStatus(), is(500));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+			uniqueIdentifierService.getHostList(),
+			uniqueIdentifierService.getHostList(), "")
+			.getErrorCode());
+	StringUtils
+		.equals(errorInfo.getDetails(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getHostList(),
+					"").getDetails());
     }
 
     /**
      * Test the exception that a provider does not exist
-     *
+     * 
      * @throws Exception
      */
     @Test
-    public void testGetLocalIdsByProviderProviderDoesNotExistException() throws Exception {
-        Throwable exception = new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId")));
+    public void testGetLocalIdsByProviderProviderDoesNotExistException()
+	    throws Exception {
+	Throwable exception = new ProviderDoesNotExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getErrorInfo("providerId")));
 
-        when(uniqueIdentifierService.getLocalIdsByProvider("providerId", "recordId", 10000)).thenThrow(exception);
+	when(
+		uniqueIdentifierService.getLocalIdsByProvider("providerId",
+			"recordId", 10000)).thenThrow(exception);
 
-        Response resp = target("/data-providers/providerId/localIds").queryParam("from", "recordId").request().get();
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getDetails());
+	Response resp = target("/data-providers/providerId/localIds")
+		.queryParam("from", "recordId").request().get();
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getDetails());
     }
 
     /**
      * The the retrieval of cloud ids based on a provider
-     *
+     * 
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetCloudIdsByProvider() throws Exception {
+    public void testGetCloudIdsByProvider()
+            throws Exception {
         ResultSlice<CloudId> cloudIdListWrapper = new ResultSlice<>();
         List<CloudId> cloudIdList = new ArrayList<>();
         cloudIdList.add(createCloudId("providerId", "recordId"));
@@ -260,269 +308,369 @@ public class DataProviderResourceTest extends JerseyTest {
 
     /**
      * Test the database exception
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testGetCloudIdsByProviderDBException() throws Exception {
-        Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getPort(), "")));
+	Throwable exception = new DatabaseConnectionException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getHttpCode(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getPort(), "")));
 
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10000)).thenThrow(exception);
+	when(
+		uniqueIdentifierService.getCloudIdsByProvider("providerId",
+			"recordId", 10000)).thenThrow(exception);
 
-        Response resp = target("/data-providers/providerId/cloudIds").queryParam("from", "recordId").request().get();
-        assertThat(resp.getStatus(), is(500));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getErrorCode());
-        StringUtils.equals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds")
+		.queryParam("from", "recordId").request().get();
+	assertThat(resp.getStatus(), is(500));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+			uniqueIdentifierService.getHostList(),
+			uniqueIdentifierService.getHostList(), "")
+			.getErrorCode());
+	StringUtils
+		.equals(errorInfo.getDetails(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getHostList(),
+					"").getDetails());
     }
 
     /**
      * Test the exception of cloud ids when a provider does not exist
-     *
+     * 
      * @throws Exception
      */
     @Test
-    public void testGetCloudIdsByProviderProviderDoesNotExistException() throws Exception {
-        Throwable exception = new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId")));
+    public void testGetCloudIdsByProviderProviderDoesNotExistException()
+	    throws Exception {
+	Throwable exception = new ProviderDoesNotExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getErrorInfo("providerId")));
 
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10000)).thenThrow(exception);
+	when(
+		uniqueIdentifierService.getCloudIdsByProvider("providerId",
+			"recordId", 10000)).thenThrow(exception);
 
-        Response resp = target("/data-providers/providerId/cloudIds").queryParam("from", "recordId").request().get();
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds")
+		.queryParam("from", "recordId").request().get();
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getDetails());
     }
 
     /**
      * Test the retrieval of an empty dataset based on provider search
-     *
+     * 
      * @throws Exception
      */
     @Test
-    public void testGetCloudIdsByProviderRecordDatasetEmptyException() throws Exception {
-        Throwable exception = new RecordDatasetEmptyException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
-                IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo("providerId")));
+    public void testGetCloudIdsByProviderRecordDatasetEmptyException()
+	    throws Exception {
+	Throwable exception = new RecordDatasetEmptyException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.RECORDSET_EMPTY.getHttpCode(),
+			IdentifierErrorTemplate.RECORDSET_EMPTY
+				.getErrorInfo("providerId")));
 
-        when(uniqueIdentifierService.getCloudIdsByProvider("providerId", "recordId", 10000)).thenThrow(exception);
+	when(
+		uniqueIdentifierService.getCloudIdsByProvider("providerId",
+			"recordId", 10000)).thenThrow(exception);
 
-        Response resp = target("/data-providers/providerId/cloudIds").queryParam("from", "recordId").request().get();
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(), IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo("providerId")
-                .getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(), IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo("providerId")
-                .getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds")
+		.queryParam("from", "recordId").request().get();
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
+			"providerId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.RECORDSET_EMPTY.getErrorInfo(
+			"providerId").getDetails());
     }
 
     /**
      * Test the creation of a mapping between a cloud id and a record id
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testCreateMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
-        when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
-        // Create a single object test
-        target("cloudIds").queryParam(UISParamConstants.Q_PROVIDER_ID, "providerId").queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
-                .request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).post(null);
-        Response res = target("/data-providers/providerId/cloudIds/" + gid.getId()).queryParam(UISParamConstants.Q_RECORD_ID, "local1")
-                .request().post(Entity.text(""));
-        assertThat(res.getStatus(), is(200));
+	CloudId gid = createCloudId("providerId", "recordId");
+	when(uniqueIdentifierService.createCloudId("providerId", "recordId"))
+		.thenReturn(gid);
+	// Create a single object test
+	target("cloudIds")
+		.queryParam(UISParamConstants.Q_PROVIDER_ID, "providerId")
+		.queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
+		.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
+		.post(null);
+	Response res = target(
+		"/data-providers/providerId/cloudIds/" + gid.getId())
+		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+		.post(Entity.text(""));
+	assertThat(res.getStatus(), is(200));
     }
 
     /**
      * Test the database exception
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testCreateMappingDBException() throws Exception {
-        Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getPort(), "")));
+	Throwable exception = new DatabaseConnectionException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getHttpCode(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getPort(), "")));
 
-        doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
+	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+		"cloudId", "providerId", "local1");
 
-        Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-                .post(Entity.text(""));
-        assertThat(resp.getStatus(), is(500));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getErrorCode());
-        StringUtils.equals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
+		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+		.post(Entity.text(""));
+	assertThat(resp.getStatus(), is(500));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+			uniqueIdentifierService.getHostList(),
+			uniqueIdentifierService.getHostList(), "")
+			.getErrorCode());
+	StringUtils
+		.equals(errorInfo.getDetails(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getHostList(),
+					"").getDetails());
     }
 
     /**
      * Test the exception of a a missing cloud id between the mapping of a cloud
      * id and a record id
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testCreateMappingCloudIdException() throws Exception {
-        Throwable exception = new CloudIdDoesNotExistException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
-                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")));
+	Throwable exception = new CloudIdDoesNotExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+				.getErrorInfo("cloudId")));
 
-        doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
+	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+		"cloudId", "providerId", "local1");
 
-        Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-                .post(Entity.text(""));
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(),
-                IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId").getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
+		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+		.post(Entity.text(""));
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
+			"cloudId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(
+			"cloudId").getDetails());
     }
 
     /**
      * Test the exception when a recordd id is mapped twice
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testCreateMappingIdHasBeenMapped() throws Exception {
-        Throwable exception = new IdHasBeenMappedException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getHttpCode(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo("local1", "providerId", "cloudId")));
+	Throwable exception = new IdHasBeenMappedException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
+				.getHttpCode(),
+			IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
+				.getErrorInfo("local1", "providerId", "cloudId")));
 
-        doThrow(exception).when(uniqueIdentifierService).createIdMapping("cloudId", "providerId", "local1");
+	doThrow(exception).when(uniqueIdentifierService).createIdMapping(
+		"cloudId", "providerId", "local1");
 
-        Response resp = target("/data-providers/providerId/cloudIds/cloudId").queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
-                .post(Entity.text(""));
-        assertThat(resp.getStatus(), is(409));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo("local1", "providerId", "cloudId")
-                .getErrorCode());
-        StringUtils
-                .equals(errorInfo.getDetails(),
-                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo("local1", "providerId", "cloudId")
-                        .getDetails());
+	Response resp = target("/data-providers/providerId/cloudIds/cloudId")
+		.queryParam(UISParamConstants.Q_RECORD_ID, "local1").request()
+		.post(Entity.text(""));
+	assertThat(resp.getStatus(), is(409));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
+			"local1", "providerId", "cloudId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
+			"local1", "providerId", "cloudId").getDetails());
     }
 
     /**
      * Test the removal of a mapping between a cloud id and a record id
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testRemoveMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
-        when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
-        target("/cloudIds").queryParam("providerId", "providerId").queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
-                .request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML).get();
-        Response resp = target("/data-providers/providerId/localIds/recordId").request().delete();
-        assertThat(resp.getStatus(), is(200));
+	CloudId gid = createCloudId("providerId", "recordId");
+	when(uniqueIdentifierService.createCloudId("providerId", "recordId"))
+		.thenReturn(gid);
+	target("/cloudIds").queryParam("providerId", "providerId")
+		.queryParam(UISParamConstants.Q_RECORD_ID, "recordId")
+		.request(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
+		.get();
+	Response resp = target("/data-providers/providerId/localIds/recordId")
+		.request().delete();
+	assertThat(resp.getStatus(), is(200));
 
     }
 
     /**
      * Test the database exception
-     *
+     * 
      * @throws Exception
      */
     @Test
     public void testRemoveMappingDBException() throws Exception {
-        Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getPort(), "")));
+	Throwable exception = new DatabaseConnectionException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getHttpCode(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getPort(), "")));
 
-        doThrow(exception).when(uniqueIdentifierService).removeIdMapping("providerId", "recordId");
+	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+		"providerId", "recordId");
 
-        Response resp = target("/data-providers/providerId/localIds/recordId").request().delete();
-        assertThat(resp.getStatus(), is(500));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getErrorCode());
-        StringUtils.equals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-                        uniqueIdentifierService.getHostList(), "").getDetails());
+	Response resp = target("/data-providers/providerId/localIds/recordId")
+		.request().delete();
+	assertThat(resp.getStatus(), is(500));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
+			uniqueIdentifierService.getHostList(),
+			uniqueIdentifierService.getHostList(), "")
+			.getErrorCode());
+	StringUtils
+		.equals(errorInfo.getDetails(),
+			IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+				.getErrorInfo(
+					uniqueIdentifierService.getHostList(),
+					uniqueIdentifierService.getHostList(),
+					"").getDetails());
     }
 
     /**
      * Test the exception when the provider used for the removal of a mapping is
      * non existent
-     *
+     * 
      * @throws Exception
      */
     @Test
-    public void testRemoveMappingProviderDoesNotExistException() throws Exception {
-        Throwable exception = new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId")));
+    public void testRemoveMappingProviderDoesNotExistException()
+	    throws Exception {
+	Throwable exception = new ProviderDoesNotExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+				.getErrorInfo("providerId")));
 
-        doThrow(exception).when(uniqueIdentifierService).removeIdMapping("providerId", "recordId");
+	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+		"providerId", "recordId");
 
-        Response resp = target("/data-providers/providerId/localIds/recordId").request().delete();
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(),
-                IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo("providerId").getDetails());
+	Response resp = target("/data-providers/providerId/localIds/recordId")
+		.request().delete();
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
+			"providerId").getDetails());
     }
 
     /**
      * Test the exception when a record to be removed does not exist
-     *
+     * 
      * @throws Exception
      */
     @Test
-    public void testRemoveMappingRecordIdDoesNotExistException() throws Exception {
-        Throwable exception = new RecordIdDoesNotExistException(new IdentifierErrorInfo(
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getHttpCode(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo("recordId")));
+    public void testRemoveMappingRecordIdDoesNotExistException()
+	    throws Exception {
+	Throwable exception = new RecordIdDoesNotExistException(
+		new IdentifierErrorInfo(
+			IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
+				.getHttpCode(),
+			IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
+				.getErrorInfo("recordId")));
 
-        doThrow(exception).when(uniqueIdentifierService).removeIdMapping("providerId", "recordId");
+	doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
+		"providerId", "recordId");
 
-        Response resp = target("/data-providers/providerId/localIds/recordId").request().delete();
-        assertThat(resp.getStatus(), is(404));
-        ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-        StringUtils.equals(errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo("recordId").getErrorCode());
-        StringUtils.equals(errorInfo.getDetails(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo("recordId").getDetails());
+	Response resp = target("/data-providers/providerId/localIds/recordId")
+		.request().delete();
+	assertThat(resp.getStatus(), is(404));
+	ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
+	StringUtils.equals(
+		errorInfo.getErrorCode(),
+		IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
+			"recordId").getErrorCode());
+	StringUtils.equals(
+		errorInfo.getDetails(),
+		IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
+			"recordId").getDetails());
     }
 
     private static LocalId createLocalId(String providerId, String recordId) {
-        LocalId localId = new LocalId();
-        localId.setProviderId(providerId);
-        localId.setRecordId(recordId);
-        return localId;
+	LocalId localId = new LocalId();
+	localId.setProviderId(providerId);
+	localId.setRecordId(recordId);
+	return localId;
     }
 
     private static CloudId createCloudId(String providerId, String recordId) {
-        CloudId cloudId = new CloudId();
-        cloudId.setLocalId(createLocalId(providerId, recordId));
-        cloudId.setId(Base36.encode("/" + providerId + "/" + recordId));
-        return cloudId;
+	CloudId cloudId = new CloudId();
+	cloudId.setLocalId(createLocalId(providerId, recordId));
+	cloudId.setId(IdGenerator.encode("/" + providerId + "/" + recordId));
+	return cloudId;
     }
 }

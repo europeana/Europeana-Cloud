@@ -49,9 +49,11 @@
         </constructor-arg>
 	</bean>
 	
-		<!-- 
-			Advertises this DLS instance in Zookeeper 
-			(OPTIONAL..., as noone ever contacts DLS specifically but usefull to have a list of all alive instances 
+    <!-- 
+        Advertises this DLS instance in Zookeeper 
+        (OPTIONAL..., as noone ever contacts DLS specifically but usefull to have a list of all alive instances 
+    -->
+    
     <bean id="serviceToBeAdvertised" class="eu.europeana.cloud.service.coordination.ServiceProperties">
         <constructor-arg name="serviceName" value="DLS" />
         
@@ -69,13 +71,18 @@
   		<constructor-arg name="discoveryPath" value="/discovery"/>
         <constructor-arg name="serviceProperties" ref="serviceToBeAdvertised"/>
     </bean>
-		-->
     
 	<!-- Loads properties saved in Zookeeper  -->
 	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
   		<property name="zookeeperService" ref="zookeeperService"/>
   		<property name="configurationSettingsPath" value="/configuration"/>
 	</bean>
+    
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.ZookeeperLoggingConfigurator">
+        <constructor-arg name="serviceAdvertiser" ref="serviceAdvertiser"/>
+        <constructor-arg name="kafkaBrokerList" value="${logging.kafkaBrokerList}"/>
+        <constructor-arg name="kafkaTopicName" value="${logging.kafkaTopicName}"/>
+    </bean>
 	
     <import resource="classpath:kafka.xml" />
     <import resource="classpath:config.xml" />

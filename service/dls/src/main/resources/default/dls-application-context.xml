@@ -37,4 +37,6 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
         </constructor-arg>
     </bean>
     <bean id="messageListener" class="eu.europeana.cloud.service.dls.kafka.KafkaMessageListener" />
+    
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
 </beans>         

@@ -48,8 +48,6 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 	public void nextTuple() {
 
 		try {	
-			Utils.sleep(60000);
-
 			HashMap<String, String> taskParameters = task.getParameters();
 			LOGGER.info("taskParameters size=" + taskParameters.size());
 			
@@ -61,6 +59,8 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 				collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(),  fileUrl, "", taskParameters).toStormTuple());
 			}
 			
+			Utils.sleep(6000000);
+
 		} catch (Exception e) {
 			LOGGER.error("StaticDpsTaskSpout error:" + e.getMessage());
 		}

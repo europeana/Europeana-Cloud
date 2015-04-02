@@ -150,7 +150,7 @@ echo "############################### UIS TEST ############################### "
 jmeter $testMode \
 -Jhost=$host \
 -Jport=$port \
--Juis-name=$uisPath \
+-JuisName=$uisPath \
 -Jthreads=$threads \
 -JrecordsPerProvider=$recordsPerProvider \
 -JrampUpPeriod=$rampUpPeriod \
@@ -175,8 +175,8 @@ echo "############################### MCS DATA_SET TEST ########################
 jmeter $testMode  \
 -Jhost=$host \
 -Jport=$port \
--Juis-name=$uisPath \
--Jmcs-name=$mcsPath \
+-JuisName=$uisPath \
+-JmcsName=$mcsPath \
 -Jthreads=$threads \
 -JrampUpPeriod=$rampUpPeriod \
 -JrecordsPerProvider=$recordsPerProvider \
@@ -212,8 +212,8 @@ dd if=/dev/urandom of=${resultDir}/$uloadedLargeFileName bs=512 count=$((${sizeL
 jmeter $testMode \
 -Jhost=$host \
 -Jport=$port \
--Juis-name=$uisPath \
--Jmcs-name=$mcsPath \
+-JuisName=$uisPath \
+-JmcsName=$mcsPath \
 -Jthreads=$threads \
 -JrampUpPeriod=$rampUpPeriod \
 -JrecordsPerProvider=$recordsPerProvider \

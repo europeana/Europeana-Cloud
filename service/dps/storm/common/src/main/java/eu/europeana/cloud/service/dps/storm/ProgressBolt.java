@@ -9,10 +9,14 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 
 /**
- * Increases progress for the current Task by 1 for every tuple received.
+ * Increases progress by 1 per Task / per tuple received.
+ * 
+ * Progress bolt can be placed at the end of a topology,
+ * to count the amount of records that are fully processed.
+ * 
+ * Right now only single Progress bolt is supported per Topology.
  * 
  * @author manos
- *
  */
 public class ProgressBolt extends AbstractDpsBolt {
 
@@ -21,8 +25,10 @@ public class ProgressBolt extends AbstractDpsBolt {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBolt.class);
 
 	private transient ZookeeperMultiCountMetric zMetric;
+	private String zkAddress;
 	
-	public ProgressBolt() {
+	public ProgressBolt(String zkAddress) {
+		this.zkAddress = zkAddress;
 	}
 
 	@Override
@@ -34,7 +40,8 @@ public class ProgressBolt extends AbstractDpsBolt {
 	}
 
 	void initMetrics(TopologyContext context) {
-		zMetric = new ZookeeperMultiCountMetric();
+		
+		zMetric = new ZookeeperMultiCountMetric(zkAddress);
 		context.registerMetric("zMetric=>", zMetric, 1);
 	}
 
@@ -42,6 +49,7 @@ public class ProgressBolt extends AbstractDpsBolt {
 	public void execute(StormTaskTuple t) {
 
 		try {
+			LOGGER.info("ProgressIncreaseBolt: updating progress");
 			updateProgress(t);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
@@ -51,7 +59,7 @@ public class ProgressBolt extends AbstractDpsBolt {
 
 	private void updateProgress(StormTaskTuple t) {
 		
-		zMetric.incr(t.getTaskId(), t.getTaskName(), "progress");
+		zMetric.incr(t.getTaskId());
 		LOGGER.info("ProgressIncreaseBolt: progress updated");
 	}
 }

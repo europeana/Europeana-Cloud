@@ -43,6 +43,8 @@ public class StaticXsltTopology {
     private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
 	private static String username = "Cristiano";
 	private static String password = "Ronaldo";
+	
+	private static String zkAddress = "ecloud.eanadev.org:2181";
 
 	public static void main(String[] args) throws Exception {
 
@@ -50,7 +52,7 @@ public class StaticXsltTopology {
 		
 		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
 		
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress, ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
 
 		builder.setSpout("taskSpout", taskSpout, 1);

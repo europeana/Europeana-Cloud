@@ -34,6 +34,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
@@ -42,7 +43,7 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 
 /**
  * Resource for DataProvider.
- *
+ * 
  */
 @Path("/data-providers/{" + P_PROVIDER + "}")
 @Component
@@ -57,39 +58,40 @@ public class DataProviderResource {
 
     /**
      * Gets provider.
-     *
+     * 
      * @return Data provider.
      * @throws ProviderDoesNotExistException
      */
     @GET
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public DataProvider getProvider(@PathParam(P_PROVIDER) String providerId)
-            throws ProviderDoesNotExistException {
-        return providerService.getProvider(providerId);
+	    throws ProviderDoesNotExistException {
+	return providerService.getProvider(providerId);
     }
 
     /**
      * Updates data provider information.
-     *
-     * @param dataProviderProperties data provider properties.
+     * 
+     * @param dataProviderProperties
+     *            data provider properties.
      * @throws ProviderDoesNotExistException
      * @statuscode 204 object has been updated.
      */
     @PUT
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
     public void updateProvider(DataProviderProperties dataProviderProperties,
-    		@PathParam(P_PROVIDER) String providerId,
-    		@Context UriInfo uriInfo)
-            throws ProviderDoesNotExistException {
-        DataProvider provider = providerService.updateProvider(providerId, dataProviderProperties);
-        EnrichUriUtil.enrich(uriInfo, provider);
+	    @PathParam(P_PROVIDER) String providerId, @Context UriInfo uriInfo)
+	    throws ProviderDoesNotExistException {
+	DataProvider provider = providerService.updateProvider(providerId,
+		dataProviderProperties);
+	EnrichUriUtil.enrich(uriInfo, provider);
     }
 
     /**
      * Get the record identifiers for a specific provider identifier with
      * pagination
-     *
+     * 
      * @param from
      * @param to
      * @return A list of record Identifiers (with their cloud identifiers)
@@ -99,10 +101,10 @@ public class DataProviderResource {
      */
     @GET
     @Path("localIds")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
     public Response getLocalIdsByProvider(@PathParam(P_PROVIDER) String providerId,
-    		@QueryParam(UISParamConstants.Q_FROM) String from,
+            @QueryParam(UISParamConstants.Q_FROM) String from,
             @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -116,7 +118,7 @@ public class DataProviderResource {
     /**
      * Get the cloud identifiers for a specific provider identifier with
      * pagination
-     *
+     * 
      * @param from
      * @param to
      * @return A list of cloud Identifiers
@@ -126,10 +128,10 @@ public class DataProviderResource {
      */
     @GET
     @Path("cloudIds")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
     public Response getCloudIdsByProvider(@PathParam(P_PROVIDER) String providerId,
-    		@QueryParam(UISParamConstants.Q_FROM) String from,
+            @QueryParam(UISParamConstants.Q_FROM) String from,
             @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -143,7 +145,7 @@ public class DataProviderResource {
     /**
      * Create a mapping between a cloud identifier and a record identifier for a
      * provider
-     *
+     * 
      * @param localId
      * @return The newly associated cloud identifier
      * @throws DatabaseConnectionException
@@ -154,23 +156,29 @@ public class DataProviderResource {
      */
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createIdMapping(
-                @PathParam(P_PROVIDER) String providerId,
-                @PathParam(P_CLOUDID) String cloudId,                    
-    		@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
-            ProviderDoesNotExistException, RecordDatasetEmptyException {
-        if (localId != null) {
-            return Response.ok().entity(uniqueIdentifierService.createIdMapping(cloudId, providerId, localId)).build();
-        } else {
-            return Response.ok().entity(uniqueIdentifierService.createIdMapping(cloudId, providerId)).build();
-        }
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    public Response createIdMapping(@PathParam(P_PROVIDER) String providerId,
+	    @PathParam(P_CLOUDID) String cloudId,
+	    @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+	    throws DatabaseConnectionException, CloudIdDoesNotExistException,
+	    IdHasBeenMappedException, ProviderDoesNotExistException,
+	    RecordDatasetEmptyException, CloudIdAlreadyExistException {
+	if (localId != null) {
+	    return Response
+		    .ok()
+		    .entity(uniqueIdentifierService.createIdMapping(cloudId,
+			    providerId, localId)).build();
+	} else {
+	    return Response
+		    .ok()
+		    .entity(uniqueIdentifierService.createIdMapping(cloudId,
+			    providerId)).build();
+	}
     }
 
     /**
      * Remove the mapping between a record identifier and a cloud identifier
-     *
+     * 
      * @return Confirmation that the mapping has been removed
      * @throws DatabaseConnectionException
      * @throws ProviderDoesNotExistException
@@ -178,13 +186,13 @@ public class DataProviderResource {
      */
     @DELETE
     @Path("localIds/{" + P_LOCALID + "}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response removeIdMapping(
-            @PathParam(P_PROVIDER) String providerId,
-            @PathParam(P_LOCALID) String localId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
-        uniqueIdentifierService.removeIdMapping(providerId, localId);
-        return Response.ok("Mapping marked as deleted").build();
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    public Response removeIdMapping(@PathParam(P_PROVIDER) String providerId,
+	    @PathParam(P_LOCALID) String localId)
+	    throws DatabaseConnectionException, ProviderDoesNotExistException,
+	    RecordIdDoesNotExistException {
+	uniqueIdentifierService.removeIdMapping(providerId, localId);
+	return Response.ok("Mapping marked as deleted").build();
     }
 
 }
