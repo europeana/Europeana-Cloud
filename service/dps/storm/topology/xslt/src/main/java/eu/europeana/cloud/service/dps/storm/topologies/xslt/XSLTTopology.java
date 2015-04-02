@@ -62,10 +62,9 @@ public class XSLTTopology {
 		// builder.setSpout("testSpout", new DpsTaskSpoutTest(), 1);
 		builder.setBolt("retrieveFileBolt", retrieveFileBolt).shuffleGrouping(
 				"parseKafkaInput");
-		//builder.setBolt("xsltTransformationBolt", new XsltBolt())
-			//	.shuffleGrouping("retrieveFileBolt");
+		builder.setBolt("xsltTransformationBolt", new XsltBolt()).shuffleGrouping("retrieveFileBolt");
 		builder.setBolt("writeRecordBolt", writeRecordBolt).shuffleGrouping(
-				"retrieveFileBolt");
+				"xsltTransformationBolt");
 		return builder.createTopology();
 	}
 
