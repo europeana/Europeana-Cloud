@@ -37,13 +37,13 @@
 	</bean>
           
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
-        <constructor-arg name="kafkaBroker" value="ecloud.eanadev.org:9093" />
-        <constructor-arg name="kafkaGroupId" value="group_id" />
-        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181" />
+        <constructor-arg name="kafkaBroker" value="${dps.kafka.broker}" />
+        <constructor-arg name="kafkaGroupId" value="${dps.kafka.groupId}" />
+        <constructor-arg name="zookeeperAddress" value="${dps.zookeeper.address}" />
     </bean>
     
     <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperReportService">
-        <constructor-arg name="zookeeperAddress" value="ecloud.eanadev.org:2181" />
+        <constructor-arg name="zookeeperAddress" value="${dps.zookeeper.address}" />
     </bean>
     
 	<!-- Loads properties saved in Zookeeper  -->
