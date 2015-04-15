@@ -1,10 +1,15 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -15,14 +20,11 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -53,7 +55,7 @@ public class TopologyTasksResource {
 
         if (task != null) {
             submitService.submitTask(task, topology);
-            assignPermissionsToTask(task);
+            grantPermissionsForTask(task.getTaskId() + "");
             return Response.ok().build();
         }
         return Response.notModified().build();
@@ -88,14 +90,40 @@ public class TopologyTasksResource {
         String progress = reportService.getTaskNotification(taskId);
         return progress;
     }
+    
+    @POST
+    @Path("{taskId}/permit")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Response grantPermissions(@PathParam("topologyName") String topology, @PathParam("taskId") String taskId,
+    		@FormParam("username") String username) {
 
-    private void assignPermissionsToTask(DpsTask submittedTask) {
-        ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TASK_PREFIX, submittedTask.getTaskId() + "");
+        if (taskId != null && topology  != null) {
+        	grantPermissionsForTask(taskId, username);
+            return Response.ok().build();
+        }
+        return Response.notModified().build();
+    }
 
-        MutableAcl topologyAcl = mutableAclService.createAcl(topologyIdentity);
+    /**
+     * Grants permissions to the current user for the specified task.
+     */
+    private void grantPermissionsForTask(String taskId) {
+    	
+    	grantPermissionsForTask(taskId, SpringUserUtils.getUsername());
+    }
 
-        topologyAcl.insertAce(0, BasePermission.WRITE, new PrincipalSid(SpringUserUtils.getUsername()), true);
-        topologyAcl.insertAce(0, BasePermission.READ, new PrincipalSid(SpringUserUtils.getUsername()), true);
-        mutableAclService.updateAcl(topologyAcl);
+    /**
+     * Grants permissions for the specified task to the specified user.
+     */
+    private void grantPermissionsForTask(String taskId, String username) {
+    	
+        ObjectIdentity taskObjectIdentity = new ObjectIdentityImpl(TASK_PREFIX, taskId);
+        MutableAcl taskAcl = (MutableAcl) mutableAclService.readAclById(taskObjectIdentity);
+
+        if (taskAcl != null) {
+        	taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+        	taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+            mutableAclService.updateAcl(taskAcl);
+        }
     }
 }
