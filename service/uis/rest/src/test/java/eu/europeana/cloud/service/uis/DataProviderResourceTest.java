@@ -670,7 +670,7 @@ public class DataProviderResourceTest extends JerseyTest {
     private static CloudId createCloudId(String providerId, String recordId) {
 	CloudId cloudId = new CloudId();
 	cloudId.setLocalId(createLocalId(providerId, recordId));
-	cloudId.setId(IdGenerator.encode("/" + providerId + "/" + recordId));
+	cloudId.setId(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId));
 	return cloudId;
     }
 }

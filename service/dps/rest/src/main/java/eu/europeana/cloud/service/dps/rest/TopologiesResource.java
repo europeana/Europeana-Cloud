@@ -8,7 +8,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
@@ -22,7 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Resource to fetch / submit Tasks to the DPS service
+ * Resource to manage topologies in the DPS service
  */
 @Path("/topologies")
 @Component
@@ -38,6 +37,12 @@ public class TopologiesResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
 
+    /**
+     * Assigns user with given userName write permissions to requested topology.
+     * @param userName user name
+     * @param topology topology name
+     * @return response
+     */
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})

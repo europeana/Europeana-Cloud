@@ -105,7 +105,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     @Test(expected = CloudIdDoesNotExistException.class)
     public void testGetLocalIdsByCloudId() throws Exception {
 	List<CloudId> gid = service.getLocalIdsByCloudId(IdGenerator
-		.encode("/test11/test11"));
+		.encodeWithSha256AndBase32("/test11/test11"));
 	CloudId gId = service.createCloudId("test11", "test11");
 	gid = service.getLocalIdsByCloudId(gId.getId());
 	assertEquals(gid.size(), 1);

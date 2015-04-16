@@ -99,7 +99,7 @@ public class CassandraUniqueIdentifierService implements
 		    IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(
 			    providerId, recordId)));
 	}
-	String id = IdGenerator.encode("/" + providerId + "/" + recordId);
+	String id = IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId);
 	List<CloudId> cloudIds = cloudIdDao.insert(false, id, providerId,
 		recordId);
 	localIdDao.insert(providerId, recordId, id);

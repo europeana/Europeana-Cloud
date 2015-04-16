@@ -27,7 +27,7 @@ public class IdGeneratorTest {
 	    final String counterString = bigCounter.toString(32);
 
 	    // when
-	    final String encodedId = IdGenerator.encode(counterString);
+	    final String encodedId = IdGenerator.encodeWithSha256AndBase32(counterString);
 	    if (map.containsKey(encodedId)) {
 
 		// then
@@ -49,8 +49,8 @@ public class IdGeneratorTest {
 	// given
 	final String testStr = "123456789012345";
 	// when
-	final String id1 = IdGenerator.encode(testStr);
-	final String id2 = IdGenerator.encode(testStr);
+	final String id1 = IdGenerator.encodeWithSha256AndBase32(testStr);
+	final String id2 = IdGenerator.encodeWithSha256AndBase32(testStr);
 	// then
 	Assert.assertEquals(id1, id2);
     }
@@ -60,8 +60,8 @@ public class IdGeneratorTest {
 	// given
 	final String testStr = "123456789012345";
 	// when
-	final String id1 = IdGenerator.encode(testStr);
-	final String id2 = IdGenerator.encode(testStr + "additional");
+	final String id1 = IdGenerator.encodeWithSha256AndBase32(testStr);
+	final String id2 = IdGenerator.encodeWithSha256AndBase32(testStr + "additional");
 	// then
 	Assert.assertNotSame(id1, id2);
     }
