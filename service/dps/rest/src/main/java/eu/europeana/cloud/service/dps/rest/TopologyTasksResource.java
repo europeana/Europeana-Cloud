@@ -58,7 +58,7 @@ public class TopologyTasksResource {
      * topology.
      *
      * @param task task to submit
-     * @param topology topology the task is to be submitted
+     * @param topologyName topology the task is to be submitted
      * @return request response
      */
     @POST
@@ -89,7 +89,7 @@ public class TopologyTasksResource {
 
     /**
      * Retrieves a Task. Can be called only with admin privileges.
-     * @param topology topology name
+     * @param topologyName topology name
      * @return requested task
      */
     @GET
