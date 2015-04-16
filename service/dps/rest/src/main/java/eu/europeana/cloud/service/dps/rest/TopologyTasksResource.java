@@ -54,7 +54,12 @@ public class TopologyTasksResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     /**
-     * Submits a Task
+     * Submits a Task. To call it one has to have write permissions to requested
+     * topology.
+     *
+     * @param task task to submit
+     * @param topology topology the task is to be submitted
+     * @return request response
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
@@ -83,7 +88,9 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Submits a Task
+     * Retrieves a Task. Can be called only with admin privileges.
+     * @param topology topology name
+     * @return requested task
      */
     @GET
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -98,6 +105,16 @@ public class TopologyTasksResource {
         return task;
     }
 
+    /**
+     * Retrieves progress of the requested task. To call it one has to have read
+     * permissions for requested topology.
+     *
+     * @param taskId task identifier.
+     * @return progress for the requested task.
+     * @throws
+     * eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
+     * if task does not exist or access to the task is denied for the user.
+     */
     @GET
     @Path("{taskId}/progress")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -109,6 +126,13 @@ public class TopologyTasksResource {
         return Response.ok(progress).build();
     }
 
+    /**
+     * Retrieves info messages for the specified task. To call it one has to
+     * have read permissions for requested topology.
+     *
+     * @param taskId task identifier.
+     * @return info messages for the specified task
+     */
     @GET
     @Path("{taskId}/notification")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")

@@ -101,8 +101,11 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-				</configuration>
+                                <configuration>
+                                    <licence>
+                                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZHBzLXJlc3R8MjAxNy0wMy0yM3x0cnVlfC0xI01Dd0NGQjc2K1hJS1o4cmhuZytvRnd3NE45MEx5bmc4QWhSa3JQakNMZVpIWlJVK1VjOUJKdnE5YkZkbzJBPT0=
+                                    </licence>
+                                </configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -147,7 +150,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+                
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -221,7 +224,12 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
-
+                
+                <dependency>
+                    <groupId>com.qmino</groupId>
+                    <artifactId>miredot-annotations</artifactId>
+                    <version>1.2</version>
+                </dependency>
 		<!-- tests -->
 		<dependency>
 			<groupId>org.springframework</groupId>

@@ -39,6 +39,8 @@ public class TopologiesResource {
 
     /**
      * Assigns user with given userName write permissions to requested topology.
+     * To call it one has to have write permissions to requested
+     *
      * @param userName user name
      * @param topology topology name
      * @return response
