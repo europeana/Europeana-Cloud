@@ -1,15 +1,12 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -17,14 +14,23 @@ import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
-import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -45,18 +51,33 @@ public class TopologyTasksResource {
     private final static String TOPOLOGY_PREFIX = "Topology";
     private final static String TASK_PREFIX = "DPS_Task";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
+
     /**
      * Submits a Task
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    @PreAuthorize("hasPermission(#topology,'" + TOPOLOGY_PREFIX + "', write)")
-    public Response submitTask(DpsTask task, @PathParam("topologyName") String topology) {
+    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    public Response submitTask(
+            DpsTask task,
+            @PathParam("topologyName") String topologyName,
+            @Context UriInfo uriInfo) {
 
+        LOGGER.info("Submiting task");
+        
         if (task != null) {
-            submitService.submitTask(task, topology);
+            submitService.submitTask(task, topologyName);
             grantPermissionsForTask(task.getTaskId() + "");
-            return Response.ok().build();
+            String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+            try {
+                LOGGER.info("Task submitted succesfully");
+                return Response.created(new URI(createdTaskUrl)).build();
+            } catch (URISyntaxException e) {
+                LOGGER.error("Task submition failed");
+                e.printStackTrace();
+                return Response.serverError().build();
+            }
         }
         return Response.notModified().build();
     }
@@ -65,18 +86,24 @@ public class TopologyTasksResource {
      * Submits a Task
      */
     @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public DpsTask getTask(@PathParam("topologyName") String topology) {
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Path("/{taskId}")
+    public DpsTask getTask(
+            @PathParam("topologyName") String topologyName,
+            @PathParam("taskId") String taskId) {
 
-        DpsTask task = submitService.fetchTask(topology);
+        LOGGER.info("Fetching task");
+        DpsTask task = submitService.fetchTask(topologyName, Long.valueOf(taskId));
         return task;
     }
 
     @GET
     @Path("{taskId}/progress")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Response getTaskProgress(@PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException {
+    public Response getTaskProgress(
+            @PathParam("topologyName") String topologyName,
+            @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException {
 
         String progress = reportService.getTaskProgress(taskId);
         return Response.ok(progress).build();
@@ -116,14 +143,32 @@ public class TopologyTasksResource {
      * Grants permissions for the specified task to the specified user.
      */
     private void grantPermissionsForTask(String taskId, String username) {
-    	
+        
+        MutableAcl taskAcl = null;
         ObjectIdentity taskObjectIdentity = new ObjectIdentityImpl(TASK_PREFIX, taskId);
-        MutableAcl taskAcl = (MutableAcl) mutableAclService.readAclById(taskObjectIdentity);
-
-        if (taskAcl != null) {
-        	taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
-        	taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-            mutableAclService.updateAcl(taskAcl);
+        
+        try{
+            taskAcl = (MutableAcl) mutableAclService.readAclById(taskObjectIdentity);
+        }catch(NotFoundException e){
+            taskAcl = mutableAclService.createAcl(taskObjectIdentity);
         }
+        Object obj = taskAcl.getEntries();
+        taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+        taskAcl.insertAce(taskAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+        
+        mutableAclService.updateAcl(taskAcl);
+        
+    }
+
+    private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
+        
+        StringBuilder taskUrl = new StringBuilder()
+                .append(uriInfo.getBaseUri().toString())
+                .append("topologies/")
+                .append(topologyName)
+                .append("/tasks/")
+                .append(task.getTaskId());
+
+        return taskUrl.toString();
     }
 }
