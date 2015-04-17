@@ -137,15 +137,15 @@ public class DataProviderResourceTest extends JerseyTest {
 
 	dp.setProperties(properties);
 	Mockito.when(dataProviderService.getProvider(providerName)).thenReturn(
-		dp);
+			dp);
 	// dataProviderService.createProvider(providerName, properties);
 
 	// when you get provider by rest api
 	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
-		ParamConstants.P_PROVIDER, providerName);
+			ParamConstants.P_PROVIDER, providerName);
 	Response getResponse = providentWebTarget.request().get();
 	assertEquals(Response.Status.OK.getStatusCode(),
-		getResponse.getStatus());
+			getResponse.getStatus());
 	DataProvider receivedDataProvider = getResponse
 		.readEntity(DataProvider.class);
 
@@ -171,7 +171,7 @@ public class DataProviderResourceTest extends JerseyTest {
 				.getErrorInfo("provident"))));
 	// when you get certain provider
 	WebTarget providentWebTarget = dataProviderWebTarget.resolveTemplate(
-		ParamConstants.P_PROVIDER, "provident");
+			ParamConstants.P_PROVIDER, "provident");
 	Response getResponse = providentWebTarget.request().get();
 
 	// then you should get error that such does not exist
@@ -183,6 +183,15 @@ public class DataProviderResourceTest extends JerseyTest {
 		deleteErrorInfo.getErrorCode());
     }
 
+	@Test
+	public void shouldDeleteProvider() throws Exception{
+		WebTarget providerWebTarget = dataProviderWebTarget.resolveTemplate(
+				ParamConstants.P_PROVIDER, "provident");
+		Response deleteResponse = providerWebTarget.request().delete();
+		
+		assertEquals(deleteResponse.getStatus(), 200);
+	}
+	
     /**
      * Test the retrieval of local Ids by a provider
      * 

@@ -1,8 +1,27 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_LOCALID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
+import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -19,27 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
-
-import com.qmino.miredot.annotations.ReturnType;
-
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource for DataProvider.
@@ -56,6 +55,9 @@ public class DataProviderResource {
     @Autowired
     private DataProviderService providerService;
 
+    @Autowired
+    private MutableAclService mutableAclService;
+    
     /**
      * Gets provider.
      * 
@@ -88,6 +90,21 @@ public class DataProviderResource {
 	EnrichUriUtil.enrich(uriInfo, provider);
     }
 
+    /**
+     * Deletes data provider from database
+     * 
+     * @param dataProviderId data provider id
+     * @return
+     * @throws ProviderDoesNotExistException
+     */
+    @DELETE
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Response deleteProvider(@PathParam(P_PROVIDER)String dataProviderId) throws ProviderDoesNotExistException {
+        providerService.deleteProvider(dataProviderId);
+        deleteProviderAcl(dataProviderId);
+        return Response.ok().build();
+    }
+    
     /**
      * Get the record identifiers for a specific provider identifier with
      * pagination
@@ -195,4 +212,9 @@ public class DataProviderResource {
 	return Response.ok("Mapping marked as deleted").build();
     }
 
+    private void deleteProviderAcl(String dataProviderId){
+
+        ObjectIdentity providerIdentity = new ObjectIdentityImpl(DataProvider.class.getName(), dataProviderId);
+        mutableAclService.deleteAcl(providerIdentity, false);
+    }
 }

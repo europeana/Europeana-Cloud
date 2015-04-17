@@ -1,21 +1,20 @@
 package eu.europeana.cloud.service.uis.persistent;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Data provider service using Cassandra as database.
@@ -89,5 +88,16 @@ public class CassandraDataProviderService implements DataProviderService {
         return dataProviderDao.createOrUpdateProvider(providerId, properties);
     }
 
-
+    @Override
+    public void deleteProvider(String providerId) throws ProviderDoesNotExistException {
+        LOGGER.info("Deleting provider {}", providerId);
+        DataProvider dp = dataProviderDao.getProvider(providerId);
+        if (dp == null) {
+            LOGGER.warn("ProviderDoesNotExistException providerId='{}'", providerId);
+            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
+        }
+        dataProviderDao.deleteProvider(providerId);
+    }
 }
