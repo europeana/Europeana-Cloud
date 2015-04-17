@@ -33,7 +33,7 @@ public class XSLTTopology {
 	private static String password = "admin";
 	//private static String username = "Emmanouil_Koufakis";
 	//private static String password = "J9vdq9rpPy";
-	private static String zkAddress = "ecloud.eanadev.org:2181";
+	private static String zkAddress = "192.168.47.129:2181";
 
 
 	public static final Logger LOGGER = LoggerFactory
@@ -52,7 +52,7 @@ public class XSLTTopology {
 				username, password);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts,
-				"franco_maria_topic_2", "", "storm");
+				"text_stripping", "", "storm");
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
 

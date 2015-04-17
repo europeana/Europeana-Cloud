@@ -33,6 +33,8 @@
         <module>storm/io</module>
         <module>storm/transform/xslt</module>
         <module>storm/topology/xslt</module>
-        <module>storm/examples</module>  
+        <module>storm/examples</module>
+        <module>storm/topologies/text</module>
+        <module>storm/transform/text</module>
     </modules>
 </project>

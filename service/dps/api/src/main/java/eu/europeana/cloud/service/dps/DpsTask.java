@@ -28,64 +28,64 @@ public class DpsTask implements Serializable {
 	private String taskName;
 
 	public DpsTask() {
-		this("");
+            this("");
 	}
 	
 	public DpsTask(String taskName) {
 		
-		this.taskName = taskName;
-		
-		inputData = Maps.newHashMap();
-		parameters = Maps.newHashMap();
-		
-		taskId = UUID.randomUUID().getMostSignificantBits();
+            this.taskName = taskName;
+
+            inputData = Maps.newHashMap();
+            parameters = Maps.newHashMap();
+
+            taskId = UUID.randomUUID().getMostSignificantBits();
 	}
 	
+        private void setTaskId(long taskId) {
+        this.taskId = taskId;
+	}
+                
 	public long getTaskId() {
-		return taskId;
+            return taskId;
 	}
-	
+        
 	public void setTaskName(String taskName) {
-		this.taskName = taskName;
+            this.taskName = taskName;
 	}
 	
 	public String getTaskName() {
-		return taskName;
-	}
-	
-	private void setTaskId(long taskId) {
-		this.taskId = taskId;
+            return taskName;
 	}
 
-	public void addDataEntry(String dataType, List<String> data) {
-		inputData.put(dataType, data);
+	public void addDataEntry(String dataType, List<String> data) {  //TODO: unnecessarily
+            inputData.put(dataType, data);
+	}
+        
+        public List<String> getDataEntry(String dataType) { //TODO: unnecessarily
+            return inputData.get(dataType);
 	}
 
 	public void addParameter(String parameterKey, String parameterValue) {
-		parameters.put(parameterKey, parameterValue);
-	}
-
-	public List<String> getDataEntry(String dataType) {
-		return inputData.get(dataType);
+            parameters.put(parameterKey, parameterValue);
 	}
 
 	public String getParameter(String parameterKey) {
-		return parameters.get(parameterKey);
+            return parameters.get(parameterKey);
 	}
 
 	public HashMap<String, String> getParameters() {
-		return parameters;
+            return parameters;
 	}
 
 	public void setParameters(HashMap<String, String> parameters) {
-		this.parameters = parameters;
+            this.parameters = parameters;
 	}
 
-	public HashMap<String, List<String>> getInputData() {
-		return inputData;
+	public HashMap<String, List<String>> getInputData() {   //unnecessarily
+            return inputData;
 	}
 
-	public void setInputData(HashMap<String, List<String>> inputData) {
-		this.inputData = inputData;
+	public void setInputData(HashMap<String, List<String>> inputData) { //unnecessarily
+            this.inputData = inputData;
 	}
 }

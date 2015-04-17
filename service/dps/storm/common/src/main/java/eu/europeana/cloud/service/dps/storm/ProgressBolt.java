@@ -20,8 +20,6 @@ import backtype.storm.task.TopologyContext;
  */
 public class ProgressBolt extends AbstractDpsBolt {
 
-	private OutputCollector collector;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBolt.class);
 
 	private transient ZookeeperMultiCountMetric zMetric;
@@ -32,17 +30,15 @@ public class ProgressBolt extends AbstractDpsBolt {
 	}
 
 	@Override
-	public void prepare(Map conf, TopologyContext context,
-			OutputCollector collector) {
+	public void prepare() {
 
-		this.collector = collector;
-		initMetrics(context);
+		initMetrics(topologyContext);
 	}
 
 	void initMetrics(TopologyContext context) {
 		
 		zMetric = new ZookeeperMultiCountMetric(zkAddress);
-		context.registerMetric("zMetric=>", zMetric, 1);
+		context.registerMetric("zMetric=>", zMetric, 10);
 	}
 
 	@Override
@@ -54,7 +50,7 @@ public class ProgressBolt extends AbstractDpsBolt {
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
 		}
-		collector.emit(t.toStormTuple());
+		outputCollector.emit(t.toStormTuple());
 	}
 
 	private void updateProgress(StormTaskTuple t) {

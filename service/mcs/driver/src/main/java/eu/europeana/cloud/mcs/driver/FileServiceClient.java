@@ -401,4 +401,13 @@ public class FileServiceClient {
         }
     }
 
+    public URI getFileUri(String cloudId, String representationName, String version, String fileName)
+    {
+       WebTarget target = client.target(baseUrl).path(filePath)
+               .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
+       
+       return target.getUri();
+    }
 }

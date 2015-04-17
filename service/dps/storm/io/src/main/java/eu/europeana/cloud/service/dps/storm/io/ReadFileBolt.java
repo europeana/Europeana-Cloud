@@ -25,8 +25,6 @@ import eu.europeana.cloud.service.dps.storm.ZookeeperMultiCountMetric;
  */
 public class ReadFileBolt extends AbstractDpsBolt {
 
-	private OutputCollector collector;
-
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(ReadFileBolt.class);
 
@@ -53,13 +51,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
 	}
 
 	@Override
-	public void prepare(Map conf, TopologyContext context,
-			OutputCollector collector) {
+	public void prepare() {
 
-		this.collector = collector;
 		fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
 
-		initMetrics(context);
+		initMetrics(topologyContext);
 	}
 
 	void initMetrics(TopologyContext context) {
@@ -101,7 +97,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 		t.setFileData(fileData);
 		
 		//Utils.sleep(100);
-		collector.emit(t.toStormTuple());
+		outputCollector.emit(t.toStormTuple());
 	}
 
 	void updateMetrics(StormTaskTuple t, String word) {
