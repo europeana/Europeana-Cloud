@@ -21,8 +21,11 @@ http://sonar.eanadev.org/job/oncommit-eCloud/MCS_REST_API/
 
 ### REST API for 0.2ver
 https://felicia.man.poznan.pl/docs/v0.2/uis/
+
 https://felicia.man.poznan.pl/docs/v0.2/mcs/
+
 https://felicia.man.poznan.pl/docs/v0.2/aas/
+
 https://felicia.man.poznan.pl/docs/v0.2/dls/
 
 # Usage
