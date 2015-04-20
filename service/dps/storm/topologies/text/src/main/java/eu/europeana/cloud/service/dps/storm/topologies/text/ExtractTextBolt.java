@@ -28,12 +28,14 @@ public class ExtractTextBolt extends AbstractDpsBolt
         
         LOGGER.info("Required extractor: {}, Selected extractor: {}", extractorName, extractor.getExtractorMethod().name());
 
-        ByteArrayInputStream data = new ByteArrayInputStream(Base64.decodeBase64(t.getFileByteData()));
+        ByteArrayInputStream data = t.getFileByteDataAsStream();
         String extractedText = new PdfBoxExtractor().extractText(data);
         
         if(extractedText != null && !extractedText.isEmpty())
         {
             t.setFileData(extractedText);
+            t.addParameter(PluginParameterKeys.MIME_TYPE, "text/plain");
+            t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, TextStrippingConstants.EXTRACTED_TEXT_REPRESENTATION_NAME);
 
             outputCollector.emit(inputTuple, t.toStormTuple());          
         }

@@ -13,22 +13,38 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import java.util.Map;
 
 public class ParseTaskBolt extends BaseBasicBolt 
 {
     public static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
+    
+    public final Map<String, String> routingRules;
+
+    /**
+     * 
+     * @param routingRules 
+     */
+    public ParseTaskBolt(Map<String, String> routingRules) 
+    {
+        this.routingRules = routingRules;
+    }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) 
     {
-        declarer.declare(new Fields(
+        for(Map.Entry<String, String> rule : routingRules.entrySet())
+        {
+            declarer.declareStream(rule.getValue(), new Fields(
                 StormTupleKeys.TASK_ID_TUPLE_KEY,
                 StormTupleKeys.TASK_NAME_TUPLE_KEY,
                 StormTupleKeys.INPUT_FILES_TUPLE_KEY,
                 StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
                 StormTupleKeys.PARAMETERS_TUPLE_KEY));
+        }
     }
 
     @Override
@@ -56,9 +72,15 @@ public class ParseTaskBolt extends BaseBasicBolt
         
         if(taskParameters != null)
         {
+            stormTaskTuple.setFileUrl(taskParameters.get(PluginParameterKeys.FILE_URL));
+            stormTaskTuple.setFileData(taskParameters.get(PluginParameterKeys.FILE_DATA));
+            
             LOGGER.info("taskParameters size=" + taskParameters.size());
         }
         
-        collector.emit(stormTaskTuple.toStormTuple());
+        if(routingRules.containsKey(task.getTaskName()))
+        {
+            collector.emit(routingRules.get(task.getTaskName()), stormTaskTuple.toStormTuple());
+        }
     }
 }

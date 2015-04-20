@@ -18,12 +18,19 @@ public class TextStrippingConstants
     public static final String KAFKA_METRICS_TOPIC = "storm_metrics_topic";
     public static final String KAFKA_METRICS_BROKER = "192.168.47.129:9093";
     
+    public static final String KAFKA_INDEXER_TOPIC = "indexer_topic";
+    public static final String KAFKA_INDEXER_BROKER = "192.168.47.129:9093";
+    
+    public static final String EXTRACTED_TEXT_REPRESENTATION_NAME = "extracted-text";
+    
     
     // ------ PARALLELISM HINTS ------
     public static final Integer KAFKA_SPOUT_PARALLEL = 1;
     public static final Integer PARSE_TASKS_BOLT_PARALLEL = 1;
     public static final Integer DATASET_BOLT_PARALLEL = 1;
+    public static final Integer FILE_BOLT_PARALLEL = 1;
     public static final Integer EXTRACT_BOLT_PARALLEL = 1;
+    public static final Integer STORE_BOLT_PARALLEL = 1;
     public static final Integer PROGRESS_BOLT_PARALLEL = 1;
     
     public static final Integer METRICS_CONSUMER_PARALLEL = 1;

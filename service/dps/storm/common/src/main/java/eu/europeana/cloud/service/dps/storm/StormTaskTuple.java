@@ -7,6 +7,12 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.google.common.collect.Maps;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Storm Tuple that is aware of the DpsTask it is part of.
@@ -55,7 +61,11 @@ public class StormTaskTuple implements Serializable {
 	}
 
 	public String getFileByteData() {
-		return fileData;
+		return Arrays.toString(Base64.decodeBase64(fileData));
+	}
+        
+        public ByteArrayInputStream getFileByteDataAsStream() {
+		return new ByteArrayInputStream(Base64.decodeBase64(fileData));
 	}
 
 	public long getTaskId() {
@@ -71,8 +81,12 @@ public class StormTaskTuple implements Serializable {
 	}
 
 	public void setFileData(String fileData) {
-		this.fileData = fileData;
+		this.fileData = Base64.encodeBase64String(fileData.getBytes());
 	}
+        
+        public void setFileData(InputStream is) throws IOException {
+                this.fileData = Base64.encodeBase64String(IOUtils.toByteArray(is));
+        }
 
 	public void setFileUrl(String fileUrl) {
 		this.fileUrl = fileUrl;

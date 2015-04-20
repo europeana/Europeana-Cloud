@@ -29,6 +29,10 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Exposes API related to files. 
@@ -401,6 +405,19 @@ public class FileServiceClient {
         }
     }
 
+    /**
+     * Retrieve file uri from parameters.
+     * 
+     * @param cloudId 
+     *          id of file.
+     * @param representationName 
+     *          representation name of file.
+     * @param version 
+     *          version of file.
+     * @param fileName
+     *          name of file.
+     * @return file URI
+     */
     public URI getFileUri(String cloudId, String representationName, String version, String fileName)
     {
        WebTarget target = client.target(baseUrl).path(filePath)
@@ -409,5 +426,50 @@ public class FileServiceClient {
                 .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_FILENAME, fileName);
        
        return target.getUri();
+    }
+    
+    /**
+     * Retrieve parts of file uri.
+     * <p>
+     * Examples: 
+     * From this string "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0/files"
+     * Retrieve: {"CLOUDID": "L9WSPSMVQ85", 
+     *            "REPRESENTATIONNAME": "edm", 
+     *            "VERSION": "b17c4f60-70d0", 
+     *            "FILENAME": null
+     *           }
+     * 
+     * From this string "http://ecloud.eanadev.org:8080/ecloud-service-mcs/records/L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0/files/file1"
+     * Retrieve: {"CLOUDID": "L9WSPSMVQ85", 
+     *            "REPRESENTATIONNAME": "edm", 
+     *            "VERSION": "b17c4f60-70d0", 
+     *            "FILENAME": "file1"
+     *           }
+     * </p>
+     * 
+     * @param uri
+     *      Address of file/files 
+     * @return 
+     *      Map with indexes: CLOUDID, REPRESENTATIONNAME, VERSION, FILENAME(potentially null)
+     */
+    public static Map<String, String> parseFileUri(String uri)
+    {
+        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)/files/*([^/]+)*.*");
+        Matcher m = p.matcher(uri);
+
+        if (m.find()) 
+        {
+            Map<String, String> ret = new HashMap<>();
+            ret.put("CLOUDID", m.group(1));
+            ret.put("REPRESENTATIONNAME", m.group(2));
+            ret.put("VERSION", m.group(3));
+            ret.put("FILENAME", m.group(4));
+            
+            return ret;
+        }
+        else
+        {
+            return null;
+        }
     }
 }

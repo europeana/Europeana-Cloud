@@ -30,17 +30,17 @@ public class TaskProducer
         ProducerConfig config = new ProducerConfig(props);
         Producer<String, DpsTask> producer = new Producer<String, DpsTask>(config);
 
-        String key = "dataset_for_extraction";
         DpsTask msg = new DpsTask();
 
-        msg.setTaskName("Text extraction for dataset");
+        msg.setTaskName(PluginParameterKeys.TEXT_STRIPPING_FILE_MESSAGE);
 
         msg.addParameter(PluginParameterKeys.PROVIDER_ID, providerId);
         msg.addParameter(PluginParameterKeys.DATASET_ID, datasetId);
         msg.addParameter(PluginParameterKeys.EXTRACTOR, ExtractionMethods.TIKA_EXTRACTOR.name());
+        msg.addParameter(PluginParameterKeys.FILE_URL, "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT/records/KP2T3XNLJNJHDK3JEEVXQZEJ25QPKOLQNP4YTW4ND25V662RIQPA/representations/pdf/versions/ea3ced70-e4e6-11e4-806f-00163eefc9c8/files/test.pdf");
 
         KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
-                "text_stripping", key, msg);
+                "text_stripping", msg);
         producer.send(data);
         producer.close();
     }

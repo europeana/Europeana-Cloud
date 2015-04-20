@@ -9,9 +9,12 @@ import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
+import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.StoreFileAsNewRepresentationBolt;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +38,7 @@ public class TextStrippingTopology
     private final String username = TextStrippingConstants.USERNAME;
     private final String password = TextStrippingConstants.PASSWORD;
     
-    public static final Logger LOGGER = LoggerFactory.getLogger(TextStrippingTopology.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TextStrippingTopology.class);
     
     private final BrokerHosts brokerHosts;
 
@@ -50,6 +53,10 @@ public class TextStrippingTopology
     
     private StormTopology buildTopology() 
     {
+        Map<String, String> routingRules = new HashMap<>();
+        routingRules.put(PluginParameterKeys.TEXT_STRIPPING_DATASET_MESSAGE, "ReadDataset");
+        routingRules.put(PluginParameterKeys.TEXT_STRIPPING_FILE_MESSAGE, "ReadFile");
+        
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, 
                 TextStrippingConstants.KAFKA_TOPIC, 
                 TextStrippingConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
@@ -59,21 +66,28 @@ public class TextStrippingTopology
         
         builder.setSpout("kafkaSpout", new KafkaSpout(kafkaConfig), TextStrippingConstants.KAFKA_SPOUT_PARALLEL);
         
-        builder.setBolt("parseDpsTask", new ParseTaskBolt(), TextStrippingConstants.PARSE_TASKS_BOLT_PARALLEL)
+        builder.setBolt("parseDpsTask", new ParseTaskBolt(routingRules), TextStrippingConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("kafkaSpout");
         
         builder.setBolt("retrieveDataset", new ReadDatasetBolt(zkProgressAddress, ecloudMcsAddress, 
                             username, password), TextStrippingConstants.DATASET_BOLT_PARALLEL)
-                .shuffleGrouping("parseDpsTask");
+                .shuffleGrouping("parseDpsTask", "ReadDataset");
+        
+        builder.setBolt("retrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+                            TextStrippingConstants.FILE_BOLT_PARALLEL)
+                .shuffleGrouping("parseDpsTask", "ReadFile");
         
         builder.setBolt("extractText", new ExtractTextBolt(), TextStrippingConstants.EXTRACT_BOLT_PARALLEL)
-                .shuffleGrouping("retrieveDataset");
-        /*
-        builder.setBolt("elasticSearch", writeRecordBolt, 1)
+                .shuffleGrouping("retrieveDataset")
+                .shuffleGrouping("retrieveFile");
+        
+        builder.setBolt("storeNewRepresentation", new StoreFileAsNewRepresentationBolt(zkProgressAddress, ecloudMcsAddress, username, password, 
+                            TextStrippingConstants.KAFKA_INDEXER_BROKER, TextStrippingConstants.KAFKA_INDEXER_TOPIC, 
+                            PluginParameterKeys.INDEX_FILE_MESSAGE), TextStrippingConstants.STORE_BOLT_PARALLEL)
                 .shuffleGrouping("extractText");
-        */
+        
         builder.setBolt("progress", new ProgressBolt(zkProgressAddress), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
-                .shuffleGrouping("extractText");
+                .shuffleGrouping("storeNewRepresentation");
         
 
         return builder.createTopology();

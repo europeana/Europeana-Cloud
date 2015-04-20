@@ -42,7 +42,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
     private final String username;
     private final String password;
     
-    public static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
     
     private DataSetServiceClient datasetClient;
     private FileServiceClient fileClient;
@@ -80,6 +80,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                         continue;
                     }
                     
+                    t.addParameter(PluginParameterKeys.CLOUD_ID, representation.getCloudId());
+                    
                     URI uri = fileClient.getFileUri(
                             representation.getCloudId(), 
                             representation.getRepresentationName(), 
@@ -87,7 +89,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                             file.getFileName());                       
 
                     String url = uri.toString();
-                    t.setFileUrl(url); 
+                    t.setFileUrl(url);
 
                     InputStream is;
                     try 
@@ -101,11 +103,9 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                         continue;
                     }
 
-                    String fileData = Base64.encodeBase64String(IOUtils.toByteArray(is));
+                    t.setFileData(is);
 
-                    t.setFileData(fileData);
-
-                    updateMetrics(t, fileData);
+                    updateMetrics(t, IOUtils.toString(is));
 
                     outputCollector.emit(inputTuple, t.toStormTuple());
                 }
@@ -120,7 +120,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
         catch (MCSException | DriverException | IOException ex) 
         {
             LOGGER.error("ReadDatasetBolt error:" + ex.getMessage());
-            outputCollector.fail(inputTuple);   //TODO: Do we want proceed message agin if processing failed?
+            outputCollector.ack(inputTuple);   
         }
     }
 
