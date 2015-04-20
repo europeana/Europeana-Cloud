@@ -48,139 +48,134 @@ import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 @Scope("request")
 public class UniqueIdentifierResource {
 
-    @Autowired
-    private UniqueIdentifierService uniqueIdentifierService;
+	@Autowired
+	private UniqueIdentifierService uniqueIdentifierService;
 
-    private static final String CLOUDID = "cloudId";
+	private static final String CLOUDID = "cloudId";
 
-    @Autowired
-    private MutableAclService mutableAclService;
+	@Autowired
+	private MutableAclService mutableAclService;
 
-    private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
+	private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
-    /**
-     * Invoke the generation of a cloud identifier using the provider identifier
-     * and a record identifier
-     * 
-     * @param providerId
-     * @param localId
-     * @return The newly created CloudId
-     * @throws DatabaseConnectionException
-     * @throws RecordExistsException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     * @throws CloudIdDoesNotExistException
-     * @throws CloudIdAlreadyExistException
-     */
-    @POST
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    @ReturnType("eu.europeana.cloud.common.model.CloudId")
-    @PreAuthorize("isAuthenticated()")
-    public Response createCloudId(
-	    @QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-	    @QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
-	    throws DatabaseConnectionException, RecordExistsException,
-	    ProviderDoesNotExistException, RecordDatasetEmptyException,
-	    CloudIdDoesNotExistException, CloudIdAlreadyExistException {
+	/**
+	 * Invoke the generation of a cloud identifier using the provider identifier
+	 * and a record identifier
+	 * 
+	 * @param providerId
+	 * @param localId
+	 * @return The newly created CloudId
+	 * @throws DatabaseConnectionException
+	 * @throws RecordExistsException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 * @throws CloudIdDoesNotExistException
+	 * @throws CloudIdAlreadyExistException
+	 */
+	@POST
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	@ReturnType("eu.europeana.cloud.common.model.CloudId")
+	@PreAuthorize("isAuthenticated()")
+	public Response createCloudId(
+			@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
+			@QueryParam(UISParamConstants.Q_RECORD_ID) String localId)
+			throws DatabaseConnectionException, RecordExistsException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException,
+			CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
-	final CloudId cId = (localId != null) ? (uniqueIdentifierService
-		.createCloudId(providerId, localId)) : (uniqueIdentifierService
-		.createCloudId(providerId));
+		final CloudId cId = (localId != null) ? (uniqueIdentifierService
+				.createCloudId(providerId, localId)) : (uniqueIdentifierService
+				.createCloudId(providerId));
 
-	final Response response = Response.ok().entity(cId).build();
+		final Response response = Response.ok().entity(cId).build();
 
-	// CloudId created => let's assign permissions to the owner
-	String creatorName = SpringUserUtils.getUsername();
-	if (creatorName != null) {
-	    ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(
-		    CLOUD_ID_CLASS_NAME, cId.getId());
+		// CloudId created => let's assign permissions to the owner
+		String creatorName = SpringUserUtils.getUsername();
 
-	    MutableAcl cloudIdAcl = mutableAclService
-		    .createAcl(cloudIdIdentity);
+		if (creatorName != null) {
+			
+			ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cId.getId());
 
-	    cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(
-		    creatorName), true);
-	    cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(
-		    creatorName), true);
-	    cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(
-		    creatorName), true);
-	    cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION,
-		    new PrincipalSid(creatorName), true);
+			MutableAcl cloudIdAcl = mutableAclService.createAcl(cloudIdIdentity);
 
-	    mutableAclService.updateAcl(cloudIdAcl);
+			cloudIdAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+			cloudIdAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+			cloudIdAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+			cloudIdAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
+
+			mutableAclService.updateAcl(cloudIdAcl);
+		}
+
+		return response;
 	}
 
-	return response;
-    }
+	/**
+	 * Invoke the generation of a cloud identifier using the provider identifier
+	 * 
+	 * @param providerId
+	 * @param recordId
+	 * @return The newly created CloudId
+	 * @throws DatabaseConnectionException
+	 * @throws RecordDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	@ReturnType("eu.europeana.cloud.common.model.CloudId")
+	public Response getCloudId(
+			@QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
+			@QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
+			throws DatabaseConnectionException, RecordDoesNotExistException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException {
+		return Response.ok(
+				uniqueIdentifierService.getCloudId(providerId, recordId))
+				.build();
+	}
 
-    /**
-     * Invoke the generation of a cloud identifier using the provider identifier
-     * 
-     * @param providerId
-     * @param recordId
-     * @return The newly created CloudId
-     * @throws DatabaseConnectionException
-     * @throws RecordDoesNotExistException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     */
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    @ReturnType("eu.europeana.cloud.common.model.CloudId")
-    public Response getCloudId(
-	    @QueryParam(UISParamConstants.Q_PROVIDER) String providerId,
-	    @QueryParam(UISParamConstants.Q_RECORD_ID) String recordId)
-	    throws DatabaseConnectionException, RecordDoesNotExistException,
-	    ProviderDoesNotExistException, RecordDatasetEmptyException {
-	return Response.ok(
-		uniqueIdentifierService.getCloudId(providerId, recordId))
-		.build();
-    }
+	/**
+	 * Retrieve a list of record Identifiers associated with a cloud identifier
+	 * 
+	 * @return A list of record identifiers
+	 * @throws DatabaseConnectionException
+	 * @throws CloudIdDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordDatasetEmptyException
+	 */
+	@GET
+	@Path("{" + CLOUDID + "}")
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	@ReturnType("eu.europeana.cloud.common.response.ResultSlice")
+	public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
+			throws DatabaseConnectionException, CloudIdDoesNotExistException,
+			ProviderDoesNotExistException, RecordDatasetEmptyException {
+		ResultSlice<CloudId> pList = new ResultSlice<>();
+		pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
+		return Response.ok(pList).build();
+	}
 
-    /**
-     * Retrieve a list of record Identifiers associated with a cloud identifier
-     * 
-     * @return A list of record identifiers
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     */
-    @GET
-    @Path("{" + CLOUDID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice")
-    public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
-            RecordDatasetEmptyException {
-        ResultSlice<CloudId> pList = new ResultSlice<>();
-        pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
-        return Response.ok(pList).build();
-    }
+	/**
+	 * Remove a cloud identifier and all the associations to its record
+	 * identifiers
+	 * 
+	 * @return Confirmation that the selected cloud identifier is removed
+	 * @throws DatabaseConnectionException
+	 * @throws CloudIdDoesNotExistException
+	 * @throws ProviderDoesNotExistException
+	 * @throws RecordIdDoesNotExistException
+	 */
+	@DELETE
+	@Path("{" + CLOUDID + "}")
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response deleteCloudId(@PathParam(CLOUDID) String cloudId)
+			throws DatabaseConnectionException, CloudIdDoesNotExistException,
+			ProviderDoesNotExistException, RecordIdDoesNotExistException {
 
-    /**
-     * Remove a cloud identifier and all the associations to its record
-     * identifiers
-     * 
-     * @return Confirmation that the selected cloud identifier is removed
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordIdDoesNotExistException
-     */
-    @DELETE
-    @Path("{" + CLOUDID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    @PreAuthorize("hasPermission(#cloudId, 'eu.europeana.cloud.common.model.CloudId', delete)")
-    public Response deleteCloudId(@PathParam(CLOUDID) String cloudId)
-	    throws DatabaseConnectionException, CloudIdDoesNotExistException,
-	    ProviderDoesNotExistException, RecordIdDoesNotExistException {
-
-	uniqueIdentifierService.deleteCloudId(cloudId);
-	// let's delete the permissions as well
-	ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(
-		CLOUD_ID_CLASS_NAME, cloudId);
-	mutableAclService.deleteAcl(dataSetIdentity, false);
-	return Response.ok("CloudId marked as deleted").build();
-    }
+		uniqueIdentifierService.deleteCloudId(cloudId);
+		// let's delete the permissions as well
+		ObjectIdentity cloudIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cloudId);
+		mutableAclService.deleteAcl(cloudIdentity, false);
+		return Response.ok("CloudId marked as deleted").build();
+	}
 }
