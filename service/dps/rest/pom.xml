@@ -53,6 +53,19 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<profile>
+			<id>tomcat</id>
+			<properties>
+				<spring.config.dir>tomcat</spring.config.dir>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-dps-kafka</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
 	</profiles>
 
 	<build>
