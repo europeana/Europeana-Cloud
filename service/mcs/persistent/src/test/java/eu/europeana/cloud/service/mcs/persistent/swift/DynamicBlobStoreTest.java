@@ -21,6 +21,7 @@ public class DynamicBlobStoreTest {
     private List<BlobStore> blobStores;
     private Iterator<BlobStore> blobIterator;
 
+
     @Before
     public void init() {
         blobStores = new ArrayList<>();
@@ -32,83 +33,79 @@ public class DynamicBlobStoreTest {
         instance = new DynamicBlobStore(blobStores, blobIterator);
     }
 
+
     @Test
     public void shouldDistibuteLoadUniform() {
-	// given
-	final int iterations = 20;
-	mockGetContextOperation();
-	// when
-	for (int i = 0; i < iterations; i++) {
-	    instance.getContext();
-	}
-	// then
-	verifyEqualLoadBalance(iterations);
+        // given
+        final int iterations = 20;
+        mockGetContextOperation();
+        // when
+        for (int i = 0; i < iterations; i++) {
+            instance.getContext();
+        }
+        // then
+        verifyEqualLoadBalance(iterations);
     }
+
 
     @Test
     public void shouldDistibuteLoadUniformWithSingleRetry() {
-	// given
-	final int iterations = 20;
-	mockGetContextOperation();
-	// when
-	for (int i = 0; i < iterations; i++) {
-	    if (i == 2) {
-		instance.getDynamicBlobStoreWithoutActiveInstance()
-			.getContext();
-	    } else {
-		instance.getContext();
-	    }
-	}
-	// then
-	verifyFairLoadBalance(iterations, 1);
+        // given
+        final int iterations = 20;
+        mockGetContextOperation();
+        // when
+        for (int i = 0; i < iterations; i++) {
+            if (i == 2) {
+                instance.getDynamicBlobStoreWithoutActiveInstance().getContext();
+            } else {
+                instance.getContext();
+            }
+        }
+        // then
+        verifyFairLoadBalance(iterations, 1);
 
     }
+
 
     @Test
     public void shouldDistibuteLoadUniformWithMultiRetries() {
-	// given
-	final int iterations = 40;
-	mockGetContextOperation();
-	// when
-	for (int i = 0; i < iterations; i++) {
-	    if (i == 2 || i == 6) {
-		instance.getDynamicBlobStoreWithoutActiveInstance()
-			.getContext();
-	    } else {
-		instance.getContext();
-	    }
+        // given
+        final int iterations = 40;
+        mockGetContextOperation();
+        // when
+        for (int i = 0; i < iterations; i++) {
+            if (i == 2 || i == 6) {
+                instance.getDynamicBlobStoreWithoutActiveInstance().getContext();
+            } else {
+                instance.getContext();
+            }
 
-	}
-	// then
-	verifyFairLoadBalance(iterations, 2);
+        }
+        // then
+        verifyFairLoadBalance(iterations, 2);
 
     }
+
 
     private void verifyEqualLoadBalance(final int iterations) {
-	// then
-	for (int i = 0; i < iterations; i++) {
-	    verify(blobStores.get(i), times(iterations / 4)).getContext();
-	}
+        for (int i = 0; i < blobStores.size(); i++) {
+            verify(blobStores.get(i), times(iterations / 4)).getContext();
+        }
     }
 
-    private void verifyFairLoadBalance(final int iterations,
-	    final int acceptedDiffrence) {
-	for (int i = 0; i < iterations; i++) {
-	    verify(blobStores.get(i),
-		    atMost(iterations / 4 + acceptedDiffrence)).getContext();
-	    verify(blobStores.get(i),
-		    atLeast(iterations / 4 - acceptedDiffrence)).getContext();
-	}
+
+    private void verifyFairLoadBalance(final int iterations, final int acceptedDiffrence) {
+        for (int i = 0; i < blobStores.size(); i++) {
+            verify(blobStores.get(i), atMost(iterations / 4 + acceptedDiffrence)).getContext();
+            verify(blobStores.get(i), atLeast(iterations / 4 - acceptedDiffrence)).getContext();
+        }
     }
+
 
     private void mockGetContextOperation() {
-	when(blobStores.get(0).getContext()).thenReturn(
-		mock(BlobStoreContext.class));
-	when(blobStores.get(1).getContext()).thenReturn(
-		mock(BlobStoreContext.class));
-	when(blobStores.get(2).getContext()).thenReturn(
-		mock(BlobStoreContext.class));
-	when(blobStores.get(3).getContext()).thenReturn(
-		mock(BlobStoreContext.class));
+        for (int i = 0; i < blobStores.size(); i++) {
+            when(blobStores.get(i).getContext()).thenReturn(mock(BlobStoreContext.class));
+
+        }
     }
 }

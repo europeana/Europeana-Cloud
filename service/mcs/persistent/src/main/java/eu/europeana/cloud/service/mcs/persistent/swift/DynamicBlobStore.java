@@ -27,21 +27,22 @@ public class DynamicBlobStore implements DBlobStore {
     private BlobStore activeInstance;
     private Iterator<BlobStore> blobIterator;
 
+
     public DynamicBlobStore() {
     }
 
+
     /**
-     * Copy constructor
+     * Copy constructor.
      * 
      * @param blobStores
-     * @param activeInstance
      * @param blobIterator
      */
-    private DynamicBlobStore(List<BlobStore> blobStores,
-	    Iterator<BlobStore> blobIterator) {
-	this.blobStores = blobStores;
-	this.blobIterator = blobIterator;
+    protected DynamicBlobStore(List<BlobStore> blobStores, Iterator<BlobStore> blobIterator) {
+        this.blobStores = blobStores;
+        this.blobIterator = blobIterator;
     }
+
 
     /**
      * {@inheritDoc }
@@ -49,49 +50,58 @@ public class DynamicBlobStore implements DBlobStore {
     public DynamicBlobStore getDynamicBlobStoreWithoutActiveInstance() {
         List<BlobStore> bStore = new ArrayList<>(blobStores);
         bStore.remove(activeInstance);
-        Iterator<BlobStore> blobIterator = Iterators.cycle(bStore);
-        return new DynamicBlobStore(bStore, blobIterator);
+        Iterator<BlobStore> iterator = Iterators.cycle(bStore);
+        return new DynamicBlobStore(bStore, iterator);
     }
+
 
     /**
      * Set list of {@link BlobStore}.
      * 
      * @param blobStores
      */
+    @Override
     public void setBlobStores(List<BlobStore> blobStores) {
-	this.blobStores = blobStores;
-	blobIterator = Iterators.cycle(blobStores);
+        this.blobStores = blobStores;
+        blobIterator = new RandomIterator<>(Iterators.cycle(blobStores), 0.5);
     }
+
 
     /**
      * {@inheritDoc }
      */
+    @Override
     public int getInstanceNumber() {
-	return blobStores.size();
+        return blobStores.size();
     }
+
 
     /**
      * {@inheritDoc }
      */
+    @Override
     public void switchInstance() {
-	synchronized (blobIterator) {
-	    activeInstance = blobIterator.next();
-	}
+        synchronized (blobIterator) {
+            activeInstance = blobIterator.next();
+        }
 
     }
+
 
     private BlobStore getActiveInstance() {
-	switchInstance();
-	return activeInstance;
+        switchInstance();
+        return activeInstance;
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public BlobStoreContext getContext() {
-	return getActiveInstance().getContext();
+        return getActiveInstance().getContext();
     }
+
 
     /**
      * {@inheritDoc }
@@ -99,8 +109,9 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public boolean blobExists(String container, String name) {
-	return getActiveInstance().blobExists(container, name);
+        return getActiveInstance().blobExists(container, name);
     }
+
 
     /**
      * {@inheritDoc }
@@ -108,8 +119,9 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public BlobBuilder blobBuilder(String name) {
-	return getActiveInstance().blobBuilder(name);
+        return getActiveInstance().blobBuilder(name);
     }
+
 
     /**
      * {@inheritDoc }
@@ -117,9 +129,10 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public String putBlob(String container, Blob blob) {
-	return getActiveInstance().putBlob(container, blob);
+        return getActiveInstance().putBlob(container, blob);
 
     }
+
 
     /**
      * {@inheritDoc }
@@ -127,9 +140,10 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public Blob getBlob(String container, String name) {
-	return getActiveInstance().getBlob(container, name);
+        return getActiveInstance().getBlob(container, name);
 
     }
+
 
     /**
      * {@inheritDoc }
@@ -137,8 +151,9 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public Blob getBlob(String container, String name, GetOptions options) {
-	return getActiveInstance().getBlob(container, name, options);
+        return getActiveInstance().getBlob(container, name, options);
     }
+
 
     /**
      * {@inheritDoc }
@@ -146,146 +161,159 @@ public class DynamicBlobStore implements DBlobStore {
     @RetryOnFailure
     @Override
     public void removeBlob(String container, String name) {
-	getActiveInstance().removeBlob(container, name);
+        getActiveInstance().removeBlob(container, name);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public Set<? extends Location> listAssignableLocations() {
-	return getActiveInstance().listAssignableLocations();
+        return getActiveInstance().listAssignableLocations();
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public PageSet<? extends StorageMetadata> list() {
-	return getActiveInstance().list();
+        return getActiveInstance().list();
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public boolean containerExists(String container) {
-	return getActiveInstance().containerExists(container);
+        return getActiveInstance().containerExists(container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public boolean createContainerInLocation(Location location, String container) {
-	return getActiveInstance().createContainerInLocation(location,
-		container);
+        return getActiveInstance().createContainerInLocation(location, container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public boolean createContainerInLocation(Location location,
-	    String container, CreateContainerOptions options) {
-	return getActiveInstance().createContainerInLocation(location,
-		container, options);
+    public boolean createContainerInLocation(Location location, String container, CreateContainerOptions options) {
+        return getActiveInstance().createContainerInLocation(location, container, options);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public PageSet<? extends StorageMetadata> list(String container) {
-	return getActiveInstance().list(container);
+        return getActiveInstance().list(container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public PageSet<? extends StorageMetadata> list(String container,
-	    ListContainerOptions options) {
-	return getActiveInstance().list(container, options);
+    public PageSet<? extends StorageMetadata> list(String container, ListContainerOptions options) {
+        return getActiveInstance().list(container, options);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public void clearContainer(String container) {
-	getActiveInstance().clearContainer(container);
+        getActiveInstance().clearContainer(container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public void clearContainer(String container, ListContainerOptions options) {
-	getActiveInstance().clearContainer(container, options);
+        getActiveInstance().clearContainer(container, options);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public void deleteContainer(String container) {
-	getActiveInstance().deleteContainer(container);
+        getActiveInstance().deleteContainer(container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public boolean directoryExists(String container, String directory) {
-	return getActiveInstance().directoryExists(container, directory);
+        return getActiveInstance().directoryExists(container, directory);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public void createDirectory(String container, String directory) {
-	getActiveInstance().createDirectory(container, directory);
+        getActiveInstance().createDirectory(container, directory);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public void deleteDirectory(String containerName, String name) {
-	getActiveInstance().deleteDirectory(containerName, name);
+        getActiveInstance().deleteDirectory(containerName, name);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public String putBlob(String container, Blob blob, PutOptions options) {
-	return getActiveInstance().putBlob(container, blob, options);
+        return getActiveInstance().putBlob(container, blob, options);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public BlobMetadata blobMetadata(String container, String name) {
-	return getActiveInstance().blobMetadata(container, name);
+        return getActiveInstance().blobMetadata(container, name);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public long countBlobs(String container) {
-	return getActiveInstance().countBlobs(container);
+        return getActiveInstance().countBlobs(container);
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public long countBlobs(String container, ListContainerOptions options) {
-	return getActiveInstance().countBlobs(container, options);
+        return getActiveInstance().countBlobs(container, options);
     }
 }
