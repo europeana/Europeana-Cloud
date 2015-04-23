@@ -7,6 +7,7 @@
 # --testMode [JMeter test mode]			Set JMeter test mode manually eg. "-R 1.0.0.1"
 # --interThreadGroupTimeGap [time in ms] 	Time gap between each thread group test single request.
 # --interTestDelay [time in sec]		Delay between test cases.
+# --fileSize                                    Set file size for mcsUploadFileTest.
 # --uisPath [path to UIS]			Path to UIS service.
 # --mcsPath [path to MCS]			Path to MCS service.
 #
@@ -20,7 +21,8 @@
 # --allTests 					Runs all test cases.
 # --uisTest or --1				Runs uisTest case.
 # --mcsDatasetTest or --2			Runs mcsDatasetTest case.
-# --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.					
+# --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.
+# --mcsUploadFileTest or --4                    Runs mcsUploadFileTest case.					
 #
 #
 # Eg. performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
@@ -37,6 +39,8 @@ interTestDelay=1
 uisTest=false
 mcsDatasetTest=false
 mcsRepresentationsTest=false
+mcsUploadFileTest=false
+fileSize=100 #size in KiB
 user=""
 password=""
 uisPath="/uis"
@@ -51,10 +55,11 @@ function setAllTestsOn() {
 uisTest=true
 mcsDatasetTest=true
 mcsRepresentationsTest=true
+# mcsUploadFileTest is intentionaly excluded
 }
 
 function showHelp() {
-for i in {2..26}
+for i in {2..28}
 	do
        		echo `sed "$i!d" $0`
 	done
@@ -76,11 +81,14 @@ case $1 in
 --ganglia) shift 1 ; gangliaUrl=${1} ;  shift 1 ; gangliaPeriod=${1} ; shift 1 ; gangliaNodeName=${1}  ;  shift 1 ; gangliaClusterName=${1} ; shift 1 ;;
 --allTests)  shift 1 ; setAllTestsOn; continue ;;
 --uisTest)  shift 1 ; uisTest=true; continue ;;
+--fileSize) shift 1 ; fileSize=${1}; continue ;;
 --mcsDatasetTest)  shift 1 ; mcsDatasetTest=true; continue ;;
 --mcsRepresentationsTest) shift 1 ;  mcsRepresentationsTest=true; continue ;;
+--mcsUploadFileTest) shift 1; mcsUploadFileTest=true; continue ;;
 --1)  shift 1 ; uisTest=true; continue ;;
 --2)  shift 1 ; mcsDatasetTest=true; continue ;;
 --3) shift 1 ;  mcsRepresentationsTest=true; continue ;;
+--4) shift 1; mcsUploadFileTest=true; continue ;;
 --HTTP) shift 1 ; protocolType="HTTP"; continue ;;
 --HTTPS) shift 1 ; protocolType="HTTPS"; continue ;;
 --Auth) shift 1; user=${1} ; shift 1 ; password=${1} ; shift 1 ;;
@@ -88,7 +96,7 @@ case $1 in
 *) echo "Unsuppored paramiter ${1}"; shift 1 ;;
 esac
 done
-if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ]   
+if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ]     
 then 
 setAllTestsOn; 
 fi
@@ -133,6 +141,7 @@ echo testMode=$testMode | tee -a ${resultDir}/test.parms
 echo interThreadGroupTimeGap=$interThreadGroupTimeGap | tee -a ${resultDir}/test.parms
 echo interTestDelay=$interTestDelay | tee -a ${resultDir}/test.parms
 echo uisTest=$uisTest | tee -a ${resultDir}/test.parms
+echo fileSize=$fileSize | tee -a ${resultDir}/test.parms
 echo mcsDatasetTest=$mcsDatasetTest | tee -a ${resultDir}/test.parms
 echo mcsRepresentationsTest=$mcsRepresentationsTest | tee -a ${resultDir}/test.parms
 echo gangliaUrl=$gangliaUrl | tee -a ${resultDir}/test.parms
@@ -242,6 +251,46 @@ sleep $interTestDelay
 done
 }
 
+function mcsUploadFileTest() {
+
+echo "############################### MCS REPRESENTATION FOR ${fileSize} KiB TESTS ############################### ";
+
+#prepare test file
+dd if=/dev/urandom of=${resultDir}/$uloadedLargeFileName bs=512 count=$((${fileSize}*1024/512))
+
+jmeter $testMode \
+-Jhost=$host \
+-Jport=$port \
+-JuisName=$uisPath \
+-JmcsName=$mcsPath \
+-Jthreads=$threads \
+-JrampUpPeriod=$rampUpPeriod \
+-JrecordsPerProvider=$recordsPerProvider \
+-JrepresentationNamePerCloudId=$representationNamePerCloudId \
+-Jloops=$loops \
+-JmimeTypeFile=$mimeTypeFile \
+-JuloadedFileName=$uloadedFileName \
+-JmimeTypeLargeFile=$mimeTypeLargeFile \
+-JuloadedLargeFileName=../${resultDir}/$uloadedLargeFileName \
+-JconnectTimeOut=$connectTimeOut \
+-JresponseTimeOut=$responseMCSRepresentationTimeOut \
+-JinterTreadQueueTimeOut=$interTreadQueueTimeOut \
+-JinterThreadGroupTimeGap=$interThreadGroupTimeGap \
+-JoutputFilessuffix=${fileSize}_$outputFilessuffix \
+-JlargeFileSize=$fileSize \
+-JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
+-Juser=$user \
+-Jpassword=$password \
+-t ./testCases/MCS_UploadFileTest.jmx -l ${resultDir}/MCS_UploadFileTest_${fileSize}_${outputFilessuffix}.log
+
+cat ${resultDir}/MCS_UploadFileTest_${fileSize}_${outputFilessuffix}.log >> ${resultDir}/$cummulatedCsvFileName
+rm ${resultDir}/$uloadedLargeFileName
+
+sleep $interTestDelay
+
+}
+
 #download graphs from ganglia
 function gangliaDownload() {
 echo "############################### GANGLIA GRAPH IMPORT ############################### ";
@@ -274,6 +323,13 @@ then
 mcsRepresentationTest;
 sleep $interTestDelay;
 fi
+
+if [ "$mcsUploadFileTest" = true ] 
+then 
+mcsUploadFileTest;
+sleep $interTestDelay;
+fi
+
 
 if [ "$gangliaUrl" != "" ] 
 then 
