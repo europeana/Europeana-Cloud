@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.text;
+package eu.europeana.cloud.service.dps.storm;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,10 +14,12 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import java.util.Map;
 
+/**
+ * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.
+ * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
+ */
 public class ParseTaskBolt extends BaseBasicBolt 
 {
     public static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
@@ -25,8 +27,9 @@ public class ParseTaskBolt extends BaseBasicBolt
     public final Map<String, String> routingRules;
 
     /**
-     * 
-     * @param routingRules 
+     * Constructor for ParseTaskBolt.
+     * Task is dropped if TaskName is not in routingRules.
+     * @param routingRules routing table in the form ("TaskName": "StreamName")
      */
     public ParseTaskBolt(Map<String, String> routingRules) 
     {
@@ -51,7 +54,7 @@ public class ParseTaskBolt extends BaseBasicBolt
     public void execute(Tuple tuple, BasicOutputCollector collector) 
     {
         ObjectMapper mapper = new ObjectMapper();
-        DpsTask task = null;
+        DpsTask task;
         try 
         {
             task = mapper.readValue(tuple.getString(0), DpsTask.class);
@@ -72,8 +75,17 @@ public class ParseTaskBolt extends BaseBasicBolt
         
         if(taskParameters != null)
         {
-            stormTaskTuple.setFileUrl(taskParameters.get(PluginParameterKeys.FILE_URL));
-            stormTaskTuple.setFileData(taskParameters.get(PluginParameterKeys.FILE_DATA));
+            String fileUrl = taskParameters.get(PluginParameterKeys.FILE_URL);
+            if(fileUrl != null && !fileUrl.isEmpty())
+            {
+                stormTaskTuple.setFileUrl(fileUrl);
+            }
+            
+            String fileData = taskParameters.get(PluginParameterKeys.FILE_DATA);
+            if(fileData != null && !fileData.isEmpty())
+            {
+                stormTaskTuple.setFileUrl(fileData);
+            }
             
             LOGGER.info("taskParameters size=" + taskParameters.size());
         }

@@ -29,5 +29,11 @@ public final class PluginParameterKeys {
         // ---------  Text stripping  -----------     
         public static final String EXTRACTOR = "EXTRACTOR";
         
-   
+        // ---------  Indexer  -----------
+        public static final String METADATA = "METADATA";
+        public static final String FILE_METADATA = "FILE_METADATA";
+        public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";
+        public static final String ELASTICSEARCH_INDEX = "ELASTICSEARCH_INDEX";
+        public static final String ELASTICSEARCH_TYPE = "ELASTICSEARCH_TYPE";
+         
 }

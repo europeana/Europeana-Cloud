@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.util.Map;
 import java.util.Properties;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
@@ -31,6 +32,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
     private final String taskName;
     private final String brokerList;
     private final String serializer = "eu.europeana.cloud.service.dps.storm.JsonEncoder";
+    private final Map<String, String> parameters;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoreFileAsNewRepresentationBolt.class);
 
@@ -46,7 +48,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
      */
     public StoreFileAsNewRepresentationBolt(String zkAddress, String ecloudMcsAddress, String username, String password) 
     {
-        this(zkAddress, ecloudMcsAddress, username, password, null, null, null);
+        this(zkAddress, ecloudMcsAddress, username, password, null, null, null, null);
     }
 
     /**
@@ -58,8 +60,10 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
      * @param brokerList
      * @param topic
      * @param taskName
+     * @param parameters
      */
-    public StoreFileAsNewRepresentationBolt(String zkAddress, String ecloudMcsAddress, String username, String password, String brokerList, String topic, String taskName) 
+    public StoreFileAsNewRepresentationBolt(String zkAddress, String ecloudMcsAddress, String username, String password, 
+            String brokerList, String topic, String taskName, Map<String, String> parameters) 
     {
         this.zkAddress = zkAddress;
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -68,6 +72,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
         this.brokerList = brokerList;
         this.topic = topic;
         this.taskName = taskName;
+        this.parameters = parameters;
     }
 
     @Override
@@ -84,7 +89,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
         try 
         {
             representation = recordService.createRepresentation(cloudId, representationName, providerId);
-            newFileUri = fileClient.uploadFile(representation.toString(), new ByteArrayInputStream(t.getFileByteData().getBytes()), mimeType);
+            newFileUri = fileClient.uploadFile(representation.toString(), t.getFileByteDataAsStream(), mimeType);
         } 
         catch (DriverException ex) 
         {
@@ -101,7 +106,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
 
         if (brokerList != null && topic != null && taskName != null) 
         {
-            emitNewDpsTaskToKafka(newFileUri.toString());
+            emitNewDpsTaskToKafka(newFileUri.toString(), t.getParameters());
         }
 
         t.setFileUrl(newFileUri.toString());
@@ -118,8 +123,9 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
     /**
      * Send message to kafka topic
      * @param fileUrl file that will be processed
+     * @param receivedParameters parameters from received StormTaskTuple
      */
-    private void emitNewDpsTaskToKafka(String fileUrl) 
+    private void emitNewDpsTaskToKafka(String fileUrl, Map<String, String> receivedParameters) 
     {
         Properties props = new Properties();
         props.put("metadata.broker.list", brokerList);
@@ -133,6 +139,24 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
 
         msg.setTaskName(taskName);
         msg.addParameter(PluginParameterKeys.FILE_URL, fileUrl);
+        
+        //add extension parameters (optional)
+        for(Map.Entry<String, String> parameter : parameters.entrySet())
+        {
+            //if value is null it means that value is in received parameters
+            if(parameter.getValue() == null)
+            {
+                String val = receivedParameters.get(parameter.getKey());
+                if(val != null)
+                {
+                   msg.addParameter(parameter.getKey(), val); 
+                }
+            }
+            else
+            {
+                msg.addParameter(parameter.getKey(), parameter.getValue());
+            }
+        }
 
         KeyedMessage<String, DpsTask> data = new KeyedMessage<>(topic, msg);
         producer.send(data);

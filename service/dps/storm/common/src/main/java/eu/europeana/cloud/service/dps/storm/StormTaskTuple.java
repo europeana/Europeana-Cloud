@@ -10,7 +10,6 @@ import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 
@@ -61,7 +60,15 @@ public class StormTaskTuple implements Serializable {
 	}
 
 	public String getFileByteData() {
-		return Arrays.toString(Base64.decodeBase64(fileData));
+            try 
+            {
+                return IOUtils.toString(getFileByteDataAsStream());
+            } 
+            catch (IOException ex) 
+            {
+                
+                return new String();
+            }
 	}
         
         public ByteArrayInputStream getFileByteDataAsStream() {

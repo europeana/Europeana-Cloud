@@ -45,3 +45,5 @@ nbactions.xml
 /service/dps/zoo-service/target/
 /service/dps/storm/transform/text/target/
 
+/service/dps/storm/index/target/
+/service/dps/storm/topologies/indexer/target/

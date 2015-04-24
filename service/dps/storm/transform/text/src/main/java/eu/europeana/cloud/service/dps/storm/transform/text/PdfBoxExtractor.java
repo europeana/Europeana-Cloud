@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.transform.text;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -60,4 +61,10 @@ public class PdfBoxExtractor implements TextExtractor
     {
         return ExtractionMethods.PDFBOX_EXTRACTOR;
     } 
+
+    @Override
+    public Map<String, String> getExtractedMetadata() 
+    {
+        return null;    //TODO: extract metadata!
+    }
 }

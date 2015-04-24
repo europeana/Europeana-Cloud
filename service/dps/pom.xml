@@ -37,5 +37,6 @@
         <module>storm/examples</module>
         <module>storm/topologies/text</module>
         <module>storm/transform/text</module>
+        <module>storm/topologies/indexer</module>
     </modules>
 </project>

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.transform.text;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Interface for extracting methods
@@ -11,4 +12,6 @@ public interface TextExtractor
     public String extractText(InputStream is);
     
     public ExtractionMethods getExtractorMethod();
+    
+    public Map<String, String> getExtractedMetadata();
 }

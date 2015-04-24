@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
+import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -57,6 +58,13 @@ public class TextStrippingTopology
         routingRules.put(PluginParameterKeys.TEXT_STRIPPING_DATASET_MESSAGE, "ReadDataset");
         routingRules.put(PluginParameterKeys.TEXT_STRIPPING_FILE_MESSAGE, "ReadFile");
         
+        Map<String, String> parametersForIndexerTask = new HashMap<>();
+        parametersForIndexerTask.put(PluginParameterKeys.FILE_METADATA, null);
+        parametersForIndexerTask.put(PluginParameterKeys.ORIGINAL_FILE_URL, null);
+        parametersForIndexerTask.put(PluginParameterKeys.ELASTICSEARCH_INDEX, TextStrippingConstants.INDEXER_INDEX);
+        parametersForIndexerTask.put(PluginParameterKeys.ELASTICSEARCH_TYPE, TextStrippingConstants.INDEXER_TYPE);
+        parametersForIndexerTask.put(PluginParameterKeys.METADATA, "{\"myField\": \"myValue\", \"next\": \"bubak\"}");
+        
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, 
                 TextStrippingConstants.KAFKA_TOPIC, 
                 TextStrippingConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
@@ -83,7 +91,7 @@ public class TextStrippingTopology
         
         builder.setBolt("storeNewRepresentation", new StoreFileAsNewRepresentationBolt(zkProgressAddress, ecloudMcsAddress, username, password, 
                             TextStrippingConstants.KAFKA_INDEXER_BROKER, TextStrippingConstants.KAFKA_INDEXER_TOPIC, 
-                            PluginParameterKeys.INDEX_FILE_MESSAGE), TextStrippingConstants.STORE_BOLT_PARALLEL)
+                            PluginParameterKeys.INDEX_FILE_MESSAGE, parametersForIndexerTask), TextStrippingConstants.STORE_BOLT_PARALLEL)
                 .shuffleGrouping("extractText");
         
         builder.setBolt("progress", new ProgressBolt(zkProgressAddress), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)

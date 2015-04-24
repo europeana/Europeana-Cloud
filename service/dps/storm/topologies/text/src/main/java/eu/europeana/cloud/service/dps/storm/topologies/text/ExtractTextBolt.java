@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
+import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -7,7 +8,7 @@ import eu.europeana.cloud.service.dps.storm.transform.text.PdfBoxExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractorFactory;
 import java.io.ByteArrayInputStream;
-import org.apache.commons.codec.binary.Base64;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ExtractTextBolt extends AbstractDpsBolt
 {
-    public static final Logger LOGGER = LoggerFactory.getLogger(ExtractTextBolt.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtractTextBolt.class);
     
     @Override
     public void execute(StormTaskTuple t) 
@@ -29,14 +30,21 @@ public class ExtractTextBolt extends AbstractDpsBolt
         LOGGER.info("Required extractor: {}, Selected extractor: {}", extractorName, extractor.getExtractorMethod().name());
 
         ByteArrayInputStream data = t.getFileByteDataAsStream();
-        String extractedText = new PdfBoxExtractor().extractText(data);
+        String extractedText = extractor.extractText(data);
+        Map<String, String> metadata = extractor.getExtractedMetadata(); 
         
         if(extractedText != null && !extractedText.isEmpty())
         {
             t.setFileData(extractedText);
             t.addParameter(PluginParameterKeys.MIME_TYPE, "text/plain");
             t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, TextStrippingConstants.EXTRACTED_TEXT_REPRESENTATION_NAME);
-
+            t.addParameter(PluginParameterKeys.ORIGINAL_FILE_URL, t.getFileUrl());
+            
+            if(metadata != null && !metadata.isEmpty())
+            {
+                t.addParameter(PluginParameterKeys.FILE_METADATA, new Gson().toJson(metadata));
+            }
+            
             outputCollector.emit(inputTuple, t.toStormTuple());          
         }
         outputCollector.ack(inputTuple);

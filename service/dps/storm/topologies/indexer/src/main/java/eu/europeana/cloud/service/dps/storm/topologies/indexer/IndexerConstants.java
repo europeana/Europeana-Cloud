@@ -1,14 +1,14 @@
-package eu.europeana.cloud.service.dps.storm.topologies.text;
+package eu.europeana.cloud.service.dps.storm.topologies.indexer;
 
 /**
- * Constants for text stripping topology.
+ *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class TextStrippingConstants 
+public class IndexerConstants 
 {
-    public static final String KAFKA_TOPIC = "text_stripping";
+    public static final String KAFKA_TOPIC = "indexer_topic";
     public static final String ZOOKEEPER_ROOT = "/" + KAFKA_TOPIC; 
-
+    
     public static final String MCS_URL = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
     public static final String USERNAME = "admin";
     public static final String PASSWORD = "admin";
@@ -18,22 +18,18 @@ public class TextStrippingConstants
     public static final String KAFKA_METRICS_TOPIC = "storm_metrics_topic";
     public static final String KAFKA_METRICS_BROKER = "192.168.47.129:9093";
     
-    public static final String KAFKA_INDEXER_TOPIC = "indexer_topic";
-    public static final String KAFKA_INDEXER_BROKER = "192.168.47.129:9093";
-    public static final String INDEXER_INDEX = "index1";
-    public static final String INDEXER_TYPE = "type1";
-    
-    public static final String EXTRACTED_TEXT_REPRESENTATION_NAME = "extracted-text";
-    
+    public static final String ELASTICSEARCH_ADDRESSES = "192.168.47.129:9300";
     
     // ------ PARALLELISM HINTS ------
     public static final Integer KAFKA_SPOUT_PARALLEL = 1;
     public static final Integer PARSE_TASKS_BOLT_PARALLEL = 1;
-    public static final Integer DATASET_BOLT_PARALLEL = 1;
     public static final Integer FILE_BOLT_PARALLEL = 1;
-    public static final Integer EXTRACT_BOLT_PARALLEL = 1;
-    public static final Integer STORE_BOLT_PARALLEL = 1;
+    public static final Integer INDEX_BOLT_PARALLEL = 1;
     public static final Integer PROGRESS_BOLT_PARALLEL = 1;
     
     public static final Integer METRICS_CONSUMER_PARALLEL = 1;
+    
+    // ------ INDEX BOLT ------
+    public static final String RAW_DATA_FIELD = "raw_text";
+    public static final String METADATA_FIELD = "metadata";
 }

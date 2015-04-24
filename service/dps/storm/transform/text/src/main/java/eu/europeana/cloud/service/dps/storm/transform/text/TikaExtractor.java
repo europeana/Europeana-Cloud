@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.dps.storm.transform.text;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -19,11 +21,13 @@ public class TikaExtractor implements TextExtractor
 {
     public static final Logger LOGGER = LoggerFactory.getLogger(TikaExtractor.class);
     
+    private Metadata metadata;
+    
     @Override
     public String extractText(InputStream is) 
     {
         BodyContentHandler handler = new BodyContentHandler(-1);    // -1 to disable the write limit
-        Metadata metadata = new Metadata();
+        metadata = new Metadata();
         ParseContext pcontext = new ParseContext();
         PDFParser pdfparser = new PDFParser(); 
         
@@ -45,5 +49,16 @@ public class TikaExtractor implements TextExtractor
     {
         return ExtractionMethods.TIKA_EXTRACTOR;
     }
-    
+
+    @Override
+    public Map<String, String> getExtractedMetadata() 
+    {
+        Map<String, String> ret = new HashMap<>();
+        for (String name : metadata.names())
+        {
+            ret.put(name, metadata.get(name));
+        }
+        
+        return ret;
+    }   
 }
