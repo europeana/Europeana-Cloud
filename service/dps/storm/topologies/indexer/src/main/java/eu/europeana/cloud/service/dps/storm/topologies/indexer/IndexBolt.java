@@ -54,7 +54,7 @@ public class IndexBolt extends AbstractDpsBolt
         if(fileMetadata != null && !fileMetadata.isEmpty())
         {
             JsonElement meta = new JsonParser().parse(fileMetadata);
-            data.add(IndexerConstants.METADATA_FIELD, meta);
+            data.add(IndexerConstants.FILE_METADATA_FIELD, meta);
         }
         if(metadata != null && !metadata.isEmpty())
         {
@@ -68,14 +68,14 @@ public class IndexBolt extends AbstractDpsBolt
         
         UpdateResponse updateResponse = null;
         IndexResponse indexResponse = null;
-        
+    
         //determine what I am indexing
         if(originalFile != null && !originalFile.isEmpty()) 
         {
             //I am indexing extracted data from other file (e.g. features from binary file)
             //If this record already exists, than update fields only
             UpdateRequestBuilder prepareUpdate = client.prepareUpdate(index, type, originalFile).setDocAsUpsert(true);
-            prepareUpdate.setDoc(data.toString()).execute().actionGet();
+            updateResponse = prepareUpdate.setDoc(data.toString()).execute().actionGet();
         }
         else if(fileWithDataForIndex != null && !fileWithDataForIndex.isEmpty())
         {
@@ -91,16 +91,16 @@ public class IndexBolt extends AbstractDpsBolt
             IndexRequestBuilder prepareIndex = client.prepareIndex(index, type);
             indexResponse = prepareIndex.setSource(data.toString()).execute().actionGet();
         }
-        
+       
         if(indexResponse != null)
         {
-           LOGGER.info("Created new index /{}/{}/{} with data {}",
+           LOGGER.info("Created new index '{}/{}/{}' with data '{}'",
                    indexResponse.getIndex(), indexResponse.getType() , indexResponse.getId(), data.toString()); 
         }
         else
         {
            assert updateResponse != null;
-           LOGGER.info("Updated index /{}/{}/{} with data {}", 
+           LOGGER.info("Updated index '{}/{}/{}' with data '{}'", 
                    updateResponse.getIndex(), updateResponse.getType() , updateResponse.getId(), data.toString()); 
         }        
         

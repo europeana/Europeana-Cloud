@@ -31,5 +31,5 @@ public class IndexerConstants
     
     // ------ INDEX BOLT ------
     public static final String RAW_DATA_FIELD = "raw_text";
-    public static final String METADATA_FIELD = "metadata";
+    public static final String FILE_METADATA_FIELD = "file_metadata";
 }
