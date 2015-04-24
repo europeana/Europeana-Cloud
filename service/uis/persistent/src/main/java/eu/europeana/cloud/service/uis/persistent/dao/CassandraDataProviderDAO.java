@@ -1,17 +1,5 @@
 package eu.europeana.cloud.service.uis.persistent.dao;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -19,9 +7,19 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Data provider repository using Cassandra nosql database.
@@ -31,7 +29,9 @@ public class CassandraDataProviderDAO {
 
     private CassandraConnectionProvider dbService;
 
-    private PreparedStatement updateProviderStatement;
+    private PreparedStatement createDataProviderStatement;
+    
+    private PreparedStatement updateDataProviderStatement;
 
     private PreparedStatement getProviderStatement;
 
@@ -44,7 +44,7 @@ public class CassandraDataProviderDAO {
     /**
      * 
      * Creates a new instance of this class.
-     * @param dbService
+     * @param dbService Connector to Cassandra cluster
      */
     public CassandraDataProviderDAO(CassandraConnectionProvider dbService){
     	this.dbService = dbService;
@@ -53,12 +53,16 @@ public class CassandraDataProviderDAO {
 
     
     private void prepareStatements() {
-        updateProviderStatement = dbService.getSession().prepare(
-            "INSERT INTO data_providers(provider_id, properties, creation_date, partition_key) VALUES (?,?,?,?);");
-        updateProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
+        createDataProviderStatement = dbService.getSession().prepare(
+            "INSERT INTO data_providers(provider_id, active, properties, creation_date, partition_key) VALUES (?,true,?,?,?);");
+        createDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        
+        updateDataProviderStatement = dbService.getSession().prepare(
+            "UPDATE data_providers SET active=?, properties=? where provider_id = ?;");
+        updateDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        
         getProviderStatement = dbService.getSession().prepare(
-            "SELECT provider_id, partition_key, properties FROM data_providers WHERE provider_id = ?;");
+            "SELECT provider_id, partition_key, active, properties FROM data_providers WHERE provider_id = ?;");
         getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteProviderStatement = dbService.getSession().prepare(
@@ -66,7 +70,7 @@ public class CassandraDataProviderDAO {
         deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getAllProvidersStatement = dbService.getSession().prepare(
-            "SELECT provider_id, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
+            "SELECT provider_id, active, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
         getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -136,32 +140,40 @@ public class CassandraDataProviderDAO {
 
 
     /**
-     * Creates or updates provider with specified id.
      * 
-     * @param providerId
-     *            provider id
-     * @param properties
-     *            administrative properties of data provider
+     * Creates new data-provider with specified id and properties. Newly created provider is 'active' by default.
+     * 
+     * @param providerId provider id
+     * @param properties administrative properties of data provider
      * @return created data provider object
-     * @throws NoHostAvailableException 
-     * @throws QueryExecutionException 
+     * @throws NoHostAvailableException
+     * @throws QueryExecutionException
      */
-    public DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties)
-            throws NoHostAvailableException, QueryExecutionException {
-        return createOrUpdateProvider(providerId, properties, new Date());
-    }
-
-
-    private DataProvider createOrUpdateProvider(String providerId, DataProviderProperties properties, Date date)
+    public DataProvider createDataProvider(String providerId, DataProviderProperties properties)
             throws NoHostAvailableException, QueryExecutionException {
         int partitionKey = providerId.hashCode();
-        BoundStatement boundStatement = updateProviderStatement.bind(providerId, propertiesToMap(properties), date, partitionKey);
+        BoundStatement boundStatement = createDataProviderStatement.bind(providerId, propertiesToMap(properties), new Date(), partitionKey);
         dbService.getSession().execute(boundStatement);
         DataProvider dp = new DataProvider();
         dp.setId(providerId);
         dp.setPartitionKey(partitionKey);
         dp.setProperties(properties);
         return dp;
+    }
+
+    /**
+     * 
+     * Updates data provider in DB (properties and 'active' flag)
+     * 
+     * @param dataProvider data provider object
+     * @return updated data provider
+     * @throws NoHostAvailableException
+     * @throws QueryExecutionException
+     */
+    public DataProvider updateDataProvider(DataProvider dataProvider) throws NoHostAvailableException, QueryExecutionException {
+        BoundStatement boundStatement = updateDataProviderStatement.bind(dataProvider.isActive(), propertiesToMap(dataProvider.getProperties()),dataProvider.getId());
+        dbService.getSession().execute(boundStatement);
+        return dataProvider;
     }
 
 
@@ -175,6 +187,7 @@ public class CassandraDataProviderDAO {
         provider.setId(providerId);
         provider.setPartitionKey(partitionKey);
         provider.setProperties(properties);
+        provider.setActive(row.getBool("active"));
         return provider;
     }
 

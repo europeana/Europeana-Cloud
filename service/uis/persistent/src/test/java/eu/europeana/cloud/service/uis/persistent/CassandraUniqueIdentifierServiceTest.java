@@ -79,7 +79,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = RecordExistsException.class)
     public void testCreateAndRetrieve() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test",
+	dataProviderDao.createDataProvider("test",
 		new DataProviderProperties());
 	CloudId gId = service.createCloudId("test", "test");
 	CloudId gIdRet = service.getCloudId("test", "test");
@@ -118,7 +118,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test
     public void testGetCloudIdsByProvider() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test3",
+	dataProviderDao.createDataProvider("test3",
 		new DataProviderProperties());
 	service.createCloudId("test3", "test3");
 	List<CloudId> cIds = service
@@ -135,7 +135,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test
     public void testGetLocalIdsByProviderId() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test5",
+	dataProviderDao.createDataProvider("test5",
 		new DataProviderProperties());
 	service.createCloudId("test5", "test5");
 	List<CloudId> cIds = service.getLocalIdsByProvider("test5", "test5", 1);
@@ -152,7 +152,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = IdHasBeenMappedException.class)
     public void testCreateIdMapping() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test12",
+	dataProviderDao.createDataProvider("test12",
 		new DataProviderProperties());
 	CloudId gid = service.createCloudId("test12", "test12");
 	service.createIdMapping(gid.getId(), "test12", "test13");
@@ -166,9 +166,9 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = CloudIdDoesNotExistException.class)
     public void testCreateIdMappingCloudIdDoesNotExist() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test14",
+	dataProviderDao.createDataProvider("test14",
 		new DataProviderProperties());
-	dataProviderDao.createOrUpdateProvider("test16",
+	dataProviderDao.createDataProvider("test16",
 		new DataProviderProperties());
 	service.createCloudId("test14", "test14");
 	service.createIdMapping("test15", "test16", "test17");
@@ -181,7 +181,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = RecordDoesNotExistException.class)
     public void testRemoveIdMapping() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test16",
+	dataProviderDao.createDataProvider("test16",
 		new DataProviderProperties());
 	service.createCloudId("test16", "test16");
 	service.removeIdMapping("test16", "test16");
@@ -195,7 +195,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      */
     @Test(expected = RecordDoesNotExistException.class)
     public void testDeleteCloudId() throws Exception {
-	dataProviderDao.createOrUpdateProvider("test21",
+	dataProviderDao.createDataProvider("test21",
 		new DataProviderProperties());
 	CloudId cId = service.createCloudId("test21", "test21");
 	service.deleteCloudId(cId.getId());
@@ -225,7 +225,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 	    CloudIdAlreadyExistException {
 	// given
 	final Map<String, String> map = new HashMap<String, String>();
-	dataProviderDao.createOrUpdateProvider("testprovider",
+	dataProviderDao.createDataProvider("testprovider",
 		new DataProviderProperties());
 	for (BigInteger bigCounter = BigInteger.ONE; bigCounter
 		.compareTo(new BigInteger("5000000")) < 0; bigCounter = bigCounter
