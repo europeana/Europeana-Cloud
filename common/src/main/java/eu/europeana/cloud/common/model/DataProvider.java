@@ -30,6 +30,11 @@ public class DataProvider {
     private int partitionKey;
 
     /**
+     * Indicates if data-provider is active or not
+     */
+    private boolean active = true;
+    
+    /**
      * Data provider properties.
      */
     private DataProviderProperties properties;
@@ -79,6 +84,13 @@ public class DataProvider {
         return partitionKey;
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
 
     @Override
     public int hashCode() {

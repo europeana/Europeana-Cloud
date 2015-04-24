@@ -70,7 +70,7 @@ public class CassandraDataProviderService implements DataProviderService {
 					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getErrorInfo(providerId)));
         }
-        return dataProviderDao.createOrUpdateProvider(providerId, properties);
+        return dataProviderDao.createDataProvider(providerId, properties);
     }
 
 
@@ -84,8 +84,23 @@ public class CassandraDataProviderService implements DataProviderService {
         	throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
 					IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
+        }else{
+            dp.setProperties(properties);
+            return dataProviderDao.updateDataProvider(dp);
         }
-        return dataProviderDao.createOrUpdateProvider(providerId, properties);
+    }
+
+    @Override
+    public DataProvider updateProvider(DataProvider dataProvider) throws ProviderDoesNotExistException {
+        LOGGER.info("updating data provider providerId='{}', properties='{}'", dataProvider.getId(), dataProvider.getProperties());
+        DataProvider dp = dataProviderDao.getProvider(dataProvider.getId());
+        if (dp == null) {
+            LOGGER.warn("ProviderDoesNotExistException providerId='{}', properties='{}'", dataProvider.getId(), dataProvider.getProperties());
+            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(dataProvider.getId())));
+        }
+        return dataProviderDao.updateDataProvider(dataProvider);
     }
 
     @Override

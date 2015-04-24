@@ -59,7 +59,7 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
 	final String providerId = "providerId";
 	final String recordId = "recordId";
 	final String id = "id";
-	dataProviderDao.createOrUpdateProvider(providerId,
+	dataProviderDao.createDataProvider(providerId,
 		new DataProviderProperties());
 	localIdDao.insert(id, providerId, recordId);
 
