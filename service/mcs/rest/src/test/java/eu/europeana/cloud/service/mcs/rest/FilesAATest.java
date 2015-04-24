@@ -188,6 +188,20 @@ public class FilesAATest extends AbstractSecurityTest {
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
 	}
+	
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws RepresentationNotExistsException,
+		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+
+		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(RONALDO, RONALD_PASSWORD);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+	}
 
 	// -- DELETE FILE -- //
 
