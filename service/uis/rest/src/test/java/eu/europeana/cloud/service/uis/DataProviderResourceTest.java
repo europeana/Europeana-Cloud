@@ -429,6 +429,8 @@ public class DataProviderResourceTest extends JerseyTest {
 	CloudId gid = createCloudId("providerId", "recordId");
 	when(uniqueIdentifierService.createCloudId("providerId", "recordId"))
 		.thenReturn(gid);
+	when(uniqueIdentifierService.createIdMapping(Mockito.anyString(),Mockito.anyString())).thenReturn(gid);
+	when(uniqueIdentifierService.createIdMapping(Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(gid);
 	// Create a single object test
 	target("cloudIds")
 		.queryParam(UISParamConstants.Q_PROVIDER_ID, "providerId")
