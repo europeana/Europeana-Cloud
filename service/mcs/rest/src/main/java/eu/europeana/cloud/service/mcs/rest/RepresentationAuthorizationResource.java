@@ -2,7 +2,8 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import static eu.europeana.cloud.common.web.AASParamConstants.P_USER_NAME;
 import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
-
+import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
@@ -14,6 +15,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -41,6 +44,8 @@ public class RepresentationAuthorizationResource {
 
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
+
     /**
      * Modify authorization of versions operation. Updates authorization. for a
      * specific representation version.
@@ -60,23 +65,35 @@ public class RepresentationAuthorizationResource {
     		@PathParam(P_USER_NAME) String username,
     		@PathParam(P_PERMISSION) String permission
     		) {
+    	
+        ParamUtil.require(P_CLOUDID, globalId);
+        ParamUtil.require(P_REPRESENTATIONNAME, schema);
+        ParamUtil.require(P_VER, version);
+        ParamUtil.require(P_USER_NAME, username);
+        ParamUtil.require(P_PERMISSION, permission);
+    	
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
         		globalId + "/" + schema + "/" + version);
 
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
-        if (versionAcl != null && username != null && permission != null) {
+        if (versionAcl != null) {
         	
-        	int pAsInt = Integer.parseInt(permission);
-        	if (pAsInt == BasePermission.READ.getMask()) {
-                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+        	try {
+            	int pAsInt = Integer.parseInt(permission);
+            	if (pAsInt == BasePermission.READ.getMask()) {
+                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+            	}
+            	if (pAsInt == BasePermission.WRITE.getMask()) {
+                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+            	}
+                mutableAclService.updateAcl(versionAcl);
         	}
-        	if (pAsInt == BasePermission.WRITE.getMask()) {
-                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+        	catch (Exception e) {
+        		LOGGER.error(e.getMessage());
+                return Response.notModified("Authorization has NOT been updated!").build();
         	}
-            mutableAclService.updateAcl(versionAcl);
-            
             return Response.ok("Authorization has been updated!").build();
         } else {
             return Response.notModified("Authorization has NOT been updated!").build();
