@@ -40,8 +40,8 @@ public class AuthenticationResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response createCloudUser(
-            @QueryParam(AASParamConstants.Q_USER_NAME) String username,
-            @QueryParam(AASParamConstants.Q_PASSWORD) String password)
+            @QueryParam(AASParamConstants.P_USER_NAME) String username,
+            @QueryParam(AASParamConstants.P_PASSWORD) String password)
             throws DatabaseConnectionException, UserExistsException,
             InvalidUsernameException, InvalidPasswordException {
 
@@ -57,7 +57,7 @@ public class AuthenticationResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response deleteCloudUser(
-            @QueryParam(AASParamConstants.Q_USER_NAME) String username)
+            @QueryParam(AASParamConstants.P_USER_NAME) String username)
             throws DatabaseConnectionException, UserDoesNotExistException {
 
         authenticationService.deleteUser(username);
@@ -72,8 +72,8 @@ public class AuthenticationResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Response updateCloudUser(
-            @QueryParam(AASParamConstants.Q_USER_NAME) String username,
-            @QueryParam(AASParamConstants.Q_PASSWORD) String password)
+            @QueryParam(AASParamConstants.P_USER_NAME) String username,
+            @QueryParam(AASParamConstants.P_PASSWORD) String password)
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException {
 
