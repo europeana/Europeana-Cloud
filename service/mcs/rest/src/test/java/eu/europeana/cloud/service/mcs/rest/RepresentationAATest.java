@@ -133,34 +133,9 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 		Mockito.doReturn(recordWithManyRepresentations).when(recordService).getRecord(Mockito.anyString());
 	}
-	
-	/**
-	 * Makes sure these methods can run even if noone is logged in.
-	 * No special permissions are required.
-	 */
-	@Test
-    public void testMethodsThatDontNeedAnyAuthentication() 
-    		throws RepresentationNotExistsException, RecordNotExistsException   {
 
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
-    }
+	// -- GET: representationResource -- //
 	
-	/**
-	 * Makes sure any random person can just call these methods.
-	 * No special permissions are required.
-	 */
-	@Test
-    public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn() 
-    		throws RepresentationNotExistsException, RecordNotExistsException  {
-
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-    }
-	
-
 	@Test
 	public void shouldBeAbleToGetRepresentationIfHeIsTheOwner() 
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
@@ -192,6 +167,38 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
 	}
 	
+	// -- GET: representationVersionResource -- //
+
+	@Test
+	public void shouldBeAbleToGetRepresentationVersionIfHeIsTheOwner() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
+	
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentationVersion() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	public void shouldThrowExceptionWhenUnknownUserTriesToGetRepresentationVersion() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
+	
+
 
 	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException  {
 
@@ -250,6 +257,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 		assertEquals(r.size(), 1);
 	}	
+	
+	// -- CREATE -- //
 	
 	@Test
 	public void shouldBeAbleToAddRepresentationWhenAuthenticated() 

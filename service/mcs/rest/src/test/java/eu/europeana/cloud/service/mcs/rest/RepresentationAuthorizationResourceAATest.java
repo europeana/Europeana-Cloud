@@ -1,18 +1,23 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.cassandra.auth.Permission;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import eu.europeana.cloud.common.model.File;
@@ -29,7 +34,7 @@ import eu.europeana.cloud.test.AbstractSecurityTest;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-public class FileAuthorizationResourceAATest extends AbstractSecurityTest {
+public class RepresentationAuthorizationResourceAATest extends AbstractSecurityTest {
 	
 	@Autowired
 	@NotNull
@@ -45,7 +50,7 @@ public class FileAuthorizationResourceAATest extends AbstractSecurityTest {
 
 	@Autowired
 	@NotNull
-	private FileAuthorizationResource fileAuthorizationResource;
+	private RepresentationAuthorizationResource fileAuthorizationResource;
 	
 	@Autowired
 	@NotNull
@@ -61,6 +66,9 @@ public class FileAuthorizationResourceAATest extends AbstractSecurityTest {
 
 	private static final String FILE_NAME = "FILE_NAME";
 	private static final String MIME_TYPE = "CLOWN";
+	
+	private static final int READ_PERMISSION = 1;
+	private static final int WRITE_PERMISSION = 2;
 	
 	private UriInfo URI_INFO;
 	
@@ -115,8 +123,16 @@ public class FileAuthorizationResourceAATest extends AbstractSecurityTest {
 		};
 	}
 	
+
+	@Test
+	public void testSpringPermissionStrings()  {
+		
+		assertEquals(READ_PERMISSION, BasePermission.READ.getMask());
+		assertEquals(WRITE_PERMISSION, BasePermission.WRITE.getMask());
+	}
+	
 	/** 
-	 * Tests giving access to specific user. 
+	 * Tests giving read access to specific user. 
 	 */
 	@Test
 	public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException, 
@@ -135,10 +151,36 @@ public class FileAuthorizationResourceAATest extends AbstractSecurityTest {
 		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE);
+		fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+	}
+
+	/** 
+	 * Tests giving write access to specific user. 
+	 */
+	@Test
+	public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException, 
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+			FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException 	 {
+
+		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(RONALDO, RONALD_PASSWORD);
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		
+		File f = new File();
+		f.setFileName(FILE_NAME);
+		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+		fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
+		
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
 	}
 	
 	// TEST giving access to everyone + anonymous users //

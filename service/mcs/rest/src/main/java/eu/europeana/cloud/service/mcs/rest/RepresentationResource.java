@@ -67,10 +67,15 @@ public class RepresentationResource {
 	 */
 	@GET
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @PostAuthorize("hasPermission"
+    	    + "( "
+    	    + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
+    	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
 	public Representation getRepresentation(@Context UriInfo uriInfo,
 			@PathParam(P_CLOUDID) String globalId,
 			@PathParam(P_REPRESENTATIONNAME) String schema)
 			throws RepresentationNotExistsException {
+		
 		Representation info = recordService.getRepresentation(globalId, schema);
 		prepare(uriInfo, info);
 		return info;

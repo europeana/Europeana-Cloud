@@ -50,37 +50,27 @@ public class RepresentationVersionResource {
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
-     * Returns representation in specified version. If Version = LATEST, will
-     * redirect to actual latest persistent version at the moment of invoking
-     * this method.
+     * Returns representation in specified version. 
      *
      * @return representation in requested version WITH LIST OF FILES IN THIS
      * REPRESENTATION
+     * 
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
-     * @statuscode 307 if requested version is "LATEST" - redirect to latest
-     * persistent version.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response getRepresentationVersion(@Context UriInfo uriInfo,
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', read)")
+    public Representation getRepresentationVersion(@Context UriInfo uriInfo,
     		@PathParam(P_VER) String version,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
     		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException {
-        // handle "LATEST" keyword
-        if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
-            Representation representationInfo = recordService.getRepresentation(globalId, schema);
-            EnrichUriUtil.enrich(uriInfo, representationInfo);
-            if (representationInfo.getUri() != null) {
-                return Response.temporaryRedirect(representationInfo.getUri()).build();
-            } else {
-                throw new RepresentationNotExistsException();
-            }
-        }
+    	
         Representation rep = recordService.getRepresentation(globalId, schema, version);
         prepare(uriInfo, rep);
-        return Response.ok(rep).build();
+        return rep;
     }
 
     /**

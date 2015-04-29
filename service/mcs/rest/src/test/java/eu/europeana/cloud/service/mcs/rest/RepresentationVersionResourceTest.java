@@ -116,25 +116,6 @@ public class RepresentationVersionResourceTest extends JerseyTest {
         verifyNoMoreInteractions(recordService);
     }
 
-
-    @Test
-    @Parameters(method = "mimeTypes")
-    public void testGetLatestRepresentationVersion(MediaType mediaType)
-            throws Exception {
-        when(recordService.getRepresentation(globalId, schema)).thenReturn(new Representation(representation));
-
-        client().property(ClientProperties.FOLLOW_REDIRECTS, false);
-        Response response = target(
-            URITools.getVersionPath(globalId, schema, ParamConstants.LATEST_VERSION_KEYWORD).toString()).request(
-            mediaType).get();
-
-        assertThat(response.getStatus(), is(307));
-        assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));
-        verify(recordService, times(1)).getRepresentation(globalId, schema);
-        verifyNoMoreInteractions(recordService);
-    }
-
-
     private Object[] errors() {
         return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404));
     }

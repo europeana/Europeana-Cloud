@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.AASParamConstants.Q_USER_NAME;
+import static eu.europeana.cloud.common.web.AASParamConstants.P_USER_NAME;
+import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
+
 import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
 import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
@@ -32,7 +34,7 @@ import eu.europeana.cloud.common.model.Representation;
  */
 @Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}")
 @Component
-public class FileAuthorizationResource {
+public class RepresentationAuthorizationResource {
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -48,23 +50,33 @@ public class FileAuthorizationResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/users/{" + Q_USER_NAME + "}")
+    @Path("/users/{" + P_USER_NAME + "}/permit/{" + P_PERMISSION + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response updateAuthorization(
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
     		@PathParam(P_VER) String version,
-    		@PathParam(Q_USER_NAME) String username
+    		@PathParam(P_USER_NAME) String username,
+    		@PathParam(P_PERMISSION) String permission
     		) {
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
         		globalId + "/" + schema + "/" + version);
 
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
-        if (versionAcl != null) {
-            versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+        if (versionAcl != null && username != null && permission != null) {
+        	
+        	int pAsInt = Integer.parseInt(permission);
+        	if (pAsInt == BasePermission.READ.getMask()) {
+                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+        	}
+        	if (pAsInt == BasePermission.WRITE.getMask()) {
+                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+                versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+        	}
             mutableAclService.updateAcl(versionAcl);
+            
             return Response.ok("Authorization has been updated!").build();
         } else {
             return Response.notModified("Authorization has NOT been updated!").build();
@@ -81,7 +93,7 @@ public class FileAuthorizationResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', write)")
-    @Path("/free")
+    @Path("/permit")
     public Response giveReadAccessToEveryone(
     		@PathParam(P_CLOUDID) String globalId,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
