@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
+import com.qmino.miredot.annotations.ReturnType;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -29,11 +32,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
+ * @servicetag Task
  */
 @Path("/topologies/{topologyName}/tasks")
 @Component
@@ -54,16 +59,24 @@ public class TopologyTasksResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     /**
-     * Submits a Task. To call it one has to have write permissions to requested
-     * topology.
+     * Submits a Task for execution. 
+     * Each Task execution is associated with a specific plugin.
+     * 
+     * Submitting tasks is allowed only for users with write-permissions for that plugin.
      *
-     * @param task task to submit
+     * @summary Submit Task
+     * @param task Task to be executed. Should contain links to input data,
+     * either in form of cloud-records or cloud-datasets. 
+     * 
      * @param topologyName topology the task is to be submitted
-     * @return request response
+     * 
+     * @servicetag Task
+     * @return URI to access information about the submitted task execution
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    @ReturnType("java.net.URI")
     public Response submitTask(
             DpsTask task,
             @PathParam("topologyName") String topologyName,
@@ -88,7 +101,7 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves a Task. Can be called only with admin privileges.
+     * Retrieves a Task. 
      * @param topologyName topology name
      * @return requested task
      */
