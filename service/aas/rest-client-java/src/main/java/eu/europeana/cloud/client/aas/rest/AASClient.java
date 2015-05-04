@@ -52,8 +52,8 @@ public class AASClient {
 			throws CloudException {
 		
         Response resp = client.target(aasUrl + "/create-user")
-                .queryParam(AASParamConstants.Q_USER_NAME, username)
-                .queryParam(AASParamConstants.Q_PASSWORD, password).request()
+                .queryParam(AASParamConstants.P_USER_NAME, username)
+                .queryParam(AASParamConstants.P_PASSWORD, password).request()
                 .post(null);
 		
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -70,8 +70,8 @@ public class AASClient {
 			throws CloudException {
 		
         Response resp = client.target(aasUrl + "/update-user")
-                .queryParam(AASParamConstants.Q_USER_NAME, username)
-                .queryParam(AASParamConstants.Q_PASSWORD, password).request()
+                .queryParam(AASParamConstants.P_USER_NAME, username)
+                .queryParam(AASParamConstants.P_PASSWORD, password).request()
                 .post(null);
 		
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
@@ -88,7 +88,7 @@ public class AASClient {
 			throws CloudException {
 		
         Response resp = client.target(aasUrl + "/delete-user")
-                .queryParam(AASParamConstants.Q_USER_NAME, username).request()
+                .queryParam(AASParamConstants.P_USER_NAME, username).request()
                 .post(null);
 		
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
