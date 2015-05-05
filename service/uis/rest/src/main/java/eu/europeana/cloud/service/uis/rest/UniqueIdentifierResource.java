@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.uis.rest;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -59,18 +61,19 @@ public class UniqueIdentifierResource {
 	private final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
 	/**
-	 * Invoke the generation of a cloud identifier using the provider identifier
+	 * Invokes the generation of a cloud identifier using the provider identifier
 	 * and a record identifier
 	 * 
-	 * @param providerId
-	 * @param localId
+	 * @summary Cloud identifier generation
+	 * @param providerId <strong>REQUIRED</strong> identifier of data-provider for which new cloud identifier will be created.
+	 * @param localId record identifier which will be binded to the newly created cloud identifier. If not provided, random value will be generated.
 	 * @return The newly created CloudId
-	 * @throws DatabaseConnectionException
-	 * @throws RecordExistsException
-	 * @throws ProviderDoesNotExistException
-	 * @throws RecordDatasetEmptyException
-	 * @throws CloudIdDoesNotExistException
-	 * @throws CloudIdAlreadyExistException
+	 * @throws DatabaseConnectionException database error
+	 * @throws RecordExistsException Record already exists in repository
+	 * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
+	 * @throws RecordDatasetEmptyException dataset is empty
+	 * @throws CloudIdDoesNotExistException cloud identifier does not exist
+	 * @throws CloudIdAlreadyExistException Cloud identifier was created previously
 	 */
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -110,15 +113,18 @@ public class UniqueIdentifierResource {
 	}
 
 	/**
-	 * Invoke the generation of a cloud identifier using the provider identifier
+	 * Retrieves cloud identifier based on given provider identifier and record identifier
 	 * 
-	 * @param providerId
-	 * @param recordId
-	 * @return The newly created CloudId
-	 * @throws DatabaseConnectionException
-	 * @throws RecordDoesNotExistException
-	 * @throws ProviderDoesNotExistException
-	 * @throws RecordDatasetEmptyException
+	 * @summary Cloud identifier retrieval
+	 * @param providerId <strong>REQUIRED</strong> provider identifier
+	 * @param recordId <strong>REQUIRED</strong> record identifier
+	 *                    
+	 * @return Cloud identifier associated with given provider identifier and record identifier
+	 * 
+	 * @throws DatabaseConnectionException database error
+	 * @throws RecordDoesNotExistException record does not exist
+	 * @throws ProviderDoesNotExistException provider does not exist
+	 * @throws RecordDatasetEmptyException dataset is empty
 	 */
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -134,18 +140,25 @@ public class UniqueIdentifierResource {
 	}
 
 	/**
-	 * Retrieve a list of record Identifiers associated with a cloud identifier
+	 * Retrieves list of record Identifiers associated with the cloud identifier. 
+	 * Result is returned in slices which contain fixed amount of results and reference (token) to next slice of results.
 	 * 
-	 * @return A list of record identifiers
-	 * @throws DatabaseConnectionException
-	 * @throws CloudIdDoesNotExistException
-	 * @throws ProviderDoesNotExistException
-	 * @throws RecordDatasetEmptyException
+	 * @summary List of record identifiers retrieval
+	 * 
+	 * @param cloudId <strong>REQUIRED</strong> cloud identifier for which list of all record identifiers will be retrieved
+	 *                   
+	 * @return The list of record identifiers bound to given provider identifier 
+	 * 
+	 * @throws DatabaseConnectionException database error
+	 * @throws CloudIdDoesNotExistException cloud identifier does not exist
+	 * @throws ProviderDoesNotExistException provider does not exist
+	 * @throws RecordDatasetEmptyException datset is empty
+	 * 
 	 */
 	@GET
 	@Path("{" + CLOUDID + "}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@ReturnType("eu.europeana.cloud.common.response.ResultSlice")
+	@ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
 	public Response getLocalIds(@PathParam(CLOUDID) String cloudId)
 			throws DatabaseConnectionException, CloudIdDoesNotExistException,
 			ProviderDoesNotExistException, RecordDatasetEmptyException {
@@ -158,11 +171,16 @@ public class UniqueIdentifierResource {
 	 * Remove a cloud identifier and all the associations to its record
 	 * identifiers
 	 * 
-	 * @return Confirmation that the selected cloud identifier is removed
-	 * @throws DatabaseConnectionException
-	 * @throws CloudIdDoesNotExistException
-	 * @throws ProviderDoesNotExistException
-	 * @throws RecordIdDoesNotExistException
+	 * @summary Cloud identifier removal
+	 * 
+	 * @param cloudId <strong>REQUIRED</strong> cloud identifier which will be removed
+	 * 
+	 * @return Empty response with http status code indicating whether the operation was successful or not
+	 * 
+	 * @throws DatabaseConnectionException database error
+	 * @throws CloudIdDoesNotExistException cloud identifier does not exist
+	 * @throws ProviderDoesNotExistException provider does not exist
+	 * @throws RecordIdDoesNotExistException record identifier does not exist
 	 */
 	@DELETE
 	@Path("{" + CLOUDID + "}")

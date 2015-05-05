@@ -32,9 +32,12 @@ public class DataProviderActivationResource {
      *
      * Activates data provider (sets flag 'active' to true)
      * 
-     * @param dataProviderId data provider id
-     * @return
-     * @throws ProviderDoesNotExistException
+     * @summary Data-provider activation 
+     * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated 
+     * @return Empty response with http status code indicating whether the operation was successful or not
+     * @author 
+     * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
+     * 
      */
     @PUT
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -51,9 +54,11 @@ public class DataProviderActivationResource {
     /**
      * Deactivates data provider (sets flag 'active' to false)
      * 
-     * @param dataProviderId data provider id
-     * @return
-     * @throws ProviderDoesNotExistException
+     * @summary Data-provider deactivation
+     * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated    
+     * @return Empty response with http status code indicating whether the operation was successful or not
+     * @author
+     * @throws ProviderDoesNotExistException Supplied Data-provider does not exist 
      */
     @DELETE
     @PreAuthorize("hasRole('ROLE_ADMIN')")
