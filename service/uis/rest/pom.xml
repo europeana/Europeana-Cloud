@@ -539,7 +539,7 @@
                         </titleNamingStrategies>
                         <externalSources>
                             <sourceDirs>
-                                <sourceDir>../../../common/src/main/java</sourceDir>
+                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
                             </sourceDirs>
                         </externalSources>
                     </restModel>
