@@ -13,24 +13,49 @@ import com.google.common.collect.Maps;
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-	// INPUT DATA TYPES
+	/** Dataset Key */
 	public static final String DATASETS = "DATASETS";
+	
+	/** File URL Key */
 	public static final String FILE_URLS = "FILE_URLS";
 
+	/** List of input data (cloud-records or cloud-datasets) */
 	private HashMap<String, List<String>> inputData;
+	
+	/** List of parameters data (specific for each dps-plugin) */
 	private HashMap<String, String> parameters;
 
+	/**
+	 * Task start time
+	 */
 	private Date startTime = null;
+
+	/**
+	 * Task create time
+	 */
 	private Date createTime = new Date(System.currentTimeMillis());
+
+	/**
+	 * Task end time
+	 */
 	private Date endTime = null;
 	
+	/**
+	 * Unique id for this task
+	 */
 	private long taskId;
+	
+	/** Name for the task */
 	private String taskName;
 
 	public DpsTask() {
 		this("");
 	}
 	
+	/**
+	 * 
+	 * @param taskName
+	 */
 	public DpsTask(String taskName) {
 		
 		this.taskName = taskName;

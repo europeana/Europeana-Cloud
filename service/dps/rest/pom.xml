@@ -10,7 +10,7 @@
 
 	<artifactId>ecloud-service-dps-rest</artifactId>
 	<packaging>war</packaging>
-	<name>Europeana Cloud: DPS REST</name>
+	<name>Europeana Cloud: Data Processing Service (DPS-REST)</name>
 
 	<properties>
 		<main.directory>${project.parent.basedir}</main.directory>
@@ -104,21 +104,70 @@
 			</plugin>
 			<!--configuration of miredot - REST API documentation generator. -->
 			<plugin>
-				<groupId>com.qmino</groupId>
-				<artifactId>miredot-maven-plugin</artifactId>
-				<version>1.3</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>restdoc</goal>
-						</goals>
-					</execution>
-				</executions>
-                                <configuration>
-                                    <licence>
-                                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZHBzLXJlc3R8MjAxNy0wMy0yM3x0cnVlfC0xI01Dd0NGQjc2K1hJS1o4cmhuZytvRnd3NE45MEx5bmc4QWhSa3JQakNMZVpIWlJVK1VjOUJKdnE5YkZkbzJBPT0=
-                                    </licence>
-                                </configuration>
+                <groupId>com.qmino</groupId>
+                <artifactId>miredot-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>restdoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+				<configuration>
+					<licence>
+						cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtZHBzLXJlc3R8MjAxNy0wMy0yM3x0cnVlfC0xI01Dd0NGQjc2K1hJS1o4cmhuZytvRnd3NE45MEx5bmc4QWhSa3JQakNMZVpIWlJVK1VjOUJKdnE5YkZkbzJBPT0=
+					</licence>
+					<restModel>
+                        <httpStatusCodes>
+                            <httpStatusCode>
+                                <httpCode>200</httpCode>
+                                <document>always</document>
+                                <defaultMessage>The service call has completed successfully.</defaultMessage>
+                            </httpStatusCode>
+                            <httpStatusCode>
+                                <httpCode>500</httpCode>
+                                <document>always</document>
+                                <defaultMessage>Internal server exception. The service call did
+                                    not succeed.</defaultMessage>
+                            </httpStatusCode>
+                        </httpStatusCodes>
+                        <fieldVisibility>
+                            <GETTER>PUBLIC_ONLY</GETTER>
+                            <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
+                            <SETTER>PUBLIC_ONLY</SETTER>
+                            <CREATOR>PUBLIC_ONLY</CREATOR>
+                            <FIELD>PUBLIC_ONLY</FIELD>
+                        </fieldVisibility>
+                        <titleNamingStrategies>
+                            <strategy>tag: summary</strategy>
+                            <strategy>tag: title</strategy>
+                            <strategy>firstsentence</strategy>
+                        </titleNamingStrategies>
+                        <externalSources>
+                            <sourceDirs>
+                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
+                            </sourceDirs>
+                        </externalSources>
+                    </restModel>
+                    <analysis>
+                        <checks>
+                            <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
+                            <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+                            <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
+                            <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
+                            <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
+                            <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
+                            <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
+                            <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
+                        </checks>
+                    </analysis>
+					<output>
+						<html>
+							<initialCollapseLevel>100</initialCollapseLevel>
+						</html>
+					</output>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -163,7 +212,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-                
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -237,12 +286,12 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
-                
-                <dependency>
-                    <groupId>com.qmino</groupId>
-                    <artifactId>miredot-annotations</artifactId>
-                    <version>1.2</version>
-                </dependency>
+
+		<dependency>
+			<groupId>com.qmino</groupId>
+			<artifactId>miredot-annotations</artifactId>
+			<version>1.2</version>
+		</dependency>
 		<!-- tests -->
 		<dependency>
 			<groupId>org.springframework</groupId>

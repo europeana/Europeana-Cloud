@@ -62,16 +62,18 @@ public class TopologyTasksResource {
      * Submits a Task for execution. 
      * Each Task execution is associated with a specific plugin.
      * 
+     * <strong>Write permissions required</strong>
+     * 
      * Submitting tasks is allowed only for users with write-permissions for that plugin.
      *
      * @summary Submit Task
-     * @param task Task to be executed. Should contain links to input data,
+     * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data,
      * either in form of cloud-records or cloud-datasets. 
      * 
-     * @param topologyName topology the task is to be submitted
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * 
      * @servicetag Task
-     * @return URI to access information about the submitted task execution
+     * @return URI with information about the submitted task execution
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
@@ -101,9 +103,14 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves a Task. 
-     * @param topologyName topology name
-     * @return requested task
+     * Retrieves a task with the given taskId from the specified topology. 
+     * 
+     * <strong>Read permissions required</strong>
+     * 
+     * @summary Retrieve task
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @return The requested task
      */
     @GET
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -119,11 +126,18 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves progress of the requested task. To call it one has to have read
-     * permissions for requested topology.
+     * Retrieves the current progress for the requested task. 
+     * 
+     * <strong>Read permissions required</strong>
      *
-     * @param taskId task identifier.
-     * @return progress for the requested task.
+     * @summary Get Task Progress
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * 
+     * @servicetag Task
+     * @return progress for the requested task 
+     * (number of records of the specified task that have been fully processed)
+     * 
      * @throws
      * eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
      * if task does not exist or access to the task is denied for the user.
@@ -131,6 +145,7 @@ public class TopologyTasksResource {
     @GET
     @Path("{taskId}/progress")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    @ReturnType("java.lang.String")
     public Response getTaskProgress(
             @PathParam("topologyName") String topologyName,
             @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException {
@@ -140,11 +155,15 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves info messages for the specified task. To call it one has to
-     * have read permissions for requested topology.
+     * 
+     * @summary Retrieve task notifications
+     * 
+     * Retrieves notifications for the specified task. 
+     * 
+     * <strong>Read permissions required</strong>
      *
-     * @param taskId task identifier.
-     * @return info messages for the specified task
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @return notification messages for the specified task
      */
     @GET
     @Path("{taskId}/notification")
@@ -158,10 +177,23 @@ public class TopologyTasksResource {
     @POST
     @Path("{taskId}/permit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Response grantPermissions(@PathParam("topologyName") String topology, @PathParam("taskId") String taskId,
+    @ReturnType("java.lang.Void")
+    /**
+     * Grants read / write permissions for a task to the specified user.
+     * 
+     * <strong>Admin permissions required</strong>
+     * 
+     * @summary Grant task permissions to user
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with the specified unique username
+     * 
+     * @return Status code indicating whether the operation was successful or not
+     */
+    public Response grantPermissions(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId,
     		@FormParam("username") String username) {
 
-        if (taskId != null && topology  != null) {
+        if (taskId != null && topologyName  != null) {
         	grantPermissionsForTask(taskId, username);
             return Response.ok().build();
         }
