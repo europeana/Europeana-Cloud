@@ -147,6 +147,7 @@
                         <externalSources>
                             <sourceDirs>
                                 <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
+                                <sourceDir>${project.parent.basedir}/api/src/main/java</sourceDir>
                             </sourceDirs>
                         </externalSources>
                     </restModel>
