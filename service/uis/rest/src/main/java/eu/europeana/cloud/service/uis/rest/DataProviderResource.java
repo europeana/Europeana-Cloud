@@ -210,7 +210,7 @@ public class DataProviderResource {
 		}
 
 		String creatorName = SpringUserUtils.getUsername();
-		String key = result.getLocalId().toString() + "/" + providerId;
+		String key = result.getLocalId().getRecordId() + "/" + providerId;
 		if (creatorName != null) {
 		    ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
 		    MutableAcl providerAcl = mutableAclService.createAcl(providerIdentity);
