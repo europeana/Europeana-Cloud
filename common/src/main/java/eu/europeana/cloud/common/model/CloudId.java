@@ -21,6 +21,9 @@ public class CloudId {
      */
     private LocalId localId;
 
+    /**
+     * @return The cloud identifier
+     */
     public String getId() {
         return id;
     }

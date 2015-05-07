@@ -22,6 +22,9 @@ public class LocalId {
     private String recordId;
 
 
+    /**
+     * @return provider identifier
+     */
     public String getProviderId() {
         return providerId;
     }
@@ -32,6 +35,9 @@ public class LocalId {
     }
 
 
+    /**
+     * @return record identifier
+     */
     public String getRecordId() {
         return recordId;
     }
