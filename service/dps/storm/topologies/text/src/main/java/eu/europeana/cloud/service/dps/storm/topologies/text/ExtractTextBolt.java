@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
+import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.transform.text.PdfBoxExtractor;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractorFactory;
 import java.io.ByteArrayInputStream;
@@ -19,16 +21,35 @@ import org.slf4j.LoggerFactory;
  */
 public class ExtractTextBolt extends AbstractDpsBolt
 {
+    private final String storeStremName;
+    private final String informStreamName;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtractTextBolt.class);
+    
+    public ExtractTextBolt(String storeStremName, String informStreamName) 
+    {
+       this.storeStremName = storeStremName;
+       this.informStreamName = informStreamName;
+    }
     
     @Override
     public void execute(StormTaskTuple t) 
     {
         String extractorName = t.getParameter(PluginParameterKeys.EXTRACTOR);
-        TextExtractor extractor = TextExtractorFactory.getExtractor(extractorName);
+        String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        TextExtractor extractor = TextExtractorFactory.getExtractor(representationName, extractorName);
         
-        LOGGER.info("Required extractor: {}, Selected extractor: {}", extractorName, extractor.getExtractorMethod().name());
-
+        if(extractor == null)
+        {
+            LOGGER.warn("Extractor not exists for representation name {}.", representationName);
+            outputCollector.ack(inputTuple);
+            return;
+        }
+        else
+        {
+            LOGGER.info("Renpresentation name: {}, Required extractor: {}, Selected extractor: {}", 
+                    representationName, extractorName, extractor.getExtractorMethod().name());
+        }
+        
         ByteArrayInputStream data = t.getFileByteDataAsStream();
         String extractedText = extractor.extractText(data);
         Map<String, String> metadata = extractor.getExtractedMetadata(); 
@@ -37,7 +58,7 @@ public class ExtractTextBolt extends AbstractDpsBolt
         {
             t.setFileData(extractedText);
             t.addParameter(PluginParameterKeys.MIME_TYPE, "text/plain");
-            t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, TextStrippingConstants.EXTRACTED_TEXT_REPRESENTATION_NAME);
+            t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, extractor.getRepresentationName());
             t.addParameter(PluginParameterKeys.ORIGINAL_FILE_URL, t.getFileUrl());
             
             if(metadata != null && !metadata.isEmpty())
@@ -45,12 +66,40 @@ public class ExtractTextBolt extends AbstractDpsBolt
                 t.addParameter(PluginParameterKeys.FILE_METADATA, new Gson().toJson(metadata));
             }
             
-            outputCollector.emit(inputTuple, t.toStormTuple());          
+            //store extracted text?
+            if (Boolean.parseBoolean(t.getParameter(PluginParameterKeys.STORE_EXTRACTED_TEXT)))
+            {
+                outputCollector.emit(storeStremName, inputTuple, t.toStormTuple());   
+            }
+            else
+            {
+                outputCollector.emit(informStreamName, inputTuple, t.toStormTuple()); 
+            }
         }
         outputCollector.ack(inputTuple);
     }
 
     @Override
     public void prepare() 
-    {}   
+    {}  
+
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) 
+    {
+        //store branch
+        declarer.declareStream(storeStremName, new Fields(
+            StormTupleKeys.TASK_ID_TUPLE_KEY,
+            StormTupleKeys.TASK_NAME_TUPLE_KEY,
+            StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+            StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+            StormTupleKeys.PARAMETERS_TUPLE_KEY));
+        
+        //inform branch
+        declarer.declareStream(informStreamName, new Fields(
+            StormTupleKeys.TASK_ID_TUPLE_KEY,
+            StormTupleKeys.TASK_NAME_TUPLE_KEY,
+            StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+            StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+            StormTupleKeys.PARAMETERS_TUPLE_KEY));
+    }
 }

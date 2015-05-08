@@ -25,23 +25,47 @@ public class ParseTaskBolt extends BaseBasicBolt
     public static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
     
     public final Map<String, String> routingRules;
+    private final Map<String, String> prerequisites;
 
     /**
-     * Constructor for ParseTaskBolt.
+     * Constructor for ParseTaskBolt without routing and conditions.
+     */
+    public ParseTaskBolt() 
+    {
+        this(null, null);
+    }
+  
+    /**
+     * Constructor for ParseTaskBolt with routing.
      * Task is dropped if TaskName is not in routingRules.
      * @param routingRules routing table in the form ("TaskName": "StreamName")
+     * @param prerequisites Necessary parameters in DpsTask for continue. ("ParameterName": "CaseInsensitiveValue" or null if value is not important)
+     *              If parameter name is set in this structure and is not set in DpsTask or has a different value, than DpsTask will be dropped.
      */
-    public ParseTaskBolt(Map<String, String> routingRules) 
+    public ParseTaskBolt(Map<String, String> routingRules, Map<String, String> prerequisites) 
     {
         this.routingRules = routingRules;
+        this.prerequisites = prerequisites;
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) 
     {
-        for(Map.Entry<String, String> rule : routingRules.entrySet())
+        if(routingRules != null)
         {
-            declarer.declareStream(rule.getValue(), new Fields(
+            for(Map.Entry<String, String> rule : routingRules.entrySet())
+            {
+                declarer.declareStream(rule.getValue(), new Fields(
+                    StormTupleKeys.TASK_ID_TUPLE_KEY,
+                    StormTupleKeys.TASK_NAME_TUPLE_KEY,
+                    StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+                    StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+                    StormTupleKeys.PARAMETERS_TUPLE_KEY));
+            }
+        }
+        else
+        {
+            declarer.declare(new Fields(
                 StormTupleKeys.TASK_ID_TUPLE_KEY,
                 StormTupleKeys.TASK_NAME_TUPLE_KEY,
                 StormTupleKeys.INPUT_FILES_TUPLE_KEY,
@@ -67,6 +91,32 @@ public class ParseTaskBolt extends BaseBasicBolt
 
         HashMap<String, String> taskParameters = task.getParameters();
         //HashMap<String, List<String>> inputData = task.getInputData();
+        
+        //chceck necessary parameters for current topology
+        if(prerequisites != null)
+        {
+            for(Map.Entry<String, String> importantParameter : prerequisites.entrySet())
+            {
+                String p = taskParameters.get(importantParameter.getKey());
+                if(p != null)
+                {
+                    String val = importantParameter.getValue();
+                    if(val != null && !val.toLowerCase().equals(p.toLowerCase()))
+                    {
+                        //values not equal => drop this task
+                        LOGGER.info("DpsTask with id {} is dropped because parameter {} does not have a required value '{}'.", 
+                            task.getTaskId(), importantParameter.getKey(), val);
+                        return;
+                    }
+                }
+                else    //parameter not exists => drop this task
+                {
+                    LOGGER.info("DpsTask with id {} is dropped because parameter {} is missing.", 
+                            task.getTaskId(), importantParameter.getKey());
+                    return;
+                }
+            }
+        }
 
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 task.getTaskId(), 
@@ -90,9 +140,18 @@ public class ParseTaskBolt extends BaseBasicBolt
             LOGGER.info("taskParameters size=" + taskParameters.size());
         }
         
-        if(routingRules.containsKey(task.getTaskName()))
+        //use specific streams or default strem?
+        if(routingRules != null)
         {
-            collector.emit(routingRules.get(task.getTaskName()), stormTaskTuple.toStormTuple());
+            String stream = routingRules.get(task.getTaskName());
+            if(stream != null)
+            {
+                collector.emit(stream, stormTaskTuple.toStormTuple());
+            }
+        }
+        else
+        {
+            collector.emit(stormTaskTuple.toStormTuple());
         }
     }
 }

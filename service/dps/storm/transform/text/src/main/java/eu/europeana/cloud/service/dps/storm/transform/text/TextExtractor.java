@@ -11,7 +11,9 @@ public interface TextExtractor
 {
     public String extractText(InputStream is);
     
-    public ExtractionMethods getExtractorMethod();
+    public MethodsEnumeration getExtractorMethod();
     
     public Map<String, String> getExtractedMetadata();
+    
+    public String getRepresentationName();
 }

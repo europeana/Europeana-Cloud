@@ -11,6 +11,7 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
+import eu.europeana.cloud.service.dps.storm.KafkaProducerBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -32,6 +33,10 @@ import storm.kafka.ZkHosts;
  */
 public class IndexerTopology 
 {
+    private final String extractedDataStream = "ReadData";
+    private final String associationStream = "ReadAssociation";
+    private final String indexStream = "ReadFile";
+    
     private final String zkProgressAddress = IndexerConstants.PROGRESS_ZOOKEEPER;
     private final String ecloudMcsAddress = IndexerConstants.MCS_URL;
     private final String username = IndexerConstants.USERNAME;
@@ -49,29 +54,45 @@ public class IndexerTopology
     private StormTopology buildTopology()
     {
         Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(PluginParameterKeys.INDEX_FILE_MESSAGE, "IndexFile");
+        routingRules.put(PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, extractedDataStream);
+        routingRules.put(PluginParameterKeys.NEW_ASSOCIATION_MESSAGE, associationStream);
+        routingRules.put(PluginParameterKeys.INDEX_FILE_MESSAGE, indexStream);
         
+        Map<String, String> prerequisites = new HashMap<>();
+        prerequisites.put(PluginParameterKeys.INDEX_DATA, "True");
+        
+        Map<String, String> outputParameters = new HashMap<>();
+              
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, 
-                IndexerConstants.KAFKA_TOPIC, 
+                IndexerConstants.KAFKA_INPUT_TOPIC, 
                 IndexerConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());               
                 
         TopologyBuilder builder = new TopologyBuilder();
         
-        builder.setSpout("kafkaSpout", new KafkaSpout(kafkaConfig), IndexerConstants.KAFKA_SPOUT_PARALLEL);
+        builder.setSpout("KafkaSpout", new KafkaSpout(kafkaConfig), IndexerConstants.KAFKA_SPOUT_PARALLEL);
         
-        builder.setBolt("parseDpsTask", new ParseTaskBolt(routingRules), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
-                .shuffleGrouping("kafkaSpout");
+        builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules, prerequisites), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
+                .shuffleGrouping("KafkaSpout");
         
-        builder.setBolt("retrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveAssociation", new RetrieveAssociation(ecloudMcsAddress, username, password), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
+                .shuffleGrouping("ParseDpsTask", associationStream);
+        
+        builder.setBolt("RetrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
                             IndexerConstants.FILE_BOLT_PARALLEL)
-                .shuffleGrouping("parseDpsTask", "IndexFile");
+                .shuffleGrouping("ParseDpsTask", indexStream);
         
-        builder.setBolt("indexFile", new IndexBolt(IndexerConstants.ELASTICSEARCH_ADDRESSES), IndexerConstants.INDEX_BOLT_PARALLEL)
-                .shuffleGrouping("retrieveFile");
+        builder.setBolt("IndexBolt", new IndexBolt(IndexerConstants.ELASTICSEARCH_ADDRESSES), IndexerConstants.INDEX_BOLT_PARALLEL)             
+                .shuffleGrouping("ParseDpsTask", extractedDataStream)
+                .shuffleGrouping("RetrieveAssociation")
+                .shuffleGrouping("RetrieveFile");
         
-        builder.setBolt("progress", new ProgressBolt(zkProgressAddress), IndexerConstants.PROGRESS_BOLT_PARALLEL)
-                .shuffleGrouping("indexFile");     
+        builder.setBolt("InformBolt", new KafkaProducerBolt(IndexerConstants.KAFKA_OUTPUT_BROKER, IndexerConstants.KAFKA_OUTPUT_TOPIC,
+                            PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
+                .shuffleGrouping("IndexBolt");
+        
+        builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), IndexerConstants.PROGRESS_BOLT_PARALLEL)
+                .shuffleGrouping("InformBolt");     
 
         return builder.createTopology();
     }
@@ -82,7 +103,7 @@ public class IndexerTopology
      */
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
     {
-        String kafkaZk = "192.168.47.129:2181";//args[0];
+        String kafkaZk = IndexerConstants.INPUT_ZOOKEEPER;//args[0];
         IndexerTopology indexerTopology = new IndexerTopology(kafkaZk);
         Config config = new Config();
         config.setDebug(true);

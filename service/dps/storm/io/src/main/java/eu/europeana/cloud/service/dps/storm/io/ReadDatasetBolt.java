@@ -76,6 +76,9 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                     }
                     
                     t.addParameter(PluginParameterKeys.CLOUD_ID, representation.getCloudId());
+                    t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, representation.getRepresentationName());
+                    t.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, representation.getVersion());
+                    t.addParameter(PluginParameterKeys.FILE_NAME, file.getFileName());
                     
                     URI uri = fileClient.getFileUri(
                             representation.getCloudId(), 
@@ -83,7 +86,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                             representation.getVersion(), 
                             file.getFileName());                       
 
-                    String url = uri.toString();
+                    String url = uri.toString();    //TODO:use contentUrl?
                     t.setFileUrl(url);
 
                     InputStream is;

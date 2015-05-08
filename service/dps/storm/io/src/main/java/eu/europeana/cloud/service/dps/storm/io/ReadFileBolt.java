@@ -22,6 +22,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  */
@@ -68,7 +69,12 @@ public class ReadFileBolt extends AbstractDpsBolt
             InputStream is = fileClient.getFile(fileUrl);          
 
             t.setFileData(is);
-            t.addParameter(PluginParameterKeys.CLOUD_ID, FileServiceClient.parseFileUri(fileUrl).get("CLOUDID"));
+            
+            Map<String, String> parsedUri = FileServiceClient.parseFileUri(fileUrl);
+            t.addParameter(PluginParameterKeys.CLOUD_ID, parsedUri.get("CLOUDID"));
+            t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, parsedUri.get("REPRESENTATIONNAME"));
+            t.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, parsedUri.get("VERSION"));
+            t.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get("FILENAME"));
 
             updateMetrics(t, IOUtils.toString(is));
 

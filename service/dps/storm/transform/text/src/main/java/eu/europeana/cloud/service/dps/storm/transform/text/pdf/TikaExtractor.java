@@ -1,5 +1,6 @@
-package eu.europeana.cloud.service.dps.storm.transform.text;
+package eu.europeana.cloud.service.dps.storm.transform.text.pdf;
 
+import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import org.xml.sax.SAXException;
  */
 public class TikaExtractor implements TextExtractor
 {
-    public static final Logger LOGGER = LoggerFactory.getLogger(TikaExtractor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TikaExtractor.class);
     
     private Metadata metadata;
     
@@ -37,7 +38,7 @@ public class TikaExtractor implements TextExtractor
         } 
         catch (IOException | SAXException | TikaException ex) 
         {
-          LOGGER.warn("Can not extract text from pdf because:", ex.getMessage()); 
+          LOGGER.warn("Can not extract text from pdf because: " + ex.getMessage()); 
           return null;
         }
         
@@ -45,9 +46,9 @@ public class TikaExtractor implements TextExtractor
     }
 
     @Override
-    public ExtractionMethods getExtractorMethod() 
+    public PdfExtractionMethods getExtractorMethod() 
     {
-        return ExtractionMethods.TIKA_EXTRACTOR;
+        return PdfExtractionMethods.TIKA_EXTRACTOR;
     }
 
     @Override
@@ -61,4 +62,10 @@ public class TikaExtractor implements TextExtractor
         
         return ret;
     }   
+
+    @Override
+    public String getRepresentationName() 
+    {
+        return "text-from-pdf";
+    }
 }
