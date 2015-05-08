@@ -127,9 +127,9 @@ public class TopologyTasksResource {
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @ReturnType("java.net.URI")
     public Response submitTask(
-    		@Context UriInfo uriInfo,
+            DpsTask task,
             @PathParam("topologyName") String topologyName,
-            DpsTask task
+    		@Context UriInfo uriInfo
             ) {
 
         LOGGER.info("Submiting task");
