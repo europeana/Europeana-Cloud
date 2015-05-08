@@ -80,7 +80,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Test
     public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo() {
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.assignPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
+        topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         DpsTask sampleTask = new DpsTask();
@@ -90,7 +90,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Test(expected = AccessDeniedException.class)
     public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo() {
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.assignPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
+        topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
         login(RONALDO, RONALD_PASSWORD);
         DpsTask sampleTask = new DpsTask();
@@ -103,7 +103,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 	public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException {
     	
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.assignPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
+        topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME,URI_INFO);
@@ -121,7 +121,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 	public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException {
 
         login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.assignPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
+        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 		
         login(RONALDO, RONALD_PASSWORD);
         topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO);

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
+
+import com.qmino.miredot.annotations.ReturnType;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -36,31 +39,37 @@ public class TopologiesResource {
     private final static String TOPOLOGY_PREFIX = "Topology";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
-
+    
     /**
-     * Assigns user with given userName write permissions to requested topology.
-     * To call it one has to have write permissions to requested
+     * Grants user with given username read/ write permissions for the requested topology.
      *
-     * @param userName user name
-     * @param topology topology name
-     * @return response
+     * <strong>Admin permissions required</strong>
+     * 
+     * @summary Grant topology permissions
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology.
+     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
+     * 
+     * @return Status code indicating whether the operation was successful or not.
      */
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    public Response assignPermissionsToTopology(@FormParam("user") String userName, @FormParam("topologyName") String topology) {
+    @ReturnType("java.lang.Void")
+    public Response grantPermissionsToTopology(@FormParam("user") String username, @FormParam("topologyName") String topology) {
         
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX,
                 topology);
-        //
+        
         MutableAcl topologyAcl = null;
         try {
             topologyAcl = (MutableAcl)mutableAclService.readAclById(topologyIdentity);
         } catch (Exception e) {
-            LOGGER.warn("ACL not found for topology {} and user {}", topology, userName);
+            LOGGER.warn("ACL not found for topology {} and user {}", topology, username);
             topologyAcl = mutableAclService.createAcl(topologyIdentity);
+            return Response.notModified().build();
         }
-        topologyAcl.insertAce(0, BasePermission.WRITE, new PrincipalSid(userName), true);
+        topologyAcl.insertAce(0, BasePermission.READ, new PrincipalSid(username), true);
+        topologyAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(username), true);
         mutableAclService.updateAcl(topologyAcl);
 
         return Response.ok().build();

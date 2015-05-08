@@ -22,7 +22,7 @@ public class DpsTask implements Serializable {
 	/** List of input data (cloud-records or cloud-datasets) */
 	private HashMap<String, List<String>> inputData;
 	
-	/** List of parameters data (specific for each dps-plugin) */
+	/** List of parameters (specific for each dps-topology) */
 	private HashMap<String, String> parameters;
 
 	/**

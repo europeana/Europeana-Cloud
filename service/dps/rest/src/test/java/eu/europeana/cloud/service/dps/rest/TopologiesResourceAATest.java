@@ -39,29 +39,27 @@ public class TopologiesResourceAATest extends AbstractSecurityTest {
 
         login(ADMIN, ADMIN_PASSWORD);
         String topology = "xsltTopology";
-        topologiesResource.assignPermissionsToTopology("krystian", topology);
+        topologiesResource.grantPermissionsToTopology("krystian", topology);
     }
 
     @Test(expected = AuthenticationCredentialsNotFoundException.class)
     public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAssignPermissionsToTopology() {
         String topology = "xsltTopology";
-        topologiesResource.assignPermissionsToTopology(RANDOM_PERSON, topology);
+        topologiesResource.grantPermissionsToTopology(RANDOM_PERSON, topology);
     }
 
     @Test(expected = AccessDeniedException.class)
     public void shouldThrowExceptionWhenNonAdminUserTriesToAssignPermissionsToTopology() {
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         String topology = "xsltTopology";
-        topologiesResource.assignPermissionsToTopology(RANDOM_PERSON, topology);
+        topologiesResource.grantPermissionsToTopology(RANDOM_PERSON, topology);
     }
     
     @Test
     public void shouldBeAbleToAssignMoreThanOneDifferentPermissionsToSameTopology(){
         login(ADMIN, ADMIN_PASSWORD);
         String topology = "xsltTopology";
-        topologiesResource.assignPermissionsToTopology("sampleUser", topology);
-        topologiesResource.assignPermissionsToTopology("sampleUser1", topology);
+        topologiesResource.grantPermissionsToTopology("sampleUser", topology);
+        topologiesResource.grantPermissionsToTopology("sampleUser1", topology);
     }
-    
-    
 }

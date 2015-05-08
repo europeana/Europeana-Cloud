@@ -38,7 +38,6 @@ import java.net.URISyntaxException;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
- * @servicetag Task
  */
 @Path("/topologies/{topologyName}/tasks")
 @Component
@@ -57,48 +56,6 @@ public class TopologyTasksResource {
     private final static String TASK_PREFIX = "DPS_Task";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
-
-    /**
-     * Submits a Task for execution. 
-     * Each Task execution is associated with a specific plugin.
-     * 
-     * <strong>Write permissions required</strong>.
-     *
-     * @summary Submit Task
-     * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data,
-     * either in form of cloud-records or cloud-datasets. 
-     * 
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * 
-     * @servicetag Task
-     * @return URI with information about the submitted task execution.
-     */
-    @POST
-    @Consumes({MediaType.APPLICATION_JSON})
-    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @ReturnType("java.net.URI")
-    public Response submitTask(
-            DpsTask task,
-            @PathParam("topologyName") String topologyName,
-            @Context UriInfo uriInfo) {
-
-        LOGGER.info("Submiting task");
-        
-        if (task != null) {
-            submitService.submitTask(task, topologyName);
-            grantPermissionsForTask(task.getTaskId() + "");
-            String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
-            try {
-                LOGGER.info("Task submitted succesfully");
-                return Response.created(new URI(createdTaskUrl)).build();
-            } catch (URISyntaxException e) {
-                LOGGER.error("Task submition failed");
-                e.printStackTrace();
-                return Response.serverError().build();
-            }
-        }
-        return Response.notModified().build();
-    }
 
     /**
      * Retrieves a task with the given taskId from the specified topology. 
@@ -132,13 +89,12 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * 
-     * @servicetag Task
      * @return Progress for the requested task 
      * (number of records of the specified task that have been fully processed).
      * 
      * @throws
      * eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
-     * if task does not exist or access to the task is denied for the user.
+     * if task does not exist or access to the task is denied for the user
      */
     @GET
     @Path("{taskId}/progress")
@@ -153,6 +109,48 @@ public class TopologyTasksResource {
     }
 
     /**
+     * Submits a Task for execution. 
+     * Each Task execution is associated with a specific plugin.
+     * 
+     * <strong>Write permissions required</strong>.
+     *
+     * @summary Submit Task
+     * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data,
+     * either in form of cloud-records or cloud-datasets. 
+     * 
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * 
+     * @return URI with information about the submitted task execution.
+     */
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON})
+    @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    @ReturnType("java.net.URI")
+    public Response submitTask(
+    		@Context UriInfo uriInfo,
+            @PathParam("topologyName") String topologyName,
+            DpsTask task
+            ) {
+
+        LOGGER.info("Submiting task");
+        
+        if (task != null) {
+            submitService.submitTask(task, topologyName);
+            grantPermissionsForTask(task.getTaskId() + "");
+            String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+            try {
+                LOGGER.info("Task submitted succesfully");
+                return Response.created(new URI(createdTaskUrl)).build();
+            } catch (URISyntaxException e) {
+                LOGGER.error("Task submition failed");
+                e.printStackTrace();
+                return Response.serverError().build();
+            }
+        }
+        return Response.notModified().build();
+    }
+
+    /**
      * 
      * Retrieves notifications for the specified task. 
      * 
@@ -161,6 +159,8 @@ public class TopologyTasksResource {
      * @summary Retrieve task notifications
      * 
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * 
      * @return Notification messages for the specified task.
      */
     @GET
@@ -180,7 +180,7 @@ public class TopologyTasksResource {
      * @summary Grant task permissions to user
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with the specified unique username
+     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * 
      * @return Status code indicating whether the operation was successful or not.
      */
