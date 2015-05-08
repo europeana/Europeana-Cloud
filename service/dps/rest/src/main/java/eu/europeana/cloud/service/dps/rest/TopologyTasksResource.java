@@ -126,6 +126,7 @@ public class TopologyTasksResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @ReturnType("java.net.URI")
+    @Path("/")
     public Response submitTask(
             DpsTask task,
             @PathParam("topologyName") String topologyName,
