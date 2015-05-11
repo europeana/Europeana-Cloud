@@ -65,6 +65,10 @@ public class FilesResource {
 	 * binary stream of file content (required)</li>
 	 * </ul>
 	 *
+	 *@summary Add a new file to a representation version
+	 * @param globalId cloud id of the record (required).
+	 * @param schema schema of representation (required).
+	 * @param version a specific version of the representation(required).
 	 * @param mimeType
 	 *            mime type of file
 	 * @param data

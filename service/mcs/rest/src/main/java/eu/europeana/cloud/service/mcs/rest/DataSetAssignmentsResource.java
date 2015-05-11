@@ -8,6 +8,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import com.qmino.miredot.annotations.ReturnType;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -35,6 +36,9 @@ public class DataSetAssignmentsResource {
     /**
      * Assigns representation into a data set.
      *
+     *
+     * @param providerId identifier of provider(required)
+     * @param dataSetId identifier of data set (required)
      * @param recordId cloud id of record (required)
      * @param schema schema of representation (required)
      * @param representationVersion version of representation. If not provided,
@@ -56,9 +60,11 @@ public class DataSetAssignmentsResource {
     }
 
     /**
-     * Unassigns representation from data set. If representation was not
-     * assigned to data set, nothing happens.
+     * Unassigns representation from a data set. If representation was not
+     * assigned to a data set, nothing happens.
      *
+     * @param providerId identifier of provider(required)
+     * @param dataSetId identifier of data set (required)
      * @param recordId cloud id of record (required)
      * @param schema schema of representation (required)
      * @throws DataSetNotExistsException no such data set exists

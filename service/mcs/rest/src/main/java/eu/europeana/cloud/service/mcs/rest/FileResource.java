@@ -65,8 +65,8 @@ public class FileResource {
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
-     * Modify file operation. Updates file in representation version. MD5 of
-     * uploaded data is returned as tag. Consumes multipart content - form data:
+     *  Updates a file in a representation version. MD5 of
+     * the uploaded data is returned as a tag. Consumes multipart content - form data:
      * <ul>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} -
      * file mime type</li>
@@ -74,6 +74,11 @@ public class FileResource {
      * binary stream of file content (required)</li>
      * </ul>
      *
+     *@summary Updates a file in a representation version
+     * @param globalId cloud id of the record in which the file will be updated (required)
+     * @param schema schema of representation (required)
+     * @param version a specific version of the representation(required)
+     * @param fileName the name of the file(required)
      * @param mimeType mime type of file
      * @param data binary stream of file content (required)
      * @return uri of uploaded content file in content-location
@@ -114,7 +119,7 @@ public class FileResource {
 
     /**
      * Returns file content. Basic support for HTTP "Range" header is
-     * implemented for retrieving only a part of content is implemented
+     * implemented for retrieving only a part of content .
      * (Description of Range header can be found in Hypertext Transfer Protocol
      * HTTP/1.1, <a
      * href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35">section
@@ -124,12 +129,19 @@ public class FileResource {
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
      * </ul>
      *
+     * @summary get file contents from a representation version
+     * @param globalId cloud id of the record (required).
+     * @param schema schema of representation (required).
+     * @param version a specific version of the representation(required).
+     * @param fileName the name of the file(required).
      * @param range range of bytes to return (optional)
      * @return file content @throws RepresentationNotExistsException
-     * representation does not exist in specified version.
-     * @throws RepresentationNotExistsException
+     * representation does not exist in the specified version.
+     * @throws RepresentationNotExistsException representation does not exist in
+     * the specified version.
      * @throws WrongContentRangeException wrong value in "Range" header
-     * @throws FileNotExistsException
+     * @throws FileNotExistsException representation version does not have file
+     * with the specified name.
      */
     @GET
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
@@ -184,10 +196,16 @@ public class FileResource {
     /**
      * Deletes file from representation version.
      *
+     *
+     * @param globalId cloud id of the record (required).
+     * @param schema schema of representation (required).
+     * @param version a specific version of the representation(required).
+     * @param fileName the name of the file(required).
+     *
      * @throws RepresentationNotExistsException representation does not exist in
-     * specified version.
+     * the specified version.
      * @throws FileNotExistsException representation version does not have file
-     * with specified name.
+     * with the specified name.
      * @throws CannotModifyPersistentRepresentationException specified
      * representation version is persistent and deleting its files is not
      * allowed.

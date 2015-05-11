@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -50,18 +51,23 @@ public class RepresentationVersionResource {
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
-     * Returns representation in specified version. 
+     * Returns representation in a specified version.
+     * @summary get representation by version
      *
-     * @return representation in requested version WITH LIST OF FILES IN THIS
-     * REPRESENTATION
+     * @param globalId cloud id of the record which contains the representation(required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
+     * @return representation in requested version
      * 
-     * @throws RepresentationNotExistsException representation does not exist in
+     * @throws RepresentationNotExistsException representation does not exist in the
      * specified version.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
     		+ " 'eu.europeana.cloud.common.model.Representation', read)")
+    @ReturnType("eu.europeana.cloud.common.model.Representation")
     public Representation getRepresentationVersion(@Context UriInfo uriInfo,
     		@PathParam(P_VER) String version,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
@@ -75,11 +81,15 @@ public class RepresentationVersionResource {
 
     /**
      * Deletes representation version.
+     * @param globalId cloud id of the record which contains the representation version (required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
      *
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @throws CannotModifyPersistentRepresentationException representation in
-     * specified version is persitent and as such cannot be removed.
+     * specified version is persistent and as such cannot be removed.
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
@@ -97,6 +107,11 @@ public class RepresentationVersionResource {
 
     /**
      * Persists temporary representation.
+     *
+     * @param globalId cloud id of the record which contains the representation version(required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
      *
      * @return URI to persisted representation in content-location
      * @throws RepresentationNotExistsException representation does not exist in
@@ -123,10 +138,16 @@ public class RepresentationVersionResource {
     }
 
     /**
-     * Copies all information with all files and their content from one
+     * Copies all information with all files and their contents from one
      * representation version to a new temporary one.
      *
-     * @return uri to created representation in content-location
+     * @summary copy information including file contents from one representation version to another
+     * @param globalId cloud id of the record which contains the representation version
+     * @param schema name of the representation
+     * @param version
+     *            a specific version of the representation
+     *
+     *  @return uri to created representation in content-location
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @statuscode 201 representation has been copied to a new one.
