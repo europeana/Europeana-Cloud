@@ -62,7 +62,13 @@ public class UniqueIdentifierResource {
 
 	/**
 	 * Invokes the generation of a cloud identifier using the provider identifier
-	 * and a record identifier
+	 * and a record identifier.
+	 * 
+	 * <br/><br/>
+	 * <strong>Required permissions:</strong>
+	 * <ul>
+	 *     <li>Authenticated user</li>
+	 * </ul>
 	 * 
 	 * @summary Cloud identifier generation
 	 * @param providerId <strong>REQUIRED</strong> identifier of data-provider for which new cloud identifier will be created.
@@ -170,6 +176,12 @@ public class UniqueIdentifierResource {
 	/**
 	 * Remove a cloud identifier and all the associations to its record
 	 * identifiers
+	 *
+	 * <br/><br/>
+	 * <strong>Required permissions:</strong>
+	 * <ul>
+	 *     <li>Admin role</li>
+	 * </ul>
 	 * 
 	 * @summary Cloud identifier removal
 	 * 
