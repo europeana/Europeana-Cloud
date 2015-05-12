@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,8 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
+import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaParseTaskBolt;
@@ -31,10 +35,12 @@ public class XSLTTopology {
 
 	private static String username = "admin";
 	private static String password = "admin";
-	//private static String username = "Emmanouil_Koufakis";
-	//private static String password = "J9vdq9rpPy";
+	// private static String username = "Emmanouil_Koufakis";
+	// private static String password = "J9vdq9rpPy";
 	private static String zkAddress = "ecloud.eanadev.org:2181";
 
+	private static String kafkaTopic = "storm_metrics_topic";
+	private static String kafkaBroker = "ecloud.eanadev.org:9093";
 
 	public static final Logger LOGGER = LoggerFactory
 			.getLogger(XSLTTopology.class);
@@ -46,26 +52,45 @@ public class XSLTTopology {
 	}
 
 	public StormTopology buildTopology() {
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress, ecloudMcsAddress,
-				username, password);
+		
+		int numberOfExecutors = 8;
+		int numberOfTasks = 8;
+		
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress,
+				ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress,
 				username, password);
+		ProgressBolt progressBolt = new ProgressBolt(zkAddress);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts,
 				"franco_maria_topic_2", "", "storm");
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
 
-		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 2);
-		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt())
-				.shuffleGrouping("kafkaReader");
-		// builder.setSpout("testSpout", new DpsTaskSpoutTest(), 1);
-		builder.setBolt("retrieveFileBolt", retrieveFileBolt).shuffleGrouping(
-				"parseKafkaInput");
-		//builder.setBolt("xsltTransformationBolt", new XsltBolt())
-			//	.shuffleGrouping("retrieveFileBolt");
-		builder.setBolt("writeRecordBolt", writeRecordBolt).shuffleGrouping(
-				"retrieveFileBolt");
+		// TOPOLOGY STRUCTURE!
+		// 1 executor, i.e., 1 thread.
+		// 1 task per executor
+		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), numberOfExecutors)
+				.setNumTasks(numberOfTasks);
+
+		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(), numberOfExecutors)
+				.setNumTasks(numberOfTasks).shuffleGrouping("kafkaReader");
+
+		// builder.setSpout("testSpout", new DpsTaskSpoutTest(), numberOfExecutors).setNumTasks(numberOfTasks);
+
+		builder.setBolt("retrieveFileBolt", retrieveFileBolt, numberOfExecutors).setNumTasks(numberOfTasks)
+				.shuffleGrouping("parseKafkaInput");
+
+		builder.setBolt("xsltTransformationBolt", new XsltBolt(), numberOfExecutors)
+				.setNumTasks(numberOfTasks).shuffleGrouping("retrieveFileBolt");
+
+		builder.setBolt("writeRecordBolt", writeRecordBolt, numberOfExecutors).setNumTasks(numberOfTasks)
+				.shuffleGrouping("xsltTransformationBolt");
+
+		builder.setBolt("progressBolt", progressBolt, 1).setNumTasks(1)
+				.shuffleGrouping("writeRecordBolt");
+		// END OF TOPOLOGY STRUCTURE
+
 		return builder.createTopology();
 	}
 
@@ -76,12 +101,20 @@ public class XSLTTopology {
 		Config config = new Config();
 		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
+		Map<String, String> kafkaMetricsConfig = new HashMap<String, String>();
+		kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY,
+				kafkaBroker);
+		kafkaMetricsConfig
+				.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, kafkaTopic);
+		config.registerMetricsConsumer(KafkaMetricsConsumer.class,
+				kafkaMetricsConfig, 60);
+
 		StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology();
 
 		if (args != null && args.length > 1) {
 			String dockerIp = args[1];
 			String name = args[2];
-			config.setNumWorkers(1);
+			config.setNumWorkers(4);
 			config.setMaxTaskParallelism(1);
 			config.put(Config.NIMBUS_THRIFT_PORT, 6627);
 			config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
@@ -89,7 +122,7 @@ public class XSLTTopology {
 			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
 			StormSubmitter.submitTopology(name, config, stormTopology);
 		} else {
-			config.setNumWorkers(1);
+			config.setNumWorkers(4);
 			config.setMaxTaskParallelism(1);
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology("XSLTTopology", config, stormTopology);
