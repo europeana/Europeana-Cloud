@@ -4,26 +4,20 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * The provider Id/local Id model
- * 
+ *
  * @author Yorgos.Mamakis@ kb.nl
- * 
  */
 @XmlRootElement
 public class LocalId {
 
-    /**
-     * provider id
-     */
+    /* Provider id */
     private String providerId;
 
-    /**
-     * record id
-     */
+    /* Record id */
     private String recordId;
 
-
     /**
-     * @return provider identifier
+     * @return Provider identifier
      */
     public String getProviderId() {
         return providerId;
@@ -34,9 +28,8 @@ public class LocalId {
         this.providerId = providerId;
     }
 
-
     /**
-     * @return record identifier
+     * @return Record identifier
      */
     public String getRecordId() {
         return recordId;

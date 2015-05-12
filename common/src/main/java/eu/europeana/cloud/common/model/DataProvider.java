@@ -29,9 +29,7 @@ public class DataProvider {
      */
     private int partitionKey;
 
-    /**
-     * Indicates if data-provider is active or not
-     */
+    /* Indicates if data-provider is active or not */
     private boolean active = true;
     
     /**
@@ -88,6 +86,9 @@ public class DataProvider {
         this.active = active;
     }
 
+    /**
+     * @return Indicates if data-provider is active or not
+     */
     public boolean isActive() {
         return active;
     }

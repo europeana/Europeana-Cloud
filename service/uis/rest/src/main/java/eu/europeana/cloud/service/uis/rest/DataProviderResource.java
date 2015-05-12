@@ -88,11 +88,13 @@ public class DataProviderResource {
 	 * Updates data provider information.
 	 *
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Authenticated user</li>
-	 *     <li>Write permission for the selected data provider</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 		<ul>
+	 *     		<li>Authenticated user</li>
+	 *     		<li>Write permission for the selected data provider</li>
+	 * 		</ul>
+	 * </div>	
 	 * 
 	 * @summary Data provider information update
 	 * 
@@ -121,10 +123,12 @@ public class DataProviderResource {
 	 * Deletes data provider from database
 	 * 
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Admin role</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 		<ul>
+	 *     		<li>Admin role</li>
+	 * 		</ul>
+	 * </div>	
 	 * 
 	 * @summary Data provider deletion 
 	 * 
@@ -225,10 +229,12 @@ public class DataProviderResource {
 	 * provider
 	 * 
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Authenticated user</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 		<ul>
+	 *     		<li>Authenticated user</li>
+	 * 		</ul>
+	 * </div>	
 	 * 
 	 * @summary Cloud identifier to record identifier mapping creation
 	 * 
@@ -295,12 +301,14 @@ public class DataProviderResource {
 	 * Remove the mapping between a record identifier and a cloud identifier
 	 * 
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Authenticated user</li>
-	 *     <li>Write permissions for selected data provider and local identifier 
-	 *     	(granted at the mapping creation)</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 		<ul>
+	 *     		<li>Authenticated user</li>
+	 *     		<li>Write permissions for selected data provider and local identifier 
+	 *     			(granted at the mapping creation)</li>
+	 * 		</ul>
+	 * </div>	
 	 * 
 	 * @summary Mapping between record and cloud identifier removal
 	 * 

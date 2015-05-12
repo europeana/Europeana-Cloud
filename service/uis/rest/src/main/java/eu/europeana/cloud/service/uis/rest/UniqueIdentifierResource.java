@@ -65,10 +65,12 @@ public class UniqueIdentifierResource {
 	 * and a record identifier.
 	 * 
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Authenticated user</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 		<ul>
+	 *     		<li>Authenticated user</li>
+	 * 		</ul>
+	 * </div>
 	 * 
 	 * @summary Cloud identifier generation
 	 * @param providerId <strong>REQUIRED</strong> identifier of data-provider for which new cloud identifier will be created.
@@ -178,10 +180,12 @@ public class UniqueIdentifierResource {
 	 * identifiers
 	 *
 	 * <br/><br/>
-	 * <strong>Required permissions:</strong>
-	 * <ul>
-	 *     <li>Admin role</li>
-	 * </ul>
+	 * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+	 * 		<strong>Required permissions:</strong>
+	 * 			<ul>
+	 *     			<li>Admin role</li>
+	 * 			</ul>
+	 * </div>	
 	 * 
 	 * @summary Cloud identifier removal
 	 * 

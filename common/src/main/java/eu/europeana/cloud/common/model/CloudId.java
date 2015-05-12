@@ -6,19 +6,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * Unique Identifier model
  *
  * @author Yorgos.Mamakis@ kb.nl
- *
  */
 @XmlRootElement
 public class CloudId {
 
-    /**
-     * The unique identifier
-     */
+    /* The unique identifier */
     private String id;
 
-    /**
-     * A providerId/recordId combo
-     */
+    /* A providerId/recordId combo */
     private LocalId localId;
 
     /**
@@ -32,6 +27,9 @@ public class CloudId {
         this.id = id;
     }
 
+    /**
+     * @return A providerId/recordId combo
+     */
     public LocalId getLocalId() {
         return localId;
     }

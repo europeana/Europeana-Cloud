@@ -32,10 +32,12 @@ public class DataProviderActivationResource {
      * Activates data provider (sets flag 'active' to true)
      * 
      * <br/><br/>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     *     <li>Admin role</li>
-     * </ul>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     *      <strong>Required permissions:</strong>
+     *      <ul>
+     *          <li>Admin role</li>
+     *      </ul>
+     * </div>    
      * 
      * @summary Data-provider activation 
      * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated 
@@ -60,10 +62,12 @@ public class DataProviderActivationResource {
      * Deactivates data provider (sets flag 'active' to false)
      * 
      * <br/><br/>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     *     <li>Admin role</li>
-     * </ul>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     *      <strong>Required permissions:</strong>
+     *      <ul>
+     *          <li>Admin role</li>
+     *      </ul>
+     * </div>
      * 
      * @summary Data-provider deactivation
      * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated    
