@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent.aspects;
 
 import eu.europeana.cloud.service.mcs.persistent.exception.SwiftConnectionException;
-import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore;
 import eu.europeana.cloud.service.mcs.persistent.swift.RetryOnFailure;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.annotation.PostConstruct;
@@ -24,60 +25,54 @@ import org.springframework.beans.factory.annotation.Autowired;
  * retries must be annotated by interface {@link RetryOnFailure}.
  */
 @Aspect
-public class RetryBlobStoreExecutor {
+public class RetryOnTokenExpiryExecutor {
 
     @Autowired
-    DBlobStore dynamicBlobStore;
+    SwiftConnectionProvider provider;
 
     private int numberOfRetries;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RetryBlobStoreExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RetryOnTokenExpiryExecutor.class);
 
 
     @PostConstruct
     public void init() {
-        numberOfRetries = dynamicBlobStore.getInstanceNumber() - 1;
+        numberOfRetries = 1;
     }
 
 
-    @Pointcut("execution(* eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore.*(..))")
-    private void isDynamicBlobStoreFunction() {
+    @Pointcut("execution(* eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO.*(..))")
+    private void isSwiftContentDAOFunction() {
     }
 
 
-    @Pointcut("@annotation(eu.europeana.cloud.service.mcs.persistent.swift.RetryOnFailure)")
-    private void isMarkedAsRetryOnFailure() {
-    }
-
-
-    @Around("isDynamicBlobStoreFunction() && isMarkedAsRetryOnFailure()")
+    @Around("isSwiftContentDAOFunction()")
     public Object retry(ProceedingJoinPoint pjp)
             throws Throwable {
         try {
             return pjp.proceed();
-        } catch (HttpResponseException e) {
-            //reconnect
-            DynamicBlobStore failureBlobStore = dynamicBlobStore.getDynamicBlobStoreWithoutActiveInstance();
-            return retryOnFailure(failureBlobStore, pjp.getSignature(), pjp.getArgs());
+        } catch (SwiftConnectionException e) {
+            return retryOnFailure((SwiftContentDAO) pjp.getTarget(), pjp.getSignature(), pjp.getArgs());
         }
     }
 
 
-    private Object retryOnFailure(DynamicBlobStore failureBlobStore, Signature signature, Object[] args)
+    private Object retryOnFailure(SwiftContentDAO contentDAO, Signature signature, Object[] args)
             throws NoSuchMethodException, IllegalAccessException, Throwable {
         for (int i = 0; i < numberOfRetries; i++) {
+            //provider.reconnectConnections();
             try {
                 final Method method = ((MethodSignature) signature).getMethod();
-                Object o = method.invoke(failureBlobStore, args);
+                Object o = method.invoke(contentDAO, args);
                 return o;
             } catch (InvocationTargetException e) {
-                if (e.getTargetException() instanceof HttpResponseException) {
-                    LOGGER.info("Failrue of the proxy switch in to next.");
+                if (e.getTargetException() instanceof SwiftConnectionException) {
+                    LOGGER.info("Retry connection to proxy.");
                     continue;
                 }
                 throw e.getTargetException();
             }
         }
-        throw new SwiftConnectionException();
+        throw new RuntimeException("All instances of Swift are down");
     }
 }

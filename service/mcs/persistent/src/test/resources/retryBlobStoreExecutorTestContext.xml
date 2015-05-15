@@ -24,4 +24,9 @@
     </bean>
     <bean id="retryBlobStoreExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor"/>
    
+    <mockito:mock id="connectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.DynamicSwiftConnectionProvider"/>
+    <bean id="retryOnTokenExpiryExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryOnTokenExpiryExecutor"/>
+    <bean id="SwiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+    <mockito:spy beanName="retryOnTokenExpiryExecutor" />
+   
 </beans>

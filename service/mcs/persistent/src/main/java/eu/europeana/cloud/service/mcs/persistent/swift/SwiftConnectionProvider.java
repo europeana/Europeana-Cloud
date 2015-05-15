@@ -13,14 +13,22 @@ public interface SwiftConnectionProvider {
      */
     BlobStore getBlobStore();
 
+
     /**
      * @return name of container
      */
     String getContainer();
 
+
     /**
      * Close connection on container destroy.
      */
     public void closeConnections();
+
+
+    /**
+     * Reconnect connection.
+     */
+    public void reconnectConnections();
 
 }

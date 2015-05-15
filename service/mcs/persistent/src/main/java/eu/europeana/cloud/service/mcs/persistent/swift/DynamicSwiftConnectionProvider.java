@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.aspectj.lang.annotation.Before;
 import org.jclouds.blobstore.BlobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
 
-    private static final Logger LOGGER = LoggerFactory
-	    .getLogger(DynamicSwiftConnectionProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicSwiftConnectionProvider.class);
     private final List<SwiftConnectionProvider> proxys;
     private List<BlobStore> blobStores;
 
@@ -27,6 +25,7 @@ public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
     private DBlobStore dynamicBlobStore;
 
     private final String container;
+
 
     /**
      * Class constructor. Establish connection to multi Openstack Swift
@@ -45,8 +44,8 @@ public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
      * @param password
      *            user password
      */
-    public DynamicSwiftConnectionProvider(String provider,
-            String container, String endpointsList, String user, String password) {
+    public DynamicSwiftConnectionProvider(String provider, String container, String endpointsList, String user,
+            String password) {
 
         String[] endpoints = endpointsList.split(",");
         proxys = new ArrayList<>();
@@ -54,43 +53,60 @@ public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
         this.container = container;
         for (String endpoint : endpoints) {
             LOGGER.info("Connecing to swift" + endpoint);
-            SwiftConnectionProvider connectionProvider = new SimpleSwiftConnectionProvider(
-                    provider, container, endpoint, user, password);
+            SwiftConnectionProvider connectionProvider = new SimpleSwiftConnectionProvider(provider, container,
+                    endpoint, user, password);
             blobStores.add(connectionProvider.getBlobStore());
             proxys.add(connectionProvider);
         }
     }
+
 
     /**
      * Initialize {@link DynamicBlobStore}.
      */
     @PostConstruct
     public void setBlobStores() {
-	dynamicBlobStore.setBlobStores(blobStores);
+        dynamicBlobStore.setBlobStores(blobStores);
     }
+
 
     @PreDestroy
     public void closeConnections() {
-	for (SwiftConnectionProvider proxy : proxys) {
-	    proxy.closeConnections();
-	}
+        for (SwiftConnectionProvider proxy : proxys) {
+            proxy.closeConnections();
+        }
 
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public String getContainer() {
-	return container;
+        return container;
     }
+
 
     /**
      * {@inheritDoc }
      */
     @Override
     public BlobStore getBlobStore() {
-	return dynamicBlobStore;
+        return dynamicBlobStore;
     }
 
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public void reconnectConnections() {
+        blobStores = new ArrayList<>();
+        for (SwiftConnectionProvider proxy : proxys) {
+            LOGGER.info("Reconnect to swift" + proxy);
+            proxy.reconnectConnections();
+            blobStores.add(proxy.getBlobStore());
+        }
+    }
 }

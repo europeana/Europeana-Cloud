@@ -39,14 +39,17 @@ public interface ContentDAO {
 
 
     /**
-     * Retrieves content of file from storage. Can retrieve range of bytes of the file.
+     * Retrieves content of file from storage. Can retrieve range of bytes of
+     * the file.
      * 
      * @param fileName
      *            name of the file to retrieve
      * @param start
-     *            first offset included in the response. If equal to -1, ignored.
+     *            first offset included in the response. If equal to -1,
+     *            ignored.
      * @param end
-     *            last offset included in the response (inclusive). If equal to -1, ignored.
+     *            last offset included in the response (inclusive). If equal to
+     *            -1, ignored.
      * @param os
      *            outputstream the content is written to
      * @throws IOException
@@ -59,8 +62,8 @@ public interface ContentDAO {
 
 
     /**
-     * Puts given content to storage under given fileName. Counts and returns content length and md5 checksum from given
-     * data.
+     * Puts given content to storage under given fileName. Counts and returns
+     * content length and md5 checksum from given data.
      * 
      * @param fileName
      *            name of the file
