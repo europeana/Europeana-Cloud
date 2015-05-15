@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Fields;
 import com.google.gson.Gson;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractorFactory;
 import java.io.ByteArrayInputStream;
@@ -87,19 +85,9 @@ public class ExtractTextBolt extends AbstractDpsBolt
     public void declareOutputFields(OutputFieldsDeclarer declarer) 
     {
         //store branch
-        declarer.declareStream(storeStremName, new Fields(
-            StormTupleKeys.TASK_ID_TUPLE_KEY,
-            StormTupleKeys.TASK_NAME_TUPLE_KEY,
-            StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-            StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-            StormTupleKeys.PARAMETERS_TUPLE_KEY));
+        declarer.declareStream(storeStremName, StormTaskTuple.getFields());
         
         //inform branch
-        declarer.declareStream(informStreamName, new Fields(
-            StormTupleKeys.TASK_ID_TUPLE_KEY,
-            StormTupleKeys.TASK_NAME_TUPLE_KEY,
-            StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-            StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-            StormTupleKeys.PARAMETERS_TUPLE_KEY));
+        declarer.declareStream(informStreamName, StormTaskTuple.getFields());
     }
 }

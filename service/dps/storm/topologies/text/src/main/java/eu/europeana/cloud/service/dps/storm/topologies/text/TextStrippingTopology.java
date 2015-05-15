@@ -8,12 +8,16 @@ import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.testing.FeederSpout;
+import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.KafkaProducerBolt;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.StoreFileAsNewRepresentationBolt;
@@ -35,6 +39,14 @@ import storm.kafka.ZkHosts;
  */
 public class TextStrippingTopology 
 {
+    public enum SpoutType
+    {
+        KAFKA,
+        FEEDER
+    }
+    
+    private final SpoutType spoutType;
+    
     private final String datasetStream = "ReadDataset";
     private final String fileStream = "ReadFile";
     private final String storeStream = "StoreStream";
@@ -47,18 +59,16 @@ public class TextStrippingTopology
     
     private static final Logger LOGGER = LoggerFactory.getLogger(TextStrippingTopology.class);
     
-    private final BrokerHosts brokerHosts;
-
     /**
      * 
-     * @param brokerZkStr zookeeper connection string (e.g. localhost:2181)
+     * @param spoutType
      */
-    public TextStrippingTopology(String brokerZkStr) 
+    public TextStrippingTopology(SpoutType spoutType) 
     {
-        brokerHosts = new ZkHosts(brokerZkStr);
+        this.spoutType = spoutType;
     }
     
-    private StormTopology buildTopology() 
+    protected StormTopology buildTopology() 
     {
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.NEW_DATASET_MESSAGE, datasetStream);
@@ -75,44 +85,56 @@ public class TextStrippingTopology
         outputParameters.put(PluginParameterKeys.FILE_NAME, null);
         outputParameters.put(PluginParameterKeys.ORIGINAL_FILE_URL, null);
         outputParameters.put(PluginParameterKeys.FILE_METADATA, null);
-             
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, 
-                TextStrippingConstants.KAFKA_INPUT_TOPIC, 
-                TextStrippingConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());               
-                
+        
         TopologyBuilder builder = new TopologyBuilder();
         
-        builder.setSpout("kafkaSpout", new KafkaSpout(kafkaConfig), TextStrippingConstants.KAFKA_SPOUT_PARALLEL);
+        builder.setSpout("KafkaSpout", getSpout(), TextStrippingConstants.KAFKA_SPOUT_PARALLEL);
         
-        builder.setBolt("parseDpsTask", new ParseTaskBolt(routingRules, prerequisites), TextStrippingConstants.PARSE_TASKS_BOLT_PARALLEL)
-                .shuffleGrouping("kafkaSpout");
+        builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules, prerequisites), TextStrippingConstants.PARSE_TASKS_BOLT_PARALLEL)
+                .shuffleGrouping("KafkaSpout");
         
-        builder.setBolt("retrieveDataset", new ReadDatasetBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveDataset", new ReadDatasetBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
                             TextStrippingConstants.DATASET_BOLT_PARALLEL)
-                .shuffleGrouping("parseDpsTask", datasetStream);
+                .shuffleGrouping("ParseDpsTask", datasetStream);
         
-        builder.setBolt("retrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
                             TextStrippingConstants.FILE_BOLT_PARALLEL)
-                .shuffleGrouping("parseDpsTask", fileStream);
+                .shuffleGrouping("ParseDpsTask", fileStream);
         
-        builder.setBolt("extractText", new ExtractTextBolt(storeStream, informStream), TextStrippingConstants.EXTRACT_BOLT_PARALLEL)
-                .shuffleGrouping("retrieveDataset")
-                .shuffleGrouping("retrieveFile");
+        builder.setBolt("ExtractText", new ExtractTextBolt(storeStream, informStream), TextStrippingConstants.EXTRACT_BOLT_PARALLEL)
+                .shuffleGrouping("RetrieveDataset")
+                .shuffleGrouping("RetrieveFile");
         
-        builder.setBolt("storeNewRepresentation", new StoreFileAsNewRepresentationBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("StoreNewRepresentation", new StoreFileAsNewRepresentationBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
                             TextStrippingConstants.STORE_BOLT_PARALLEL)
-                .shuffleGrouping("extractText", storeStream);
+                .shuffleGrouping("ExtractText", storeStream);
         
         builder.setBolt("InformBolt", new KafkaProducerBolt(TextStrippingConstants.KAFKA_OUTPUT_BROKER, TextStrippingConstants.KAFKA_OUTPUT_TOPIC,
                             PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, outputParameters), TextStrippingConstants.INFORM_BOLT_PARALLEL)
-                .shuffleGrouping("extractText", informStream)
-                .shuffleGrouping("storeNewRepresentation");
-        
-        builder.setBolt("progress", new ProgressBolt(zkProgressAddress), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
+                .shuffleGrouping("ExtractText", informStream)
+                .shuffleGrouping("StoreNewRepresentation");
+
+        builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
                 .shuffleGrouping("InformBolt");
-        
+
         return builder.createTopology();
+    }
+    
+    private IRichSpout getSpout()
+    {    
+        switch(spoutType)
+        {
+            case FEEDER:
+                return new FeederSpout(new StringScheme().getOutputFields());
+            case KAFKA:
+            default:
+                SpoutConfig kafkaConfig = new SpoutConfig(
+                    new ZkHosts(TextStrippingConstants.INPUT_ZOOKEEPER), 
+                    TextStrippingConstants.KAFKA_INPUT_TOPIC, 
+                    TextStrippingConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
+                kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+                return new KafkaSpout(kafkaConfig);
+        }
     }
     
     /**
@@ -122,11 +144,9 @@ public class TextStrippingTopology
      */
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
     {
-        String kafkaZk = TextStrippingConstants.INPUT_ZOOKEEPER;//args[0];
-        TextStrippingTopology textStrippingTopology = new TextStrippingTopology(kafkaZk);
+        TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
         Config config = new Config();
-        config.setDebug(true);
-        //config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+        //config.setDebug(true);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, TextStrippingConstants.KAFKA_METRICS_BROKER);
@@ -144,7 +164,7 @@ public class TextStrippingTopology
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
             config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0]));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } 
         else 

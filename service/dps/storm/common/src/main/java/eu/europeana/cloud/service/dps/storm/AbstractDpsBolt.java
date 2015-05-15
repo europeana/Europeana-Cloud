@@ -55,11 +55,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) 
     {
-        declarer.declare(new Fields(
-                StormTupleKeys.TASK_ID_TUPLE_KEY,
-                StormTupleKeys.TASK_NAME_TUPLE_KEY,
-                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY));
+        declarer.declare(StormTaskTuple.getFields());
     }
 }

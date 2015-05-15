@@ -27,6 +27,12 @@ public class TikaExtractor implements TextExtractor
     @Override
     public String extractText(InputStream is) 
     {
+        if(is == null)
+        {
+            LOGGER.warn("No data for extraction.");
+            return null;
+        }
+        
         BodyContentHandler handler = new BodyContentHandler(-1);    // -1 to disable the write limit
         metadata = new Metadata();
         ParseContext pcontext = new ParseContext();
@@ -54,6 +60,11 @@ public class TikaExtractor implements TextExtractor
     @Override
     public Map<String, String> getExtractedMetadata() 
     {
+        if(metadata == null)
+        {
+            return null;
+        }
+        
         Map<String, String> ret = new HashMap<>();
         for (String name : metadata.names())
         {

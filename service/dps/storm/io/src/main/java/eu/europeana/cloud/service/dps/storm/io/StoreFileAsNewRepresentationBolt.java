@@ -73,6 +73,7 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
 
         t.setFileUrl(newFileUri.toString());
         outputCollector.emit(inputTuple, t.toStormTuple());
+        outputCollector.ack(inputTuple);
     }
 
     @Override

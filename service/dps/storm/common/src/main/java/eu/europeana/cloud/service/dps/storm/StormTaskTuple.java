@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import backtype.storm.tuple.Fields;
 import java.io.Serializable;
 import java.util.HashMap;
 
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 
@@ -29,15 +30,15 @@ public class StormTaskTuple implements Serializable {
 	private long taskId;
 	private String taskName;
 
-	private HashMap<String, String> parameters;
+	private Map<String, String> parameters;
 
 	public StormTaskTuple() {
 
 		this.taskName = "";
-		this.parameters = Maps.newHashMap();
+		this.parameters = new HashMap<>();
 	}
 
-	public StormTaskTuple(String fileUrl, HashMap<String, String> parameters) {
+	public StormTaskTuple(String fileUrl, Map<String, String> parameters) {
 
 		fileData = new String();
 		this.taskName = "";
@@ -46,12 +47,12 @@ public class StormTaskTuple implements Serializable {
 	}
 
 	public StormTaskTuple(long taskId, String taskName, String fileUrl,
-			String fileData, HashMap<String, String> parameters) {
+			String fileData, Map<String, String> parameters) {
 
 		this.taskId = taskId;
 		this.taskName = taskName;
 		this.fileUrl = fileUrl;
-		this.fileData = fileData;
+		this.fileData = fileData;   //NO ENCODE!!!!!!
 		this.parameters = parameters;
 	}
 
@@ -71,8 +72,16 @@ public class StormTaskTuple implements Serializable {
             }
 	}
         
-        public ByteArrayInputStream getFileByteDataAsStream() {
+        public ByteArrayInputStream getFileByteDataAsStream() 
+        {
+            if(fileData != null)
+            {
 		return new ByteArrayInputStream(Base64.decodeBase64(fileData));
+            }
+            else
+            {
+                return null;
+            }
 	}
 
 	public long getTaskId() {
@@ -87,12 +96,28 @@ public class StormTaskTuple implements Serializable {
 		this.taskId = taskId;
 	}
 
-	public void setFileData(String fileData) {
+	public void setFileData(String fileData) 
+        {
+            if(fileData != null)
+            {
 		this.fileData = Base64.encodeBase64String(fileData.getBytes());
+            }
+            else
+            {
+                this.fileData = null;
+            }
 	}
         
-        public void setFileData(InputStream is) throws IOException {
+        public void setFileData(InputStream is) throws IOException 
+        {
+            if(is != null)
+            {
                 this.fileData = Base64.encodeBase64String(IOUtils.toByteArray(is));
+            }
+            else
+            {
+                this.fileData = null;
+            }
         }
 
 	public void setFileUrl(String fileUrl) {
@@ -107,7 +132,7 @@ public class StormTaskTuple implements Serializable {
 		return parameters.get(parameterKey);
 	}
 
-	public HashMap<String, String> getParameters() {
+	public Map<String, String> getParameters() {
 		return parameters;
 	}
 
@@ -125,4 +150,14 @@ public class StormTaskTuple implements Serializable {
 	public Values toStormTuple() {
 		return new Values(taskId, taskName, fileUrl, fileData, parameters);
 	}
+        
+        public static Fields getFields()
+        {
+            return new Fields(
+                StormTupleKeys.TASK_ID_TUPLE_KEY,
+                StormTupleKeys.TASK_NAME_TUPLE_KEY,
+                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+                StormTupleKeys.PARAMETERS_TUPLE_KEY);
+        }
 }

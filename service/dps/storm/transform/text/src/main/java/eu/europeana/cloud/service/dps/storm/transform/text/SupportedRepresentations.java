@@ -8,7 +8,7 @@ public enum SupportedRepresentations
 {
     PDF,
     OAI,
-    UNSEPPORTED;    //default value
+    UNSUPPORTED;    //default value
     
     /**
      * Retrieve the enum constant of representation. 
@@ -24,7 +24,7 @@ public enum SupportedRepresentations
         }
         catch(IllegalArgumentException | NullPointerException ex)
         {
-           return UNSEPPORTED;  //use default value
+           return UNSUPPORTED;  //use default value
         }
         
         return ret;

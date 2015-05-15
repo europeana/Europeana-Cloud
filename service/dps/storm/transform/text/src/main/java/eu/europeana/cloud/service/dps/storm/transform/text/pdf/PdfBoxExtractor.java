@@ -22,6 +22,12 @@ public class PdfBoxExtractor implements TextExtractor
     @Override
     public String extractText(InputStream is) 
     {
+        if(is == null)
+        {
+            LOGGER.warn("No data for extraction.");
+            return null;
+        }
+        
         PDFParser parser;
         String parsedText = null;
         PDFTextStripper pdfStripper = null;

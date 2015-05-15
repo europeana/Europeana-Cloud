@@ -51,14 +51,30 @@ public class DcExtractor implements TextExtractor
     @Override
     public String extractText(InputStream is) 
     {
+        if(is == null)
+        {
+            LOGGER.warn("No data for extraction.");
+            return null;
+        }
+        
         JsonObject ret = new JsonObject();
         SAXBuilder builder = new SAXBuilder();
         try 
         {
             Document document = builder.build(is);
-            Element metadataNode = document.getRootElement().getChild("metadata");                
+            Element metadataNode = document.getRootElement().getChild("metadata"); 
+            if(metadataNode == null)
+            {
+                LOGGER.warn("Can not extract data from oai-dc because: metadata tag is missing.");
+                return null;
+            }
             Element dcNode = metadataNode.getChild("dc", Namespace.getNamespace("http://www.openarchives.org/OAI/2.0/oai_dc/"));
-
+            if(dcNode == null)
+            {
+                LOGGER.warn("Can not extract data from oai-dc because: oai_dc:dc tag is missing.");
+                return null;
+            }
+            
             for(Map.Entry<String, String> tag: tags.entrySet())
             {
                 List<Element> list;
@@ -107,7 +123,7 @@ public class DcExtractor implements TextExtractor
         } 
         catch (JDOMException | IOException ex) 
         {
-            LOGGER.warn("Can not extract text from oai-dc because: " + ex.getMessage());
+            LOGGER.warn("Can not extract data from oai-dc because: " + ex.getMessage());
         }
         
         return null;

@@ -63,6 +63,12 @@ public class ReadFileBolt extends AbstractDpsBolt
     public void execute(StormTaskTuple t) 
     {
         String fileUrl = t.getFileUrl();
+        if(fileUrl == null || fileUrl.isEmpty())
+        {
+            LOGGER.warn("No URL for retrieve file.");
+            outputCollector.ack(inputTuple);
+            return;
+        }
  
         try
         {
@@ -79,20 +85,18 @@ public class ReadFileBolt extends AbstractDpsBolt
             updateMetrics(t, IOUtils.toString(is));
 
             outputCollector.emit(inputTuple, t.toStormTuple());
-            
-            outputCollector.ack(inputTuple);
         }
         catch (RepresentationNotExistsException | FileNotExistsException | 
                     WrongContentRangeException ex) 
         {
-            LOGGER.info("Can not retrieve file at {}", fileUrl);
-            outputCollector.ack(inputTuple);
+            LOGGER.warn("Can not retrieve file at {}", fileUrl);
         }
         catch (DriverException | MCSException | IOException ex) 
         {
             LOGGER.error("ReadFileBolt error:" + ex.getMessage());
-            outputCollector.ack(inputTuple);
         }
+        
+        outputCollector.ack(inputTuple);
     }
 
     void initMetrics(TopologyContext context) 
@@ -102,10 +106,10 @@ public class ReadFileBolt extends AbstractDpsBolt
         wordCountMetric = new MultiCountMetric();
         wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
 
-        context.registerMetric("read_records=>", countMetric, 1);
-        context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
-        context.registerMetric("word_count=>", wordCountMetric, 1);
-        context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
+        context.registerMetric("read_records=>", countMetric, 10);
+        context.registerMetric("pCountMetric_records=>", pCountMetric, 10);
+        context.registerMetric("word_count=>", wordCountMetric, 10);
+        context.registerMetric("word_length=>", wordLengthMeanMetric, 10);
     }
     
     void updateMetrics(StormTaskTuple t, String word) 

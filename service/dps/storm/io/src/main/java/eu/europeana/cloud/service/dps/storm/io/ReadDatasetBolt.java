@@ -60,6 +60,14 @@ public class ReadDatasetBolt extends AbstractDpsBolt
         String providerId = t.getParameter(PluginParameterKeys.PROVIDER_ID);
         String datasetId = t.getParameter(PluginParameterKeys.DATASET_ID);
         
+        if(providerId == null || providerId.isEmpty() ||
+            datasetId == null || datasetId.isEmpty())
+        {
+            LOGGER.warn("No ProviderId or DatasetId for retrieve dataset.");
+            outputCollector.ack(inputTuple);
+            return;
+        }
+        
         LOGGER.info("Reading dataset with providerId: {} and datasetId: {}", providerId, datasetId);
         
         try 
@@ -105,7 +113,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
 
                     updateMetrics(t, IOUtils.toString(is));
 
-                    outputCollector.emit(inputTuple, t.toStormTuple());
+                    outputCollector.emit(inputTuple, t.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
                 }
             }           
             outputCollector.ack(inputTuple);

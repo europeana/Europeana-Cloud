@@ -55,22 +55,12 @@ public class ParseTaskBolt extends BaseBasicBolt
         {
             for(Map.Entry<String, String> rule : routingRules.entrySet())
             {
-                declarer.declareStream(rule.getValue(), new Fields(
-                    StormTupleKeys.TASK_ID_TUPLE_KEY,
-                    StormTupleKeys.TASK_NAME_TUPLE_KEY,
-                    StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-                    StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                    StormTupleKeys.PARAMETERS_TUPLE_KEY));
+                declarer.declareStream(rule.getValue(), StormTaskTuple.getFields());
             }
         }
         else
         {
-            declarer.declare(new Fields(
-                StormTupleKeys.TASK_ID_TUPLE_KEY,
-                StormTupleKeys.TASK_NAME_TUPLE_KEY,
-                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY));
+            declarer.declare(StormTaskTuple.getFields());
         }
     }
 
@@ -89,7 +79,7 @@ public class ParseTaskBolt extends BaseBasicBolt
             return;
         }
 
-        HashMap<String, String> taskParameters = task.getParameters();
+        Map<String, String> taskParameters = task.getParameters();
         //HashMap<String, List<String>> inputData = task.getInputData();
         
         //chceck necessary parameters for current topology

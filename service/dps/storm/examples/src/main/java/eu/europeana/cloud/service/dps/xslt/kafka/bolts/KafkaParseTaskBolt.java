@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.xslt.kafka.bolts;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -14,6 +13,7 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import java.util.Map;
 
 public class KafkaParseTaskBolt extends BaseBasicBolt {
 	
@@ -33,7 +33,7 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 			e.printStackTrace();
 		}
 
-		HashMap<String, String> taskParameters = task.getParameters();
+		Map<String, String> taskParameters = task.getParameters();
 		System.out.println("taskParameters size=" + taskParameters.size());
 
 		List<String> files = task.getDataEntry(DpsTask.FILE_URLS);

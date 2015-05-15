@@ -26,7 +26,7 @@ public class TextExtractorFactory
                 return getPdfExtractor(extractorName);
             case OAI:
                 return getOaiExtractor(extractorName);
-            case UNSEPPORTED:
+            case UNSUPPORTED:
             default:
                 return null;
         }
