@@ -52,6 +52,7 @@ public class RepresentationVersionResource {
 
     /**
      * Returns representation in a specified version.
+     * <strong>Read permissions required.</strong>
      * @summary get representation by version
      *
      * @param globalId cloud id of the record which contains the representation(required).
@@ -81,6 +82,7 @@ public class RepresentationVersionResource {
 
     /**
      * Deletes representation version.
+     * <strong>Delete permissions required.</strong>
      * @param globalId cloud id of the record which contains the representation version (required).
      * @param schema name of the representation(required).
      * @param version
@@ -108,12 +110,14 @@ public class RepresentationVersionResource {
     /**
      * Persists temporary representation.
      *
+     * <strong>Write permissions required.</strong>
+     *
      * @param globalId cloud id of the record which contains the representation version(required).
      * @param schema name of the representation(required).
      * @param version
      *            a specific version of the representation(required).
      *
-     * @return URI to persisted representation in content-location
+     * @return URI to the persisted representation in content-location.
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @throws CannotModifyPersistentRepresentationException representation
@@ -140,14 +144,14 @@ public class RepresentationVersionResource {
     /**
      * Copies all information with all files and their contents from one
      * representation version to a new temporary one.
-     *
+     *<strong>Read permissions required.</strong>
      * @summary copy information including file contents from one representation version to another
      * @param globalId cloud id of the record which contains the representation version
      * @param schema name of the representation
      * @param version
      *            a specific version of the representation
      *
-     *  @return uri to created representation in content-location
+     * @return URI to the created representation in content-location.
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @statuscode 201 representation has been copied to a new one.

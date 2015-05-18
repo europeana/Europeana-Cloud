@@ -44,9 +44,9 @@ public class RepresentationVersionsResource {
     /**
      * Lists all versions of record representation. Temporary versions will be
      * included in the returned list.
-     * @summary get all representation versions
+     * @summary get all representation versions.
      *
-     * @return list of all the representation versions
+     * @return list of all the representation versions.
      * @throws RepresentationNotExistsException representation does not exist.
      */
     @GET

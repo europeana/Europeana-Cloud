@@ -35,6 +35,7 @@ public class DataSetAssignmentsResource {
 
     /**
      * Assigns representation into a data set.
+     * <strong>Write permissions required.</strong>
      *
      *
      * @param providerId identifier of provider(required)
@@ -62,7 +63,9 @@ public class DataSetAssignmentsResource {
     /**
      * Unassigns representation from a data set. If representation was not
      * assigned to a data set, nothing happens.
+     * <strong>Write permissions required.</strong>
      *
+     *@summary Unassign representation from a data set.
      * @param providerId identifier of provider(required)
      * @param dataSetId identifier of data set (required)
      * @param recordId cloud id of record (required)

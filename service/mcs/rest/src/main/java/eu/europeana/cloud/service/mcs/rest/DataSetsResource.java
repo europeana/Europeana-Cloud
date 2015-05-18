@@ -63,7 +63,7 @@ public class DataSetsResource {
      * @param providerId  provider id for which returned data sets will belong to (required)
      * @param startFrom reference to next slice of result. If not provided,
      * first slice of result will be returned.
-     * @return slice of data sets for given provider.
+     * @return slice of data sets for a given provider.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -76,10 +76,12 @@ public class DataSetsResource {
     /**
      * Creates a new data set.
      *
+     * <strong>User permissions required.</strong>
+     *
      * @param providerId the provider for the created data set
      * @param dataSetId identifier of the data set (required).
      * @param description description of the data set.
-     * @return URI to newly created data set in content-location.
+     * @return URI to the newly created data set in content-location.
      * @throws ProviderNotExistsException data provider does not exist.
      * @throws
      * eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException

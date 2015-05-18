@@ -37,7 +37,7 @@ public class RepresentationsResource {
      * Returns a list of all the latest persistent versions of a record representation.
      * @summary get representations
      * @param globalId cloud id of the record in which all the latest versions of representations are required.
-     * @return list of representations
+     * @return list of representations.
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
