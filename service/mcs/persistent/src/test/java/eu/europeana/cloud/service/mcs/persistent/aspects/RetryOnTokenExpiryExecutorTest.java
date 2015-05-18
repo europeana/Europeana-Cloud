@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.mockito.Matchers.any;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -87,6 +86,8 @@ public class RetryOnTokenExpiryExecutorTest {
         verifyNoMoreInteractions(blobStore);
         verify(instance, times(1)).retry(any(ProceedingJoinPoint.class));
         verifyNoMoreInteractions(instance);
+        verify(provider, times(1)).reconnectConnections();
+
     }
 
 
@@ -120,6 +121,7 @@ public class RetryOnTokenExpiryExecutorTest {
         verifyNoMoreInteractions(blobStore);
         verify(instance, times(1)).retry(any(ProceedingJoinPoint.class));
         verifyNoMoreInteractions(instance);
+        verify(provider, times(1)).reconnectConnections();
     }
 
 }

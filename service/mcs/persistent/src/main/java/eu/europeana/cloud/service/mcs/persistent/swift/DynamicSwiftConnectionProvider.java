@@ -108,5 +108,6 @@ public class DynamicSwiftConnectionProvider implements SwiftConnectionProvider {
             proxy.reconnectConnections();
             blobStores.add(proxy.getBlobStore());
         }
+        setBlobStores();
     }
 }

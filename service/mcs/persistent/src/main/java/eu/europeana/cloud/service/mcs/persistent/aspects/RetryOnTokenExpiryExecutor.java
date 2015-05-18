@@ -15,6 +15,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jclouds.http.HttpResponseException;
+import org.jclouds.rest.AuthorizationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,8 @@ public class RetryOnTokenExpiryExecutor {
             throws Throwable {
         try {
             return pjp.proceed();
-        } catch (SwiftConnectionException e) {
+        } catch (SwiftConnectionException | AuthorizationException e) {
+            LOGGER.info("Failrue connect to the proxy. Try: 1. Cause" + e.getMessage());
             return retryOnFailure((SwiftContentDAO) pjp.getTarget(), pjp.getSignature(), pjp.getArgs());
         }
     }
@@ -60,14 +62,16 @@ public class RetryOnTokenExpiryExecutor {
     private Object retryOnFailure(SwiftContentDAO contentDAO, Signature signature, Object[] args)
             throws NoSuchMethodException, IllegalAccessException, Throwable {
         for (int i = 0; i < numberOfRetries; i++) {
-            //provider.reconnectConnections();
+            provider.reconnectConnections();
             try {
                 final Method method = ((MethodSignature) signature).getMethod();
                 Object o = method.invoke(contentDAO, args);
                 return o;
             } catch (InvocationTargetException e) {
-                if (e.getTargetException() instanceof SwiftConnectionException) {
-                    LOGGER.info("Retry connection to proxy.");
+                if (e.getTargetException() instanceof SwiftConnectionException
+                        || e.getTargetException() instanceof AuthorizationException) {
+                    LOGGER.info("Failrue connect to the proxy. Try: " + (int) (i + 2) + " Cause:"
+                            + e.getTargetException().getMessage());
                     continue;
                 }
                 throw e.getTargetException();

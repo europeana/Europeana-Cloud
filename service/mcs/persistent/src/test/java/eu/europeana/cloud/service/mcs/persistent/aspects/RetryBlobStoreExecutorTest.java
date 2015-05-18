@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import java.util.ArrayList;
 import java.util.List;
 import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.http.HttpResponseException;
 import org.junit.Assert;
