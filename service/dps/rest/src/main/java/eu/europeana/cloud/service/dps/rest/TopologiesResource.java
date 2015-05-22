@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -26,7 +23,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 /**
  * Resource to manage topologies in the DPS service
  */
-@Path("/topologies")
+@Path("/topologies/{topologyName}")
 @Component
 public class TopologiesResource {
 
@@ -45,17 +42,18 @@ public class TopologiesResource {
      *
      * <strong>Admin permissions required</strong>
      * 
-     * @summary Grant topology permissions
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology.
-     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
+     * @summary Grant permissions to a topology
+     * @param topology <strong>REQUIRED</strong> Name of the topology.
+     * @param userName <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * 
      * @return Status code indicating whether the operation was successful or not.
      */
+    @Path("/permit")
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @ReturnType("java.lang.Void")
-    public Response grantPermissionsToTopology(@FormParam("user") String userName, @FormParam("topologyName") String topology) {
+    public Response grantPermissionsToTopology(@FormParam("user") String userName, @PathParam("topologyName") String topology) {
         
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX,
                 topology);
