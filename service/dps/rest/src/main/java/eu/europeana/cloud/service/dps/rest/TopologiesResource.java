@@ -40,19 +40,24 @@ public class TopologiesResource {
     /**
      * Grants user with given username read/ write permissions for the requested topology.
      *
-     * <strong>Admin permissions required</strong>
-     * 
-     * @summary Grant permissions to a topology
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Admin role</li>
+     * 			</ul>
+     * </div>
+     *
+     * @summary Grant topology permissions
      * @param topology <strong>REQUIRED</strong> Name of the topology.
      * @param userName <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
-     * 
-     * @return Status code indicating whether the operation was successful or not.
+     *
+     * @return Empty response with status code indicating whether the operation was successful or not.
      */
     @Path("/permit")
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    @ReturnType("java.lang.Void")
     public Response grantPermissionsToTopology(@FormParam("user") String userName, @PathParam("topologyName") String topology) {
         
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX,

@@ -13,39 +13,31 @@ import com.google.common.collect.Maps;
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-	/** Dataset Key */
+	/* Dataset Key */
 	public static final String DATASETS = "DATASETS";
 	
-	/** File URL Key */
+	/* File URL Key */
 	public static final String FILE_URLS = "FILE_URLS";
 
-	/** List of input data (cloud-records or cloud-datasets) */
+	/* List of input data (cloud-records or cloud-datasets) */
 	private HashMap<String, List<String>> inputData;
 	
-	/** List of parameters (specific for each dps-topology) */
+	/* List of parameters (specific for each dps-topology) */
 	private HashMap<String, String> parameters;
 
-	/**
-	 * Task start time
-	 */
+	/* Task start time */
 	private Date startTime = null;
 
-	/**
-	 * Task create time
-	 */
+	/* Task create time */
 	private Date createTime = new Date(System.currentTimeMillis());
 
-	/**
-	 * Task end time
-	 */
+	/* Task end time*/
 	private Date endTime = null;
 	
-	/**
-	 * Unique id for this task
-	 */
+	/* Unique id for this task */
 	private long taskId;
 	
-	/** Name for the task */
+	/* Name for the task */
 	private String taskName;
 
 	public DpsTask() {
@@ -53,7 +45,6 @@ public class DpsTask implements Serializable {
 	}
 	
 	/**
-	 * 
 	 * @param taskName
 	 */
 	public DpsTask(String taskName) {
@@ -65,7 +56,10 @@ public class DpsTask implements Serializable {
 		
 		taskId = UUID.randomUUID().getMostSignificantBits();
 	}
-	
+
+	/**
+	 * @return Unique id for this task
+	 */
 	public long getTaskId() {
 		return taskId;
 	}
@@ -73,7 +67,10 @@ public class DpsTask implements Serializable {
 	public void setTaskName(String taskName) {
 		this.taskName = taskName;
 	}
-	
+
+	/**
+	 * @return Name for the task
+	 */
 	public String getTaskName() {
 		return taskName;
 	}
@@ -98,6 +95,9 @@ public class DpsTask implements Serializable {
 		return parameters.get(parameterKey);
 	}
 
+	/**
+	 * @return List of parameters (specific for each dps-topology)
+	 */
 	public HashMap<String, String> getParameters() {
 		return parameters;
 	}
@@ -106,6 +106,9 @@ public class DpsTask implements Serializable {
 		this.parameters = parameters;
 	}
 
+	/**
+	 * @return List of input data (cloud-records or cloud-datasets)
+	 */
 	public HashMap<String, List<String>> getInputData() {
 		return inputData;
 	}
