@@ -14,18 +14,6 @@ import org.apache.commons.codec.binary.Base32;
 public class IdGenerator {
 
     /**
-     * Encode a given string.
-     * 
-     * @param input
-     *            The string to encode
-     * @return A 52 character encoded version of the String representation
-     */
-    public static String encode(final String input) {
-
-	return sha256AndBase32(input);
-    }
-
-    /**
      * Encode a given string and timestamp.
      * 
      * @param input
@@ -34,11 +22,18 @@ public class IdGenerator {
      * @return A 52 character encoded version of the String representation
      */
     public static String timeEncode(final String input) {
-	return encode(input + new Date().getTime());
-
+	    return encodeWithSha256AndBase32(input + new Date().getTime());
     }
 
-    private static String sha256AndBase32(String input) {
+
+    /**
+     * Encode a given string. Encodes the input with SHA 256 and Base32.
+     *
+     * @param input
+     *            The string to encode
+     * @return A 52 character encoded version of the String representation
+     */
+    public static String encodeWithSha256AndBase32(String input) {
         byte[] digest = null;
         try {
             final MessageDigest md = MessageDigest.getInstance("SHA-256");

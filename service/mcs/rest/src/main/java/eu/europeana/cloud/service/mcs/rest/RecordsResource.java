@@ -11,6 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,12 +38,14 @@ public class RecordsResource {
     /**
      * Returns record with all its latest persistent representations.
      *
+     * @param globalId cloud id of the record (required).
      * @return record.
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("eu.europeana.cloud.common.model.Record")
     public Record getRecord(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {
         Record record = recordService.getRecord(globalId);
@@ -54,6 +57,10 @@ public class RecordsResource {
      * Deletes record with all its representations in all versions. Does not
      * remove mapping from Unique Identifier Service.
      *
+     * <strong>Admin permissions required.</strong>
+     *
+     * @summary delete a record
+     * @param globalId cloud id of the record (required).
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      * @throws RepresentationNotExistsException thrown if no representation can

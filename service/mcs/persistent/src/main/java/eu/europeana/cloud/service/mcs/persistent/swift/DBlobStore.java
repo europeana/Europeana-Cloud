@@ -3,31 +3,38 @@ package eu.europeana.cloud.service.mcs.persistent.swift;
 import java.util.List;
 import org.jclouds.blobstore.BlobStore;
 
+/**
+ * Interface to switch betewene {@link BlobStore} instances.
+ */
 public interface DBlobStore extends BlobStore {
 
     /**
-     * Set list of {@link BlobStore}.
+     * List of {@link BlobStore}.
      * 
      * @param blobStores
+     *            list of {@link BlobStore}.
      */
-    public void setBlobStores(List<BlobStore> blobStores);
+    void setBlobStores(List<BlobStore> blobStores);
+
 
     /**
      * Return number of blobStores.
      * 
-     * @return
+     * @return number of blobStores
      */
-    public int getInstanceNumber();
+    int getInstanceNumber();
+
 
     /**
      * Switch cycle between {@link BlobStore}.
      */
-    public void switchInstance();
+    void switchInstance();
+
 
     /**
-     * Return {@link DynamicBlobStore} with sub
+     * Return {@link DynamicBlobStore} without current instance.
      * 
-     * @return
+     * @return {@link DynamicBlobStore} without current instance.
      */
-    public DynamicBlobStore getDynamicBlobStoreWithoutActiveInstance();
+    DynamicBlobStore getDynamicBlobStoreWithoutActiveInstance();
 }

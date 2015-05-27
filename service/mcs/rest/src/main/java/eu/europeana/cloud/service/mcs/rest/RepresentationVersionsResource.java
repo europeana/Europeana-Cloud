@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -41,14 +42,16 @@ public class RepresentationVersionsResource {
     private String representation;
 
     /**
-     * Lists all versions of record represenation. Temporary versions will be
-     * included in returned list.
+     * Lists all versions of record representation. Temporary versions will be
+     * included in the returned list.
+     * @summary get all representation versions.
      *
-     * @return list of all representation versions
+     * @return list of all the representation versions.
      * @throws RepresentationNotExistsException representation does not exist.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
     public List<Representation> listVersions()
             throws RepresentationNotExistsException {
         List<Representation> representationVersions = recordService

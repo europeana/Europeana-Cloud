@@ -91,6 +91,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Before
 	public void mockUp() throws Exception {
 		
+		Mockito.reset();
+		
 		representation = new Representation();
 		representation.setCloudId(GLOBAL_ID);
 		representation.setRepresentationName(REPRESENTATION_NAME);
@@ -131,34 +133,9 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 		Mockito.doReturn(recordWithManyRepresentations).when(recordService).getRecord(Mockito.anyString());
 	}
-	
-	/**
-	 * Makes sure these methods can run even if noone is logged in.
-	 * No special permissions are required.
-	 */
-	@Test
-    public void testMethodsThatDontNeedAnyAuthentication() 
-    		throws RepresentationNotExistsException, RecordNotExistsException   {
 
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION, SCHEMA, GLOBAL_ID);
-    }
+	// -- GET: representationResource -- //
 	
-	/**
-	 * Makes sure any random person can just call these methods.
-	 * No special permissions are required.
-	 */
-	@Test
-    public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn() 
-    		throws RepresentationNotExistsException, RecordNotExistsException  {
-
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-		representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-    }
-	
-
 	@Test
 	public void shouldBeAbleToGetRepresentationIfHeIsTheOwner() 
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
@@ -169,89 +146,119 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
 	}
 	
-// TODO: At some point there was the idea that Representations have permissions (== they are not visible for everyone)
-//	This functionality is no longer there, and the tests are (for now) commented out
-//			
 	
-//	
-//	@Test(expected = AccessDeniedException.class)
-//	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() 
-//			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
-//				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
-//
-//		login(RONALDO, RONALD_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-//		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-//	}
-//
-//	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-//	public void shouldThrowExceptionWhenUnknownUserTriesToGetRepresentation() 
-//			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
-//				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
-//
-//		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-//	}
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+	}
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	public void shouldThrowExceptionWhenUnknownUserTriesToGetRepresentation() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+	}
+	
+	// -- GET: representationVersionResource -- //
+
+	@Test
+	public void shouldBeAbleToGetRepresentationVersionIfHeIsTheOwner() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
+	
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentationVersion() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		login(RONALDO, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
+
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	public void shouldThrowExceptionWhenUnknownUserTriesToGetRepresentationVersion() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, 
+				CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException	 {
+
+		representationVersionResource.getRepresentationVersion(URI_INFO, VERSION ,SCHEMA, GLOBAL_ID);
+	}
 	
 
-//	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException  {
-//
-//		login(RANDOM_PERSON, RANDOM_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//		
-//		logoutEveryone();
-//		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-//		
-//		assertEquals(r.size(), 0);
-//	}
-//
-//	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException  {
-//
-//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-//		
-//		assertEquals(r.size(), 1);
-//	}
-//
-//	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
-//
-//		Mockito.doReturn(representation)
-//			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-//
-//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//
-//		Mockito.doReturn(representationYouDontHavePermissionsFor)
-//			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-//		
-//		login(RONALD_PASSWORD, RONALD_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//
-//		login(RANDOM_PERSON, RANDOM_PASSWORD);
-//		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-//		assertEquals(r.size(), 0);
-//	}
-//	
-//	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
-//
-//		Mockito.doReturn(representation)
-//			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-//
-//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//
-//		Mockito.doReturn(representationYouDontHavePermissionsFor)
-//			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-//		
-//		login(RONALD_PASSWORD, RONALD_PASSWORD);
-//		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-//
-//		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-//		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
-//		assertEquals(r.size(), 1);
-//	}	
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		
+		logoutEveryone();
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		
+		assertEquals(r.size(), 0);
+	}
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		
+		assertEquals(r.size(), 1);
+	}
+
+	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		Mockito.doReturn(representation)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		Mockito.doReturn(representationYouDontHavePermissionsFor)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(RONALD_PASSWORD, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.size(), 0);
+	}
+	
+	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
+
+		Mockito.doReturn(representation)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		Mockito.doReturn(representationYouDontHavePermissionsFor)
+			.when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(RONALD_PASSWORD, RONALD_PASSWORD);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		List<Representation> r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
+		assertEquals(r.size(), 1);
+	}	
+	
+	// -- CREATE -- //
 	
 	@Test
 	public void shouldBeAbleToAddRepresentationWhenAuthenticated() 

@@ -28,7 +28,6 @@ import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 public class KafkaSubmitService implements TaskExecutionSubmitService {
 
 	private Producer<String, DpsTask> producer;
-	private ConsumerConnector consumer;
 
 	private String kafkaGroupId;
 	private String zookeeperAddress;
@@ -50,32 +49,32 @@ public class KafkaSubmitService implements TaskExecutionSubmitService {
 		props.put("request.required.acks", "1");
 
 		ProducerConfig config = new ProducerConfig(props);
-		producer = new Producer<String, DpsTask>(config);
+		producer = new Producer<>(config);
 	}
 
 	@Override
 	public void submitTask(DpsTask task, String topology) {
 
 		String key = "";
-		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
+		KeyedMessage<String, DpsTask> data = new KeyedMessage<>(
 				topology, key, task);
 		producer.send(data);
 	}
 
 	@Override
-	public DpsTask fetchTask(String topology) {
+	public DpsTask fetchTask(String topology, long taskId) {
 
 		return fetchTaskFromKafka(topology);
 	}
 
 	public MessageAndMetadata<byte[], byte[]> fetchKafkaMessage(final String topic) {
 		
-		consumer = kafka.consumer.Consumer
+		ConsumerConnector consumer = kafka.consumer.Consumer
 				.createJavaConsumerConnector(createConsumerConfig(
 						zookeeperAddress, kafkaGroupId));
 
-		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-		topicCountMap.put(topic, new Integer(1));
+		Map<String, Integer> topicCountMap = new HashMap<>();
+		topicCountMap.put(topic, 1);
 
 		Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer
 				.createMessageStreams(topicCountMap);

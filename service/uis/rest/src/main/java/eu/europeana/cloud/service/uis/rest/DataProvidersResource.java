@@ -1,5 +1,24 @@
 package eu.europeana.cloud.service.uis.rest;
 
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.UISParamConstants;
+import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.stereotype.Component;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -11,28 +30,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.uis.DataProviderService;
-import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
-
 /**
  * Resource for DataProviders.
+ * 
+ * @author
  * 
  */
 @Path("/data-providers")
@@ -53,31 +54,38 @@ public class DataProvidersResource {
 	    .getName();
 
     /**
-     * Lists all providers. Result is returned in slices.
+     * Lists all providers stored in eCloud. Result is returned in slices.
      * 
+	 * @summary All providers list
+	 * 
      * @param startFrom
-     *            reference to next slice of result.
-     * @return slice of result.
+     *            data provider identifier from which returned slice of results will be generated. 
+	 *            If not provided then result list will contain data providers from the first one.
+	 *            
+     * @return one slice of result containing eCloud data providers.
      */
     @GET
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    public ResultSlice<DataProvider> getProviders(
-	    @QueryParam(UISParamConstants.Q_FROM) String startFrom) {
-	return providerService.getProviders(startFrom, numberOfElementsOnPage);
-    }
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+	public ResultSlice<DataProvider> getProviders(
+			@QueryParam(UISParamConstants.Q_FROM) String startFrom) {
+		return providerService.getProviders(startFrom, numberOfElementsOnPage);
+	}
 
     /**
      * Creates a new data provider. Response contains uri to created resource in
      * as content location.
      * 
+	 * @summary Data provider creation
+	 * 
      * @param dataProviderProperties
-     *            data provider properties.
+     *            <strong>REQUIRED</strong> data provider properties.
      * @param providerId
-     *            data provider id (required)
+     *            <strong>REQUIRED</strong> data provider identifier for newly created provider
      * @return URI to created resource in content location
      * @throws ProviderAlreadyExistsException
-     *             provider already * exists.
-     * @statuscode 201 object has been created.
+     *             provider already exists.
+     * @statuscode 201 new provider has been created.
+	 * @statuscode 400 request body cannot be is empty
      */
     @POST
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })

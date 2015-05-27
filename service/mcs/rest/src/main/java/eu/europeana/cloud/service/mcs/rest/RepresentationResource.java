@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -36,6 +37,9 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
+
+
 
 /**
  * Resource to manage representations.
@@ -58,27 +62,42 @@ public class RepresentationResource {
 			.getName();
 
 	/**
-	 * Returns latest persistent version of representation.
-	 * 
-	 * @return requested representation in latest persistent version.
+	 * Returns the latest persistent version of a given representation .
+	 * <strong>Read permissions required.</strong>
+	 *
+	 * @summary get a representation
+	 * @param globalId cloud id of the record which contains the representation .
+	 * @param schema name of the representation .
+	 *
+	 * @return requested representation in its latest persistent version.
 	 * @throws RepresentationNotExistsException
 	 *             representation does not exist or no persistent version of
 	 *             this representation exists.
 	 */
 	@GET
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @PostAuthorize("hasPermission"
+    	    + "( "
+    	    + " (#globalId).concat('/').concat(#schema).concat('/').concat(returnObject.version) ,"
+    	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
+	@ReturnType("eu.europeana.cloud.common.model.Representation")
 	public Representation getRepresentation(@Context UriInfo uriInfo,
 			@PathParam(P_CLOUDID) String globalId,
 			@PathParam(P_REPRESENTATIONNAME) String schema)
 			throws RepresentationNotExistsException {
+		
 		Representation info = recordService.getRepresentation(globalId, schema);
 		prepare(uriInfo, info);
 		return info;
 	}
 
 	/**
-	 * Deletes representation with all versions.
-	 * 
+	 * Deletes representation with all of its versions for a given cloudId.
+	 * <strong>Admin permissions required.</strong>
+	 * @summary Delete a representation.
+	 *
+	 * @param globalId cloud id of the record which all the representations will be deleted (required)
+	 * @param schema name of the representation to be deleted (required)
 	 * @throws RepresentationNotExistsException
 	 *             Representation does not exist.
 	 */
@@ -91,12 +110,18 @@ public class RepresentationResource {
 	}
 
 	/**
-	 * Creates new representation version. Url of created representation version
+	 * Creates a new representation version. Url of the created representation version
 	 * will be returned in response.
-	 * 
+	 *
+	 * <strong>User permissions required.</strong>
+	 *
+	 * @summary Creates a new representation version.
+	 *
+	 * @param globalId cloud id of the record in which the new representation will be created (required).
+	 * @param schema name of the representation to be created (required).
 	 * @param providerId
-	 *            provider of this representation versio.
-	 * @return created representation.
+	 *            provider id of this representation version.
+	 * @return The url of the created representation.
 	 * @throws RecordNotExistsException
 	 *             provided id is not known to Unique Identifier Service.
 	 * @throws ProviderNotExistsException

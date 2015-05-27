@@ -83,4 +83,19 @@
         global="aas/cassandra/autoCreateTables"
         type="java.lang.Boolean"/>
 
+    <ResourceLink
+            name="dps/kafka/brokerLocation"
+            global="dps/kafka/brokerLocation"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="dps/kafka/groupId"
+            global="dps/kafka/groupId"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="dps/zookeeper/address"
+            global="dps/zookeeper/address"
+            type="java.lang.String"/>
+    
 </Context>

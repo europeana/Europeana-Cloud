@@ -5,18 +5,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileContentHashMismatchException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.VersionNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 
 import org.slf4j.Logger;
@@ -222,6 +211,20 @@ public class UnitedExceptionMapper {
      */
     public Response toResponse(ProviderNotExistsException exception) {
         return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.PROVIDER_NOT_EXISTS, exception);
+    }
+
+
+
+    /**
+     * Maps {@link AccessDeniedOrObjectDoesNotExistException} to {@link Response}. Returns a response with HTTP status code 403 -
+     * "Method not Allowed" and a {@link ErrorInfo} with exception details as a message body.
+     *
+     * @param exception
+     *            the exception to map to a response
+     * @return a response mapped from the supplied exception
+     */
+    public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
     }
 
 

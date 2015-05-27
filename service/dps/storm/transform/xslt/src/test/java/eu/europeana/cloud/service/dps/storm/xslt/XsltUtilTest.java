@@ -22,11 +22,9 @@ import org.junit.Test;
 import com.google.common.base.Charsets;
 
 /**
- * 	 Xslt tests
+ * Xslt tests
  * 
- *  - XSLT fetching from a URL
- *  - XSLT compilation 
- *  - xml transformation
+ * - XSLT fetching from a URL - XSLT compilation - xml transformation
  */
 public final class XsltUtilTest {
 
@@ -35,20 +33,23 @@ public final class XsltUtilTest {
 
 	// xslt hosted in ULCC
 	private final String ulccXsltUrl = "http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt";
-	
+
 	private final String sampleXmlFileName = "/xmlForTesting.xml";
-    
-	@Test
+	private final String sampleXsltFileName = "/sample_xslt.xslt";
+
+// TODO: downloading this fails in jenkins
+// in the future this can be fixed / deleted / or transformed to integration test
+// or storm-topology-level test
+//	@Test
 	public void shouldDownloadXsltFile() throws MalformedURLException,
 			IOException {
 
 		String xslt_1 = fetchXslt(xsltUrl);
-//		System.out.println(xslt_1);
-
 		String xslt_2 = fetchXslt(ulccXsltUrl);
-//		System.out.println(xslt_2);
+		assertNotNull(xslt_1);
+		assertNotNull(xslt_2);
 	}
-	
+
 	@Test
 	public void shouldCompileXsltFile() throws MalformedURLException,
 			IOException, TransformerException {
@@ -67,18 +68,15 @@ public final class XsltUtilTest {
 	public void shouldPerformXsltTransform() throws MalformedURLException,
 			IOException, TransformerException {
 
-		InputStream stream = readXmlInputFile();
+		InputStream xmlStream = readXmlInputFile();
+		InputStream xsltStream = readXslt();
 
 		Source xslDoc = null;
 		Source xmlDoc = null;
 
-		try {
-			xslDoc = new StreamSource(new URL(ulccXsltUrl).openStream());
-			xmlDoc = new StreamSource(stream);
+		xslDoc = new StreamSource(xsltStream);
+		xmlDoc = new StreamSource(xmlStream);
 
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 		TransformerFactory tFactory = TransformerFactory.newInstance();
 		Transformer transformer = null;
 		StringWriter writer = new StringWriter();
@@ -86,19 +84,28 @@ public final class XsltUtilTest {
 		transformer = tFactory.newTransformer(xslDoc);
 		transformer.transform(xmlDoc, new StreamResult(writer));
 	}
-	
-    private InputStream readXmlInputFile() throws IOException {
-    	
-        assertNotNull(getClass().getResource(sampleXmlFileName));
-        String myXml = IOUtils.toString(getClass().getResource(sampleXmlFileName), Charsets.UTF_8);
-        
-        byte[] bytes = myXml.getBytes("UTF-8");
-        InputStream contentStream = new ByteArrayInputStream(bytes);
-        
-        return contentStream;
-    }
-    
-    private static String fetchXslt(final String xsltUrl) {
+
+	private InputStream readXmlInputFile() throws IOException {
+		return readFile(sampleXmlFileName);
+	}
+
+	private InputStream readXslt() throws IOException {
+		return readFile(sampleXsltFileName);
+	}
+
+	private InputStream readFile(String fileName) throws IOException {
+
+		assertNotNull(getClass().getResource(fileName));
+		String myXml = IOUtils.toString(getClass().getResource(fileName),
+				Charsets.UTF_8);
+
+		byte[] bytes = myXml.getBytes("UTF-8");
+		InputStream contentStream = new ByteArrayInputStream(bytes);
+
+		return contentStream;
+	}
+
+	private static String fetchXslt(final String xsltUrl) {
 
 		InputStream in = null;
 		try {

@@ -11,44 +11,28 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "properties")
 public class DataProviderProperties {
 
-	/**
-	 * Organisation name
-	 */
+	/* Organisation name */
 	private String organisationName;
 
-	/**
-	 * The official Address
-	 */
+	/* The official Address */
 	private String officialAddress;
 
-	/**
-	 * Organisation Website
-	 */
+	/* Organisation Website */
 	private String organisationWebsite;
 
-	/**
-	 * Organisation website URL
-	 */
+	/* Organisation website URL */
 	private String organisationWebsiteURL;
 
-	/**
-	 * Digital Library website
-	 */
+	/* Digital Library website */
 	private String digitalLibraryWebsite;
 
-	/**
-	 * Digital Library website URL
-	 */
+	/* Digital Library website URL */
 	private String digitalLibraryURL;
 
-	/**
-	 * Contact person
-	 */
+	/* Contact person */
 	private String contactPerson;
 
-	/**
-	 * Remarks
-	 */
+	/* Remarks */
 	private String remarks;
 
 	/**
@@ -79,12 +63,14 @@ public class DataProviderProperties {
 	}
 
 	/**
-	 * 
 	 * Creates a new instance of this class.
 	 */
 	public DataProviderProperties() {
 	}
 
+	/**
+	 * @return Organisation name
+	 */
 	public String getOrganisationName() {
 		return organisationName;
 	}
@@ -93,6 +79,9 @@ public class DataProviderProperties {
 		this.organisationName = organisationName;
 	}
 
+	/**
+	 * @return The official Address
+	 */
 	public String getOfficialAddress() {
 		return officialAddress;
 	}
@@ -101,6 +90,9 @@ public class DataProviderProperties {
 		this.officialAddress = officialAddress;
 	}
 
+	/**
+	 * @return Organisation Website
+	 */
 	public String getOrganisationWebsite() {
 		return organisationWebsite;
 	}
@@ -109,6 +101,9 @@ public class DataProviderProperties {
 		this.organisationWebsite = organisationWebsite;
 	}
 
+	/**
+	 * @return Organisation website URL
+	 */
 	public String getOrganisationWebsiteURL() {
 		return organisationWebsiteURL;
 	}
@@ -125,6 +120,9 @@ public class DataProviderProperties {
 		this.digitalLibraryWebsite = digitalLibraryWebsite;
 	}
 
+	/**
+	 * @return Organisation website URL
+	 */
 	public String getDigitalLibraryURL() {
 		return digitalLibraryURL;
 	}
@@ -133,6 +131,9 @@ public class DataProviderProperties {
 		this.digitalLibraryURL = digitalLibraryURL;
 	}
 
+	/**
+	 * @return Contact person
+	 */
 	public String getContactPerson() {
 		return contactPerson;
 	}
@@ -141,6 +142,9 @@ public class DataProviderProperties {
 		this.contactPerson = contactPerson;
 	}
 
+	/**
+	 * @return Remarks
+	 */
 	public String getRemarks() {
 		return remarks;
 	}

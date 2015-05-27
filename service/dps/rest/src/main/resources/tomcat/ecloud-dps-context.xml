@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+    <context:annotation-config/>    
+    <import resource="classpath:config.xml" />
+
+    <context:component-scan
+        base-package="eu.europeana.cloud.service.dps.rest"/>
+	
+    <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
+        <constructor-arg name="kafkaBroker">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
+        </constructor-arg>
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+        </constructor-arg>
+
+        <constructor-arg name="kafkaGroupId">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/groupId"/>
+        </constructor-arg>
+        
+        <!-- TODO: those should be removed completely -->
+        <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
+        <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
+        <!--  -->
+        
+    </bean>
+       
+  	<import resource="authentication.xml"/>
+  	<import resource="authorization.xml"/>
+</beans>

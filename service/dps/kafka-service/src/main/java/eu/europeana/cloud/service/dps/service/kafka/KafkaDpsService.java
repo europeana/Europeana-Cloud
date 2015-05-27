@@ -81,7 +81,7 @@ public class KafkaDpsService implements TaskExecutionReportService, TaskExecutio
 	}	
 
 	@Override
-	public DpsTask fetchTask(String topology) {
+	public DpsTask fetchTask(String topology, long taskId) {
 
 		return fetchTaskFromKafka(topology);
 	}

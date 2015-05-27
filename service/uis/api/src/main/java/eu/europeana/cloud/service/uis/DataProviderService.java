@@ -57,4 +57,15 @@ public interface DataProviderService {
      */
     DataProvider updateProvider(String providerId, DataProviderProperties properties)
             throws ProviderDoesNotExistException;
+
+    /**
+     * Updates data provider
+     * 
+     * @param dataProvider data provider to be updated
+     * @return updated data provider
+     * @throws ProviderDoesNotExistException
+     */
+    DataProvider updateProvider(DataProvider dataProvider) throws ProviderDoesNotExistException;
+    
+    void deleteProvider(String providerId) throws ProviderDoesNotExistException;
 }

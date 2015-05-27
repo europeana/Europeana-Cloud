@@ -21,7 +21,7 @@
           </elementProp>
           <elementProp name="uisName" elementType="Argument">
             <stringProp name="Argument.name">uisName</stringProp>
-            <stringProp name="Argument.value">/uis</stringProp>
+            <stringProp name="Argument.value">${__P(uisName,/uis)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="threads" elementType="Argument">

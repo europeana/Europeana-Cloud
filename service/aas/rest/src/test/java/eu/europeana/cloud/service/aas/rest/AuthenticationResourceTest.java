@@ -58,8 +58,8 @@ public class AuthenticationResourceTest extends JerseyTest {
         User user = new User(username, password);
         when(authenticationService.getUser(username)).thenReturn(new User(username, password));
 
-        Response response = target("/create-user").queryParam(AASParamConstants.Q_USER_NAME, username)
-        		.queryParam(AASParamConstants.Q_PASSWORD, password)
+        Response response = target("/create-user").queryParam(AASParamConstants.P_USER_NAME, username)
+        		.queryParam(AASParamConstants.P_USER_NAME, password)
                 .request().post(Entity.json(""));
 
         assertThat(response.getStatus(), is(200));

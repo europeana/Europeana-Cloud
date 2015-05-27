@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -53,6 +54,10 @@ public class DataSetResource {
     
     /**
      * Deletes data set.
+     * <strong>Delete permissions required.</strong>
+     *
+     * @param providerId identifier of the dataset's provider(required).
+     * @param dataSetId  identifier of the deleted data set(required).
      *
      * @throws DataSetNotExistsException data set not exists.
      */
@@ -75,7 +80,10 @@ public class DataSetResource {
     /**
      * Lists representation versions from data set. Result is returned in
      * slices.
+     * @summary get representation versions from a data set
      *
+     * @param providerId  identifier of the dataset's provider (required).
+     * @param dataSetId  identifier of a data set (required).
      * @param startFrom reference to next slice of result. If not provided,
      * first slice of result will be returned.
      * @return slice of representation version list.
@@ -83,6 +91,7 @@ public class DataSetResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.Representation>")
     public ResultSlice<Representation> getDataSetContents(@PathParam(P_DATASET) String dataSetId,
     		@PathParam(P_PROVIDER) String providerId,
     		@QueryParam(F_START_FROM) String startFrom)
@@ -91,10 +100,16 @@ public class DataSetResource {
     }
 
     /**
-     * Updates description of data set.
+     * Updates description of a data set.
      *
+     * <strong>Write permissions required.</strong>
+     *
+     * @param providerId  identifier of the dataset's provider (required).
+     * @param dataSetId  identifier of a data set (required).
      * @param description description of data set
      * @throws DataSetNotExistsException no such data set exists.
+     * @throws AccessDeniedOrObjectDoesNotExistException there is an attempt to access a resource without the proper permissions.
+     * or the resource does not exist at all
      * @statuscode 204 object has been updated.
      */
     @PUT

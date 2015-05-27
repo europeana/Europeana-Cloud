@@ -12,6 +12,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostFilter;
@@ -33,14 +34,16 @@ public class RepresentationsResource {
     private RecordService recordService;
 
     /**
-     * Returns list of all latest persistent versions of record representation.
-     *
-     * @return list of representations
+     * Returns a list of all the latest persistent versions of a record representation.
+     * @summary get representations
+     * @param globalId cloud id of the record in which all the latest versions of representations are required.
+     * @return list of representations.
      * @throws RecordNotExistsException provided id is not known to Unique
      * Identifier Service.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("java.util.List<eu.europeana.cloud.common.model.Representation>")
     public List<Representation> getRepresentations(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId)
             throws RecordNotExistsException {
         List<Representation> representationInfos = recordService.getRecord(globalId).getRepresentations();

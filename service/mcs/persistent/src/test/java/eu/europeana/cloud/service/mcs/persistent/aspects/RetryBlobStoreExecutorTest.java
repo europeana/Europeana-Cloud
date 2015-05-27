@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent.aspects;
 
+import eu.europeana.cloud.service.mcs.persistent.exception.SwiftConnectionException;
 import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import java.util.ArrayList;
 import java.util.List;
 import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.http.HttpResponseException;
 import org.junit.Assert;
@@ -12,6 +12,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,15 +35,17 @@ public class RetryBlobStoreExecutorTest {
     @Autowired
     private RetryBlobStoreExecutor retryBlobStoreExecutor;
 
+
     public RetryBlobStoreExecutorTest() {
     }
 
+
     @Test
-    public void shouldFailAfterSingleTry() throws Throwable {
+    public void shouldFailAfterSingleTry()
+            throws Throwable {
         // given
         BlobStore mock1 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock1)
-                .getBlob("container", "name");
+        doThrow(mock(HttpResponseException.class)).when(mock1).getBlob("container", "name");
         List<BlobStore> mockblob = new ArrayList<>();
         mockblob.add(mock1);
         dynamicBlobStore.setBlobStores(mockblob);
@@ -51,25 +55,24 @@ public class RetryBlobStoreExecutorTest {
             //when
             dynamicBlobStore.getBlob("container", "name");
             //then
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("All instances of Swift are down",
-                    e.getMessage());
+            fail("SwiftConnectionException should be thrown.");
+        } catch (SwiftConnectionException e) {
+            //expected excepton
         }
         verify(mock1, times(1)).getBlob("container", "name");
         verifyNoMoreInteractions(mock1);
     }
 
+
     @Test
-    public void shouldFailAfterTwoRetries() throws Throwable {
+    public void shouldFailAfterTwoRetries()
+            throws Throwable {
         // given
         final List<BlobStore> mockblob = new ArrayList<>();
         final BlobStore mock1 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock1)
-                .getBlob("container", "name");
+        doThrow(mock(HttpResponseException.class)).when(mock1).getBlob("container", "name");
         final BlobStore mock2 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock2)
-                .getBlob("container", "name");
+        doThrow(mock(HttpResponseException.class)).when(mock2).getBlob("container", "name");
         mockblob.add(mock1);
         mockblob.add(mock2);
         dynamicBlobStore.setBlobStores(mockblob);
@@ -79,10 +82,9 @@ public class RetryBlobStoreExecutorTest {
             dynamicBlobStore.getBlob("container", "name");
 
             // then
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("All instances of Swift are down",
-                    e.getMessage());
+            fail("SwiftConnectionException should be thrown.");
+        } catch (SwiftConnectionException e) {
+            //expected excepton
         }
 
         verify(mock1, times(1)).getBlob("container", "name");
@@ -91,44 +93,43 @@ public class RetryBlobStoreExecutorTest {
         verifyNoMoreInteractions(mock2);
     }
 
+
     @Test
-    public void shouldThrowExceptionInUnannotatedFunction() throws Throwable {
+    public void shouldThrowExceptionInUnannotatedRetryOnFailureFunction()
+            throws Throwable {
         // given
         final List<BlobStore> mockblob = new ArrayList<>();
         final BlobStore mock1 = mock(BlobStore.class);
-        final BlobStoreContext expected = mock(BlobStoreContext.class);
-        when(mock1.getContext()).thenReturn(expected);
-
         final BlobStore mock2 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock2)
-                .getContext();
+
+        doThrow(mock(HttpResponseException.class)).when(mock1).getContext();
+        doThrow(mock(HttpResponseException.class)).when(mock2).getContext();
         mockblob.add(mock1);
         mockblob.add(mock2);
         dynamicBlobStore.setBlobStores(mockblob);
         retryBlobStoreExecutor.init();
-        final BlobStoreContext result = dynamicBlobStore.getContext();
-        try {
-            // when
-            dynamicBlobStore.getContext();
-            fail();
-        } catch (HttpResponseException e) {
+        for (int i = 0; i < 2; i++) {
+            try {
+                // when
+                dynamicBlobStore.getContext();
+                fail();
+            } catch (HttpResponseException e) {
+            }
         }
         // then
-        assertEquals(expected, result);
-        verify(mock1, times(1)).getContext();
-        verify(mock2, times(1)).getContext();
-        verifyNoMoreInteractions(mock1);
-        verifyNoMoreInteractions(mock2);
+        verify(mock1, atMost(2)).getContext();
+        verify(mock2, atMost(2)).getContext();
     }
 
+
     @Test
-    public void shouldRethrowException() throws Throwable {
+    public void shouldRethrowException()
+            throws Throwable {
         // given
         final List<BlobStore> mockblob = new ArrayList<>();
         final BlobStore mock1 = mock(BlobStore.class);
         String exceptionMessage = "test";
-        doThrow(new RuntimeException(exceptionMessage)).when(mock1)
-                .getBlob("container", "name");
+        doThrow(new RuntimeException(exceptionMessage)).when(mock1).getBlob("container", "name");
         mockblob.add(mock1);
         dynamicBlobStore.setBlobStores(mockblob);
         retryBlobStoreExecutor.init();
@@ -145,8 +146,10 @@ public class RetryBlobStoreExecutorTest {
         verifyNoMoreInteractions(mock1);
     }
 
+
     @Test
-    public void shoudIterateForAllBlobStories() throws Throwable {
+    public void shoudIterateForAllBlobStories()
+            throws Throwable {
         // given
         final List<BlobStore> mockblob = new ArrayList<>();
         final BlobStore mock1 = mock(BlobStore.class);
@@ -160,32 +163,28 @@ public class RetryBlobStoreExecutorTest {
         mockblob.add(mock3);
         dynamicBlobStore.setBlobStores(mockblob);
         retryBlobStoreExecutor.init();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 50; i++) {
             // when
             dynamicBlobStore.getBlob("container", "name");
         }
         // then
-        verify(mock1, times(1)).getBlob("container", "name");
-        verify(mock2, times(1)).getBlob("container", "name");
-        verify(mock3, times(1)).getBlob("container", "name");
-        verifyNoMoreInteractions(mock1);
-        verifyNoMoreInteractions(mock2);
-        verifyNoMoreInteractions(mock3);
+        verify(mock1, atLeast(10)).getBlob("container", "name");
+        verify(mock2, atLeast(10)).getBlob("container", "name");
+        verify(mock3, atLeast(10)).getBlob("container", "name");
     }
+
 
     @Test
     public void shoudSwitchInToSecondBlobStore() {
         // given
         final List<BlobStore> mockblob = new ArrayList<>();
         final BlobStore mock1 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock1)
-                .getBlob("container", "name");
+        doThrow(mock(HttpResponseException.class)).when(mock1).getBlob("container", "name");
         final BlobStore mock2 = mock(BlobStore.class);
         final Blob expectedBlob = mock(Blob.class);
         when(mock2.getBlob("container", "name")).thenReturn(expectedBlob);
         final BlobStore mock3 = mock(BlobStore.class);
-        doThrow(mock(HttpResponseException.class)).when(mock3)
-                .getBlob("container", "name");
+        doThrow(mock(HttpResponseException.class)).when(mock3).getBlob("container", "name");
         mockblob.add(mock1);
         mockblob.add(mock2);
         mockblob.add(mock3);
@@ -196,7 +195,7 @@ public class RetryBlobStoreExecutorTest {
         try {
             resultBlob = dynamicBlobStore.getBlob("container", "name");
         } catch (Throwable e) {
-            System.out.println(e);
+
         }
         // then
         verify(mock1, times(1)).getBlob("container", "name");

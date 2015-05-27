@@ -49,6 +49,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	private RepresentationResource representationResource;
 
 	private static final String FILE_NAME = "FILE_NAME";
+	private static final String FILE_NAME_2 = "FILE_NAME_2";
 	private static final String MIME_TYPE = "CLOWN";
 	
 	private static final String GLOBAL_ID = "GLOBAL_ID";
@@ -77,10 +78,13 @@ public class FilesAATest extends AbstractSecurityTest {
 	private final static String ADMIN_PASSWORD = "admin";
 	
 	private File file;
+	private File file2;
 	
 	@Before
 	public void mockUp() throws Exception {
 
+		Mockito.reset(recordService);
+		
 		representation = new Representation();
 		representation.setCloudId(GLOBAL_ID);
 		representation.setRepresentationName(SCHEMA);
@@ -88,6 +92,9 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		file = new File();
 		file.setFileName(FILE_NAME);
+		
+		file2 = new File();
+		file2.setFileName(FILE_NAME_2);
 		
 		URI_INFO = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
@@ -125,12 +132,32 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 	}
+
+	@Test
+	public void shouldBeAbleToGetAllFilesIfHeIsTheOwner() 
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
+
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME_2);
+		
+		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME));
+		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.same(FILE_NAME_2));
+		
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME_2, null);
+	}
+	
 	
 	@Test
 	public void shouldBeAbleToGetFileIfHeIsTheOwner() 
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
 				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
 
+		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
@@ -159,6 +186,20 @@ public class FilesAATest extends AbstractSecurityTest {
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+	}
+	
+	@Test(expected = AccessDeniedException.class)
+	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws RepresentationNotExistsException,
+		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+
+		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		
+		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+
+		login(RONALDO, RONALD_PASSWORD);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
 	}
 

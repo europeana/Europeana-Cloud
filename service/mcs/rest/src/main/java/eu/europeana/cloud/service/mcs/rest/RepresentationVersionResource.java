@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -50,46 +51,47 @@ public class RepresentationVersionResource {
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     /**
-     * Returns representation in specified version. If Version = LATEST, will
-     * redirect to actual latest persistent version at the moment of invoking
-     * this method.
+     * Returns representation in a specified version.
+     * <strong>Read permissions required.</strong>
+     * @summary get representation by version
      *
-     * @return representation in requested version WITH LIST OF FILES IN THIS
-     * REPRESENTATION
-     * @throws RepresentationNotExistsException representation does not exist in
+     * @param globalId cloud id of the record which contains the representation(required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
+     * @return representation in requested version
+     * 
+     * @throws RepresentationNotExistsException representation does not exist in the
      * specified version.
-     * @statuscode 307 if requested version is "LATEST" - redirect to latest
-     * persistent version.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response getRepresentationVersion(@Context UriInfo uriInfo,
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+    		+ " 'eu.europeana.cloud.common.model.Representation', read)")
+    @ReturnType("eu.europeana.cloud.common.model.Representation")
+    public Representation getRepresentationVersion(@Context UriInfo uriInfo,
     		@PathParam(P_VER) String version,
     		@PathParam(P_REPRESENTATIONNAME) String schema,
     		@PathParam(P_CLOUDID) String globalId)
             throws RepresentationNotExistsException {
-        // handle "LATEST" keyword
-        if (ParamConstants.LATEST_VERSION_KEYWORD.equals(version)) {
-            Representation representationInfo = recordService.getRepresentation(globalId, schema);
-            EnrichUriUtil.enrich(uriInfo, representationInfo);
-            if (representationInfo.getUri() != null) {
-                return Response.temporaryRedirect(representationInfo.getUri()).build();
-            } else {
-                throw new RepresentationNotExistsException();
-            }
-        }
+    	
         Representation rep = recordService.getRepresentation(globalId, schema, version);
         prepare(uriInfo, rep);
-        return Response.ok(rep).build();
+        return rep;
     }
 
     /**
      * Deletes representation version.
+     * <strong>Delete permissions required.</strong>
+     * @param globalId cloud id of the record which contains the representation version (required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
      *
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @throws CannotModifyPersistentRepresentationException representation in
-     * specified version is persitent and as such cannot be removed.
+     * specified version is persistent and as such cannot be removed.
      */
     @DELETE
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', delete)")
@@ -108,7 +110,14 @@ public class RepresentationVersionResource {
     /**
      * Persists temporary representation.
      *
-     * @return URI to persisted representation in content-location
+     * <strong>Write permissions required.</strong>
+     *
+     * @param globalId cloud id of the record which contains the representation version(required).
+     * @param schema name of the representation(required).
+     * @param version
+     *            a specific version of the representation(required).
+     *
+     * @return URI to the persisted representation in content-location.
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @throws CannotModifyPersistentRepresentationException representation
@@ -133,10 +142,16 @@ public class RepresentationVersionResource {
     }
 
     /**
-     * Copies all information with all files and their content from one
+     * Copies all information with all files and their contents from one
      * representation version to a new temporary one.
+     *<strong>Read permissions required.</strong>
+     * @summary copy information including file contents from one representation version to another
+     * @param globalId cloud id of the record which contains the representation version
+     * @param schema name of the representation
+     * @param version
+     *            a specific version of the representation
      *
-     * @return uri to created representation in content-location
+     * @return URI to the created representation in content-location.
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @statuscode 201 representation has been copied to a new one.

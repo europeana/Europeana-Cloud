@@ -168,6 +168,7 @@ public class RepresentationResourceTest extends JerseyTest {
         
         Response response = target(URITools.getRepresentationPath(globalId, schema).toString()).request().post(
                 Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
         
         assertThat(response.getStatus(), is(201));
         assertThat(response.getLocation(), is(URITools.getVersionUri(getBaseUri(), globalId, schema, version)));

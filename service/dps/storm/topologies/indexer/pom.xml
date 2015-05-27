@@ -88,11 +88,6 @@
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
-        <resources>
-            <resource>
-                <directory>${basedir}/multilang</directory>
-            </resource>
-        </resources>
 
         <plugins>
             <!-- Bind the maven-assembly-plugin to the package phase this will create 

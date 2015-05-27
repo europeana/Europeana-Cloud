@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -57,24 +58,30 @@ public class DataSetsResource {
 
     /**
      * Returns all data sets for a provider. Result is returned in slices.
+     * @summary get provider's data sets
      *
+     * @param providerId  provider id for which returned data sets will belong to (required)
      * @param startFrom reference to next slice of result. If not provided,
      * first slice of result will be returned.
-     * @return slice of data sets for given provider.
+     * @return slice of data sets for a given provider.
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.DataSet>")
     public ResultSlice<DataSet> getDataSets(@PathParam(P_PROVIDER) String providerId,
     		@QueryParam(F_START_FROM) String startFrom) {
         return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
     }
 
     /**
-     * Creates new data set.
+     * Creates a new data set.
      *
-     * @param dataSetId identifier of data set (required).
-     * @param description description of data set.
-     * @return URI to newly created data set in content-location.
+     * <strong>User permissions required.</strong>
+     *
+     * @param providerId the provider for the created data set
+     * @param dataSetId identifier of the data set (required).
+     * @param description description of the data set.
+     * @return URI to the newly created data set in content-location.
      * @throws ProviderNotExistsException data provider does not exist.
      * @throws
      * eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException
