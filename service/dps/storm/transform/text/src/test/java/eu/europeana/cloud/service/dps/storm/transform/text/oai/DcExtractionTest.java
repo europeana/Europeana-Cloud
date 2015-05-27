@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.oai;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +30,11 @@ public class DcExtractionTest
 
         String extracted = extractor.extractText(is);
         
-        String exceptedJson = "{\"date\":\"2012-10-30\",\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"publisher\":\"Publisher\",\"language\":\"eng\",\"title\":\"Title\",\"type\":[\"Type1\",\"Type2\"]}";
+        String expectedJson = "{\"date\":\"2012-10-30\",\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"publisher\":\"Publisher\",\"language\":\"eng\",\"title\":\"Title\",\"type\":[\"Type1\",\"Type2\"]}";
+        JsonElement expectedObject = new JsonParser().parse(expectedJson);
+        JsonElement extractedObject = new JsonParser().parse(extracted);
         
-        assertEquals(exceptedJson, extracted);
+        assertEquals(expectedObject, extractedObject);
     }
     
     @Test
@@ -47,9 +51,11 @@ public class DcExtractionTest
 
         String extracted = extractor.extractText(is);
         
-        String exceptedJson = "{\"myDate\":\"2012-10-30\",\"myCreator\":\"Creator\",\"format\":\"application/pdf\"}";
+        String expectedJson = "{\"myDate\":\"2012-10-30\",\"myCreator\":\"Creator\",\"format\":\"application/pdf\"}";
+        JsonElement expectedObject = new JsonParser().parse(expectedJson);
+        JsonElement extractedObject = new JsonParser().parse(extracted);
         
-        assertEquals(exceptedJson, extracted);
+        assertEquals(expectedObject, extractedObject);
     }
     
     @Test
@@ -68,9 +74,11 @@ public class DcExtractionTest
 
         String extracted = extractor.extractText(is);
         
-        String exceptedJson = "{\"myDate\":\"2012-10-30\",\"format\":\"application/pdf\"}";
+        String expectedJson = "{\"myDate\":\"2012-10-30\",\"format\":\"application/pdf\"}";
+        JsonElement expectedObject = new JsonParser().parse(expectedJson);
+        JsonElement extractedObject = new JsonParser().parse(extracted);
         
-        assertEquals(exceptedJson, extracted);
+        assertEquals(expectedObject, extractedObject);
     }
     
     @Test
@@ -82,9 +90,11 @@ public class DcExtractionTest
 
         String extracted = extractor.extractText(is);
         
-        String exceptedJson = "{\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"type\":[\"Type2\"]}";
+        String expectedJson = "{\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"type\":[\"Type2\"]}";
+        JsonElement expectedObject = new JsonParser().parse(expectedJson);
+        JsonElement extractedObject = new JsonParser().parse(extracted);
         
-        assertEquals(exceptedJson, extracted);
+        assertEquals(expectedObject, extractedObject);
     }
     
     @Test
