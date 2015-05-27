@@ -44,6 +44,13 @@ public class IndexBolt extends AbstractDpsBolt
         String metadata = t.getParameter(PluginParameterKeys.METADATA);     //additional metadata
         String index = t.getParameter(PluginParameterKeys.ELASTICSEARCH_INDEX);
         String type = t.getParameter(PluginParameterKeys.ELASTICSEARCH_TYPE);
+        
+        if(index == null || index.isEmpty() || type == null || type.isEmpty())
+        {
+            LOGGER.warn("Index or type is not specified in task {}.", t.getTaskId());
+            outputCollector.ack(inputTuple);
+            return;
+        }
 
         //prepare data
         JsonObject data = new JsonObject();

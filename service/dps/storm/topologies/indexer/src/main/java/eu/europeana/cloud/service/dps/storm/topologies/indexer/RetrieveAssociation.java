@@ -66,7 +66,7 @@ public class RetrieveAssociation extends AbstractDpsBolt
             }
             
             Record record = recordClient.getRecord(cloudId);
-            
+                        
             //find one of the supported representation and retrieve content from first file
             for(Representation rep: record.getRepresentations())
             {

@@ -47,3 +47,5 @@ nbactions.xml
 
 /service/dps/storm/index/target/
 /service/dps/storm/topologies/indexer/target/
+/service/dps/index/target/
+/service/dps/similarity/target/

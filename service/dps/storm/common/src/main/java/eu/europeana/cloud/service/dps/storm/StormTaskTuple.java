@@ -63,7 +63,15 @@ public class StormTaskTuple implements Serializable {
 	public String getFileByteData() {
             try 
             {
-                return IOUtils.toString(getFileByteDataAsStream());
+                ByteArrayInputStream tmp = getFileByteDataAsStream();
+                if(tmp != null)
+                {
+                    return IOUtils.toString(tmp);
+                }
+                else
+                {
+                    return null;
+                }
             } 
             catch (IOException ex) 
             {

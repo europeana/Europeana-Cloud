@@ -124,7 +124,7 @@ public class ParseTaskBolt extends BaseBasicBolt
             String fileData = taskParameters.get(PluginParameterKeys.FILE_DATA);
             if(fileData != null && !fileData.isEmpty())
             {
-                stormTaskTuple.setFileUrl(fileData);
+                stormTaskTuple.setFileData(fileData);
             }
             
             LOGGER.info("taskParameters size=" + taskParameters.size());

@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.rits.cloning.Cloner;
 
 /**
  *
@@ -70,6 +71,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt
         
         LOGGER.info("Reading dataset with providerId: {} and datasetId: {}", providerId, datasetId);
         
+        StormTaskTuple tt;
+        
         try 
         {
             List<Representation> dataSetRepresentations = datasetClient.getDataSetRepresentations(providerId, datasetId);
@@ -83,10 +86,12 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                         continue;
                     }
                     
-                    t.addParameter(PluginParameterKeys.CLOUD_ID, representation.getCloudId());
-                    t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, representation.getRepresentationName());
-                    t.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, representation.getVersion());
-                    t.addParameter(PluginParameterKeys.FILE_NAME, file.getFileName());
+                    tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
+                    
+                    tt.addParameter(PluginParameterKeys.CLOUD_ID, representation.getCloudId());
+                    tt.addParameter(PluginParameterKeys.REPRESENTATION_NAME, representation.getRepresentationName());
+                    tt.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, representation.getVersion());
+                    tt.addParameter(PluginParameterKeys.FILE_NAME, file.getFileName());
                     
                     URI uri = fileClient.getFileUri(
                             representation.getCloudId(), 
@@ -94,8 +99,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                             representation.getVersion(), 
                             file.getFileName());                       
 
-                    String url = uri.toString();    //TODO:use contentUrl?
-                    t.setFileUrl(url);
+                    String url = uri.toString();    //TODO: why file.contentUrl is null???!!!!!!!
+                    tt.setFileUrl(url);
 
                     InputStream is;
                     try 
@@ -109,11 +114,11 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                         continue;
                     }
 
-                    t.setFileData(is);
+                    tt.setFileData(is);
 
-                    updateMetrics(t, IOUtils.toString(is));
-
-                    outputCollector.emit(inputTuple, t.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
+                    updateMetrics(tt, IOUtils.toString(is));
+   
+                    outputCollector.emit(inputTuple, tt.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
                 }
             }           
             outputCollector.ack(inputTuple);

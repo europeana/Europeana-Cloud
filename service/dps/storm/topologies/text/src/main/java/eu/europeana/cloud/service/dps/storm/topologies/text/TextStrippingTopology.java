@@ -11,13 +11,11 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.testing.FeederSpout;
 import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.KafkaProducerBolt;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.StoreFileAsNewRepresentationBolt;
@@ -25,9 +23,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
@@ -57,8 +52,6 @@ public class TextStrippingTopology
     private final String username = TextStrippingConstants.USERNAME;
     private final String password = TextStrippingConstants.PASSWORD;
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(TextStrippingTopology.class);
-    
     /**
      * 
      * @param spoutType
@@ -85,6 +78,8 @@ public class TextStrippingTopology
         outputParameters.put(PluginParameterKeys.FILE_NAME, null);
         outputParameters.put(PluginParameterKeys.ORIGINAL_FILE_URL, null);
         outputParameters.put(PluginParameterKeys.FILE_METADATA, null);
+        outputParameters.put(PluginParameterKeys.ELASTICSEARCH_INDEX, null);
+        outputParameters.put(PluginParameterKeys.ELASTICSEARCH_TYPE, null);
         
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -146,7 +141,7 @@ public class TextStrippingTopology
     {
         TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
         Config config = new Config();
-        //config.setDebug(true);
+        config.setDebug(true);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, TextStrippingConstants.KAFKA_METRICS_BROKER);

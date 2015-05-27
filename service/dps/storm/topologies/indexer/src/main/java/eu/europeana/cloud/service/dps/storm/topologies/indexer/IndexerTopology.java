@@ -88,7 +88,7 @@ public class IndexerTopology
                 .shuffleGrouping("RetrieveFile");
         
         builder.setBolt("InformBolt", new KafkaProducerBolt(IndexerConstants.KAFKA_OUTPUT_BROKER, IndexerConstants.KAFKA_OUTPUT_TOPIC,
-                            PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
+                            PluginParameterKeys.NEW_INDEX_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
         builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), IndexerConstants.PROGRESS_BOLT_PARALLEL)

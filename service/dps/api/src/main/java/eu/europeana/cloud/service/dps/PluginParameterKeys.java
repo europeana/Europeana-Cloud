@@ -28,6 +28,7 @@ public final class PluginParameterKeys {
         public static final String NEW_FILE_MESSAGE = "NewFile";       
         public static final String NEW_EXTRACTED_DATA_MESSAGE = "NewExtractedData";
         public static final String NEW_ASSOCIATION_MESSAGE = "NewAssociation";
+        public static final String NEW_INDEX_MESSAGE = "NewIndex";
         
         public static final String INDEX_FILE_MESSAGE = "IndexFile";
         
