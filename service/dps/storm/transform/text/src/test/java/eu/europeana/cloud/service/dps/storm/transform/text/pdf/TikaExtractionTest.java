@@ -1,44 +1,31 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.pdf;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Map;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class TikaExtractionTest 
-{
-    private static final Logger LOGGER = LoggerFactory.getLogger(TikaExtractionTest.class);
+{   
+    private final String exceptedTextInFile = "This is a text!";
     
-    private final String exceptedTextInFile = "\nThis is a text! \n\n\n";
-    
-    private final String rightFileContent = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\rightTestFile.pdf";
-    private final String wrongFileContent = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\Koala.jpg";
+    private final String rightFileContent = "/rightTestFile.pdf";
+    private final String wrongFileContent = "/Koala.jpg";
 
     @Test
     public void readRightFileTest()
     {
         TikaExtractor extractor = new TikaExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+
         String extracted = extractor.extractText(is);
 
-        assertEquals(exceptedTextInFile, extracted);
+        assertEquals(exceptedTextInFile, extracted.trim());
     }
     
     @Test
@@ -46,16 +33,8 @@ public class TikaExtractionTest
     {
         TikaExtractor extractor = new TikaExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(wrongFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", wrongFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(wrongFileContent);
+
         String extracted = extractor.extractText(is);
         
         assertNull(extracted);
@@ -66,16 +45,8 @@ public class TikaExtractionTest
     {
         TikaExtractor extractor = new TikaExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+
         extractor.extractText(is);
         Map<String, String> extractedMetadata = extractor.getExtractedMetadata();
         
@@ -87,16 +58,8 @@ public class TikaExtractionTest
     {
         TikaExtractor extractor = new TikaExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+  
         Map<String, String> extractedMetadata = extractor.getExtractedMetadata();
         
         assertNull(extractedMetadata);

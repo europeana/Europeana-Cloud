@@ -1,13 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.oai;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -15,29 +12,20 @@ import org.slf4j.LoggerFactory;
  */
 public class DcExtractionTest 
 {    
-    private static final Logger LOGGER = LoggerFactory.getLogger(DcExtractionTest.class);
     
-    private final String rightFileContent = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\rightDcTestFile.xml";
-    private final String wrongFileContent1 = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\wrongDcTestFile.xml";
-    private final String wrongFileContent2 = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\wrongDcXmlDocument.xml";
-    private final String wrongFileContent3 = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\wrongXmlDocument.xml";
-    private final String wrongFileContent4 = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\Koala.jpg";
+    private final String rightFileContent = "/rightDcTestFile.xml";
+    private final String wrongFileContent1 = "/wrongDcTestFile.xml";
+    private final String wrongFileContent2 = "/wrongDcXmlDocument.xml";
+    private final String wrongFileContent3 = "/wrongXmlDocument.xml";
+    private final String wrongFileContent4 = "/Koala.jpg";
    
     @Test
     public void readRightFileWithDefaultFiealdsTest()
     {
         DcExtractor extractor = new DcExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+
         String extracted = extractor.extractText(is);
         
         String exceptedJson = "{\"date\":\"2012-10-30\",\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"publisher\":\"Publisher\",\"language\":\"eng\",\"title\":\"Title\",\"type\":[\"Type1\",\"Type2\"]}";
@@ -55,16 +43,8 @@ public class DcExtractionTest
         
         DcExtractor extractor = new DcExtractor(fields);
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+
         String extracted = extractor.extractText(is);
         
         String exceptedJson = "{\"myDate\":\"2012-10-30\",\"myCreator\":\"Creator\",\"format\":\"application/pdf\"}";
@@ -84,16 +64,8 @@ public class DcExtractionTest
         
         DcExtractor extractor = new DcExtractor(fields);
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(rightFileContent);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", rightFileContent);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(rightFileContent);
+
         String extracted = extractor.extractText(is);
         
         String exceptedJson = "{\"myDate\":\"2012-10-30\",\"format\":\"application/pdf\"}";
@@ -106,16 +78,8 @@ public class DcExtractionTest
     {
         DcExtractor extractor = new DcExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(wrongFileContent1);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", wrongFileContent1);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(wrongFileContent1);
+
         String extracted = extractor.extractText(is);
         
         String exceptedJson = "{\"creator\":\"Creator\",\"format\":\"application/pdf\",\"description\":\"Dextription\",\"type\":[\"Type2\"]}";
@@ -128,16 +92,8 @@ public class DcExtractionTest
     {
         DcExtractor extractor = new DcExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(wrongFileContent2);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", wrongFileContent2);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(wrongFileContent2);
+
         String extracted = extractor.extractText(is);
         
         assertNull(extracted);
@@ -148,16 +104,8 @@ public class DcExtractionTest
     {
         DcExtractor extractor = new DcExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(wrongFileContent3);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", wrongFileContent3);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(wrongFileContent3);
+
         String extracted = extractor.extractText(is);
         
         assertNull(extracted);
@@ -168,16 +116,8 @@ public class DcExtractionTest
     {
         DcExtractor extractor = new DcExtractor();
         
-        FileInputStream is;
-        try
-        {
-            is = new FileInputStream(wrongFileContent4);
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File {} is not found!", wrongFileContent4);
-            return;
-        }
+        InputStream is = getClass().getResourceAsStream(wrongFileContent4);
+
         String extracted = extractor.extractText(is);
         
         assertNull(extracted);

@@ -4,7 +4,6 @@ import backtype.storm.Config;
 import backtype.storm.ILocalCluster;
 import backtype.storm.Testing;
 import backtype.storm.generated.StormTopology;
-import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.testing.CompleteTopologyParam;
 import backtype.storm.testing.MockedSources;
 import backtype.storm.testing.TestJob;
@@ -12,8 +11,6 @@ import backtype.storm.tuple.Values;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.JsonEncoder;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,17 +19,13 @@ import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class TopologyTest 
-{
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTest.class);  
-            
+{           
     @Test
     public void outputsTest()
     {

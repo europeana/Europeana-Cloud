@@ -17,8 +17,6 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -28,11 +26,10 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Class for test {@link ExtractBolt}.
+ * Environment variable STORM_TEST_TIMEOUT_MS must be set! (recommended value is 60000)
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ExtractBoltTest 
@@ -40,12 +37,10 @@ public class ExtractBoltTest
     private final String storeStream = "storeStream";
     private final String informStream = "informStream";
     
-    private final String pdfFilePath = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\rightTestFile.pdf";
-    private final String oaiFilePath = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\rightDcTestFile.xml";
-    private final String imgFilePath = "C:\\Users\\ceffa\\Desktop\\OU_tmp\\Koala.jpg";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExtractBoltTest.class);
- 
+    private final String pdfFilePath = "/rightTestFile.pdf";
+    private final String oaiFilePath = "/rightDcTestFile.xml";
+    private final String imgFilePath = "/Koala.jpg";
+    
     @Test
     public void acksTest()
     {
@@ -139,20 +134,13 @@ public class ExtractBoltTest
         
         List<InputStream> inputDatas= new ArrayList();
         String[] paths = {pdfFilePath, oaiFilePath, imgFilePath};
-        try 
+        for(String path: paths)
         {
-            for(String path: paths)
-            {
-                InputStream is = new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(path)));  //fileInputStream not supported reset
-                is.mark(0);
-                inputDatas.add(is);   
-            }
-        } 
-        catch (FileNotFoundException ex) 
-        {
-            LOGGER.error("File is not found! {}", ex.getMessage());
-            return ret;
-        }       
+            //InputStream is = new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(path)));  //fileInputStream not supported reset
+            InputStream is = new ByteArrayInputStream(IOUtils.toByteArray(getClass().getResourceAsStream(path)));   //fileInputStream not supported reset
+            is.mark(0);
+            inputDatas.add(is);   
+        }      
         byte[] a = {};
         InputStream is = new ByteArrayInputStream(a);  
         is.mark(0);
