@@ -46,39 +46,9 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 	private void parseConfig(@SuppressWarnings("rawtypes") Map conf) {
 
 		// TODO fetching properties from Conf does not work right now
-		
-//		if (conf.containsKey(KafkaMetricsConsumer.KAFKA_TOPIC_KEY)) {
-//			kafkaTopic = (String) conf.get(KafkaMetricsConsumer.KAFKA_TOPIC_KEY);
-//		} else {
-//			Iterator i = conf.keySet().iterator();
-//			while(i.hasNext()) {
-//				Object n = conf.get(i.next());
-//				if (n instanceof String) {
-//					LOG.error((String)n);
-//				}
-//				else if (n instanceof Integer) {
-//				}
-//			}
-//			LOG.error("KAFKA_TOPIC not found");
-//		}
-//
-//		if (conf.containsKey(KafkaMetricsConsumer.KAFKA_BROKER_KEY)) {
-//			kafkaBroker = (String) conf.get(KafkaMetricsConsumer.KAFKA_BROKER_KEY);
-//		} else {
-//			Iterator i = conf.keySet().iterator();
-//			while(i.hasNext()) {
-//				Object n = conf.get(i.next());
-//				if (n instanceof String) {
-//					LOG.error((String)n);
-//				}
-//			}
-//			LOG.error("KAFKA_BROKER not found");
-//		}
-		
 		// TODO hardcoded Kafka properties
 		kafkaTopic = "storm_metrics_topic";
-		//kafkaBroker = "ecloud.eanadev.org:9093";
-		kafkaBroker = "192.168.47.129:9093";
+		kafkaBroker = "ecloud.eanadev.org:9093";
 
 		Properties props = new Properties();
 		props.put("metadata.broker.list", kafkaBroker);
