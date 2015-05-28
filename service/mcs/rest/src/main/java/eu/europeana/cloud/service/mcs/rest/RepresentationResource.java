@@ -63,6 +63,7 @@ public class RepresentationResource {
 
 	/**
 	 * Returns the latest persistent version of a given representation .
+	 * <strong>Read permissions required.</strong>
 	 *
 	 * @summary get a representation
 	 * @param globalId cloud id of the record which contains the representation .
@@ -92,6 +93,7 @@ public class RepresentationResource {
 
 	/**
 	 * Deletes representation with all of its versions for a given cloudId.
+	 * <strong>Admin permissions required.</strong>
 	 * @summary Delete a representation.
 	 *
 	 * @param globalId cloud id of the record which all the representations will be deleted (required)
@@ -110,6 +112,8 @@ public class RepresentationResource {
 	/**
 	 * Creates a new representation version. Url of the created representation version
 	 * will be returned in response.
+	 *
+	 * <strong>User permissions required.</strong>
 	 *
 	 * @summary Creates a new representation version.
 	 *

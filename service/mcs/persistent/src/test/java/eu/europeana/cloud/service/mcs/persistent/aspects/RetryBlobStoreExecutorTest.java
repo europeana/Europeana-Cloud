@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent.aspects;
 
+import eu.europeana.cloud.service.mcs.persistent.exception.SwiftConnectionException;
 import eu.europeana.cloud.service.mcs.persistent.swift.DBlobStore;
 import java.util.ArrayList;
 import java.util.List;
 import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.http.HttpResponseException;
 import org.junit.Assert;
@@ -55,9 +55,9 @@ public class RetryBlobStoreExecutorTest {
             //when
             dynamicBlobStore.getBlob("container", "name");
             //then
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("All instances of Swift are down", e.getMessage());
+            fail("SwiftConnectionException should be thrown.");
+        } catch (SwiftConnectionException e) {
+            //expected excepton
         }
         verify(mock1, times(1)).getBlob("container", "name");
         verifyNoMoreInteractions(mock1);
@@ -82,9 +82,9 @@ public class RetryBlobStoreExecutorTest {
             dynamicBlobStore.getBlob("container", "name");
 
             // then
-            fail();
-        } catch (RuntimeException e) {
-            assertEquals("All instances of Swift are down", e.getMessage());
+            fail("SwiftConnectionException should be thrown.");
+        } catch (SwiftConnectionException e) {
+            //expected excepton
         }
 
         verify(mock1, times(1)).getBlob("container", "name");

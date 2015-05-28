@@ -62,8 +62,10 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void setBlobStores(List<BlobStore> blobStores) {
-        this.blobStores = blobStores;
-        blobIterator = new RandomIterator<>(Iterators.cycle(blobStores), 0.5);
+        synchronized (this) {
+            this.blobStores = blobStores;
+            blobIterator = new RandomIterator<>(Iterators.cycle(blobStores), 0.5);
+        }
     }
 
 
@@ -81,7 +83,7 @@ public class DynamicBlobStore implements DBlobStore {
      */
     @Override
     public void switchInstance() {
-        synchronized (blobIterator) {
+        synchronized (this) {
             activeInstance = blobIterator.next();
         }
 

@@ -39,3 +39,13 @@ nbactions.xml
 /service/dps/storm/transform/xslt/target/
 /service/dps/storm/topology/xslt/target/
 /service/dps/storm/examples/target/
+
+/service/dps/storm/topologies/text/target/
+/service/dps/kafka-service/target/
+/service/dps/zoo-service/target/
+/service/dps/storm/transform/text/target/
+
+/service/dps/storm/index/target/
+/service/dps/storm/topologies/indexer/target/
+/service/dps/index/target/
+/service/dps/similarity/target/

@@ -57,6 +57,8 @@ public class RecordsResource {
      * Deletes record with all its representations in all versions. Does not
      * remove mapping from Unique Identifier Service.
      *
+     * <strong>Admin permissions required.</strong>
+     *
      * @summary delete a record
      * @param globalId cloud id of the record (required).
      * @throws RecordNotExistsException provided id is not known to Unique

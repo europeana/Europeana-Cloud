@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
+import java.util.NoSuchElementException;
 import javax.annotation.PreDestroy;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
@@ -14,11 +15,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
 
-    private static final Logger LOGGER = LoggerFactory
-	    .getLogger(SimpleSwiftConnectionProvider.class);
-    private final BlobStoreContext context;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSwiftConnectionProvider.class);
+    private BlobStoreContext context;
     private final String container;
-    private final BlobStore blobStore;
+    private BlobStore blobStore;
+
+    private final String provider;
+    private final String endpoint;
+    private final String user;
+    private final String password;
+
 
     /**
      * Class constructor. Establish connection to Openstack Swift endpoint using
@@ -37,35 +43,53 @@ public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
      * @param password
      *            user password
      */
-    public SimpleSwiftConnectionProvider(String provider, String container,
-	    String endpoint, String user, String password) {
-	this.container = container;
-	context = ContextBuilder.newBuilder(provider).endpoint(endpoint)
-		.credentials(user, password).buildView(BlobStoreContext.class);
-	blobStore = context.getBlobStore();
-	if (!blobStore.containerExists(container)) {
-	    blobStore.createContainerInLocation(null, container);
-	}
-	LOGGER.info("Connected to swift.");
+    public SimpleSwiftConnectionProvider(String provider, String container, String endpoint, String user,
+            String password) {
+        this.container = container;
+        this.provider = provider;
+        this.endpoint = endpoint;
+        this.user = user;
+        this.password = password;
+        openConnections();
     }
 
-    /**
-     * Close connection on container destroy.
-     */
+
+    private void openConnections()
+            throws NoSuchElementException {
+        context = ContextBuilder.newBuilder(provider).endpoint(endpoint).credentials(user, password)
+                .buildView(BlobStoreContext.class);
+        blobStore = context.getBlobStore();
+        if (!blobStore.containerExists(container)) {
+            blobStore.createContainerInLocation(null, container);
+        }
+        LOGGER.info("Connected to swift.");
+    }
+
+
+    @Override
+    public void reconnectConnections() {
+        closeConnections();
+        openConnections();
+    }
+
+
+    @Override
     @PreDestroy
     public void closeConnections() {
-	LOGGER.info("Shutting down swift connection");
-	context.close();
+        LOGGER.info("Shutting down swift connection");
+        context.close();
     }
+
 
     @Override
     public String getContainer() {
-	return container;
+        return container;
     }
+
 
     @Override
     public BlobStore getBlobStore() {
-	return blobStore;
+        return blobStore;
     }
 
 }

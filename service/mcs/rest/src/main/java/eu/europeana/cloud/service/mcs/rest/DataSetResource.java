@@ -54,6 +54,7 @@ public class DataSetResource {
     
     /**
      * Deletes data set.
+     * <strong>Delete permissions required.</strong>
      *
      * @param providerId identifier of the dataset's provider(required).
      * @param dataSetId  identifier of the deleted data set(required).
@@ -79,7 +80,7 @@ public class DataSetResource {
     /**
      * Lists representation versions from data set. Result is returned in
      * slices.
-     * get representation versions from a data set
+     * @summary get representation versions from a data set
      *
      * @param providerId  identifier of the dataset's provider (required).
      * @param dataSetId  identifier of a data set (required).
@@ -100,6 +101,8 @@ public class DataSetResource {
 
     /**
      * Updates description of a data set.
+     *
+     * <strong>Write permissions required.</strong>
      *
      * @param providerId  identifier of the dataset's provider (required).
      * @param dataSetId  identifier of a data set (required).

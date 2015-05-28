@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.examples;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +47,7 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 	public void nextTuple() {
 
 		try {	
-			HashMap<String, String> taskParameters = task.getParameters();
+			Map<String, String> taskParameters = task.getParameters();
 			LOGGER.info("taskParameters size=" + taskParameters.size());
 			
 			List<String> files = task.getDataEntry(DpsTask.FILE_URLS);

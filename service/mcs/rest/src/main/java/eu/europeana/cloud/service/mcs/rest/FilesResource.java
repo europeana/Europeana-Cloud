@@ -65,6 +65,7 @@ public class FilesResource {
 	 * binary stream of file content (required)</li>
 	 * </ul>
 	 *
+	 * <strong>Write permissions required.</strong>
 	 *@summary Add a new file to a representation version
 	 * @param globalId cloud id of the record (required).
 	 * @param schema schema of representation (required).
@@ -76,7 +77,7 @@ public class FilesResource {
 	 * @param fileName
 	 *            name of creating file. If fileName does not provided by POST
 	 *            request fileName will assigned automatically by service.
-	 * @return empty response with tag (content md5) and URI to created resource
+	 * @return empty response with tag (content md5) and URI to the created resource
 	 *         in content location.
 	 * @statuscode 201 object has been created.
 	 * @throws RepresentationNotExistsException

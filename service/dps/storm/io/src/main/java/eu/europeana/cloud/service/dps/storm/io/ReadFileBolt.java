@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import java.io.InputStream;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -11,115 +10,114 @@ import backtype.storm.metric.api.CountMetric;
 import backtype.storm.metric.api.MeanReducer;
 import backtype.storm.metric.api.MultiCountMetric;
 import backtype.storm.metric.api.ReducedMetric;
-import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.utils.Utils;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.PersistentCountMetric;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.ZookeeperMultiCountMetric;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  */
-public class ReadFileBolt extends AbstractDpsBolt {
+public class ReadFileBolt extends AbstractDpsBolt 
+{
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
 
-	private OutputCollector collector;
+    /** Properties to connect to eCloud */
+    private final String zkAddress;
+    private final String ecloudMcsAddress;
+    private final String username;
+    private final String password;
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ReadFileBolt.class);
+    private transient CountMetric countMetric;
+    private transient PersistentCountMetric pCountMetric;
+    private transient MultiCountMetric wordCountMetric;
+    private transient ReducedMetric wordLengthMeanMetric;
 
-	/** Properties to connect to eCloud */
-	private String zkAddress;
-	private String ecloudMcsAddress;
-	private String username;
-	private String password;
-	
-	private transient CountMetric countMetric;
-	private transient PersistentCountMetric pCountMetric;
-	private transient MultiCountMetric wordCountMetric;
-	private transient ReducedMetric wordLengthMeanMetric;
-	
-	private FileServiceClient fileClient;
+    private FileServiceClient fileClient;
 
-	public ReadFileBolt(String zkAddress, String ecloudMcsAddress, String username,
-			String password) {
+    public ReadFileBolt(String zkAddress, String ecloudMcsAddress, String username,String password) 
+    {
+        this.zkAddress = zkAddress;
+        this.ecloudMcsAddress = ecloudMcsAddress;
+        this.username = username;
+        this.password = password;
+    }
 
-		this.zkAddress = zkAddress;
-		this.ecloudMcsAddress = ecloudMcsAddress;
-		this.username = username;
-		this.password = password;
-	}
+    @Override
+    public void prepare() 
+    {
+        fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
 
-	@Override
-	public void prepare(Map conf, TopologyContext context,
-			OutputCollector collector) {
+        initMetrics(topologyContext);
+    }
 
-		this.collector = collector;
-		fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
+    @Override
+    public void execute(StormTaskTuple t) 
+    {
+        String fileUrl = t.getFileUrl();
+        if(fileUrl == null || fileUrl.isEmpty())
+        {
+            LOGGER.warn("No URL for retrieve file.");
+            outputCollector.ack(inputTuple);
+            return;
+        }
+ 
+        try
+        {
+            InputStream is = fileClient.getFile(fileUrl);          
 
-		initMetrics(context);
-	}
+            t.setFileData(is);
+            
+            Map<String, String> parsedUri = FileServiceClient.parseFileUri(fileUrl);
+            t.addParameter(PluginParameterKeys.CLOUD_ID, parsedUri.get("CLOUDID"));
+            t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, parsedUri.get("REPRESENTATIONNAME"));
+            t.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, parsedUri.get("VERSION"));
+            t.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get("FILENAME"));
 
-	void initMetrics(TopologyContext context) {
+            updateMetrics(t, IOUtils.toString(is));
 
-		countMetric = new CountMetric();
-		pCountMetric = new PersistentCountMetric();
-		wordCountMetric = new MultiCountMetric();
-		wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
-		
-		context.registerMetric("read_records=>", countMetric, 1);
-		context.registerMetric("pCountMetric_records=>", pCountMetric, 1);
-		context.registerMetric("word_count=>", wordCountMetric, 1);
-		context.registerMetric("word_length=>", wordLengthMeanMetric, 1);
-	}
+            outputCollector.emit(inputTuple, t.toStormTuple());
+        }
+        catch (RepresentationNotExistsException | FileNotExistsException | 
+                    WrongContentRangeException ex) 
+        {
+            LOGGER.warn("Can not retrieve file at {}", fileUrl);
+        }
+        catch (DriverException | MCSException | IOException ex) 
+        {
+            LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+        }
+        
+        outputCollector.ack(inputTuple);
+    }
 
-	@Override
-	public void execute(StormTaskTuple t) {
+    void initMetrics(TopologyContext context) 
+    {
+        countMetric = new CountMetric();
+        pCountMetric = new PersistentCountMetric();
+        wordCountMetric = new MultiCountMetric();
+        wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
 
-		String fileData = null;
-		String fileUrl = null;
-
-		try {
-
-			fileUrl = t.getFileUrl();
-
-			LOGGER.info("getTaskId: {}", t.getTaskId());
-			LOGGER.info("logger fetching file: {}", fileUrl);
-			LOGGER.debug("fetching file: " + fileUrl);
-			
-			fileData = getFileContentAsString(fileUrl);
-
-			updateMetrics(t, fileData);
-
-		} catch (Exception e) {
-			LOGGER.error("ReadFileBolt error:" + e.getMessage());
-		}
-		
-		t.setFileUrl(fileUrl);
-		t.setFileData(fileData);
-		
-		//Utils.sleep(100);
-		collector.emit(t.toStormTuple());
-	}
-
-	void updateMetrics(StormTaskTuple t, String word) {
-		
-		countMetric.incr();
-		pCountMetric.incr();
-		wordCountMetric.scope(word).incr();
-		wordLengthMeanMetric.update(word.length());
-		LOGGER.info("ReadFileBolt: metrics updated");
-	}
-
-	private String getFileContentAsString(String fileUrl) {
-		try {
-			InputStream stream = fileClient.getFile(fileUrl);
-			return IOUtils.toString(stream);
-		} catch (Exception e) {
-			LOGGER.error("ReadFileBolt error:" + e.getMessage());
-		}
-		return null;
-	}
+        context.registerMetric("read_records=>", countMetric, 10);
+        context.registerMetric("pCountMetric_records=>", pCountMetric, 10);
+        context.registerMetric("word_count=>", wordCountMetric, 10);
+        context.registerMetric("word_length=>", wordLengthMeanMetric, 10);
+    }
+    
+    void updateMetrics(StormTaskTuple t, String word) 
+    {
+        countMetric.incr();
+        pCountMetric.incr();
+        wordCountMetric.scope(word).incr();
+        wordLengthMeanMetric.update(word.length());
+        LOGGER.info("ReadFileBolt: metrics updated");
+    }
 }

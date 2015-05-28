@@ -77,7 +77,8 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 		
 		// TODO hardcoded Kafka properties
 		kafkaTopic = "storm_metrics_topic";
-		kafkaBroker = "ecloud.eanadev.org:9093";
+		//kafkaBroker = "ecloud.eanadev.org:9093";
+		kafkaBroker = "192.168.47.129:9093";
 
 		Properties props = new Properties();
 		props.put("metadata.broker.list", kafkaBroker);

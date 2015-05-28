@@ -71,9 +71,10 @@ public class FileResource {
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_MIME} -
      * file mime type</li>
      * <li>{@value eu.europeana.cloud.common.web.ParamConstants#F_FILE_DATA} -
-     * binary stream of file content (required)</li>
+     * binary stream of file content (required).</li>
      * </ul>
      *
+     *<strong>Write permissions required.</strong>
      *@summary Updates a file in a representation version
      * @param globalId cloud id of the record in which the file will be updated (required)
      * @param schema schema of representation (required)
@@ -81,7 +82,7 @@ public class FileResource {
      * @param fileName the name of the file(required)
      * @param mimeType mime type of file
      * @param data binary stream of file content (required)
-     * @return uri of uploaded content file in content-location
+     * @return URI of the uploaded content file in content-location
      * @throws RepresentationNotExistsException representation does not exist in
      * specified version.
      * @throws CannotModifyPersistentRepresentationException specified
@@ -129,13 +130,15 @@ public class FileResource {
      * <li><b>Range: bytes=10-</b> - skip 10 first bytes of content
      * </ul>
      *
+     * <strong>Read permissions required.</strong>
      * @summary get file contents from a representation version
      * @param globalId cloud id of the record (required).
      * @param schema schema of representation (required).
      * @param version a specific version of the representation(required).
      * @param fileName the name of the file(required).
      * @param range range of bytes to return (optional)
-     * @return file content @throws RepresentationNotExistsException
+     * @return file content
+     * @throws RepresentationNotExistsException
      * representation does not exist in the specified version.
      * @throws RepresentationNotExistsException representation does not exist in
      * the specified version.
@@ -195,7 +198,7 @@ public class FileResource {
 
     /**
      * Deletes file from representation version.
-     *
+     *<strong>Delete permissions required.</strong>
      *
      * @param globalId cloud id of the record (required).
      * @param schema schema of representation (required).

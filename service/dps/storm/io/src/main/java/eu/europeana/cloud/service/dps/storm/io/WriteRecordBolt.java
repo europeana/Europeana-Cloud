@@ -23,8 +23,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
 
-	private OutputCollector collector;
-
 	private String ecloudMcsAddress;
 	private String username;
 	private String password;
@@ -44,11 +42,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	}
 
 	@Override
-	public void prepare(Map conf, TopologyContext context,
-			OutputCollector collector) {
+	public void prepare() {
 
 		mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
-		this.collector = collector;
 	}
 
 	@Override
@@ -74,7 +70,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			
 			LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 			
-			collector.emit(t.toStormTuple());
+			outputCollector.emit(t.toStormTuple());
 
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());

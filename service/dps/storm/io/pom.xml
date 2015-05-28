@@ -118,6 +118,22 @@
 			<version>${version.spring-framework}</version>
 			<scope>test</scope>
 		</dependency>
+	 <dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
+	  <version>${project.version}</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>ecloud-service-dps-storm-transform-text</artifactId>
+	  <version>${project.version}</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>uk.com.robust-it</groupId>
+	  <artifactId>cloning</artifactId>
+	  <version>1.9.1</version>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>
 
 </project>

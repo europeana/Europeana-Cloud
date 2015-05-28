@@ -54,15 +54,23 @@ public class TopologyTasksResource {
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     private final static String TASK_PREFIX = "DPS_Task";
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
-
+    
     /**
      * Retrieves a task with the given taskId from the specified topology. 
      * 
-     * <strong>Read permissions required</strong>.
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Authenticated user</li> 			    
+     *     			<li>Read permission for selected task</li>
+     * 			</ul>
+     * </div>
      * 
-     * @summary Retrieve task
+     * @summary Task retrieval
+     * 
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return The requested task.
@@ -83,7 +91,13 @@ public class TopologyTasksResource {
     /**
      * Retrieves the current progress for the requested task. 
      * 
-     * <strong>Read permissions required</strong>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Read permissions for selected task</li> 			    
+     * 			</ul>
+     * </div>
      *
      * @summary Get Task Progress
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -125,7 +139,6 @@ public class TopologyTasksResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @ReturnType("java.net.URI")
     @Path("/")
     public Response submitTask(
             DpsTask task,
@@ -155,12 +168,18 @@ public class TopologyTasksResource {
      * 
      * Retrieves notifications for the specified task. 
      * 
-     * <strong>Read permissions required</strong>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Authenticated user</li> 			    
+     *     			<li>Read permission for selected task</li>
+     * 			</ul>
+     * </div>
      *
      * @summary Retrieve task notifications
      * 
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * 
      * @return Notification messages for the specified task.
      */
@@ -176,9 +195,16 @@ public class TopologyTasksResource {
     /**
      * Grants read / write permissions for a task to the specified user.
      * 
-     * <strong>Admin permissions required</strong>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Admin permissions</li> 			    
+     * 			</ul>
+     * </div>
      * 
      * @summary Grant task permissions to user
+     * 
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username

@@ -46,9 +46,10 @@ public class RepresentationAuthorizationResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
     /**
-     * Modify authorization of versions operation. Updates authorization. for a
+     * Modify authorization of versions operation. Updates authorization for a
      * specific representation version.
      *
+     * <strong>Write permissions required.</strong>
      * @param globalId cloud id of the record (required).
      * @param schema   schema of representation (required).
      * @param version  a specific version of the representation(required).
@@ -106,6 +107,8 @@ public class RepresentationAuthorizationResource {
 
     /**
      * Gives read access to everyone (even anonymous users) for the specified File.
+     *
+     * <strong>Write permissions required.</strong>
      *
      * @param globalId cloud id of the record (required).
      * @param schema   schema of representation (required).

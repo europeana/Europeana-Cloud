@@ -68,6 +68,8 @@
 
     <bean id="retryBlobStoreExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor"/>
     
+    <bean id="retryOnTokenExpiryExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryOnTokenExpiryExecutor"/>
+    
     <bean id="swiftConnectionProvider" 
           class="eu.europeana.cloud.service.mcs.persistent.swift.DynamicSwiftConnectionProvider">
         <constructor-arg name="provider" >

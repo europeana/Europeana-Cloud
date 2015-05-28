@@ -28,7 +28,6 @@ import eu.europeana.cloud.service.dps.util.LRUCache;
 
 public class XsltBolt extends AbstractDpsBolt {
 
-	private OutputCollector collector;
 	public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
 	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
@@ -91,12 +90,10 @@ public class XsltBolt extends AbstractDpsBolt {
 
 		// pass data to next Bolt
 		t.setFileData(writer.toString());
-		collector.emit(t.toStormTuple());
+		outputCollector.emit(t.toStormTuple());
 	}
 
 	@Override
-	public void prepare(Map stormConf, TopologyContext context,
-			OutputCollector collector) {
-		this.collector = collector;
+	public void prepare() {
 	}
 }
