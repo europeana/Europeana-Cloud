@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.qmino.miredot.annotations.ReturnType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class DataSetResource {
     private int numberOfElementsOnPage;
     
     private final String DATASET_CLASS_NAME = DataSet.class.getName();
-    
+
     /**
      * Deletes data set.
      * <strong>Delete permissions required.</strong>
@@ -59,11 +60,13 @@ public class DataSetResource {
      * @param providerId identifier of the dataset's provider(required).
      * @param dataSetId  identifier of the deleted data set(required).
      *
+     * @return Empty response with status code indicating whether the operation was successful or not.
+     * 
      * @throws DataSetNotExistsException data set not exists.
      */
     @DELETE
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
-    public void deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
+    public Response deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
             throws DataSetNotExistsException {
     	
         dataSetService.deleteDataSet(providerId, dataSetId);
@@ -75,6 +78,7 @@ public class DataSetResource {
             		dataSetId + "/" + providerId);
             mutableAclService.deleteAcl(dataSetIdentity, false);
         }
+        return Response.ok().build();
     }
 
     /**
