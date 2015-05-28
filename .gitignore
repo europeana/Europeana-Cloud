@@ -50,5 +50,5 @@ nbactions.xml
 /service/dps/storm/topologies/indexer/target/
 /service/dps/index/target/
 /service/dps/similarity/target/
-/service/dps/
-!/service/dps/rest-client-java/
+
+
