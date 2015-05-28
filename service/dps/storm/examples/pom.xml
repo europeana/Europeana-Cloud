@@ -19,7 +19,15 @@
 	</properties>
 
 	<dependencies>
-
+	
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-core</artifactId>
+            <version>${version.storm}</version>
+            <!-- keep storm out of the jar-with-dependencies -->
+            <scope>provided</scope>
+        </dependency>
+        
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-dps-storm-io</artifactId>
@@ -32,6 +40,10 @@
 				<exclusion>
 					<artifactId>slf4j-log4j12</artifactId>
 					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -57,6 +69,10 @@
 					<artifactId>kafka_2.9.2</artifactId>
 					<groupId>org.apache.kafka</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -72,6 +88,10 @@
 				<exclusion>
 					<artifactId>slf4j-log4j12</artifactId>
 					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -89,6 +109,10 @@
 					<artifactId>jcl-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -105,16 +129,13 @@
 					<artifactId>jcl-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.storm</groupId>
-			<artifactId>storm-core</artifactId>
-			<version>${version.storm}</version>
-			<!-- keep storm out of the jar-with-dependencies -->
-			<scope>provided</scope>
-		</dependency>
 
 		<!--logging -->
 		<dependency>
@@ -128,22 +149,11 @@
 			<version>1.1.2</version>
 		</dependency>
 
-		<!-- 
-			<dependency> <groupId>org.slf4j</groupId> <artifactId>jcl-over-slf4j</artifactId> 
-			</dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> 
-			</dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-log4j12</artifactId> 
-			</dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>jul-to-slf4j</artifactId> 
-			</dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-ext</artifactId> 
-			<version>1.7.5</version> </dependency> <dependency> <groupId>log4j</groupId> 
-			<artifactId>log4j</artifactId> </dependency>
-		 -->
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-kafka</artifactId>
 			<version>0.9.2-incubating</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -173,11 +183,32 @@
 			<artifactId>
         		ecloud-service-dps-storm-transform-xslt
         	</artifactId>
-			<version>0.3-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jcl-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>
+				ecloud-service-dps-storm-transform-text
+			</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>slf4j-log4j12</artifactId>
@@ -188,28 +219,27 @@
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
-				ecloud-service-dps-storm-transform-text
-			</artifactId>
-			<version>0.3-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>
 				ecloud-service-dps-storm-topologies-text
 			</artifactId>
-			<version>0.3-SNAPSHOT</version>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>kafka_2.9.2</artifactId>
+					<groupId>org.apache.kafka</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
 				ecloud-service-dps-storm-topologies-indexer
 			</artifactId>
-			<version>0.3-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-dps-similarity</artifactId>
-			<version>0.3-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

@@ -15,8 +15,16 @@ public class KafkaXSLTTaskProducer {
 
 		// args[0]: metadata broker list (e.g., ecloud.eanadev.org:9093)
 		// args[1]: topic name (e.g., franco_maria_topic)
-		// args[2]: record URI
-		// args[3]: XSLT URL (all records will be processed by this XSLT)
+		
+		// args[2]: record URI 
+		//	(e.g 
+		// http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT/records/"
+		// + "L9WSPSMVQ85/representations/edm/versions/b17c4f60-70d0-11e4-8fe1-00163eefc9c8/files/af7d3a77-4b00-485f-832c-a33c5a3d7b56
+		//	)
+		
+		// args[3]: XSLT URL (all records will be processed by this XSLT) 
+		// http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt
+		
 		// args[4]: output extension (do we need an extension as output of the
 		// topology?)
 

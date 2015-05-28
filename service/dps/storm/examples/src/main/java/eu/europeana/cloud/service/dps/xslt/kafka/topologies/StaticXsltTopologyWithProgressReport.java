@@ -7,6 +7,7 @@ import java.util.Map;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
@@ -25,27 +26,24 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  * - Reads a File from eCloud
  * 
  * - Writes a File to eCloud
+ * 
+ * - Updates the progress of the submitted task
  */
 public class StaticXsltTopologyWithProgressReport {
 	
-    private static String ecloudMcsAddress = "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-	private static String username = "Cristiano";
-	private static String password = "Ronaldo";
-
-	private static String kafkaTopic = "storm_metrics_topic";
-	private static String kafkaBroker = "ecloud.eanadev.org:9093";
-	
-	private static String zkAddress = "ecloud.eanadev.org:2181";
-
-	public static void main(String[] args) throws Exception {
-
+	/**
+	 * Builds the topology
+	 * @return Storm Xslt Topology
+	 */
+	private static StormTopology buildStaticXsltTopologyWithProgressReport(String[] args) {
+		
 		TopologyBuilder builder = new TopologyBuilder();
 		
 		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
 		
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress, ecloudMcsAddress, username, password);
-		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
-		ProgressBolt progressBolt = new ProgressBolt(zkAddress);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(args[1], args[2], args[3], args[4]);
+		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(args[2], args[3], args[4]);
+		ProgressBolt progressBolt = new ProgressBolt(args[1]);
 
 		builder.setSpout("taskSpout", taskSpout, 1);
 		
@@ -61,28 +59,25 @@ public class StaticXsltTopologyWithProgressReport {
 		builder.setBolt("progressBolt", progressBolt, 1).shuffleGrouping(
 				"writeRecordBolt");
  
+	    return builder.createTopology();
+	}
+
+	public static void main(String[] args) throws Exception {
+
 		Config conf = new Config();
 		conf.setDebug(true);
 		conf.put(Config.TOPOLOGY_DEBUG, true);
 		
-	    Map<String, String> kafkaMetricsConfig = new HashMap<String, String>();
-	    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, kafkaBroker);
-	    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, kafkaTopic);
-	    conf.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, 60);
-	    
 		if (args != null && args.length > 0) {
 
+		    Map<String, String> kafkaMetricsConfig = new HashMap<String, String>();
+		    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, args[5]);
+		    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, args[6]);
+		    conf.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, 60);
 			conf.setNumWorkers(3);
 
 			StormSubmitter.submitTopologyWithProgressBar(args[0], conf,
-					builder.createTopology());
-		} else {
-
-			LocalCluster cluster = new LocalCluster();
-			cluster.submitTopology("test", conf, builder.createTopology());
-			Utils.sleep(60000);
-			cluster.killTopology("test");
-			cluster.shutdown();
-		}
+					buildStaticXsltTopologyWithProgressReport(args));
+		} 
 	}
 }

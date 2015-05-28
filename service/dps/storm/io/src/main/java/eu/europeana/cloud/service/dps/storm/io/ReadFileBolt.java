@@ -38,8 +38,6 @@ public class ReadFileBolt extends AbstractDpsBolt
 
     private transient CountMetric countMetric;
     private transient PersistentCountMetric pCountMetric;
-    private transient MultiCountMetric wordCountMetric;
-    private transient ReducedMetric wordLengthMeanMetric;
 
     private FileServiceClient fileClient;
 
@@ -103,21 +101,15 @@ public class ReadFileBolt extends AbstractDpsBolt
     {
         countMetric = new CountMetric();
         pCountMetric = new PersistentCountMetric();
-        wordCountMetric = new MultiCountMetric();
-        wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
 
         context.registerMetric("read_records=>", countMetric, 10);
         context.registerMetric("pCountMetric_records=>", pCountMetric, 10);
-        context.registerMetric("word_count=>", wordCountMetric, 10);
-        context.registerMetric("word_length=>", wordLengthMeanMetric, 10);
     }
     
     void updateMetrics(StormTaskTuple t, String word) 
     {
         countMetric.incr();
         pCountMetric.incr();
-        wordCountMetric.scope(word).incr();
-        wordLengthMeanMetric.update(word.length());
         LOGGER.info("ReadFileBolt: metrics updated");
     }
 }

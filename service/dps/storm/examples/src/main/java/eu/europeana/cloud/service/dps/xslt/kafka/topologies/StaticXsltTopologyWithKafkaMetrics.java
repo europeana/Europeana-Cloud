@@ -24,6 +24,8 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  * - Reads a File from eCloud
  * 
  * - Writes a File to eCloud
+ * 
+ * Tests storing of Metrics to Kafka
  */
 public class StaticXsltTopologyWithKafkaMetrics {
 

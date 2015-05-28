@@ -25,6 +25,8 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  * - Reads a File from eCloud
  * 
  * - Writes a File to eCloud
+ * 
+ *  Saves metrics by using {@SimpleLoggingMetricsConsumer}
  */
 public class StaticXsltTopologyWithSimpleMetrics {
 	
