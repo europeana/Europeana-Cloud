@@ -75,6 +75,7 @@
 				<excludes>
 					<exclude>zookeeper/</exclude>
 					<exclude>zoo-kafka/</exclude>
+					<exclude>tomcat/</exclude>
 				</excludes>
 			</resource>
 		</resources>

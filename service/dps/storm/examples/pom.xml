@@ -185,6 +185,32 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>
+				ecloud-service-dps-storm-transform-text
+			</artifactId>
+			<version>0.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>
+				ecloud-service-dps-storm-topologies-text
+			</artifactId>
+			<version>0.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>
+				ecloud-service-dps-storm-topologies-indexer
+			</artifactId>
+			<version>0.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-dps-similarity</artifactId>
+			<version>0.3-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
