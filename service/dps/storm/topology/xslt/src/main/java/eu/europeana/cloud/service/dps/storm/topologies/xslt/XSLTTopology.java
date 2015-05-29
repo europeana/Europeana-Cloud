@@ -54,8 +54,8 @@ public class XSLTTopology {
 
 	public StormTopology buildTopology() {
 		
-		int numberOfExecutors = 8;
-		int numberOfTasks = 8;
+		int numberOfExecutors = 16;
+		int numberOfTasks = 16;
 		
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress,
 				ecloudMcsAddress, username, password);
@@ -71,7 +71,7 @@ public class XSLTTopology {
 		// TOPOLOGY STRUCTURE!
 		// 1 executor, i.e., 1 thread.
 		// 1 task per executor
-		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), numberOfExecutors)
+		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 1)
 				.setNumTasks(numberOfTasks);
 
 		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(), numberOfExecutors)
