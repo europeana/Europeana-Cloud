@@ -25,6 +25,22 @@ import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
+/**
+ * This is the XSLT tranformation topology for Apache Storm. The topology reads
+ * from the cloud, download an XSLT sheet from a remote server, apply it to each
+ * record read and save it back to the cloud.
+ * 
+ * The topology takes some parameters. When deployed in distributed mode:
+ * args[0] is the IP of the zookeeper machine;
+ * args[1] is the IP of the Storm Nimbus machine;
+ * args[2] is the name of the topology
+ * 
+ * In local mode:
+ * args[0] is the IP of the zookeeper machine;
+ * 
+ * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
+ *
+ */
 public class XSLTTopology {
 
 	// private static String ecloudMcsAddress =
@@ -53,10 +69,10 @@ public class XSLTTopology {
 	}
 
 	public StormTopology buildTopology() {
-		
+
 		int numberOfExecutors = 16;
 		int numberOfTasks = 16;
-		
+
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress,
 				ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress,
@@ -74,18 +90,22 @@ public class XSLTTopology {
 		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 1)
 				.setNumTasks(numberOfTasks);
 
-		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(), numberOfExecutors)
-				.setNumTasks(numberOfTasks).shuffleGrouping("kafkaReader");
+		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(),
+				numberOfExecutors).setNumTasks(numberOfTasks)
+				.shuffleGrouping("kafkaReader");
 
-		// builder.setSpout("testSpout", new DpsTaskSpoutTest(), numberOfExecutors).setNumTasks(numberOfTasks);
+		// builder.setSpout("testSpout", new DpsTaskSpoutTest(),
+		// numberOfExecutors).setNumTasks(numberOfTasks);
 
-		builder.setBolt("retrieveFileBolt", retrieveFileBolt, numberOfExecutors).setNumTasks(numberOfTasks)
-				.shuffleGrouping("parseKafkaInput");
+		builder.setBolt("retrieveFileBolt", retrieveFileBolt, numberOfExecutors)
+				.setNumTasks(numberOfTasks).shuffleGrouping("parseKafkaInput");
 
-		builder.setBolt("xsltTransformationBolt", new XsltBolt(), numberOfExecutors)
-				.setNumTasks(numberOfTasks).shuffleGrouping("retrieveFileBolt");
+		builder.setBolt("xsltTransformationBolt", new XsltBolt(),
+				numberOfExecutors).setNumTasks(numberOfTasks)
+				.shuffleGrouping("retrieveFileBolt");
 
-		builder.setBolt("writeRecordBolt", writeRecordBolt, numberOfExecutors).setNumTasks(numberOfTasks)
+		builder.setBolt("writeRecordBolt", writeRecordBolt, numberOfExecutors)
+				.setNumTasks(numberOfTasks)
 				.shuffleGrouping("xsltTransformationBolt");
 
 		builder.setBolt("progressBolt", progressBolt, 1).setNumTasks(1)
@@ -115,16 +135,16 @@ public class XSLTTopology {
 		if (args != null && args.length > 1) {
 			String dockerIp = args[1];
 			String name = args[2];
-			config.setNumWorkers(4);
-			config.setMaxTaskParallelism(1);
+			config.setNumWorkers(8);
+			config.setMaxTaskParallelism(2);
 			config.put(Config.NIMBUS_THRIFT_PORT, 6627);
 			config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
 			config.put(Config.NIMBUS_HOST, dockerIp);
 			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
 			StormSubmitter.submitTopology(name, config, stormTopology);
 		} else {
-			config.setNumWorkers(4);
-			config.setMaxTaskParallelism(1);
+			config.setNumWorkers(8);
+			config.setMaxTaskParallelism(2);
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology("XSLTTopology", config, stormTopology);
 		}
