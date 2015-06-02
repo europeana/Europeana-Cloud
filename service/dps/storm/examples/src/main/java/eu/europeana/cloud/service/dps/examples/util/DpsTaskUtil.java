@@ -41,28 +41,32 @@ public class DpsTaskUtil {
 	private final static String POZNAN_INPUT_URL_MANOS = "http://felicia.man.poznan.pl/mcs/records/M9TXDFG2CXT/representations/edm/versions/"
 			+ "fd5d7060-c1b8-11e4-8d39-00505682006e/files/e3f8b355-c079-45bc-ab31-b4b3ccf8f536";
 	
+	// xslt hosted in ISTI (Franco Maria)
+	private final static String xsltUrl = "http://pomino.isti.cnr.it/~nardini/eCloudTest/a0429_xslt";
+
+	// xslt hosted in ULCC
+	private final static String ulccXsltUrl = "http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt";
+	
 	/**
 	 * @return a hardcoded {@link DpsTask}
 	 */
 	public static DpsTask generateDpsTask() {
+		return generateDpsTask(SAMPLE_XML, ulccXsltUrl, RECORD_COUNT);
+	}
+	
+	public static DpsTask generateDpsTask(final String xmlUrl, final String xslt, final int recordCount) {
 
 		DpsTask task = new DpsTask();
 		
-		// xslt hosted in ISTI (Franco Maria)
-		final String xsltUrl = "http://pomino.isti.cnr.it/~nardini/eCloudTest/a0429_xslt";
-
-		// xslt hosted in ULCC
-		final String ulccXsltUrl = "http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt";
-		
 		List<String> records = Lists.newArrayList();
-		for(int i=0; i<RECORD_COUNT; i++) {
+		for(int i=0; i<recordCount; i++) {
 			
 			// adding the input files!
-			records.add(SAMPLE_XML);
+			records.add(xmlUrl);
 		}
 		
 		task.addDataEntry(DpsTask.FILE_URLS, records);
-		task.addParameter(PluginParameterKeys.XSLT_URL, ulccXsltUrl);
+		task.addParameter(PluginParameterKeys.XSLT_URL, xslt);
 		task.addParameter(PluginParameterKeys.OUTPUT_URL, null);
 
 		return task;

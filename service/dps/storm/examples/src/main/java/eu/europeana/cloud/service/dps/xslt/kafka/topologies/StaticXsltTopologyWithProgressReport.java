@@ -5,11 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import backtype.storm.Config;
-import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
@@ -39,7 +37,7 @@ public class StaticXsltTopologyWithProgressReport {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 		
-		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
+		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask(args[7], args[8], Integer.parseInt(args[9])));
 		
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(args[1], args[2], args[3], args[4]);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(args[2], args[3], args[4]);
