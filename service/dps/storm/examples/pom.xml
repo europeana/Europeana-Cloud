@@ -199,6 +199,11 @@
 			<artifactId>ecloud-service-dps-similarity</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-dps-storm-kafka</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 
 		<!--logging -->

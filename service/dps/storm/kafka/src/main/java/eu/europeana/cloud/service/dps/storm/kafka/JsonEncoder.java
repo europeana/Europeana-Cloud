@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.kafka;
 
 import java.io.IOException;
 

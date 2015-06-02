@@ -11,9 +11,9 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
-import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
 /**

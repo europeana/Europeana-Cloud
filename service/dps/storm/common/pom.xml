@@ -30,18 +30,12 @@
 			<artifactId>ecloud-service-dps-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-dps-kafka</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-dps-zoo</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
@@ -55,19 +49,6 @@
 		  </exclusion>
 		 </exclusions>
 		</dependency>
-
-		<!--  <dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.9.2</artifactId>
-			<version>0.8.2.0</version>
-		</dependency>  -->
-		
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.10</artifactId>
-			<version>0.8.1.1</version>
-		</dependency>
-
 
 		<!--logging -->
 		<dependency>

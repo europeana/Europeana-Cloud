@@ -41,19 +41,6 @@
             <scope>provided</scope>
         </dependency>
 		
-		<!-- forked kafka with fixed appender issue KAFKA-847 -->
-		<!-- TODO ECL-317 -->
-		<dependency>
-			<groupId>eu.europeana.cloud.kafka</groupId>
-			<artifactId>kafka_2.10</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>zookeeper</artifactId>
-						<groupId>org.apache.zookeeper</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-				
         <!--logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

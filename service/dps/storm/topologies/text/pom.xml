@@ -11,6 +11,7 @@
     <packaging>jar</packaging>
     <name>Europeana Cloud: DPS Service Storm Topology for Text stripping</name>
     <dependencies>
+    
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
@@ -19,7 +20,7 @@
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
-            <version>0.9.4</version>
+            <version>${version.storm}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -28,10 +29,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>jar</type>
             <exclusions>
                 <exclusion>
@@ -43,8 +45,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-kafka</artifactId>
-            <version>0.3-SNAPSHOT</version>
-            <type>jar</type>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -67,14 +68,15 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>2.4.0</version>
-        </dependency>
-        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ecloud-service-dps-storm-transform-text</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>2.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

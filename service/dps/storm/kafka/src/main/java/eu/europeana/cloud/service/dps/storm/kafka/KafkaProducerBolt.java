@@ -1,12 +1,15 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.kafka;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import java.util.Map;
 import java.util.Properties;
+
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
 /**
  * Creates tasks ({@link DpsTask}) and sends them to Kafka
