@@ -1,5 +1,5 @@
 
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.metrics;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

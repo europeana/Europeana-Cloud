@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.metrics;
 
 import backtype.storm.metric.api.CountMetric;
 import backtype.storm.metric.api.IMetric;

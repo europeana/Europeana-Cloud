@@ -9,7 +9,8 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
 /**
- *
+ * Creates tasks ({@link DpsTask}) and sends them to Kafka
+ * 
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class KafkaProducerBolt extends AbstractDpsBolt

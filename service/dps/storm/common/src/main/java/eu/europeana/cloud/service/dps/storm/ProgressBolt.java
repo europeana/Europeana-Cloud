@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.europeana.cloud.service.dps.storm.metrics.ZookeeperMultiCountMetric;
 import backtype.storm.task.TopologyContext;
 
 /**

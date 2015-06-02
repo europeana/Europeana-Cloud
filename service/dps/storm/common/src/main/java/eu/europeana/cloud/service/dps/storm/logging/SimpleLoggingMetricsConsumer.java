@@ -1,5 +1,5 @@
 
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.logging;
 
 import java.util.Collection;
 import java.util.Map;
