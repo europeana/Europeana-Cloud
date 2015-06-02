@@ -37,7 +37,7 @@ public class StaticXsltTopologyWithProgressReport {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 		
-		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask(args[7], args[8], Integer.parseInt(args[9])));
+		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask(args[5], args[6], Integer.parseInt(args[7])));
 		
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(args[1], args[2], args[3], args[4]);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(args[2], args[3], args[4]);
@@ -68,10 +68,6 @@ public class StaticXsltTopologyWithProgressReport {
 		
 		if (args != null && args.length > 0) {
 
-		    Map<String, String> kafkaMetricsConfig = new HashMap<String, String>();
-		    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, args[5]);
-		    kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, args[6]);
-		    conf.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, 60);
 			conf.setNumWorkers(3);
 
 			StormSubmitter.submitTopologyWithProgressBar(args[0], conf,
