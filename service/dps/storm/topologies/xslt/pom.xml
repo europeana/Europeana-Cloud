@@ -9,7 +9,7 @@
         <relativePath>../../../pom.xml</relativePath>
     </parent>
         
-    <artifactId>ecloud-service-dps-storm-topology-xslt</artifactId>
+    <artifactId>ecloud-service-dps-storm-topologies-xslt</artifactId>
     <packaging>jar</packaging>
 
     <name>Europeana Cloud: DPS Service Storm Topology for XSLT</name>
@@ -305,7 +305,7 @@
                     <includeProjectDependencies>true</includeProjectDependencies>
                     <includePluginDependencies>false</includePluginDependencies>
                     <classpathScope>compile</classpathScope>
-                    <mainClass>${storm.topology}</mainClass>
+                    <mainClass>${storm.topologies}</mainClass>
                 </configuration>
             </plugin>
         </plugins>
