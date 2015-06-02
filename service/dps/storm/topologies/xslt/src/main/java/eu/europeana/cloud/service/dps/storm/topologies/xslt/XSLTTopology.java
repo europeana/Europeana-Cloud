@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +11,10 @@ import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
 import backtype.storm.Config;
-import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
-import eu.europeana.cloud.service.dps.storm.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -26,61 +22,54 @@ import eu.europeana.cloud.service.dps.storm.kafka.KafkaParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
 /**
- * This is the XSLT tranformation topology for Apache Storm. The topology reads
+ * This is the XSLT transformation topology for Apache Storm. The topology reads
  * from the cloud, download an XSLT sheet from a remote server, apply it to each
  * record read and save it back to the cloud.
  * 
  * The topology takes some parameters. When deployed in distributed mode:
- * args[0] is the IP of the zookeeper machine;
- * args[1] is the IP of the Storm Nimbus machine;
- * args[2] is the name of the topology
  * 
- * In local mode:
- * args[0] is the IP of the zookeeper machine;
+ * args[0] is the name of the topology;
+ * args[1] is the IP of the Storm Nimbus machine;
+ * 
+ * args[2] is the IP of the zookeeper machine for storm
+ * args[3] is the IP of the zookeeper machine for the dps
+ * 
+ * args[4] is the Kafka topic where the xslt topology is listening from
+ *
+ * args[5] is the address of the MCS service
+ * args[6] is the MCS username;
+ * args[7] is the MCS password;
  * 
  * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
  *
  */
 public class XSLTTopology {
-
-	// private static String ecloudMcsAddress =
-	// "http://146.48.82.158:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-	private static String ecloudMcsAddress = "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.3-SNAPSHOT";
-	// private static String username = "Cristiano";
-	// private static String password = "Ronaldo";
-
-	private static String username = "admin";
-	private static String password = "admin";
-
-	// private static String username = "Emmanouil_Koufakis";
-	// private static String password = "J9vdq9rpPy";
-	private static String zkAddress = "ecloud.eanadev.org:2181";
-
-	private static String kafkaTopic = "storm_metrics_topic";
-	private static String kafkaBroker = "ecloud.eanadev.org:9093";
-
-	public static final Logger LOGGER = LoggerFactory
-			.getLogger(XSLTTopology.class);
+	
+	private final int numberOfExecutors = 16;
+	private final int numberOfTasks = 16;
+	
+	private final static int WORKER_COUNT = 8;
+	private final static int TASK_PARALLELISM = 2;
+	private final static int THRIFT_PORT = 6627;
+	private final static int ZK_PORT = 2181;
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
 	private final BrokerHosts brokerHosts;
 
-	public XSLTTopology(String kafkaZookeeper) {
-		brokerHosts = new ZkHosts(kafkaZookeeper);
+	public XSLTTopology(String kafkaZkAddress) {
+		brokerHosts = new ZkHosts(kafkaZkAddress);
 	}
 
-	public StormTopology buildTopology() {
+	public StormTopology buildTopology(String dpsZkAddress, String xsltTopic, 
+			String ecloudMcsAddress, String username, String password) {
 
-		int numberOfExecutors = 16;
-		int numberOfTasks = 16;
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(dpsZkAddress, ecloudMcsAddress, username, password);
+		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
+		
+		ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
 
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(zkAddress,
-				ecloudMcsAddress, username, password);
-		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress,
-				username, password);
-		ProgressBolt progressBolt = new ProgressBolt(zkAddress);
-
-		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts,
-				"franco_maria_topic_2", "", "storm");
+		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
 
@@ -93,9 +82,6 @@ public class XSLTTopology {
 		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(),
 				numberOfExecutors).setNumTasks(numberOfTasks)
 				.shuffleGrouping("kafkaReader");
-
-		// builder.setSpout("testSpout", new DpsTaskSpoutTest(),
-		// numberOfExecutors).setNumTasks(numberOfTasks);
 
 		builder.setBolt("retrieveFileBolt", retrieveFileBolt, numberOfExecutors)
 				.setNumTasks(numberOfTasks).shuffleGrouping("parseKafkaInput");
@@ -117,36 +103,32 @@ public class XSLTTopology {
 
 	public static void main(String[] args) throws Exception {
 
-		String kafkaZk = args[0];
-		XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(kafkaZk);
 		Config config = new Config();
 		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
-		Map<String, String> kafkaMetricsConfig = new HashMap<String, String>();
-		kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY,
-				kafkaBroker);
-		kafkaMetricsConfig
-				.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, kafkaTopic);
-		config.registerMetricsConsumer(KafkaMetricsConsumer.class,
-				kafkaMetricsConfig, 60);
+		if (args != null && args.length > 7) {
 
-		StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology();
+			String topologyName = args[0];
+			String nimbusHost = args[1];
+			String stormZookeeper = args[2];
+			String dpsZookeeper = args[3];
+			String kafkaTopic = args[4];
+			String ecloudMcsAddress = args[5];
+			String username = args[6];
+			String password = args[7];
 
-		if (args != null && args.length > 1) {
-			String dockerIp = args[1];
-			String name = args[2];
-			config.setNumWorkers(8);
-			config.setMaxTaskParallelism(2);
-			config.put(Config.NIMBUS_THRIFT_PORT, 6627);
-			config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
-			config.put(Config.NIMBUS_HOST, dockerIp);
-			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
-			StormSubmitter.submitTopology(name, config, stormTopology);
-		} else {
-			config.setNumWorkers(8);
-			config.setMaxTaskParallelism(2);
-			LocalCluster cluster = new LocalCluster();
-			cluster.submitTopology("XSLTTopology", config, stormTopology);
+			XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(dpsZookeeper);
+			
+			StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(dpsZookeeper,
+					kafkaTopic, ecloudMcsAddress, username, password);
+
+			config.setNumWorkers(WORKER_COUNT);
+			config.setMaxTaskParallelism(TASK_PARALLELISM);
+			config.put(Config.NIMBUS_THRIFT_PORT, THRIFT_PORT);
+			config.put(Config.STORM_ZOOKEEPER_PORT, ZK_PORT);
+			config.put(Config.NIMBUS_HOST, nimbusHost);
+			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(stormZookeeper));
+			StormSubmitter.submitTopology(topologyName, config, stormTopology);
 		}
 	}
 }
