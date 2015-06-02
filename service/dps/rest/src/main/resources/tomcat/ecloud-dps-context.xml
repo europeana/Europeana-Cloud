@@ -16,26 +16,25 @@
 
     <context:component-scan
         base-package="eu.europeana.cloud.service.dps.rest"/>
-	
-    <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
+        
+    <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
+        </constructor-arg>
+        <constructor-arg name="kafkaGroupId">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/groupId"/>
         </constructor-arg>
         <constructor-arg name="zookeeperAddress">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
-
-        <constructor-arg name="kafkaGroupId">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/groupId"/>
-        </constructor-arg>
-        
-        <!-- TODO: those should be removed completely -->
-        <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
-        <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
-        <!--  -->
-        
     </bean>
-       
+    
+    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperReportService">
+        <constructor-arg name="zookeeperAddress">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+        </constructor-arg>
+    </bean>
+    
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
 </beans>
