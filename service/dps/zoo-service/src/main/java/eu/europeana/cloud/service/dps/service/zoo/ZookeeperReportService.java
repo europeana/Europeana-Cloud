@@ -35,7 +35,7 @@ public class ZookeeperReportService implements TaskExecutionReportService {
     private final static String PROGRESS_KEY = "progress";
     
 	/** Base path where all metrics are stored. */
-    private final static String ZOOKEEPER_PATH = "/eCloud/v2/ISTI/pro/configuration/tasks";
+    private final static String ZOOKEEPER_PATH = "/dps-tasks";
     
     private ZookeeperService zS; 
     private DynamicPropertyManager pManager; 
