@@ -1,6 +1,10 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -15,8 +19,6 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
-
-import com.qmino.miredot.annotations.ReturnType;
 
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 
@@ -58,19 +60,22 @@ public class TopologiesResource {
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    public Response grantPermissionsToTopology(@FormParam("user") String userName, @PathParam("topologyName") String topology) {
+    public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) {
         
-        ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX,
-                topology);
-        //
+        ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
+        
         try {
             topologyAcl = (MutableAcl)mutableAclService.readAclById(topologyIdentity);
+            
         } catch (Exception e) {
-            LOGGER.warn("ACL not found for topology {} and user {}", topology, userName);
+        	// not really an exception
+            LOGGER.info("ACL not found for topology {} and user {}. "
+            		+ "This is ok if it is the first time you are trying to assign permissions for this topology.", topology, userName);
             topologyAcl = mutableAclService.createAcl(topologyIdentity);
         }
-        topologyAcl.insertAce(0, BasePermission.WRITE, new PrincipalSid(userName), true);
+        
+        topologyAcl.insertAce(topologyAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(userName), true);
         mutableAclService.updateAcl(topologyAcl);
 
         return Response.ok().build();
