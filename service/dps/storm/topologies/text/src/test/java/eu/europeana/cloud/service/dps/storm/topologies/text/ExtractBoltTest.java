@@ -85,7 +85,10 @@ public class ExtractBoltTest
             });
     }
     
-    @Test
+	/**
+	 * DISABLED: @see ECL-522 (https://jira.man.poznan.pl/jira/browse/ECL-522)
+	 */
+//    @Test
     public void outputsTest()
     {
         Testing.withLocalCluster(new TestJob() 
