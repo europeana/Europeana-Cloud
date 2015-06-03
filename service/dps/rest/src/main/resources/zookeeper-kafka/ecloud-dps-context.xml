@@ -29,8 +29,9 @@
         <constructor-arg name="zookeeperSessionTimeout">
             <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/cos/zookeeper/zookeeperSessionTimeout"/>
         </constructor-arg>
-        
-        <constructor-arg name="zookeeperPath" value="/dps-tasks" />
+        <constructor-arg name="zookeeperPath">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
+        </constructor-arg>
 	</bean>
 	
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
