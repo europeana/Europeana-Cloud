@@ -21,7 +21,7 @@ public class KafkaProducerBolt extends AbstractDpsBolt
     private final String topic;
     private final String taskName;
     private final String brokerList;
-    private final String serializer = "eu.europeana.cloud.service.dps.storm.JsonEncoder";
+    private final String serializer = "eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder";
     private final Map<String, String> parameters;
     
     public KafkaProducerBolt(String brokerList, String topic, String taskName, Map<String, String> parameters) 

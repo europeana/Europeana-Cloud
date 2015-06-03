@@ -34,7 +34,7 @@ public class ParseFileTaskProducer
         {
             props.put("metadata.broker.list", "192.168.47.129:9093");
         } 
-        props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.JsonEncoder");
+        props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder");
         props.put("request.required.acks", "1");
                 
         ProducerConfig config = new ProducerConfig(props);

@@ -16,7 +16,7 @@ public class KafkaTaskProducer {
 
         Properties props = new Properties();
         props.put("metadata.broker.list", "localhost:9093,localhost:9094");
-        props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.JsonEncoder");
+        props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder");
         props.put("request.required.acks", "1");
 
         ProducerConfig config = new ProducerConfig(props);

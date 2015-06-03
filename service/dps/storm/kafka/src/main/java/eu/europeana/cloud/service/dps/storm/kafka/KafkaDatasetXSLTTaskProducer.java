@@ -28,7 +28,7 @@ public class KafkaDatasetXSLTTaskProducer {
 
 		// props.put("serializer.class", "kafka.serializer.StringEncoder");
 		props.put("serializer.class",
-				"eu.europeana.cloud.service.dps.storm.JsonEncoder");
+				"eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder");
 
 		// props.put("partitioner.class", "kafka.producer.SimplePartitioner");
 		props.put("request.required.acks", "1");

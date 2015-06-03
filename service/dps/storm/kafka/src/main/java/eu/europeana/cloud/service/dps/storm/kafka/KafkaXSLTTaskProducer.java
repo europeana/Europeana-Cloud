@@ -31,11 +31,7 @@ public class KafkaXSLTTaskProducer {
 		Properties props = new Properties();
 		props.put("metadata.broker.list", args[0]);
 
-		// props.put("serializer.class", "kafka.serializer.StringEncoder");
-		props.put("serializer.class",
-				"eu.europeana.cloud.service.dps.storm.JsonEncoder");
-
-		// props.put("partitioner.class", "kafka.producer.SimplePartitioner");
+		props.put("serializer.class", "eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder");
 		props.put("request.required.acks", "1");
 
 		ProducerConfig config = new ProducerConfig(props);
