@@ -74,7 +74,8 @@
 <!--DPS local specyfic configuration -->
 <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="localhost:9092"/>
 <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
-<Environment name="dps/zookeeper/address" type="java.lang.String" value="localhost:2181
+<Environment name="dps/zookeeper/address" type="java.lang.String" value="localhost:2181"/>
+
   </GlobalNamingResources>
 
   <!-- A "Service" is a collection of one or more "Connectors" that share
