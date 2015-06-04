@@ -1,8 +1,5 @@
-package eu.europeana.cloud.service.dps.storm.kafka;
+package eu.europeana.cloud.service.dps.examples.xslt;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -12,13 +9,13 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import eu.europeana.cloud.service.dps.DpsTask;
 
-public class KafkaDatasetXSLTTaskProducer {
+public class KafkaXSLTTaskProducerWithOutputURL {
 
 	public static void main(String[] args) {
 
 		// args[0]: metadata broker list (e.g., ecloud.eanadev.org:9093)
 		// args[1]: topic name (e.g., franco_maria_topic)
-		// args[2]: file containing record URLs (one per line)
+		// args[2]: record URI
 		// args[3]: XSLT URL (all records will be processed by this XSLT)
 		// args[4]: output extension (do we need an extension as output of the
 		// topology?)
@@ -40,27 +37,11 @@ public class KafkaDatasetXSLTTaskProducer {
 		String key = "";
 		DpsTask msg = new DpsTask();
 
-		String line = "";
-		BufferedReader br;
 		List<String> records = new ArrayList<String>();
-
-		try {
-			br = new BufferedReader(new FileReader(args[2]));
-			while ((line = br.readLine()) != null) {
-				records.add(line.trim());
-			}
-			br.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+		records.add(args[2]);
 		msg.addDataEntry("FILE_URLS", records);
 		msg.addParameter("XSLT_URL", args[3]);
-
-		if (args.length == 5) {
-			msg.addParameter("OUTPUT_EXT", args[4]);
-		}
-		
+		msg.addParameter("OUTPUT_URL", args[4]);
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
 				args[1], key, msg);
 		producer.send(data);
