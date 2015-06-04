@@ -150,12 +150,12 @@
             <scope>provided</scope>
             <exclusions>
             	<exclusion>
-            		<artifactId>zookeeper</artifactId>
-            		<groupId>org.apache.zookeeper</groupId>
-            	</exclusion>
-            	<exclusion>
             		<artifactId>log4j-over-slf4j</artifactId>
             		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>zookeeper</artifactId>
+            		<groupId>org.apache.zookeeper</groupId>
             	</exclusion>
             </exclusions>
         </dependency>
@@ -216,11 +216,11 @@
             <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
+        
         <dependency>
         	<groupId>org.apache.zookeeper</groupId>
         	<artifactId>zookeeper</artifactId>
-        	<version>3.4.6</version>
-        	<type>pom</type>
+        	<version>3.4.5</version>
         	<exclusions>
         		<exclusion>
         			<artifactId>log4j</artifactId>
