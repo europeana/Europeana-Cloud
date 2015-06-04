@@ -11,6 +11,9 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * The REST API client for the Data Processing service.
+ */
 public class DpsClient {
 
 	private Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
@@ -19,11 +22,6 @@ public class DpsClient {
     
 	private Client client = JerseyClientBuilder.newClient();
 	
-	/** TODO */
-	private static final String DUMMY_TOPOLOGY = "xslt_topology";
-
-	private static final String create = "/tasks";
-
 	private static final String TOPOLOGY_NAME = "TopologyName";
 	private static final String TASK_ID = "TaskId";
 	private static final String TASKS_URL = "/topologies/{" + TOPOLOGY_NAME + "}/tasks";
@@ -31,13 +29,22 @@ public class DpsClient {
 
 	public static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
 	public static final String TASK_NOTIFICATION_URL = TASK_URL + "/notification";
-	
+
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param dpsUrl Url where the DPS service is located.
+     * Includes username and password to perform authenticated requests.
+     */
 	public DpsClient(final String dpsUrl, final String username, final String password)  {
 		
         client.register(new HttpBasicAuthFilter(username, password));
 		this.dpsUrl = dpsUrl;
 	}
 
+	/**
+	 * Submits a task for execution in the specified topology.
+	 */
 	public void submitTask(DpsTask task, String topologyName) {
 
 		Response resp = client.target(dpsUrl)
@@ -69,7 +76,10 @@ public class DpsClient {
 			throw new RuntimeException();
 		}
 	}
-	
+
+	/**
+	 * Retrieves progress for the specified combination of taskId and topology.
+	 */
 	public String getTaskProgress(String topologyName, final long taskId) {
 
 		Response getResponse = client
@@ -101,7 +111,7 @@ public class DpsClient {
 			String taskProgress = getResponse.readEntity(String.class);
 			return taskProgress;
 		}else{
-			LOGGER.error("Task motification cannot be read");
+			LOGGER.error("Task notification cannot be read");
 			throw new RuntimeException();
 		}
 	}
