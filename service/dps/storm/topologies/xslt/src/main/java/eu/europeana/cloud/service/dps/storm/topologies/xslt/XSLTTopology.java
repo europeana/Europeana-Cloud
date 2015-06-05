@@ -70,13 +70,16 @@ public class XSLTTopology {
 		ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
+		kafkaConfig.forceFromStart = true;
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
+		
+		KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
 
 		// TOPOLOGY STRUCTURE!
 		// 1 executor, i.e., 1 thread.
 		// 1 task per executor
-		builder.setSpout("kafkaReader", new KafkaSpout(kafkaConfig), 1)
+		builder.setSpout("kafkaReader", kafkaSpout, 1)
 				.setNumTasks(numberOfTasks);
 
 		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(),
