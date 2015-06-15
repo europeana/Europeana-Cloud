@@ -223,6 +223,7 @@
 				</excludes>
 			</resource>
 		</resources>
+		
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -262,8 +263,8 @@
 			</plugin>
 			<plugin>
 				<groupId>com.qmino</groupId>
-				<artifactId>miredot-maven-plugin</artifactId>
-				<version>1.3</version>
+				<artifactId>miredot-plugin</artifactId>
+				<version>${version.miredotPlugin}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -273,76 +274,80 @@
 				</executions>
 				<configuration>
 					<licence>
-                                            UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtYWFzLXJlc3R8MjAxNi0xMC0wNnx0cnVlI01Dd0NGRlo5ZDIxTXJWNTBmUmgxUGZZc2tJWmpsYmp2QWhSa2tWZjZ3OWN0TU1hTVVvRG5qcWZKcDVtU3hRPT0=
-                                        </licence>
-					<statusCodes>
-						<statusCode>
-							<httpCode>200</httpCode>
-							<document>always</document>
-							<defaultMessage>The service call has completed successfully.</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>404</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
-							</document>
-							<defaultMessage>Cloud Id Not Found</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>404</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException
-							</document>
-							<defaultMessage>The supplied provider does not exist</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>409</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
-							<defaultMessage>The record already exists</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>404</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
-							<defaultMessage>The recordId does not exist</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>409</httpCode>
-							<document>explicit:
-								eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException</document>
-							<defaultMessage>The record Id for that provider has already been
-								mapped to a cloud Id</defaultMessage>
-						</statusCode>
-						<statusCode>
-							<httpCode>500</httpCode>
-							<document>always</document>
-							<defaultMessage>Internal server exception. The service call did
-								not succeed.</defaultMessage>
-						</statusCode>
-					</statusCodes>
-					<issueHandling>
-						<JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-						<JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-						<JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-						<JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-						<JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-						<JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-						<JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-						<REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
-					</issueHandling>
-					<visibility>
-						<GETTER>PUBLIC_ONLY</GETTER>
-						<IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-						<SETTER>PUBLIC_ONLY</SETTER>
-						<CREATOR>PUBLIC_ONLY</CREATOR>
-						<FIELD>PUBLIC_ONLY</FIELD>
-					</visibility>
-					<title>
-						<strategy>tag: summary</strategy>
-						<strategy>tag: title</strategy>
-						<strategy>firstsentence</strategy>
-					</title>
+                    	UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtYWFzLXJlc3R8MjAxNi0xMC0wNnx0cnVlI01Dd0NGRlo5ZDIxTXJWNTBmUmgxUGZZc2tJWmpsYmp2QWhSa2tWZjZ3OWN0TU1hTVVvRG5qcWZKcDVtU3hRPT0=
+					</licence>
+					<restModel>
+						<httpStatusCodes>
+							<httpStatusCode>
+								<httpCode>200</httpCode>
+								<document>always</document>
+								<defaultMessage>The service call has completed successfully.</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>404</httpCode>
+								<document>explicit:
+									eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
+								</document>
+								<defaultMessage>Cloud Id Not Found</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>404</httpCode>
+								<document>explicit:
+									eu.europeana.cloud.service.uis.exception.ProviderDoesNotExistException
+								</document>
+								<defaultMessage>The supplied provider does not exist</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>409</httpCode>
+								<document>explicit:
+									eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
+								<defaultMessage>The record already exists</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>404</httpCode>
+								<document>explicit:
+									eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
+								<defaultMessage>The recordId does not exist</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>409</httpCode>
+								<document>explicit:
+									eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException</document>
+								<defaultMessage>The record Id for that provider has already been
+									mapped to a cloud Id</defaultMessage>
+							</httpStatusCode>
+							<httpStatusCode>
+								<httpCode>500</httpCode>
+								<document>always</document>
+								<defaultMessage>Internal server exception. The service call did
+									not succeed.</defaultMessage>
+							</httpStatusCode>
+						</httpStatusCodes>
+						<fieldVisibility>
+							<GETTER>PUBLIC_ONLY</GETTER>
+							<IS_GETTER>PUBLIC_ONLY</IS_GETTER>
+							<SETTER>PUBLIC_ONLY</SETTER>
+							<CREATOR>PUBLIC_ONLY</CREATOR>
+							<FIELD>PUBLIC_ONLY</FIELD>
+						</fieldVisibility>
+						<titleNamingStrategies>
+							<strategy>tag: summary</strategy>
+							<strategy>tag: title</strategy>
+							<strategy>firstsentence</strategy>
+						</titleNamingStrategies>
+					</restModel>
+					<analysis>
+						<checks>
+							<JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
+							<JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+							<JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
+							<JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
+							<JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
+							<JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
+							<JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
+							<REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
+						</checks>
+					</analysis>
 				</configuration>
 			</plugin>
 		</plugins>

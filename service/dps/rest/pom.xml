@@ -55,7 +55,7 @@
                 </dependency>
             </dependencies>
         </profile>
-		
+
         <profile>
             <id>tomcat</id>
             <activation>
@@ -118,7 +118,7 @@
             <plugin>
                 <groupId>com.qmino</groupId>
                 <artifactId>miredot-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>${version.miredotPlugin}</version>
                 <executions>
                     <execution>
                         <goals>
