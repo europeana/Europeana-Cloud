@@ -349,7 +349,7 @@ public class DataSetServiceClient {
 
         Response response = target.request().delete();
 
-        if (response.getStatus() != Status.OK.getStatusCode()) {
+        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
 
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);

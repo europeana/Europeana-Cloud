@@ -110,7 +110,7 @@ public class DataSetResourceTest extends JerseyTest {
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
                 P_DATASET, dataSetId);
         Response deleteResponse = dataSetWebTarget.request().delete();
-        assertEquals(Response.Status.OK.getStatusCode(), deleteResponse.getStatus());
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
 
         // than deleted dataset should not be in service and non-deleted should remain
         assertTrue("Expecting no dataset for provier service",
