@@ -144,16 +144,6 @@
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
         <commons-logging.version>1.1.1</commons-logging.version>
         <version.cassandra-driver>2.0.2</version.cassandra-driver>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-            <!-- Sonar -->
-            <!-- The destination file for the code coverage report has to be set to the same value
-                 in the parent pom and in each module pom. Then JaCoCo will add up information in
-                 the same report, so that, it will give the cross-module code coverage. -->
-            <sonar.jacoco.itReportPath>${project.basedir}/../target/jacoco-it.exec</sonar.jacoco.itReportPath>
-            <sonar.language>java</sonar.language>
     </properties>
 
     <profiles>
@@ -165,7 +155,7 @@
                         <plugin>
                             <groupId>org.jacoco</groupId>
                             <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>0.7.5.201505241946</version>
+                            <version>0.7.2.201409121644</version>
                         </plugin>
                     </plugins>
                 </pluginManagement>
