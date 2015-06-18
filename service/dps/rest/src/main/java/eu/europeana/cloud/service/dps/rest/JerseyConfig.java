@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import org.glassfish.jersey.filter.LoggingFilter;
+//import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.moxy.json.MoxyJsonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
@@ -21,6 +24,7 @@ public class JerseyConfig extends ResourceConfig {
         super();
         //features
         register(MultiPartFeature.class);
+        register(JacksonFeature.class);
 
         // filters
         register(RequestContextFilter.class);
