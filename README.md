@@ -15,15 +15,6 @@ The infrastructure of the project is developed jointly by [The Poznań Supercomp
 Deliverable 2.2 of the project provides technical specification of the infrastructure along with the requirement gathering process. The recent version of the deliverable is available [here](http://pro.europeana.eu/web/europeana-cloud/results/-/document_library_display/p6BV/view/1861920/57410).
 
 
-## REST API pages
-http://sonar.eanadev.org/job/oncommit-eCloud/UIS_REST_API/
-http://sonar.eanadev.org/job/oncommit-eCloud/MCS_REST_API/
+## REST API
+Please check out the tutorial for the Europeana Cloud API - https://github.com/europeana/Europeana-Cloud/wiki/Europeana-Cloud-API
 
-### REST API for 0.2ver
-https://felicia.man.poznan.pl/docs/v0.2/uis/
-
-https://felicia.man.poznan.pl/docs/v0.2/mcs/
-
-https://felicia.man.poznan.pl/docs/v0.2/aas/
-
-https://felicia.man.poznan.pl/docs/v0.2/dls/
