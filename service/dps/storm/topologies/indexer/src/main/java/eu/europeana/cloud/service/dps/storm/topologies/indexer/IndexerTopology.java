@@ -5,10 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
@@ -20,6 +16,8 @@ import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.testing.FeederSpout;
+import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -35,6 +33,14 @@ import eu.europeana.cloud.service.dps.storm.kafka.KafkaProducerBolt;
  */
 public class IndexerTopology 
 {
+    public enum SpoutType
+    {
+        KAFKA,
+        FEEDER
+    }
+    
+    private final SpoutType spoutType;
+    
     private final String extractedDataStream = "ReadData";
     private final String associationStream = "ReadAssociation";
     private final String indexStream = "ReadFile";
@@ -44,13 +50,13 @@ public class IndexerTopology
     private final String username = IndexerConstants.USERNAME;
     private final String password = IndexerConstants.PASSWORD;
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexerTopology.class);
-    
-    private final BrokerHosts brokerHosts;
-    
-    public IndexerTopology(String brokerZkStr) 
+    /**
+     * 
+     * @param spoutType
+     */
+    public IndexerTopology(SpoutType spoutType) 
     {
-        brokerHosts = new ZkHosts(brokerZkStr);
+        this.spoutType = spoutType;
     }
     
     private StormTopology buildTopology()
@@ -63,16 +69,11 @@ public class IndexerTopology
         Map<String, String> prerequisites = new HashMap<>();
         prerequisites.put(PluginParameterKeys.INDEX_DATA, "True");
         
-        Map<String, String> outputParameters = new HashMap<>();
-              
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, 
-                IndexerConstants.KAFKA_INPUT_TOPIC, 
-                IndexerConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());               
+        Map<String, String> outputParameters = new HashMap<>();             
                 
         TopologyBuilder builder = new TopologyBuilder();
         
-        builder.setSpout("KafkaSpout", new KafkaSpout(kafkaConfig), IndexerConstants.KAFKA_SPOUT_PARALLEL);
+        builder.setSpout("KafkaSpout", getSpout(), IndexerConstants.KAFKA_SPOUT_PARALLEL);
         
         builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules, prerequisites), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("KafkaSpout");
@@ -99,23 +100,37 @@ public class IndexerTopology
         return builder.createTopology();
     }
     
+    private IRichSpout getSpout()
+    {    
+        switch(spoutType)
+        {
+            case FEEDER:
+                return new FeederSpout(new StringScheme().getOutputFields());
+            case KAFKA:
+            default:
+                SpoutConfig kafkaConfig = new SpoutConfig(
+                    new ZkHosts(IndexerConstants.INPUT_ZOOKEEPER), 
+                    IndexerConstants.KAFKA_INPUT_TOPIC, 
+                    IndexerConstants.ZOOKEEPER_ROOT, UUID.randomUUID().toString());
+                kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+                return new KafkaSpout(kafkaConfig);
+        }
+    }
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
     {
-        String kafkaZk = IndexerConstants.INPUT_ZOOKEEPER;//args[0];
-        IndexerTopology indexerTopology = new IndexerTopology(kafkaZk);
+        IndexerTopology indexerTopology = new IndexerTopology(SpoutType.KAFKA);
         Config config = new Config();
         config.setDebug(true);
-        //config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, IndexerConstants.KAFKA_METRICS_BROKER);
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, IndexerConstants.KAFKA_METRICS_TOPIC);
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, IndexerConstants.METRICS_CONSUMER_PARALLEL);
-        
+       
         StormTopology stormTopology = indexerTopology.buildTopology();
 
         if (args != null && args.length > 1) 
@@ -127,7 +142,7 @@ public class IndexerTopology
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
             config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(kafkaZk));
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0]));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } 
         else 
