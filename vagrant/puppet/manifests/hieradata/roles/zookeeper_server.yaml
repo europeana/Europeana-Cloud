@@ -1,4 +1,0 @@
----
-classes:
-  - wirbelsturm_yumrepos::cloudera_cdh4
-  - zookeeper::service
