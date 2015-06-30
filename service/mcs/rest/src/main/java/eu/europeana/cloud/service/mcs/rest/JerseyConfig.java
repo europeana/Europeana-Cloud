@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import org.glassfish.jersey.filter.LoggingFilter;
+import eu.europeana.cloud.service.commons.logging.LoggingFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;

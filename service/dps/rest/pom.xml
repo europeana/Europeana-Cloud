@@ -360,5 +360,10 @@
             <version>${version.cassandra-unit}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
