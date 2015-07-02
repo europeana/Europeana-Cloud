@@ -58,6 +58,7 @@
 	
     <bean id="dataProvider" class = "eu.europeana.cloud.service.uis.rest.DataProviderResource"/>
     <bean id="dataProviders" class = "eu.europeana.cloud.service.uis.rest.DataProvidersResource"/>
+    <bean id="dataProviderActivation" class="eu.europeana.cloud.service.uis.rest.DataProviderActivationResource"/>
 	
     <bean id="uniqueIdResource"
           class="eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource" />
