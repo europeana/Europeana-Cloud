@@ -8,17 +8,15 @@ import java.util.Map;
  */
 public class IndexedDocument 
 {
-    private final String index;
-    private final String type;
+    private final IndexerInformations indexerInformations;
     private final String id;
     private final long version;
     
     private Map<String, Object> data;
 
-    public IndexedDocument(String index, String type, String id, long version) 
+    public IndexedDocument(IndexerInformations ii, String id, long version) 
     {
-        this.index = index;
-        this.type = type;
+        this.indexerInformations = ii;
         this.id = id;
         this.version = version;
     }
@@ -33,14 +31,9 @@ public class IndexedDocument
         this.data = data;
     }
 
-    public String getIndex() 
+    public IndexerInformations getIndexerInformations() 
     {
-        return index;
-    }
-
-    public String getType() 
-    {
-        return type;
+        return indexerInformations;
     }
 
     public String getId() 

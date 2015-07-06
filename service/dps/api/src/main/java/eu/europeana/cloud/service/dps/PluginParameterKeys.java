@@ -39,11 +39,9 @@ public final class PluginParameterKeys {
         public static final String STORE_EXTRACTED_TEXT = "STORE_EXTRACTED_TEXT";
         
         // ---------  Indexer  -----------
+        public static final String INDEXER = "INDEXER";
         public static final String INDEX_DATA = "INDEX_DATA";
         public static final String METADATA = "METADATA";
         public static final String FILE_METADATA = "FILE_METADATA";
-        public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";
-        public static final String ELASTICSEARCH_INDEX = "ELASTICSEARCH_INDEX";
-        public static final String ELASTICSEARCH_TYPE = "ELASTICSEARCH_TYPE";
-         
+        public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";               
 }

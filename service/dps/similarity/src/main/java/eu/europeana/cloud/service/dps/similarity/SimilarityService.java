@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.similarity;
 
 import eu.europeana.cloud.service.dps.index.Elasticsearch;
-import eu.europeana.cloud.service.dps.index.exception.IndexException;
+import eu.europeana.cloud.service.dps.index.exception.IndexerException;
 import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
 import eu.europeana.cloud.service.dps.storm.topologies.indexer.IndexerConstants;
@@ -17,13 +17,14 @@ public class SimilarityService
     private final float duplicationThreshold = (float)0.98; //1 = 100%
     private final Elasticsearch client;
     
-    public SimilarityService(String addresses, String index, String type) throws IndexException 
+    public SimilarityService(String addresses, String index, String type) throws IndexerException 
     {  
         client = new Elasticsearch(addresses, index, type);       
     }
     
-    public List<SimilarDocument> getSimilarDocuments_naiveImplementation(String documentUrl, int limit)
+    public List<SearchResult> getSimilarDocuments_naiveImplementation(String documentUrl, int limit)
     {
+        /*
         IndexedDocument document = client.getDocument(documentUrl);
         
         List<SearchResult> result = client.simpleMatchQuery(IndexerConstants.RAW_DATA_FIELD, 
@@ -40,6 +41,9 @@ public class SimilarityService
         }
         
         return res;
+        */
+        
+        return client.getMoreLikeThis(documentUrl);         
     }
     
     public List<String> calcDuplicateDocuments_naiveImplementation(String documentUrl)

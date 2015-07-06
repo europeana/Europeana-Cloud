@@ -1,0 +1,67 @@
+package eu.europeana.cloud.service.dps.index;
+
+import eu.europeana.cloud.service.dps.index.exception.IndexerException;
+import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
+import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
+import eu.europeana.cloud.service.dps.index.structure.SearchResult;
+import java.util.Map;
+
+/**
+ *
+ * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
+ */
+public interface Indexer 
+{   
+    public Object getIndexer();
+    
+    public SupportedIndexers getIndexerName();
+    
+    public IndexerInformations getIndexerInformations();
+    
+    public SearchResult getMoreLikeThis(String documentId) throws IndexerException;
+    
+    public SearchResult getMoreLikeThis(String documentId, int size, int timeout) throws IndexerException;
+    
+    public SearchResult getMoreLikeThis(String documentId, String[] fields) throws IndexerException;
+    
+    public SearchResult getMoreLikeThis(String documentId, String[] fields, int size, int timeout) throws IndexerException;
+    
+    public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
+            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout) throws IndexerException;
+    
+    public SearchResult search(String text, IndexFields[] fields) throws IndexerException;
+    
+    public SearchResult search(String text, IndexFields[] fields, int size, int timeout) throws IndexerException;
+    
+    public SearchResult search(String text, String[] fields) throws IndexerException;
+    
+    public SearchResult search(String text, String[] fields, int size, int timeout) throws IndexerException;
+    
+    public SearchResult searchFullText(String text) throws IndexerException;
+    
+    /**
+     * 
+     * @param text
+     * @param size number of results on one page
+     * @param timeout tells how long it should keep the search context alive. (ms)
+     * @return 
+     * @throws eu.europeana.cloud.service.dps.index.exception.IndexerException 
+     */
+    public SearchResult searchFullText(String text, int size, int timeout) throws IndexerException;
+    
+    public void insert(String data) throws IndexerException;
+    
+    public void insert(Map<String, Object> data) throws IndexerException;
+    
+    public void insert(String documentId, String data) throws IndexerException;
+    
+    public void insert(String documentId, Map<String, Object> data) throws IndexerException;
+    
+    public void update(String documentId, String data) throws IndexerException;
+    
+    public void update(String documentId, Map<String, Object> data) throws IndexerException;
+    
+    public IndexedDocument getDocument(String documentId) throws IndexerException;
+    
+    public SearchResult getNextPage(String scrollId, Object context) throws IndexerException;
+}

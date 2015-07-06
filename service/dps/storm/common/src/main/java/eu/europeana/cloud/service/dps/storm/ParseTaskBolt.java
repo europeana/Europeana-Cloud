@@ -126,8 +126,6 @@ public class ParseTaskBolt extends BaseBasicBolt
             {
                 stormTaskTuple.setFileData(fileData);
             }
-            
-            LOGGER.info("taskParameters size=" + taskParameters.size());
         }
         
         //use specific streams or default strem?

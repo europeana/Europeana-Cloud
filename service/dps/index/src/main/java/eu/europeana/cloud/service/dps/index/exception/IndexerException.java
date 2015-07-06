@@ -7,12 +7,12 @@ import eu.europeana.cloud.service.dps.exception.DpsException;
  * 
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class IndexException extends DpsException
+public class IndexerException extends DpsException
 {
-     /**
+    /**
      * Constructs a IndexException with no specified detail message.
      */
-    public IndexException() 
+    public IndexerException() 
     {
         super();
     }
@@ -22,7 +22,7 @@ public class IndexException extends DpsException
      * 
      * @param message the detail message
      */
-    public IndexException(String message) 
+    public IndexerException(String message) 
     {
         super(message);
     }
@@ -33,7 +33,7 @@ public class IndexException extends DpsException
      * @param message the detailed message
      * @param e  exception
      */
-    public IndexException(String message, Exception e) 
+    public IndexerException(String message, Exception e) 
     {
         super(message, e);
     }
@@ -43,7 +43,7 @@ public class IndexException extends DpsException
      * 
      * @param cause  the cause
      */
-    public IndexException(Throwable cause) 
+    public IndexerException(Throwable cause) 
     {
         super(cause);
     }

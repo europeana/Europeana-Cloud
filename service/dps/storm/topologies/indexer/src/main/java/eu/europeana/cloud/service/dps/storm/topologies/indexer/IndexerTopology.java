@@ -21,6 +21,7 @@ import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.index.SupportedIndexers;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -44,8 +45,7 @@ public class IndexerTopology
     private final String extractedDataStream = "ReadData";
     private final String associationStream = "ReadAssociation";
     private final String indexStream = "ReadFile";
-    
-    private final String zkProgressAddress = IndexerConstants.PROGRESS_ZOOKEEPER;
+
     private final String ecloudMcsAddress = IndexerConstants.MCS_URL;
     private final String username = IndexerConstants.USERNAME;
     private final String password = IndexerConstants.PASSWORD;
@@ -68,8 +68,12 @@ public class IndexerTopology
         
         Map<String, String> prerequisites = new HashMap<>();
         prerequisites.put(PluginParameterKeys.INDEX_DATA, "True");
+        prerequisites.put(PluginParameterKeys.INDEXER, null);
         
-        Map<String, String> outputParameters = new HashMap<>();             
+        Map<String, String> outputParameters = new HashMap<>();   
+        
+        Map<SupportedIndexers, String> indexersAddresses = new HashMap<>();
+        indexersAddresses.put(SupportedIndexers.ELASTICSEARCH_INDEXER, IndexerConstants.ELASTICSEARCH_ADDRESSES);
                 
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -81,11 +85,11 @@ public class IndexerTopology
         builder.setBolt("RetrieveAssociation", new RetrieveAssociation(ecloudMcsAddress, username, password), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", associationStream);
         
-        builder.setBolt("RetrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveFile", new ReadFileBolt(ecloudMcsAddress, username, password), 
                             IndexerConstants.FILE_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", indexStream);
         
-        builder.setBolt("IndexBolt", new IndexBolt(IndexerConstants.ELASTICSEARCH_ADDRESSES), IndexerConstants.INDEX_BOLT_PARALLEL)             
+        builder.setBolt("IndexBolt", new IndexBolt(indexersAddresses, IndexerConstants.CACHE_SIZE), IndexerConstants.INDEX_BOLT_PARALLEL)             
                 .shuffleGrouping("ParseDpsTask", extractedDataStream)
                 .shuffleGrouping("RetrieveAssociation")
                 .shuffleGrouping("RetrieveFile");
@@ -94,7 +98,7 @@ public class IndexerTopology
                             PluginParameterKeys.NEW_INDEX_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
-        builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), IndexerConstants.PROGRESS_BOLT_PARALLEL)
+        builder.setBolt("ProgressBolt", new ProgressBolt(IndexerConstants.PROGRESS_ZOOKEEPER), IndexerConstants.PROGRESS_BOLT_PARALLEL)
                 .shuffleGrouping("InformBolt");     
 
         return builder.createTopology();
@@ -124,7 +128,7 @@ public class IndexerTopology
     {
         IndexerTopology indexerTopology = new IndexerTopology(SpoutType.KAFKA);
         Config config = new Config();
-        config.setDebug(true);
+        config.setDebug(false);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, IndexerConstants.KAFKA_METRICS_BROKER);
@@ -142,7 +146,7 @@ public class IndexerTopology
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
             config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0]));
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0].split(";")));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } 
         else 

@@ -35,6 +35,5 @@ public class IndexerConstants
     public static final Integer METRICS_CONSUMER_PARALLEL = 1;
     
     // ------ INDEX BOLT ------
-    public static final String RAW_DATA_FIELD = "raw_text";
-    public static final String FILE_METADATA_FIELD = "file_metadata";
+    public static final Integer CACHE_SIZE = 8;
 }
