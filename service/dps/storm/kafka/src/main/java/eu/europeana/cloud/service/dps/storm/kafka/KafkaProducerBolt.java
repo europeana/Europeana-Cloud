@@ -24,6 +24,8 @@ public class KafkaProducerBolt extends AbstractDpsBolt
     private final String serializer = "eu.europeana.cloud.service.dps.storm.kafka.JsonEncoder";
     private final Map<String, String> parameters;
     
+    private Producer<String, DpsTask> producer;
+    
     public KafkaProducerBolt(String brokerList, String topic, String taskName, Map<String, String> parameters) 
     {
         this.brokerList = brokerList;
@@ -33,16 +35,18 @@ public class KafkaProducerBolt extends AbstractDpsBolt
     }
     
     @Override
+    protected void finalize() throws Throwable 
+    {
+        if(producer != null)
+        {
+            producer.close();
+        }
+        super.finalize();
+    }
+    
+    @Override
     public void execute(StormTaskTuple t) 
     {
-        Properties props = new Properties();
-        props.put("metadata.broker.list", brokerList);
-        props.put("serializer.class", serializer);
-        props.put("request.required.acks", "1");    //waiting for acknowledgement
-
-        ProducerConfig config = new ProducerConfig(props);
-        Producer<String, DpsTask> producer = new Producer<>(config);
-
         DpsTask msg = new DpsTask();
 
         msg.setTaskName(taskName);
@@ -69,7 +73,6 @@ public class KafkaProducerBolt extends AbstractDpsBolt
 
         KeyedMessage<String, DpsTask> data = new KeyedMessage<>(topic, msg);
         producer.send(data);
-        producer.close(); 
         
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
@@ -77,5 +80,13 @@ public class KafkaProducerBolt extends AbstractDpsBolt
 
     @Override
     public void prepare() 
-    {}   
+    {
+        Properties props = new Properties();
+        props.put("metadata.broker.list", brokerList);
+        props.put("serializer.class", serializer);
+        props.put("request.required.acks", "1");    //waiting for acknowledgement
+
+        ProducerConfig config = new ProducerConfig(props);
+        producer = new Producer<>(config);
+    }   
 }

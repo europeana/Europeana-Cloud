@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  */
 public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt 
 {
-    private final String zkAddress;
     private final String ecloudMcsAddress;
     private final String username;
     private final String password;
@@ -29,14 +28,12 @@ public class StoreFileAsNewRepresentationBolt extends AbstractDpsBolt
 
     /**
      * Store representation.
-     * @param zkAddress
      * @param ecloudMcsAddress
      * @param username
      * @param password
      */
-    public StoreFileAsNewRepresentationBolt(String zkAddress, String ecloudMcsAddress, String username, String password) 
+    public StoreFileAsNewRepresentationBolt(String ecloudMcsAddress, String username, String password) 
     {
-        this.zkAddress = zkAddress;
         this.ecloudMcsAddress = ecloudMcsAddress;
         this.username = username;
         this.password = password;

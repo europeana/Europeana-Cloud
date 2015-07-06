@@ -28,19 +28,14 @@ public class ReadFileBolt extends AbstractDpsBolt
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
 
     /** Properties to connect to eCloud */
-    private final String zkAddress;
     private final String ecloudMcsAddress;
     private final String username;
     private final String password;
 
-    private transient CountMetric countMetric;
-    private transient PersistentCountMetric pCountMetric;
-
     private FileServiceClient fileClient;
 
-    public ReadFileBolt(String zkAddress, String ecloudMcsAddress, String username, String password) 
+    public ReadFileBolt(String ecloudMcsAddress, String username, String password) 
     {
-        this.zkAddress = zkAddress;
         this.ecloudMcsAddress = ecloudMcsAddress;
         this.username = username;
         this.password = password;
@@ -50,8 +45,6 @@ public class ReadFileBolt extends AbstractDpsBolt
     public void prepare() 
     {
         fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
-
-        initMetrics(topologyContext);
     }
 
     @Override
@@ -77,8 +70,6 @@ public class ReadFileBolt extends AbstractDpsBolt
             t.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, parsedUri.get("VERSION"));
             t.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get("FILENAME"));
 
-            updateMetrics(t, IOUtils.toString(is));
-
             outputCollector.emit(inputTuple, t.toStormTuple());
         }
         catch (RepresentationNotExistsException | FileNotExistsException | 
@@ -92,21 +83,5 @@ public class ReadFileBolt extends AbstractDpsBolt
         }
         
         outputCollector.ack(inputTuple);
-    }
-
-    void initMetrics(TopologyContext context) 
-    {
-        countMetric = new CountMetric();
-        pCountMetric = new PersistentCountMetric();
-
-        context.registerMetric("read_records=>", countMetric, 10);
-        context.registerMetric("pCountMetric_records=>", pCountMetric, 10);
-    }
-    
-    void updateMetrics(StormTaskTuple t, String word) 
-    {
-        countMetric.incr();
-        pCountMetric.incr();
-        LOGGER.info("ReadFileBolt: metrics updated");
     }
 }

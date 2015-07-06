@@ -64,7 +64,7 @@ public class XSLTTopology {
 	public StormTopology buildTopology(String dpsZkAddress, String xsltTopic, 
 			String ecloudMcsAddress, String username, String password) {
 
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(dpsZkAddress, ecloudMcsAddress, username, password);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
 		
 		ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);

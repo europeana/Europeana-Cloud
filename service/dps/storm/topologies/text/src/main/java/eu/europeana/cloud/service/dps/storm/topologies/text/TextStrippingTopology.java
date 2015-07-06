@@ -48,7 +48,6 @@ public class TextStrippingTopology
     private final String storeStream = "StoreStream";
     private final String informStream = "InformStream";
     
-    private final String zkProgressAddress = TextStrippingConstants.PROGRESS_ZOOKEEPER;
     private final String ecloudMcsAddress = TextStrippingConstants.MCS_URL;
     private final String username = TextStrippingConstants.USERNAME;
     private final String password = TextStrippingConstants.PASSWORD;
@@ -79,8 +78,7 @@ public class TextStrippingTopology
         outputParameters.put(PluginParameterKeys.FILE_NAME, null);
         outputParameters.put(PluginParameterKeys.ORIGINAL_FILE_URL, null);
         outputParameters.put(PluginParameterKeys.FILE_METADATA, null);
-        outputParameters.put(PluginParameterKeys.ELASTICSEARCH_INDEX, null);
-        outputParameters.put(PluginParameterKeys.ELASTICSEARCH_TYPE, null);
+        outputParameters.put(PluginParameterKeys.INDEXER, null);
         
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -89,11 +87,11 @@ public class TextStrippingTopology
         builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules, prerequisites), TextStrippingConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("KafkaSpout");
         
-        builder.setBolt("RetrieveDataset", new ReadDatasetBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveDataset", new ReadDatasetBolt(ecloudMcsAddress, username, password), 
                             TextStrippingConstants.DATASET_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", datasetStream);
         
-        builder.setBolt("RetrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveFile", new ReadFileBolt(ecloudMcsAddress, username, password), 
                             TextStrippingConstants.FILE_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", fileStream);
         
@@ -101,7 +99,7 @@ public class TextStrippingTopology
                 .shuffleGrouping("RetrieveDataset")
                 .shuffleGrouping("RetrieveFile");
         
-        builder.setBolt("StoreNewRepresentation", new StoreFileAsNewRepresentationBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("StoreNewRepresentation", new StoreFileAsNewRepresentationBolt(ecloudMcsAddress, username, password), 
                             TextStrippingConstants.STORE_BOLT_PARALLEL)
                 .shuffleGrouping("ExtractText", storeStream);
         
@@ -110,7 +108,7 @@ public class TextStrippingTopology
                 .shuffleGrouping("ExtractText", informStream)
                 .shuffleGrouping("StoreNewRepresentation");
 
-        builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
+        builder.setBolt("ProgressBolt", new ProgressBolt(TextStrippingConstants.PROGRESS_ZOOKEEPER), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
                 .shuffleGrouping("InformBolt");
 
         return builder.createTopology();
@@ -142,7 +140,7 @@ public class TextStrippingTopology
     {
         TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
         Config config = new Config();
-        config.setDebug(true);
+        config.setDebug(false);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, TextStrippingConstants.KAFKA_METRICS_BROKER);
@@ -160,7 +158,7 @@ public class TextStrippingTopology
             config.put(Config.NIMBUS_THRIFT_PORT, 6627);
             config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
             config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0]));
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0].split(";")));
             StormSubmitter.submitTopology(name, config, stormTopology);
         } 
         else 

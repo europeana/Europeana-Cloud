@@ -35,7 +35,7 @@ public class StaticXsltTopologyWithProgressReport {
 		
 		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask(args[5], args[6], Integer.parseInt(args[7])));
 		
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(args[1], args[2], args[3], args[4]);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(args[2], args[3], args[4]);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(args[2], args[3], args[4]);
 		ProgressBolt progressBolt = new ProgressBolt(args[1]);
 
