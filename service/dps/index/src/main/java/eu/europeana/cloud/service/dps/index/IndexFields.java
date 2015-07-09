@@ -9,7 +9,8 @@ public enum IndexFields
     RAW_TEXT,
     FILE_METADATA,
     TITLE,
-    DESCRIPTION;
+    DESCRIPTION,
+    _ALL;
     
     /**
      * Retrieve the enum constant of index field. 

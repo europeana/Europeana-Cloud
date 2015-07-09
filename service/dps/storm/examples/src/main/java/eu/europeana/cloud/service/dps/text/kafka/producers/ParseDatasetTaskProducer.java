@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.text.kafka.producers;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.storm.topologies.text.TextStrippingConstants;
 import java.util.Properties;
 import kafka.javaapi.producer.Producer;
@@ -14,10 +15,12 @@ import kafka.producer.ProducerConfig;
  */
 public class ParseDatasetTaskProducer 
 {
-    //public static final String datasetId = "ceffa_dataset1";
-    //public static final String providerId = "ceffa";
-    public static final String datasetId = "Franco_maria_performance_test_0002";
-    public static final String providerId = "CORE_testing_0002";
+    private static final String[] indexers= {"elasticsearch_indexer", "solr_indexer"};
+    
+    public static final String datasetId = "ceffa_dataset4";
+    public static final String providerId = "ceffa";
+    //public static final String datasetId = "Franco_maria_performance_test_0002";
+    //public static final String providerId = "CORE_testing_0002";
 
     /**
      * @param args the command line arguments
@@ -52,8 +55,8 @@ public class ParseDatasetTaskProducer
         //TODO: dataset has more than one representation but specific EXTRACTOR is only one
                
         //if INDEX_DATA == True
-        msg.addParameter(PluginParameterKeys.ELASTICSEARCH_INDEX, "TestIndex1");
-        msg.addParameter(PluginParameterKeys.ELASTICSEARCH_TYPE, "TestType1");
+        IndexerInformations ii = new IndexerInformations(indexers[0], "index_mlt_4", "mlt4", "192.168.47.129:9300");
+        msg.addParameter(PluginParameterKeys.INDEXER, ii.toTaskString());
         
         KeyedMessage<String, DpsTask> data = new KeyedMessage<>(TextStrippingConstants.KAFKA_INPUT_TOPIC, msg);
         producer.send(data);

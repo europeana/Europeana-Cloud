@@ -19,6 +19,8 @@ public class IndexedDocument
         this.indexerInformations = ii;
         this.id = id;
         this.version = version;
+        
+        data = null;
     }
 
     public Map<String, Object> getData() 
@@ -29,6 +31,11 @@ public class IndexedDocument
     public void setData(Map<String, Object> data) 
     {
         this.data = data;
+    }
+    
+    public Boolean hasData()
+    {
+        return (data != null && !data.isEmpty());         
     }
 
     public IndexerInformations getIndexerInformations() 

@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -43,15 +41,6 @@ public class Solr implements Indexer
     private final IndexerInformations indexInformations;
     
     private final SolrClient client;
-    
-    private static final int PAGE_SIZE = 10;
-    
-    private static final int MAX_QUERY_TERMS = 1;
-    private static final int MIN_TERM_FREQ = 1;
-    private static final int MIN_DOC_FREQ = 1;
-    private static final int MAX_DOC_FREQ = 1;
-    private static final int MIN_WORD_LENGTH = 1;
-    private static final int MAX_WORD_LENGTH = 1;
 
     public Solr(IndexerInformations ii) throws IndexerException 
     {
@@ -106,33 +95,34 @@ public class Solr implements Indexer
     public SearchResult getMoreLikeThis(String documentId) throws IndexerException 
     {
         return getMoreLikeThis(documentId, null, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, int size, int timeout) throws IndexerException 
     {
         return getMoreLikeThis(documentId, null, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields) throws IndexerException 
     {
         return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int size, int timeout) throws IndexerException 
     {
         return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout, false);
     }
 
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
-            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout) throws IndexerException 
+            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout, Boolean includeItself)
+            throws ConnectionException, IndexerException 
     {
         List<String> f;
         if(fields == null)
@@ -144,7 +134,7 @@ public class Solr implements Indexer
         {
             f = Arrays.asList(fields);              
         }
-        f.add("score");
+        //f.add("score");
         
         SolrQuery mlt = new SolrQuery();
         mlt.set(MoreLikeThisParams.MLT, true);
@@ -155,8 +145,10 @@ public class Solr implements Indexer
         mlt.set(MoreLikeThisParams.MAX_DOC_FREQ,maxDocFreq);
         mlt.set(MoreLikeThisParams.MIN_WORD_LEN, minWordLength);
         mlt.set(MoreLikeThisParams.MAX_WORD_LEN, maxWordLength);
+        mlt.set(MoreLikeThisParams.MATCH_INCLUDE, includeItself);
         mlt.setQuery(UNIQUE_KEY_FIELD+":"+documentId);
         mlt.setRows(size);
+        mlt.setIncludeScore(true);  //TODO: ???
         
         if(timeout > 0)
         {
@@ -177,7 +169,7 @@ public class Solr implements Indexer
             throw new IndexerException(ex);
         }
         
-        SearchResult res=  fromQueryResponseToSearchResult(response);
+        SearchResult res = fromQueryResponseToSearchResult(response);
         res.setQueryType(SearchResult.QueryTypes.MORE_LIKE_THIS);
         res.setQuery(response.getResponseHeader().get("params"));
         
@@ -187,37 +179,116 @@ public class Solr implements Indexer
     @Override
     public SearchResult search(String text, IndexFields[] fields) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> newFields = new ArrayList<>();
+        for(IndexFields f: fields)
+        {
+            newFields.add(f.toString());
+        }
+        
+        return search(text, (String[]) newFields.toArray(), PAGE_SIZE, 0);
     }
 
     @Override
     public SearchResult search(String text, IndexFields[] fields, int size, int timeout) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> newFields = new ArrayList<>();
+        for(IndexFields f: fields)
+        {
+            newFields.add(f.toString());
+        }
+        
+        return search(text, (String[]) newFields.toArray(), size, timeout);
     }
 
     @Override
     public SearchResult search(String text, String[] fields) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return search(text, fields, PAGE_SIZE, 0);
     }
 
     @Override
     public SearchResult search(String text, String[] fields, int size, int timeout) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        StringBuilder queryString = new StringBuilder();
+        
+        for(String field: fields)
+        {
+            if("_all".equals(field))
+            {
+                queryString = new StringBuilder("*:\""+text+"\" OR ");
+                break;
+            }
+            
+            queryString.append(field).append(":\"").append(text).append("\" OR ");
+        }    
+
+        SolrQuery query = new SolrQuery();
+        query.setQuery(queryString.substring(0, -4));   //remove last " OR "
+        query.setRows(size);
+        
+        if(timeout > 0)
+        {
+            query.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
+        } 
+        
+        QueryResponse response;
+        try 
+        {
+            response = client.query(query);
+        } 
+        catch (SolrServerException ex) 
+        {
+            throw new ConnectionException(ex);
+        } 
+        catch (RemoteSolrException | IOException ex) 
+        {
+            throw new IndexerException(ex);
+        }
+        
+        SearchResult res = fromQueryResponseToSearchResult(response);
+        res.setQueryType(SearchResult.QueryTypes.SEARCH);
+        res.setQuery(response.getResponseHeader().get("params"));
+        
+        return res;
     }
 
     @Override
     public SearchResult searchFullText(String text) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return searchFullText(text, PAGE_SIZE, 0);
     }
 
     @Override
     public SearchResult searchFullText(String text, int size, int timeout) throws IndexerException 
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        SolrQuery query = new SolrQuery();
+        query.setQuery(IndexFields.RAW_TEXT.toString()+":"+text);
+        query.setRows(size);
+        
+        if(timeout > 0)
+        {
+            query.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
+        } 
+        
+        QueryResponse response;
+        try 
+        {
+            response = client.query(query);
+        } 
+        catch (SolrServerException ex) 
+        {
+            throw new ConnectionException(ex);
+        } 
+        catch (RemoteSolrException | IOException ex) 
+        {
+            throw new IndexerException(ex);
+        }
+        
+        SearchResult res = fromQueryResponseToSearchResult(response);
+        res.setQueryType(SearchResult.QueryTypes.SEARCH);
+        res.setQuery(response.getResponseHeader().get("params"));
+        
+        return res;
     }
 
     @Override
@@ -363,7 +434,7 @@ public class Solr implements Indexer
     
     @Override
     public SearchResult getNextPage(String scrollId, Object context) throws ConnectionException, IndexerException 
-    {
+    {//TODO: timeout!!!!!!!!!!
         if(scrollId == null)
         {
             return null;

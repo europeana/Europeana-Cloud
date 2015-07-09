@@ -23,7 +23,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.mapper.MapperParsingException;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +39,6 @@ public class Elasticsearch implements Indexer
     private final Client client;
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Elasticsearch.class);
-    
-    private static final int PAGE_SIZE = 10;
-    
-    private static final int MAX_QUERY_TERMS = 1;
-    private static final int MIN_TERM_FREQ = 1;
-    private static final int MIN_DOC_FREQ = 1;
-    private static final int MAX_DOC_FREQ = 1;
-    private static final int MIN_WORD_LENGTH = 1;
-    private static final int MAX_WORD_LENGTH = 1;
 
     public Elasticsearch(IndexerInformations ii) throws IndexerException
     {   
@@ -136,57 +126,72 @@ public class Elasticsearch implements Indexer
             throw new IndexerException(ex);
         }
         
-        IndexedDocument document = new IndexedDocument(indexInformations, response.getId(), response.getVersion());
-        document.setData(response.getSource());
+        if(response.isExists())
+        {
+            IndexedDocument document = new IndexedDocument(indexInformations, response.getId(), response.getVersion());
+            if(!response.isSourceEmpty())
+            {
+                document.setData(response.getSource());
+            }
+            
+            return document;
+        }
         
-        return document;
+        return null;
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId) throws ConnectionException, IndexerException
     {
-        String[] fields = {"_all"};
-        return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0);
+        return getMoreLikeThis(documentId, null, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, int size, int timeout) throws ConnectionException, IndexerException
     {
-        String[] fields = {"_all"};
-        return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout);
+        return getMoreLikeThis(documentId, null, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields) throws ConnectionException, IndexerException
     {
         return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, PAGE_SIZE, 0, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int size, int timeout) throws ConnectionException, IndexerException
     {
         return getMoreLikeThis(documentId, fields, MAX_QUERY_TERMS, MIN_TERM_FREQ, MIN_DOC_FREQ, 
-                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout);
+                MAX_DOC_FREQ, MIN_WORD_LENGTH, MAX_WORD_LENGTH, size, timeout, false);
     }
     
     @Override
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
-            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout) 
+            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout, Boolean includeItself) 
             throws ConnectionException, IndexerException 
     {
-       
-        QueryBuilder mlt = new MoreLikeThisQueryBuilder(fields)              
-                .ids(documentId)
-                .maxQueryTerms(maxQueryTerms)
-                .minTermFreq(minTermFreq)              
-                .minDocFreq(minDocFreq)
-                .maxDocFreq(maxDocFreq)
-                .minWordLength(minWordLength)
-                .maxWordLength(maxWordLength);
-                
+        MoreLikeThisQueryBuilder mlt;
+        if(fields != null)
+        {
+            mlt = new MoreLikeThisQueryBuilder(fields);
+        }
+        else
+        {
+            mlt = new MoreLikeThisQueryBuilder();
+        }
+        
+        mlt.ids(documentId)
+            .maxQueryTerms(maxQueryTerms)
+            .minTermFreq(minTermFreq)              
+            .minDocFreq(minDocFreq)
+            .maxDocFreq(maxDocFreq)
+            .minWordLength(minWordLength)
+            .maxWordLength(maxWordLength)
+            .include(includeItself);
+               
         SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
                 .setTypes(indexInformations.getType())
                 .setQuery(mlt)

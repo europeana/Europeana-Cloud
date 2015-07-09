@@ -12,6 +12,15 @@ import java.util.Map;
  */
 public interface Indexer 
 {   
+    public static final int PAGE_SIZE = 10;
+    
+    public static final int MAX_QUERY_TERMS = -1;
+    public static final int MIN_TERM_FREQ = -1;
+    public static final int MIN_DOC_FREQ = -1;
+    public static final int MAX_DOC_FREQ = -1;
+    public static final int MIN_WORD_LENGTH = -1;
+    public static final int MAX_WORD_LENGTH = -1;
+    
     public Object getIndexer();
     
     public SupportedIndexers getIndexerName();
@@ -27,7 +36,8 @@ public interface Indexer
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int size, int timeout) throws IndexerException;
     
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
-            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout) throws IndexerException;
+            int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, 
+            int size, int timeout, Boolean includeItself) throws IndexerException;
     
     public SearchResult search(String text, IndexFields[] fields) throws IndexerException;
     

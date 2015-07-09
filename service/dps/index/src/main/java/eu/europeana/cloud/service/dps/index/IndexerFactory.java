@@ -18,7 +18,7 @@ public class IndexerFactory
                 case ELASTICSEARCH_INDEXER:
                     return new Elasticsearch(ii);
                 case SOLR_INDEXER:
-                    return null;
+                    return new Solr(ii);
                 case UNSUPPORTED:
                 default:
                     return null;

@@ -1,12 +1,20 @@
 package eu.europeana.cloud.service.dps.similarity;
 
-import eu.europeana.cloud.service.dps.index.Elasticsearch;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.service.dps.index.IndexFields;
+import eu.europeana.cloud.service.dps.index.Indexer;
+import eu.europeana.cloud.service.dps.index.IndexerFactory;
 import eu.europeana.cloud.service.dps.index.exception.IndexerException;
-import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
+import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
+import eu.europeana.cloud.service.dps.index.structure.SearchHit;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
-import eu.europeana.cloud.service.dps.storm.topologies.indexer.IndexerConstants;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -15,57 +23,142 @@ import java.util.List;
 public class SimilarityService 
 {
     private final float duplicationThreshold = (float)0.98; //1 = 100%
-    private final Elasticsearch client;
+    private final Indexer client;
     
-    public SimilarityService(String addresses, String index, String type) throws IndexerException 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimilarityService.class);
+    
+    private Map<String, List<String>> fields;
+    
+    public SimilarityService(String indexer, String index, String type, String addresses) throws IndexerException 
     {  
-        client = new Elasticsearch(addresses, index, type);       
-    }
-    
-    public List<SearchResult> getSimilarDocuments_naiveImplementation(String documentUrl, int limit)
-    {
-        /*
-        IndexedDocument document = client.getDocument(documentUrl);
+        Indexer tmp = IndexerFactory.getIndexer(new IndexerInformations(indexer, index, type, addresses));
         
-        List<SearchResult> result = client.simpleMatchQuery(IndexerConstants.RAW_DATA_FIELD, 
-                (String)document.getData().get(IndexerConstants.RAW_DATA_FIELD), limit+1);   //+1 because it returns source document as well
-        
-        result.remove(0);   //remove the source document
-        
-        List<SimilarDocument> res = new ArrayList();
-        for(SearchResult sr: result)
-        {         
-            SimilarDocument sd = new SimilarDocument(documentUrl, sr.getId());
-            sd.setScore(sr.getScore());
-            res.add(sd);
+        if(tmp == null)
+        {
+            LOGGER.warn("No indexer.");
+            throw new IndexerException("Unsupported indexer.");
         }
         
-        return res;
-        */
+        client = tmp;
         
-        return client.getMoreLikeThis(documentUrl);         
+        initFields();
     }
     
-    public List<String> calcDuplicateDocuments_naiveImplementation(String documentUrl)
-    {
-        IndexedDocument document = client.getDocument(documentUrl);
+    public SimilarityService(String indexer, String index, String type, String addresses, 
+            Map<String, List<String>> fields) throws IndexerException 
+    {  
+        Indexer tmp = IndexerFactory.getIndexer(new IndexerInformations(indexer, index, type, addresses));
         
-        List<SearchResult> result = client.simpleMatchQuery(IndexerConstants.RAW_DATA_FIELD, 
-                (String)document.getData().get(IndexerConstants.RAW_DATA_FIELD), duplicationThreshold);
-        
-        SearchResult sourceDocument = result.remove(0); //remove the source document
-        float threshold = sourceDocument.getScore() * duplicationThreshold;     //score of source document not 1 but more
-
-        List<String> res = new ArrayList();
-        for(SearchResult sr: result)
+        if(tmp == null)
         {
-            if(sr.getScore() < threshold)
+            LOGGER.warn("No indexer.");
+            throw new IndexerException("Unsupported indexer.");
+        }
+        
+        client = tmp;
+        
+        this.fields = fields;
+    }
+    
+    public SearchResult getSimilarDocuments(String documentId) throws IndexerException
+    {    
+        if(documentId == null)
+        {
+            return null;
+        } 
+        
+        List<String> tmp = getFields(documentId);
+        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        
+        return client.getMoreLikeThis(documentId, _fields);         
+    }
+    
+    public SearchResult getSimilarDocuments(String documentId, int limit) throws IndexerException
+    {      
+        if(documentId == null || limit <= 0)
+        {
+            return null;
+        }
+        
+        List<String> tmp = getFields(documentId);
+        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        
+        return client.getMoreLikeThis(documentId, _fields, limit, 0);         
+    }
+    
+    public List<SearchHit> calcDuplicateDocuments(String documentId) throws IndexerException
+    {
+        if(documentId == null)
+        {
+            return null;
+        }
+        
+        List<String> tmp = getFields(documentId);
+        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        
+        SearchResult result = client.getMoreLikeThis(documentId, _fields, 
+                Indexer.MAX_QUERY_TERMS, Indexer.MIN_TERM_FREQ, Indexer.MIN_DOC_FREQ, Indexer.MAX_DOC_FREQ, 
+                Indexer.MIN_WORD_LENGTH, Indexer.MAX_WORD_LENGTH, Indexer.PAGE_SIZE, 0, true); 
+        
+        SearchHit reference = null;
+        for(SearchHit sh: result.getHits())
+        {
+            if(documentId.equals(sh.getId()))
             {
+                reference = sh;
+                
+                result.getHits().remove(sh);
                 break;
             }
-            res.add(sr.getId());
+        }
+        
+        if(reference == null)
+        {
+            return null;
+        }
+        
+        float threshold = reference.getScore() * duplicationThreshold;
+        List<SearchHit> res = new ArrayList();
+        for(SearchHit sh: result.getHits())
+        {
+            if(sh.getScore() >= threshold)
+            {
+                res.add(sh);
+            }
         }
         
         return res;
+    }
+    
+    private List<String> getFields(String url)
+    {
+        if(fields == null || fields.isEmpty() || url == null)
+        {
+            return null;
+        }
+        
+        Map<String, String> parsed = FileServiceClient.parseFileUri(url);
+        
+        String repName = parsed.get("REPRESENTATIONNAME");
+        
+        return fields.get(repName.toUpperCase());
+    }
+    
+    private void initFields()
+    {
+        List<String> pdf = new ArrayList();
+        pdf.add(IndexFields.RAW_TEXT.toString());
+        pdf.add("another_field");
+        
+        String[] oai = 
+        {
+            "description",
+            "title"
+        };
+        
+        Map<String, List<String>> _fields = new HashMap<>();
+        _fields.put("PDF", pdf);
+        _fields.put("TXT", null);
+        _fields.put("OAI", Arrays.asList(oai));
     }
 }
