@@ -1,19 +1,21 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.util.Map;
-
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import java.net.URI;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Stores a Record on the cloud.
@@ -28,8 +30,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	private String password;
 
 	private FileServiceClient mcsClient;
+	private RecordServiceClient recordServiceClient;
 
 	private static final String mediaType = "text/plain";
+	
+	private static final String DEFAULT_REPRESENTATION_NAME="storm_new_representation";
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
@@ -45,11 +50,13 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 	public void prepare() {
 
 		mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
+		recordServiceClient = new RecordServiceClient(ecloudMcsAddress, username, password);
 	}
 
 	@Override
 	public void execute(StormTaskTuple t) {
-
+		Map<String,String> urlParams =  FileServiceClient.parseFileUri(t.getFileUrl());
+		
 		try {
 			LOGGER.info("WriteRecordBolt: persisting...");
 
@@ -65,8 +72,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			}
 			LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
 			
-			URI uri = null;
-			uri = mcsClient.uploadFile(outputUrl, new ByteArrayInputStream(record.getBytes()), mediaType);
+			URI uri = uploadFileInNewRepresentation(t);
 			
 			LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 			
@@ -74,6 +80,45 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
+		}
+	}
+	
+	private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
+		Map<String,String> urlParams =  FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
+	
+		String newRepresentationName = null;
+		if(newRepresentationNameProvided(stormTaskTuple)){
+			newRepresentationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+		}else{
+			newRepresentationName = DEFAULT_REPRESENTATION_NAME;
+		}
+		Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
+		URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
+		String newRepresentationVersion = findRepresentationVersion(newRepresentation);
+
+		URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), "text/xml");
+
+		recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
+
+		return newFileUri;
+	}
+	
+	private boolean newRepresentationNameProvided(StormTaskTuple stormTaskTuple){
+		if (stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME) != null) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private String findRepresentationVersion(URI uri) throws MCSException {
+		Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
+		Matcher m = p.matcher(uri.toString());
+		
+		if(m.find()){
+			return m.group(3);
+		}else{
+			throw new MCSException("Unable to find representation version in representation URL");
 		}
 	}
 }
