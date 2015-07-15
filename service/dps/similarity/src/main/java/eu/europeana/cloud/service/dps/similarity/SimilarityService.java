@@ -67,8 +67,8 @@ public class SimilarityService
             return null;
         } 
         
-        List<String> tmp = getFields(documentId);
-        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        List<String> tmp = getFields(documentId);      
+        String[] _fields = tmp != null ? tmp.toArray(new String[tmp.size()]) : null;
         
         return client.getMoreLikeThis(documentId, _fields);         
     }
@@ -81,7 +81,7 @@ public class SimilarityService
         }
         
         List<String> tmp = getFields(documentId);
-        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        String[] _fields = tmp != null ? tmp.toArray(new String[tmp.size()]) : null;
         
         return client.getMoreLikeThis(documentId, _fields, limit, 0);         
     }
@@ -94,10 +94,10 @@ public class SimilarityService
         }
         
         List<String> tmp = getFields(documentId);
-        String[] _fields = tmp != null ? (String[]) tmp.toArray() : null;
+        String[] _fields = tmp != null ? tmp.toArray(new String[tmp.size()]) : null;
         
         SearchResult result = client.getMoreLikeThis(documentId, _fields, 
-                Indexer.MAX_QUERY_TERMS, Indexer.MIN_TERM_FREQ, Indexer.MIN_DOC_FREQ, Indexer.MAX_DOC_FREQ, 
+                50, 2, Indexer.MIN_DOC_FREQ, Indexer.MAX_DOC_FREQ, 
                 Indexer.MIN_WORD_LENGTH, Indexer.MAX_WORD_LENGTH, Indexer.PAGE_SIZE, 0, true); 
         
         SearchHit reference = null;

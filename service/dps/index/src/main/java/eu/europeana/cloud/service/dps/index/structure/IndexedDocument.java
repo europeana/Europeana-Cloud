@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.index.structure;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -20,7 +21,7 @@ public class IndexedDocument
         this.id = id;
         this.version = version;
         
-        data = null;
+        data = new HashMap<>();
     }
 
     public Map<String, Object> getData() 
@@ -30,12 +31,19 @@ public class IndexedDocument
 
     public void setData(Map<String, Object> data) 
     {
-        this.data = data;
+        if(data != null)
+        {
+            this.data = data;
+        }
+        else
+        {
+            this.data = new HashMap<>();
+        }
     }
     
     public Boolean hasData()
     {
-        return (data != null && !data.isEmpty());         
+        return !data.isEmpty();         
     }
 
     public IndexerInformations getIndexerInformations() 

@@ -13,14 +13,11 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
-            <version>0.4-SNAPSHOT</version>
-            <type>jar</type>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
@@ -31,7 +28,6 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>5.2.1</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>

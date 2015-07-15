@@ -38,5 +38,16 @@ public enum IndexFields
         return super.toString().toLowerCase();
     }
     
-    
+    public static String[] toStringArray(IndexFields[] fields)
+    {
+        String[] newFields = new String[fields.length];
+        int i = 0;
+        for(IndexFields f: fields)
+        {
+            newFields[i] = fields[i].toString();
+            i++;
+        }
+        
+        return newFields;
+    }
 }

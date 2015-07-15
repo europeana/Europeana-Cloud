@@ -38,11 +38,7 @@ public interface Indexer
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
             int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, 
             int size, int timeout, Boolean includeItself) throws IndexerException;
-    
-    public SearchResult search(String text, IndexFields[] fields) throws IndexerException;
-    
-    public SearchResult search(String text, IndexFields[] fields, int size, int timeout) throws IndexerException;
-    
+      
     public SearchResult search(String text, String[] fields) throws IndexerException;
     
     public SearchResult search(String text, String[] fields, int size, int timeout) throws IndexerException;
@@ -58,6 +54,20 @@ public interface Indexer
      * @throws eu.europeana.cloud.service.dps.index.exception.IndexerException 
      */
     public SearchResult searchFullText(String text, int size, int timeout) throws IndexerException;
+        
+    public SearchResult searchPhraseInFullText(String text, int proximity) throws IndexerException;
+    
+    public SearchResult searchPhrase(String text, String field, int proximity) throws IndexerException;
+    
+    public SearchResult searchPhrase(String text, String field, int proximity, int size, int timeout) throws IndexerException;
+    
+    public SearchResult advancedSearch(String query) throws IndexerException;
+    
+    public SearchResult advancedSearch(String query, int size, int timeout) throws IndexerException;
+    
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters) throws IndexerException;
+    
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters, int size, int timeouts) throws IndexerException;
     
     public void insert(String data) throws IndexerException;
     
@@ -70,6 +80,8 @@ public interface Indexer
     public void update(String documentId, String data) throws IndexerException;
     
     public void update(String documentId, Map<String, Object> data) throws IndexerException;
+    
+    public void delete(String documentId) throws IndexerException;
     
     public IndexedDocument getDocument(String documentId) throws IndexerException;
     

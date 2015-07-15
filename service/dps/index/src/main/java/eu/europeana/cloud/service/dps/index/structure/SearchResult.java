@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.index.structure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -37,7 +38,14 @@ public class SearchResult
         this.maxScore = maxScore;
         this.tookTime = tookTime;
         
-        this.hits = hits;
+        if(hits != null)
+        {
+            this.hits = hits;
+        }
+        else
+        {
+            this.hits = new ArrayList<>();
+        }
         
         this.query = null;
         this.queryType = QueryTypes.UNKNOWN;

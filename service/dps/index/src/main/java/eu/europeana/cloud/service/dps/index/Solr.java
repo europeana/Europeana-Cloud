@@ -8,11 +8,11 @@ import eu.europeana.cloud.service.dps.index.structure.SearchHit;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -52,9 +52,9 @@ public class Solr implements Indexer
         {
             throw new IndexerException("Empty address list.");
         }
-        
+
         //determine which Solr server will be used
-        if(address.matches("http://"))
+        if(address.matches("http://.*"))
         {
             if(address.charAt(address.length()-1) == '/')
             {
@@ -123,33 +123,62 @@ public class Solr implements Indexer
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
             int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout, Boolean includeItself)
             throws ConnectionException, IndexerException 
-    {
-        List<String> f;
-        if(fields == null)
+    {  
+        String[] keys = 
         {
-            f = new ArrayList<>();
-            f.add("*");
+            MoreLikeThisParams.MAX_QUERY_TERMS,
+            MoreLikeThisParams.MIN_TERM_FREQ,
+            MoreLikeThisParams.MIN_DOC_FREQ,
+            MoreLikeThisParams.MAX_DOC_FREQ,
+            MoreLikeThisParams.MIN_WORD_LEN,
+            MoreLikeThisParams.MAX_WORD_LEN     
+        };
+        
+        int[] values = 
+        {
+            maxQueryTerms,
+            minTermFreq,
+            minDocFreq,
+            maxDocFreq,
+            minWordLength,
+            maxWordLength         
+        };
+        
+        assert(keys.length == values.length);
+                
+        SolrQuery mlt = new SolrQuery();
+        mlt.set(MoreLikeThisParams.MLT, true);
+        mlt.set(MoreLikeThisParams.MATCH_INCLUDE, includeItself);
+        mlt.setQuery(UNIQUE_KEY_FIELD+":\""+documentId+"\"");
+        mlt.setRows(size);
+        mlt.setIncludeScore(true);       
+        
+        for(int i=0; i<keys.length;i++)
+        {
+            if(values[i] != -1)
+            {
+                mlt.set(keys[i], values[i]);
+            }
+        }
+        
+        if(fields != null)
+        {
+            for(int i=0; i<fields.length; i++)
+            {
+                if("_all".equals(fields[i]))
+                {
+                    fields[i]="*";
+                    break;
+                }
+            }
+            
+            mlt.set(MoreLikeThisParams.SIMILARITY_FIELDS, fields);
         }
         else
         {
-            f = Arrays.asList(fields);              
+            mlt.set(MoreLikeThisParams.SIMILARITY_FIELDS, "*");
         }
-        //f.add("score");
-        
-        SolrQuery mlt = new SolrQuery();
-        mlt.set(MoreLikeThisParams.MLT, true);
-        mlt.set(MoreLikeThisParams.SIMILARITY_FIELDS, (String[]) f.toArray());
-        mlt.set(MoreLikeThisParams.MAX_QUERY_TERMS, maxQueryTerms);
-        mlt.set(MoreLikeThisParams.MIN_TERM_FREQ, minTermFreq);
-        mlt.set(MoreLikeThisParams.MIN_DOC_FREQ, minDocFreq);
-        mlt.set(MoreLikeThisParams.MAX_DOC_FREQ,maxDocFreq);
-        mlt.set(MoreLikeThisParams.MIN_WORD_LEN, minWordLength);
-        mlt.set(MoreLikeThisParams.MAX_WORD_LEN, maxWordLength);
-        mlt.set(MoreLikeThisParams.MATCH_INCLUDE, includeItself);
-        mlt.setQuery(UNIQUE_KEY_FIELD+":"+documentId);
-        mlt.setRows(size);
-        mlt.setIncludeScore(true);  //TODO: ???
-        
+  
         if(timeout > 0)
         {
             mlt.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
@@ -170,34 +199,33 @@ public class Solr implements Indexer
         }
         
         SearchResult res = fromQueryResponseToSearchResult(response);
+        
+        //match_include not works => do that itself
+        if(!includeItself)
+        {
+            for(SearchHit sh: res.getHits())
+            {
+                if(documentId.equals(sh.getId()))
+                {
+                    if(res.getTotalHits() == 1)
+                    {
+                        res = new SearchResult(null, 0, 0, 0);
+                    }
+                    else
+                    {
+                        res.getHits().remove(sh);
+                        float newScore = res.getHits().get(0).getScore();
+                        res = new SearchResult(res.getHits(), res.getTotalHits()-1, newScore, res.getTookTime(), res.getScrollId());
+                    }
+                    break;
+                }
+            }
+        }
+        
         res.setQueryType(SearchResult.QueryTypes.MORE_LIKE_THIS);
         res.setQuery(response.getResponseHeader().get("params"));
         
         return res;
-    }
-
-    @Override
-    public SearchResult search(String text, IndexFields[] fields) throws IndexerException 
-    {
-        List<String> newFields = new ArrayList<>();
-        for(IndexFields f: fields)
-        {
-            newFields.add(f.toString());
-        }
-        
-        return search(text, (String[]) newFields.toArray(), PAGE_SIZE, 0);
-    }
-
-    @Override
-    public SearchResult search(String text, IndexFields[] fields, int size, int timeout) throws IndexerException 
-    {
-        List<String> newFields = new ArrayList<>();
-        for(IndexFields f: fields)
-        {
-            newFields.add(f.toString());
-        }
-        
-        return search(text, (String[]) newFields.toArray(), size, timeout);
     }
 
     @Override
@@ -209,22 +237,28 @@ public class Solr implements Indexer
     @Override
     public SearchResult search(String text, String[] fields, int size, int timeout) throws IndexerException 
     {
-        StringBuilder queryString = new StringBuilder();
+        StringJoiner queryString = new StringJoiner(" OR ");
         
         for(String field: fields)
         {
             if("_all".equals(field))
             {
-                queryString = new StringBuilder("*:\""+text+"\" OR ");
+                queryString = new StringJoiner("").add("*:("+text+")");
                 break;
             }
             
-            queryString.append(field).append(":\"").append(text).append("\" OR ");
-        }    
-
+            queryString.add(field+":("+text+")");
+        } 
+        
+        if(queryString.length() == 0)
+        {
+            new StringJoiner("").add("*:("+text+")");
+        }
+        
         SolrQuery query = new SolrQuery();
-        query.setQuery(queryString.substring(0, -4));   //remove last " OR "
+        query.setQuery(queryString.toString());   
         query.setRows(size);
+        query.setIncludeScore(true);
         
         if(timeout > 0)
         {
@@ -255,40 +289,57 @@ public class Solr implements Indexer
     @Override
     public SearchResult searchFullText(String text) throws IndexerException 
     {
-        return searchFullText(text, PAGE_SIZE, 0);
+        String[] field = {IndexFields.RAW_TEXT.toString()};
+        return search(text, field, PAGE_SIZE, 0);
     }
 
     @Override
     public SearchResult searchFullText(String text, int size, int timeout) throws IndexerException 
     {
-        SolrQuery query = new SolrQuery();
-        query.setQuery(IndexFields.RAW_TEXT.toString()+":"+text);
-        query.setRows(size);
-        
-        if(timeout > 0)
-        {
-            query.set(CursorMarkParams.CURSOR_MARK_PARAM, CursorMarkParams.CURSOR_MARK_START);
-        } 
-        
-        QueryResponse response;
-        try 
-        {
-            response = client.query(query);
-        } 
-        catch (SolrServerException ex) 
-        {
-            throw new ConnectionException(ex);
-        } 
-        catch (RemoteSolrException | IOException ex) 
-        {
-            throw new IndexerException(ex);
-        }
-        
-        SearchResult res = fromQueryResponseToSearchResult(response);
-        res.setQueryType(SearchResult.QueryTypes.SEARCH);
-        res.setQuery(response.getResponseHeader().get("params"));
-        
-        return res;
+        String[] field = {IndexFields.RAW_TEXT.toString()};
+        return search(text, field, size, timeout);
+    }
+    
+    @Override
+    public SearchResult searchPhraseInFullText(String text, int proximity) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult searchPhrase(String text, String field, int proximity) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult searchPhrase(String text, String field, int proximity, int size, int timeout) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, int size, int timeout) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters, int size, int timeouts) throws IndexerException 
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -341,11 +392,12 @@ public class Solr implements Indexer
         
         for(Map.Entry<String, Object> field: data.entrySet())
         {
-            if(field.getValue() instanceof Collection)
+            Object fieldValue = field.getValue();
+            if(fieldValue instanceof Collection)
             {
-                //field values can be complex but solr needs simple list => value is store as JSON
+                //field values can be complex but solr needs simple list => value is store as JSON string
                 List<String> values = new ArrayList();
-                for(Object o: (Collection<?>)field.getValue())
+                for(Object o: (Collection<?>)fieldValue)
                 {
                     try 
                     {
@@ -361,14 +413,14 @@ public class Solr implements Indexer
             }
             else    //store as one value (string)
             {
-                String val;
+                String val;           
                 try 
                 {
-                    val = new ObjectMapper().writeValueAsString(field.getValue());
+                    val = new ObjectMapper().writeValueAsString(fieldValue);
                 } 
                 catch (IOException ex) 
                 {
-                    val = field.getValue().toString();
+                    val = fieldValue.toString();
                 }
                 
                 document.addField(field.getKey(), val);
@@ -411,6 +463,24 @@ public class Solr implements Indexer
     {
         insert(documentId, data);
     }
+    
+    @Override
+    public void delete(String documentId) throws ConnectionException, IndexerException 
+    {      
+        try 
+        {
+            client.deleteById(documentId);
+            client.commit();
+        } 
+        catch (SolrServerException ex) 
+        {
+            throw new ConnectionException(ex);
+        } 
+        catch (RemoteSolrException | IOException ex) 
+        {
+            throw new IndexerException(ex);
+        }
+    }
 
     @Override
     public IndexedDocument getDocument(String documentId) throws ConnectionException, IndexerException 
@@ -434,7 +504,7 @@ public class Solr implements Indexer
     
     @Override
     public SearchResult getNextPage(String scrollId, Object context) throws ConnectionException, IndexerException 
-    {//TODO: timeout!!!!!!!!!!
+    {
         if(scrollId == null)
         {
             return null;
@@ -510,8 +580,15 @@ public class Solr implements Indexer
     } 
     
     private SearchResult fromQueryResponseToSearchResult(QueryResponse response)
-    {       
-        SolrDocumentList results = response.getResults();
+    {        
+        SolrDocumentList results = response != null ? response.getResults() : null;
+        
+        if(results == null)
+        {
+            return new SearchResult(null, 0, 0, 0);
+        }
+        
+        assert(response != null);
         
         List<SearchHit> hits = new ArrayList();
         for(SolrDocument document: results)
@@ -530,6 +607,11 @@ public class Solr implements Indexer
     
     private Map<String, Object> getDataFromSolrDocument(SolrDocument document)
     {
+        if(document == null)
+        {
+            return null;
+        }
+        
         Map<String, Object> data = new HashMap<>();
         
         Map<String, Collection<Object>> values = document.getFieldValuesMap();

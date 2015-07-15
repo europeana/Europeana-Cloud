@@ -7,7 +7,9 @@ import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
 import eu.europeana.cloud.service.dps.index.structure.SearchHit;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.elasticsearch.ElasticsearchException;
@@ -24,6 +26,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.mapper.MapperParsingException;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,8 @@ public class Elasticsearch implements Indexer
     private final IndexerInformations indexInformations;
     
     private final Client client;
+    
+    private final Map<String, Method> advancedSearchMethods;
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Elasticsearch.class);
 
@@ -66,6 +71,18 @@ public class Elasticsearch implements Indexer
         else
         {
             throw new IndexerException("Empty Elasticsearch claster address list.");
+        }
+        
+        
+        advancedSearchMethods = new HashMap<>();      
+        try 
+        {           
+            advancedSearchMethods.put("default_field", QueryStringQueryBuilder.class.getMethod("defaultField", String.class));
+            advancedSearchMethods.put("default_operator", QueryStringQueryBuilder.class.getMethod("defaultOperator", QueryStringQueryBuilder.Operator.class));
+        } 
+        catch (NoSuchMethodException | SecurityException ex) 
+        {
+            LOGGER.error("Preparation of advanced search faild! Message: {}", ex.getMessage());
         }
     }
     
@@ -109,7 +126,10 @@ public class Elasticsearch implements Indexer
         GetResponse response;
         try
         {
-            response = client.prepareGet(indexInformations.getIndex(), indexInformations.getType(), documentId)
+            response = client.prepareGet()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
                     .execute()
                     .actionGet();
         }
@@ -216,41 +236,10 @@ public class Elasticsearch implements Indexer
             throw new IndexerException(ex);
         }
         
-        List<SearchHit> hits = new ArrayList();
-        for(org.elasticsearch.search.SearchHit hit: response.getHits())
-        {
-            hits.add(new SearchHit(indexInformations, hit.getId(), hit.getVersion(), hit.getScore(), hit.getSource()));
-        }
-        
-        SearchResult res = new SearchResult(hits, response.getHits().getTotalHits(), response.getHits().getMaxScore(), 
-                response.getTookInMillis(), response.getScrollId());
+        SearchResult res = fromSearchResponseToSearchResult(response);
         res.setQueryType(SearchResult.QueryTypes.MORE_LIKE_THIS);
         res.setQuery(request);
         return res;
-    }
-    
-    @Override
-    public SearchResult search(String text, IndexFields[] fields) throws ConnectionException, IndexerException
-    {
-        List<String> newFields = new ArrayList<>();
-        for(IndexFields f: fields)
-        {
-            newFields.add(f.toString());
-        }
-        
-        return search(text, (String[]) newFields.toArray(), PAGE_SIZE, 0);
-    }
-    
-    @Override
-    public SearchResult search(String text, IndexFields[] fields, int size, int timeout) throws ConnectionException, IndexerException
-    {
-        List<String> newFields = new ArrayList<>();
-        for(IndexFields f: fields)
-        {
-            newFields.add(f.toString());
-        }
-        
-        return search(text, (String[]) newFields.toArray(), size, timeout);
     }
     
     @Override
@@ -286,14 +275,7 @@ public class Elasticsearch implements Indexer
             throw new IndexerException(ex);
         }
         
-        List<SearchHit> hits = new ArrayList<>();
-        for(org.elasticsearch.search.SearchHit hit: response.getHits())
-        {
-            hits.add(new SearchHit(indexInformations, hit.getId(), hit.getVersion(), hit.getScore(), hit.getSource()));
-        }
-        
-        SearchResult res = new SearchResult(hits, response.getHits().getTotalHits(), response.getHits().getMaxScore(), 
-                response.getTookInMillis(), response.getScrollId());
+        SearchResult res = fromSearchResponseToSearchResult(response);
         res.setQueryType(SearchResult.QueryTypes.SEARCH);
         res.setQuery(request);
         return res;
@@ -302,15 +284,38 @@ public class Elasticsearch implements Indexer
     @Override
     public SearchResult searchFullText(String text) throws ConnectionException, IndexerException
     {
-        return searchFullText(text, PAGE_SIZE, 0);
+        String[] field = {IndexFields.RAW_TEXT.toString()};
+        return search(text, field, PAGE_SIZE, 0);
     }
     
     @Override
     public SearchResult searchFullText(String text, int size, int timeout) throws ConnectionException, IndexerException
     {
+        String[] field = {IndexFields.RAW_TEXT.toString()};
+        return search(text, field, size, timeout);
+    }
+    
+    @Override
+    public SearchResult searchPhraseInFullText(String text, int proximity) 
+            throws ConnectionException, IndexerException 
+    {
+        return searchPhrase(text, IndexFields.RAW_TEXT.toString(), proximity, PAGE_SIZE, 0);
+    }
+    
+    @Override
+    public SearchResult searchPhrase(String text, String field, int proximity) 
+            throws ConnectionException, IndexerException 
+    {
+        return searchPhrase(text, field, proximity, PAGE_SIZE, 0);
+    }
+
+    @Override
+    public SearchResult searchPhrase(String text, String field, int proximity, int size, int timeout) 
+            throws ConnectionException, IndexerException 
+    {
         SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
                 .setTypes(indexInformations.getType())
-                .setQuery(QueryBuilders.matchQuery(IndexFields.RAW_TEXT.toString(), text))
+                .setQuery(QueryBuilders.matchPhraseQuery(field, text).slop(proximity))
                 .setSize(size);
         
         if(timeout > 0)
@@ -332,14 +337,83 @@ public class Elasticsearch implements Indexer
             throw new IndexerException(ex);
         }
         
-        List<SearchHit> hits = new ArrayList<>();
-        for(org.elasticsearch.search.SearchHit hit: response.getHits())
+        SearchResult res = fromSearchResponseToSearchResult(response);
+        res.setQueryType(SearchResult.QueryTypes.SEARCH);
+        res.setQuery(request);
+        return res;
+    }
+    
+    @Override
+    public SearchResult advancedSearch(String query) throws ConnectionException, IndexerException 
+    {
+        return advancedSearch(query, null, PAGE_SIZE, 0);
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, int size, int timeout) throws ConnectionException, IndexerException 
+    {
+        return advancedSearch(query, null, size, timeout);
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters) throws ConnectionException, IndexerException 
+    {
+        return advancedSearch(query, parameters, PAGE_SIZE, 0);
+    }
+
+    @Override
+    public SearchResult advancedSearch(String query, Map<String, Object> parameters, int size, int timeout) 
+            throws ConnectionException, IndexerException 
+    {
+        QueryStringQueryBuilder builder = new QueryStringQueryBuilder(query);
+        
+        if(parameters != null)
         {
-            hits.add(new SearchHit(indexInformations, hit.getId(), hit.getVersion(), hit.getScore(), hit.getSource()));
+            for(Map.Entry<String, Object> parameter: parameters.entrySet())
+            {
+                Method m = advancedSearchMethods.get(parameter.getKey());
+                if(m == null)
+                {
+                    LOGGER.warn("Unknown parameter {}", parameter.getKey());
+                    continue;
+                }
+                
+                try
+                {
+                    m.invoke(builder, parameter.getValue());
+                }
+                catch(Exception ex)
+                {
+                    LOGGER.warn("Search parameter {} is not set because: {}", parameter.getKey(), ex.getMessage());
+                }
+            }
         }
         
-        SearchResult res = new SearchResult(hits, response.getHits().getTotalHits(), response.getHits().getMaxScore(), 
-                response.getTookInMillis(), response.getScrollId());   
+        SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
+                .setTypes(indexInformations.getType())
+                .setQuery(builder)
+                .setSize(size);
+        
+        if(timeout > 0)
+        {
+            request.setScroll(new TimeValue(timeout));
+        }
+        
+        SearchResponse response;
+        try//TODO: parser exception???!
+        {
+            response= request.execute().actionGet();               
+        }
+        catch(NoNodeAvailableException ex)
+        {
+            throw new ConnectionException(ex);
+        }
+        catch(ElasticsearchException ex)
+        {
+            throw new IndexerException(ex);
+        }
+        
+        SearchResult res = fromSearchResponseToSearchResult(response);
         res.setQueryType(SearchResult.QueryTypes.SEARCH);
         res.setQuery(request);
         return res;
@@ -350,10 +424,11 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareIndex(indexInformations.getIndex(), indexInformations.getType())
+            client.prepareIndex()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
                     .setSource(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(MapperParsingException ex)
         {
@@ -374,10 +449,11 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareIndex(indexInformations.getIndex(), indexInformations.getType())
+            client.prepareIndex()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
                     .setSource(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(MapperParsingException ex)
         {
@@ -398,10 +474,12 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareIndex(indexInformations.getIndex(), indexInformations.getType(), documentId)
+            client.prepareIndex()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
                     .setSource(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(MapperParsingException ex)
         {
@@ -423,10 +501,12 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareIndex(indexInformations.getIndex(), indexInformations.getType(), documentId)
+            client.prepareIndex()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
                     .setSource(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(MapperParsingException ex)
         {
@@ -447,11 +527,13 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareUpdate(indexInformations.getIndex(), indexInformations.getType(), documentId)
+            client.prepareUpdate()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
                     .setDocAsUpsert(true)
                     .setDoc(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(ElasticsearchParseException ex)
         {
@@ -472,15 +554,38 @@ public class Elasticsearch implements Indexer
     {
         try
         {
-            client.prepareUpdate(indexInformations.getIndex(), indexInformations.getType(), documentId)
+            client.prepareUpdate()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
                     .setDocAsUpsert(true)
                     .setDoc(data)
-                    .execute()
-                    .actionGet();
+                    .execute();
         }
         catch(ElasticsearchParseException ex)
         {
             throw new ParseDataException(ex);
+        }
+        catch(NoNodeAvailableException ex)
+        {
+            throw new ConnectionException(ex);
+        }
+        catch(ElasticsearchException ex)
+        {
+            throw new IndexerException(ex);
+        }
+    }
+    
+    @Override
+    public void delete(String documentId) throws ConnectionException, IndexerException
+    {
+        try
+        {
+            client.prepareDelete()
+                    .setIndex(indexInformations.getIndex())
+                    .setType(indexInformations.getType())
+                    .setId(documentId)
+                    .execute();
         }
         catch(NoNodeAvailableException ex)
         {
@@ -542,23 +647,36 @@ public class Elasticsearch implements Indexer
         {
             throw new IndexerException(ex);
         }
+
+        SearchResult res = fromSearchResponseToSearchResult(response);
         
-        List<SearchHit> hits = new ArrayList<>();
-        for(org.elasticsearch.search.SearchHit hit: response.getHits())
-        {
-            hits.add(new SearchHit(indexInformations, hit.getId(), hit.getVersion(), hit.getScore(), hit.getSource()));
-        }
-        
-        if(hits.isEmpty())
+        if(res.getHits().isEmpty())
         {
             //scroll is ended
             return null;
         }
         
-        SearchResult res = new SearchResult(hits, response.getHits().getTotalHits(), response.getHits().getMaxScore(), 
-                response.getTookInMillis(), response.getScrollId());
         res.setQueryType(qType);
         res.setQuery(builder);
+        return res;
+    }
+    
+    private SearchResult fromSearchResponseToSearchResult(SearchResponse response)
+    {
+        if(response == null)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
+        List<SearchHit> hits = new ArrayList();
+        for(org.elasticsearch.search.SearchHit hit: response.getHits())
+        {
+            hits.add(new SearchHit(indexInformations, hit.getId(), hit.getVersion(), hit.getScore(), hit.getSource()));
+        }
+        
+        SearchResult res = new SearchResult(hits, response.getHits().getTotalHits(), response.getHits().getMaxScore(), 
+                response.getTookInMillis(), response.getScrollId());
+        
         return res;
     }
 }

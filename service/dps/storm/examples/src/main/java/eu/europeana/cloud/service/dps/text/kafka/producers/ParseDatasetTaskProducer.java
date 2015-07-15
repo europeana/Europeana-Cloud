@@ -15,7 +15,8 @@ import kafka.producer.ProducerConfig;
  */
 public class ParseDatasetTaskProducer 
 {
-    private static final String[] indexers= {"elasticsearch_indexer", "solr_indexer"};
+    private static final String[] indexers = {"elasticsearch_indexer", "solr_indexer"};
+    private static final String[] addresses = {"192.168.47.129:9300", "http://192.168.47.129:8983/solr"};
     
     public static final String datasetId = "ceffa_dataset4";
     public static final String providerId = "ceffa";
@@ -55,7 +56,7 @@ public class ParseDatasetTaskProducer
         //TODO: dataset has more than one representation but specific EXTRACTOR is only one
                
         //if INDEX_DATA == True
-        IndexerInformations ii = new IndexerInformations(indexers[0], "index_mlt_4", "mlt4", "192.168.47.129:9300");
+        IndexerInformations ii = new IndexerInformations(indexers[1], "index_mlt_4", "mlt4", addresses[1]);
         msg.addParameter(PluginParameterKeys.INDEXER, ii.toTaskString());
         
         KeyedMessage<String, DpsTask> data = new KeyedMessage<>(TextStrippingConstants.KAFKA_INPUT_TOPIC, msg);
