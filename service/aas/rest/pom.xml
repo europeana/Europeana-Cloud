@@ -146,12 +146,6 @@
 			<artifactId>spring-web</artifactId>
 			<scope>compile</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>com.datastax.cassandra</groupId>
-			<artifactId>cassandra-driver-core</artifactId>
-		</dependency>
-		
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.mockito</groupId>

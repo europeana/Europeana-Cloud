@@ -143,7 +143,7 @@
         
         <spring-security.version>3.1.4.RELEASE</spring-security.version>
         <commons-logging.version>1.1.1</commons-logging.version>
-        <version.cassandra-driver>2.0.2</version.cassandra-driver>
+        <version.cassandra-driver>2.0.7</version.cassandra-driver>
     </properties>
 
     <profiles>
@@ -391,11 +391,11 @@
                 <artifactId>log4j</artifactId>
                 <version>1.2.17</version>
             </dependency>
-            <dependency>
+<!--            <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>
                 <version>2.0.7</version>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <!-- forked kafka with fixed appender, KAFKA-847 -->
                 <!-- TODO ECL-317 -->
