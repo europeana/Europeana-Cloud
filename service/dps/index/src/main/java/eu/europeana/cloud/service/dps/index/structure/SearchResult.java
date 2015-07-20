@@ -5,33 +5,40 @@ import java.util.List;
 
 
 /**
- *
+ * Object representation of search result.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class SearchResult
-{
-    public enum QueryTypes
-    {
-        MORE_LIKE_THIS,
-        SEARCH,
-        UNKNOWN;
-    }
-    
+{   
     private final long totalHits;
     private final float maxScore;
     private final long tookTime; //ms
      
     private Object query;
-    private QueryTypes queryType;
     private String scrollId;
     
     private final List<SearchHit> hits;
 
+    /**
+     * Construct object without scroll.
+     * @param hits found documents
+     * @param totalHits total number of results
+     * @param maxScore best score
+     * @param tookTime execute time in milliseconds 
+     */
     public SearchResult(List<SearchHit> hits, long totalHits, float maxScore, long tookTime)
     {
         this(hits, totalHits, maxScore, tookTime, null);
     }
     
+    /**
+     * Construct object with scroll.
+     * @param hits found documents
+     * @param totalHits total number of results
+     * @param maxScore best score
+     * @param tookTime execute time in milliseconds 
+     * @param scrollId scroll id for next page
+     */
     public SearchResult(List<SearchHit> hits, long totalHits, float maxScore, long tookTime, String scrollId) 
     {
         this.totalHits = totalHits;
@@ -48,7 +55,6 @@ public class SearchResult
         }
         
         this.query = null;
-        this.queryType = QueryTypes.UNKNOWN;
         this.scrollId = scrollId;
     }
 
@@ -82,22 +88,13 @@ public class SearchResult
         this.scrollId = id;
     }
 
-    public Object getQuery() {
+    public Object getQuery() 
+    {
         return query;
     }
 
     public void setQuery(Object query) 
     {
         this.query = query;
-    }
-
-    public QueryTypes getQueryType() 
-    {
-        return queryType;
-    }
-
-    public void setQueryType(QueryTypes queryType) 
-    {
-        this.queryType = queryType;
-    }   
+    }  
 }

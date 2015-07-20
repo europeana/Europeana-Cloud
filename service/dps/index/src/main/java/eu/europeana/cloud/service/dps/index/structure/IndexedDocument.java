@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Object representation of indexed document.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class IndexedDocument 
@@ -15,6 +15,12 @@ public class IndexedDocument
     
     private Map<String, Object> data;
 
+    /**
+     * Construct object.
+     * @param ii informations about indexer
+     * @param id document id
+     * @param version version of document
+     */
     public IndexedDocument(IndexerInformations ii, String id, long version) 
     {
         this.indexerInformations = ii;
@@ -29,6 +35,10 @@ public class IndexedDocument
         return data;
     }
 
+    /**
+     * Set document data.
+     * @param data indexed data
+     */
     public void setData(Map<String, Object> data) 
     {
         if(data != null)

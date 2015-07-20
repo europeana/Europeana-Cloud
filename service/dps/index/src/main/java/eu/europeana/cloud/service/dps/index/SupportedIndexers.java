@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.index;
 
 /**
- *
+ * Enumeration of supported indexers.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public enum SupportedIndexers 

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- *
+ * Elasticsearch indexer.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class Elasticsearch implements Indexer
@@ -77,8 +77,36 @@ public class Elasticsearch implements Indexer
         advancedSearchMethods = new HashMap<>();      
         try 
         {           
-            advancedSearchMethods.put("default_field", QueryStringQueryBuilder.class.getMethod("defaultField", String.class));
-            advancedSearchMethods.put("default_operator", QueryStringQueryBuilder.class.getMethod("defaultOperator", QueryStringQueryBuilder.Operator.class));
+            advancedSearchMethods.put("default_field", 
+                    QueryStringQueryBuilder.class.getMethod("defaultField", String.class));
+            advancedSearchMethods.put("default_operator", 
+                    QueryStringQueryBuilder.class.getMethod("defaultOperator", QueryStringQueryBuilder.Operator.class));
+            advancedSearchMethods.put("analyzer", 
+                    QueryStringQueryBuilder.class.getMethod("analyzer", String.class));
+            advancedSearchMethods.put("allow_loading_wildcard", 
+                    QueryStringQueryBuilder.class.getMethod("allowLeadingWildcard", Boolean.class));
+            advancedSearchMethods.put("lowercase_expanded_terms", 
+                    QueryStringQueryBuilder.class.getMethod("lowercaseExpandedTerms", Boolean.class));
+            advancedSearchMethods.put("enable_position_increments", 
+                    QueryStringQueryBuilder.class.getMethod("enablePositionIncrements", Boolean.class));
+            advancedSearchMethods.put("fuzzy_prefix_length", 
+                    QueryStringQueryBuilder.class.getMethod("fuzzyPrefixLength", Integer.class));
+            advancedSearchMethods.put("fuzzy_max_expansions", 
+                    QueryStringQueryBuilder.class.getMethod("fuzzyMaxExpansions", Integer.class));
+            advancedSearchMethods.put("phrase_slop", 
+                    QueryStringQueryBuilder.class.getMethod("phraseSlop", Integer.class));
+            advancedSearchMethods.put("boost", 
+                    QueryStringQueryBuilder.class.getMethod("boost", Float.class));
+            advancedSearchMethods.put("analyze_wildcard", 
+                    QueryStringQueryBuilder.class.getMethod("analyzeWildcard", Boolean.class));
+            advancedSearchMethods.put("auto_generate_phrase_queries", 
+                    QueryStringQueryBuilder.class.getMethod("autoGeneratePhraseQueries", Boolean.class));
+            advancedSearchMethods.put("max_determinized_states", 
+                    QueryStringQueryBuilder.class.getMethod("maxDeterminizedStates", Integer.class));
+            advancedSearchMethods.put("lenient", 
+                    QueryStringQueryBuilder.class.getMethod("lenient", Boolean.class));
+            advancedSearchMethods.put("timeZone", 
+                    QueryStringQueryBuilder.class.getMethod("timeZone", String.class));
         } 
         catch (NoSuchMethodException | SecurityException ex) 
         {
@@ -237,7 +265,6 @@ public class Elasticsearch implements Indexer
         }
         
         SearchResult res = fromSearchResponseToSearchResult(response);
-        res.setQueryType(SearchResult.QueryTypes.MORE_LIKE_THIS);
         res.setQuery(request);
         return res;
     }
@@ -276,7 +303,6 @@ public class Elasticsearch implements Indexer
         }
         
         SearchResult res = fromSearchResponseToSearchResult(response);
-        res.setQueryType(SearchResult.QueryTypes.SEARCH);
         res.setQuery(request);
         return res;
     }
@@ -296,26 +322,26 @@ public class Elasticsearch implements Indexer
     }
     
     @Override
-    public SearchResult searchPhraseInFullText(String text, int proximity) 
+    public SearchResult searchPhraseInFullText(String text, int slop) 
             throws ConnectionException, IndexerException 
     {
-        return searchPhrase(text, IndexFields.RAW_TEXT.toString(), proximity, PAGE_SIZE, 0);
+        return searchPhrase(text, IndexFields.RAW_TEXT.toString(), slop, PAGE_SIZE, 0);
     }
     
     @Override
-    public SearchResult searchPhrase(String text, String field, int proximity) 
+    public SearchResult searchPhrase(String text, String field, int slop) 
             throws ConnectionException, IndexerException 
     {
-        return searchPhrase(text, field, proximity, PAGE_SIZE, 0);
+        return searchPhrase(text, field, slop, PAGE_SIZE, 0);
     }
 
     @Override
-    public SearchResult searchPhrase(String text, String field, int proximity, int size, int timeout) 
+    public SearchResult searchPhrase(String text, String field, int slop, int size, int timeout) 
             throws ConnectionException, IndexerException 
     {
         SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
                 .setTypes(indexInformations.getType())
-                .setQuery(QueryBuilders.matchPhraseQuery(field, text).slop(proximity))
+                .setQuery(QueryBuilders.matchPhraseQuery(field, text).slop(slop))
                 .setSize(size);
         
         if(timeout > 0)
@@ -338,7 +364,6 @@ public class Elasticsearch implements Indexer
         }
         
         SearchResult res = fromSearchResponseToSearchResult(response);
-        res.setQueryType(SearchResult.QueryTypes.SEARCH);
         res.setQuery(request);
         return res;
     }
@@ -366,25 +391,33 @@ public class Elasticsearch implements Indexer
             throws ConnectionException, IndexerException 
     {
         QueryStringQueryBuilder builder = new QueryStringQueryBuilder(query);
-        
+
         if(parameters != null)
         {
             for(Map.Entry<String, Object> parameter: parameters.entrySet())
             {
-                Method m = advancedSearchMethods.get(parameter.getKey());
+                String key = parameter.getKey();
+
+                Method m = advancedSearchMethods.get(key);
                 if(m == null)
                 {
-                    LOGGER.warn("Unknown parameter {}", parameter.getKey());
+                    LOGGER.warn("Unknown parameter {}", key);
                     continue;
+                }
+                
+                Object value = parameter.getValue();
+                if("default_operator".equals(key))
+                {
+                    value = QueryStringQueryBuilder.Operator.valueOf(value.toString());
                 }
                 
                 try
                 {
-                    m.invoke(builder, parameter.getValue());
+                    m.invoke(builder, value);
                 }
                 catch(Exception ex)
                 {
-                    LOGGER.warn("Search parameter {} is not set because: {}", parameter.getKey(), ex.getMessage());
+                    LOGGER.warn("Search parameter {} is not set because: {}", key, ex.getMessage());
                 }
             }
         }
@@ -414,7 +447,6 @@ public class Elasticsearch implements Indexer
         }
         
         SearchResult res = fromSearchResponseToSearchResult(response);
-        res.setQueryType(SearchResult.QueryTypes.SEARCH);
         res.setQuery(request);
         return res;
     }
@@ -605,8 +637,6 @@ public class Elasticsearch implements Indexer
             return null;
         }
         
-        SearchResult.QueryTypes qType = SearchResult.QueryTypes.UNKNOWN;
-        
         SearchScrollRequestBuilder builder = client.prepareSearchScroll(scrollId);
         
         if(context != null)
@@ -614,8 +644,6 @@ public class Elasticsearch implements Indexer
             if(context instanceof SearchResult)
             {
                 SearchResult sr = (SearchResult)context;
-                
-                qType = sr.getQueryType();
                 
                 SearchRequestBuilder srb = (SearchRequestBuilder) sr.getQuery();
 
@@ -656,7 +684,6 @@ public class Elasticsearch implements Indexer
             return null;
         }
         
-        res.setQueryType(qType);
         res.setQuery(builder);
         return res;
     }

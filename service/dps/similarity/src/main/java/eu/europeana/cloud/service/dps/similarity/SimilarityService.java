@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Service for search similar and duplicate documents.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class SimilarityService 
@@ -29,9 +29,43 @@ public class SimilarityService
     
     private Map<String, List<String>> fields;
     
+    /**
+     * Construct object with default fields.
+     * @param indexer name of indexer ({@link eu.europeana.cloud.service.dps.index.SupportedIndexers SupportedIndexers})
+     * @param index index name
+     * @param type type name ({@link eu.europeana.cloud.service.dps.index.Solr Solr} indexer ignore this parameter)
+     * @param addresses indexer servers addresses (separated by semicolon)
+     * @throws IndexerException
+     */
     public SimilarityService(String indexer, String index, String type, String addresses) throws IndexerException 
     {  
-        Indexer tmp = IndexerFactory.getIndexer(new IndexerInformations(indexer, index, type, addresses));
+        this(new IndexerInformations(indexer, index, type, addresses));
+    }
+    
+     /**
+     * Construct object with custom fields.
+     * @param indexer name of indexer ({@link eu.europeana.cloud.service.dps.index.SupportedIndexers SupportedIndexers})
+     * @param index index name
+     * @param type type name ({@link eu.europeana.cloud.service.dps.index.Solr Solr} indexer ignore this parameter)
+     * @param addresses indexer servers addresses (separated by semicolon)
+     * @param fields selected fields for every representation. This fields will be used for search similarity and duplicity
+     *     Map structure: <"representation name", List<"field name">> (null means all possible fields)
+     * @throws IndexerException
+     */
+    public SimilarityService(String indexer, String index, String type, String addresses, 
+            Map<String, List<String>> fields) throws IndexerException 
+    {  
+        this(new IndexerInformations(indexer, index, type, addresses), fields);
+    }
+    
+    /**
+     * Construct object with default fields.
+     * @param ii instance of IndexerInformations
+     * @throws IndexerException
+     */
+    public SimilarityService(IndexerInformations ii) throws IndexerException
+    {
+        Indexer tmp = IndexerFactory.getIndexer(ii);
         
         if(tmp == null)
         {
@@ -44,10 +78,16 @@ public class SimilarityService
         initFields();
     }
     
-    public SimilarityService(String indexer, String index, String type, String addresses, 
-            Map<String, List<String>> fields) throws IndexerException 
-    {  
-        Indexer tmp = IndexerFactory.getIndexer(new IndexerInformations(indexer, index, type, addresses));
+    /**
+     * Construct object with custom fields.
+     * @param ii instance of IndexerInformations
+     * @param fields selected fields for every representation. This fields will be used for search similarity and duplicity
+     *     Map structure: <"representation name", List<"field name">> (null means all possible fields)
+     * @throws IndexerException
+     */
+    public SimilarityService(IndexerInformations ii, Map<String, List<String>> fields) throws IndexerException
+    {
+        Indexer tmp = IndexerFactory.getIndexer(ii);
         
         if(tmp == null)
         {
@@ -60,6 +100,12 @@ public class SimilarityService
         this.fields = fields;
     }
     
+    /**
+     * Retrieve similar documents for reference document.
+     * @param documentId unique identifier of reference document
+     * @return instance of SearchResult or null if documentId is not set
+     * @throws IndexerException
+     */
     public SearchResult getSimilarDocuments(String documentId) throws IndexerException
     {    
         if(documentId == null)
@@ -73,6 +119,13 @@ public class SimilarityService
         return client.getMoreLikeThis(documentId, _fields);         
     }
     
+    /**
+     * Retrieve similar documents for reference document.
+     * @param documentId unique identifier of reference document
+     * @param limit maximum number of results
+     * @return instance of SearchResult or null if documentId is not set
+     * @throws IndexerException
+     */
     public SearchResult getSimilarDocuments(String documentId, int limit) throws IndexerException
     {      
         if(documentId == null || limit <= 0)
@@ -86,6 +139,12 @@ public class SimilarityService
         return client.getMoreLikeThis(documentId, _fields, limit, 0);         
     }
     
+    /**
+     * Retrieve duplicate documents for reference document.
+     * @param documentId unique identifier of reference document
+     * @return list of SearchHits or null if documentId is not set
+     * @throws IndexerException
+     */
     public List<SearchHit> calcDuplicateDocuments(String documentId) throws IndexerException
     {
         if(documentId == null)
@@ -114,7 +173,7 @@ public class SimilarityService
         
         if(reference == null)
         {
-            return null;
+            return new ArrayList();
         }
         
         float threshold = reference.getScore() * duplicationThreshold;
@@ -129,7 +188,7 @@ public class SimilarityService
         
         return res;
     }
-    
+        
     private List<String> getFields(String url)
     {
         if(fields == null || fields.isEmpty() || url == null)
@@ -144,7 +203,11 @@ public class SimilarityService
         return fields.get(repName.toUpperCase());
     }
     
-    private void initFields()
+    /**
+     * Fields initializer.
+     * Structure: Map<"representation name", List<"field name">> (null means all possible fields)
+     */
+    protected void initFields()
     {
         List<String> pdf = new ArrayList();
         pdf.add(IndexFields.RAW_TEXT.toString());

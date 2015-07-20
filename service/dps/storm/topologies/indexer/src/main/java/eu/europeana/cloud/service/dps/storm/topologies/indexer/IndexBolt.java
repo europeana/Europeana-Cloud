@@ -125,7 +125,7 @@ public class IndexBolt extends AbstractDpsBolt
             return null;
         }
         
-        String key = ii.getIndexerName().toString() + ii.getIndex().toLowerCase() + ii.getType().toLowerCase();
+        String key = ii.toKey();
         if(clients.containsKey(key))
         {
             return clients.get(key);
