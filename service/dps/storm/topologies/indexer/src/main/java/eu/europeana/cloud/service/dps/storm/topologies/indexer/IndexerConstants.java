@@ -23,6 +23,7 @@ public class IndexerConstants
     public static final String PASSWORD = "admin";
      
     public static final String ELASTICSEARCH_ADDRESSES = "192.168.47.129:9300";
+    public static final String SOLR_ADDRESSES = "http://192.168.47.129:8983/solr";
     
     // ------ PARALLELISM HINTS ------
     public static final Integer KAFKA_SPOUT_PARALLEL = 1;

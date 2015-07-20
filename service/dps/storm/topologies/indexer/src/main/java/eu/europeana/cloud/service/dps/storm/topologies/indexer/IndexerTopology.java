@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -74,6 +73,7 @@ public class IndexerTopology
         
         Map<SupportedIndexers, String> indexersAddresses = new HashMap<>();
         indexersAddresses.put(SupportedIndexers.ELASTICSEARCH_INDEXER, IndexerConstants.ELASTICSEARCH_ADDRESSES);
+        indexersAddresses.put(SupportedIndexers.SOLR_INDEXER, IndexerConstants.SOLR_ADDRESSES);
                 
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -123,6 +123,21 @@ public class IndexerTopology
     
     /**
      * @param args the command line arguments
+     * <ol>
+     * <li>topology name (e.g. index_topology)</li>
+     * <li>number of workers (e.g. 1)</li>
+     * <li>max task parallelism (e.g. 1)</li>
+     * <!--
+     * <li>zookeeper servers (e.g. localhost;another.server.com) - STORM_ZOOKEEPER_SERVERS</li>
+     * <li>zookeeper port (e.g. 2181) - STORM_ZOOKEEPER_PORT</li>
+     * <li>nimbus host (e.g. localhost) - NIMBUS_HOST</li>
+     * <li>nimbus port (e.g. 6627) - NIMBUS_THRIFT_PORT</li>
+     * -->
+     * <li>JVM parameters (e.g. "-Dhttp.proxyHost=xxx -Dhttp.proxyPort=xx") - TOPOLOGY_WORKER_CHILDOPTS</li>
+     * </ol>
+     * 
+     * @throws backtype.storm.generated.AlreadyAliveException
+     * @throws backtype.storm.generated.InvalidTopologyException
      */
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
     {
@@ -139,15 +154,21 @@ public class IndexerTopology
 
         if (args != null && args.length > 1) 
         {
-            String dockerIp = args[1];
-            String name = args[2];
-            config.setNumWorkers(1);
-            config.setMaxTaskParallelism(1);
-            config.put(Config.NIMBUS_THRIFT_PORT, 6627);
-            config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
-            config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0].split(";")));
-            StormSubmitter.submitTopology(name, config, stormTopology);
+            config.setNumWorkers(Integer.parseInt(args[1]));
+            config.setMaxTaskParallelism(Integer.parseInt(args[2]));
+            /*
+            config.put(Config.NIMBUS_THRIFT_PORT, Integer.parseInt(args[6]));
+            config.put(Config.STORM_ZOOKEEPER_PORT, Integer.parseInt(args[4]));
+            config.put(Config.NIMBUS_HOST, args[5]);
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[3].split(";")));
+            */
+            
+            if(args.length >= 4)
+            {
+                config.put(Config.TOPOLOGY_WORKER_CHILDOPTS, args[3]);
+            }
+            
+            StormSubmitter.submitTopology(args[0], config, stormTopology);
         } 
         else 
         {
