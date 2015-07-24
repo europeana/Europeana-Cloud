@@ -29,7 +29,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Class for test {@link ExtractBolt}.
- * Environment variable STORM_TEST_TIMEOUT_MS must be set! (recommended value is 60000)
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ExtractBoltTest 
@@ -69,7 +68,7 @@ public class ExtractBoltTest
                     config.setNumWorkers(1);
                     //config.setDebug(true);      
 
-                    cluster.submitTopology("testTopology", config, tt.getTopology());                                    
+                    cluster.submitTopology("testTopology", config, tt.getTopology());  
                     
                     //prepare test data                    
                     List<StormTaskTuple> data = prepareInputData();
@@ -77,7 +76,8 @@ public class ExtractBoltTest
                     for(StormTaskTuple tuple: data)
                     {
                         spout.feed(tuple.toStormTuple());
-                        Testing.trackedWait(tt);
+                        //Waits until topology is idle and 'amt' more tuples have been emitted by spouts
+                        Testing.trackedWait(tt, 1, 60000);  //topology, amt, timeout
                     }
                     
                     assertEquals(data.size(), tracker.getNumAcks());
@@ -85,10 +85,7 @@ public class ExtractBoltTest
             });
     }
     
-	/**
-	 * DISABLED: @see ECL-522 (https://jira.man.poznan.pl/jira/browse/ECL-522)
-	 */
-//    @Test
+    @Test
     public void outputsTest()
     {
         Testing.withLocalCluster(new TestJob() 
@@ -120,6 +117,7 @@ public class ExtractBoltTest
                     CompleteTopologyParam completeTopology = new CompleteTopologyParam();
                     completeTopology.setMockedSources(mockedSources);
                     completeTopology.setStormConf(config);
+                    completeTopology.setTimeoutMs(60000);
                     
                     Map result = Testing.completeTopology(cluster, topology, completeTopology);
                     

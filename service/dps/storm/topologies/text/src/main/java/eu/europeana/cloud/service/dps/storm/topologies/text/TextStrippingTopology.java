@@ -12,6 +12,7 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.AuthorizationException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
@@ -147,8 +148,10 @@ public class TextStrippingTopology
      * 
      * @throws backtype.storm.generated.AlreadyAliveException
      * @throws backtype.storm.generated.InvalidTopologyException
+     * @throws backtype.storm.generated.AuthorizationException
      */
-    public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
+    public static void main(String[] args) 
+            throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
         TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
         Config config = new Config();

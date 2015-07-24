@@ -26,10 +26,7 @@ import static org.junit.Assert.*;
  */
 public class TopologyTest 
 {        
-	/**
-	 * DISABLED: @see ECL-522 (https://jira.man.poznan.pl/jira/browse/ECL-522)
-	 */
-//    @Test
+    @Test
     public void outputsTest()
     {
         Testing.withLocalCluster(new TestJob() 
@@ -45,8 +42,6 @@ public class TopologyTest
                     Config config = new Config();
                     config.setNumWorkers(1);
                     config.setDebug(true); 
-                    //config.registerMetricsConsumer(LoggingMetricsConsumer.class);
-                    //config.put(Config.STORM_LOCAL_DIR, "C:\\");
     
                     //prepare the mock data                 
                     List<DpsTask> data = prepareInputData();
@@ -59,6 +54,7 @@ public class TopologyTest
                     CompleteTopologyParam completeTopology = new CompleteTopologyParam();
                     completeTopology.setMockedSources(mockedSources);
                     completeTopology.setStormConf(config);
+                    completeTopology.setTimeoutMs(60000);
                     
                     Map result = Testing.completeTopology(cluster, topology, completeTopology);
 
