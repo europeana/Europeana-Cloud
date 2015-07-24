@@ -9,6 +9,7 @@ public enum SupportedRepresentations
     PDF,
     OAI,
     TXT,
+    EDM,
     UNSUPPORTED;    //default value
     
     /**

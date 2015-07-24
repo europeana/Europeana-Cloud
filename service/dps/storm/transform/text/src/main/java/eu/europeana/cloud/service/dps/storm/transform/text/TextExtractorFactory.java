@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.transform.text;
 
+import eu.europeana.cloud.service.dps.storm.transform.text.edm.EdmExtractionMethods;
+import eu.europeana.cloud.service.dps.storm.transform.text.edm.JibxExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.oai.DcExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.oai.OaiExtractionMethods;
 import eu.europeana.cloud.service.dps.storm.transform.text.pdf.PdfBoxExtractor;
@@ -30,6 +32,8 @@ public class TextExtractorFactory
                 return getOaiExtractor(extractorName);
             case TXT:
                 return getTxtExtractor(extractorName);
+            case EDM:
+                return getEdmExtractor(extractorName);
             case UNSUPPORTED:
             default:
                 return null;
@@ -66,11 +70,11 @@ public class TextExtractorFactory
      */
     private static TextExtractor getOaiExtractor(String extractorName)
     {
-        OaiExtractionMethods method = OaiExtractionMethods.DC.getMethod(extractorName);
+        OaiExtractionMethods method = OaiExtractionMethods.DC_EXTRACTOR.getMethod(extractorName);
         
         switch(method)
         {
-            case DC:
+            case DC_EXTRACTOR:
             default:
                 return new DcExtractor();
         }
@@ -90,6 +94,23 @@ public class TextExtractorFactory
             case READ_FILE_EXTRACTOR:
             default:
                 return new ReadFileExtractor();
+        }
+    }
+    
+    /**
+     * Retrieve extractor for EDM files.
+     * @param extractorName Extractor name
+     * @return Instance of extractor
+     */
+    private static TextExtractor getEdmExtractor(String extractorName)
+    {
+        EdmExtractionMethods method = EdmExtractionMethods.JIBX_EXTRACTOR.getMethod(extractorName);
+
+        switch(method)
+        {
+            case JIBX_EXTRACTOR:
+            default:
+                return new JibxExtractor();
         }
     }
 }
