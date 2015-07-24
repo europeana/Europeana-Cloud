@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr</artifactId>
-            <version>${version.solr}</version>
+            <version>${version.solr_war}</version>
             <type>war</type>
         </dependency>
 

@@ -10,12 +10,11 @@
     <artifactId>ecloud-service-dps-storm-topologies-indexer</artifactId>
     <packaging>jar</packaging>
     <name>Europeana Cloud: DPS Service Storm Topology for Indexer</name>
-    <dependencies>
-    
+    <dependencies> 
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
-            <version>0.9.2-incubating</version>
+            <version>${version.storm}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
@@ -23,17 +22,48 @@
             <version>${version.storm}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${version.gson}</version>
+        </dependency>
         
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ecloud-service-dps-api</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ecloud-service-dps-index</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
             <exclusions>
-                <exclusion>
-                    <artifactId>curator-framework</artifactId>
-                    <groupId>org.apache.curator</groupId>
-                </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
@@ -45,8 +75,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-kafka</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -60,7 +90,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>ecloud-service-dps-storm-io</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -75,8 +105,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-index</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ecloud-service-dps-storm-kafka</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -88,33 +118,6 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-           
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.5</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.1</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
     

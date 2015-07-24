@@ -72,4 +72,44 @@ public class SupportedRepresentationsTest
             assertEquals(SupportedRepresentations.OAI, method);
         }
     }
+    
+    @Test
+    public void getTxtRepresentationTest()
+    {
+        String[] strings = 
+        {
+            "TXT",
+            "txt",
+            "TxT",
+            "TXt"
+        };
+        
+        SupportedRepresentations method;
+        
+        for(String s: strings)
+        {
+            method = SupportedRepresentations.getMethod(s);
+            assertEquals(SupportedRepresentations.TXT, method);
+        }
+    }
+    
+    @Test
+    public void getEdmRepresentationTest()
+    {
+        String[] strings = 
+        {
+            "EDM",
+            "edm",
+            "EdM",
+            "EDm"
+        };
+        
+        SupportedRepresentations method;
+        
+        for(String s: strings)
+        {
+            method = SupportedRepresentations.getMethod(s);
+            assertEquals(SupportedRepresentations.EDM, method);
+        }
+    }
 }
