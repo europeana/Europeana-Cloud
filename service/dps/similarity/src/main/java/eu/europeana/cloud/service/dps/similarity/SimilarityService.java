@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.similarity;
 
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.index.IndexFields;
 import eu.europeana.cloud.service.dps.index.Indexer;
@@ -198,7 +199,7 @@ public class SimilarityService
         
         Map<String, String> parsed = FileServiceClient.parseFileUri(url);
         
-        String repName = parsed.get("REPRESENTATIONNAME");
+        String repName = parsed.get(ParamConstants.P_REPRESENTATIONNAME);
         
         return fields.get(repName.toUpperCase());
     }

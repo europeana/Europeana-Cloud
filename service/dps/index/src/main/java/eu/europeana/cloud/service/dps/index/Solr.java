@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.index.structure.SearchHit;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Solr indexer.
@@ -36,11 +39,15 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class Solr implements Indexer
 {
-    private static final String UNIQUE_KEY_FIELD = "id";
+    public static final String UNIQUE_KEY_FIELD = "id";
     
     private final IndexerInformations indexInformations;
     
     private final SolrClient client;
+    
+    private final Map<String, String[]> allFieldsWithOptionOrAll = new HashMap<>();
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Solr.class);
 
     public Solr(IndexerInformations ii) throws IndexerException 
     {
@@ -72,6 +79,18 @@ public class Solr implements Indexer
             cClient.setDefaultCollection(ii.getIndex());
             client = cClient;
         }
+    }
+    
+    public Solr(String clasterAddresses, String index) throws IndexerException 
+    {
+        this(new IndexerInformations(SupportedIndexers.SOLR_INDEXER.name(), index, "", clasterAddresses));
+    }
+    
+    protected Solr(SolrClient client, String index)
+    {
+        this.client = client;
+        
+        indexInformations = new IndexerInformations(SupportedIndexers.SOLR_INDEXER.name(), index, "");
     }
 
     @Override
@@ -125,7 +144,12 @@ public class Solr implements Indexer
     public SearchResult getMoreLikeThis(String documentId, String[] fields, int maxQueryTerms, int minTermFreq, 
             int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout, Boolean includeItself)
             throws ConnectionException, IndexerException 
-    {  
+    {   
+        if(documentId == null || documentId.isEmpty() || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         String[] keys = 
         {
             MoreLikeThisParams.MAX_QUERY_TERMS,
@@ -148,12 +172,11 @@ public class Solr implements Indexer
         
         assert(keys.length == values.length);
                 
-        SolrQuery mlt = new SolrQuery();
+        SolrQuery mlt = new SolrQuery(UNIQUE_KEY_FIELD+":\""+documentId+"\"");
         mlt.set(MoreLikeThisParams.MLT, true);
-        mlt.set(MoreLikeThisParams.MATCH_INCLUDE, includeItself);
-        mlt.setQuery(UNIQUE_KEY_FIELD+":\""+documentId+"\"");
+        mlt.set(MoreLikeThisParams.MATCH_INCLUDE, includeItself);   //TODO: it doesn`t work. WHY?!
         mlt.setRows(size);
-        mlt.setIncludeScore(true);       
+        mlt.setIncludeScore(true); 
         
         for(int i=0; i<keys.length;i++)
         {
@@ -165,11 +188,11 @@ public class Solr implements Indexer
         
         if(fields != null)
         {
-            for(int i=0; i<fields.length; i++)
+            for (String field : fields) 
             {
-                if("_all".equals(fields[i]))
+                if ("_all".equals(field)) 
                 {
-                    fields[i]="*";
+                    fields = getAllFieldsWithOptionOrAll("termVectors");
                     break;
                 }
             }
@@ -178,7 +201,7 @@ public class Solr implements Indexer
         }
         else
         {
-            mlt.set(MoreLikeThisParams.SIMILARITY_FIELDS, "*");
+            mlt.set(MoreLikeThisParams.SIMILARITY_FIELDS, getAllFieldsWithOptionOrAll("termVectors"));
         }
   
         if(timeout > 0)
@@ -205,30 +228,82 @@ public class Solr implements Indexer
             throw new IndexerException(ex);
         }
         
-        SearchResult res = fromQueryResponseToSearchResult(response);
         
-        //match_include not works => do that itself
-        if(!includeItself)
+        if(response == null)
         {
-            for(SearchHit sh: res.getHits())
+            return new SearchResult(null, 0, 0, -1);
+        }
+   
+        SolrDocumentList results = new SolrDocumentList();
+        
+        NamedList<Object> mltResponse = (NamedList<Object>)response.getResponse().get("moreLikeThis");
+        if(mltResponse.size() > 0)
+        {
+            results = (SolrDocumentList)mltResponse.getVal(0);
+
+            if(includeItself)
             {
-                if(documentId.equals(sh.getId()))
+                //check if reference document is present (MoreLikeThisParams.MATCH_INCLUDE works)
+                boolean present = false;
+                for(SolrDocument d: results)
                 {
-                    if(res.getTotalHits() == 1)
+                    if(d.get(UNIQUE_KEY_FIELD) == documentId)
                     {
-                        res = new SearchResult(null, 0, 0, -1);
+                        present = true;
+                        break;
                     }
-                    else
+                }
+                
+                if(!present)
+                {                    
+                    SolrDocumentList tmpList = response.getResults();
+                    if(tmpList != null && !tmpList.isEmpty())
                     {
-                        res.getHits().remove(sh);
-                        float newScore = res.getHits().get(0).getScore();
-                        res = new SearchResult(res.getHits(), res.getTotalHits()-1, newScore, res.getTookTime(), res.getScrollId());
+                        //find reference document
+                        SolrDocument tmpDoc = null;
+                        for(SolrDocument d: tmpList)
+                        {
+                            if(documentId.equals(d.get(UNIQUE_KEY_FIELD)))
+                            {
+                                tmpDoc = d;
+                                break;
+                            }
+                        }
+
+                        //add reference document to result list
+                        if(tmpDoc != null)
+                        {
+                            results.add(tmpDoc);
+                            float score = Float.parseFloat(tmpDoc.getFirstValue("score").toString());
+                            if(score > results.getMaxScore())
+                            {
+                                results.setMaxScore(score);
+                            }
+                            results.setNumFound(results.getNumFound()+1);
+                        }
                     }
-                    break;
                 }
             }
         }
         
+        
+        List<SearchHit> hits = new ArrayList();
+        for(SolrDocument document: results)
+        {
+            Map<String, Object> data = getDataFromSolrDocument(document);
+            long version = (long)-1;
+            if(document.getFirstValue("_version_") != null)
+            {
+                version = Long.parseLong(document.getFirstValue("_version_").toString());
+            }
+            
+            hits.add(new SearchHit(indexInformations, document.getFirstValue(UNIQUE_KEY_FIELD).toString(), 
+                    version, Float.parseFloat(document.getFirstValue("score").toString()), data));
+        }      
+        
+        SearchResult res = new SearchResult(hits, results.getNumFound(), results.getMaxScore(), 
+                response.getQTime(), response.getNextCursorMark());  
+ 
         res.setQuery(response.getResponseHeader().get("params"));
         
         return res;
@@ -244,6 +319,11 @@ public class Solr implements Indexer
     public SearchResult search(String text, String[] fields, int size, int timeout) 
             throws ConnectionException, IndexerException 
     {
+        if(text == null || fields == null || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         StringJoiner queryString = new StringJoiner(" "+Operator.OR+" ");
         
         for(String field: fields)
@@ -327,6 +407,11 @@ public class Solr implements Indexer
     public SearchResult searchPhrase(String text, String field, int slop, int size, int timeout) 
             throws ConnectionException, IndexerException 
     {      
+        if(text == null || field == null || slop < 0 || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         String q = field+":\""+text+"\"~"+slop;
                
         SolrQuery query = new SolrQuery();
@@ -385,13 +470,28 @@ public class Solr implements Indexer
     @Override
     public SearchResult advancedSearch(String query, Map<String, Object> parameters, int size, int timeout) throws IndexerException 
     {
+        if(query == null || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         SolrQuery q = new SolrQuery();
              
         if(parameters != null)
         {
             for(Map.Entry<String, Object> parameter: parameters.entrySet())
             {
-                //TODO: set parameters is not possible without a new parser in solr server
+                String key = parameter.getKey();
+                if("default_field".equals(key))
+                {
+                    q.set("df", parameter.getValue().toString());
+                }
+                else if("default_operator".equals(key))
+                {
+                    q.set("q.op", parameter.getValue().toString());
+                }
+                
+                //TODO: set another parameters is not possible without a new parser in solr server
                 //q.set("", "");
             }
         }
@@ -433,6 +533,11 @@ public class Solr implements Indexer
     @Override
     public void insert(String data) throws IndexerException 
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         Map<String, Object> tmp;
         try 
         {
@@ -459,6 +564,11 @@ public class Solr implements Indexer
     @Override
     public void insert(String documentId, String data) throws IndexerException 
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         Map<String, Object> tmp;
         try 
         {
@@ -475,45 +585,17 @@ public class Solr implements Indexer
     @Override
     public void insert(String documentId, Map<String, Object> data) throws ConnectionException, IndexerException 
     {
-        SolrInputDocument document = new SolrInputDocument();
-        document.addField(UNIQUE_KEY_FIELD, documentId);
-        
-        for(Map.Entry<String, Object> field: data.entrySet())
+        if(documentId == null || documentId.isEmpty())
         {
-            Object fieldValue = field.getValue();
-            if(fieldValue instanceof Collection)
-            {
-                //field values can be complex but solr needs simple list => value is store as JSON string
-                List<String> values = new ArrayList();
-                for(Object o: (Collection<?>)fieldValue)
-                {
-                    try 
-                    {
-                        values.add(new ObjectMapper().writeValueAsString(o));
-                    } 
-                    catch (IOException ex) 
-                    {
-                        values.add(o.toString());
-                    }
-                }
-                
-                document.addField(field.getKey(), values);
-            }
-            else    //store as one value (string)
-            {
-                String val;           
-                try 
-                {
-                    val = new ObjectMapper().writeValueAsString(fieldValue);
-                } 
-                catch (IOException ex) 
-                {
-                    val = fieldValue.toString();
-                }
-                
-                document.addField(field.getKey(), val);
-            }
+            documentId = UUID.randomUUID().toString();
         }
+        
+        SolrInputDocument document = toSolrInputDocument(data);
+        if(document == null)
+        {
+            return;
+        }
+        document.addField(UNIQUE_KEY_FIELD, documentId);      
         
         try 
         {
@@ -533,6 +615,11 @@ public class Solr implements Indexer
     @Override
     public void update(String documentId, String data) throws IndexerException 
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         Map<String, Object> tmp;
         try 
         {
@@ -554,7 +641,12 @@ public class Solr implements Indexer
     
     @Override
     public void delete(String documentId) throws ConnectionException, IndexerException 
-    {      
+    {  
+        if(documentId == null || documentId.isEmpty())
+        {
+            return;
+        }
+        
         try 
         {
             client.deleteById(documentId);
@@ -573,6 +665,11 @@ public class Solr implements Indexer
     @Override
     public IndexedDocument getDocument(String documentId) throws ConnectionException, IndexerException 
     {
+        if(documentId == null || documentId.isEmpty())
+        {
+            return null;
+        }
+        
         SolrDocument response;
         try 
         {
@@ -658,11 +755,17 @@ public class Solr implements Indexer
         {
             return null;
         }
-        
+
         Map<String, Object> data = getDataFromSolrDocument(solrDocument);
         
-        IndexedDocument newDocument = new IndexedDocument(indexInformations, solrDocument.getFirstValue(UNIQUE_KEY_FIELD).toString(), 
-                Long.parseLong(solrDocument.getFirstValue("_version_").toString()));
+        long version = (long)-1;
+        if(solrDocument.getFirstValue("_version_") != null)
+        {
+            version = Long.parseLong(solrDocument.getFirstValue("_version_").toString());
+        }
+        
+        IndexedDocument newDocument = new IndexedDocument(indexInformations, 
+                solrDocument.getFirstValue(UNIQUE_KEY_FIELD).toString(), version);
         newDocument.setData(data);
         
         return newDocument;
@@ -683,10 +786,14 @@ public class Solr implements Indexer
         for(SolrDocument document: results)
         {
             Map<String, Object> data = getDataFromSolrDocument(document);
-        
+            long version = (long)-1;
+            if(document.getFirstValue("_version_") != null)
+            {
+                version = Long.parseLong(document.getFirstValue("_version_").toString());
+            }
+            
             hits.add(new SearchHit(indexInformations, document.getFirstValue(UNIQUE_KEY_FIELD).toString(), 
-                    Long.parseLong(document.getFirstValue("_version_").toString()),
-                    Float.parseFloat(document.getFirstValue("score").toString()), data));
+                    version, Float.parseFloat(document.getFirstValue("score").toString()), data));
         }      
         
         return new SearchResult(hits, results.getNumFound(), results.getMaxScore(), 
@@ -701,31 +808,284 @@ public class Solr implements Indexer
             return null;
         }
         
-        Map<String, Object> data = new HashMap<>();
-        
-        Map<String, Collection<Object>> values = document.getFieldValuesMap();
-        
-        for(String name: document.getFieldNames())
+        Map<String, Collection<Object>> data = document.getFieldValuesMap();
+        Map<String, Object> res = new HashMap<>();
+        Object current = res;
+        String[] fieldNames = document.getFieldNames().toArray(new String[document.getFieldNames().size()]);
+        Arrays.sort(fieldNames);
+        for(String name: fieldNames)
         {
-            Collection<Object> values_ = values.get(name);
-            if(values.size() == 1)
+            String[] fieldParts = name.split("\\.");
+            if(fieldParts.length == 1)  //simple
             {
-                data.put(name, values_.toArray()[0].toString());
+                addDataToObject(res, data.get(name), name);
             }
-            else
+            else if(fieldParts.length > 1)  //nested
             {
-                for(Object value: values_)
-                {           
-                    data.put(name, value.toString());
+                int i = 0;
+                Object root = current;
+                String lastPart = "";
+                for(String partOfField: fieldParts)
+                {
+                    lastPart = partOfField;
+                    
+                    if(current instanceof Map && ((Map)current).containsKey(partOfField))
+                    {
+                        current = ((Map)current).get(partOfField);
+                        i++;
+                        continue;
+                    }
+                    
+                    try
+                    {
+                        int index = Integer.parseInt(partOfField);  //field part is List
+
+                        List<Object> c = (List)current;
+                        if(c.size() > index)    //index already exists
+                        {
+                            current = c.get(index);
+                        } 
+                        else if(c.size() == index)  //next in order
+                        {
+                            Object nextObject = getNextObject(fieldParts, i);
+                            if(nextObject != null)  //not last index
+                            {
+                                c.add(nextObject);
+                                current = nextObject;
+                            }
+                        }
+                        else    //skip indexes
+                        {
+                            while(c.size() != index)    //skip until
+                            {
+                                c.add(null);
+                            }
+                            
+                            Object nextObject = getNextObject(fieldParts, i);
+                            if(nextObject != null)  //not last index
+                            {
+                                c.add(nextObject);
+                                current = nextObject;
+                            }
+                        }
+                    }
+                    catch(NumberFormatException ex) //field part is Map
+                    {
+                        Object nextObject = getNextObject(fieldParts, i);
+                        if(nextObject != null)  //not last index
+                        {
+                            ((Map)current).put(partOfField, nextObject);
+                            current = nextObject;
+                        }
+                    }
+                    i++;
                 }
+                addDataToObject(current, data.get(name), lastPart);
+                current = root;
             }
         }
         
-        //remove no data fields
-        data.remove("_version_");
-        data.remove(UNIQUE_KEY_FIELD);
-        data.remove("score");
+        //remove no data fieldParts
+        res.remove("_version_");
+        res.remove(UNIQUE_KEY_FIELD);
+        res.remove("score");
         
-        return data;
+        return res;
+    }
+    
+    private Object getNextObject(String[] fieldParts, int i)
+    {
+        if(fieldParts.length == i+1)    //last part
+        {
+            return null;
+        }
+        else
+        {
+            String nextPart = fieldParts[i+1];
+            try
+            {
+                Integer.parseInt(nextPart);
+                return new ArrayList<>();
+            }
+            catch(NumberFormatException ex)
+            {
+                return new HashMap<>();
+            }
+        }
+    }
+    
+    private void addDataToObject(Object o, Collection<Object> data, String index)
+    {
+        if(o instanceof List)
+        {
+            List<Object> tmp = (List)o;
+            if(data.size() == 1)
+            {
+                tmp.add(data.toArray()[0]);    //single value
+            }
+            else
+            {
+                List<Object> l = new ArrayList<>();
+                for(Object value: data)
+                {
+                    l.add(value);
+                }
+                tmp.add(l);
+            }
+        }
+        else if(o instanceof Map)
+        {
+            Map<String, Object> tmp = (Map)o;
+            if(data.size() == 1)
+            {
+                tmp.put(index, data.toArray()[0]);    //single value
+            }
+            else
+            {
+                List<Object> l = new ArrayList<>();
+                for(Object value: data)
+                {
+                    l.add(value);
+                }
+                tmp.put(index, l);
+            }
+        }
+    }
+    
+    private String[] getAllFieldsWithOptionOrAll(String option)
+    {
+        if(allFieldsWithOptionOrAll.containsKey(option))
+        {
+            return allFieldsWithOptionOrAll.get(option);
+        }
+        
+        List<String> all = new ArrayList<>();
+        List<String> res = new ArrayList<>();
+        SolrQuery q = new SolrQuery();
+        q.setRequestHandler("/schema");
+        QueryResponse query;
+        try 
+        {
+            query = client.query(q);
+            NamedList<Object> schema = (NamedList<Object>)query.getResponse().get("schema");
+            List<NamedList<Object>> fields =(List<NamedList<Object>>)schema.get("fields");
+      
+            for(NamedList<Object> field: fields)
+            {
+                Object o = field.get(option);
+                if(o != null && "true".equals(o.toString().toLowerCase()))
+                {
+                    res.add(field.get("name").toString());
+                }
+                all.add(field.get("name").toString());
+            }
+            
+            if(res.isEmpty())
+            {
+                allFieldsWithOptionOrAll.put(option, all.toArray(new String[all.size()]));
+            }
+            else
+            {
+                allFieldsWithOptionOrAll.put(option, res.toArray(new String[res.size()]));
+            }
+        } 
+        catch (SolrServerException | IOException | NullPointerException ex) 
+        {
+            LOGGER.warn("Cannot read Solr schema because: "+ex.getMessage());
+        }
+        
+        return allFieldsWithOptionOrAll.get(option);
+    }
+    
+    private SolrInputDocument toSolrInputDocument(Map<String, Object> data)
+    {
+        if(data == null || data.isEmpty())
+        {
+            return null;
+        }
+        
+        SolrInputDocument document = new SolrInputDocument();
+ 
+        for(Map.Entry<String, Object> d: data.entrySet())
+        {
+            Object value = d.getValue();
+            if(value instanceof Map)
+            {
+                document = toSolrInputDocument((Map)value, document, new StringBuilder(d.getKey()));
+            }
+            else if(value instanceof List)
+            {
+                document = toSolrInputDocument((List)value, document, new StringBuilder(d.getKey()));
+            }
+            else
+            {     
+                document.addField(d.getKey(), value);
+            }
+        }
+        
+        return document;
+    }
+    
+    private SolrInputDocument toSolrInputDocument(Map<String, Object> data, SolrInputDocument document, StringBuilder key)
+    {
+        if(data == null)
+        {
+            return document;
+        }
+        
+        int end = key.length();
+        for(Map.Entry<String, Object> d: data.entrySet())
+        {
+            key.append(".").append(d.getKey());
+            Object value = d.getValue();
+            if(value instanceof Map)
+            {
+                document = toSolrInputDocument((Map)value, document, key);
+            }
+            else if(value instanceof List)
+            {
+                document = toSolrInputDocument((List)value, document, key);
+            }
+            else
+            {     
+                document.addField(key.toString(), value);
+            }
+            key.delete(end, key.length());
+        }
+        
+        return document;
+    }
+    
+    private SolrInputDocument toSolrInputDocument(List<Object> data, SolrInputDocument document, StringBuilder key)
+    {
+        if(data == null)
+        {
+            return document;
+        }
+        
+        int end = key.length();
+        List<Object> l = new ArrayList();
+        for(int i = 0; i<data.size(); i++)
+        {
+            key.append(".").append(i);
+            Object value = data.get(i);
+            if(value instanceof Map)
+            {
+                document = toSolrInputDocument((Map)value, document, key);
+            }
+            else if(value instanceof List)
+            {
+                document = toSolrInputDocument((List)value, document, key);
+            }
+            else
+            {     
+                l.add(value);                
+            }
+            key.delete(end, key.length());
+        }
+        document.addField(key.toString(), l);
+        
+        return document;
     }
 }
+   

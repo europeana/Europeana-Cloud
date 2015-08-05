@@ -75,48 +75,22 @@ public class Elasticsearch implements Indexer
         
         
         advancedSearchMethods = new HashMap<>();      
-        try 
-        {           
-            advancedSearchMethods.put("default_field", 
-                    QueryStringQueryBuilder.class.getMethod("defaultField", String.class));
-            advancedSearchMethods.put("default_operator", 
-                    QueryStringQueryBuilder.class.getMethod("defaultOperator", QueryStringQueryBuilder.Operator.class));
-            advancedSearchMethods.put("analyzer", 
-                    QueryStringQueryBuilder.class.getMethod("analyzer", String.class));
-            advancedSearchMethods.put("allow_loading_wildcard", 
-                    QueryStringQueryBuilder.class.getMethod("allowLeadingWildcard", Boolean.class));
-            advancedSearchMethods.put("lowercase_expanded_terms", 
-                    QueryStringQueryBuilder.class.getMethod("lowercaseExpandedTerms", Boolean.class));
-            advancedSearchMethods.put("enable_position_increments", 
-                    QueryStringQueryBuilder.class.getMethod("enablePositionIncrements", Boolean.class));
-            advancedSearchMethods.put("fuzzy_prefix_length", 
-                    QueryStringQueryBuilder.class.getMethod("fuzzyPrefixLength", Integer.class));
-            advancedSearchMethods.put("fuzzy_max_expansions", 
-                    QueryStringQueryBuilder.class.getMethod("fuzzyMaxExpansions", Integer.class));
-            advancedSearchMethods.put("phrase_slop", 
-                    QueryStringQueryBuilder.class.getMethod("phraseSlop", Integer.class));
-            advancedSearchMethods.put("boost", 
-                    QueryStringQueryBuilder.class.getMethod("boost", Float.class));
-            advancedSearchMethods.put("analyze_wildcard", 
-                    QueryStringQueryBuilder.class.getMethod("analyzeWildcard", Boolean.class));
-            advancedSearchMethods.put("auto_generate_phrase_queries", 
-                    QueryStringQueryBuilder.class.getMethod("autoGeneratePhraseQueries", Boolean.class));
-            advancedSearchMethods.put("max_determinized_states", 
-                    QueryStringQueryBuilder.class.getMethod("maxDeterminizedStates", Integer.class));
-            advancedSearchMethods.put("lenient", 
-                    QueryStringQueryBuilder.class.getMethod("lenient", Boolean.class));
-            advancedSearchMethods.put("timeZone", 
-                    QueryStringQueryBuilder.class.getMethod("timeZone", String.class));
-        } 
-        catch (NoSuchMethodException | SecurityException ex) 
-        {
-            LOGGER.error("Preparation of advanced search faild! Message: {}", ex.getMessage());
-        }
+        initAdvancedSearchMethods();
     }
     
     public Elasticsearch(String clasterAddresses, String index, String type) throws IndexerException 
     {
         this(new IndexerInformations(SupportedIndexers.ELASTICSEARCH_INDEXER.name(), index, type, clasterAddresses));
+    }
+    
+    protected Elasticsearch(Client client, String index, String type)
+    {
+        this.client = client;
+        
+        indexInformations = new IndexerInformations(SupportedIndexers.ELASTICSEARCH_INDEXER.name(), index, type);
+        
+        advancedSearchMethods = new HashMap<>();      
+        initAdvancedSearchMethods();
     }
 
     @Override
@@ -150,7 +124,12 @@ public class Elasticsearch implements Indexer
     @Override
     public IndexedDocument getDocument(String documentId) 
             throws ParseDataException, ConnectionException, IndexerException
-    {
+    {       
+        if(documentId == null || documentId.isEmpty())
+        {
+            return null;
+        }
+        
         GetResponse response;
         try
         {
@@ -221,6 +200,11 @@ public class Elasticsearch implements Indexer
             int minDocFreq, int maxDocFreq, int minWordLength, int maxWordLength, int size, int timeout, Boolean includeItself) 
             throws ConnectionException, IndexerException 
     {
+        if(documentId == null || documentId.isEmpty() || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         MoreLikeThisQueryBuilder mlt;
         if(fields != null)
         {
@@ -278,6 +262,11 @@ public class Elasticsearch implements Indexer
     @Override
     public SearchResult search(String text, String[] fields, int size, int timeout) throws ConnectionException, IndexerException
     {
+        if(text == null || fields == null || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
                 .setTypes(indexInformations.getType())
                 .setQuery(QueryBuilders.multiMatchQuery(text, fields))
@@ -339,6 +328,11 @@ public class Elasticsearch implements Indexer
     public SearchResult searchPhrase(String text, String field, int slop, int size, int timeout) 
             throws ConnectionException, IndexerException 
     {
+        if(text == null || field == null || slop < 0 || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         SearchRequestBuilder request = client.prepareSearch(indexInformations.getIndex())
                 .setTypes(indexInformations.getType())
                 .setQuery(QueryBuilders.matchPhraseQuery(field, text).slop(slop))
@@ -390,6 +384,11 @@ public class Elasticsearch implements Indexer
     public SearchResult advancedSearch(String query, Map<String, Object> parameters, int size, int timeout) 
             throws ConnectionException, IndexerException 
     {
+        if(query == null || size < 1)
+        {
+            return new SearchResult(null, 0, 0, -1);
+        }
+        
         QueryStringQueryBuilder builder = new QueryStringQueryBuilder(query);
 
         if(parameters != null)
@@ -454,13 +453,19 @@ public class Elasticsearch implements Indexer
     @Override
     public void insert(String data) throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareIndex()
                     .setIndex(indexInformations.getIndex())
                     .setType(indexInformations.getType())
                     .setSource(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(MapperParsingException ex)
         {
@@ -479,13 +484,19 @@ public class Elasticsearch implements Indexer
     @Override
     public void insert(Map<String, Object> data) throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareIndex()
                     .setIndex(indexInformations.getIndex())
                     .setType(indexInformations.getType())
                     .setSource(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(MapperParsingException ex)
         {
@@ -504,6 +515,11 @@ public class Elasticsearch implements Indexer
     @Override
     public void insert(String documentId, String data) throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareIndex()
@@ -511,7 +527,8 @@ public class Elasticsearch implements Indexer
                     .setType(indexInformations.getType())
                     .setId(documentId)
                     .setSource(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(MapperParsingException ex)
         {
@@ -531,6 +548,11 @@ public class Elasticsearch implements Indexer
     public void insert(String documentId, Map<String, Object> data) 
             throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareIndex()
@@ -538,7 +560,8 @@ public class Elasticsearch implements Indexer
                     .setType(indexInformations.getType())
                     .setId(documentId)
                     .setSource(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(MapperParsingException ex)
         {
@@ -557,6 +580,11 @@ public class Elasticsearch implements Indexer
     @Override
     public void update(String documentId, String data) throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareUpdate()
@@ -565,7 +593,8 @@ public class Elasticsearch implements Indexer
                     .setId(documentId)
                     .setDocAsUpsert(true)
                     .setDoc(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(ElasticsearchParseException ex)
         {
@@ -584,6 +613,11 @@ public class Elasticsearch implements Indexer
     @Override
     public void update(String documentId, Map<String, Object> data) throws ParseDataException, ConnectionException, IndexerException
     {
+        if(data == null || data.isEmpty())
+        {
+            return;
+        }
+        
         try
         {
             client.prepareUpdate()
@@ -592,7 +626,8 @@ public class Elasticsearch implements Indexer
                     .setId(documentId)
                     .setDocAsUpsert(true)
                     .setDoc(data)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(ElasticsearchParseException ex)
         {
@@ -611,13 +646,19 @@ public class Elasticsearch implements Indexer
     @Override
     public void delete(String documentId) throws ConnectionException, IndexerException
     {
+        if(documentId == null)
+        {
+            return;
+        }
+        
         try
         {
             client.prepareDelete()
                     .setIndex(indexInformations.getIndex())
                     .setType(indexInformations.getType())
                     .setId(documentId)
-                    .execute();
+                    .execute()
+                    .actionGet();
         }
         catch(NoNodeAvailableException ex)
         {
@@ -645,9 +686,17 @@ public class Elasticsearch implements Indexer
             {
                 SearchResult sr = (SearchResult)context;
                 
-                SearchRequestBuilder srb = (SearchRequestBuilder) sr.getQuery();
-
-                builder.setScroll(srb.request().scroll().keepAlive());             
+                Object o = sr.getQuery();
+                if(o instanceof SearchScrollRequestBuilder)
+                {
+                    SearchScrollRequestBuilder srb = (SearchScrollRequestBuilder) o;
+                    builder.setScroll(srb.request().scroll().keepAlive());
+                }
+                else if (o instanceof SearchRequestBuilder)
+                {
+                    SearchRequestBuilder srb = (SearchRequestBuilder) o;
+                    builder.setScroll(srb.request().scroll().keepAlive());
+                }            
             }
             else if(context instanceof SearchRequestBuilder)
             {
@@ -705,5 +754,46 @@ public class Elasticsearch implements Indexer
                 response.getTookInMillis(), response.getScrollId());
         
         return res;
+    }
+    
+    private void initAdvancedSearchMethods()
+    {
+        try 
+        {           
+            advancedSearchMethods.put("default_field", 
+                    QueryStringQueryBuilder.class.getMethod("defaultField", String.class));
+            advancedSearchMethods.put("default_operator", 
+                    QueryStringQueryBuilder.class.getMethod("defaultOperator", QueryStringQueryBuilder.Operator.class));
+            advancedSearchMethods.put("analyzer", 
+                    QueryStringQueryBuilder.class.getMethod("analyzer", String.class));
+            advancedSearchMethods.put("allow_loading_wildcard", 
+                    QueryStringQueryBuilder.class.getMethod("allowLeadingWildcard", Boolean.class));
+            advancedSearchMethods.put("lowercase_expanded_terms", 
+                    QueryStringQueryBuilder.class.getMethod("lowercaseExpandedTerms", Boolean.class));
+            advancedSearchMethods.put("enable_position_increments", 
+                    QueryStringQueryBuilder.class.getMethod("enablePositionIncrements", Boolean.class));
+            advancedSearchMethods.put("fuzzy_prefix_length", 
+                    QueryStringQueryBuilder.class.getMethod("fuzzyPrefixLength", Integer.class));
+            advancedSearchMethods.put("fuzzy_max_expansions", 
+                    QueryStringQueryBuilder.class.getMethod("fuzzyMaxExpansions", Integer.class));
+            advancedSearchMethods.put("phrase_slop", 
+                    QueryStringQueryBuilder.class.getMethod("phraseSlop", Integer.class));
+            advancedSearchMethods.put("boost", 
+                    QueryStringQueryBuilder.class.getMethod("boost", Float.class));
+            advancedSearchMethods.put("analyze_wildcard", 
+                    QueryStringQueryBuilder.class.getMethod("analyzeWildcard", Boolean.class));
+            advancedSearchMethods.put("auto_generate_phrase_queries", 
+                    QueryStringQueryBuilder.class.getMethod("autoGeneratePhraseQueries", Boolean.class));
+            advancedSearchMethods.put("max_determinized_states", 
+                    QueryStringQueryBuilder.class.getMethod("maxDeterminizedStates", Integer.class));
+            advancedSearchMethods.put("lenient", 
+                    QueryStringQueryBuilder.class.getMethod("lenient", Boolean.class));
+            advancedSearchMethods.put("timeZone", 
+                    QueryStringQueryBuilder.class.getMethod("timeZone", String.class));
+        } 
+        catch (NoSuchMethodException | SecurityException ex) 
+        {
+            LOGGER.error("Preparation of advanced search faild! Message: {}", ex.getMessage());
+        }
     }
 }

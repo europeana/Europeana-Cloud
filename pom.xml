@@ -147,6 +147,7 @@
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
+        <version.lucene>4.10.4</version.lucene>
         
         <version.tika>1.9</version.tika>
         <version.zookeeper>3.4.6</version.zookeeper>
