@@ -24,6 +24,9 @@ import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.dls.TestUtil;
 import eu.europeana.cloud.service.dls.solr.exception.SolrDocumentNotFoundException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/solrTestContext.xml" })
@@ -74,13 +77,21 @@ public class SolrDAOTest {
         //insert representation with 2 datasets
         solrDAO.insertRepresentation(rep, dataSets);
         RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
-        TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
+        
+        List<String> docsDatasets = new ArrayList<>(doc.getDataSets());
+        Collections.sort(docsDatasets);
+
+        TestUtil.assertSameContent(docsDatasets, Lists.transform(dataSets, serialize));
 
         //add assigment to representation
         solrDAO.addAssignment(rep.getVersion(), new CompoundDataSetId("provider", "dataSet3"));
         RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
         dataSets.add(new CompoundDataSetId("provider", "dataSet3"));
-        TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.transform(dataSets, serialize));
+        
+        List<String> updatedDocDatasets = new ArrayList<>(updatedDoc.getDataSets());
+        Collections.sort(updatedDocDatasets);
+        
+        TestUtil.assertSameContent(updatedDocDatasets, Lists.transform(dataSets, serialize));
     }
 
 
@@ -97,14 +108,22 @@ public class SolrDAOTest {
         //given - representation with 2 datasets already assigned
         solrDAO.insertRepresentation(rep, dataSets);
         RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
-        TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
+        
+        List<String> docsDatasets = new ArrayList<>(doc.getDataSets());
+        Collections.sort(docsDatasets);        
+        
+        TestUtil.assertSameContent(docsDatasets, Lists.transform(dataSets, serialize));
 
         //when (add the same assigment for the second time)
         solrDAO.addAssignment(rep.getVersion(), new CompoundDataSetId("provider", "dataSet1"));
 
         //then
         RepresentationSolrDocument updatedDoc = solrDAO.getDocumentById(rep.getVersion());
-        TestUtil.assertSameContent(updatedDoc.getDataSets(), Lists.transform(dataSets, serialize));
+        
+        List<String> updatedDocDatasets = new ArrayList<>(updatedDoc.getDataSets());
+        Collections.sort(updatedDocDatasets);    
+        
+        TestUtil.assertSameContent(updatedDocDatasets, Lists.transform(dataSets, serialize));
 
     }
 
@@ -150,7 +169,11 @@ public class SolrDAOTest {
         //insert representation with 2 datasets
         solrDAO.insertRepresentation(rep, dataSets);
         RepresentationSolrDocument doc = solrDAO.getDocumentById(rep.getVersion());
-        TestUtil.assertSameContent(doc.getDataSets(), Lists.transform(dataSets, serialize));
+        
+        List<String> docsDatasets = new ArrayList<>(doc.getDataSets());
+        Collections.sort(docsDatasets);
+
+        TestUtil.assertSameContent(docsDatasets, Lists.transform(dataSets, serialize));
 
         //remove assigment to representation
         solrDAO.removeAssignment(rep.getVersion(), dataSet2);
@@ -225,7 +248,11 @@ public class SolrDAOTest {
         RepresentationSolrDocument repDocument = solrDAO.getDocumentById(rep.getVersion());
         RepresentationSolrDocument repNewDocument = solrDAO.getDocumentById(repNew.getVersion());
         TestUtil.assertSameContent(repDocument.getDataSets(), Lists.transform(Arrays.asList(ds1), serialize));
-        TestUtil.assertSameContent(repNewDocument.getDataSets(),
+        
+        List<String> newDocDatasets = new ArrayList<>(repNewDocument.getDataSets());
+        Collections.sort(newDocDatasets);
+        
+        TestUtil.assertSameContent(newDocDatasets,
             Lists.transform(Arrays.asList(ds2, ds3, ds4), serialize));
     }
 
