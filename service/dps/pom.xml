@@ -40,5 +40,7 @@
         <module>storm/topologies/indexer</module>
         <module>similarity</module>
         <module>index</module>
+        <module>cassandra</module>
+        <module>storm/topologies/extract_and_index</module>
     </modules>
 </project>

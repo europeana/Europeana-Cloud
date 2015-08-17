@@ -97,6 +97,16 @@
 			<version>${version.spring-framework}</version>
 			<scope>test</scope>
 		</dependency>
+	 <dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>ecloud-cassandra-connector</artifactId>
+	  <version>${project.version}</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>ecloud-service-dps-cassandra</artifactId>
+	  <version>${project.version}</version>
+	 </dependency>
 	</dependencies>
 
 </project>

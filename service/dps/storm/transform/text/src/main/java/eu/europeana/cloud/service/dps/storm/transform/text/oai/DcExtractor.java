@@ -130,7 +130,7 @@ public class DcExtractor implements TextExtractor
     }
 
     @Override
-    public MethodsEnumeration getExtractorMethod() 
+    public MethodsEnumeration getExtractionMethod() 
     {
         return OaiExtractionMethods.DC_EXTRACTOR;
     }

@@ -29,9 +29,21 @@
         </constructor-arg>
     </bean>
     
-    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperReportService">
-        <constructor-arg name="zookeeperAddress">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService">
+        <constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/dps/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="userName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/password"/>
         </constructor-arg>
     </bean>
     

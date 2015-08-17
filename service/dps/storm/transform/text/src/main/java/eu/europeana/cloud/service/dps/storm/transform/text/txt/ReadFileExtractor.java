@@ -37,7 +37,7 @@ public class ReadFileExtractor implements TextExtractor
     }
 
     @Override
-    public MethodsEnumeration getExtractorMethod() 
+    public MethodsEnumeration getExtractionMethod() 
     {
         return TxtExtractionMethods.READ_FILE_EXTRACTOR;
     }

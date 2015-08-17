@@ -18,38 +18,38 @@ public class FactoryTest
     public void getPdfExtractorsTest()
     {
         assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("PDF", "TIKA_EXTRACTOR").getExtractorMethod());
+                TextExtractorFactory.getExtractor("PDF", "TIKA_EXTRACTOR").getExtractionMethod());
         
         assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("PDF", "defaultExtractor").getExtractorMethod());
+                TextExtractorFactory.getExtractor("PDF", "defaultExtractor").getExtractionMethod());
         
         assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("PDF", "fdsafdsaf").getExtractorMethod());
+                TextExtractorFactory.getExtractor("PDF", "fdsafdsaf").getExtractionMethod());
         
         assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("PDF", null).getExtractorMethod());
+                TextExtractorFactory.getExtractor("PDF", null).getExtractionMethod());
         
         assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR,   //TODO: jpod is not implemented
-                TextExtractorFactory.getExtractor("pdf", "jpod_extractor").getExtractorMethod());
+TextExtractorFactory.getExtractor("pdf", "jpod_extractor").getExtractionMethod());
         
         assertEquals(PdfExtractionMethods.PDFBOX_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("PdF", "PdfBox_Extractor").getExtractorMethod());
+                TextExtractorFactory.getExtractor("PdF", "PdfBox_Extractor").getExtractionMethod());
     }
     
     @Test
     public void getOaiExtractorsTest()
     {
         assertEquals(OaiExtractionMethods.DC_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("OAI", "DC_Extractor").getExtractorMethod());
+                TextExtractorFactory.getExtractor("OAI", "DC_Extractor").getExtractionMethod());
         
         assertEquals(OaiExtractionMethods.DC_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("OAI", "fdsfs").getExtractorMethod());
+                TextExtractorFactory.getExtractor("OAI", "fdsfs").getExtractionMethod());
         
         assertEquals(OaiExtractionMethods.DC_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("OaI", "").getExtractorMethod());
+                TextExtractorFactory.getExtractor("OaI", "").getExtractionMethod());
         
         assertEquals(OaiExtractionMethods.DC_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("oaI", null).getExtractorMethod());
+                TextExtractorFactory.getExtractor("oaI", null).getExtractionMethod());
     }
     
     @Test
@@ -70,31 +70,31 @@ public class FactoryTest
     public void getTxtExtractorsTest()
     {
         assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("TXT", "Read_File_Extractor").getExtractorMethod());
+                TextExtractorFactory.getExtractor("TXT", "Read_File_Extractor").getExtractionMethod());
         
         assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("tXT", "fdsfs").getExtractorMethod());
+                TextExtractorFactory.getExtractor("tXT", "fdsfs").getExtractionMethod());
         
         assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("txt", "").getExtractorMethod());
+                TextExtractorFactory.getExtractor("txt", "").getExtractionMethod());
         
         assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("txt", null).getExtractorMethod());
+                TextExtractorFactory.getExtractor("txt", null).getExtractionMethod());
     }
     
     @Test
     public void getEdmExtractorsTest()
     {
         assertEquals(EdmExtractionMethods.JIBX_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("EDM", "JIBX_extractor").getExtractorMethod());
+                TextExtractorFactory.getExtractor("EDM", "JIBX_extractor").getExtractionMethod());
         
         assertEquals(EdmExtractionMethods.JIBX_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("eDM", "fdsfs").getExtractorMethod());
+                TextExtractorFactory.getExtractor("eDM", "fdsfs").getExtractionMethod());
         
         assertEquals(EdmExtractionMethods.JIBX_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("edm", "").getExtractorMethod());
+                TextExtractorFactory.getExtractor("edm", "").getExtractionMethod());
         
         assertEquals(EdmExtractionMethods.JIBX_EXTRACTOR, 
-                TextExtractorFactory.getExtractor("EDm", null).getExtractorMethod());
+                TextExtractorFactory.getExtractor("EDm", null).getExtractionMethod());
     }
 }

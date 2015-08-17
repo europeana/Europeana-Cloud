@@ -22,11 +22,12 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.index.SupportedIndexers;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.EndBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
-import eu.europeana.cloud.service.dps.storm.kafka.KafkaProducerBolt;
 
 /**
  *
@@ -41,6 +42,7 @@ public class IndexerTopology
     }
     
     private final SpoutType spoutType;
+    private final String topologyName;
     
     private final String extractedDataStream = "ReadData";
     private final String associationStream = "ReadAssociation";
@@ -56,7 +58,18 @@ public class IndexerTopology
      */
     public IndexerTopology(SpoutType spoutType) 
     {
+        this(spoutType, "Index topology");
+    }
+    
+    /**
+     * 
+     * @param spoutType
+     * @param topologyName
+     */
+    public IndexerTopology(SpoutType spoutType, String topologyName) 
+    {
         this.spoutType = spoutType;
+        this.topologyName = topologyName;
     }
     
     private StormTopology buildTopology()
@@ -69,8 +82,6 @@ public class IndexerTopology
         Map<String, String> prerequisites = new HashMap<>();
         prerequisites.put(PluginParameterKeys.INDEX_DATA, "True");
         prerequisites.put(PluginParameterKeys.INDEXER, null);
-        
-        Map<String, String> outputParameters = new HashMap<>();   
         
         Map<SupportedIndexers, String> indexersAddresses = new HashMap<>();
         indexersAddresses.put(SupportedIndexers.ELASTICSEARCH_INDEXER, IndexerConstants.ELASTICSEARCH_ADDRESSES);
@@ -94,13 +105,19 @@ public class IndexerTopology
                 .shuffleGrouping("ParseDpsTask", extractedDataStream)
                 .shuffleGrouping("RetrieveAssociation")
                 .shuffleGrouping("RetrieveFile");
-        
-        builder.setBolt("InformBolt", new KafkaProducerBolt(IndexerConstants.KAFKA_OUTPUT_BROKER, IndexerConstants.KAFKA_OUTPUT_TOPIC,
-                            PluginParameterKeys.NEW_INDEX_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
+
+        builder.setBolt("EndBolt", new EndBolt(), IndexerConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
-        builder.setBolt("ProgressBolt", new ProgressBolt(IndexerConstants.PROGRESS_ZOOKEEPER), IndexerConstants.PROGRESS_BOLT_PARALLEL)
-                .shuffleGrouping("InformBolt");     
+        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, IndexerConstants.CASSANDRA_HOSTS, 
+                            IndexerConstants.CASSANDRA_PORT, IndexerConstants.CASSANDRA_KEYSPACE_NAME,
+                            IndexerConstants.CASSANDRA_USERNAME, IndexerConstants.CASSANDRA_PASSWORD), 
+                            IndexerConstants.NOTIFICATION_BOLT_PARALLEL)
+                .shuffleGrouping("ParseDpsTask", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveAssociation", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveFile", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("IndexBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("EndBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         return builder.createTopology();
     }
@@ -144,7 +161,16 @@ public class IndexerTopology
     public static void main(String[] args) 
             throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        IndexerTopology indexerTopology = new IndexerTopology(SpoutType.KAFKA);
+        IndexerTopology indexerTopology;
+        if(args != null && args.length > 0)
+        {
+            indexerTopology = new IndexerTopology(SpoutType.KAFKA, args[0]);
+        }
+        else
+        {
+            indexerTopology = new IndexerTopology(SpoutType.KAFKA);
+        }
+        
         Config config = new Config();
         config.setDebug(false);
 

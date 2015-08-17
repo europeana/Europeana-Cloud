@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.cloud.service.dps.index.SupportedIndexers;
 import eu.europeana.cloud.service.dps.index.exception.IndexerException;
 import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ public class IndexBolt extends AbstractDpsBolt
         if(indexer == null)
         {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
             outputCollector.ack(inputTuple);
             return;
         }
@@ -100,6 +103,10 @@ public class IndexBolt extends AbstractDpsBolt
         catch(IndexerException ex)
         {
             LOGGER.warn("Cannot index data from tastk {} because: {}", t.getTaskId(), ex.getMessage());
+            StringWriter stack = new StringWriter();
+            ex.printStackTrace(new PrintWriter(stack));
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: "+ex.getMessage(),
+                    stack.toString());
             outputCollector.ack(inputTuple);
             return;
         }

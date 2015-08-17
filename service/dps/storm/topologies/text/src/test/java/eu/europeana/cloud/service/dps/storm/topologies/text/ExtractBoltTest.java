@@ -175,11 +175,11 @@ public class ExtractBoltTest
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
-        param.put(PluginParameterKeys.EXTRACTOR, "some_extractor");
+        param.put(PluginParameterKeys.EXTRACTORS, "some_extractor");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        param.put(PluginParameterKeys.EXTRACTOR, "some_extractor");
+        param.put(PluginParameterKeys.EXTRACTORS, "some_extractor");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");

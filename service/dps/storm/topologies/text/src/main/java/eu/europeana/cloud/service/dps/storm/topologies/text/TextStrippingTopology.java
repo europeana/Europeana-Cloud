@@ -21,13 +21,14 @@ import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.EndBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.StoreFileAsNewRepresentationBolt;
+import eu.europeana.cloud.service.dps.storm.io.StoreFileAsRepresentationBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
-import eu.europeana.cloud.service.dps.storm.kafka.KafkaProducerBolt;
 
 /**
  *
@@ -42,11 +43,10 @@ public class TextStrippingTopology
     }
     
     private final SpoutType spoutType;
+    private final String topologyName;
     
     private final String datasetStream = "ReadDataset";
     private final String fileStream = "ReadFile";
-    private final String storeStream = "StoreStream";
-    private final String informStream = "InformStream";
     
     private final String ecloudMcsAddress = TextStrippingConstants.MCS_URL;
     private final String username = TextStrippingConstants.USERNAME;
@@ -58,7 +58,18 @@ public class TextStrippingTopology
      */
     public TextStrippingTopology(SpoutType spoutType) 
     {
+        this(spoutType, "Text stripping topology");
+    }
+    
+    /**
+     * 
+     * @param spoutType
+     * @param topologyName
+     */
+    public TextStrippingTopology(SpoutType spoutType, String topologyName) 
+    {
         this.spoutType = spoutType;
+        this.topologyName = topologyName;
     }
     
     protected StormTopology buildTopology() 
@@ -69,16 +80,6 @@ public class TextStrippingTopology
         
         Map<String, String> prerequisites = new HashMap<>();
         prerequisites.put(PluginParameterKeys.EXTRACT_TEXT, "True");
-        
-        Map<String, String> outputParameters = new HashMap<>();
-        outputParameters.put(PluginParameterKeys.INDEX_DATA, null);
-        outputParameters.put(PluginParameterKeys.CLOUD_ID, null);
-        outputParameters.put(PluginParameterKeys.REPRESENTATION_NAME, null);
-        outputParameters.put(PluginParameterKeys.REPRESENTATION_VERSION, null);
-        outputParameters.put(PluginParameterKeys.FILE_NAME, null);
-        outputParameters.put(PluginParameterKeys.ORIGINAL_FILE_URL, null);
-        outputParameters.put(PluginParameterKeys.FILE_METADATA, null);
-        outputParameters.put(PluginParameterKeys.INDEXER, null);
         
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -95,22 +96,28 @@ public class TextStrippingTopology
                             TextStrippingConstants.FILE_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", fileStream);
         
-        builder.setBolt("ExtractText", new ExtractTextBolt(storeStream, informStream), TextStrippingConstants.EXTRACT_BOLT_PARALLEL)
+        builder.setBolt("ExtractText", new ExtractTextBolt(), TextStrippingConstants.EXTRACT_BOLT_PARALLEL)
                 .shuffleGrouping("RetrieveDataset")
                 .shuffleGrouping("RetrieveFile");
         
-        builder.setBolt("StoreNewRepresentation", new StoreFileAsNewRepresentationBolt(ecloudMcsAddress, username, password), 
+        builder.setBolt("StoreNewRepresentation", new StoreFileAsRepresentationBolt(ecloudMcsAddress, username, password), 
                             TextStrippingConstants.STORE_BOLT_PARALLEL)
-                .shuffleGrouping("ExtractText", storeStream);
-        
-        builder.setBolt("InformBolt", new KafkaProducerBolt(TextStrippingConstants.KAFKA_OUTPUT_BROKER, TextStrippingConstants.KAFKA_OUTPUT_TOPIC,
-                            PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, outputParameters), TextStrippingConstants.INFORM_BOLT_PARALLEL)
-                .shuffleGrouping("ExtractText", informStream)
+                .shuffleGrouping("ExtractText");
+
+        builder.setBolt("EndBolt", new EndBolt(), TextStrippingConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("StoreNewRepresentation");
-
-        builder.setBolt("ProgressBolt", new ProgressBolt(TextStrippingConstants.PROGRESS_ZOOKEEPER), TextStrippingConstants.PROGRESS_BOLT_PARALLEL)
-                .shuffleGrouping("InformBolt");
-
+        
+        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, TextStrippingConstants.CASSANDRA_HOSTS, 
+                            TextStrippingConstants.CASSANDRA_PORT, TextStrippingConstants.CASSANDRA_KEYSPACE_NAME,
+                            TextStrippingConstants.CASSANDRA_USERNAME, TextStrippingConstants.CASSANDRA_PASSWORD), 
+                            TextStrippingConstants.NOTIFICATION_BOLT_PARALLEL)
+                .shuffleGrouping("ParseDpsTask", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveDataset", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveFile", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("ExtractText", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("StoreNewRepresentation", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("EndBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+        
         return builder.createTopology();
     }
     
@@ -153,7 +160,16 @@ public class TextStrippingTopology
     public static void main(String[] args) 
             throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
+        TextStrippingTopology textStrippingTopology;
+        if(args != null && args.length > 0)
+        {
+            textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA, args[0]);
+        }
+        else
+        {
+            textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
+        }
+        
         Config config = new Config();
         config.setDebug(false);
 
@@ -163,7 +179,7 @@ public class TextStrippingTopology
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, TextStrippingConstants.METRICS_CONSUMER_PARALLEL);
         
         StormTopology stormTopology = textStrippingTopology.buildTopology();
-
+        
         if (args != null && args.length > 1) 
         {
             config.setNumWorkers(Integer.parseInt(args[1]));

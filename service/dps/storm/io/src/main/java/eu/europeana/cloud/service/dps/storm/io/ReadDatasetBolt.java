@@ -55,7 +55,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt
         if(providerId == null || providerId.isEmpty() ||
             datasetId == null || datasetId.isEmpty())
         {
-            LOGGER.warn("No ProviderId or DatasetId for retrieve dataset.");
+            String message = "No ProviderId or DatasetId for retrieve dataset.";
+            LOGGER.warn(message);
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+            emitBasicInfo(t.getTaskId(), 0);
             outputCollector.ack(inputTuple);
             return;
         }
@@ -63,6 +66,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
         LOGGER.info("Reading dataset with providerId: {} and datasetId: {}", providerId, datasetId);
         
         StormTaskTuple tt;
+        int emited = 0;
         
         try 
         {
@@ -108,20 +112,26 @@ public class ReadDatasetBolt extends AbstractDpsBolt
                     tt.setFileData(is);
    
                     outputCollector.emit(inputTuple, tt.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
+                    emited++;
                 }
-            }           
-            outputCollector.ack(inputTuple);
+            }
         } 
         catch (DataSetNotExistsException ex)
         {
-            LOGGER.info("Dataset for providerId: {} and datasetId: {} not exists.", providerId, datasetId);
-            outputCollector.ack(inputTuple);
+            String message = String.format("Dataset for providerId: %s and datasetId: %s not exists.", 
+                    providerId, datasetId);
+            LOGGER.info(message);
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+            
         }
         catch (MCSException | DriverException | IOException ex) 
         {
             LOGGER.error("ReadDatasetBolt error:" + ex.getMessage());
-            outputCollector.ack(inputTuple);   
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), ex.getMessage(), t.getParameters().toString());  
         }
+        
+        emitBasicInfo(t.getTaskId(), emited);
+        outputCollector.ack(inputTuple);
     }
 
     @Override

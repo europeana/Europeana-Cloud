@@ -52,7 +52,7 @@ public class TikaExtractor implements TextExtractor
     }
 
     @Override
-    public PdfExtractionMethods getExtractorMethod() 
+    public PdfExtractionMethods getExtractionMethod() 
     {
         return PdfExtractionMethods.TIKA_EXTRACTOR;
     }

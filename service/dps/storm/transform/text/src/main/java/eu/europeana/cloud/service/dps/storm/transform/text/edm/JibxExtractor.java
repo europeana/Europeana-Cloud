@@ -74,7 +74,7 @@ public class JibxExtractor implements TextExtractor
     }
 
     @Override
-    public MethodsEnumeration getExtractorMethod() 
+    public MethodsEnumeration getExtractionMethod() 
     {
         return EdmExtractionMethods.JIBX_EXTRACTOR;
     }

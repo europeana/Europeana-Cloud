@@ -115,7 +115,7 @@ public class TopologyTest
         param.put(PluginParameterKeys.EXTRACT_TEXT, "True");
         params.add(param);
         param = new HashMap<>();
-        param.put(PluginParameterKeys.EXTRACTOR, "some extractor");
+        param.put(PluginParameterKeys.EXTRACTORS, "some extractor");
         param.put(PluginParameterKeys.EXTRACT_TEXT, "True");
         params.add(param);
         param = new HashMap<>();
