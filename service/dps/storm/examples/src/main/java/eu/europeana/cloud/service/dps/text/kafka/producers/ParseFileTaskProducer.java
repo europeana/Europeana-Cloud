@@ -50,7 +50,6 @@ public class ParseFileTaskProducer
         msg.addParameter(PluginParameterKeys.EXTRACT_TEXT, "True");
         msg.addParameter(PluginParameterKeys.INDEX_DATA, "True");
         msg.addParameter(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        msg.addParameter(PluginParameterKeys.EXTRACTORS, OaiExtractionMethods.DC_EXTRACTOR.name());
         
         msg.addParameter(PluginParameterKeys.FILE_URL, oaiFile);
         

@@ -47,6 +47,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
+                emitBasicInfo(t.getTaskId(), 0);
             }
             outputCollector.ack(tuple);
         }

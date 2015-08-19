@@ -158,6 +158,12 @@ public class ParseTaskBolt extends BaseBasicBolt
             {
                 collector.emit(stream, stormTaskTuple.toStormTuple());
             }
+            else
+            {
+                emitDropNotification(collector, task.getTaskId(), "", "Unknown task name.", 
+                        taskParameters != null ? taskParameters.toString() : "");
+                emitBasicInfo(collector, task.getTaskId(), 0);
+            }
         }
         else
         {

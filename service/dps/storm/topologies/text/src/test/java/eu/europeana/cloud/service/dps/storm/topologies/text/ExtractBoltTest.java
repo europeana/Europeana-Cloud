@@ -37,7 +37,7 @@ public class ExtractBoltTest
     private final String informStream = "informStream";
     
     private final String pdfFilePath = "/rightTestFile.pdf";
-    private final String oaiFilePath = "/rightDcTestFile.xml";
+    private final String txtFilePath = "/ascii-file.txt";
     private final String imgFilePath = "/Koala.jpg";
     
     @Test
@@ -56,7 +56,7 @@ public class ExtractBoltTest
                     //build topology
                     TopologyBuilder builder = new TopologyBuilder();
                     builder.setSpout("testSpout", spout);
-                    builder.setBolt("extractBolt", new ExtractTextBolt(storeStream, informStream))
+                    builder.setBolt("extractBolt", new ExtractTextBolt(informStream, storeStream))
                             .shuffleGrouping("testSpout");
                     
                     StormTopology topology = builder.createTopology();
@@ -96,7 +96,7 @@ public class ExtractBoltTest
                     //build topology
                     TopologyBuilder builder = new TopologyBuilder();
                     builder.setSpout("testSpout", new FeederSpout(StormTaskTuple.getFields()));
-                    builder.setBolt("extractBolt", new ExtractTextBolt(storeStream, informStream))
+                    builder.setBolt("extractBolt", new ExtractTextBolt(informStream, storeStream))
                             .shuffleGrouping("testSpout");
                     
                     StormTopology topology = builder.createTopology();
@@ -122,9 +122,12 @@ public class ExtractBoltTest
                     Map result = Testing.completeTopology(cluster, topology, completeTopology);
                     
                     List touplesForStore = Testing.readTuples(result, "extractBolt", storeStream);
-                    assertEquals(3, touplesForStore.size());
+                    assertEquals(4, touplesForStore.size());
                     List touplesForInform = Testing.readTuples(result, "extractBolt", informStream);
-                    assertEquals(8, touplesForInform.size());                         
+                    assertEquals(9, touplesForInform.size());  
+                    List touplesForNotification = Testing.readTuples(result, "extractBolt", 
+                            ExtractTextBolt.NOTIFICATION_STREAM_NAME);
+                    assertEquals(37, touplesForNotification.size());
                 }
             });
     }
@@ -134,7 +137,7 @@ public class ExtractBoltTest
         List<StormTaskTuple> ret = new ArrayList();
         
         List<InputStream> inputDatas= new ArrayList();
-        String[] paths = {pdfFilePath, oaiFilePath, imgFilePath};
+        String[] paths = {pdfFilePath, txtFilePath, imgFilePath};
         for(String path: paths)
         {
             //InputStream is = new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(path)));  //fileInputStream not supported reset
@@ -161,44 +164,32 @@ public class ExtractBoltTest
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "True");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "txt");  //can read everything (e.g. pdf)
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "txt");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
         params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
-        param.put(PluginParameterKeys.EXTRACTORS, "some_extractor");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        param.put(PluginParameterKeys.EXTRACTORS, "some_extractor");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "True");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "true");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param);
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "fdsa");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param); 
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
+        params.add(param);  
+        param = new HashMap<>();
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "xxx");
+        param.put(PluginParameterKeys.FILE_FORMATS, "{\"xxx\":\"pdf\"}");
+        params.add(param);
+        param = new HashMap<>();
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "xxx");
+        param.put(PluginParameterKeys.FILE_FORMATS, "{\"xxx\":\"pdf\"}");
+        param.put(PluginParameterKeys.EXTRACTORS, "{\"pdf\":\"tika_extractor\"}");
+        params.add(param);
         param = new HashMap<>();
         params.add(param); 
 

@@ -53,7 +53,6 @@ public class ParseDatasetTaskProducer
         msg.addParameter(PluginParameterKeys.EXTRACT_TEXT, "True");
         msg.addParameter(PluginParameterKeys.INDEX_DATA, "True");
         msg.addParameter(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        //TODO: dataset has more than one representation but specific EXTRACTOR is only one
                
         //if INDEX_DATA == True
         IndexerInformations ii = new IndexerInformations(indexers[1], "index_mlt_4", "mlt4", addresses[1]);

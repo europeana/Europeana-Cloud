@@ -73,8 +73,13 @@ public class ExtractTextBolt extends AbstractDpsBolt
             extractorName = representationName;
         }
         
-        Map<String, String> extractors = new Gson().fromJson(t.getParameter(PluginParameterKeys.EXTRACTORS), Map.class);
-        String extractionMetodName = extractors.get(extractorName);
+        String extractors = t.getParameter(PluginParameterKeys.EXTRACTORS);
+        String extractionMetodName = null;
+        if(extractors != null && !extractors.isEmpty())
+        {
+            Map<String, String> extractors_ = new Gson().fromJson(extractors, Map.class);
+            extractionMetodName = extractors_.get(extractorName);
+        }
         TextExtractor extractor = TextExtractorFactory.getExtractor(extractorName, extractionMetodName);
         
         if(extractor == null)
@@ -123,6 +128,12 @@ public class ExtractTextBolt extends AbstractDpsBolt
             {
                 outputCollector.emit(inputTuple, t.toStormTuple()); 
             }
+        }
+        else
+        {
+            String message = String.format("Cannot extract data from %s by %s. (or file is empty)",
+                    extractorName, extractor.getExtractionMethod().name());
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
         }
         outputCollector.ack(inputTuple);
     }
