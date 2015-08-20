@@ -65,7 +65,7 @@ public class PdfBoxExtractor implements TextExtractor
     }
 
     @Override
-    public PdfExtractionMethods getExtractorMethod() 
+    public PdfExtractionMethods getExtractionMethod() 
     {
         return PdfExtractionMethods.PDFBOX_EXTRACTOR;
     } 

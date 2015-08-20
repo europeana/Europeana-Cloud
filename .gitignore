@@ -50,3 +50,5 @@ nbactions.xml
 /service/dps/similarity/target/
 
 
+/service/dps/cassandra/target/
+/service/dps/storm/topologies/extract_and_index/target/

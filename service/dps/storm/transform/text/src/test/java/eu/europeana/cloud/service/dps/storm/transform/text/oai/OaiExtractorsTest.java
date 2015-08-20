@@ -14,9 +14,9 @@ public class OaiExtractorsTest
     {
         String[] strings = 
         {
-            "DC",
-            "dc",
-            "Dc",
+            "DC_EXTRACTOR",
+            "dc_extractor",
+            "Dc_Extractor",
             "DefaultExtractor",
             "gfdslfs",
             ""
@@ -26,11 +26,11 @@ public class OaiExtractorsTest
                 
         for(String s: strings)
         {
-            method = OaiExtractionMethods.DC.getMethod(s);
-            assertEquals(OaiExtractionMethods.DC, method);
+            method = OaiExtractionMethods.DC_EXTRACTOR.getMethod(s);
+            assertEquals(OaiExtractionMethods.DC_EXTRACTOR, method);
         }
         
-        method = OaiExtractionMethods.DC.getMethod(null);
-        assertEquals(OaiExtractionMethods.DC, method);
+        method = OaiExtractionMethods.DC_EXTRACTOR.getMethod(null);
+        assertEquals(OaiExtractionMethods.DC_EXTRACTOR, method);
     }
 }

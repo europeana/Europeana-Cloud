@@ -460,10 +460,10 @@ public class FileServiceClient {
         if (m.find()) 
         {
             Map<String, String> ret = new HashMap<>();
-            ret.put("CLOUDID", m.group(1));
-            ret.put("REPRESENTATIONNAME", m.group(2));
-            ret.put("VERSION", m.group(3));
-            ret.put("FILENAME", m.group(4));
+            ret.put(ParamConstants.P_CLOUDID, m.group(1));
+            ret.put(ParamConstants.P_REPRESENTATIONNAME, m.group(2));
+            ret.put(ParamConstants.P_VER, m.group(3));
+            ret.put(ParamConstants.P_FILENAME, m.group(4));
             
             return ret;
         }

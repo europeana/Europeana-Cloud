@@ -85,7 +85,7 @@ public class PdfBoxExtractionTest
     {
         PdfBoxExtractor extractor = new PdfBoxExtractor();
         
-        assertEquals(PdfExtractionMethods.PDFBOX_EXTRACTOR, extractor.getExtractorMethod());
+        assertEquals(PdfExtractionMethods.PDFBOX_EXTRACTOR, extractor.getExtractionMethod());
         
         String name = extractor.getRepresentationName();
         

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.cleaner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,9 +9,9 @@ import javax.ws.rs.core.Response;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -53,7 +54,7 @@ public final class MCSCleaner {
         String solrUrl = args[0];
         String mcsUrl = args[1];
 
-        SolrServer solrServer = new HttpSolrServer(solrUrl);
+        SolrClient solrServer = new HttpSolrClient(solrUrl);
         try {
             SolrQuery query = new SolrQuery("*:*").addFacetField("cloud_id").setRows(0).setFacet(true)
                     .setFacetLimit(FACET_LIMIT);
@@ -82,10 +83,13 @@ public final class MCSCleaner {
                     logger.error("Cannot remove record " + id + " " + response.toString());
                 }
             }
-        } catch (SolrServerException ex) {
+        } catch (SolrServerException | IOException ex) {
             logger.error(ex.getMessage());
         } finally {
-            solrServer.shutdown();
+            try {
+                solrServer.close();
+            } catch (IOException ex) {
+            }
         }
     }
 }

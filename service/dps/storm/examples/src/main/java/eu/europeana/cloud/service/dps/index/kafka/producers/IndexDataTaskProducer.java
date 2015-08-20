@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.index.kafka.producers;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.storm.topologies.indexer.IndexerConstants;
 import java.util.Properties;
 import kafka.javaapi.producer.Producer;
@@ -14,6 +15,8 @@ import kafka.producer.ProducerConfig;
  */
 public class IndexDataTaskProducer 
 {
+    private static final String[] indexers= {"elasticsearch_indexer", "solr_indexer"};
+    
     private static final String textData = "Some new data for indexing.";
     
     /**
@@ -42,8 +45,8 @@ public class IndexDataTaskProducer
         msg.setTaskName(PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE);
         
         msg.addParameter(PluginParameterKeys.INDEX_DATA, "True");
-        msg.addParameter(PluginParameterKeys.ELASTICSEARCH_INDEX, "test_index1");
-        msg.addParameter(PluginParameterKeys.ELASTICSEARCH_TYPE, "test_type1");
+        IndexerInformations ii = new IndexerInformations(indexers[0], "index_mlt_4", "mlt4", "192.168.47.129:9300");
+        msg.addParameter(PluginParameterKeys.INDEXER, ii.toTaskString());
         
         msg.addParameter(PluginParameterKeys.FILE_DATA, textData);
 

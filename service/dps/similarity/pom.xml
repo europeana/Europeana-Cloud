@@ -13,12 +13,11 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-index</artifactId>
-            <version>0.4-SNAPSHOT</version>
-            <type>jar</type>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>ecloud-service-dps-storm-topologies-indexer</artifactId>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

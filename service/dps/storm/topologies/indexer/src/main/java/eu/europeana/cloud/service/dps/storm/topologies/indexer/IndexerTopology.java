@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -13,6 +12,7 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.AuthorizationException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
@@ -21,11 +21,13 @@ import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.index.SupportedIndexers;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.EndBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
-import eu.europeana.cloud.service.dps.storm.kafka.KafkaProducerBolt;
 
 /**
  *
@@ -40,12 +42,12 @@ public class IndexerTopology
     }
     
     private final SpoutType spoutType;
+    private final String topologyName;
     
     private final String extractedDataStream = "ReadData";
     private final String associationStream = "ReadAssociation";
     private final String indexStream = "ReadFile";
-    
-    private final String zkProgressAddress = IndexerConstants.PROGRESS_ZOOKEEPER;
+
     private final String ecloudMcsAddress = IndexerConstants.MCS_URL;
     private final String username = IndexerConstants.USERNAME;
     private final String password = IndexerConstants.PASSWORD;
@@ -56,7 +58,18 @@ public class IndexerTopology
      */
     public IndexerTopology(SpoutType spoutType) 
     {
+        this(spoutType, "Index topology");
+    }
+    
+    /**
+     * 
+     * @param spoutType
+     * @param topologyName
+     */
+    public IndexerTopology(SpoutType spoutType, String topologyName) 
+    {
         this.spoutType = spoutType;
+        this.topologyName = topologyName;
     }
     
     private StormTopology buildTopology()
@@ -68,8 +81,11 @@ public class IndexerTopology
         
         Map<String, String> prerequisites = new HashMap<>();
         prerequisites.put(PluginParameterKeys.INDEX_DATA, "True");
+        prerequisites.put(PluginParameterKeys.INDEXER, null);
         
-        Map<String, String> outputParameters = new HashMap<>();             
+        Map<SupportedIndexers, String> indexersAddresses = new HashMap<>();
+        indexersAddresses.put(SupportedIndexers.ELASTICSEARCH_INDEXER, IndexerConstants.ELASTICSEARCH_ADDRESSES);
+        indexersAddresses.put(SupportedIndexers.SOLR_INDEXER, IndexerConstants.SOLR_ADDRESSES);
                 
         TopologyBuilder builder = new TopologyBuilder();
         
@@ -81,21 +97,27 @@ public class IndexerTopology
         builder.setBolt("RetrieveAssociation", new RetrieveAssociation(ecloudMcsAddress, username, password), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", associationStream);
         
-        builder.setBolt("RetrieveFile", new ReadFileBolt(zkProgressAddress, ecloudMcsAddress, username, password), 
+        builder.setBolt("RetrieveFile", new ReadFileBolt(ecloudMcsAddress, username, password), 
                             IndexerConstants.FILE_BOLT_PARALLEL)
                 .shuffleGrouping("ParseDpsTask", indexStream);
         
-        builder.setBolt("IndexBolt", new IndexBolt(IndexerConstants.ELASTICSEARCH_ADDRESSES), IndexerConstants.INDEX_BOLT_PARALLEL)             
+        builder.setBolt("IndexBolt", new IndexBolt(indexersAddresses, IndexerConstants.CACHE_SIZE), IndexerConstants.INDEX_BOLT_PARALLEL)             
                 .shuffleGrouping("ParseDpsTask", extractedDataStream)
                 .shuffleGrouping("RetrieveAssociation")
                 .shuffleGrouping("RetrieveFile");
-        
-        builder.setBolt("InformBolt", new KafkaProducerBolt(IndexerConstants.KAFKA_OUTPUT_BROKER, IndexerConstants.KAFKA_OUTPUT_TOPIC,
-                            PluginParameterKeys.NEW_INDEX_MESSAGE, outputParameters), IndexerConstants.INFORM_BOLT_PARALLEL)
+
+        builder.setBolt("EndBolt", new EndBolt(), IndexerConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
-        builder.setBolt("ProgressBolt", new ProgressBolt(zkProgressAddress), IndexerConstants.PROGRESS_BOLT_PARALLEL)
-                .shuffleGrouping("InformBolt");     
+        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, IndexerConstants.CASSANDRA_HOSTS, 
+                            IndexerConstants.CASSANDRA_PORT, IndexerConstants.CASSANDRA_KEYSPACE_NAME,
+                            IndexerConstants.CASSANDRA_USERNAME, IndexerConstants.CASSANDRA_PASSWORD), 
+                            IndexerConstants.NOTIFICATION_BOLT_PARALLEL)
+                .shuffleGrouping("ParseDpsTask", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveAssociation", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("RetrieveFile", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("IndexBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME)
+                .shuffleGrouping("EndBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         return builder.createTopology();
     }
@@ -119,12 +141,38 @@ public class IndexerTopology
     
     /**
      * @param args the command line arguments
+     * <ol>
+     * <li>topology name (e.g. index_topology)</li>
+     * <li>number of workers (e.g. 1)</li>
+     * <li>max task parallelism (e.g. 1)</li>
+     * <!--
+     * <li>zookeeper servers (e.g. localhost;another.server.com) - STORM_ZOOKEEPER_SERVERS</li>
+     * <li>zookeeper port (e.g. 2181) - STORM_ZOOKEEPER_PORT</li>
+     * <li>nimbus host (e.g. localhost) - NIMBUS_HOST</li>
+     * <li>nimbus port (e.g. 6627) - NIMBUS_THRIFT_PORT</li>
+     * -->
+     * <li>JVM parameters (e.g. "-Dhttp.proxyHost=xxx -Dhttp.proxyPort=xx") - TOPOLOGY_WORKER_CHILDOPTS</li>
+     * </ol>
+     * 
+     * @throws backtype.storm.generated.AlreadyAliveException
+     * @throws backtype.storm.generated.InvalidTopologyException
+     * @throws backtype.storm.generated.AuthorizationException
      */
-    public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException 
+    public static void main(String[] args) 
+            throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        IndexerTopology indexerTopology = new IndexerTopology(SpoutType.KAFKA);
+        IndexerTopology indexerTopology;
+        if(args != null && args.length > 0)
+        {
+            indexerTopology = new IndexerTopology(SpoutType.KAFKA, args[0]);
+        }
+        else
+        {
+            indexerTopology = new IndexerTopology(SpoutType.KAFKA);
+        }
+        
         Config config = new Config();
-        config.setDebug(true);
+        config.setDebug(false);
 
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, IndexerConstants.KAFKA_METRICS_BROKER);
@@ -135,15 +183,21 @@ public class IndexerTopology
 
         if (args != null && args.length > 1) 
         {
-            String dockerIp = args[1];
-            String name = args[2];
-            config.setNumWorkers(1);
-            config.setMaxTaskParallelism(1);
-            config.put(Config.NIMBUS_THRIFT_PORT, 6627);
-            config.put(Config.STORM_ZOOKEEPER_PORT, 2181);
-            config.put(Config.NIMBUS_HOST, dockerIp);
-            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[0]));
-            StormSubmitter.submitTopology(name, config, stormTopology);
+            config.setNumWorkers(Integer.parseInt(args[1]));
+            config.setMaxTaskParallelism(Integer.parseInt(args[2]));
+            /*
+            config.put(Config.NIMBUS_THRIFT_PORT, Integer.parseInt(args[6]));
+            config.put(Config.STORM_ZOOKEEPER_PORT, Integer.parseInt(args[4]));
+            config.put(Config.NIMBUS_HOST, args[5]);
+            config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(args[3].split(";")));
+            */
+            
+            if(args.length >= 4)
+            {
+                config.put(Config.TOPOLOGY_WORKER_CHILDOPTS, args[3]);
+            }
+            
+            StormSubmitter.submitTopology(args[0], config, stormTopology);
         } 
         else 
         {

@@ -57,7 +57,7 @@ public class ReadFileExtractionTest
     {
         ReadFileExtractor extractor = new ReadFileExtractor();
         
-        assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, extractor.getExtractorMethod());
+        assertEquals(TxtExtractionMethods.READ_FILE_EXTRACTOR, extractor.getExtractionMethod());
         
         String name = extractor.getRepresentationName();
         

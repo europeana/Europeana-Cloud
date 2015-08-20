@@ -4,16 +4,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.index.IndexFields;
+import eu.europeana.cloud.service.dps.index.Indexer;
+import eu.europeana.cloud.service.dps.index.IndexerFactory;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.util.LRUCache;
+import eu.europeana.cloud.service.dps.index.SupportedIndexers;
+import eu.europeana.cloud.service.dps.index.exception.IndexerException;
+import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.update.UpdateRequestBuilder;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,43 +27,46 @@ public class IndexBolt extends AbstractDpsBolt
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexBolt.class);
     
-    private final String clasterAddresses;
+    private final Map<SupportedIndexers, String> clastersAddresses;
+    private final int cacheSize;
     
-    private transient Client client;
+    private transient LRUCache<String, Indexer> clients;
     
-    public IndexBolt(String clasterAddresses) 
+    public IndexBolt(Map<SupportedIndexers, String> clastersAddresses, int cacheSize) 
     {
-        this.clasterAddresses = clasterAddresses;
+        this.clastersAddresses = clastersAddresses;
+        this.cacheSize = cacheSize;
     }
     
     @Override
     public void execute(StormTaskTuple t) 
     {
+        Indexer indexer = getIndexer(t.getParameter(PluginParameterKeys.INDEXER));
+        
+        if(indexer == null)
+        {
+            LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
+            outputCollector.ack(inputTuple);
+            return;
+        }
+        
         String fileWithDataForIndex = t.getFileUrl();
         String rawData = t.getFileByteData();
         String originalFile = t.getParameter(PluginParameterKeys.ORIGINAL_FILE_URL);        
         String fileMetadata = t.getParameter(PluginParameterKeys.FILE_METADATA);    //extracted metadata
         String metadata = t.getParameter(PluginParameterKeys.METADATA);     //additional metadata
-        String index = t.getParameter(PluginParameterKeys.ELASTICSEARCH_INDEX);
-        String type = t.getParameter(PluginParameterKeys.ELASTICSEARCH_TYPE);
-        
-        if(index == null || index.isEmpty() || type == null || type.isEmpty())
-        {
-            LOGGER.warn("Index or type is not specified in task {}.", t.getTaskId());
-            outputCollector.ack(inputTuple);
-            return;
-        }
 
         //prepare data
         JsonObject data = new JsonObject();
         if(rawData != null && !rawData.isEmpty())
         {
-            data.addProperty(IndexerConstants.RAW_DATA_FIELD, rawData);
+            data.addProperty(IndexFields.RAW_TEXT.toString(), rawData);
         }
         if(fileMetadata != null && !fileMetadata.isEmpty())
         {
             JsonElement meta = new JsonParser().parse(fileMetadata);
-            data.add(IndexerConstants.FILE_METADATA_FIELD, meta);
+            data.add(IndexFields.FILE_METADATA.toString(), meta);
         }
         if(metadata != null && !metadata.isEmpty())
         {
@@ -72,45 +77,42 @@ public class IndexBolt extends AbstractDpsBolt
                 data.add(element.getKey(), element.getValue());
             }
         }
-        
-        UpdateResponse updateResponse = null;
-        IndexResponse indexResponse = null;
     
-        //determine what I am indexing
-        if(originalFile != null && !originalFile.isEmpty()) 
+        try
         {
-            //I am indexing extracted data from other file (e.g. features from binary file)
-            //If this record already exists, than update fields only
-            UpdateRequestBuilder prepareUpdate = client.prepareUpdate(index, type, originalFile).setDocAsUpsert(true);
-            updateResponse = prepareUpdate.setDoc(data.toString()).execute().actionGet();
+            //determine what I am indexing
+            if(originalFile != null && !originalFile.isEmpty()) 
+            {
+                //I am indexing extracted data from other file (e.g. features from binary file)
+                //If this record already exists, than update fields only
+                indexer.update(originalFile, data.toString());
+            }
+            else if(fileWithDataForIndex != null && !fileWithDataForIndex.isEmpty())
+            {
+                //I am indexing data from current file (e.g. txt file)
+                //If this record already exists, than update fields only
+                indexer.update(fileWithDataForIndex, data.toString());
+            }
+            else
+            {
+                //I am indexing something other (_id for record will be generated)
+                //only create new document - update is not possible
+                indexer.insert(data.toString());
+            }
         }
-        else if(fileWithDataForIndex != null && !fileWithDataForIndex.isEmpty())
+        catch(IndexerException ex)
         {
-            //I am indexing data from current file (e.g. txt file)
-            //If this record already exists, than update fields only
-            UpdateRequestBuilder prepareUpdate = client.prepareUpdate(index, type, fileWithDataForIndex).setDocAsUpsert(true);
-            updateResponse = prepareUpdate.setDoc(data.toString()).execute().actionGet();
+            LOGGER.warn("Cannot index data from tastk {} because: {}", t.getTaskId(), ex.getMessage());
+            StringWriter stack = new StringWriter();
+            ex.printStackTrace(new PrintWriter(stack));
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: "+ex.getMessage(),
+                    stack.toString());
+            outputCollector.ack(inputTuple);
+            return;
         }
-        else
-        {
-            //I am indexing something other (_id for record will be generated)
-            //only create new document - update is not possible
-            IndexRequestBuilder prepareIndex = client.prepareIndex(index, type);
-            indexResponse = prepareIndex.setSource(data.toString()).execute().actionGet();
-        }
-       
-        if(indexResponse != null)
-        {
-           LOGGER.info("Created new index '{}/{}/{}' with data '{}'",
-                   indexResponse.getIndex(), indexResponse.getType() , indexResponse.getId(), data.toString()); 
-        }
-        else
-        {
-           assert updateResponse != null;
-           LOGGER.info("Updated index '{}/{}/{}' with data '{}'", 
-                   updateResponse.getIndex(), updateResponse.getType() , updateResponse.getId(), data.toString()); 
-        }        
-        
+            
+        LOGGER.info("Data from task {} is indexed.", t.getTaskId());
+                      
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
     }
@@ -118,26 +120,31 @@ public class IndexBolt extends AbstractDpsBolt
     @Override
     public void prepare() 
     {
-        String[] addresses = clasterAddresses.split(";");
+        clients = new LRUCache<>(cacheSize);
+    }
+    
+    private Indexer getIndexer(String data)
+    {   
+        IndexerInformations ii = IndexerInformations.fromTaskString(data);
         
-        TransportClient transportClient = new TransportClient();
-        
-        for(String address: addresses)
+        if(ii == null)
         {
-            if(address != null && !address.isEmpty())
-            {
-                String[] split = address.split(":");
-                if(split.length == 2)
-                {
-                    transportClient.addTransportAddress(new InetSocketTransportAddress(split[0], Integer.parseInt(split[1])));
-                }
-                else
-                {
-                    LOGGER.warn("Can not parse address '{}' because: Bad address format", address);
-                }
-            }
+            return null;
         }
         
-        client = transportClient;
+        String key = ii.toKey();
+        if(clients.containsKey(key))
+        {
+            return clients.get(key);
+        }
+        
+        //key not exists => open new connection and add it to cache
+        
+        ii.setAddresses(clastersAddresses.get(ii.getIndexerName()));
+        
+        Indexer client = IndexerFactory.getIndexer(ii);
+        clients.put(key, client);
+        
+        return client;
     }
 }
