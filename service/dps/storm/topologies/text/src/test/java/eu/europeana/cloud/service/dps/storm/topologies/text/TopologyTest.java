@@ -54,7 +54,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, NotificationBolt.class, StoreFileAsRepresentationBolt.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "backtype.storm.topology.base.BaseBasicBolt"})
 public class TopologyTest 
 {  
     private static final String validUriPdf = "ecloud/records/K6/representations/pdf/versions/eac8/files/test.pdf";

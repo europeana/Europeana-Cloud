@@ -88,6 +88,6 @@ public class JibxExtractor implements TextExtractor
     @Override
     public String getRepresentationName() 
     {
-        return "edm";
+        return "edm_as_json";
     }
 }
