@@ -113,7 +113,7 @@
         </repository>
     </repositories>
     <properties>
-        <version.jdk>1.8</version.jdk>
+        <version.jdk>1.7</version.jdk>
         <version.junit>4.12</version.junit>
         <version.powermock>1.6.2</version.powermock>
         <version.powermock-mockito>1.5.3</version.powermock-mockito>
