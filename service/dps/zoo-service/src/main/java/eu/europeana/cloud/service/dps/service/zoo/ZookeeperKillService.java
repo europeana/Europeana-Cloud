@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Zookeeper implementation of {@link TaskExecutionKillService}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ZookeeperKillService implements TaskExecutionKillService
@@ -23,11 +23,19 @@ public class ZookeeperKillService implements TaskExecutionKillService
     
     private final ZookeeperService zS; 
 
+    /**
+     * Construct kill service via zookeeper.
+     * @param zS instance of zookeeper service
+     */
     public ZookeeperKillService(ZookeeperService zS) 
     {
         this.zS = zS;
     }
     
+    /**
+     * Construct kill service via zookeeper.
+     * @param zookeeperConnectString zookeeper servers (e.g. localhost:2181,192.168.47.129:2181)
+     */
     public ZookeeperKillService(String zookeeperConnectString)
     {
         zS = new ZookeeperService(zookeeperConnectString, 

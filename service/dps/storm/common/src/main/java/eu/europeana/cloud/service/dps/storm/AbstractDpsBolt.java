@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractDpsBolt extends BaseRichBolt 
 {	
@@ -78,7 +79,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
        long zooPort = (long) stormConfig.get(Config.STORM_ZOOKEEPER_PORT);
        this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
        
-       this.killService = new ZookeeperKillService(String.join(":"+String.valueOf(zooPort)+",", zooServers));
+       //String connectString = String.join(":"+String.valueOf(zooPort)+",", zooServers);    //Java 8
+       String connectString = StringUtils.join(zooServers, ":"+String.valueOf(zooPort)+",");    //Java 7
+       
+       this.killService = new ZookeeperKillService(connectString);
        
        prepare();
     }  

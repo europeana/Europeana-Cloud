@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+//import java.util.StringJoiner;    //Java 8
 import java.util.UUID;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -30,6 +30,7 @@ import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.common.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,10 @@ public class Solr implements Indexer
         }
         else
         {
-            CloudSolrClient cClient= new CloudSolrClient(String.join(",", addresses));  
+            //String connectString = String.join(",", addresses);    //Java 8
+            String connectString = StringUtils.join(addresses, ",");    //Java 7
+            
+            CloudSolrClient cClient= new CloudSolrClient(connectString);  
             cClient.setDefaultCollection(ii.getIndex());
             client = cClient;
         }
@@ -1086,6 +1090,6 @@ public class Solr implements Indexer
         document.addField(key.toString(), l);
         
         return document;
-    }
+    }  
 }
    
