@@ -34,9 +34,7 @@ public class ConvertBolt extends AbstractDpsBolt {
             // send notification of error
             this.emitErrorNotification(t.getTaskId(), t.getFileUrl(), ex.getMessage(), "");
             outputCollector.fail(inputTuple);
-            return;
         }
-        this.emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "Yey!", "");
     }
 
     @Override

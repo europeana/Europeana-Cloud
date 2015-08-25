@@ -42,7 +42,6 @@ public class IndexerTopology
     }
     
     private final SpoutType spoutType;
-    private final String topologyName;
     
     private final String extractedDataStream = "ReadData";
     private final String associationStream = "ReadAssociation";
@@ -58,18 +57,7 @@ public class IndexerTopology
      */
     public IndexerTopology(SpoutType spoutType) 
     {
-        this(spoutType, "Index topology");
-    }
-    
-    /**
-     * 
-     * @param spoutType
-     * @param topologyName
-     */
-    public IndexerTopology(SpoutType spoutType, String topologyName) 
-    {
         this.spoutType = spoutType;
-        this.topologyName = topologyName;
     }
     
     private StormTopology buildTopology()
@@ -109,7 +97,7 @@ public class IndexerTopology
         builder.setBolt("EndBolt", new EndBolt(), IndexerConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
-        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, IndexerConstants.CASSANDRA_HOSTS, 
+        builder.setBolt("NotificationBolt", new NotificationBolt(IndexerConstants.CASSANDRA_HOSTS, 
                             IndexerConstants.CASSANDRA_PORT, IndexerConstants.CASSANDRA_KEYSPACE_NAME,
                             IndexerConstants.CASSANDRA_USERNAME, IndexerConstants.CASSANDRA_PASSWORD), 
                             IndexerConstants.NOTIFICATION_BOLT_PARALLEL)
@@ -161,15 +149,7 @@ public class IndexerTopology
     public static void main(String[] args) 
             throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        IndexerTopology indexerTopology;
-        if(args != null && args.length > 0)
-        {
-            indexerTopology = new IndexerTopology(SpoutType.KAFKA, args[0]);
-        }
-        else
-        {
-            indexerTopology = new IndexerTopology(SpoutType.KAFKA);
-        }
+        IndexerTopology indexerTopology = new IndexerTopology(SpoutType.KAFKA);
         
         Config config = new Config();
         config.setDebug(false);

@@ -38,6 +38,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt
     
     private DataSetServiceClient datasetClient;
     private FileServiceClient fileClient;
+    
+    private int checkKillFlagPeriod = 500;
 
     public ReadDatasetBolt(String ecloudMcsAddress, String username, String password) 
     {
@@ -113,6 +115,16 @@ public class ReadDatasetBolt extends AbstractDpsBolt
    
                     outputCollector.emit(inputTuple, tt.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
                     emited++;
+                    
+                    
+                    if(emited % checkKillFlagPeriod == 0 && killService.hasKillFlag(topologyName, t.getTaskId()))
+                    {
+                        LOGGER.info("Task {} going to be killed.", t.getTaskId());
+                        emitKillNotification(t.getTaskId(), t.getFileUrl(), "", "");
+                        emitBasicInfo(t.getTaskId(), emited);
+                        outputCollector.ack(inputTuple);
+                        return;                       
+                    }
                 }
             }
         } 

@@ -43,7 +43,6 @@ public class TextStrippingTopology
     }
     
     private final SpoutType spoutType;
-    private final String topologyName;
     
     private final String datasetStream = "ReadDataset";
     private final String fileStream = "ReadFile";
@@ -58,18 +57,7 @@ public class TextStrippingTopology
      */
     public TextStrippingTopology(SpoutType spoutType) 
     {
-        this(spoutType, "Text stripping topology");
-    }
-    
-    /**
-     * 
-     * @param spoutType
-     * @param topologyName
-     */
-    public TextStrippingTopology(SpoutType spoutType, String topologyName) 
-    {
         this.spoutType = spoutType;
-        this.topologyName = topologyName;
     }
     
     protected StormTopology buildTopology() 
@@ -107,7 +95,7 @@ public class TextStrippingTopology
         builder.setBolt("EndBolt", new EndBolt(), TextStrippingConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("StoreNewRepresentation");
         
-        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, TextStrippingConstants.CASSANDRA_HOSTS, 
+        builder.setBolt("NotificationBolt", new NotificationBolt(TextStrippingConstants.CASSANDRA_HOSTS, 
                             TextStrippingConstants.CASSANDRA_PORT, TextStrippingConstants.CASSANDRA_KEYSPACE_NAME,
                             TextStrippingConstants.CASSANDRA_USERNAME, TextStrippingConstants.CASSANDRA_PASSWORD), 
                             TextStrippingConstants.NOTIFICATION_BOLT_PARALLEL)
@@ -160,15 +148,7 @@ public class TextStrippingTopology
     public static void main(String[] args) 
             throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        TextStrippingTopology textStrippingTopology;
-        if(args != null && args.length > 0)
-        {
-            textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA, args[0]);
-        }
-        else
-        {
-            textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
-        }
+        TextStrippingTopology textStrippingTopology = new TextStrippingTopology(SpoutType.KAFKA);
         
         Config config = new Config();
         config.setDebug(false);

@@ -26,6 +26,7 @@ public class NotificationTuple
     {
         SUCCESS,
         DROPPED,
+        KILLED,
         ERROR
     }
     

@@ -15,6 +15,8 @@ import backtype.storm.testing.TrackedTopology;
 import backtype.storm.topology.TopologyBuilder;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,11 +28,22 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import org.junit.runner.RunWith;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Class for test {@link ExtractBolt}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AbstractDpsBolt.class)
+@PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ExtractBoltTest 
 {
     private final String storeStream = "storeStream";
@@ -41,8 +54,13 @@ public class ExtractBoltTest
     private final String imgFilePath = "/Koala.jpg";
     
     @Test
-    public void acksTest()
+    public void acksTest() throws Exception
     {
+        //--- prepare zookeeper kill service mock
+        ZookeeperKillService zooKillMock = Mockito.mock(ZookeeperKillService.class);
+        Mockito.when(zooKillMock.hasKillFlag(anyString(), anyLong())).thenReturn(false);       
+        PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zooKillMock);
+        
         Testing.withTrackedCluster(new TestJob() 
             {
                 @Override
@@ -86,8 +104,13 @@ public class ExtractBoltTest
     }
     
     @Test
-    public void outputsTest()
+    public void outputsTest() throws Exception
     {
+        //--- prepare zookeeper kill service mock
+        ZookeeperKillService zooKillMock = Mockito.mock(ZookeeperKillService.class);
+        Mockito.when(zooKillMock.hasKillFlag(anyString(), anyLong())).thenReturn(false);       
+        PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zooKillMock);
+        
         Testing.withLocalCluster(new TestJob() 
             {
                 @Override

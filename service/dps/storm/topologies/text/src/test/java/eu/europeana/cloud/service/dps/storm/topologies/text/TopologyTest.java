@@ -19,6 +19,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
@@ -38,6 +39,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import org.mockito.Mockito;
@@ -53,8 +55,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, NotificationBolt.class, StoreFileAsRepresentationBolt.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*", "backtype.storm.topology.base.BaseBasicBolt"})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, 
+    NotificationBolt.class, StoreFileAsRepresentationBolt.class, AbstractDpsBolt.class})
+@PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class TopologyTest 
 {  
     private static final String validUriPdf = "ecloud/records/K6/representations/pdf/versions/eac8/files/test.pdf";
@@ -250,5 +253,11 @@ public class TopologyTest
         Mockito.when(recordClientMock.getRepresentations(anyString(), anyString())).thenReturn(reps);
         
         PowerMockito.whenNew(RecordServiceClient.class).withAnyArguments().thenReturn(recordClientMock);
+        
+        //--- zookeeper kill service mock
+        ZookeeperKillService zooKillMock = Mockito.mock(ZookeeperKillService.class);
+        Mockito.when(zooKillMock.hasKillFlag(anyString(), anyLong())).thenReturn(false);
+        
+        PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zooKillMock);
     }
 }

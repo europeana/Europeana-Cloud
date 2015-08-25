@@ -45,7 +45,6 @@ public class ExtractAndIndexTopology
     }
     
     private final SpoutType spoutType;
-    private final String topologyName;
     
     private final String datasetStream = "ReadDataset";
     private final String fileStream = "ReadFile";
@@ -62,18 +61,7 @@ public class ExtractAndIndexTopology
      */
     public ExtractAndIndexTopology(SpoutType spoutType) 
     {
-        this(spoutType, "Extract and index topology");
-    }
-    
-    /**
-     * 
-     * @param spoutType
-     * @param topologyName
-     */
-    public ExtractAndIndexTopology(SpoutType spoutType, String topologyName) 
-    {
         this.spoutType = spoutType;
-        this.topologyName = topologyName;
     }
     
     protected StormTopology buildTopology() 
@@ -121,7 +109,7 @@ public class ExtractAndIndexTopology
         builder.setBolt("EndBolt", new EndBolt(), ExtractAndIndexConstants.END_BOLT_PARALLEL)
                 .shuffleGrouping("IndexBolt");
         
-        builder.setBolt("NotificationBolt", new NotificationBolt(topologyName, ExtractAndIndexConstants.CASSANDRA_HOSTS, 
+        builder.setBolt("NotificationBolt", new NotificationBolt(ExtractAndIndexConstants.CASSANDRA_HOSTS, 
                             ExtractAndIndexConstants.CASSANDRA_PORT, ExtractAndIndexConstants.CASSANDRA_KEYSPACE_NAME,
                             ExtractAndIndexConstants.CASSANDRA_USERNAME, ExtractAndIndexConstants.CASSANDRA_PASSWORD), 
                             ExtractAndIndexConstants.NOTIFICATION_BOLT_PARALLEL)
@@ -175,15 +163,7 @@ public class ExtractAndIndexTopology
     public static void main(String[] args) 
             throws AlreadyAliveException, InvalidTopologyException, AuthorizationException 
     {
-        ExtractAndIndexTopology textStrippingTopology;
-        if(args != null && args.length > 0)
-        {
-            textStrippingTopology = new ExtractAndIndexTopology(SpoutType.KAFKA, args[0]);
-        }
-        else
-        {
-            textStrippingTopology = new ExtractAndIndexTopology(SpoutType.KAFKA);
-        }
+        ExtractAndIndexTopology extractAndIndexTopology = new ExtractAndIndexTopology(SpoutType.KAFKA);
         
         Config config = new Config();
         config.setDebug(false);
@@ -193,7 +173,7 @@ public class ExtractAndIndexTopology
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, ExtractAndIndexConstants.KAFKA_METRICS_TOPIC);
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, ExtractAndIndexConstants.METRICS_CONSUMER_PARALLEL);
         
-        StormTopology stormTopology = textStrippingTopology.buildTopology();
+        StormTopology stormTopology = extractAndIndexTopology.buildTopology();
         
         if (args != null && args.length > 1) 
         {

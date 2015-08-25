@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
+import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -35,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -48,6 +51,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskExecutionSubmitService submitService;
+    
+    @Autowired
+    private TaskExecutionKillService killService;
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -224,7 +230,103 @@ public class TopologyTasksResource {
         }
         return Response.notModified().build();
     }
+    
+    /**
+     * Submit kill flag to the specific task.
+     * 
+     * Side effect: remove all flags older than 5 days (per topology).
+     * 
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Authenticated user</li> 			    
+     *     			<li>Write permission for selected task</li>
+     * 			</ul>
+     * </div>
+     * 
+     * @summary Kill task
+     * 
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * 
+     * @return Status code indicating whether the operation was successful or not.
+     */
+    @POST
+    @Path("{taskId}/kill")
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+    @ReturnType("java.lang.Void")
+    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
+    {
+        if (taskId != null && topologyName != null) 
+        {
+            killService.killTask(topologyName, Long.valueOf(taskId));
+            killService.cleanOldFlags(topologyName, TimeUnit.DAYS.toMillis(5)); //side effect
+            return Response.ok().build();
+        }
+        return Response.notModified().build();
+    }
 
+    /**
+     * Check kill flag for the specified task. 
+     * 
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Authenticated user</li> 			    
+     *     			<li>Read permission for selected task</li>
+     * 			</ul>
+     * </div>
+     *
+     * @summary Check kill flag
+     * 
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * 
+     * @return true if provided task id has kill flag, false otherwise
+     */
+    @GET
+    @Path("{taskId}/kill")
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    public Boolean checkKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
+    {
+        return killService.hasKillFlag(topologyName, Long.valueOf(taskId));
+    }
+    
+    /**
+     * Remove kill flag for the specified task. 
+     * 
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * 		<strong>Required permissions:</strong>
+     * 			<ul>
+     *     			<li>Authenticated user</li> 			    
+     *     			<li>Write permission for selected task</li>
+     * 			</ul>
+     * </div>
+     *
+     * @summary Remove kill flag
+     * 
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * 
+     * @return Status code indicating whether the operation was successful or not.
+     */
+    @DELETE
+    @Path("{taskId}/kill")
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+    @ReturnType("java.lang.Void")
+    public Response removeKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
+    {
+        if (taskId != null && topologyName != null) 
+        {
+            killService.removeFlag(topologyName, Long.valueOf(taskId));
+            return Response.ok().build();
+        }
+        return Response.notModified().build();
+    }
+    
     /**
      * Grants permissions to the current user for the specified task.
      */

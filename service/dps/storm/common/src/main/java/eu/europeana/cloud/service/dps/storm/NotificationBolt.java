@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import backtype.storm.Config;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -43,14 +44,14 @@ public class NotificationBolt extends BaseBasicBolt
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private final String topologyName;
+    
+    private String topologyName;
             
     private CassandraConnectionProvider cassandra;
     
     
-    public NotificationBolt(String topologyName, String hosts, int port, String keyspaceName, String userName, String password) 
+    public NotificationBolt(String hosts, int port, String keyspaceName, String userName, String password) 
     {
-        this.topologyName = topologyName;
         this.hosts = hosts;
         this.port = port;
         this.keyspaceName = keyspaceName;
@@ -88,6 +89,8 @@ public class NotificationBolt extends BaseBasicBolt
     public void prepare(Map stormConf, TopologyContext context) 
     {
         cassandra = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+        topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
+        
         super.prepare(stormConf, context);
     }
 

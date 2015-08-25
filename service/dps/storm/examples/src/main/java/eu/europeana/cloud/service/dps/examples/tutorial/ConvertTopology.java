@@ -43,13 +43,13 @@ public class ConvertTopology {
 
         //bolt 4
         builder.setBolt("StoreBolt", new StoreFileAsRepresentationBolt(ECLOUD_MCS_ADDRESS, ECLOUD_MCS_USERNAME, ECLOUD_MCS_PASSWORD), 1)
-                .shuffleGrouping("ConvertBolt");
+                .shuffleGrouping("ConvertBolt", "stream-to-next-bolt");
 
         //bolt5
         builder.setBolt("EndBolt", new EndBolt(), 1).shuffleGrouping("StoreBolt");
 
         //notification bolt
-        builder.setBolt("NotificationBolt", new NotificationBolt("convert-topology", CASSANDRA_HOSTS, CASSANDRA_PORT, CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_PASSWORD), 1)
+        builder.setBolt("NotificationBolt", new NotificationBolt(CASSANDRA_HOSTS, CASSANDRA_PORT, CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_PASSWORD), 1)
                 .shuffleGrouping("ParseDpsTask")
                 .shuffleGrouping("RetrieveFile")
                 .shuffleGrouping("ConvertBolt")

@@ -29,6 +29,12 @@
         </constructor-arg>
     </bean>
     
+    <bean id="taskKillService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService">
+        <constructor-arg name="zookeeperConnectString">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
+        </constructor-arg>
+    </bean>
+    
     <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>

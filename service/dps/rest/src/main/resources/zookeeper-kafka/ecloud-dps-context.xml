@@ -44,6 +44,10 @@
         <constructor-arg name="zookeeperAddress" value="${dps.zookeeper.address}" />
     </bean>
     
+    <bean id="taskKillService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService">
+        <constructor-arg name="zookeeperConnectString" value="${dps.zookeeper.address}" />
+    </bean>
+    
 	<!-- Loads properties saved in Zookeeper  -->
 	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
   		<property name="zookeeperService" ref="zookeeperService"/>
