@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * This bolt is responsible for store notifications to Cassandra.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseBasicBolt
@@ -49,7 +49,14 @@ public class NotificationBolt extends BaseBasicBolt
             
     private CassandraConnectionProvider cassandra;
     
-    
+    /**
+     * Constructor of notification bolt.
+     * @param hosts Cassandra hosts separated by comma (e.g. localhost,192.168.47.129)
+     * @param port Cassandra port
+     * @param keyspaceName Cassandra keyspace name
+     * @param userName Cassandra username
+     * @param password Cassandra password
+     */
     public NotificationBolt(String hosts, int port, String keyspaceName, String userName, String password) 
     {
         this.hosts = hosts;

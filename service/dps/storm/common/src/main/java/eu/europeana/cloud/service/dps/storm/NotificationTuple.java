@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Tuple for notifications.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationTuple 

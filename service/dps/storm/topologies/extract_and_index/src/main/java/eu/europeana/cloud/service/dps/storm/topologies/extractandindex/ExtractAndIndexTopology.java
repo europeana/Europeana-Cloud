@@ -167,12 +167,12 @@ public class ExtractAndIndexTopology
         
         Config config = new Config();
         config.setDebug(false);
-
+/*
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, ExtractAndIndexConstants.KAFKA_METRICS_BROKER);
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, ExtractAndIndexConstants.KAFKA_METRICS_TOPIC);
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, ExtractAndIndexConstants.METRICS_CONSUMER_PARALLEL);
-        
+*/        
         StormTopology stormTopology = extractAndIndexTopology.buildTopology();
         
         if (args != null && args.length > 1) 

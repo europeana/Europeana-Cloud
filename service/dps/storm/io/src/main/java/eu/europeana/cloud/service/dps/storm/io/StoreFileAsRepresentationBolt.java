@@ -15,7 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Bolt that is responsible for store file as a new representation.
+ * Store data as representation.
+ * If nonpersistent version already exists then store file to this version. Otherwise create new version.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class StoreFileAsRepresentationBolt extends AbstractDpsBolt 
@@ -31,9 +32,9 @@ public class StoreFileAsRepresentationBolt extends AbstractDpsBolt
 
     /**
      * Store representation.
-     * @param ecloudMcsAddress
-     * @param username
-     * @param password
+     * @param ecloudMcsAddress MCS API URL
+     * @param username eCloud username
+     * @param password eCloud password
      */
     public StoreFileAsRepresentationBolt(String ecloudMcsAddress, String username, String password) 
     {
@@ -48,11 +49,7 @@ public class StoreFileAsRepresentationBolt extends AbstractDpsBolt
         String providerId = t.getParameter(PluginParameterKeys.PROVIDER_ID);
         String cloudId = t.getParameter(PluginParameterKeys.CLOUD_ID);
         String mimeType = t.getParameter(PluginParameterKeys.MIME_TYPE);
-        String representationName = t.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        if(representationName == null || representationName.isEmpty())
-        {
-            representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-        }       
+        String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);      
 
         URI representation = null;
         URI newFileUri;

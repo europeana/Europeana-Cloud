@@ -99,7 +99,7 @@ public class ParseTaskBolt extends BaseBasicBolt
                     if(val != null && !val.toLowerCase().equals(p.toLowerCase()))
                     {
                         //values not equal => drop this task
-                        LOGGER.info("DpsTask with id {} is dropped because parameter {} does not have a required value '{}'.", 
+                        LOGGER.warn("DpsTask with id {} is dropped because parameter {} does not have a required value '{}'.", 
                             task.getTaskId(), importantParameter.getKey(), val);
                         
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
@@ -111,7 +111,7 @@ public class ParseTaskBolt extends BaseBasicBolt
                 }
                 else    //parameter not exists => drop this task
                 {
-                    LOGGER.info("DpsTask with id {} is dropped because parameter {} is missing.", 
+                    LOGGER.warn("DpsTask with id {} is dropped because parameter {} is missing.", 
                             task.getTaskId(), importantParameter.getKey());
                     
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
@@ -160,9 +160,11 @@ public class ParseTaskBolt extends BaseBasicBolt
             }
             else
             {
-                emitDropNotification(collector, task.getTaskId(), "", "Unknown task name.", 
+                String message = "Unknown task name: "+task.getTaskName();
+                LOGGER.warn(message);
+                emitDropNotification(collector, task.getTaskId(), "", message, 
                         taskParameters != null ? taskParameters.toString() : "");
-                emitBasicInfo(collector, task.getTaskId(), 0);
+                emitBasicInfo(collector, task.getTaskId(), 0);              
             }
         }
         else
@@ -179,7 +181,7 @@ public class ParseTaskBolt extends BaseBasicBolt
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
     
-    protected void emitBasicInfo(BasicOutputCollector collector, long taskId, int expectedSize)
+    private void emitBasicInfo(BasicOutputCollector collector, long taskId, int expectedSize)
     {
         NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
         collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());

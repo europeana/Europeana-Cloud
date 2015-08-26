@@ -153,12 +153,12 @@ public class IndexerTopology
         
         Config config = new Config();
         config.setDebug(false);
-
+/*
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, IndexerConstants.KAFKA_METRICS_BROKER);
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, IndexerConstants.KAFKA_METRICS_TOPIC);
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, IndexerConstants.METRICS_CONSUMER_PARALLEL);
-       
+*/       
         StormTopology stormTopology = indexerTopology.buildTopology();
 
         if (args != null && args.length > 1) 

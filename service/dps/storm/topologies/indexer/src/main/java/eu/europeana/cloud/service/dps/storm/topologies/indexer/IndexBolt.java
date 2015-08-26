@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexer;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.index.IndexFields;
@@ -61,20 +62,43 @@ public class IndexBolt extends AbstractDpsBolt
         JsonObject data = new JsonObject();
         if(rawData != null && !rawData.isEmpty())
         {
-            data.addProperty(IndexFields.RAW_TEXT.toString(), rawData);
+            try
+            {
+                data = new JsonParser().parse(rawData).getAsJsonObject();
+
+            }
+            catch(JsonParseException ex) //is not valid JSON => store as string
+            {
+                data.addProperty(IndexFields.RAW_TEXT.toString(), rawData);
+            }
+           
         }
         if(fileMetadata != null && !fileMetadata.isEmpty())
         {
-            JsonElement meta = new JsonParser().parse(fileMetadata);
-            data.add(IndexFields.FILE_METADATA.toString(), meta);
+            try
+            {
+                JsonElement meta = new JsonParser().parse(fileMetadata);
+                data.add(IndexFields.FILE_METADATA.toString(), meta);
+            }
+            catch(JsonParseException ex) //is not valid JSON 
+            {
+                data.addProperty(IndexFields.FILE_METADATA.toString(), fileMetadata);
+            }
         }
         if(metadata != null && !metadata.isEmpty())
         {
-            JsonObject elements = new JsonParser().parse(metadata).getAsJsonObject();
-            
-            for (Map.Entry<String,JsonElement> element : elements.entrySet()) 
+            try
             {
-                data.add(element.getKey(), element.getValue());
+                JsonObject elements = new JsonParser().parse(metadata).getAsJsonObject();
+                
+                for (Map.Entry<String,JsonElement> element : elements.entrySet()) 
+                {
+                    data.add(element.getKey(), element.getValue());
+                }
+            }
+            catch(JsonParseException ex) //is not valid JSON 
+            {
+                LOGGER.warn("Cannot parse metadata in task {} because: {}", t.getTaskId(), ex.getMessage());
             }
         }
     

@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
+ * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ReadFileBolt extends AbstractDpsBolt 
 {

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.rits.cloning.Cloner;
 
 /**
- *
+ * Read dataset and emit every file in dataset as a separate {@link StormTaskTuple}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ReadDatasetBolt extends AbstractDpsBolt
@@ -39,8 +39,14 @@ public class ReadDatasetBolt extends AbstractDpsBolt
     private DataSetServiceClient datasetClient;
     private FileServiceClient fileClient;
     
-    private int checkKillFlagPeriod = 500;
+    private final int checkKillFlagPeriod = 500;
 
+    /**
+     * Constructor of ReadDatasetBolt.
+     * @param ecloudMcsAddress MCS API URL
+     * @param username eCloud username
+     * @param password eCloud password
+     */
     public ReadDatasetBolt(String ecloudMcsAddress, String username, String password) 
     {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -113,10 +119,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt
 
                     tt.setFileData(is);
    
-                    outputCollector.emit(inputTuple, tt.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
+                    outputCollector.emit(inputTuple, tt.toStormTuple());
                     emited++;
                     
-                    
+                    //check kill flak once per checkKillFlagPeriod
                     if(emited % checkKillFlagPeriod == 0 && killService.hasKillFlag(topologyName, t.getTaskId()))
                     {
                         LOGGER.info("Task {} going to be killed.", t.getTaskId());

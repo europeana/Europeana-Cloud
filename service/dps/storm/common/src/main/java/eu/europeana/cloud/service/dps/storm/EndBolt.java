@@ -24,7 +24,8 @@ public class EndBolt extends BaseBasicBolt
     public void execute(Tuple tuple, BasicOutputCollector boc) 
     {
         StormTaskTuple t = StormTaskTuple.fromStormTuple(tuple);
-        emitSuccessNotification(boc, t.getTaskId(), t.getFileUrl(), "", t.getParameters().toString());
+        
+        emitSuccessNotification(boc, t.getTaskId(), t.getFileUrl(), "", "");
     }
     
     private void emitSuccessNotification(BasicOutputCollector collector, 

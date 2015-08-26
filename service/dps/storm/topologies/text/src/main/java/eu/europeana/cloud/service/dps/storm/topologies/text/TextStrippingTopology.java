@@ -152,12 +152,12 @@ public class TextStrippingTopology
         
         Config config = new Config();
         config.setDebug(false);
-
+/*
         Map<String, String> kafkaMetricsConfig = new HashMap<>();
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_BROKER_KEY, TextStrippingConstants.KAFKA_METRICS_BROKER);
         kafkaMetricsConfig.put(KafkaMetricsConsumer.KAFKA_TOPIC_KEY, TextStrippingConstants.KAFKA_METRICS_TOPIC);
         config.registerMetricsConsumer(KafkaMetricsConsumer.class, kafkaMetricsConfig, TextStrippingConstants.METRICS_CONSUMER_PARALLEL);
-        
+*/        
         StormTopology stormTopology = textStrippingTopology.buildTopology();
         
         if (args != null && args.length > 1) 

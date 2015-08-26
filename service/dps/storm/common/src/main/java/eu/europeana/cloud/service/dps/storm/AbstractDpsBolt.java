@@ -17,6 +17,10 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Abstract class for all Storm bolts used in Europeana Cloud.
+ * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
+ */
 public abstract class AbstractDpsBolt extends BaseRichBolt 
 {	
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
@@ -76,7 +80,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
        this.outputCollector = oc;
        
        List<String> zooServers = (List<String>) stormConfig.get(Config.STORM_ZOOKEEPER_SERVERS);
-       long zooPort = (long) stormConfig.get(Config.STORM_ZOOKEEPER_PORT);
+       int zooPort = (int) stormConfig.get(Config.STORM_ZOOKEEPER_PORT);
        this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
        
        //String connectString = String.join(":"+String.valueOf(zooPort)+",", zooServers);    //Java 8
@@ -97,6 +101,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
     
+    /**
+     * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
+     * Only one notification call per resource per task.
+     * @param taskId task ID
+     * @param resource affected resource (e.g. file URL)
+     * @param message short text
+     * @param additionalInformations the rest of informations (e.g. stack trace)
+     */
     protected void emitDropNotification(long taskId, String resource, String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
@@ -104,6 +116,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
+    /**
+     * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
+     * Only one notification call per resource per task.
+     * @param taskId task ID
+     * @param resource affected resource (e.g. file URL)
+     * @param message short text
+     * @param additionalInformations the rest of informations (e.g. stack trace)
+     */
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
@@ -111,6 +131,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
     
+    /**
+     * Emit {@link NotificationTuple} with kill notification to {@link #NOTIFICATION_STREAM_NAME}.
+     * Only one notification call per resource per task.
+     * @param taskId task ID
+     * @param resource affected resource (e.g. file URL)
+     * @param message short text
+     * @param additionalInformations the rest of informations
+     */
     protected void emitKillNotification(long taskId, String resource, String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
@@ -118,6 +146,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
     
+    /**
+     * Emit {@link NotificationTuple} with basic informations to {@link #NOTIFICATION_STREAM_NAME}.
+     * Only one call per task!
+     * @param taskId task ID
+     * @param expectedSize number of emitted {@link StormTaskTuple}
+     */
     protected void emitBasicInfo(long taskId, int expectedSize)
     {
         NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
