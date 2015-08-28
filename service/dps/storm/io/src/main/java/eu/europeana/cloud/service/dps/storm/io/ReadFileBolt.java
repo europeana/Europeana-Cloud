@@ -80,7 +80,7 @@ public class ReadFileBolt extends AbstractDpsBolt
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0);
+            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
         }

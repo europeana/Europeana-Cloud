@@ -30,7 +30,7 @@ public final class PluginParameterKeys {
         public static final String NEW_DATASET_MESSAGE = "NewDataset";
         public static final String NEW_FILE_MESSAGE = "NewFile";       
         public static final String NEW_EXTRACTED_DATA_MESSAGE = "NewExtractedData";
-        public static final String NEW_ASSOCIATION_MESSAGE = "NewAssociation";
+        public static final String NEW_ANNOTATION_MESSAGE = "NewAnnotation";
         public static final String NEW_INDEX_MESSAGE = "NewIndex";
         
         public static final String INDEX_FILE_MESSAGE = "IndexFile";
@@ -45,7 +45,6 @@ public final class PluginParameterKeys {
         // ---------  Indexer  -----------
         public static final String INDEXER = "INDEXER";                         //name of indexer
         public static final String INDEX_DATA = "INDEX_DATA";                   //true or false
-        public static final String METADATA = "METADATA";                       //e.g. data from EDM
         public static final String FILE_METADATA = "FILE_METADATA";             //e.g. metadata from PDF file
         public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";     //e.g. url to PDF file thich contains extracted text         
 }

@@ -24,16 +24,29 @@ public class ExtractTextBolt extends AbstractDpsBolt
     private final String defaultStreamName;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtractTextBolt.class);
     
+    /**
+     * Constructor of extract text bolt with default stream.
+     */
     public ExtractTextBolt()
     {
         this(null, null);
     }
     
+    /**
+     * Constructor of extract text bolt with one stream.
+     * @param defaultStreamName stream name - null => use default stream
+     */
     public ExtractTextBolt(String defaultStreamName)
     {
         this(defaultStreamName, null);
     }
     
+    /**
+     * Constructor of extract text bolt with two streams.
+     * If defaultStreamName and storeStremName are null then it use default stream.
+     * @param defaultStreamName name of stream for emit task if {@link PluginParameterKeys#STORE_EXTRACTED_TEXT} is false
+     * @param storeStremName name of stream for emit task if {@link PluginParameterKeys#STORE_EXTRACTED_TEXT} is true
+     */
     public ExtractTextBolt(String defaultStreamName, String storeStremName) 
     {
         if(storeStremName == null)

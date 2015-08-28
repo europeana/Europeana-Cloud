@@ -7,21 +7,26 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- *
+ * Report service powered by Cassandra.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class CassandraReportService implements TaskExecutionReportService
 {    
     CassandraConnectionProvider cassandra;
 
+    /**
+     * Constructor of Cassandra report service.
+     * @param hosts Cassandra hosts separated by comma (e.g. localhost,192.168.47.129)
+     * @param port Cassandra port
+     * @param keyspaceName Cassandra keyspace name
+     * @param userName Cassandra username
+     * @param password Cassandra password
+     */
     public CassandraReportService(String hosts, int port, String keyspaceName, String userName, String password) 
     {
         cassandra = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
@@ -58,7 +63,7 @@ public class CassandraReportService implements TaskExecutionReportService
             long processed = notifications.one().getLong("count");
             
             res.addProperty("topologyName", basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME));
-            res.addProperty("total_size", expectedSize);
+            res.addProperty("totalSize", expectedSize);
             res.addProperty("processed", processed);           
         }
         else
@@ -73,7 +78,7 @@ public class CassandraReportService implements TaskExecutionReportService
             long processed = notifications.one().getLong("count");
             
             res.addProperty("topologyName", "");
-            res.addProperty("total_size", "?");
+            res.addProperty("totalSize", "?");
             res.addProperty("processed", processed);            
         }
 

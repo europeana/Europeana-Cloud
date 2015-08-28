@@ -13,7 +13,7 @@ import kafka.producer.ProducerConfig;
  *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class IndexFromAssociationTaskProducer 
+public class IndexFromAnnotationTaskProducer 
 {
     private static final String[] indexers= {"elasticsearch_indexer", "solr_indexer"};
     
@@ -43,14 +43,12 @@ public class IndexFromAssociationTaskProducer
 
         DpsTask msg = new DpsTask();
 
-        msg.setTaskName(PluginParameterKeys.NEW_ASSOCIATION_MESSAGE);
+        msg.setTaskName(PluginParameterKeys.NEW_ANNOTATION_MESSAGE);
         
         msg.addParameter(PluginParameterKeys.INDEX_DATA, "True");
         IndexerInformations ii = new IndexerInformations(indexers[0], "index_mlt_4", "mlt4", "192.168.47.129:9300");
         msg.addParameter(PluginParameterKeys.INDEXER, ii.toTaskString());
-        msg.addParameter(PluginParameterKeys.CLOUD_ID, cloudId);
-        
-        msg.addParameter(PluginParameterKeys.FILE_DATA, textData);
+        msg.addParameter(PluginParameterKeys.FILE_URL, "url to annotation");
 
         KeyedMessage<String, DpsTask> data = new KeyedMessage<>(IndexerConstants.KAFKA_INPUT_TOPIC, msg);
         producer.send(data);

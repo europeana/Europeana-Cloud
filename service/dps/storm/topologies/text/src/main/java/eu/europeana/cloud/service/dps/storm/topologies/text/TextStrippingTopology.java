@@ -31,7 +31,7 @@ import eu.europeana.cloud.service.dps.storm.io.StoreFileAsRepresentationBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
 
 /**
- *
+ * Storm topology for extracting text from different types of files.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class TextStrippingTopology 
@@ -52,8 +52,8 @@ public class TextStrippingTopology
     private final String password = TextStrippingConstants.PASSWORD;
     
     /**
-     * 
-     * @param spoutType
+     * Constructor of text stripping topology.
+     * @param spoutType spot type
      */
     public TextStrippingTopology(SpoutType spoutType) 
     {

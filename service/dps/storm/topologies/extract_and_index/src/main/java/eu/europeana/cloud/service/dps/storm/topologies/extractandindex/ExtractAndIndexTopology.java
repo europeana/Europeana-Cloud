@@ -33,7 +33,7 @@ import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
 
 /**
- *
+ * This topology combines {@link TextStrippingTopology} and {@link IndexTopology}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ExtractAndIndexTopology 
@@ -56,8 +56,8 @@ public class ExtractAndIndexTopology
     private final String password = ExtractAndIndexConstants.PASSWORD;
     
     /**
-     * 
-     * @param spoutType
+     * Constructor of extract and index topology.
+     * @param spoutType type of spout
      */
     public ExtractAndIndexTopology(SpoutType spoutType) 
     {

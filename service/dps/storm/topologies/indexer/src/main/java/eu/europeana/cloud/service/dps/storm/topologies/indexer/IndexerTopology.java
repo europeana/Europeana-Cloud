@@ -30,7 +30,7 @@ import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
 
 /**
- *
+ * Storm topology for index data by {@link Indexer}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class IndexerTopology 
@@ -44,7 +44,7 @@ public class IndexerTopology
     private final SpoutType spoutType;
     
     private final String extractedDataStream = "ReadData";
-    private final String associationStream = "ReadAssociation";
+    private final String annotationStream = "ReadAssociation";
     private final String indexStream = "ReadFile";
 
     private final String ecloudMcsAddress = IndexerConstants.MCS_URL;
@@ -52,8 +52,8 @@ public class IndexerTopology
     private final String password = IndexerConstants.PASSWORD;
     
     /**
-     * 
-     * @param spoutType
+     * Constructor of index topology.
+     * @param spoutType spout type
      */
     public IndexerTopology(SpoutType spoutType) 
     {
@@ -64,7 +64,7 @@ public class IndexerTopology
     {
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.NEW_EXTRACTED_DATA_MESSAGE, extractedDataStream);
-        routingRules.put(PluginParameterKeys.NEW_ASSOCIATION_MESSAGE, associationStream);
+        routingRules.put(PluginParameterKeys.NEW_ANNOTATION_MESSAGE, annotationStream);
         routingRules.put(PluginParameterKeys.INDEX_FILE_MESSAGE, indexStream);
         
         Map<String, String> prerequisites = new HashMap<>();
@@ -82,8 +82,8 @@ public class IndexerTopology
         builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules, prerequisites), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
                 .shuffleGrouping("KafkaSpout");
         
-        builder.setBolt("RetrieveAssociation", new RetrieveAssociation(ecloudMcsAddress, username, password), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
-                .shuffleGrouping("ParseDpsTask", associationStream);
+        builder.setBolt("RetrieveAssociation", new MergeIndexedDocumentsBolt(indexersAddresses, IndexerConstants.CACHE_SIZE), IndexerConstants.PARSE_TASKS_BOLT_PARALLEL)
+                .shuffleGrouping("ParseDpsTask", annotationStream);
         
         builder.setBolt("RetrieveFile", new ReadFileBolt(ecloudMcsAddress, username, password), 
                             IndexerConstants.FILE_BOLT_PARALLEL)

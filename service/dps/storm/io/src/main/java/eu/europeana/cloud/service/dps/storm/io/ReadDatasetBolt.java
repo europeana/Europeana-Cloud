@@ -66,7 +66,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt
             String message = "No ProviderId or DatasetId for retrieve dataset.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0);
+            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
         }

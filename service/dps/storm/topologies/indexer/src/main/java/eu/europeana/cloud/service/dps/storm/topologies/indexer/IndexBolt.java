@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Index document by selected {@link Indexer}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class IndexBolt extends AbstractDpsBolt
@@ -33,6 +33,11 @@ public class IndexBolt extends AbstractDpsBolt
     
     private transient LRUCache<String, Indexer> clients;
     
+    /**
+     * Constructor of Index bolt.
+     * @param clastersAddresses map of indexers and their connection strings
+     * @param cacheSize number of established connection in cache.
+     */
     public IndexBolt(Map<SupportedIndexers, String> clastersAddresses, int cacheSize) 
     {
         this.clastersAddresses = clastersAddresses;
@@ -48,6 +53,7 @@ public class IndexBolt extends AbstractDpsBolt
         {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
+            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
         }
@@ -56,7 +62,6 @@ public class IndexBolt extends AbstractDpsBolt
         String rawData = t.getFileByteData();
         String originalFile = t.getParameter(PluginParameterKeys.ORIGINAL_FILE_URL);        
         String fileMetadata = t.getParameter(PluginParameterKeys.FILE_METADATA);    //extracted metadata
-        String metadata = t.getParameter(PluginParameterKeys.METADATA);     //additional metadata
 
         //prepare data
         JsonObject data = new JsonObject();
@@ -65,7 +70,6 @@ public class IndexBolt extends AbstractDpsBolt
             try
             {
                 data = new JsonParser().parse(rawData).getAsJsonObject();
-
             }
             catch(JsonParseException ex) //is not valid JSON => store as string
             {
@@ -83,22 +87,6 @@ public class IndexBolt extends AbstractDpsBolt
             catch(JsonParseException ex) //is not valid JSON 
             {
                 data.addProperty(IndexFields.FILE_METADATA.toString(), fileMetadata);
-            }
-        }
-        if(metadata != null && !metadata.isEmpty())
-        {
-            try
-            {
-                JsonObject elements = new JsonParser().parse(metadata).getAsJsonObject();
-                
-                for (Map.Entry<String,JsonElement> element : elements.entrySet()) 
-                {
-                    data.add(element.getKey(), element.getValue());
-                }
-            }
-            catch(JsonParseException ex) //is not valid JSON 
-            {
-                LOGGER.warn("Cannot parse metadata in task {} because: {}", t.getTaskId(), ex.getMessage());
             }
         }
     
@@ -131,12 +119,14 @@ public class IndexBolt extends AbstractDpsBolt
             ex.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: "+ex.getMessage(),
                     stack.toString());
+            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
         }
             
         LOGGER.info("Data from task {} is indexed.", t.getTaskId());
-                      
+         
+        emitBasicInfo(t.getTaskId(), 1);
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
     }

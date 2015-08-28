@@ -105,7 +105,7 @@ public class ParseTaskBolt extends BaseBasicBolt
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
                                 importantParameter.getKey(), val);
                         emitDropNotification(collector, task.getTaskId(), "", message, taskParameters.toString());
-                        emitBasicInfo(collector, task.getTaskId(), 0);
+                        emitBasicInfo(collector, task.getTaskId(), 1);
                         return;
                     }
                 }
@@ -116,7 +116,7 @@ public class ParseTaskBolt extends BaseBasicBolt
                     
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
                     emitDropNotification(collector, task.getTaskId(), "", message, taskParameters.toString());
-                    emitBasicInfo(collector, task.getTaskId(), 0);
+                    emitBasicInfo(collector, task.getTaskId(), 1);
                     return;
                 }
             }
@@ -164,7 +164,7 @@ public class ParseTaskBolt extends BaseBasicBolt
                 LOGGER.warn(message);
                 emitDropNotification(collector, task.getTaskId(), "", message, 
                         taskParameters != null ? taskParameters.toString() : "");
-                emitBasicInfo(collector, task.getTaskId(), 0);              
+                emitBasicInfo(collector, task.getTaskId(), 1);              
             }
         }
         else
