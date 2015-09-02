@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import backtype.storm.task.OutputCollector;
+import backtype.storm.task.TopologyContext;
 import java.io.IOException;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseBasicBolt;
+import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -22,8 +23,12 @@ import java.util.Map;
  * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class ParseTaskBolt extends BaseBasicBolt 
+public class ParseTaskBolt extends BaseRichBolt 
 {
+    protected Map stormConfig;
+    protected TopologyContext topologyContext;
+    protected OutputCollector outputCollector;
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
     
     public static final String NOTIFICATION_STREAM_NAME = AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -71,7 +76,7 @@ public class ParseTaskBolt extends BaseBasicBolt
     }
 
     @Override
-    public void execute(Tuple tuple, BasicOutputCollector collector) 
+    public void execute(Tuple tuple) 
     {
         ObjectMapper mapper = new ObjectMapper();
         DpsTask task;
@@ -82,6 +87,7 @@ public class ParseTaskBolt extends BaseBasicBolt
         catch (IOException e) 
         {
             LOGGER.error("Message '{}' rejected because: {}", tuple.getString(0), e.getMessage());
+            outputCollector.ack(tuple);
             return;
         }
 
@@ -104,8 +110,9 @@ public class ParseTaskBolt extends BaseBasicBolt
                         
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
                                 importantParameter.getKey(), val);
-                        emitDropNotification(collector, task.getTaskId(), "", message, taskParameters.toString());
-                        emitBasicInfo(collector, task.getTaskId(), 1);
+                        emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
+                        emitBasicInfo(task.getTaskId(), 1);
+                        outputCollector.ack(tuple);
                         return;
                     }
                 }
@@ -115,8 +122,9 @@ public class ParseTaskBolt extends BaseBasicBolt
                             task.getTaskId(), importantParameter.getKey());
                     
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
-                    emitDropNotification(collector, task.getTaskId(), "", message, taskParameters.toString());
-                    emitBasicInfo(collector, task.getTaskId(), 1);
+                    emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
+                    emitBasicInfo(task.getTaskId(), 1);
+                    outputCollector.ack(tuple);
                     return;
                 }
             }
@@ -156,34 +164,44 @@ public class ParseTaskBolt extends BaseBasicBolt
             String stream = routingRules.get(task.getTaskName());
             if(stream != null)
             {
-                collector.emit(stream, stormTaskTuple.toStormTuple());
+                outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
             }
             else
             {
                 String message = "Unknown task name: "+task.getTaskName();
                 LOGGER.warn(message);
-                emitDropNotification(collector, task.getTaskId(), "", message, 
+                emitDropNotification(task.getTaskId(), "", message, 
                         taskParameters != null ? taskParameters.toString() : "");
-                emitBasicInfo(collector, task.getTaskId(), 1);              
+                emitBasicInfo(task.getTaskId(), 1);              
             }
         }
         else
         {
-            collector.emit(stormTaskTuple.toStormTuple());
+            outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
         }
+        
+        outputCollector.ack(tuple);
     }
     
-    private void emitDropNotification(BasicOutputCollector collector, long taskId, 
-            String resource, String message, String additionalInformations)
+    private void emitDropNotification(long taskId, String resource, 
+            String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
                 resource, NotificationTuple.States.DROPPED, message, additionalInformations);
-        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
     
-    private void emitBasicInfo(BasicOutputCollector collector, long taskId, int expectedSize)
+    private void emitBasicInfo(long taskId, int expectedSize)
     {
         NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
-        collector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+    @Override
+    public void prepare(Map stormConfig, TopologyContext tc, OutputCollector oc) 
+    {
+        this.stormConfig = stormConfig;
+        this.topologyContext = tc;
+        this.outputCollector = oc;
     }
 }

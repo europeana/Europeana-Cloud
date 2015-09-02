@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
 /**
- * Creates tasks ({@link DpsTask}) and sends them to Kafka
+ * Create and send {@link DpsTask} to Kafka topic.
  * 
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
@@ -26,6 +26,28 @@ public class KafkaProducerBolt extends AbstractDpsBolt
     
     private Producer<String, DpsTask> producer;
     
+    /**
+     * Constructor of Kafka producer bolt without additional parameters.
+     * @param brokerList broker addresses separated by comma (e.g. localhost:9093,192.168.47.129:9093)
+     * @param topic topic name
+     * @param taskName new task name
+     */
+    public KafkaProducerBolt(String brokerList, String topic, String taskName) 
+    {
+        this.brokerList = brokerList;
+        this.topic = topic;
+        this.taskName = taskName;
+        this.parameters = null;
+    }
+    
+    /**
+     * Constructor of Kafka producer bolt with additional parameters.
+     * @param brokerList broker addresses separated by comma (e.g. localhost:9093,192.168.47.129:9093)
+     * @param topic topic name
+     * @param taskName new task name
+     * @param parameters additional parameters 
+     *                  if value == null: use value from StormTaskTuple
+     */
     public KafkaProducerBolt(String brokerList, String topic, String taskName, Map<String, String> parameters) 
     {
         this.brokerList = brokerList;
@@ -54,20 +76,23 @@ public class KafkaProducerBolt extends AbstractDpsBolt
         msg.addParameter(PluginParameterKeys.FILE_DATA, t.getFileByteData());
         
         //add extension parameters (optional)
-        for(Map.Entry<String, String> parameter : parameters.entrySet())
+        if(parameters != null)
         {
-            //if value is null it means that value is in received parameters
-            if(parameter.getValue() == null)
+            for(Map.Entry<String, String> parameter : parameters.entrySet())
             {
-                String val = t.getParameter(parameter.getKey());
-                if(val != null)
+                //if value is null it means that value is in received parameters
+                if(parameter.getValue() == null)
                 {
-                   msg.addParameter(parameter.getKey(), val); 
+                    String val = t.getParameter(parameter.getKey());
+                    if(val != null)
+                    {
+                       msg.addParameter(parameter.getKey(), val); 
+                    }
                 }
-            }
-            else
-            {
-                msg.addParameter(parameter.getKey(), parameter.getValue());
+                else
+                {
+                    msg.addParameter(parameter.getKey(), parameter.getValue());
+                }
             }
         }
 

@@ -12,9 +12,9 @@ import java.util.Map;
  */
 public class NotificationTuple 
 {
-    private static final String taskIdFieldName = "TASK_ID";
-    private static final String informationTypeFieldName = "INFORMATION_TYPE";
-    private static final String parametersFieldName = "PARAMETERS";
+    public static final String taskIdFieldName = "TASK_ID";
+    public static final String informationTypeFieldName = "INFORMATION_TYPE";
+    public static final String parametersFieldName = "PARAMETERS";
     
     public enum InformationTypes
     {
@@ -27,7 +27,9 @@ public class NotificationTuple
         SUCCESS,
         DROPPED,
         KILLED,
-        ERROR
+        ERROR,
+        
+        FINISHED    //this status is used by notification bolt when whole DPS taks is processed
     }
     
     private final long taskId;
