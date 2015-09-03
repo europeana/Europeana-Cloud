@@ -2,14 +2,16 @@ package eu.europeana.cloud.service.dps.storm.transform.text.edm;
 
 import eu.europeana.cloud.service.dps.storm.transform.text.MethodsEnumeration;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
-import eu.europeana.corelib.edm.utils.MongoConstructor;
 import eu.europeana.corelib.definitions.jibx.RDF;
+import eu.europeana.corelib.edm.utils.SolrConstructor;
 import java.io.InputStream;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import java.io.IOException;
+import java.util.HashMap;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
@@ -17,7 +19,7 @@ import org.jibx.runtime.IUnmarshallingContext;
 import org.jibx.runtime.JiBXException;
 
 /**
- *
+ * JIBX text extractor for EDM files.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class JibxExtractor implements TextExtractor
@@ -52,9 +54,18 @@ public class JibxExtractor implements TextExtractor
             RDF rdf = (RDF)uctx.unmarshalDocument(is, null);
             
             //excract data from EDM
-            FullBeanImpl fbi = new MongoConstructor().constructFullBean(rdf);
+            Map<String, Object> res = new HashMap<>();
+            SolrInputDocument solrDoc = new SolrConstructor().constructSolrDocument(rdf);
+            for(Map.Entry<String, SolrInputField> field: solrDoc.entrySet())
+            {
+                Object o = field.getValue().getValue();
+                if(o != null)
+                {
+                    res.put(field.getKey(), o);
+                }
+            }
             
-            return new ObjectMapper().writeValueAsString(fbi);
+            return new ObjectMapper().writeValueAsString(res);
         } 
         catch (JiBXException | IOException ex) 
         {
@@ -66,7 +77,7 @@ public class JibxExtractor implements TextExtractor
         }
         catch(NullPointerException ex)  //wrong EDM file
         {
-            LOGGER.warn("Cannot convert EDM to string because: "+ex.getMessage());
+            LOGGER.warn("Cannot convert EDM to string because: not valid EDM");
             return null;
         }
                 

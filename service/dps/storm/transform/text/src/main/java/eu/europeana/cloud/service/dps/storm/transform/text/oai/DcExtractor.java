@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Simple text extractor for OAI files.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class DcExtractor implements TextExtractor
@@ -29,8 +29,12 @@ public class DcExtractor implements TextExtractor
     
     private static final Logger LOGGER = LoggerFactory.getLogger(DcExtractor.class);
 
+    /**
+     * Constructor of simple oai_dc extractor.
+     */
     public DcExtractor() 
     {
+        //TODO: refactor these values!
         tags = new HashMap<>();
         tags.put("title", "dc:title");
         tags.put("description", "dc:description");
@@ -43,6 +47,10 @@ public class DcExtractor implements TextExtractor
         tags.put("language", "dc:language");
     }
 
+    /**
+     * Constructor of simple oai_dc extractor.
+     * @param tags map of tag_output_name -> tag_name_in_file (with namespace)
+     */
     public DcExtractor(Map<String, String> tags) 
     {
         this.tags = tags;
