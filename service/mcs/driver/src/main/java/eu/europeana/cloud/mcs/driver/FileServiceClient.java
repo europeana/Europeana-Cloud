@@ -150,6 +150,7 @@ public class FileServiceClient {
         Builder requset = target.request().header(H_RANGE, range);
 
         Response response = requset.get();
+        System.out.println(response.getDate().toString()+response.getEntity()+response.getHeaders()+"");
         if (response.getStatus() == Response.Status.PARTIAL_CONTENT.getStatusCode()) {
             InputStream contentResponse = response.readEntity(InputStream.class);
             return contentResponse;
