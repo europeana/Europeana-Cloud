@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+
+    <context:annotation-config/>
+
+    <bean id="cassandraHost" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="java:comp/env/aas/cassandra/hosts"/>
+    </bean>
+
+
+    <bean id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient">
+        <constructor-arg name="baseUrl">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/ics/mcs-url"/>
+        </constructor-arg>
+        <constructor-arg name="username" value="admin"/>
+        <constructor-arg name="password" value="admin"/>
+    </bean>
+
+
+    <bean id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">
+        <constructor-arg name="baseUrl">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/ics/mcs-url"/>
+        </constructor-arg>
+        <constructor-arg name="username" value="admin"/>
+        <constructor-arg name="password" value="admin"/>
+    </bean>
+
+    <bean id="imageConverterService" class="eu.europeana.cloud.service.ics.rest.api_impl.ImageConverterServiceImpl">
+    </bean>
+
+
+    <bean id="converter" class="eu.europeana.cloud.service.ics.converter.converter.KakaduConverterTiffToJP2"/>
+    <bean id="converterContext" class="eu.europeana.cloud.service.ics.converter.converter.ConverterContext">
+        <constructor-arg  name="converter" ref="converter" />
+    </bean>
+
+
+    <import resource="authentication.xml"/>
+    <import resource="authorization.xml"/>
+</beans>

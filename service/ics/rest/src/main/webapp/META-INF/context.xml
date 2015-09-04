@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Context antiJARLocking="true" path="/tarek">
+    <ResourceLink
+            name="aas/cassandra/hosts"
+            global="aas/cassandra/hosts"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="aas/cassandra/port"
+            global="aas/cassandra/port"
+            type="java.lang.Integer"/>
+
+    <ResourceLink
+            name="aas/cassandra/authorization-keyspace"
+            global="aas/cassandra/authorization-keyspace"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="aas/cassandra/authentication-keyspace"
+            global="aas/cassandra/authentication-keyspace"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="aas/cassandra/user"
+            global="aas/cassandra/user"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="aas/cassandra/password"
+            global="aas/cassandra/password"
+            type="java.lang.String"/>
+
+    <ResourceLink
+            name="aas/cassandra/autoCreateTables"
+            global="aas/cassandra/autoCreateTables"
+            type="java.lang.Boolean"/>
+
+    <ResourceLink
+            name="ics/mcs-url"
+            global="ics/mcs-url"
+            type="java.lang.String"/>
+
+
+</Context>
+
