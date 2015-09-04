@@ -6,11 +6,9 @@
         <version>0.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rest</artifactId>
+    <artifactId>ecloud-service-ics-rest</artifactId>
     <packaging>war</packaging>
-    <name>rest Maven Webapp</name>
-    <url>http://maven.apache.org</url>
-
+    <name>Europeana Cloud: Image Converter Service REST</name>
 
     <dependencies>
 
@@ -102,12 +100,10 @@
             <version>6.0</version>
             <scope>provided</scope>
         </dependency>
-
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

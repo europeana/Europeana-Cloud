@@ -10,7 +10,6 @@
     <artifactId>ecloud-service-ics</artifactId>
     <packaging>pom</packaging>
     <name>ecloud-service-ics Maven Webapp</name>
-    <url>http://maven.apache.org</url>
     <modules>
         <module>converter</module>
         <module>rest</module>
@@ -18,24 +17,17 @@
 
     <repositories>
 
-            <repository>
-                <id>bintray-jai-imageio</id>
-                <name>jai-imageio at bintray</name>
-                <url>http://dl.bintray.com/jai-imageio/maven/</url>
-                <snapshots>
-                    <enabled>false</enabled>
-                </snapshots>
-          </repository>
-
-
-
-
+        <repository>
+            <id>bintray-jai-imageio</id>
+            <name>jai-imageio at bintray</name>
+            <url>http://dl.bintray.com/jai-imageio/maven/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
-
     <dependencies>
-
-
         <dependency>
             <groupId>com.github.jai-imageio</groupId>
             <artifactId>jai-imageio-core</artifactId>
@@ -59,9 +51,6 @@
             <artifactId>tika-core</artifactId>
             <version>1.10</version>
         </dependency>
-
-
-
 
 
         <dependency>

@@ -6,12 +6,10 @@
         <version>0.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>converter</artifactId>
+    <artifactId>ecloud-service-ics-converter</artifactId>
     <packaging>jar</packaging>
 
-    <name>converter</name>
-    <url>http://maven.apache.org</url>
+    <name>Europeana Cloud: Image Converter Service</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

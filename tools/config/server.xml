@@ -45,23 +45,23 @@
 <Environment name="mcs/cassandra/keyspace" type="java.lang.String" value="ecloud_mcs"/>
 <Environment name="mcs/cassandra/user" type="java.lang.String" value="cassandra"/>
 <Environment name="mcs/cassandra/password" type="java.lang.String" value="cassandra"/>
- 
+
 <!-- MCS Swift specific configuration -->
 <Environment name="mcs/swift/provider" type="java.lang.String" value="swift"/> <!-- please note that that should be "swift" if you are not using keystone-->
 <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud"/>
 <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>
 <Environment name="mcs/swift/password" type="java.lang.String" value="admin"/>
 <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://localhost:9999/auth/v1.0"/>
- 
+
 <!-- MCS Solr specific configuration -->
 <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:9090/solr/"/>
 <Environment name="mcs/uis-url" value="http://localhost:9090/uis/" type="java.lang.String" override="false"/>
- 
+
 <!-- Kafka local specific configuration -->
 <Environment name="kafka/brokerList" type="java.lang.String" value="localhost:9092"/>
 <Environment name="kafka/zookeeperList" type="java.lang.String" value="localhost:2181"/>
 <Environment name="kafka/topic" type="java.lang.String" value="topic"/>
- 
+
 <!-- AAS local specific configuration -->
 <Environment name="aas/cassandra/hosts" type="java.lang.String" value="localhost"/>
 <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042"/>
@@ -75,6 +75,9 @@
 <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="localhost:9092"/>
 <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
 <Environment name="dps/zookeeper/address" type="java.lang.String" value="localhost:2181"/>
+
+<!--ICS -->
+<Environment name="ics/mcs-url" type="java.lang.String" value="http://localhost:9090/mcs/"/>
 
   </GlobalNamingResources>
 
