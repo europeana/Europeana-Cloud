@@ -45,7 +45,7 @@
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
-            <artifactId>converter</artifactId>
+            <artifactId>ecloud-service-ics-converter</artifactId>
             <version>${project.version}</version>
         </dependency>
 
