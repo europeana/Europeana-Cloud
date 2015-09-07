@@ -23,4 +23,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <finalName>ecloud-service-ics-converter</finalName>
+    </build>
 </project>

@@ -13,13 +13,6 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.clapper</groupId>
-            <artifactId>classutil_2.8.0</artifactId>
-            <version>0.4.6</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-aas-authorization</artifactId>
             <version>${project.version}</version>
@@ -92,7 +85,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.2.4</version>
+            <version>${version.gson}</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -108,6 +101,6 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>rest</finalName>
+        <finalName>ecloud-service-ics-rest</finalName>
     </build>
 </project>
