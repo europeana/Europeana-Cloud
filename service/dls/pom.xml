@@ -54,6 +54,34 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<profile>
+			<id>kafkaLogging</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<id>copy-log4j-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target/classes</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/resources/kafkaLogging</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<dependencies>
@@ -241,6 +269,7 @@
 				<excludes>
 					<exclude>zookeeper/</exclude>
 					<exclude>default/</exclude>
+					<exclude>kafkaLogging/</exclude>
 				</excludes>
 			</resource>
 		</resources>
