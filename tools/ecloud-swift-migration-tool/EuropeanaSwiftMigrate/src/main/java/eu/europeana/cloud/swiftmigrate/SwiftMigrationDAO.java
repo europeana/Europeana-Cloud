@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
+import org.jclouds.blobstore.options.ListContainerOptions;
 
 /**
  * Class copy files from source container to target container.
@@ -55,15 +57,26 @@ public class SwiftMigrationDAO {
     /**
      * Method retrives list of files from source container.
      * 
-     * @return
+     * @return list of files
      */
     public Set<String> getFilesList() {
         final BlobStore blobStore = sourceProvider.getBlobStore();
         final String container = sourceProvider.getContainer();
         final Set<String> names = new HashSet<String>();
-        for (StorageMetadata files : blobStore.list(container)) {
-            names.add(files.getName());
+        PageSet<? extends StorageMetadata> ObjectList = blobStore.list(container);
+        String marker = null;
+        for (int i = 0; i < 500; i++) {
+
+            for (StorageMetadata files : ObjectList) {
+                names.add(files.getName());
+            }
+            marker = ObjectList.getNextMarker();
+            if (marker == null) {
+                break;
+            }
+            ObjectList = blobStore.list(container, ListContainerOptions.Builder.afterMarker(marker));
         }
         return names;
     }
+
 }

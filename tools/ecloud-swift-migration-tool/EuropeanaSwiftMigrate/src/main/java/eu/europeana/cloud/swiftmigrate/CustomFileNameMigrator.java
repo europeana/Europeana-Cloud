@@ -9,7 +9,7 @@ public class CustomFileNameMigrator extends SwiftMigrator {
      * {@inheritDoc }
      */
     @Override
-    protected String nameConversion(final String s) {
+    public String nameConversion(final String s) {
         return s.contains("|") ? s.replace("|", "_") : null;
     }
 }
