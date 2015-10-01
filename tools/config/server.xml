@@ -48,7 +48,7 @@
 
 <!-- MCS Swift specific configuration -->
 <Environment name="mcs/swift/provider" type="java.lang.String" value="swift"/> <!-- please note that that should be "swift" if you are not using keystone-->
-<Environment name="mcs/swift/container" type="java.lang.String" value="ecloud"/>
+<Environment name="mcs/swift/container" type="java.lang.String" value="ecloudA"/>
 <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>
 <Environment name="mcs/swift/password" type="java.lang.String" value="admin"/>
 <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://localhost:9999/auth/v1.0"/>
