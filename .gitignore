@@ -48,7 +48,7 @@ nbactions.xml
 /service/dps/storm/topologies/indexer/target/
 /service/dps/index/target/
 /service/dps/similarity/target/
-
+solr/custom/overlays/
 
 /service/dps/cassandra/target/
 /service/dps/storm/topologies/extract_and_index/target/

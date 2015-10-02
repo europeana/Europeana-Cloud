@@ -293,7 +293,7 @@
                     <version>2.5</version>
                     <configuration>
                         <tagNameFormat>v@{project.version}</tagNameFormat>
-                        <pushChanges>false</pushChanges>
+                        <pushChanges>true</pushChanges>
                         <localCheckout>false</localCheckout>
                     </configuration>
                 </plugin>
