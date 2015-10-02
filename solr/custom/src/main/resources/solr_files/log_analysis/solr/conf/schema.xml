@@ -18,6 +18,7 @@
         <field name="responseCode" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="responseDuration" type="long" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="clientIP" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
+        <field name="method" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="requestPath" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="category" type="string" indexed="true" stored="true" required="false" multiValued="false"/>
         <field name="instance" type="string" indexed="true" stored="true" required="false" multiValued="false"/>

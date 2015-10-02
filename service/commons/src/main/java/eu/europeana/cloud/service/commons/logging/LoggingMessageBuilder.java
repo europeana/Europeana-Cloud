@@ -7,9 +7,10 @@ public class LoggingMessageBuilder {
     private int statusCode;
     private long requestTime;
     private String remoteAddr;
-    private String resourcePatch;
+    private String resourcePath;
+    private String requestMethod;
     
-    private static String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %RESOURCE_PATH Request received";
+    private static String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %REQUEST_METHOD %RESOURCE_PATH Request received";
     
     public LoggingMessageBuilder(){
         logMessageBuilder = new StringBuilder();
@@ -20,7 +21,8 @@ public class LoggingMessageBuilder {
         message = message.replace("%STATUS_CODE", statusCode+"");
         message = message.replace("%REQUEST_TIME",requestTime+"ms");
         message = message.replace("%CLIENT_IP", remoteAddr);
-        message = message.replace("%RESOURCE_PATH", resourcePatch);
+        message = message.replace("%RESOURCE_PATH", resourcePath);
+        message = message.replace("%REQUEST_METHOD", requestMethod);
         
         LoggingMessage m = new LoggingMessage();
         m.setMessage(message);
@@ -43,8 +45,12 @@ public class LoggingMessageBuilder {
         return this;
     }
 
-    public LoggingMessageBuilder withResourcePatch(String resourcePatch){
-        this.resourcePatch = resourcePatch;
+    public LoggingMessageBuilder withResourcePath(String resourcePath){
+        this.resourcePath = resourcePath;
+        return this;
+    }
+    public LoggingMessageBuilder withRequestMethod(String requestMethod){
+        this.requestMethod = requestMethod;
         return this;
     }
 }
