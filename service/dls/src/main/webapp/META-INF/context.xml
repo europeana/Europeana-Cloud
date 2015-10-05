@@ -33,8 +33,12 @@
    <ResourceLink
         name="cos/datacenterLocation"
         global="cos/datacenterLocation"
-        type="java.lang.String"/>          
-        
+        type="java.lang.String"/>
+
+    <ResourceLink
+            name="logging/kafka/brokerList"
+            global="logging/kafka/brokerList"
+            type="java.lang.String"/>
    <!-- DLS  -->
    
 	<ResourceLink name="mcs/solr/url" global="mcs/solr/url"
