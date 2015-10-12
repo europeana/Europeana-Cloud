@@ -46,5 +46,9 @@ public final class PluginParameterKeys {
         public static final String INDEXER = "INDEXER";                         //name of indexer
         public static final String INDEX_DATA = "INDEX_DATA";                   //true or false
         public static final String FILE_METADATA = "FILE_METADATA";             //e.g. metadata from PDF file
-        public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";     //e.g. url to PDF file thich contains extracted text         
+        public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";     //e.g. url to PDF file thich contains extracted text
+
+        // ---------  IC  -----------
+        public static final String INPUT_EXTENSION = "tiff";
+        public static final String OUTPUT_EXTENSION = "jp2";
 }

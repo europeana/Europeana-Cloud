@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.rits.cloning.Cloner;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -21,62 +22,59 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dps.DpsTask;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
+ *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class ReadFileBolt extends AbstractDpsBolt 
-{
+public class ReadFileBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
 
-    /** Properties to connect to eCloud */
+    /**
+     * Properties to connect to eCloud
+     */
     private final String ecloudMcsAddress;
     private final String username;
     private final String password;
 
     private FileServiceClient fileClient;
 
-    public ReadFileBolt(String ecloudMcsAddress, String username, String password) 
-    {
+    public ReadFileBolt(String ecloudMcsAddress, String username, String password) {
         this.ecloudMcsAddress = ecloudMcsAddress;
         this.username = username;
         this.password = password;
     }
 
     @Override
-    public void prepare() 
-    {
+    public void prepare() {
         fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
     }
 
     @Override
-    public void execute(StormTaskTuple t) 
-    {
+    public void execute(StormTaskTuple t) {
         String fileUrl = t.getFileUrl();
-        if(fileUrl == null || fileUrl.isEmpty())
-        {
+        if (fileUrl == null || fileUrl.isEmpty()) {
             //try data from DPS task
             String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-            if(dpsTaskInputData != null && !dpsTaskInputData.isEmpty())
-            {
-                Type type = new TypeToken<Map<String, List<String>>>(){}.getType();
+            if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
+                Type type = new TypeToken<Map<String, List<String>>>() {
+                }.getType();
                 Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-                if(fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS))
-                {
+                if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
                     List<String> files = fromJson.get(DpsTask.FILE_URLS);
-                    if(!files.isEmpty())
-                    {
+                    if (!files.isEmpty()) {
                         emitFiles(t, files);
                         outputCollector.ack(inputTuple);
                         return;
                     }
                 }
             }
-            
+
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
@@ -84,29 +82,26 @@ public class ReadFileBolt extends AbstractDpsBolt
             outputCollector.ack(inputTuple);
             return;
         }
- 
-        List <String> files = new ArrayList<>();
+
+        List<String> files = new ArrayList<>();
         files.add(fileUrl);
         emitFiles(t, files);
-        
+
         outputCollector.ack(inputTuple);
     }
-    
-    private void emitFiles(StormTaskTuple t, List<String> files)
-    {
+
+    private void emitFiles(StormTaskTuple t, List<String> files) {
         emitBasicInfo(t.getTaskId(), files.size());
         StormTaskTuple tt;
-        
-        for(String file: files)
-        {
+
+        for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-            
-            try
-            {
-            	
-            	LOGGER.info("HERE THE LINK: " + file);
-            	
-                InputStream is = fileClient.getFile(file);          
+
+            try {
+
+                LOGGER.info("HERE THE LINK: " + file);
+
+                InputStream is = fileClient.getFile(file);
 
                 tt.setFileData(is);
 
@@ -117,20 +112,16 @@ public class ReadFileBolt extends AbstractDpsBolt
                 tt.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get(ParamConstants.P_FILENAME));
 
                 tt.setFileUrl(file);
-                
+
                 outputCollector.emit(inputTuple, tt.toStormTuple());
-            }
-            catch (RepresentationNotExistsException | FileNotExistsException | 
-                        WrongContentRangeException ex) 
-            {
+            } catch (RepresentationNotExistsException | FileNotExistsException |
+                    WrongContentRangeException ex) {
                 LOGGER.warn("Can not retrieve file at {}", file);
                 emitDropNotification(t.getTaskId(), file, "Can not retrieve file", "");
-            }
-            catch (DriverException | MCSException | IOException ex) 
-            {
+            } catch (DriverException | MCSException | IOException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
             }
-        } 
+        }
     }
 }

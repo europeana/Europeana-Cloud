@@ -22,118 +22,119 @@ import java.util.regex.Pattern;
 
 /**
  * Stores a Record on the cloud.
- * 
+ * <p/>
  * Receives a byte array representing a Record from a tuple, creates and stores
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
 
-	private String ecloudMcsAddress;
-	private String username;
-	private String password;
+    private String ecloudMcsAddress;
+    private String username;
+    private String password;
 
-	private FileServiceClient mcsClient;
-	private RecordServiceClient recordServiceClient;
+    private FileServiceClient mcsClient;
+    private RecordServiceClient recordServiceClient;
 
-	private static final String mediaType = "text/plain";
-	
-	private static final String DEFAULT_REPRESENTATION_NAME="storm_new_representation";
-	
-	public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
+    private static final String mediaType = "text/plain";
 
-	public WriteRecordBolt(String ecloudMcsAddress, String username,
-			String password) {
+    private static final String DEFAULT_REPRESENTATION_NAME = "storm_new_representation";
 
-		this.ecloudMcsAddress = ecloudMcsAddress;
-		this.username = username;
-		this.password = password;
-	}
+    public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
-	@Override
-	public void prepare() {
+    public WriteRecordBolt(String ecloudMcsAddress, String username,
+                           String password) {
 
-		mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
-		recordServiceClient = new RecordServiceClient(ecloudMcsAddress, username, password);
-	}
+        this.ecloudMcsAddress = ecloudMcsAddress;
+        this.username = username;
+        this.password = password;
+    }
 
-	@Override
-	public void execute(StormTaskTuple t) {
-		Map<String,String> urlParams =  FileServiceClient.parseFileUri(t.getFileUrl());
-		
-		try {
-			LOGGER.info("WriteRecordBolt: persisting...");
+    @Override
+    public void prepare() {
 
-			final String record = t.getFileByteData();
-			String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-			
-			if (outputUrl == null) {
-				// in case OUTPUT_URL is not provided use a random one, using the input URL as the base 
-				outputUrl = t.getFileUrl();
-				outputUrl = StringUtils.substringBefore(outputUrl, "/files");
-				
-				LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
-			}
-			LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
-			
-			URI uri = uploadFileInNewRepresentation(t);
-			
-			LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-			
-			//outputCollector.emit(t.toStormTuple());
-	        emitBasicInfo(t.getTaskId(), 1);
-	        outputCollector.emit(inputTuple, t.toStormTuple());
-	        outputCollector.ack(inputTuple);
+        mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, username, password);
+    }
 
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage());
-			
-			// added to deal with EndBolt and NotificationBolt
-			StringWriter stack = new StringWriter();
+    @Override
+    public void execute(StormTaskTuple t) {
+        Map<String, String> urlParams = FileServiceClient.parseFileUri(t.getFileUrl());
+
+        try {
+            LOGGER.info("WriteRecordBolt: persisting...");
+
+            final String record = t.getFileByteData();
+            String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
+
+            if (outputUrl == null) {
+                // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
+                outputUrl = t.getFileUrl();
+                outputUrl = StringUtils.substringBefore(outputUrl, "/files");
+
+                LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
+            }
+            LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
+
+            URI uri = uploadFileInNewRepresentation(t);
+
+            LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
+
+            //outputCollector.emit(t.toStormTuple());
+            emitBasicInfo(t.getTaskId(), 1);
+            outputCollector.emit(inputTuple, t.toStormTuple());
+            outputCollector.ack(inputTuple);
+
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
+
+            // added to deal with EndBolt and NotificationBolt
+            StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
-            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: "+ e.getMessage(),
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: " + e.getMessage(),
                     stack.toString());
             emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
-		}
-	}
-	
-	private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
-		Map<String,String> urlParams =  FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
-	
-		String newRepresentationName = null;
-		if(newRepresentationNameProvided(stormTaskTuple)){
-			newRepresentationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-		}else{
-			newRepresentationName = DEFAULT_REPRESENTATION_NAME;
-		}
-		Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
-		URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
-		String newRepresentationVersion = findRepresentationVersion(newRepresentation);
+        }
+    }
 
-		URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), "text/xml");
+    private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
+        Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
 
-		recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
+        String newRepresentationName = null;
+        if (newRepresentationNameProvided(stormTaskTuple)) {
+            newRepresentationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        } else {
+            newRepresentationName = DEFAULT_REPRESENTATION_NAME;
+        }
+        Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
+        URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
+        String newRepresentationVersion = findRepresentationVersion(newRepresentation);
 
-		return newFileUri;
-	}
-	
-	private boolean newRepresentationNameProvided(StormTaskTuple stormTaskTuple){
-		if (stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME) != null) {
-			return true;
-		}else{
-			return false;
-		}
-	}
-	
-	private String findRepresentationVersion(URI uri) throws MCSException {
-		Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
-		Matcher m = p.matcher(uri.toString());
-		
-		if(m.find()){
-			return m.group(3);
-		}else{
-			throw new MCSException("Unable to find representation version in representation URL");
-		}
-	}
+        URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), "text/xml");
+
+        recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
+
+        return newFileUri;
+    }
+
+    private boolean newRepresentationNameProvided(StormTaskTuple stormTaskTuple) {
+        if (stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME) != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private String findRepresentationVersion(URI uri) throws MCSException {
+        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
+        Matcher m = p.matcher(uri.toString());
+
+        if (m.find()) {
+            return m.group(3);
+        } else {
+            throw new MCSException("Unable to find representation version in representation URL");
+        }
+    }
 }
