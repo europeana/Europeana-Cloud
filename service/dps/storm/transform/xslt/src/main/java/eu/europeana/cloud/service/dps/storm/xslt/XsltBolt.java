@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
-import java.util.Map;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -18,9 +17,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Values;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -51,6 +47,10 @@ public class XsltBolt extends AbstractDpsBolt {
 
 		} catch (Exception e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
+			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+					.getParameters().toString());
+			emitBasicInfo(t.getTaskId(), 1);
+			outputCollector.ack(inputTuple);
 		}
 
 		Source xslDoc = null;
@@ -58,11 +58,14 @@ public class XsltBolt extends AbstractDpsBolt {
 
 		try {
 			xslDoc = new StreamSource(new URL(xsltUrl).openStream());
-
 			InputStream stream = new ByteArrayInputStream(file.getBytes());
 			xmlDoc = new StreamSource(stream);
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			LOGGER.error("XsltBolt error:" + e.getMessage());
+			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+					.getParameters().toString());
+			emitBasicInfo(t.getTaskId(), 1);
+			outputCollector.ack(inputTuple);
 		}
 
 		TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -77,6 +80,10 @@ public class XsltBolt extends AbstractDpsBolt {
 				cache.put(xsltUrl, transformer);
 			} catch (TransformerConfigurationException e) {
 				LOGGER.error("XsltBolt error:" + e.getMessage());
+				emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+						.getParameters().toString());
+				emitBasicInfo(t.getTaskId(), 1);
+				outputCollector.ack(inputTuple);
 			}
 		}
 
@@ -84,13 +91,20 @@ public class XsltBolt extends AbstractDpsBolt {
 			transformer.transform(xmlDoc, new StreamResult(writer));
 		} catch (TransformerException e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
+			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+					.getParameters().toString());
+			emitBasicInfo(t.getTaskId(), 1);
+			outputCollector.ack(inputTuple);
 		}
 
 		LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
 
 		// pass data to next Bolt
 		t.setFileData(writer.toString());
-		outputCollector.emit(t.toStormTuple());
+		// outputCollector.emit(t.toStormTuple());
+		emitBasicInfo(t.getTaskId(), 1);
+		outputCollector.emit(inputTuple, t.toStormTuple());
+		outputCollector.ack(inputTuple);
 	}
 
 	@Override

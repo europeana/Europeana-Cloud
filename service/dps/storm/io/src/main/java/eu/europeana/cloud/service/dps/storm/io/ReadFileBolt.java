@@ -103,6 +103,9 @@ public class ReadFileBolt extends AbstractDpsBolt
             
             try
             {
+            	
+            	LOGGER.info("HERE THE LINK: " + file);
+            	
                 InputStream is = fileClient.getFile(file);          
 
                 tt.setFileData(is);

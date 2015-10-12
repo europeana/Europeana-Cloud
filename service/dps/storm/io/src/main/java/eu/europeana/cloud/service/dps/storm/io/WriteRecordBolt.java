@@ -8,10 +8,13 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -76,10 +79,22 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 			
 			LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 			
-			outputCollector.emit(t.toStormTuple());
+			//outputCollector.emit(t.toStormTuple());
+	        emitBasicInfo(t.getTaskId(), 1);
+	        outputCollector.emit(inputTuple, t.toStormTuple());
+	        outputCollector.ack(inputTuple);
 
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
+			
+			// added to deal with EndBolt and NotificationBolt
+			StringWriter stack = new StringWriter();
+            e.printStackTrace(new PrintWriter(stack));
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: "+ e.getMessage(),
+                    stack.toString());
+            emitBasicInfo(t.getTaskId(), 1);
+            outputCollector.ack(inputTuple);
+            return;
 		}
 	}
 	

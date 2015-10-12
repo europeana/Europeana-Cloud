@@ -15,10 +15,17 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
-import eu.europeana.cloud.service.dps.storm.ProgressBolt;
+import backtype.storm.tuple.Fields;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.EndBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
+//import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.kafka.KafkaParseTaskBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.xslt.XSLTConstants;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 
 /**
@@ -45,13 +52,8 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  */
 public class XSLTTopology {
 	
-	private final int numberOfExecutors = 16;
-	private final int numberOfTasks = 16;
-	
 	private final static int WORKER_COUNT = 8;
-	private final static int TASK_PARALLELISM = 2;
 	private final static int THRIFT_PORT = 6627;
-	private final static int ZK_PORT = 2181;
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
@@ -67,7 +69,7 @@ public class XSLTTopology {
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
 		
-		ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
+		//ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
 		kafkaConfig.forceFromStart = true;
@@ -79,26 +81,37 @@ public class XSLTTopology {
 		// TOPOLOGY STRUCTURE!
 		// 1 executor, i.e., 1 thread.
 		// 1 task per executor
-		builder.setSpout("kafkaReader", kafkaSpout, 1)
-				.setNumTasks(numberOfTasks);
+		builder.setSpout("kafkaReader", kafkaSpout, XSLTConstants.KAFKA_SPOUT_PARALLEL)
+				.setNumTasks(XSLTConstants.NUMBER_OF_TASKS);
 
-		builder.setBolt("parseKafkaInput", new KafkaParseTaskBolt(),
-				numberOfExecutors).setNumTasks(numberOfTasks)
+		builder.setBolt("parseKafkaInput", new ParseTaskBolt(),
+				XSLTConstants.PARSE_TASKS_BOLT_PARALLEL).setNumTasks(XSLTConstants.NUMBER_OF_TASKS)
 				.shuffleGrouping("kafkaReader");
 
-		builder.setBolt("retrieveFileBolt", retrieveFileBolt, numberOfExecutors)
-				.setNumTasks(numberOfTasks).shuffleGrouping("parseKafkaInput");
+		builder.setBolt("retrieveFileBolt", retrieveFileBolt, XSLTConstants.RETRIEVE_FILE_BOLT_PARALLEL)
+				.setNumTasks(XSLTConstants.NUMBER_OF_TASKS).shuffleGrouping("parseKafkaInput");
 
 		builder.setBolt("xsltTransformationBolt", new XsltBolt(),
-				numberOfExecutors).setNumTasks(numberOfTasks)
+				XSLTConstants.XSLT_BOLT_PARALLEL).setNumTasks(XSLTConstants.NUMBER_OF_TASKS)
 				.shuffleGrouping("retrieveFileBolt");
 
-		builder.setBolt("writeRecordBolt", writeRecordBolt, numberOfExecutors)
-				.setNumTasks(numberOfTasks)
+		builder.setBolt("writeRecordBolt", writeRecordBolt, XSLTConstants.WRITE_BOLT_PARALLEL)
+				.setNumTasks(XSLTConstants.NUMBER_OF_TASKS)
 				.shuffleGrouping("xsltTransformationBolt");
+		
+		builder.setBolt("endBolt", new EndBolt(), XSLTConstants.END_BOLT_PARALLEL).shuffleGrouping("writeRecordBolt");
 
-		builder.setBolt("progressBolt", progressBolt, 1).setNumTasks(1)
-				.shuffleGrouping("writeRecordBolt");
+        builder.setBolt("notificationBolt", new NotificationBolt(XSLTConstants.CASSANDRA_HOSTS, 
+                XSLTConstants.CASSANDRA_PORT, XSLTConstants.CASSANDRA_KEYSPACE_NAME,
+                XSLTConstants.CASSANDRA_USERNAME, XSLTConstants.CASSANDRA_PASSWORD, true), 
+                XSLTConstants.NOTIFICATION_BOLT_PARALLEL)
+    .fieldsGrouping("parseKafkaInput", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+    .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+    .fieldsGrouping("xsltTransformationBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+    .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+    .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+		
+		//builder.setBolt("progressBolt", progressBolt, 1).setNumTasks(1).shuffleGrouping("writeRecordBolt");
 		// END OF TOPOLOGY STRUCTURE
 
 		return builder.createTopology();
@@ -109,28 +122,33 @@ public class XSLTTopology {
 		Config config = new Config();
 		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
-		if (args != null && args.length > 7) {
+		if (args != null && args.length == 3) {
 
 			String topologyName = args[0];
-			String nimbusHost = args[1];
-			String stormZookeeper = args[2];
-			String dpsZookeeper = args[3];
-			String kafkaTopic = args[4];
-			String ecloudMcsAddress = args[5];
-			String username = args[6];
-			String password = args[7];
-
-			XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(dpsZookeeper);
+			String nimbusHost = "localhost";
 			
-			StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(dpsZookeeper,
+			//String stormZookeeper = args[2];
+			//String dpsZookeeper = args[3];
+			
+			// assuming kafka topic == topology name
+			String kafkaTopic = topologyName;
+			String ecloudMcsAddress = XSLTConstants.MCS_URL;
+			
+			// before refactoring args[6], args[7]
+			String username = args[1];
+			String password = args[2];
+
+			XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(XSLTConstants.INPUT_ZOOKEEPER_ADDRESS);
+			
+			StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(XSLTConstants.INPUT_ZOOKEEPER_ADDRESS,
 					kafkaTopic, ecloudMcsAddress, username, password);
 
 			config.setNumWorkers(WORKER_COUNT);
-			config.setMaxTaskParallelism(TASK_PARALLELISM);
+			config.setMaxTaskParallelism(XSLTConstants.MAX_TASK_PARALLELISM);
 			config.put(Config.NIMBUS_THRIFT_PORT, THRIFT_PORT);
-			config.put(Config.STORM_ZOOKEEPER_PORT, ZK_PORT);
+			config.put(XSLTConstants.INPUT_ZOOKEEPER_ADDRESS, XSLTConstants.INPUT_ZOOKEEPER_PORT);
 			config.put(Config.NIMBUS_HOST, nimbusHost);
-			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(stormZookeeper));
+			config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(XSLTConstants.INPUT_ZOOKEEPER_ADDRESS));
 			StormSubmitter.submitTopology(topologyName, config, stormTopology);
 		}
 	}
