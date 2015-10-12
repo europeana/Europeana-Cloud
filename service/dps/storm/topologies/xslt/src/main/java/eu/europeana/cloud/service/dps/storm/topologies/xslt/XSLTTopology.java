@@ -25,34 +25,34 @@ import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
  * This is the XSLT transformation topology for Apache Storm. The topology reads
  * from the cloud, download an XSLT sheet from a remote server, apply it to each
  * record read and save it back to the cloud.
- * 
+ *
  * The topology takes some parameters. When deployed in distributed mode:
- * 
+ *
  * args[0] is the name of the topology;
  * args[1] is the IP of the Storm Nimbus machine;
- * 
+ *
  * args[2] is the IP of the zookeeper machine for storm
  * args[3] is the IP of the zookeeper machine for the dps
- * 
+ *
  * args[4] is the Kafka topic where the xslt topology is listening from
  *
  * args[5] is the address of the MCS service
  * args[6] is the MCS username;
  * args[7] is the MCS password;
- * 
+ *
  * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
  *
  */
 public class XSLTTopology {
-	
+
 	private final int numberOfExecutors = 16;
 	private final int numberOfTasks = 16;
-	
+
 	private final static int WORKER_COUNT = 8;
 	private final static int TASK_PARALLELISM = 2;
 	private final static int THRIFT_PORT = 6627;
 	private final static int ZK_PORT = 2181;
-	
+
 	public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
 	private final BrokerHosts brokerHosts;
@@ -61,19 +61,19 @@ public class XSLTTopology {
 		brokerHosts = new ZkHosts(kafkaZkAddress);
 	}
 
-	public StormTopology buildTopology(String dpsZkAddress, String xsltTopic, 
+	public StormTopology buildTopology(String dpsZkAddress, String xsltTopic,
 			String ecloudMcsAddress, String username, String password) {
 
 		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
 		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
-		
+
 		ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
 		kafkaConfig.forceFromStart = true;
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
-		
+
 		KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
 
 		// TOPOLOGY STRUCTURE!
@@ -121,7 +121,7 @@ public class XSLTTopology {
 			String password = args[7];
 
 			XSLTTopology kafkaSpoutTestTopology = new XSLTTopology(dpsZookeeper);
-			
+
 			StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(dpsZookeeper,
 					kafkaTopic, ecloudMcsAddress, username, password);
 

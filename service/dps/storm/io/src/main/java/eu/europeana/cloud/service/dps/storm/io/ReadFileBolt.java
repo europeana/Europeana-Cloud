@@ -29,7 +29,7 @@ import java.util.List;
  * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class ReadFileBolt extends AbstractDpsBolt 
+public class ReadFileBolt extends AbstractDpsBolt
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
 
@@ -40,7 +40,7 @@ public class ReadFileBolt extends AbstractDpsBolt
 
     private FileServiceClient fileClient;
 
-    public ReadFileBolt(String ecloudMcsAddress, String username, String password) 
+    public ReadFileBolt(String ecloudMcsAddress, String username, String password)
     {
         this.ecloudMcsAddress = ecloudMcsAddress;
         this.username = username;
@@ -48,13 +48,13 @@ public class ReadFileBolt extends AbstractDpsBolt
     }
 
     @Override
-    public void prepare() 
+    public void prepare()
     {
         fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
     }
 
     @Override
-    public void execute(StormTaskTuple t) 
+    public void execute(StormTaskTuple t)
     {
         String fileUrl = t.getFileUrl();
         if(fileUrl == null || fileUrl.isEmpty())
@@ -76,7 +76,7 @@ public class ReadFileBolt extends AbstractDpsBolt
                     }
                 }
             }
-            
+
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
@@ -84,26 +84,26 @@ public class ReadFileBolt extends AbstractDpsBolt
             outputCollector.ack(inputTuple);
             return;
         }
- 
+
         List <String> files = new ArrayList<>();
         files.add(fileUrl);
         emitFiles(t, files);
-        
+
         outputCollector.ack(inputTuple);
     }
-    
+
     private void emitFiles(StormTaskTuple t, List<String> files)
     {
         emitBasicInfo(t.getTaskId(), files.size());
         StormTaskTuple tt;
-        
+
         for(String file: files)
         {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-            
+
             try
             {
-                InputStream is = fileClient.getFile(file);          
+                InputStream is = fileClient.getFile(file);
 
                 tt.setFileData(is);
 
@@ -114,20 +114,20 @@ public class ReadFileBolt extends AbstractDpsBolt
                 tt.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get(ParamConstants.P_FILENAME));
 
                 tt.setFileUrl(file);
-                
+
                 outputCollector.emit(inputTuple, tt.toStormTuple());
             }
-            catch (RepresentationNotExistsException | FileNotExistsException | 
-                        WrongContentRangeException ex) 
+            catch (RepresentationNotExistsException | FileNotExistsException |
+                    WrongContentRangeException ex)
             {
                 LOGGER.warn("Can not retrieve file at {}", file);
                 emitDropNotification(t.getTaskId(), file, "Can not retrieve file", "");
             }
-            catch (DriverException | MCSException | IOException ex) 
+            catch (DriverException | MCSException | IOException ex)
             {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
             }
-        } 
+        }
     }
 }
