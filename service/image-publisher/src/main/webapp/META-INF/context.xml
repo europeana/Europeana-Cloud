@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" path="/images">
+
+    <ResourceLink
+            name="ips/iipHost"
+            global="ips/iipHost"
+            type="java.lang.String"/>
+
+</Context>

@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -98,8 +99,8 @@ public class CassandraRecordService implements RecordService {
                 }
                 for (File f : repVersion.getFiles()) {
                     try {
-                        contentDAO.deleteContent(generateKeyForFile(cloudId, repVersion.getRepresentationName(),
-                            repVersion.getVersion(), f.getFileName()));
+                        contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
+                                repVersion.getVersion(), f.getFileName()));
                     } catch (FileNotExistsException ex) {
                         LOGGER.warn(
                             "File {} was found in representation {}-{}-{} but no content of such file was found",
@@ -134,7 +135,7 @@ public class CassandraRecordService implements RecordService {
             }
             for (File f : rep.getFiles()) {
                 try {
-                    contentDAO.deleteContent(generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
+                    contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                         f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
@@ -217,7 +218,7 @@ public class CassandraRecordService implements RecordService {
 
         for (File f : rep.getFiles()) {
             try {
-                contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, f.getFileName()));
+                contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, f.getFileName()));
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                     f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
@@ -291,7 +292,7 @@ public class CassandraRecordService implements RecordService {
             }
         }
 
-        String keyForFile = generateKeyForFile(globalId, schema, version, file.getFileName());
+        String keyForFile = FileUtils.generateKeyForFile(globalId, schema, version, file.getFileName());
         PutResult result;
         try {
             result = contentDAO.putContent(keyForFile, content);
@@ -319,7 +320,7 @@ public class CassandraRecordService implements RecordService {
             throw new WrongContentRangeException("Start range must be less than file length");
         }
         try {
-            contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
+            contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart, rangeEnd, os);
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -343,7 +344,7 @@ public class CassandraRecordService implements RecordService {
             throw new FileNotExistsException();
         }
         try {
-            contentDAO.getContent(generateKeyForFile(globalId, schema, version, fileName), -1, -1, os);
+            contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os);
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -363,7 +364,7 @@ public class CassandraRecordService implements RecordService {
             throw new CannotModifyPersistentRepresentationException();
         }
         recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
-        contentDAO.deleteContent(generateKeyForFile(globalId, schema, version, fileName));
+        contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName));
     }
 
 
@@ -385,8 +386,8 @@ public class CassandraRecordService implements RecordService {
         for (File srcFile : srcRep.getFiles()) {
             File copiedFile = new File(srcFile);
             try {
-                contentDAO.copyContent(generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
-                    generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
+                contentDAO.copyContent(FileUtils.generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
+                    FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                     srcFile.getFileName(), globalId, schema, version);
@@ -415,20 +416,6 @@ public class CassandraRecordService implements RecordService {
         }
 
         throw new FileNotExistsException();
-    }
-
-
-    /**
-     * Generates unique key for file content.
-     * 
-     * @param recordId
-     * @param repName
-     * @param version
-     * @param fileName
-     * @return
-     */
-    private String generateKeyForFile(String recordId, String repName, String version, String fileName) {
-        return recordId + "_" + repName + "_" + version + "_" + fileName;
     }
 
 
