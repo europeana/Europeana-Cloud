@@ -72,7 +72,12 @@ public class XSLTTopology {
 		//ProgressBolt progressBolt = new ProgressBolt(dpsZkAddress);
 
 		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
-		kafkaConfig.forceFromStart = true;
+		
+		// changing the way the Kafka spout reads stuff from Kafka:
+		// -2, always starts from beginning of the topic;
+		// -1, reads from the latest offset.
+		kafkaConfig.startOffsetTime=-1;				
+
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		TopologyBuilder builder = new TopologyBuilder();
 
