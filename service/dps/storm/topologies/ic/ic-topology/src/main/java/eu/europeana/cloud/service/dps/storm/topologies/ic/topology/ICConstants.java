@@ -1,15 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology;
 
 /**
- * @author Franco Maria Nardini <francomaria.nardini@isti.cnr.it>
- */
+ *
+ * */
 public class ICConstants {
     public static final String INPUT_ZOOKEEPER_ADDRESS = "iks-kbase.synat.pcss.pl";
     public static final String INPUT_ZOOKEEPER_PORT = "2181";
-
-
-    public static final String MCS_URL = "https://gillenia.man.poznan.pl/api/";
-
 
     // ------ Cassandra ------
     public static final String CASSANDRA_HOSTS = "iks-kbase.synat.pcss.pl"; //cassandra node hosts, comma separated

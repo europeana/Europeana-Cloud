@@ -49,8 +49,6 @@ public class StaticICTopology {
     private static String username = "admin";
     private static String password = "admin";
 
-    //private static String zkAddress = "admin";
-    //private static String zkAddress = "admin";
 
     public static void main(String[] args) throws Exception {
 

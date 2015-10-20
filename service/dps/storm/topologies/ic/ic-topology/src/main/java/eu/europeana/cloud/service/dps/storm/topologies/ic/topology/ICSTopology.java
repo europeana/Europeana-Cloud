@@ -16,29 +16,25 @@ import storm.kafka.*;
 
 import java.util.Arrays;
 
-//import eu.europeana.cloud.service.dps.storm.ProgressBolt;
-
 /**
- * This is the XSLT transformation topology for Apache Storm. The topology reads
- * from the cloud, download an XSLT sheet from a remote server, apply it to each
- * record read and save it back to the cloud.
+ * This is the Image conversion topology . The topology reads
+ * from the cloud, apply Kakadu conversion to each record which was read and save it back to the cloud.
+ * <p/>
+ * The topology takes some parameters. When deployed in distributed mode:
+ * <p/>
  * <p/>
  * The topology takes some parameters. When deployed in distributed mode:
  * <p/>
  * args[0] is the name of the topology;
- * args[1] is the IP of the Storm Nimbus machine;
  * <p/>
- * args[2] is the IP of the zookeeper machine for storm
- * args[3] is the IP of the zookeeper machine for the dps
+ * args[1] is the IP of the zookeeper machine for the dps
  * <p/>
- * args[4] is the Kafka topic where the xslt topology is listening from
- * <p/>
- * args[5] is the address of the MCS service
- * args[6] is the MCS username;
- * args[7] is the MCS password;
+ * * <p/>
+ * args[2] is the address of the MCS service
+ * args[3] is the MCS username;
+ * args[4] is the MCS password;
  *
- * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
- */
+ *  */
 public class ICSTopology {
 
     private final static int WORKER_COUNT = 8;
@@ -58,7 +54,7 @@ public class ICSTopology {
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
-        kafkaConfig.forceFromStart = true;
+        kafkaConfig.startOffsetTime=-1;
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
@@ -121,9 +117,8 @@ public class ICSTopology {
             config.put(dpsZookeeper, ICConstants.INPUT_ZOOKEEPER_PORT);
             config.put(Config.NIMBUS_HOST, nimbusHost);
             config.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList(dpsZookeeper));
-            System.out.println("before");
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
-            System.out.println("after");
+
         }
     }
 }
