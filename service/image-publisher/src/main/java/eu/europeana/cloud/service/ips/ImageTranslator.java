@@ -7,6 +7,8 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,23 +24,42 @@ public class ImageTranslator {
     // URL to IIP Image Server
     private String iipImageServer = null;
 
+    static final private String IIIF_PARAMETERS = "?IIIF=$1/info.json";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImageTranslator.class);
+
     @Autowired
     public ImageTranslator(@Value("") String iipHost) {
         this.iipImageServer = iipHost;
     }
 
+    /**
+     * Returns response from IIP Image Server according to the filename created with specified parameters
+     *
+     * @param globalId cloud identifier
+     * @param schema representation name
+     * @param version version name
+     * @param fileName file name
+     * @return manifest file in json format
+     */
     public String getResponse(String globalId, String schema, String version, String fileName) {
+
+        if (iipImageServer == null || iipImageServer.isEmpty()) {
+            LOGGER.warn("Image server not available.");
+            return null;
+        }
 
         // prepare file name of image file
         String imageName = FileUtils.generateKeyForFile(globalId, schema, version, fileName);
+        // when any part of name is missing there is no sense trying to get manifest file
+        if (imageName == null)
+            return null;
 
         // Create an instance of HttpClient.
         HttpClient client = new HttpClient();
 
-        String url = iipImageServer + "?IIIF=" + imageName + "/info.json";
-
         // Create a method instance.
-        GetMethod method = new GetMethod(url);
+        GetMethod method = new GetMethod(prepareURL(imageName));
 
         // Provide custom retry handler is necessary
         method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
@@ -49,7 +70,7 @@ public class ImageTranslator {
             int statusCode = client.executeMethod(method);
 
             if (statusCode != HttpStatus.SC_OK) {
-                System.err.println("Getting manifest for " + imageName + " failed: " + method.getStatusLine());
+                LOGGER.error("Getting manifest for " + imageName + " failed: " + method.getStatusLine());
             }
 
             // Read the response body.
@@ -60,15 +81,17 @@ public class ImageTranslator {
             return new String(responseBody);
 
         } catch (HttpException e) {
-            System.err.println("Fatal protocol violation: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Fatal protocol violation: " + e.getMessage());
         } catch (IOException e) {
-            System.err.println("Fatal transport error: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Fatal transport error: " + e.getMessage());
         } finally {
             // Release the connection.
             method.releaseConnection();
         }
         return null;
+    }
+
+    private String prepareURL(String imageName) {
+        return iipImageServer + IIIF_PARAMETERS.replace("$1", imageName);
     }
 }
