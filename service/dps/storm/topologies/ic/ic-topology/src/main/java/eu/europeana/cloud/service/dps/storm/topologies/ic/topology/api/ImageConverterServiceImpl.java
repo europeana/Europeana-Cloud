@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.Ka
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.ExtensionHelper;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.MimeTypeHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -56,12 +57,13 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         InputStream outputStream = null;
         ByteArrayOutputStream baos = null;
         try {
+            TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
             inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
                 String fileName = findFileName(fileURI);
                 folderPath = persistStreamToTemporaryStorage(inputStream, fileName);
-                inputFilePath = buildFilePath(folderPath, fileName, getParameterFromTuple(stormTaskTuple, PluginParameterKeys.INPUT_EXTENSION));
-                outputFilePath = buildFilePath(folderPath, fileName, getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_EXTENSION));
+                inputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.INPUT_EXTENSION));
+                outputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_EXTENSION));
                 if (outputFilePath != null) {
                     converterContext.convert(inputFilePath, outputFilePath, null);//TODO ! null will be changed to kakadu-compressing properties
                     File outputFile = new File(outputFilePath);
@@ -126,25 +128,6 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         } else {
             throw new MCSException("Unable to find file in representation URL");
         }
-    }
-
-
-    //The template one
-    private boolean isProvidedAsParameter(StormTaskTuple stormTaskTuple, String parameter) {
-        if (stormTaskTuple.getParameter(parameter) != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    //The template one
-    private String getParameterFromTuple(StormTaskTuple stormTaskTuple, String parameter) {
-        String outputExtension = parameter;
-        if (isProvidedAsParameter(stormTaskTuple, parameter)) {
-            outputExtension = stormTaskTuple.getParameter(parameter);
-        }
-        return outputExtension;
     }
 
 

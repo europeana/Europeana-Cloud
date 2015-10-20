@@ -25,6 +25,7 @@ public final class PluginParameterKeys {
         public static final String REPRESENTATION_VERSION = "REPRESENTATION_VERSION";
         public static final String FILE_NAME = "FILE_NAME";
         public static final String MIME_TYPE = "MIME_TYPE";
+        public static final String OUTPUT_MIME_TYPE = "text/xml";
         
         // ---------  Messages  -----------
         public static final String NEW_DATASET_MESSAGE = "NewDataset";
@@ -51,4 +52,7 @@ public final class PluginParameterKeys {
         // ---------  IC  -----------
         public static final String INPUT_EXTENSION = "tiff";
         public static final String OUTPUT_EXTENSION = "jp2";
+
+        //--------------------
+
 }

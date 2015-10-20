@@ -78,6 +78,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
         List<String> zooServers = (List<String>) stormConfig.get(Config.STORM_ZOOKEEPER_SERVERS);
         String zooPort = String.valueOf(stormConfig.get(Config.STORM_ZOOKEEPER_PORT));
+
         this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
 
         //String connectString = String.join(":"+zooPort+",", zooServers);    //Java 8
