@@ -48,8 +48,7 @@ public class DpsTaskUtil {
     private final static String ulccXsltUrl = "http://ecloud.eanadev.org:8080/hera/sample_xslt.xslt";
 
 
-    private final static String SAMPLE_TIFF = "http://iks-kbase.synat.pcss.pl:9090/mcs/records/I47JDEUNV2TOS6JBWOKYKEQXUESJDGQVCX5QUHTNNGFCAPXY2JHA/representations/reprooooooooooo/versions/28256ab0-635c-11e5-8e1c-525400ea6731/files/6e79d1b1-5cec-4910-9fa1-51e918458605";
-
+    private final static String SAMPLE_TIFF = "http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c";
     /**
      * @return a hardcoded {@link DpsTask}
      */
@@ -86,6 +85,7 @@ public class DpsTaskUtil {
 
         task.addDataEntry(DpsTask.FILE_URLS, records);
         task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, "jp2reprooo");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE,"image/jp2");
         //task.addParameter(PluginParameterKeys.INPUT_EXTENSION, "tiff");
         ///task.addParameter(PluginParameterKeys.OUTPUT_EXTENSION, "jp2");
         //  task.setTaskName("nameOfTheTask");
