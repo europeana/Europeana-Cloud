@@ -85,6 +85,9 @@
         <!--ICS -->
         <Environment name="ics/mcs-url" type="java.lang.String" value="http://localhost:9090/mcs/"/>
 
+        <!--Image publisher -->
+        <Environment name="ips/iipHost" type="java.lang.String" value="http://loheria.man.poznan.pl/www-fcgi/iipsrv.fcgi"/>
+
     </GlobalNamingResources>
 
     <!-- A "Service" is a collection of one or more "Connectors" that share
