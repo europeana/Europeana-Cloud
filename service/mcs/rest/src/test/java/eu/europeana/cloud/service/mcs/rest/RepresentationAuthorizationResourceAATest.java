@@ -1,25 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.cassandra.auth.Permission;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -31,205 +11,276 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+
+import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepresentationAuthorizationResourceAATest extends AbstractSecurityTest {
-	
-	@Autowired
-	@NotNull
-	private FileResource fileResource;
-	
-	@Autowired
-	@NotNull
-	private FilesResource filesResource;
-	
+
     @Autowired
-	@NotNull
+    @NotNull
+    private FileResource fileResource;
+
+    @Autowired
+    @NotNull
+    private FilesResource filesResource;
+
+    @Autowired
+    @NotNull
     private RecordService recordService;
 
-	@Autowired
-	@NotNull
-	private RepresentationAuthorizationResource fileAuthorizationResource;
-	
-	@Autowired
-	@NotNull
-	private RepresentationResource representationResource;
+    @Autowired
+    @NotNull
+    private RepresentationAuthorizationResource fileAuthorizationResource;
 
-	private static final String GLOBAL_ID = "GLOBAL_ID";
-	private static final String SCHEMA = "CIRCLE";
-	private static final String VERSION = "KIT_KAT";
-	private static final String PROVIDER_ID = "provider";
-	private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
-	
-	private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
+    @Autowired
+    @NotNull
+    private RepresentationResource representationResource;
 
-	private static final String FILE_NAME = "FILE_NAME";
-	private static final String MIME_TYPE = "CLOWN";
-	
-	private static final int READ_PERMISSION = 1;
-	private static final int WRITE_PERMISSION = 2;
-	
-	private UriInfo URI_INFO;
-	
-	private InputStream INPUT_STREAM;
-	
-	private Representation representation;
-	
-	/**
-	 * Pre-defined users
-	 */
-	private final static String RANDOM_PERSON = "admin";
-	private final static String RANDOM_PASSWORD = "admin";
+    private static final String GLOBAL_ID = "GLOBAL_ID";
+    private static final String SCHEMA = "CIRCLE";
+    private static final String VERSION = "KIT_KAT";
+    private static final String PROVIDER_ID = "provider";
+    private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
 
-	private final static String VAN_PERSIE = "Robin_Van_Persie";
-	private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
+    private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
 
-	private final static String RONALDO = "Cristiano";
-	private final static String RONALD_PASSWORD = "Ronaldo";
+    private static final String FILE_NAME = "FILE_NAME";
+    private static final String MIME_TYPE = "CLOWN";
 
-	private final static String ANONYMOUS = "Anonymous";
-	private final static String ANONYMOUS_PASSWORD = "Anonymous";
-	
-	private final static String ADMIN = "admin";
-	private final static String ADMIN_PASSWORD = "admin";
-	
-	@Before
-	public void mockUp() throws Exception {
+    private static final int READ_PERMISSION = 1;
+    private static final int WRITE_PERMISSION = 2;
 
-		URI_INFO = Mockito.mock(UriInfo.class);
-		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-		
-		representation = new Representation();
-		representation.setCloudId(GLOBAL_ID);
-		representation.setRepresentationName(SCHEMA);
-		representation.setVersion(VERSION);
+    private UriInfo URI_INFO;
 
-		Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        
+    private InputStream INPUT_STREAM;
+
+    private Representation representation;
+
+    /**
+     * Pre-defined users
+     */
+    private final static String RANDOM_PERSON = "admin";
+    private final static String RANDOM_PASSWORD = "admin";
+
+    private final static String VAN_PERSIE = "Robin_Van_Persie";
+    private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
+
+    private final static String RONALDO = "Cristiano";
+    private final static String RONALD_PASSWORD = "Ronaldo";
+
+    private final static String ANONYMOUS = "Anonymous";
+    private final static String ANONYMOUS_PASSWORD = "Anonymous";
+
+    private final static String ADMIN = "admin";
+    private final static String ADMIN_PASSWORD = "admin";
+
+    @Before
+    public void mockUp() throws Exception {
+
+        URI_INFO = Mockito.mock(UriInfo.class);
+        UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
+
+        representation = new Representation();
+        representation.setCloudId(GLOBAL_ID);
+        representation.setRepresentationName(SCHEMA);
+        representation.setVersion(VERSION);
+
+        Mockito.doReturn(representation).when(recordService).createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
         Mockito.doReturn(uriBuilder).when(URI_INFO).getBaseUriBuilder();
         Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
         Mockito.doReturn(new URI("")).when(URI_INFO).resolve((URI) Mockito.anyObject());
-        
-		INPUT_STREAM = new InputStream() {
-			
-			@Override
-			public int read() throws IOException {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-		};
-	}
-	
 
-	@Test
-	public void testSpringPermissionStrings()  {
-		
-		assertEquals(READ_PERMISSION, BasePermission.READ.getMask());
-		assertEquals(WRITE_PERMISSION, BasePermission.WRITE.getMask());
-	}
-	
-	/** 
-	 * Tests giving read access to specific user. 
-	 */
-	@Test
-	public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException, 
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-			FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException 	 {
+        INPUT_STREAM = new InputStream() {
 
-		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		
-		login(RONALDO, RONALD_PASSWORD);
+            @Override
+            public int read() throws IOException {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+        };
+    }
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
-		
-		File f = new File();
-		f.setFileName(FILE_NAME);
-		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
-		
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-	}
+    @Test
+    public void testSpringPermissionStrings() {
 
-	/** 
-	 * Tests giving write access to specific user. 
-	 */
-	@Test
-	public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException, 
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-			FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException 	 {
+        assertEquals(READ_PERMISSION, BasePermission.READ.getMask());
+        assertEquals(WRITE_PERMISSION, BasePermission.WRITE.getMask());
+    }
 
-		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		
-		login(RONALDO, RONALD_PASSWORD);
+    /**
+     * Tests giving read access to specific user.
+     */
+    @Test
+    public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
-		
-		File f = new File();
-		f.setFileName(FILE_NAME);
-		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
-		
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
-	}
-	
-	// TEST giving access to everyone + anonymous users //
-	
-	@Test
-	public void randomPersonShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenForEveryone() 
-			throws RepresentationNotExistsException,  CannotModifyPersistentRepresentationException,
-				FileAlreadyExistsException, FileNotExistsException,
-				WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException	 {
+        login(RONALDO, RONALD_PASSWORD);
 
-		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		
-		login(RONALDO, RONALD_PASSWORD);
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
-		
-		File f = new File();
-		f.setFileName(FILE_NAME);
-		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
 
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-	}
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+    }
 
-	@Test
-	public void unknownUserShouldBeAbleToGetFileAfterAccessWasGivenForEveryone() 
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-				FileNotExistsException, WrongContentRangeException,
-				RecordNotExistsException, ProviderNotExistsException {
+    /**
+     * Tests giving write access to specific user.
+     */
+    @Test
+    public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
 
-		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		
-		login(RONALDO, RONALD_PASSWORD);
-		
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
-		
-		File f = new File();
-		f.setFileName(FILE_NAME);
-		Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-		fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
-		
-		login(ANONYMOUS, ANONYMOUS_PASSWORD);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-	}
+        login(RONALDO, RONALD_PASSWORD);
+
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
+
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
+    }
+
+    // TEST giving access to everyone + anonymous users //
+
+    @Test
+    public void randomPersonShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenForEveryone()
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            FileAlreadyExistsException, FileNotExistsException,
+            WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+
+        Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        login(RONALDO, RONALD_PASSWORD);
+
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
+
+        login(RANDOM_PERSON, RANDOM_PASSWORD);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+    }
+
+    @Test
+    public void unknownUserShouldBeAbleToGetFileAfterAccessWasGivenForEveryone()
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+            FileNotExistsException, WrongContentRangeException,
+            RecordNotExistsException, ProviderNotExistsException {
+
+        Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        login(RONALDO, RONALD_PASSWORD);
+
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        fileAuthorizationResource.giveReadAccessToEveryone(GLOBAL_ID, SCHEMA, VERSION);
+
+        login(ANONYMOUS, ANONYMOUS_PASSWORD);
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+    }
+
+    /*
+     * Removing permissions
+     */
+    @Test(expected = AuthenticationCredentialsNotFoundException.class)
+    public void notLoggedInUserShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
+        fileAuthorizationResource.removePermissions("someID", "someSchema", "someVersion", "userName", READ_PERMISSION + "");
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void anonymousUserShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
+        login(ANONYMOUS, ANONYMOUS_PASSWORD);
+        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, "userName", READ_PERMISSION + "");
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void userWithoutSufficientRightsShouldNotBeAbleToRemovePrivilegesFromAnyResource() {
+        login(RONALDO, RONALD_PASSWORD);
+        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, "userName", READ_PERMISSION + "");
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void ronaldoShouldBeAbleToDeletePermissionsForVanPersieToHisFile() throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+
+		/* Add file to eCloud */
+        login(RONALDO, RONALD_PASSWORD);
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        /* Grant access to this file for Van Persie */
+        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+		/* Check if Van Persie has access to file */
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+
+		/* Delete permissions for Var Persie */
+        login(RONALDO, RONALD_PASSWORD);
+
+        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+
+		/* VAn Persie should not be able to access file */
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+    }
 }

@@ -58,6 +58,8 @@
         <constructor-arg ref="authorizationStrategy" />
         <constructor-arg ref="permissionFactory" />
     </bean>
+    
+    <bean id="permissionsGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
 
     <bean id="aclRepository"
           class="eu.europeana.aas.acl.repository.CassandraAclRepository">

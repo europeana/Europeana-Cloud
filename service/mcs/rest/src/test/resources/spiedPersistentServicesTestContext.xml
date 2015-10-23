@@ -40,6 +40,8 @@
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+    <bean id="permissionGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
+            
     
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
     <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
