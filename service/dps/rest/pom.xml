@@ -237,7 +237,11 @@
             <artifactId>ecloud-service-cos</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Authentication + Authorization -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
