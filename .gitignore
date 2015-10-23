@@ -52,3 +52,4 @@ solr/custom/overlays/
 
 /service/dps/cassandra/target/
 /service/dps/storm/topologies/extract_and_index/target/
+service/image-publisher/target/
