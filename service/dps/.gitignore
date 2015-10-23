@@ -34,4 +34,6 @@ nbactions.xml
 /service/dps/storm/io/target/
 /service/dps/storm/transform/xslt/target/
 /service/dps/storm/topology/xslt/target/
+/service/dps/storm/topology/ic/converter/target/
+/service/dps/storm/topology/ic/ic-topology/target/
 /service/dps/storm/examples/target/

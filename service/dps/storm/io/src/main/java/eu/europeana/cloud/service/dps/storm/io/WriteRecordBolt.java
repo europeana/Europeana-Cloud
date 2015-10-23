@@ -7,6 +7,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -102,17 +103,21 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
         Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
 
-        String newRepresentationName = null;
+
+        TaskTupleUtility taskTupleUtility =new TaskTupleUtility();
+        String newRepresentationName= taskTupleUtility.getParameterFromTuple(stormTaskTuple,PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        String outputMimeType= taskTupleUtility.getParameterFromTuple(stormTaskTuple,PluginParameterKeys.OUTPUT_MIME_TYPE);
+        /*
         if (newRepresentationNameProvided(stormTaskTuple)) {
             newRepresentationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         } else {
             newRepresentationName = DEFAULT_REPRESENTATION_NAME;
         }
+        */
         Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);
-
-        URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), "text/xml");
+        URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
 
         recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
 
