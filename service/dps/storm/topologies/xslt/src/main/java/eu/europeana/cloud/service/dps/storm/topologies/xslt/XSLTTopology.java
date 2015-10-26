@@ -76,9 +76,10 @@ public class XSLTTopology {
 		// changing the way the Kafka spout reads stuff from Kafka:
 		// -2, always starts from beginning of the topic;
 		// -1, reads from the latest offset.
-		kafkaConfig.startOffsetTime=-1;				
-
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+		kafkaConfig.forceFromStart = true;
+		kafkaConfig.startOffsetTime= kafka.api.OffsetRequest.LatestTime();
+		
 		TopologyBuilder builder = new TopologyBuilder();
 
 		KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
