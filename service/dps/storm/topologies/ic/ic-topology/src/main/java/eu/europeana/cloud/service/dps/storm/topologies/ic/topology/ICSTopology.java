@@ -54,7 +54,7 @@ public class ICSTopology {
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
-        kafkaConfig.startOffsetTime=-1;
+        kafkaConfig.forceFromStart = true;
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);

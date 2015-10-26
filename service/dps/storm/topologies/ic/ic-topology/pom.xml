@@ -18,10 +18,21 @@
 
     <dependencies>
 
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -44,6 +55,16 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-topologies-ic-converter</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -139,6 +160,11 @@
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+
+                <exclusion>
                     <artifactId>log4j-over-slf4j</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
@@ -153,6 +179,20 @@
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
             <version>0.9.2-incubating</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>zookeeper</artifactId>
+                    <groupId>org.apache.zookeeper</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -161,6 +201,14 @@
             <artifactId>kafka_2.10</artifactId>
             <version>0.8.1.1</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>

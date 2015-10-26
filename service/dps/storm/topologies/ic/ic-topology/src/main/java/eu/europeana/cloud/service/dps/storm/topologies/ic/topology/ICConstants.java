@@ -12,7 +12,7 @@ public class ICConstants {
     public static final Integer CASSANDRA_PORT = 9042;
     public static final String CASSANDRA_KEYSPACE_NAME = "ecloud_dps";
     public static final String CASSANDRA_USERNAME = "ecloud_dps";
-    public static final String CASSANDRA_PASSWORD = "password";
+    public static final String CASSANDRA_PASSWORD = "ecloud_dps";
 
     // ------ PARALLELISM HINTS ------
     public static final Integer KAFKA_SPOUT_PARALLEL = 1;
