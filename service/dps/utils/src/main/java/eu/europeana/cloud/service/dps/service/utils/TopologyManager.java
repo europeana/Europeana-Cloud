@@ -3,7 +3,10 @@ package eu.europeana.cloud.service.dps.service.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.util.*;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Class manages topology names and topology users
@@ -30,7 +33,7 @@ public class TopologyManager {
 
     private void logResult() {
         for(Map.Entry<String,String> entry : topologies.entrySet()){
-            logger.info("Topology registered -> topologyName=" + entry.getKey() + " topologyUserName" + entry.getKey());
+            logger.info("Topology registered -> topologyName=" + entry.getKey() + " topologyUserName=" + entry.getKey());
         }
     }
 
@@ -59,6 +62,6 @@ public class TopologyManager {
     }
 
     private void assertEqualsLength(String[] names, String[] users) {
-        assert (names.length == users.length);
+        checkArgument(names.length == users.length,"Different number of elements on nameList and userNameList.");
     }
 }

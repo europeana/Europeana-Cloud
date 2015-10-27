@@ -7,6 +7,7 @@ import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 
 public class TopologyManagerTest {
@@ -35,8 +36,9 @@ public class TopologyManagerTest {
         //when
         try {
             final TopologyManager result = new TopologyManager(nameList, brokenUserList);
-        } catch (AssertionError exception) {
-            assertThat(exception, is(instanceOf(AssertionError.class)));
+            fail();
+        } catch (IllegalArgumentException exception) {
+            assertThat(exception, is(instanceOf(IllegalArgumentException.class)));
         }
     }
 
