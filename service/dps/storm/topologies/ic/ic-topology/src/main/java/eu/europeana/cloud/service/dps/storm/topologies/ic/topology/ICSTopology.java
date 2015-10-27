@@ -33,8 +33,7 @@ import java.util.Arrays;
  * args[2] is the address of the MCS service
  * args[3] is the MCS username;
  * args[4] is the MCS password;
- *
- *  */
+ */
 public class ICSTopology {
 
     private final static int WORKER_COUNT = 8;
@@ -48,13 +47,14 @@ public class ICSTopology {
         brokerHosts = new ZkHosts(kafkaZkAddress);
     }
 
-    public StormTopology buildTopology(String dpsZkAddress, String xsltTopic,
+    public StormTopology buildTopology(String icTopic,
                                        String ecloudMcsAddress, String username, String password) {
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, icTopic, "", "storm");
         kafkaConfig.forceFromStart = true;
+        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
@@ -108,7 +108,7 @@ public class ICSTopology {
 
             ICSTopology kafkaSpoutTestTopology = new ICSTopology(dpsZookeeper);
 
-            StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(dpsZookeeper,
+            StormTopology stormTopology = kafkaSpoutTestTopology.buildTopology(
                     kafkaTopic, ecloudMcsAddress, username, password);
 
             config.setNumWorkers(WORKER_COUNT);
