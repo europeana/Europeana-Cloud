@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
@@ -81,6 +82,28 @@ public class TopologyManagerTest {
             expectedNameToUserMap.put(names[i], userNames[i]);
         }
         return expectedNameToUserMap;
+    }
+
+    @Ignore
+    @Test
+    public void should_successfully_containsTopology() {
+        //given
+        final String topologyName = "topologyA";
+        //when
+        boolean result = instance.containsTopology(topologyName);
+        //then
+        assertThat(result, is(equalTo(true)));
+    }
+
+    @Ignore
+    @Test
+    public void should_unsuccessfully_containsTopology() {
+        //given
+        final String topologyName = "topologyC";
+        //when
+        boolean result = instance.containsTopology(topologyName);
+        //then
+        assertThat(result, is(equalTo(false)));
     }
 
     private List<String> convertStringToList(String input) {

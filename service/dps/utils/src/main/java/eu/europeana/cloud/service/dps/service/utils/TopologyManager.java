@@ -64,4 +64,8 @@ public class TopologyManager {
     private void assertEqualsLength(String[] names, String[] users) {
         checkArgument(names.length == users.length,"Different number of elements on nameList and userNameList.");
     }
+
+    public boolean containsTopology(String topologyName) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 }
