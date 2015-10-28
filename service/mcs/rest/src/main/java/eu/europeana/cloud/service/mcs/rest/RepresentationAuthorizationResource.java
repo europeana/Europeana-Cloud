@@ -48,6 +48,12 @@ public class RepresentationAuthorizationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
+    private static final String ALL_PERMISION = eu.europeana.cloud.common.model.Permission.ALL.getValue();
+    private static final String READ_PERMISION = eu.europeana.cloud.common.model.Permission.READ.getValue();
+    private static final String WRITE_PERMISION = eu.europeana.cloud.common.model.Permission.WRITE.getValue();
+    private static final String ADMIN_PERMISION = eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue();
+    private static final String DELETE_PERMISION = eu.europeana.cloud.common.model.Permission.DELETE.getValue();
+
     /**
      * Removes permissions for selected user to selected representation version.<br/><br/>
      * Permissions mappings:<br/>
@@ -135,24 +141,19 @@ public class RepresentationAuthorizationResource {
         if (versionAcl != null) {
 
             try {
-                int pAsInt = Integer.parseInt(permission);
-                if (pAsInt == BasePermission.READ.getMask()) {
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                }
-                if (pAsInt == BasePermission.WRITE.getMask()) {
+                if(ALL_PERMISION.equalsIgnoreCase(permission)){
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
-                }
-                if (pAsInt == BasePermission.DELETE.getMask()) {
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.DELETE, new PrincipalSid(username), true);
-                }
-                if (pAsInt == BasePermission.ADMINISTRATION.getMask()) {
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.ADMINISTRATION, new PrincipalSid(username), true);
-                }
-                if(pAsInt == 0){
+                }else if(READ_PERMISION.equalsIgnoreCase(permission)){
+                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
+                }else if(WRITE_PERMISION.equalsIgnoreCase(permission)){
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+                }else if(DELETE_PERMISION.equalsIgnoreCase(permission)){
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.DELETE, new PrincipalSid(username), true);
+                }else if(ADMIN_PERMISION.equalsIgnoreCase(permission)){
                     versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.ADMINISTRATION, new PrincipalSid(username), true);
                 }
                 mutableAclService.updateAcl(versionAcl);
@@ -211,20 +212,20 @@ public class RepresentationAuthorizationResource {
     private List<Permission> buildPermissionsList(String permissionId) {
 
         List<Permission> permissions = new ArrayList<>();
-        int pAsInt = Integer.parseInt(permissionId);
-        if (pAsInt == BasePermission.READ.getMask()) {
+
+        if (READ_PERMISION.equalsIgnoreCase(permissionId)) {
             permissions.add(BasePermission.READ);
         }
-        if (pAsInt == BasePermission.WRITE.getMask()) {
+        if (WRITE_PERMISION.equalsIgnoreCase(permissionId)) {
             permissions.add(BasePermission.WRITE);
         }
-        if (pAsInt == BasePermission.ADMINISTRATION.getMask()) {
+        if (ADMIN_PERMISION.equalsIgnoreCase(permissionId)) {
             permissions.add(BasePermission.ADMINISTRATION);
         }
-        if (pAsInt == BasePermission.DELETE.getMask()) {
+        if (DELETE_PERMISION.equalsIgnoreCase(permissionId)) {
             permissions.add(BasePermission.DELETE);
         }
-        if(pAsInt == 0){
+        if(ALL_PERMISION.equalsIgnoreCase(permissionId)){
             permissions.add(BasePermission.READ);
             permissions.add(BasePermission.WRITE);
             permissions.add(BasePermission.DELETE);

@@ -38,6 +38,10 @@ public interface ParamConstants {
     static final String P_FILENAME = "FILENAME";
 
     static final String P_LOCALID = "LOCALID";
+    
+    static final String P_USERNAME = "USERNAME";
+    
+    static final String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
     // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";

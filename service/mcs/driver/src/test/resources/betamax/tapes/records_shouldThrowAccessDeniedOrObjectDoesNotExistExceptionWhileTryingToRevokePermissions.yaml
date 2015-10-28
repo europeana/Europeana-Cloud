@@ -1,0 +1,26 @@
+!tape
+name: records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions
+interactions:
+- recorded: 2015-10-28T13:57:59.444Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: headerValue
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_67)
+  response:
+    status: 405
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Wed, 28 Oct 2015 13:57:59 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>

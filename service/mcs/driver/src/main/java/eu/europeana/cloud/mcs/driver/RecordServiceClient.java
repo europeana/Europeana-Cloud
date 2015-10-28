@@ -1,7 +1,21 @@
 package eu.europeana.cloud.mcs.driver;
 
-import java.net.URI;
-import java.util.List;
+import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -12,21 +26,8 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.net.URI;
+import java.util.List;
 
 /**
  * Exposes API related to records.
@@ -51,6 +52,8 @@ public class RecordServiceClient {
     private static final String copyPath;
     //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/persist
     private static final String persistPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permissions/{TYPE}/users/{USER_NAME}
+    private static final String grantingPermissionsToVesionPath;
 
     static {
         StringBuilder builder = new StringBuilder();
@@ -85,6 +88,8 @@ public class RecordServiceClient {
         copyPath = versionPath + "/" + ParamConstants.COPY;
         persistPath = versionPath + "/" + ParamConstants.PERSIST;
 
+        grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
+        
     }
 
     /**
@@ -107,6 +112,19 @@ public class RecordServiceClient {
         client.register(new HttpBasicAuthFilter(username, password));
     }
 
+    /**
+     * Creates instance of RecordServiceClient. Same as {@link #RecordServiceClient(String)}
+     * but includes specified authorization header to every request.
+     * 
+     * @param baseUrl URL of the MCS Rest Service
+     * @param headerValue http header value which will be included as 'Authorization' header
+
+     */
+    public RecordServiceClient(String baseUrl, final String headerValue) {
+        this.baseUrl = baseUrl;
+        client.register(new ECloudBasicAuthFilter(headerValue));
+    }
+    
     /**
      * Returns record with all its latest persistent representations.
      *
@@ -415,4 +433,55 @@ public class RecordServiceClient {
         }
     }
 
+    /**
+     * Adds selected permission(s) to selected representation version.
+     * 
+     * @param cloudId record identifier
+     * @param representationName representation name
+     * @param version representation version
+     * @param userName user who will get access to representation version
+     * @param permission permission that will be granted
+     * @throws MCSException
+     */
+    public void grantPermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
+        WebTarget target = client.target(baseUrl).path(grantingPermissionsToVesionPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version)
+                .resolveTemplate(ParamConstants.P_PERMISSION_TYPE, permission.getValue())
+                .resolveTemplate(ParamConstants.P_USERNAME, userName);
+
+        Builder request = target.request();
+        Response response = request.post(null);
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+
+    /**
+     * Revokes permission(s) to selected representation version.
+     * 
+     * @param cloudId record identifier
+     * @param representationName representation name
+     * @param version representation version
+     * @param userName user who will get access to representation version
+     * @param permission permission that will be granted
+     * @throws MCSException
+     */
+    public void revokePermissionsToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
+        WebTarget target = client.target(baseUrl).path(grantingPermissionsToVesionPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version)
+                .resolveTemplate(ParamConstants.P_PERMISSION_TYPE, permission.getValue())
+                .resolveTemplate(ParamConstants.P_USERNAME, userName);
+
+        Builder request = target.request();
+        Response response = request.delete();
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
 }
