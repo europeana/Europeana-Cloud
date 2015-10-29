@@ -66,6 +66,6 @@ public class TopologyManager {
     }
 
     public boolean containsTopology(String topologyName) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return topologies.containsKey(topologyName);
     }
 }

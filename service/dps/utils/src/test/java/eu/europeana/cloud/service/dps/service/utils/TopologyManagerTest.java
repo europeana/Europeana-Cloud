@@ -84,9 +84,8 @@ public class TopologyManagerTest {
         return expectedNameToUserMap;
     }
 
-    @Ignore
     @Test
-    public void should_successfully_containsTopology() {
+    public void should_successfully_containsTopology1() {
         //given
         final String topologyName = "topologyA";
         //when
@@ -95,7 +94,16 @@ public class TopologyManagerTest {
         assertThat(result, is(equalTo(true)));
     }
 
-    @Ignore
+    @Test
+    public void should_successfully_containsTopology2() {
+        //given
+        final String topologyName = "topologyB";
+        //when
+        boolean result = instance.containsTopology(topologyName);
+        //then
+        assertThat(result, is(equalTo(true)));
+    }
+
     @Test
     public void should_unsuccessfully_containsTopology() {
         //given
