@@ -24,37 +24,34 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link CannotModifyPersistentRepresentationException} to {@link Response}. Returns a response with HTTP
      * status code 405 - "Method Not Allowed" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(CannotModifyPersistentRepresentationException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION,
-            exception);
+                exception);
     }
 
 
     /**
      * Maps {@link CannotPersistEmptyRepresentationException} to {@link Response}. Returns a response with HTTP status
      * code 405 - "Method Not Allowed" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(CannotPersistEmptyRepresentationException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION,
-            exception);
+                exception);
     }
 
 
     /**
      * Maps {@link DataSetAlreadyExistsException} to {@link Response}. Returns a response with HTTP status code 409 -
      * "Conflict" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(DataSetAlreadyExistsException exception) {
@@ -65,9 +62,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link DataSetNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(DataSetNotExistsException exception) {
@@ -78,9 +74,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link FileAlreadyExistsException} to {@link Response}. Returns a response with HTTP status code 409 -
      * "Conflict" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(FileAlreadyExistsException exception) {
@@ -91,9 +86,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link FileNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(FileNotExistsException exception) {
@@ -104,9 +98,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link RecordNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(RecordNotExistsException exception) {
@@ -117,9 +110,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link RepresentationNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(RepresentationNotExistsException exception) {
@@ -130,9 +122,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link VersionNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(VersionNotExistsException exception) {
@@ -143,9 +134,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link FileContentHashMismatchException} to {@link Response}. Returns a response with HTTP status code 422 -
      * "Unprocessable Entity" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(FileContentHashMismatchException exception) {
@@ -156,32 +146,30 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link WrongContentRangeException} to {@link Response}. Returns a response with HTTP status code 416 -
      * "Requested Range Not Satisfiable" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(WrongContentRangeException exception) {
         return buildResponse(Response.Status.REQUESTED_RANGE_NOT_SATISFIABLE, McsErrorCode.WRONG_CONTENT_RANGE,
-            exception);
+                exception);
     }
 
 
     /**
      * Maps {@link RuntimeException} to {@link Response}. Returns a response with HTTP status code 500 -
      * "Internal Server Error" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(RuntimeException exception) {
-    	
-    	if (exception instanceof AccessDeniedException) {
-            return buildResponse(Response.Status.METHOD_NOT_ALLOWED, 
-            		McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION,
-                exception);
-    	}
+
+        if (exception instanceof AccessDeniedException) {
+            return buildResponse(Response.Status.METHOD_NOT_ALLOWED,
+                    McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION,
+                    exception);
+        }
 
         LOGGER.error("Unexpected error occured.", exception);
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
@@ -191,9 +179,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link WebApplicationException} to {@link Response}. Returns a response with from a given exception and a
      * {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(WebApplicationException exception) {
@@ -204,9 +191,8 @@ public class UnitedExceptionMapper {
     /**
      * Maps {@link ProviderNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
      * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     * 
-     * @param exception
-     *            the exception to map to a response
+     *
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(ProviderNotExistsException exception) {
@@ -214,13 +200,11 @@ public class UnitedExceptionMapper {
     }
 
 
-
     /**
      * Maps {@link AccessDeniedOrObjectDoesNotExistException} to {@link Response}. Returns a response with HTTP status code 403 -
      * "Method not Allowed" and a {@link ErrorInfo} with exception details as a message body.
      *
-     * @param exception
-     *            the exception to map to a response
+     * @param exception the exception to map to a response
      * @return a response mapped from the supplied exception
      */
     public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
