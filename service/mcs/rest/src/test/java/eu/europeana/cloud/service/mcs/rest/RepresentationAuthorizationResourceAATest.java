@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -65,8 +66,8 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     private static final String FILE_NAME = "FILE_NAME";
     private static final String MIME_TYPE = "CLOWN";
 
-    private static final int READ_PERMISSION = 1;
-    private static final int WRITE_PERMISSION = 2;
+    private static final String READ_PERMISSION = "read";
+    private static final String WRITE_PERMISSION = "write";
 
     private UriInfo URI_INFO;
 
@@ -125,8 +126,8 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void testSpringPermissionStrings() {
 
-        assertEquals(READ_PERMISSION, BasePermission.READ.getMask());
-        assertEquals(WRITE_PERMISSION, BasePermission.WRITE.getMask());
+        assertEquals(READ_PERMISSION, Permission.READ.getValue());
+        assertEquals(WRITE_PERMISSION, Permission.WRITE.getValue());
     }
 
     /**
