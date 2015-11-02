@@ -62,6 +62,11 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/userNameList"/>
         </constructor-arg>
     </bean>
+    <bean id="mcsLocation" class="java.lang.String">
+        <constructor-arg type="java.lang.String" >
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/mcsLocation"/>
+        </constructor-arg>
+    </bean>
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
 </beans>

@@ -84,6 +84,8 @@
 
         <Environment name="dps/topology/userNameList" type="java.lang.String" value="user1,user2"/>
         <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,name2"/>
+        
+        <Environment name="dps/mcsLocation" type="java.lang.String" value="http://localhost:8080/mcs"/>
 
         <!--ICS -->
         <Environment name="ics/mcs-url" type="java.lang.String" value="http://localhost:9090/mcs/"/>

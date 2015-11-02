@@ -253,7 +253,12 @@
             <artifactId>ecloud-service-aas-authentication</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-common</artifactId>

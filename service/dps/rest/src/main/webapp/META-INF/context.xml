@@ -139,4 +139,9 @@
             name="dps/topology/userNameList"
             global="dps/topology/userNameList"
             type="java.lang.String"/>
+    
+    <ResourceLink
+            name="dps/mcsLocation"
+            global="dps/mcsLocation"
+            type="java.lang.String"/>
 </Context>

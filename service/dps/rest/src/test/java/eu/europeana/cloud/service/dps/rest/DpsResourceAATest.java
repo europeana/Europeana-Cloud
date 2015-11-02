@@ -52,6 +52,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 	private DpsTask TASK;
 
     private UriInfo URI_INFO;
+    
+    private static final String AUTH_HEADER_VALUE = "header_value";
 
     @Before
     public void mockUp() throws Exception {
@@ -74,7 +76,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         DpsTask t = new DpsTask("xsltTask");
         String topology = "xsltTopology";
 
-        topologyTasksResource.submitTask(t, topology, URI_INFO);
+        topologyTasksResource.submitTask(t, topology, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     //@Test
@@ -84,7 +86,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         logoutEveryone();
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO);
+        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
     
     //@Test(expected = AccessDeniedException.class)
@@ -94,7 +96,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         logoutEveryone();
         login(RONALDO, RONALD_PASSWORD);
         DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO);
+        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     // -- progress report tests -- //
@@ -106,7 +108,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME,URI_INFO);
+        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + TASK.getTaskId());
 	}
 
@@ -124,8 +126,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 		
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO);
-		
+        topologyTasksResource.submitTask(TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + TASK.getTaskId());
 	}

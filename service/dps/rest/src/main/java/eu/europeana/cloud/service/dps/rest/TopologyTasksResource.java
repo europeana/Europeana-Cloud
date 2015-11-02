@@ -1,12 +1,18 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
-import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +26,12 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import com.qmino.miredot.annotations.ReturnType;
-
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -34,9 +39,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -54,9 +62,15 @@ public class TopologyTasksResource {
     
     @Autowired
     private TaskExecutionKillService killService;
+    
+    @Autowired
+    private TopologyManager topologyManager;
 
     @Autowired
     private MutableAclService mutableAclService;
+    
+    @Autowired
+    private String mcsLocation;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     private final static String TASK_PREFIX = "DPS_Task";
@@ -149,12 +163,15 @@ public class TopologyTasksResource {
     public Response submitTask(
             DpsTask task,
             @PathParam("topologyName") String topologyName,
-    		@Context UriInfo uriInfo
+    		@Context UriInfo uriInfo,
+            @HeaderParam("Authorization") String authorizationHeader
             ) {
 
         LOGGER.info("Submiting task");
         
         if (task != null) {
+            grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
+            
             submitService.submitTask(task, topologyName);
             grantPermissionsForTask(task.getTaskId() + "");
             String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
@@ -365,5 +382,42 @@ public class TopologyTasksResource {
                 .append(task.getTaskId());
 
         return taskUrl.toString();
+    }
+
+    private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) {
+
+        LOGGER.info("Granting permissions to files from DPS task");
+        String topologyUserName = topologyManager.getNameToUserMap().get(topologyName);
+        if (topologyUserName == null) {
+            LOGGER.error("There is no user for topology '{}' in users map. Permissions will not be granted.", topologyName);
+            return;
+        }
+        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsLocation, authorizationHeader);
+
+        List<String> fileUrls = submittedTask.getInputData().get("FILE_URLS");
+        Iterator<String> it = fileUrls.iterator();
+        while (it.hasNext()) {
+            String fileUrl = it.next();
+            try {
+                UrlParser parser = new UrlParser(fileUrl);
+                if (parser.isUrlToRepresentationVersionFile()) {
+                    
+                    recordServiceClient.grantPermissionsToVersion(
+                            parser.getPart(UrlPart.RECORDS), 
+                            parser.getPart(UrlPart.REPRESENTATIONS), 
+                            parser.getPart(UrlPart.VERSIONS), 
+                            topologyUserName, 
+                            Permission.ALL);
+                    LOGGER.info("Permissions granted to: {}", fileUrl);
+                }else{
+                    LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
+                }
+            } catch (MalformedURLException e) {
+                LOGGER.error("URL in task's file list is malformed. Permissions will not be granted for this file: "+fileUrl);
+            } catch (MCSException e) {
+                LOGGER.error("Error while communicating MCS");
+                e.printStackTrace();
+            }
+        }
     }
 }
