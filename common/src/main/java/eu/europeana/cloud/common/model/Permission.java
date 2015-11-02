@@ -12,7 +12,6 @@ public enum Permission {
     ADMINISTRATION(16);
     
     private int intValue;
-    private String value;
     
     Permission(int intValue){
         this.intValue = intValue;
