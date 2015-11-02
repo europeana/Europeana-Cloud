@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import java.net.MalformedURLException;
 
-public class UrlParserTests {
+public class UrlParserTest {
 
 
     private static final String MALFORMED_URL = "fdafsdfasdfadagadfa";
