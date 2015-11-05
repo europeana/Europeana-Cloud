@@ -17,9 +17,9 @@ import javax.ws.rs.core.UriInfo;
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
- * Resource that represents images URI translator
+ * Resource to manage retrieving images manifest file
  */
-@Path("/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
+@Path("/manifest/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
         + "}/versions/{" + P_VER + "}/files/{" + P_FILENAME + "}")
 @Component
 @Scope("request")
@@ -38,7 +38,6 @@ public class ImagesResource {
      * @summary get manifest file for image
      */
     @GET
-    @Path("/manifest")
     @Produces({MediaType.APPLICATION_JSON})
     @ReturnType("javax.ws.rs.core.Response")
     public Response getManifest(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, @PathParam(P_VER) String version, @PathParam(P_FILENAME) String fileName) {
