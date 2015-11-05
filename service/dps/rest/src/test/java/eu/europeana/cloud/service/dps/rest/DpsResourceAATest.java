@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.rest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,20 +19,24 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
-//@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
 
-    //@Autowired
-    //@NotNull
+    @Autowired
+    @NotNull
     private TopologyTasksResource topologyTasksResource;
 
-    //@Autowired
-    //@NotNull
+    @Autowired
+    @NotNull
     private TopologiesResource topologiesResource;
 
-	//@Autowired
-	//@NotNull
+	@Autowired
+	@NotNull
 	private TaskExecutionReportService reportService;
+
+    @Autowired
+    @NotNull
+    private TopologyManager topologyManager;
 
     /**
      * Pre-defined users
@@ -61,14 +67,14 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 		
         URI_INFO = Mockito.mock(UriInfo.class);
 		Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
-        Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http://127.0.0.1:8080/sampleuri/"));
-        
+        Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
+        Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
     }
 
     /*
         Task Submission tests
      */
-    //@Test(expected = AuthenticationCredentialsNotFoundException.class)
+    @Test(expected = AuthenticationCredentialsNotFoundException.class)
     public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() {
 
         DpsTask t = new DpsTask("xsltTask");
@@ -77,8 +83,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologyTasksResource.submitTask(t, topology, URI_INFO);
     }
 
-    //@Test
-    public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo() {
+    @Test
+    public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
@@ -87,8 +93,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO);
     }
     
-    //@Test(expected = AccessDeniedException.class)
-    public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo() {
+    @Test(expected = AccessDeniedException.class)
+    public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
@@ -97,10 +103,10 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO);
     }
 
-    // -- progress report tests -- //
+    // -- progress report tests --
    
-    //@Test
-	public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException {
+    @Test
+	public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
     	
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
@@ -110,15 +116,15 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + TASK.getTaskId());
 	}
 
-	//@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() throws AccessDeniedOrObjectDoesNotExistException {
 
 		topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + TASK.getTaskId());
 	}
 
     
-    //@Test(expected = AccessDeniedException.class)
-	public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException {
+    @Test(expected = AccessDeniedException.class)
+	public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
 
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
@@ -131,3 +137,4 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 	}
     
 }
+
