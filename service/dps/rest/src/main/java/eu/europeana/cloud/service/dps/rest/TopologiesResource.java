@@ -66,9 +66,7 @@ public class TopologiesResource {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
-        if(!topologyManager.containsTopology(topology)){
-            throw new AccessDeniedOrTopologyDoesNotExistException();
-        }
+        assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
         
@@ -86,5 +84,11 @@ public class TopologiesResource {
         mutableAclService.updateAcl(topologyAcl);
 
         return Response.ok().build();
+    }
+
+    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if(!topologyManager.containsTopology(topology)){
+            throw new AccessDeniedOrTopologyDoesNotExistException();
+        }
     }
 }

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -21,10 +22,12 @@ public class DpsClient {
 	private String dpsUrl;
     
 	private Client client = JerseyClientBuilder.newClient();
-	
+
+    private static final String USERNAME = "Username";
 	private static final String TOPOLOGY_NAME = "TopologyName";
 	private static final String TASK_ID = "TaskId";
 	private static final String TASKS_URL = "/topologies/{" + TOPOLOGY_NAME + "}/tasks";
+    private static final String PERMIT_TIPOLOGY_URL = "/topologies/{" + TOPOLOGY_NAME + "}/permit";
 	private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
 
 	public static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
@@ -57,8 +60,28 @@ public class DpsClient {
 			throw new RuntimeException("submiting taks failed!!");
 		}
 	}
-	
-	public DpsTask getTask(String topologyName, long taskId) {
+
+    /**
+     * Submits a task for execution in the specified topology.
+     */
+    public void topologyPermit(String topologyName, String username) {
+        Form form = new Form();
+        form.param("userneme", username);
+        Response resp = client.target(dpsUrl)
+                .path(PERMIT_TIPOLOGY_URL)
+                .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                .request()
+                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+
+        if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
+            //TODO exception wrapping should be implemented
+            throw new RuntimeException("Permit topology failed!");
+        }
+    }
+
+
+    public DpsTask getTask(String topologyName, long taskId) {
 		
 		Response getResponse = client
 				.target(dpsUrl)
