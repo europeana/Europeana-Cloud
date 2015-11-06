@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class TopologiesResourceAATest extends AbstractSecurityTest {
 
 
     //@Test
-    public void shouldBeAbleToAssignPermissionsWhenAdmin() {
+    public void shouldBeAbleToAssignPermissionsWhenAdmin() throws AccessDeniedOrTopologyDoesNotExistException {
 
         login(ADMIN, ADMIN_PASSWORD);
         String topology = "xsltTopology";
@@ -43,20 +44,20 @@ public class TopologiesResourceAATest extends AbstractSecurityTest {
     }
 
     //@Test(expected = AuthenticationCredentialsNotFoundException.class)
-    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAssignPermissionsToTopology() {
+    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAssignPermissionsToTopology() throws AccessDeniedOrTopologyDoesNotExistException {
         String topology = "xsltTopology";
         topologiesResource.grantPermissionsToTopology(RANDOM_PERSON, topology);
     }
 
     //@Test(expected = AccessDeniedException.class)
-    public void shouldThrowExceptionWhenNonAdminUserTriesToAssignPermissionsToTopology() {
+    public void shouldThrowExceptionWhenNonAdminUserTriesToAssignPermissionsToTopology() throws AccessDeniedOrTopologyDoesNotExistException {
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         String topology = "xsltTopology";
         topologiesResource.grantPermissionsToTopology(RANDOM_PERSON, topology);
     }
     
     //@Test
-    public void shouldBeAbleToAssignMoreThanOneDifferentPermissionsToSameTopology(){
+    public void shouldBeAbleToAssignMoreThanOneDifferentPermissionsToSameTopology() throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         String topology = "xsltTopology";
         topologiesResource.grantPermissionsToTopology("sampleUser", topology);

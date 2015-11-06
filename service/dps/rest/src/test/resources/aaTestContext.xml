@@ -14,6 +14,7 @@
     <context:annotation-config/>
 
     <context:component-scan    base-package="eu.europeana.cloud.service.dps.rest"/>
+
         
     <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />

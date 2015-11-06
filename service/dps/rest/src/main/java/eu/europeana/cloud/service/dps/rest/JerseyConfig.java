@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.service.commons.logging.LoggingFilter;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.rest.exceptionmappers.AccessDeniedOrTopologyDoesNotExistExceptionExceptionMapper;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
@@ -29,6 +31,7 @@ public class JerseyConfig extends ResourceConfig {
         // exception mappers
         register(RuntimeExceptionMapper.class);
         register(TopologyAlreadyExistsExceptionMapper.class);
+        register(AccessDeniedOrTopologyDoesNotExistExceptionExceptionMapper.class);
 
         // resources
         register(TopologyTasksResource.class);

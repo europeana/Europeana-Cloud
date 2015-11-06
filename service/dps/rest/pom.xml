@@ -183,6 +183,13 @@
                                 <defaultMessage>Access denied or object does not exist. The service call did
                                     not succeed.</defaultMessage>
                             </httpStatusCode>
+                            <httpStatusCode>
+                                <httpCode>405</httpCode>
+                                <document>explicit:
+                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException</document>
+                                <defaultMessage>Access denied or Topology does not exist. The service call did
+                                    not succeed.</defaultMessage>
+                            </httpStatusCode>
                         </httpStatusCodes>
                         <fieldVisibility>
                             <GETTER>PUBLIC_ONLY</GETTER>

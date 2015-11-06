@@ -3,8 +3,10 @@ package eu.europeana.cloud.service.dps.service.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -63,5 +65,9 @@ public class TopologyManager {
 
     private void assertEqualsLength(String[] names, String[] users) {
         checkArgument(names.length == users.length,"Different number of elements on nameList and userNameList.");
+    }
+
+    public boolean containsTopology(String topologyName) {
+        return topologies.containsKey(topologyName);
     }
 }

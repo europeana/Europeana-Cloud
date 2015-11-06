@@ -13,6 +13,9 @@ import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +29,7 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -42,7 +37,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +88,8 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return The requested task.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Task retrieval
      */
     @GET
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -101,7 +97,9 @@ public class TopologyTasksResource {
     @Path("/{taskId}")
     public DpsTask getTask(
             @PathParam("topologyName") String topologyName,
-            @PathParam("taskId") String taskId) {
+            @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+
+        assertContainTopology(topologyName);
 
         LOGGER.info("Fetching task");
         DpsTask task = submitService.fetchTask(topologyName, Long.valueOf(taskId));
@@ -125,10 +123,9 @@ public class TopologyTasksResource {
      * 
      * @return Progress for the requested task 
      * (number of records of the specified task that have been fully processed).
-     * 
-     * @throws
-     * eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
-     * if task does not exist or access to the task is denied for the user
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Get Task Progress
      */
     @GET
     @Path("{taskId}/progress")
@@ -136,7 +133,9 @@ public class TopologyTasksResource {
     @ReturnType("java.lang.String")
     public Response getTaskProgress(
             @PathParam("topologyName") String topologyName,
-            @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException {
+            @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+
+        assertContainTopology(topologyName);
 
         String progress = reportService.getTaskProgress(taskId);
         return Response.ok(progress).build();
@@ -155,6 +154,8 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * 
      * @return URI with information about the submitted task execution.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Submit Task
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
@@ -163,9 +164,14 @@ public class TopologyTasksResource {
     public Response submitTask(
             DpsTask task,
             @PathParam("topologyName") String topologyName,
-    		@Context UriInfo uriInfo,
+            @Context UriInfo uriInfo,
             @HeaderParam("Authorization") String authorizationHeader
-            ) {
+    ) throws AccessDeniedOrTopologyDoesNotExistException {
+    		
+            
+         
+
+        assertContainTopology(topologyName);
 
         LOGGER.info("Submiting task");
         
@@ -188,16 +194,15 @@ public class TopologyTasksResource {
     }
 
     /**
-     * 
-     * Retrieves notifications for the specified task. 
-     * 
+     * Retrieves notifications for the specified task.
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Authenticated user</li> 			    
-     *     			<li>Read permission for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @summary Retrieve task notifications
@@ -233,16 +238,20 @@ public class TopologyTasksResource {
      * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * 
      * @return Status code indicating whether the operation was successful or not.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Grant task permissions to user
      */
     @POST
     @Path("{taskId}/permit")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @ReturnType("java.lang.Void")
     public Response grantPermissions(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId,
-    		@FormParam("username") String username) {
+                                     @FormParam("username") String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
-        if (taskId != null && topologyName  != null) {
-        	grantPermissionsForTask(taskId, username);
+        assertContainTopology(topologyName);
+
+        if (taskId != null) {
+            grantPermissionsForTask(taskId, username);
             return Response.ok().build();
         }
         return Response.notModified().build();
@@ -268,15 +277,17 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * 
      * @return Status code indicating whether the operation was successful or not.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Kill task
      */
     @POST
     @Path("{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
     @ReturnType("java.lang.Void")
-    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
-    {
-        if (taskId != null && topologyName != null) 
-        {
+    public Response killTask(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+        assertContainTopology(topologyName);
+
+        if (taskId != null) {
             killService.killTask(topologyName, Long.valueOf(taskId));
             killService.cleanOldFlags(topologyName, TimeUnit.DAYS.toMillis(5)); //side effect
             return Response.ok().build();
@@ -302,12 +313,15 @@ public class TopologyTasksResource {
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * 
      * @return true if provided task id has kill flag, false otherwise
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Check kill flag
      */
     @GET
     @Path("{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Boolean checkKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
-    {
+    public Boolean checkKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+        assertContainTopology(topologyName);
+
         return killService.hasKillFlag(topologyName, Long.valueOf(taskId));
     }
     
@@ -329,15 +343,17 @@ public class TopologyTasksResource {
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * 
      * @return Status code indicating whether the operation was successful or not.
+     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Remove kill flag
      */
     @DELETE
     @Path("{taskId}/kill")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
     @ReturnType("java.lang.Void")
-    public Response removeKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) 
-    {
-        if (taskId != null && topologyName != null) 
-        {
+    public Response removeKillFlag(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+        assertContainTopology(topologyName);
+
+        if (taskId != null && topologyName != null) {
             killService.removeFlag(topologyName, Long.valueOf(taskId));
             return Response.ok().build();
         }
@@ -382,6 +398,12 @@ public class TopologyTasksResource {
                 .append(task.getTaskId());
 
         return taskUrl.toString();
+    }
+
+    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if (!topologyManager.containsTopology(topology)) {
+            throw new AccessDeniedOrTopologyDoesNotExistException();
+        }
     }
 
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) {
