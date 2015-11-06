@@ -17,6 +17,11 @@
 
         
     <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
+    
+    <bean id="mcsLocation" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="sampleString"/>
+    </bean>
+    
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
          
     <mockito:mock id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService"/>
