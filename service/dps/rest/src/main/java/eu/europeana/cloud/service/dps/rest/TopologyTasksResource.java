@@ -11,11 +11,12 @@ import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
-
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,15 @@ import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -166,14 +175,12 @@ public class TopologyTasksResource {
             @PathParam("topologyName") String topologyName,
             @Context UriInfo uriInfo,
             @HeaderParam("Authorization") String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException {
-    		
-            
-         
-
-        assertContainTopology(topologyName);
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
 
         LOGGER.info("Submiting task");
+        
+        assertContainTopology(topologyName);
+        validateTask(task, topologyName);
         
         if (task != null) {
             grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
@@ -404,6 +411,11 @@ public class TopologyTasksResource {
         if (!topologyManager.containsTopology(topology)) {
             throw new AccessDeniedOrTopologyDoesNotExistException();
         }
+    }
+
+    private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
+        DpsTaskValidator taskValidator = DpsTaskValidatorFactory.createValidator(topologyName);
+        taskValidator.validate(task);
     }
 
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) {

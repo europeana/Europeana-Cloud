@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +82,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Task Submission tests
      */
     @Test(expected = AuthenticationCredentialsNotFoundException.class)
-    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() throws AccessDeniedOrTopologyDoesNotExistException {
+    public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
 
         DpsTask t = new DpsTask("xsltTask");
         String topology = "xsltTopology";
@@ -90,7 +91,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException {
+    public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
@@ -100,7 +101,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test(expected = AccessDeniedException.class)
-    public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException {
+    public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
@@ -112,7 +113,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     // -- progress report tests --
 
     @Test
-    public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+    public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
 
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
@@ -131,7 +132,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   
 
     @Test(expected = AccessDeniedException.class)
-    public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
+    public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
 
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
@@ -155,7 +156,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void vanPersieShouldNotBeAbleSubmitTaskToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException {
+    public void vanPersieShouldNotBeAbleSubmitTaskToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         //given
 
         Mockito.reset(topologyManager);
@@ -174,7 +175,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException {
         //given
 
         Mockito.reset(topologyManager);
@@ -196,7 +197,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 
     @Test
-    public void vanPersieShouldNotBeAbleKillTaskoNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public void vanPersieShouldNotBeAbleKillTaskoNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
@@ -216,7 +217,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 
     @Test
-    public void vanPersieShouldNotBeAbleCheckKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public void vanPersieShouldNotBeAbleCheckKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
@@ -235,7 +236,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void vanPersieShouldNotBeRemoveKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    public void vanPersieShouldNotBeRemoveKillFlagNotDefinedTopology() throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException {
         //given
 
         Mockito.reset(topologyManager);
