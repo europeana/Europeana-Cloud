@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class DpsTaskValidator {
@@ -176,13 +175,6 @@ public class DpsTaskValidator {
         throw new DpsTaskValidationException("Task name is not valid.");
     }
 
-    /*
-     * Parameter:
-     * 1. Brak parametrów;         : pomijamy ten warunek (?)
-     * 2. Jest parametr o podanej nazwie z dowolną wartością : parameterName, null expected value
-     * 3. Jest parametr o padanej nazwie z pustą wartością: parameterName, expected value ''
-     * 4. Jest parametr o padanej nazwie i podanej wartości: parameterName, expected value 'avlja'
-     */
     private void validateParameter(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         String expectedParameter = task.getParameter(constraint.getExpectedName());
         if (expectedParameter == null) {
@@ -194,23 +186,12 @@ public class DpsTaskValidator {
         if ("".equals(constraint.getExpectedValue()) && "".equals(expectedParameter)) {  //empty value
             return;
         }
-        if (expectedParameter.equals(constraint.getExpectedValue())) {
+        if (expectedParameter.equals(constraint.getExpectedValue())) {  //exact value
             return;
         }
         throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
     }
 
-    /**
-     * 1. Brak inputData;         : pomijamy ten warunek (?)
-     * 2. Jest inputData o podanej nazwie z dowolną wartością : parameterName, null expected value
-     * 3. Jest inputData o padanej nazwie z pustą wartością: parameterName, expected value ''
-     * 4. Jest inputData o padanej nazwie i podanej wartości: parameterName, expected value 'lista z jakimiś wartościami'
-     * 5. Jest inputData o padanej nazwie i podanej zawartości (np. linki do plików): ???
-     *
-     * @param task
-     * @param constraint
-     * @throws DpsTaskValidationException
-     */
     private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         List<String> expectedInputData = task.getDataEntry(constraint.getExpectedName());
 
@@ -218,29 +199,7 @@ public class DpsTaskValidator {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
         }
         if (constraint.getExpectedValueType() != null) {
-            for (String expectedInputDataValue : expectedInputData) {
-                if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_FILE)){
-                    try {
-                        UrlParser parser = new UrlParser(expectedInputDataValue);
-                        if(parser.isUrlToRepresentationVersionFile()){
-                            continue;
-                        }
-                        throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                    } catch (MalformedURLException e) {
-                        throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                    }
-                }else if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_DATASET)){
-                    try {
-                        UrlParser parser = new UrlParser(expectedInputDataValue);
-                        if(parser.isUrlToDataset()){
-                            continue;
-                        }
-                        throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                    } catch (MalformedURLException e) {
-                        throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                    }
-                }
-            }
+            validateInputDataContent(expectedInputData, constraint);
         }
         if (constraint.getExpectedValue() == null && expectedInputData != null) {   //any value
             return;
@@ -252,16 +211,34 @@ public class DpsTaskValidator {
             return;
         }
         throw new DpsTaskValidationException("Input data is not valid.");
-
     }
 
-    /**
-     * Id:
-     * 1. Brak id;         : pomijamy ten warunek (?)
-     * * 2. Z dowolnym id : null
-     * 3. Z pustym id  : to nie działa tutaj bo id jest long'iem czyli zawsze będzie miało jakąś wartość
-     * 4. Z ustalonym id : "ustalone id" (podajemy)
-     */
+    private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+        for (String expectedInputDataValue : expectedInputData) {
+            if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_FILE)){
+                try {
+                    UrlParser parser = new UrlParser(expectedInputDataValue);
+                    if(parser.isUrlToRepresentationVersionFile()){
+                        continue;
+                    }
+                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+                } catch (MalformedURLException e) {
+                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+                }
+            }else if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_DATASET)){
+                try {
+                    UrlParser parser = new UrlParser(expectedInputDataValue);
+                    if(parser.isUrlToDataset()){
+                        continue;
+                    }
+                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+                } catch (MalformedURLException e) {
+                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+                }
+            }
+        }
+    }
+            
     private void validateId(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         long taskId = task.getTaskId();
         if (constraint.getExpectedValue() == null) {  //any id

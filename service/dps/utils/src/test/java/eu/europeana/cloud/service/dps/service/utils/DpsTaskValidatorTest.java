@@ -14,6 +14,7 @@ public class DpsTaskValidatorTest {
 
     private static final long TASK_ID = 121212;
     private DpsTask dpsTask;
+    private DpsTask icTopologyTask;
 
     private static final String TASK_NAME = "taksName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
@@ -30,6 +31,16 @@ public class DpsTaskValidatorTest {
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
+        //
+        icTopologyTask = new DpsTask();
+        icTopologyTask.addDataEntry("FILE_URLS", Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
+        icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
+    }
+
+    @Test
+    public void shouldValidateThatTaskIsCorrectWhenConstraintsListIsEmpty() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTask);
     }
 
     ////
@@ -128,4 +139,14 @@ public class DpsTaskValidatorTest {
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndIncorrectContentType() throws DpsTaskValidationException {
         new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME, InputDataValueType.LINK_TO_DATASET).validate(dpsTask);
     }
+
+    @Test
+    public void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
+        new DpsTaskValidator()
+                .withDataEntry("FILE_URLS", InputDataValueType.LINK_TO_FILE)
+                .withParameter("OUTPUT_MIME_TYPE")
+                .withParameter("SAMPLE_PARAMETER")
+                .validate(icTopologyTask);
+    }
+
 }
