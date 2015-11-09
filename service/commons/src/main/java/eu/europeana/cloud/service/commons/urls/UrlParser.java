@@ -2,15 +2,16 @@ package eu.europeana.cloud.service.commons.urls;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * 
  * Parser for URL used in eCloud API.<br/>
  * <br/><br/>
  * Some of possible URL patterns are:<br/>
- * 
+ * <p/>
  * http://www.example.com/data-providers/DATAPROVIDER/data-sets/
  * http://www.example.com/data-providers/DATAPROVIDER/data-sets/DATASET/
  * http://www.example.com/data-providers/DATAPROVIDER/data-sets/DATASET/assignments/
@@ -27,6 +28,12 @@ import java.util.Map;
  * http://www.example.com/records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/FILENAME/
  */
 public class UrlParser {
+
+    private static final List<UrlPart> CLOUD_ID_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS);
+    private static final List<UrlPart> REPRESENTATIONS_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS);
+    private static final List<UrlPart> REPRESENTATION_VERSION_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS);
+    private static final List<UrlPart> REPRESENTATION_VERSION_FILE_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS, UrlPart.FILES);
+    private static final List<UrlPart> DATASET_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.DATA_PROVIDERS, UrlPart.DATA_SETS);
 
     private String[] values;
     private Map<UrlPart, String> parts = new LinkedHashMap<>();
@@ -90,7 +97,9 @@ public class UrlParser {
                     parts.put(UrlPart.DATA_PROVIDERS, null);
                 }
             } else {
-                parts.put(UrlPart.CONTEXT, values[i]);
+                if (i == 0) {
+                    parts.put(UrlPart.CONTEXT, values[i]);
+                }
             }
         }
 
@@ -105,7 +114,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToDatasetsList() {
-        return containEmptyValue(UrlPart.DATA_SETS);
+        return matches(parts, DATASET_URL_PATTERN) && containEmptyValue(UrlPart.DATA_SETS);
     }
 
     /**
@@ -116,7 +125,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToDataset() {
-        return containNonEmptyValue(UrlPart.DATA_SETS);
+        return matches(parts, DATASET_URL_PATTERN) && containNonEmptyValue(UrlPart.DATA_SETS);
     }
 
     /**
@@ -126,7 +135,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToCloudId() {
-        return containNonEmptyValue(UrlPart.RECORDS);
+        return matches(parts, CLOUD_ID_URL_PATTERN) && containNonEmptyValue(UrlPart.RECORDS);
     }
 
     /**
@@ -136,7 +145,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToRepresentations() {
-        return containEmptyValue(UrlPart.REPRESENTATIONS);
+        return matches(parts, REPRESENTATIONS_URL_PATTERN) && containEmptyValue(UrlPart.REPRESENTATIONS);
     }
 
     /**
@@ -146,7 +155,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToRepresentation() {
-        return containNonEmptyValue(UrlPart.REPRESENTATIONS);
+        return matches(parts, REPRESENTATIONS_URL_PATTERN) && containNonEmptyValue(UrlPart.REPRESENTATIONS);
     }
 
     /**
@@ -156,7 +165,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToRepresentationVersions() {
-        return containEmptyValue(UrlPart.VERSIONS);
+        return matches(parts, REPRESENTATION_VERSION_URL_PATTERN) && containEmptyValue(UrlPart.VERSIONS);
     }
 
     /**
@@ -166,7 +175,7 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToRepresentationVersion() {
-        return containNonEmptyValue(UrlPart.VERSIONS);
+        return matches(parts, REPRESENTATION_VERSION_URL_PATTERN) && containNonEmptyValue(UrlPart.VERSIONS);
     }
 
     /**
@@ -186,15 +195,33 @@ public class UrlParser {
      * @return
      */
     public boolean isUrlToRepresentationVersionFile() {
-        return containNonEmptyValue(UrlPart.FILES);
+        return matches(parts, REPRESENTATION_VERSION_FILE_URL_PATTERN) && containNonEmptyValue(UrlPart.FILES);
     }
 
-    private boolean containEmptyValue(UrlPart urlPart){
-        return parts.containsKey(urlPart) && (parts.get(urlPart) == null || parts.get(urlPart).isEmpty()) ;
+    private boolean containEmptyValue(UrlPart urlPart) {
+        return parts.containsKey(urlPart) && (parts.get(urlPart) == null || parts.get(urlPart).isEmpty());
     }
 
-    private boolean containNonEmptyValue(UrlPart urlPart){
+    private boolean containNonEmptyValue(UrlPart urlPart) {
         return parts.containsKey(urlPart) && parts.get(urlPart) != null && !parts.get(urlPart).isEmpty();
+    }
+
+    private boolean matches(Map<UrlPart, String> parts, List<UrlPart> pattern) {
+        int counter = 0;
+
+        if (parts.keySet().size() != pattern.size()) {
+            return false;
+        }
+        for (Map.Entry<UrlPart, String> entry : parts.entrySet()) {
+            UrlPart urlPart = entry.getKey();
+            UrlPart part = pattern.get(counter);
+            if (part != null && urlPart.equals(part)) {
+                counter++;
+                continue;
+            }
+            return false;
+        }
+        return true;
     }
 
     //////////////////////
@@ -212,7 +239,8 @@ public class UrlParser {
     }
 
     /**
-     * Returns URL to version based on provided URL. If it is not possible UrlBuilderException will be thrown 
+     * Returns URL to version based on provided URL. If it is not possible UrlBuilderException will be thrown
+     *
      * @return
      */
     public String getVersionUrl() throws UrlBuilderException {
@@ -226,7 +254,7 @@ public class UrlParser {
 
         return appLocation + result;
     }
-    
+
     public String getVersionsUrl() throws UrlBuilderException {
         UrlBuilder ecloudUrlBuilder = new UrlBuilder(parts);
         String result = ecloudUrlBuilder
@@ -245,7 +273,7 @@ public class UrlParser {
                 .clear()
                 .withDataProvider()
                 .withDataSetWithoutValue().build();
-        
+
         return appLocation + result;
     }
 }
