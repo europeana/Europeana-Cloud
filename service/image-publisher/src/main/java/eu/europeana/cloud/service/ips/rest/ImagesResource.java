@@ -38,6 +38,7 @@ public class ImagesResource {
      * @summary get manifest file for image
      */
     @GET
+    @Path("/")
     @Produces({MediaType.APPLICATION_JSON})
     @ReturnType("javax.ws.rs.core.Response")
     public Response getManifest(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, @PathParam(P_VER) String version, @PathParam(P_FILENAME) String fileName) {
