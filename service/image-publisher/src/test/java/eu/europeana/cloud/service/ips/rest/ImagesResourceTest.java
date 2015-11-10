@@ -70,7 +70,7 @@ public class ImagesResourceTest extends JerseyTest {
     @Test
     public void getManifestOK()
             throws Exception {
-        Mockito.when(translator.getResponse(CLOUD_ID, SCHEMA, VERSION, FILE_NAME)).thenReturn(MANIFEST_OK);
+        Mockito.when(translator.getResponse(CLOUD_ID, SCHEMA, VERSION, FILE_NAME + "/")).thenReturn(MANIFEST_OK);
 
         URI uri = UriBuilder.fromResource(ImagesResource.class).path(ImagesResource.class, "getManifest")
                 .buildFromMap(ImmutableMap.<String, String>of(ParamConstants.P_CLOUDID, CLOUD_ID,
