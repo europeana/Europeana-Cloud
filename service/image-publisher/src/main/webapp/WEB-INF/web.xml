@@ -27,7 +27,7 @@
     
     <servlet-mapping>
         <servlet-name>Image Publisher Service Rest API</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/iiif/*</url-pattern>
     </servlet-mapping>
 
 </web-app>

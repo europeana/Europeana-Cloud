@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.ips.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.service.ips.ImageTranslator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,19 +12,18 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.util.Scanner;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
-/**
- * Resource to manage retrieving images manifest file
- */
-@Path("/manifest/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
+@Path("/view/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME
         + "}/versions/{" + P_VER + "}/files/{" + P_FILENAME + ":(.+)?}")
 @Component
 @Scope("request")
-public class ImagesResource {
-
-    private ImageTranslator translator;
+public class ViewResource {
 
     /**
      * Returns manifest file in json format describing the image associated with the specified version.
@@ -38,21 +36,20 @@ public class ImagesResource {
      * @summary get manifest file for image
      */
     @GET
-    @Path("/")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_HTML})
     @ReturnType("javax.ws.rs.core.Response")
-    public Response getManifest(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, @PathParam(P_VER) String version, @PathParam(P_FILENAME) String fileName) {
+    public Response getView(@Context UriInfo uriInfo, @PathParam(P_CLOUDID) String globalId, @PathParam(P_REPRESENTATIONNAME) String schema, @PathParam(P_VER) String version, @PathParam(P_FILENAME) String fileName) {
 
-        if (translator != null) {
-            // call IIP Image Server for manifest file in json format
-            String response = translator.getResponse(globalId, schema, version, fileName);
-            if (response != null)
-                return Response.ok().entity(response).build();
-        }
+        Scanner in = new Scanner(getClass().getResourceAsStream("/viewer.html")).useDelimiter("\\Z");
+        String htmlBody = "";
+        if (in.hasNext())
+            htmlBody = in.next();
+        if (htmlBody != null && !htmlBody.isEmpty())
+            return Response.ok().entity(prepareManifestURL(htmlBody, uriInfo.getRequestUri().toString())).build();
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    public void setTranslator(ImageTranslator translator) {
-        this.translator = translator;
+    private String prepareManifestURL(String htmlBody, String url) {
+        return htmlBody.replace("$1", url.replace("/view/records", "/manifest/records"));
     }
 }

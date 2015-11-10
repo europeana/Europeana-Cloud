@@ -24,5 +24,6 @@ public class JerseyConfig extends ResourceConfig {
 
         // resources
         register(ImagesResource.class);
+        register(ViewResource.class);
     }
 }
