@@ -117,6 +117,7 @@ public class DpsTaskValidator {
         dpsTaskConstraints.add(constraint);
         return this;
     }
+    
     /**
      * Will check if dps task contains any task id
      *
@@ -128,13 +129,6 @@ public class DpsTaskValidator {
         return this;
     }
 
-    /**
-     * Validates dps task according to constraints list
-     *
-     * @param task task to be validated
-     *
-     * @throws DpsTaskValidationException
-     */
     public void validate(DpsTask task) throws DpsTaskValidationException {
         int constraintsNumber = dpsTaskConstraints.size();
 
@@ -151,14 +145,6 @@ public class DpsTaskValidator {
             }
         }
     }
-
-    /*
-     * Nazwa:
-     * 1.Bez nazwy;         : pomijamy ten warunek (?)
-     * 2. Z dowolną nazwą   : null
-     * 3. Z nazwą pustą     : ""
-     * 4. Z ustaloną nazwą  : "ustalona nazwa"
-     */
 
     private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         String taskName = task.getTaskName();
@@ -251,19 +237,15 @@ public class DpsTaskValidator {
     }
 }
 
+/**
+ * Holds the definition of single constraint that should be fullfiled by dpsTask  
+ * 
+ */
 class DpsTaskConstraint {
     private DpsTaskFieldType fieldType;
     private Object expectedValue;
     private InputDataValueType expectedValueType;
     private String expectedName;
-    private int expectedAmount = -1;
-
-
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, Object expectedValue, int expectedAmount) {//amount nie pasuje tutaj
-        this.expectedValue = expectedValue;
-        this.fieldType = fieldType;
-        this.expectedAmount = expectedAmount;
-    }
 
     public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
         this.fieldType = fieldType;
