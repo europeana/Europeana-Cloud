@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import com.google.common.collect.ImmutableMap;
+import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -16,13 +19,12 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Arrays;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
@@ -42,6 +44,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     @Autowired
     @NotNull
     private TopologyManager topologyManager;
+    
+    @Autowired
+    private RecordServiceClient recordServiceClient;
 
     /**
      * Pre-defined users
@@ -70,12 +75,16 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void mockUp() throws Exception {
 
 		TASK = new DpsTask("xsltTask");
-		TASK.getTaskId();
+        TASK.addDataEntry("FILE_URLS", Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        TASK.getTaskId();
 		
         URI_INFO = Mockito.mock(UriInfo.class);
         Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
+        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
+
+        Mockito.when(recordServiceClient.useAuthorizationHeader(Mockito.anyString())).thenReturn(recordServiceClient);
     }
 
     /*

@@ -75,6 +75,9 @@ public class TopologyTasksResource {
     @Autowired
     private String mcsLocation;
 
+    @Autowired
+    private RecordServiceClient recordServiceClient;
+
     private final static String TOPOLOGY_PREFIX = "Topology";
     private final static String TASK_PREFIX = "DPS_Task";
     
@@ -426,9 +429,12 @@ public class TopologyTasksResource {
             LOGGER.error("There is no user for topology '{}' in users map. Permissions will not be granted.", topologyName);
             return;
         }
-        RecordServiceClient recordServiceClient = new RecordServiceClient(mcsLocation, authorizationHeader);
 
-        List<String> fileUrls = submittedTask.getInputData().get("FILE_URLS");
+        List<String> fileUrls = submittedTask.getInputData().get(DpsTask.FILE_URLS);
+        if(fileUrls == null){
+            LOGGER.info("FIles list is empty. Permissions will not be granted");
+            return;
+        }
         Iterator<String> it = fileUrls.iterator();
         while (it.hasNext()) {
             String fileUrl = it.next();
@@ -436,12 +442,14 @@ public class TopologyTasksResource {
                 UrlParser parser = new UrlParser(fileUrl);
                 if (parser.isUrlToRepresentationVersionFile()) {
                     
-                    recordServiceClient.grantPermissionsToVersion(
-                            parser.getPart(UrlPart.RECORDS), 
-                            parser.getPart(UrlPart.REPRESENTATIONS), 
-                            parser.getPart(UrlPart.VERSIONS), 
-                            topologyUserName, 
-                            Permission.ALL);
+                    recordServiceClient
+                            .useAuthorizationHeader(authorizationHeader)
+                            .grantPermissionsToVersion(
+                                parser.getPart(UrlPart.RECORDS), 
+                                parser.getPart(UrlPart.REPRESENTATIONS), 
+                                parser.getPart(UrlPart.VERSIONS), 
+                                topologyUserName, 
+                                Permission.ALL);
                     LOGGER.info("Permissions granted to: {}", fileUrl);
                 }else{
                     LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
@@ -449,8 +457,7 @@ public class TopologyTasksResource {
             } catch (MalformedURLException e) {
                 LOGGER.error("URL in task's file list is malformed. Permissions will not be granted for this file: "+fileUrl);
             } catch (MCSException e) {
-                LOGGER.error("Error while communicating MCS");
-                e.printStackTrace();
+                LOGGER.error("Error while communicating MCS", e);
             }
         }
     }

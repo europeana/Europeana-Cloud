@@ -113,18 +113,15 @@ public class RecordServiceClient {
     }
 
     /**
-     * Creates instance of RecordServiceClient. Same as {@link #RecordServiceClient(String)}
-     * but includes specified authorization header to every request.
+     * Client will use provided authorization header for all requests;
      * 
-     * @param baseUrl URL of the MCS Rest Service
-     * @param headerValue http header value which will be included as 'Authorization' header
-
+     * @param headerValue authorization header value
+     * @return
      */
-    public RecordServiceClient(String baseUrl, final String headerValue) {
-        this.baseUrl = baseUrl;
+    public RecordServiceClient useAuthorizationHeader(final String headerValue){
         client.register(new ECloudBasicAuthFilter(headerValue));
+        return this;
     }
-    
     /**
      * Returns record with all its latest persistent representations.
      *

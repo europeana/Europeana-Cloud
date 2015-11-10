@@ -857,7 +857,7 @@ public class RecordServiceClientTest {
 	@Betamax(tape = "records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToUpdatePermissions")
 	public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToUpdatePermissions()
 			throws MCSException, IOException {
-		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "headerValue");
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
 		client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
 	}
 
@@ -866,7 +866,7 @@ public class RecordServiceClientTest {
 	public void shouldUpdatePermissionsWhenAuthorizationHeaderIsCorrect()
 			throws MCSException, IOException {
 		String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
-		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", correctHeaderValue);
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
 		client.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
 	}
 
@@ -874,7 +874,7 @@ public class RecordServiceClientTest {
 	@Betamax(tape = "records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions")
 	public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions()
 			throws MCSException, IOException {
-		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "headerValue");
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
 		client.revokePermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
 	}
 
@@ -883,7 +883,7 @@ public class RecordServiceClientTest {
 	public void shouldRevokePermissionsWhenAuthorizationHeaderIsCorrect()
 			throws MCSException, IOException {
 		String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
-		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", correctHeaderValue);
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
 		client.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
 	}
 }
