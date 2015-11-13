@@ -18,6 +18,7 @@ import static org.junit.Assert.*;
 public class TaskTupleUtilityTest {
     TaskTupleUtility taskTupleUtility;
     StormTaskTuple stormTaskTuple;
+     static final String MIME_TYPE="text/xml";
 
     @Before
     public void init() {
@@ -27,26 +28,28 @@ public class TaskTupleUtilityTest {
 
 
     @Test
-    public void parameterIsProvided() {
-        stormTaskTuple.addParameter(PluginParameterKeys.MIME_TYPE, "text/xml");
+    public void parameterIsProvidedTest() {
+        stormTaskTuple.addParameter(PluginParameterKeys.MIME_TYPE,MIME_TYPE );
         assertTrue(taskTupleUtility.isProvidedAsParameter(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
     }
 
     @Test
-    public void parameterIsNotProvided() {
+    public void parameterIsNotProvidedTest() {
         assertFalse(taskTupleUtility.isProvidedAsParameter(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
     }
 
 
     @Test
-    public void getDefaultValue() {
+    public void getDefaultValueTest() {
         assertEquals(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE),PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.MIME_TYPE));
     }
 
 
     @Test
-    public void getProvidedValue() {
-        assertFalse(taskTupleUtility.isProvidedAsParameter(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
+    public void getProvidedValueTest() {
+        stormTaskTuple.addParameter(PluginParameterKeys.MIME_TYPE,MIME_TYPE );
+        assertEquals(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE), MIME_TYPE);
+
     }
 
 
