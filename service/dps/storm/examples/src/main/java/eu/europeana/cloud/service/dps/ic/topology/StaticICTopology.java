@@ -66,7 +66,7 @@ public class StaticICTopology {
                 "imageConversionBolt");
         builder.setBolt("endBolt", new EndBolt(), 1).shuffleGrouping("writeRecordBolt");
 
-        builder.setBolt("notificationBolt", new NotificationBolt("127.0.0.1",
+        builder.setBolt("notificationBolt", new NotificationBolt("iks-kbase.synat.pcss.pl",
                         9042, "ecloud_dps",
                         "cassandra", "cassandra", true),
                 1)

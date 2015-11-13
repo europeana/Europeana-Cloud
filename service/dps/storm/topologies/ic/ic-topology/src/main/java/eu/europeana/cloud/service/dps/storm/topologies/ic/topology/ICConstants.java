@@ -11,8 +11,8 @@ public class ICConstants {
     public static final String CASSANDRA_HOSTS = "iks-kbase.synat.pcss.pl"; //cassandra node hosts, comma separated
     public static final Integer CASSANDRA_PORT = 9042;
     public static final String CASSANDRA_KEYSPACE_NAME = "ecloud_dps";
-    public static final String CASSANDRA_USERNAME = "ecloud_dps";
-    public static final String CASSANDRA_PASSWORD = "ecloud_dps";
+    public static final String CASSANDRA_USERNAME = "cassandra";
+    public static final String CASSANDRA_PASSWORD = "cassandra";
 
     // ------ PARALLELISM HINTS ------
     public static final Integer KAFKA_SPOUT_PARALLEL = 1;
