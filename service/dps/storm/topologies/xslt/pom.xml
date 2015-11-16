@@ -60,8 +60,7 @@
             	</exclusion>
             </exclusions>
         </dependency>
-        
-        <dependency>
+        <!--         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-kafka</artifactId>
             <version>${project.version}</version>
@@ -76,6 +75,7 @@
             	</exclusion>
             </exclusions>
         </dependency>
+         -->
         
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -238,6 +238,9 @@
         <resources>
             <resource>
                 <directory>${basedir}/multilang</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
             </resource>
         </resources>
 

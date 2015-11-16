@@ -77,6 +77,7 @@ public final class PluginParameterKeys {
                 PLUGIN_PARAMETERS.put(FILE_DATA, "FILE_DATA");
 
                 PLUGIN_PARAMETERS.put(DPS_TASK_INPUT_DATA, "DPS_TASK_INPUT_DATA");
+                
                 //the default value for output mimeType
                 PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/xml");
 
@@ -90,6 +91,7 @@ public final class PluginParameterKeys {
                 PLUGIN_PARAMETERS.put(REPRESENTATION_VERSION, "REPRESENTATION_VERSION");
                 PLUGIN_PARAMETERS.put(FILE_NAME, "FILE_NAME");
                 PLUGIN_PARAMETERS.put(MIME_TYPE, "text/xml");
+
                 PLUGIN_PARAMETERS.put(NEW_DATASET_MESSAGE, "NewDataset");
                 PLUGIN_PARAMETERS.put(NEW_FILE_MESSAGE, "NewFile");
                 PLUGIN_PARAMETERS.put(NEW_EXTRACTED_DATA_MESSAGE, "NewExtractedData");
