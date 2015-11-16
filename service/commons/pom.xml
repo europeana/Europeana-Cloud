@@ -26,6 +26,12 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-cos</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -42,6 +48,57 @@
             <artifactId>spring-security-acl</artifactId>
             <version>${version.spring-framework}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${version.spring-framework}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${version.spring-framework}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>${version.cassandra-unit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${version.spring-framework}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-aas-authorization</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-aas-authentication</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-cassandra-connector</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

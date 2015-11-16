@@ -22,16 +22,16 @@ public class PermissionsGrantingManager {
     private MutableAclService mutableAclService;
 
     /**
-     * @param objectType
-     * @param objectIdentifier
-     * @param userName
-     * @param listOfPermissions
+     * @param objectType object type
+     * @param objectIdentifier object identifier
+     * @param userName name of the user who will be granted to access resource
+     * @param listOfPermissions list of permissions that will be added to resource
      */
     public void grantPermissions(String objectType, String objectIdentifier, String userName, List<Permission> listOfPermissions) {
 
         ObjectIdentity objectIdentity = new ObjectIdentityImpl(objectType, objectIdentifier);
 
-        MutableAcl versionAcl = null;
+        MutableAcl versionAcl;
         try {
             versionAcl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
         } catch (NotFoundException ex) {
@@ -41,6 +41,8 @@ public class PermissionsGrantingManager {
         for (Permission permission : listOfPermissions) {
             versionAcl.insertAce(versionAcl.getEntries().size(), permission, new PrincipalSid(userName), true);
         }
+
+        mutableAclService.updateAcl(versionAcl);
     }
 
     public void removePermissions(String objectType, String objectIdentifier, String userName, List<Permission> listOfPermissions) {
@@ -52,13 +54,11 @@ public class PermissionsGrantingManager {
 
         MutableAcl objectAcl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
 
-        for (int i = objectAcl.getEntries().size()-1; i > 0; i--) {
+        for (int i = objectAcl.getEntries().size() - 1; i >= 0; i--) {
             AccessControlEntry currentEntry = objectAcl.getEntries().get(i);
             PrincipalSid s = (PrincipalSid) currentEntry.getSid();
-            if (userName.equals(s.getPrincipal())) {
-                if(isPermissionOnTheList(currentEntry.getPermission(),listOfPermissions)){
-                    objectAcl.deleteAce(i);
-                }
+            if (userName.equals(s.getPrincipal()) && isPermissionOnTheList(currentEntry.getPermission(), listOfPermissions)) {
+                objectAcl.deleteAce(i);
             }
         }
         mutableAclService.updateAcl(objectAcl);
