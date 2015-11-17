@@ -7,7 +7,9 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.io.GrantPermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.io.RemovePermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import org.slf4j.Logger;
@@ -38,6 +40,7 @@ public class ICSTopology {
 
     private final static int WORKER_COUNT = 8;
     private final static int THRIFT_PORT = 6627;
+    private final static String NIMBUS_HOST="localhost";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ICSTopology.class);
 
@@ -76,7 +79,17 @@ public class ICSTopology {
                 .setNumTasks(ICConstants.NUMBER_OF_TASKS)
                 .shuffleGrouping("imageConversionBolt");
 
-        builder.setBolt("endBolt", new EndBolt(), ICConstants.END_BOLT_PARALLEL).shuffleGrouping("writeRecordBolt");
+
+        builder.setBolt("grantPermBolt", new GrantPermissionsToFileBolt(ecloudMcsAddress, username, password),
+                ICConstants.XSLT_BOLT_PARALLEL).setNumTasks(ICConstants.NUMBER_OF_TASKS)
+                .shuffleGrouping("imageConversionBolt");
+
+        builder.setBolt("removePermBolt", new RemovePermissionsToFileBolt(ecloudMcsAddress, username, password), ICConstants.WRITE_BOLT_PARALLEL)
+                .setNumTasks(ICConstants.NUMBER_OF_TASKS)
+                .shuffleGrouping("grantPermBolt");
+
+
+        builder.setBolt("endBolt", new EndBolt(), ICConstants.END_BOLT_PARALLEL).shuffleGrouping("removePermBolt");
 
         builder.setBolt("notificationBolt", new NotificationBolt(ICConstants.CASSANDRA_HOSTS,
                         ICConstants.CASSANDRA_PORT, ICConstants.CASSANDRA_KEYSPACE_NAME,
@@ -86,6 +99,8 @@ public class ICSTopology {
                 .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping("grantPermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping("removePermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();
@@ -99,7 +114,7 @@ public class ICSTopology {
         if (args != null && args.length == 5) {
 
             String topologyName = args[0];
-            String nimbusHost = "localhost";
+            String nimbusHost = NIMBUS_HOST;
             String dpsZookeeper = args[1];
             String kafkaTopic = topologyName;
             String ecloudMcsAddress = args[2];
