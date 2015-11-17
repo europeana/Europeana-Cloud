@@ -67,7 +67,7 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/mcsLocation"/>
         </constructor-arg>
     </bean>
-    <bean id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">
+    <bean id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
         <constructor-arg name="baseUrl" ref="mcsLocation"/>
     </bean>
   	<import resource="authentication.xml"/>
