@@ -85,7 +85,7 @@
         <Environment name="dps/topology/userNameList" type="java.lang.String" value="user1,ic_user,xslt_user"/>
         <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,ic_topology,xslt_topology"/>
         
-        <Environment name="dps/mcsLocation" type="java.lang.String" value="http://localhost:9090/mcs"/>
+        <Environment name="dps/mcsLocation" type="java.lang.String" value="http://iks-kbase.synat.pcss.pl:9090/mcs"/>
 
         <!--ICS -->
         <Environment name="ics/mcs-url" type="java.lang.String" value="http://localhost:9090/mcs/"/>
