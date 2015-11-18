@@ -99,16 +99,16 @@
             <id>eaio.com</id>
             <url>http://eaio.com/maven2</url>
         </repository>
-        <repository>
+        <repository> 
             <id>synat-a09-libs-releases-public</id>
             <name>synat-a09-libs-releases-public</name>
             <url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
         </repository>
-        <!--<repository>-->
-            <!--<id>artifactory.eanadev.org</id>-->
-            <!--<name>artifactory.eanadev.org-releases</name>-->
-            <!--<url>http://artifactory.eanadev.org/artifactory</url>-->
-        <!--</repository> -->
+        <repository>
+            <id>artifactory.eanadev.org</id>
+            <name>artifactory.eanadev.org-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory</url>
+        </repository> 
         <repository>
             <id>miredot</id>
             <name>MireDot Releases</name>
@@ -157,7 +157,7 @@
         
         <version.tika>1.9</version.tika>
         <version.zookeeper>3.4.6</version.zookeeper>
-        <version.corelib>2.1</version.corelib>
+        <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
@@ -307,7 +307,7 @@
                 <version>2.2</version>
                 <configuration>
                     <server>TomcatServer</server>
-                    <url>http://localhost:18080/manager/text</url>
+                    <url>http://localhost:8080/manager/text</url>
                 </configuration>
             </plugin>
             <plugin>
@@ -455,5 +455,16 @@
             <url>http://nexus.qmino.com/content/repositories/miredot</url>
         </pluginRepository>
     </pluginRepositories>
-
+    <distributionManagement>
+        <repository>
+            <id>artifactory.eanadev.org</id>
+            <name>artifactory.eanadev.org-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>artifactory.eanadev.org</id>
+            <name>artifactory.eanadev.org-snapshots</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
