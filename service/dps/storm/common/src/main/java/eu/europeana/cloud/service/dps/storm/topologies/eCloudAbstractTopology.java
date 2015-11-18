@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.xslt;
+package eu.europeana.cloud.service.dps.storm.topologies;
 
 import java.io.File;
 import java.io.FileInputStream;

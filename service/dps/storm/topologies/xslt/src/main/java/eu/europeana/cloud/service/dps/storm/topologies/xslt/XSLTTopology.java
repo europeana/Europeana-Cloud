@@ -21,6 +21,7 @@ import eu.europeana.cloud.service.dps.storm.io.GrantPermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RemovePermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.eCloudAbstractTopology;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
@@ -100,7 +101,7 @@ public class XSLTTopology extends eCloudAbstractTopology {
 		builder.setBolt("grantPermBolt", grantPermBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty("GRANT_BOLT_PARALLEL"))))
 				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty("NUMBER_OF_TASKS"))))
-				.shuffleGrouping("writeRecordBolt");
+				.shuffleGrouping("xsltTransformationBolt");
 
 		// add properties...
 		builder.setBolt("removePermBolt", removePermBolt,
@@ -126,6 +127,10 @@ public class XSLTTopology extends eCloudAbstractTopology {
 				.fieldsGrouping("xsltTransformationBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
 						new Fields(NotificationTuple.taskIdFieldName))
 				.fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+						new Fields(NotificationTuple.taskIdFieldName))
+				.fieldsGrouping("grantPermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+						new Fields(NotificationTuple.taskIdFieldName))
+				.fieldsGrouping("removePermBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
 						new Fields(NotificationTuple.taskIdFieldName))
 				.fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
 						new Fields(NotificationTuple.taskIdFieldName));
