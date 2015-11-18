@@ -97,13 +97,11 @@ public class XSLTTopology extends eCloudAbstractTopology {
 				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty("NUMBER_OF_TASKS"))))
 				.shuffleGrouping("xsltTransformationBolt");
 
-		// add properties...
 		builder.setBolt("grantPermBolt", grantPermBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty("GRANT_BOLT_PARALLEL"))))
 				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty("NUMBER_OF_TASKS"))))
-				.shuffleGrouping("xsltTransformationBolt");
+				.shuffleGrouping("writeRecordBolt");
 
-		// add properties...
 		builder.setBolt("removePermBolt", removePermBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty("REMOVE_BOLT_PARALLEL"))))
 				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty("NUMBER_OF_TASKS"))))
@@ -147,13 +145,11 @@ public class XSLTTopology extends eCloudAbstractTopology {
 		Config config = new Config();
 		config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
-		if (args.length <= 2) {
-
-			String submitterName = args[0];
+		if (args.length <= 1) {
 
 			String providedPropertyFile = "";
-			if (args.length == 2) {
-				providedPropertyFile = args[1];
+			if (args.length == 1) {
+				providedPropertyFile = args[0];
 			}
 
 			XSLTTopology XsltTopology = new XSLTTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
@@ -165,9 +161,6 @@ public class XSLTTopology extends eCloudAbstractTopology {
 			String ecloudMcsAddress = topologyProperties.getProperty("MCS_URL");
 			String username = topologyProperties.getProperty("MCS_USER_NAME");
 			String password = topologyProperties.getProperty("MCS_USER_PASS");
-
-			// SAVING TASK SUBMITTER NAME
-			topologyProperties.setProperty("TASK_SUBMITTER_NAME", submitterName);
 
 			StormTopology stormTopology = XsltTopology.buildTopology(
 					topologyProperties.getProperty("INPUT_ZOOKEEPER_ADDRESS"), kafkaTopic, ecloudMcsAddress, username,

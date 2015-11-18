@@ -48,6 +48,8 @@ public class RemovePermissionsToFileBolt extends AbstractDpsBolt {
 
         LOGGER.info("Removing permissions for {} on {}", username, resultFileUrl);
         removePermissions(resultFileUrl, username);
+        emitBasicInfo(tuple.getTaskId(), 1);
+        outputCollector.emit(inputTuple, tuple.toStormTuple());
         outputCollector.ack(inputTuple);
     }
 

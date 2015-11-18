@@ -66,11 +66,13 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
             final String record = t.getFileByteData();
             String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-
+            boolean outputUrlMissing = false;
+            
             if (outputUrl == null) {
                 // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
                 outputUrl = t.getFileUrl();
                 outputUrl = StringUtils.substringBefore(outputUrl, "/files");
+                outputUrlMissing = true;
 
                 LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
             }
@@ -80,6 +82,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 
+            if (outputUrlMissing) {
+            	t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
+            	LOGGER.info("WriteRecordBolt: pushing new URI as OUTPUT_URL: " + t.getParameter(PluginParameterKeys.OUTPUT_URL));
+            }
+            
             //outputCollector.emit(t.toStormTuple());
             emitBasicInfo(t.getTaskId(), 1);
             outputCollector.emit(inputTuple, t.toStormTuple());

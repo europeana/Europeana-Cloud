@@ -18,7 +18,7 @@ import java.net.MalformedURLException;
  */
 public class GrantPermissionsToFileBolt extends AbstractDpsBolt {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(RemovePermissionsToFileBolt.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(GrantPermissionsToFileBolt.class);
 
     private RecordServiceClient recordServiceClient;
     private UrlParser urlParser;
@@ -54,6 +54,8 @@ public class GrantPermissionsToFileBolt extends AbstractDpsBolt {
 
         LOGGER.info("Granting permissions for {} on {}", submitterName, resultFileUrl);
         grantPermissions(resultFileUrl, submitterName);
+        emitBasicInfo(tuple.getTaskId(), 1);
+        outputCollector.emit(inputTuple, tuple.toStormTuple());
         outputCollector.ack(inputTuple);
     }
 
