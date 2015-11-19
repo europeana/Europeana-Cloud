@@ -98,7 +98,7 @@ public class CassandraConnectionProvider {
      */
     private Cluster.Builder getClusterBuilder(int port, String[] contactPoints) {
         return Cluster.builder().addContactPoints(contactPoints).withPort(port)
-                .withProtocolVersion(ProtocolVersion.V1)
+                .withProtocolVersion(ProtocolVersion.V3)
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator());
     }
 

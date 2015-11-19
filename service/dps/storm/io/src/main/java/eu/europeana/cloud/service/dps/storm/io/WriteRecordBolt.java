@@ -28,18 +28,11 @@ import java.util.regex.Pattern;
  * a new Record on the cloud, and emits the URL of the newly created record.
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
-
     private String ecloudMcsAddress;
     private String username;
     private String password;
-
     private FileServiceClient mcsClient;
     private RecordServiceClient recordServiceClient;
-
-    private static final String mediaType = "text/plain";
-
-    private static final String DEFAULT_REPRESENTATION_NAME = "storm_new_representation";
-
     public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
     public WriteRecordBolt(String ecloudMcsAddress, String username,
@@ -59,19 +52,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        Map<String, String> urlParams = FileServiceClient.parseFileUri(t.getFileUrl());
-
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
 
             final String record = t.getFileByteData();
             String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-            System.out.println("************************"+outputUrl);
+
+            boolean outputUrlMissing = false;
 
             if (outputUrl == null) {
                 // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
                 outputUrl = t.getFileUrl();
                 outputUrl = StringUtils.substringBefore(outputUrl, "/files");
+                outputUrlMissing = true;
 
                 LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
             }
@@ -80,6 +73,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             URI uri = uploadFileInNewRepresentation(t);
 
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
+
+            if (outputUrlMissing) {
+                t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
+                LOGGER.info("WriteRecordBolt: pushing new URI as OUTPUT_URL: " + t.getParameter(PluginParameterKeys.OUTPUT_URL));
+            }
 
             //outputCollector.emit(t.toStormTuple());
             emitBasicInfo(t.getTaskId(), 1);
@@ -105,16 +103,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
 
 
-        TaskTupleUtility taskTupleUtility =new TaskTupleUtility();
-        String newRepresentationName= taskTupleUtility.getParameterFromTuple(stormTaskTuple,PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        String outputMimeType= taskTupleUtility.getParameterFromTuple(stormTaskTuple,PluginParameterKeys.OUTPUT_MIME_TYPE);
-        /*
-        if (newRepresentationNameProvided(stormTaskTuple)) {
-            newRepresentationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        } else {
-            newRepresentationName = DEFAULT_REPRESENTATION_NAME;
-        }
-        */
+        TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
+        String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        String outputMimeType = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
         Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);
@@ -123,14 +114,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
 
         return newFileUri;
-    }
-
-    private boolean newRepresentationNameProvided(StormTaskTuple stormTaskTuple) {
-        if (stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME) != null) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     private String findRepresentationVersion(URI uri) throws MCSException {

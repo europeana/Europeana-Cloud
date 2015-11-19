@@ -884,6 +884,8 @@ public class RecordServiceClientTest {
 			throws MCSException, IOException {
 		String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
 		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-		client.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+		client
+				.useAuthorizationHeader(correctHeaderValue)
+				.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
 	}
 }

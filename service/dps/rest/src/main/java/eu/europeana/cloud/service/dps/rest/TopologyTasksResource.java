@@ -20,6 +20,8 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -57,6 +59,9 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class TopologyTasksResource {
 
+    @Autowired
+    ApplicationContext context;
+    
     @Autowired
     private TaskExecutionReportService reportService;
 
@@ -441,7 +446,7 @@ public class TopologyTasksResource {
             try {
                 UrlParser parser = new UrlParser(fileUrl);
                 if (parser.isUrlToRepresentationVersionFile()) {
-                    
+                    recordServiceClient = context.getBean(RecordServiceClient.class);
                     recordServiceClient
                             .useAuthorizationHeader(authorizationHeader)
                             .grantPermissionsToVersion(
