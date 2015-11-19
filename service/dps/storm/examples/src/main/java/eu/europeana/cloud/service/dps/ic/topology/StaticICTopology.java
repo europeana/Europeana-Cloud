@@ -84,9 +84,9 @@ public class StaticICTopology {
         } else {
 
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("ola", conf, builder.createTopology());
+            cluster.submitTopology("test", conf, builder.createTopology());
             Utils.sleep(60000);
-            cluster.killTopology("ola");
+            cluster.killTopology("test");
             cluster.shutdown();
         }
     }

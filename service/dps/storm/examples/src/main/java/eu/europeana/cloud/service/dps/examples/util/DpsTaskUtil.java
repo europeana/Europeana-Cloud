@@ -82,14 +82,10 @@ public class DpsTaskUtil {
         List<String> records = Lists.newArrayList();
         for (int i = 0; i < recordCount; i++) {
             records.add(imageUrl);
-            records.add("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5sssss");
-            records.add("dsdsdsdsdsd");
         }
-        records.add("dsdsdsdsdsd");
         task.addDataEntry(DpsTask.FILE_URLS, records);
         task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, "jp2reprooo");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
-        task.setTaskName("torakaAltoraka");
         //task.addParameter(PluginParameterKeys.INPUT_EXTENSION, "tiff");
         ///task.addParameter(PluginParameterKeys.OUTPUT_EXTENSION, "jp2");
         //  task.setTaskName("nameOfTheTask");
@@ -99,7 +95,7 @@ public class DpsTaskUtil {
     }
 
     public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIc(SAMPLE_TIFF, 1);
+        return generateDpsTaskForIc(SAMPLE_TIFF, RECORD_COUNT);
     }
 
 
