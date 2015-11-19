@@ -64,6 +64,7 @@ public class RepresentationAuthorizationResource {
      * <li>16: administration</li>
      * 
      * @summary Permissions removal
+     * 
      * @param globalId cloud id of the record (required). 
      * @param schema schema of representation (required).
      * @param version a specific version of the representation(required).
@@ -96,7 +97,7 @@ public class RepresentationAuthorizationResource {
         List<Permission> permissionsToBeRemoved = buildPermissionsList(permission);
         permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
 
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**
@@ -161,7 +162,7 @@ public class RepresentationAuthorizationResource {
                 LOGGER.error(e.getMessage());
                 return Response.notModified("Authorization has NOT been updated!").build();
             }
-            return Response.ok("Authorization has been updated!").build();
+            return Response.noContent().build();
         } else {
             return Response.notModified("Authorization has NOT been updated!").build();
         }
