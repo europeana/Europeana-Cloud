@@ -82,7 +82,7 @@ public class ICSTopology {
 
         builder.setBolt("grantPermBolt", new GrantPermissionsToFileBolt(ecloudMcsAddress, username, password),
                 ICConstants.XSLT_BOLT_PARALLEL).setNumTasks(ICConstants.NUMBER_OF_TASKS)
-                .shuffleGrouping("imageConversionBolt");
+                .shuffleGrouping("writeRecordBolt");
 
         builder.setBolt("removePermBolt", new RemovePermissionsToFileBolt(ecloudMcsAddress, username, password), ICConstants.WRITE_BOLT_PARALLEL)
                 .setNumTasks(ICConstants.NUMBER_OF_TASKS)

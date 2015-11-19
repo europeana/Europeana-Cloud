@@ -66,6 +66,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
             final String record = t.getFileByteData();
             String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
+            System.out.println("************************"+outputUrl);
 
             if (outputUrl == null) {
                 // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
