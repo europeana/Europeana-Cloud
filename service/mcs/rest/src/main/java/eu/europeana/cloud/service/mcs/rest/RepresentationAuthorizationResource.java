@@ -162,7 +162,7 @@ public class RepresentationAuthorizationResource {
                 LOGGER.error(e.getMessage());
                 return Response.notModified("Authorization has NOT been updated!").build();
             }
-            return Response.noContent().build();
+            return Response.ok("Authorization has been updated!").build();
         } else {
             return Response.notModified("Authorization has NOT been updated!").build();
         }

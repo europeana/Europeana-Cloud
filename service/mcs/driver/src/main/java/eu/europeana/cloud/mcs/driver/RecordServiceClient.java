@@ -476,7 +476,7 @@ public class RecordServiceClient {
 
         Builder request = target.request();
         Response response = request.delete();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
         }

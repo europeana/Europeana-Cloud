@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
@@ -150,8 +152,10 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
-
+        Response response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
     }
@@ -176,7 +180,9 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
-        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
+        Response response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, WRITE_PERMISSION + "");
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
@@ -262,7 +268,9 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
         /* Grant access to this file for Van Persie */
-        fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        Response response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -277,7 +285,9 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 		/* Delete permissions for Var Persie */
         login(RONALDO, RONALD_PASSWORD);
 
-        fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        response = fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
+        
+        Assert.assertEquals(response.getStatus(),Response.Status.NO_CONTENT.getStatusCode());
 
 		/* VAn Persie should not be able to access file */
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
