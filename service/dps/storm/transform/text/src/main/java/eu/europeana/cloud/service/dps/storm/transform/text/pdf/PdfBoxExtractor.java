@@ -3,10 +3,13 @@ package eu.europeana.cloud.service.dps.storm.transform.text.pdf;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,8 @@ import org.slf4j.LoggerFactory;
 public class PdfBoxExtractor implements TextExtractor
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfBoxExtractor.class);
+    
+    private Map<String, String> extractedMetadata;
     
     @Override
     public String extractText(InputStream is) 
@@ -42,6 +47,15 @@ public class PdfBoxExtractor implements TextExtractor
             pdfStripper = new PDFTextStripper();        
             
             pdDoc = new PDDocument(cosDoc);
+            
+            PDDocumentInformation info = pdDoc.getDocumentInformation();
+            Set<String> mdKeys = info.getMetadataKeys();
+            extractedMetadata = new HashMap<>();
+            for (String key:mdKeys){                
+                String value = (String)info.getPropertyStringValue(key);
+                extractedMetadata.put(key, value);                
+            }
+            
             parsedText = pdfStripper.getText(pdDoc);    //possible NULL pointer if document is encrypted
         } 
         catch (IOException ex)
@@ -73,7 +87,8 @@ public class PdfBoxExtractor implements TextExtractor
     @Override
     public Map<String, String> getExtractedMetadata() 
     {
-        return null;    //TODO: extract metadata!
+        return this.extractedMetadata;
+//        return null;    //TODO: extract metadata!
     }
 
     @Override

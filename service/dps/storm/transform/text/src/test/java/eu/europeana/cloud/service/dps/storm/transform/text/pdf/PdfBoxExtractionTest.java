@@ -44,7 +44,6 @@ public class PdfBoxExtractionTest
         assertNull(extracted);
     }
     
-    @Ignore
     @Test
     public void readMetadataFromFileAfterExtractionTest()
     {
