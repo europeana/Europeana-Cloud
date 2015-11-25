@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-ics</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>0.4</version>
+        <version>0.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ecloud-service-ics-rest</artifactId>
