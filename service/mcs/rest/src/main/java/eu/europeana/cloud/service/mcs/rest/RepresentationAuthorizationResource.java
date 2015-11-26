@@ -113,7 +113,8 @@ public class RepresentationAuthorizationResource {
      * @param permission permission as part of credential (required).
      * @return response tells you if authorization has been updated or not
      * @summary update authorization for a representation version
-     * @statuscode 204 object has been updated.
+     * @statuscode 200 object has been updated.
+     * @statuscode 204 object has not been updated.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
