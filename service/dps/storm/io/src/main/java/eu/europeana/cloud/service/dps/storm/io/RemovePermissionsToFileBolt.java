@@ -14,17 +14,15 @@ import java.net.MalformedURLException;
 
 /**
  * Will remove permissions to selected file from topology owner.
- * 
  */
 public class RemovePermissionsToFileBolt extends AbstractDpsBolt {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(RemovePermissionsToFileBolt.class);
 
-    private UrlParser urlParser;
-    protected RecordServiceClient recordServiceClient;
-    private String ecloudMcsAddress;
-    private String username;
-    private String password;
+    private RecordServiceClient recordServiceClient;
+    private final String ecloudMcsAddress;
+    private final String username;
+    private final String password;
 
     public RemovePermissionsToFileBolt(String ecloudMcsAddress, String username, String password) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -47,30 +45,27 @@ public class RemovePermissionsToFileBolt extends AbstractDpsBolt {
         }
 
         LOGGER.info("Removing permissions for {} on {}", username, resultFileUrl);
-        removePermissions(resultFileUrl, username);
-        emitBasicInfo(tuple.getTaskId(), 1);
-        outputCollector.emit(inputTuple, tuple.toStormTuple());
-        outputCollector.ack(inputTuple);
+        removePermissions(resultFileUrl, username, tuple);
     }
 
-    public void removePermissions(String fileUrl, String userName) {
+    void removePermissions(String fileUrl, String userName, StormTaskTuple tuple) {
         try {
-            urlParser = new UrlParser(fileUrl);
+            UrlParser urlParser = new UrlParser(fileUrl);
             if (urlParser.isUrlToRepresentationVersionFile()) {
                 recordServiceClient.revokePermissionsToVersion(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
                         urlParser.getPart(UrlPart.VERSIONS),
                         userName, Permission.ALL);
+                emitSuccess(tuple);
             } else {
-                LOGGER.error("Provided url does not point to ecloud file. Permissions will not be removed on: {}", fileUrl);
+                logAndEmitError(tuple, "Provided url does not point to ecloud file. Permissions will not be removed on: {}" + fileUrl);
             }
 
         } catch (MalformedURLException e) {
-            LOGGER.error("Url to file is malformed. Permissions will not be removed on: {}", fileUrl);
+            logAndEmitError(tuple, "Url to file is malformed. Permissions will not be removed on: {}" + fileUrl, e);
         } catch (MCSException e) {
-            LOGGER.error("There was exception while trying to remove permissions on: {}", fileUrl);
-            e.printStackTrace();
+            logAndEmitError(tuple, "There was exception while trying to remove permissions on: {}" + fileUrl, e);
         }
     }
 

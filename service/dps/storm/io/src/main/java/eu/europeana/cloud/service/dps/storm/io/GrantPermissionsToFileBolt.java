@@ -11,8 +11,6 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
 
 /**
@@ -91,22 +89,4 @@ public class GrantPermissionsToFileBolt extends AbstractDpsBolt {
         }
     }
 
-    private void logAndEmitError(StormTaskTuple t, String message) {
-        LOGGER.error(message);
-        emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-        emitBasicInfo(t.getTaskId(), 1);
-    }
-
-    private void logAndEmitError(StormTaskTuple t, String message, Exception e) {
-        LOGGER.error(message, e);
-        StringWriter stack = new StringWriter();
-        e.printStackTrace(new PrintWriter(stack));
-        logAndEmitError(t, message + e.getMessage());
-    }
-    
-    private void emitSuccess(StormTaskTuple t){
-        emitBasicInfo(t.getTaskId(), 1);
-        outputCollector.emit(inputTuple, t.toStormTuple());
-        outputCollector.ack(inputTuple);
-    }
 }

@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -153,5 +152,24 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitBasicInfo(long taskId, int expectedSize) {
         NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+    protected void logAndEmitError(StormTaskTuple t, String message) {
+        LOGGER.error(message);
+        emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+        emitBasicInfo(t.getTaskId(), 1);
+    }
+
+    protected void logAndEmitError(StormTaskTuple t, String message, Exception e) {
+        LOGGER.error(message, e);
+        StringWriter stack = new StringWriter();
+        e.printStackTrace(new PrintWriter(stack));
+        logAndEmitError(t, message + e.getMessage());
+    }
+
+    protected void emitSuccess(StormTaskTuple t) {
+        emitBasicInfo(t.getTaskId(), 1);
+        outputCollector.emit(inputTuple, t.toStormTuple());
+        outputCollector.ack(inputTuple);
     }
 }
