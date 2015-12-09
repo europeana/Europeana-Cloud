@@ -27,6 +27,11 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.9.13</version>
 		</dependency>
+		<dependency>
+			<groupId>com.eaio.uuid</groupId>
+			<artifactId>uuid</artifactId>
+			<version>${version.uuid}</version>
+		</dependency>
 	</dependencies>
 	
 	<properties>
