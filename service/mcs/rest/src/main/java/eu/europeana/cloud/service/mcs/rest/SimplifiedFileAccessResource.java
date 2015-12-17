@@ -112,7 +112,7 @@ public class SimplifiedFileAccessResource {
 
             return Response.status(Response.Status.OK).entity(output).tag(md5).build();
         } else {
-            throw new AccessDeniedException("access is denied");    //TODO poprawić message
+            throw new AccessDeniedException("Access is denied");
         }
     }
 
