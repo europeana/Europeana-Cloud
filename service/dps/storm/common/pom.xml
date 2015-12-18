@@ -18,7 +18,6 @@
 	</properties>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-cos</artifactId>
@@ -108,5 +107,17 @@
 	  <version>${project.version}</version>
 	 </dependency>
 	</dependencies>
-
+	
+	<build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/multilang</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
 </project>
