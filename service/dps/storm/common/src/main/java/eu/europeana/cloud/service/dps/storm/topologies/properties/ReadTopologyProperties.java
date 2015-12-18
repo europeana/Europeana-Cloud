@@ -43,8 +43,4 @@ public class ReadTopologyProperties {
 			e.printStackTrace();
 		}
 	}
-	
-	String getTopologyProperty(String propertyName, Properties topologyProperties) {
-		return topologyProperties.getProperty(propertyName);
-	}
 }

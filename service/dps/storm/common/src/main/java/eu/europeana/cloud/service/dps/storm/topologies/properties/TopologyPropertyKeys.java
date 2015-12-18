@@ -13,7 +13,9 @@ public final class TopologyPropertyKeys {
 	public static final String THRIFT_PORT = "THRIFT_PORT";
 
 	public static final String INPUT_ZOOKEEPER_ADDRESS = "INPUT_ZOOKEEPER_ADDRESS";
-	public static final String INPUT_ZOOKEEPER_PORT = "INPUT_ZOOKEEPER_ADDRESS";
+	public static final String INPUT_ZOOKEEPER_PORT = "INPUT_ZOOKEEPER_PORT";
+	
+	public static final String STORM_ZOOKEEPER_ADDRESS = "STORM_ZOOKEEPER_ADDRESS";
 
 	public static final String KAFKA_METRICS_TOPIC = "KAFKA_METRICS_TOPIC";
 	public static final String KAFKA_METRICS_BROKER = "KAFKA_METRICS_BROKER";

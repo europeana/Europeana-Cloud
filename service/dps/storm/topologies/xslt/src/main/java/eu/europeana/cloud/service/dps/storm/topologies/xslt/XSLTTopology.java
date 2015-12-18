@@ -174,7 +174,7 @@ public class XSLTTopology extends eCloudAbstractTopology {
 					topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
 			config.put(Config.NIMBUS_HOST, "localhost");
 			config.put(Config.STORM_ZOOKEEPER_SERVERS,
-					Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS)));
+					Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
 			StormSubmitter.submitTopology(topologyName, config, stormTopology);
 		}
 	}
