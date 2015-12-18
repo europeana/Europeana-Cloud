@@ -6,9 +6,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -40,14 +38,14 @@ public class SimplifiedRecordsResource {
 
     /**
      * Returns record with all representations
-     * 
+     *
      * @param uriInfo
-     * @param providerId    providerId
-     * @param localId       localId
-     * @return              record with all representations
+     * @param providerId providerId
+     * @param localId    localId
+     * @return record with all representations
      * @throws CloudException
      * @throws RecordNotExistsException
-     * @summary Gives access to record using friendly url
+     * @summary Get record using simplified url
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})

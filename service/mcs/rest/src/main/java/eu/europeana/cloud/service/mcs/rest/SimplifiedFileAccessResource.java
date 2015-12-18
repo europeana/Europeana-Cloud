@@ -58,7 +58,7 @@ public class SimplifiedFileAccessResource {
     private PermissionEvaluator permissionEvaluator;
 
     /**
-     * Returns file content using 'friendly' urls.
+     * Returns file content from <b>latest persistent version</b> of specified representation.
      *
      * @param providerId         providerId
      * @param localId            localId
@@ -69,7 +69,7 @@ public class SimplifiedFileAccessResource {
      * @throws FileNotExistsException
      * @throws CloudException
      * @throws RecordNotExistsException
-     * @summary Gives access to file using friendly url
+     * @summary Get file content using simplified url
      * @statuscode 204 object has been updated.
      */
     @GET
