@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:recordsAccessContext.xml"})
+        "classpath:representationsAccessContext.xml"})
 public class SimplifiedRepresentationResourceTest {
 
     @Autowired

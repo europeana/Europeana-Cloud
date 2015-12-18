@@ -9,7 +9,7 @@
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
-    <bean id="recordsResource" class="eu.europeana.cloud.service.mcs.rest.SimplifiedRecordsResource"/>
+    <bean id="representationsResource" class="eu.europeana.cloud.service.mcs.rest.SimplifiedRepresentationResource"/>
 
     <mockito:mock id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient"/>
     <mockito:mock id="recordService" class="eu.europeana.cloud.service.mcs.RecordService"/>
