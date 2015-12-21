@@ -119,7 +119,7 @@ public class CassandraUserDAO {
 				.getUsername())));
 	    } else {
 		BoundStatement boundStatement = createUserStatement.bind(
-			user.getUsername(), user.getPassword(), null);
+			user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
 		provider.getSession().execute(boundStatement);
 	    }
 	} catch (NoHostAvailableException e) {
