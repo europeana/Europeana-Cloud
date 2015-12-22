@@ -4,13 +4,7 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -31,7 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -70,6 +67,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
     private static final String READ_PERMISSION = "read";
     private static final String WRITE_PERMISSION = "write";
+    private static final String BROKEN_PERMISSION = "sdfas";
 
     private UriInfo URI_INFO;
 
@@ -153,9 +151,9 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
         Response response = fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
-        
+
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        
+
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
     }
@@ -186,6 +184,43 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
+    }
+
+    /**
+     * Tests giving write access to specific user.
+     */
+    @Test
+    public void updateAuthorization_throwsMCSException() throws RepresentationNotExistsException,
+            CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+        //given
+        Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        login(RONALDO, RONALD_PASSWORD);
+        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID);
+        filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, INPUT_STREAM, FILE_NAME);
+        File f = new File();
+        f.setFileName(FILE_NAME);
+        Mockito.doReturn(f).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
+        try {
+            //when
+            fileAuthorizationResource.updateAuthorization(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, BROKEN_PERMISSION + "");
+            fail("Expected WebApplicationException");
+        } catch (WebApplicationException e) {
+            //then
+            Assert.assertThat(e.getResponse().getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        }
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        assertUserDontHaveAccessToFile();
+    }
+
+    private void assertUserDontHaveAccessToFile() throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException {
+        try {
+            fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, MIME_TYPE, INPUT_STREAM);
+            fail("Expected AccessDeniedException");
+        } catch (AccessDeniedException e) {
+
+        }
     }
 
     // TEST giving access to everyone + anonymous users //
@@ -279,15 +314,15 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		/* Check if Van Persie has access to file */
+        /* Check if Van Persie has access to file */
         fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, FILE_NAME, null);
 
 		/* Delete permissions for Var Persie */
         login(RONALDO, RONALD_PASSWORD);
 
         response = fileAuthorizationResource.removePermissions(GLOBAL_ID, SCHEMA, VERSION, VAN_PERSIE, READ_PERMISSION + "");
-        
-        Assert.assertEquals(response.getStatus(),Response.Status.NO_CONTENT.getStatusCode());
+
+        Assert.assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
 
 		/* VAn Persie should not be able to access file */
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);

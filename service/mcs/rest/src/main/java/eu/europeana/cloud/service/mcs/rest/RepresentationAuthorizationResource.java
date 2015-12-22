@@ -24,7 +24,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
@@ -38,9 +38,17 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 @Component
 public class RepresentationAuthorizationResource {
 
+    private static final List<String> acceptedPermissionValues
+            = Arrays.asList(
+            eu.europeana.cloud.common.model.Permission.ALL.getValue(),
+            eu.europeana.cloud.common.model.Permission.READ.getValue(),
+            eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
+            eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
+            eu.europeana.cloud.common.model.Permission.DELETE.getValue());
+
     @Autowired
     private MutableAclService mutableAclService;
-    
+
     @Autowired
     private PermissionsGrantingManager permissionsGrantingManager;
 
@@ -48,29 +56,22 @@ public class RepresentationAuthorizationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
-    private static final String ALL_PERMISION = eu.europeana.cloud.common.model.Permission.ALL.getValue();
-    private static final String READ_PERMISION = eu.europeana.cloud.common.model.Permission.READ.getValue();
-    private static final String WRITE_PERMISION = eu.europeana.cloud.common.model.Permission.WRITE.getValue();
-    private static final String ADMIN_PERMISION = eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue();
-    private static final String DELETE_PERMISION = eu.europeana.cloud.common.model.Permission.DELETE.getValue();
-
     /**
      * Removes permissions for selected user to selected representation version.<br/><br/>
-     * Permissions mappings:<br/>
-     * <li>0: all</li>
-     * <li>1: read</li>
-     * <li>2: write</li>
-     * <li>8: delete</li>
-     * <li>16: administration</li>
-     * 
-     * @summary Permissions removal
-     * 
-     * @param globalId cloud id of the record (required). 
-     * @param schema schema of representation (required).
-     * @param version a specific version of the representation(required).
-     * @param userName username as part of credential (required).
+     * Permissions option:<br/>
+     * <li>all</li>
+     * <li>read</li>
+     * <li>write</li>
+     * <li>delete</li>
+     * <li>administration</li>
+     *
+     * @param globalId   cloud id of the record (required).
+     * @param schema     schema of representation (required).
+     * @param version    a specific version of the representation(required).
+     * @param userName   username as part of credential (required).
      * @param permission permission as part of credential (required).
      * @return response tells you if authorization has been updated or not
+     * @summary Permissions removal
      */
     @DELETE
     @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
@@ -88,13 +89,16 @@ public class RepresentationAuthorizationResource {
         ParamUtil.require(P_VER, version);
         ParamUtil.require(P_USER_NAME, userName);
         ParamUtil.require(P_PERMISSION, permission);
+        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
+
+        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 globalId + "/" + schema + "/" + version);
 
         LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'", userName, versionIdentity.getType(), versionIdentity.getIdentifier());
 
-        List<Permission> permissionsToBeRemoved = buildPermissionsList(permission);
+        List<Permission> permissionsToBeRemoved = Arrays.asList(_permission.getSpringPermissions());
         permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
 
         return Response.noContent().build();
@@ -134,29 +138,18 @@ public class RepresentationAuthorizationResource {
         ParamUtil.require(P_VER, version);
         ParamUtil.require(P_USER_NAME, username);
         ParamUtil.require(P_PERMISSION, permission);
+        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 globalId + "/" + schema + "/" + version);
-
+        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
         if (versionAcl != null) {
-
             try {
-                if(ALL_PERMISION.equalsIgnoreCase(permission)){
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.DELETE, new PrincipalSid(username), true);
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.ADMINISTRATION, new PrincipalSid(username), true);
-                }else if(READ_PERMISION.equalsIgnoreCase(permission)){
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                }else if(WRITE_PERMISION.equalsIgnoreCase(permission)){
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
-                }else if(DELETE_PERMISION.equalsIgnoreCase(permission)){
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.DELETE, new PrincipalSid(username), true);
-                }else if(ADMIN_PERMISION.equalsIgnoreCase(permission)){
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.ADMINISTRATION, new PrincipalSid(username), true);
+                final Permission[] permissions = _permission.getSpringPermissions();
+                for (Permission singlePermission : permissions) {
+                    versionAcl.insertAce(versionAcl.getEntries().size(), singlePermission, new PrincipalSid(username), true);
                 }
                 mutableAclService.updateAcl(versionAcl);
             } catch (Exception e) {
@@ -206,33 +199,5 @@ public class RepresentationAuthorizationResource {
         } else {
             return Response.notModified("Authorization has NOT been updated!").build();
         }
-    }
-    
-    /*
-     * 
-     */
-    private List<Permission> buildPermissionsList(String permissionId) {
-
-        List<Permission> permissions = new ArrayList<>();
-
-        if (READ_PERMISION.equalsIgnoreCase(permissionId)) {
-            permissions.add(BasePermission.READ);
-        }
-        if (WRITE_PERMISION.equalsIgnoreCase(permissionId)) {
-            permissions.add(BasePermission.WRITE);
-        }
-        if (ADMIN_PERMISION.equalsIgnoreCase(permissionId)) {
-            permissions.add(BasePermission.ADMINISTRATION);
-        }
-        if (DELETE_PERMISION.equalsIgnoreCase(permissionId)) {
-            permissions.add(BasePermission.DELETE);
-        }
-        if(ALL_PERMISION.equalsIgnoreCase(permissionId)){
-            permissions.add(BasePermission.READ);
-            permissions.add(BasePermission.WRITE);
-            permissions.add(BasePermission.DELETE);
-            permissions.add(BasePermission.ADMINISTRATION);
-        }
-        return permissions;
     }
 }
