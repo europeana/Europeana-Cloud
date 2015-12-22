@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.TopologyAlreadyExistsException;
+import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.status.DpsErrorCode;
 import org.slf4j.Logger;
@@ -84,6 +85,10 @@ public class UnitedExceptionMapper {
 
     public Response toResponse(DpsTaskValidationException exception) {
         return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.TASK_NOT_VALID, exception);
+    }
+
+    public Response toResponse(TaskSubmissionException exception) {
+        return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.TASK_NOT_VALID, exception);
     }
     
     private static Response buildResponse(Response.Status httpStatus, DpsErrorCode errorCode, Exception e) {

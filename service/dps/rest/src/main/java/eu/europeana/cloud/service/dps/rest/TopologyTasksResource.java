@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
@@ -21,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -183,7 +183,7 @@ public class TopologyTasksResource {
             @PathParam("topologyName") String topologyName,
             @Context UriInfo uriInfo,
             @HeaderParam("Authorization") String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
 
         LOGGER.info("Submiting task");
         
@@ -426,7 +426,7 @@ public class TopologyTasksResource {
         taskValidator.validate(task);
     }
 
-    private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) {
+    private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
 
         LOGGER.info("Granting permissions to files from DPS task");
         String topologyUserName = topologyManager.getNameToUserMap().get(topologyName);
@@ -460,9 +460,13 @@ public class TopologyTasksResource {
                     LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
                 }
             } catch (MalformedURLException e) {
-                LOGGER.error("URL in task's file list is malformed. Permissions will not be granted for this file: "+fileUrl);
+                LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: "+fileUrl);
+                throw new TaskSubmissionException("Malformed URL in task: " + fileUrl+". Submission process stopped.");
             } catch (MCSException e) {
                 LOGGER.error("Error while communicating MCS", e);
+                throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl+". Submission process stopped.");
+            } catch (Exception e) {
+                throw new TaskSubmissionException(e.getMessage());
             }
         }
     }
