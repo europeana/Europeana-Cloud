@@ -41,7 +41,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
  * The latest persistent version of representation is picked up.
  * 
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + "}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + "}")
+@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + "}/representations/{" + P_REPRESENTATIONNAME + "}/{" + P_FILENAME + ":.+}")
 @Scope("request")
 @Component
 public class SimplifiedFileAccessResource {
