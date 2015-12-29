@@ -466,7 +466,7 @@ public class TopologyTasksResource {
                 LOGGER.error("Error while communicating MCS", e);
                 throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl+". Submission process stopped.");
             } catch (Exception e) {
-                throw new TaskSubmissionException(e.getMessage());
+                throw new TaskSubmissionException(e.getMessage()+". Submission process stopped");
             }
         }
     }

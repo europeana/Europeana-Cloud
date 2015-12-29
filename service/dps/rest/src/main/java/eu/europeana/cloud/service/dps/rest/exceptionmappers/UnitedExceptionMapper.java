@@ -88,7 +88,7 @@ public class UnitedExceptionMapper {
     }
 
     public Response toResponse(TaskSubmissionException exception) {
-        return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.TASK_NOT_VALID, exception);
+        return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.OTHER, exception);
     }
     
     private static Response buildResponse(Response.Status httpStatus, DpsErrorCode errorCode, Exception e) {

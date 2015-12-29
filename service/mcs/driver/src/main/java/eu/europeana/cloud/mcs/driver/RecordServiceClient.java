@@ -13,7 +13,9 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -451,8 +453,7 @@ public class RecordServiceClient {
         Builder request = target.request();
         Response response = request.post(null);
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            throwException(response);
         }
     }
 
@@ -478,6 +479,19 @@ public class RecordServiceClient {
         Response response = request.delete();
         if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
+    
+    
+    private void throwException(Response response) throws MCSException {
+        try{
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }catch (MessageBodyProviderNotFoundException e){
+            ErrorInfo errorInfo = new ErrorInfo();
+            errorInfo.setErrorCode(McsErrorCode.OTHER.toString());
+            errorInfo.setDetails("Mcs not available");
             throw MCSExceptionProvider.generateException(errorInfo);
         }
     }

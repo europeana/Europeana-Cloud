@@ -6,6 +6,7 @@ import co.freeside.betamax.TapeMode;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -900,5 +901,12 @@ public class RecordServiceClientTest {
 		client
 				.useAuthorizationHeader(correctHeaderValue)
 				.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+	}
+	
+	@Test(expected = DriverException.class)
+	@Betamax(tape = "records_shouldThrowDriverExceptionWhileMcsIsNotAvailable")
+	public void shouldThrowMcsExceptionWhileMcsIsNotAvailable() throws MCSException {
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
 	}
 }
