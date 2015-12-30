@@ -11,24 +11,23 @@
                         http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
                         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
-<context:component-scan
-        base-package="eu.europeana.cloud.service.ips"/>
+    <context:component-scan
+            base-package="eu.europeana.cloud.service.ips"/>
 
-<!--
-   ImagesResource needs to be declared here for proper initialization of field translator (via ref, not autowired) -->
-<bean id="imagesResource" class="eu.europeana.cloud.service.ips.rest.ImagesResource">
-    <property name="translator" ref="translator"></property>
-</bean>
+    <!-- ImagesResource needs to be declared here for proper initialization of field translator (via ref, not autowired) -->
+    <bean id="imagesResource" class="eu.europeana.cloud.service.ips.rest.ImagesResource">
+        <property name="translator" ref="translator"></property>
+    </bean>
 
-<!--
-   Image Translator used in ImagesResource -->
-<bean id="translator"
-      class="eu.europeana.cloud.service.ips.ImageTranslator">
+    <!-- Image Translator used in ImagesResource -->
+    <bean id="translator"
+          class="eu.europeana.cloud.service.ips.ImageTranslator">
 
-       <constructor-arg name="iipHost">
-              <jee:jndi-lookup expected-type="java.lang.String"
-                               jndi-name="java:comp/env/ips/iipHost"/>
-       </constructor-arg>
-</bean>
+        <constructor-arg name="iipHost">
+            <jee:jndi-lookup expected-type="java.lang.String"
+                             jndi-name="java:comp/env/ips/iipHost"/>
+        </constructor-arg>
+    </bean>
 
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
 </beans>

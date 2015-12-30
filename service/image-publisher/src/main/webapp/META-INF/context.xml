@@ -6,4 +6,8 @@
             global="ips/iipHost"
             type="java.lang.String"/>
 
+    <ResourceLink
+            name="logging/kafka/brokerList"
+            global="logging/kafka/brokerList"
+            type="java.lang.String"/>
 </Context>
