@@ -106,7 +106,15 @@
 	  <artifactId>ecloud-service-dps-cassandra</artifactId>
 	  <version>${project.version}</version>
 	 </dependency>
+
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>${version.cassandra-unit}</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
+
 	
 	<build>
         <sourceDirectory>src/main/java</sourceDirectory>
