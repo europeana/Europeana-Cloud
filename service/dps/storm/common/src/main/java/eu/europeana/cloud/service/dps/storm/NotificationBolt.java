@@ -11,6 +11,7 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
 import java.util.HashMap;
@@ -33,6 +34,7 @@ public class NotificationBolt extends BaseRichBolt {
 	private static final String[] BASIC_INFO_COLUMNS = new String[] {
 			CassandraTablesAndColumnsNames.BASIC_TASK_ID,
 			CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME,
+            //expected number of records to prcess
 			CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE };
 	private static final String[] NOTIFICATIONS_COLUMNS = new String[] {
 			CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
@@ -142,7 +144,7 @@ public class NotificationBolt extends BaseRichBolt {
 				break;
 			}
 		} catch (Exception ex) {
-			LOGGER.error("Cannot store notifiaction to Cassandra because: {}",
+			LOGGER.error("Cannot store notification to Cassandra because: {}",
 					ex.getMessage());
 			outputCollector.ack(tuple);
 			return;
@@ -156,7 +158,7 @@ public class NotificationBolt extends BaseRichBolt {
 					TaskFinishedStreamName,
 					NotificationTuple.prepareNotification(
 							notificationTuple.getTaskId(), "",
-							NotificationTuple.States.FINISHED, "", "")
+							States.FINISHED, "", "")
 							.toStormTuple());
 
 			cache.remove(notificationTuple.getTaskId());
@@ -182,7 +184,8 @@ public class NotificationBolt extends BaseRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer ofd) {
-		ofd.declare(NotificationTuple.getFields());
+        //TODO remove one
+        ofd.declare(NotificationTuple.getFields());
 
 		ofd.declareStream(TaskFinishedStreamName, NotificationTuple.getFields());
 	}

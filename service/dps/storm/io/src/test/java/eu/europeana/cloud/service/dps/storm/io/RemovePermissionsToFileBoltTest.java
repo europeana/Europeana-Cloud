@@ -9,6 +9,7 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.TupleImpl;
 import backtype.storm.tuple.Values;
 import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
@@ -81,7 +82,7 @@ public class RemovePermissionsToFileBoltTest {
         Mockito.doNothing().when(recordServiceClient).revokePermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
         final Tuple tuple = createTestTuple(MALFORMED_MCS_FILE_URL);
         final NotificationTuple expectedNotification = NotificationTuple.prepareNotification(1,
-                "fileUrl", NotificationTuple.States.ERROR, "Url to file is malformed. Permissions will not be removed on: {}MALFORMED_MCS_FILE_URLno protocol: MALFORMED_MCS_FILE_URL", "{OUTPUT_URL=MALFORMED_MCS_FILE_URL, TASK_SUBMITTER_NAME=user}");
+                "fileUrl", States.ERROR, "Url to file is malformed. Permissions will not be removed on: {}MALFORMED_MCS_FILE_URLno protocol: MALFORMED_MCS_FILE_URL", "{OUTPUT_URL=MALFORMED_MCS_FILE_URL, TASK_SUBMITTER_NAME=user}");
         //when
         testedBolt.execute(tuple);
         //then
@@ -96,7 +97,7 @@ public class RemovePermissionsToFileBoltTest {
         Mockito.doThrow(new MCSException()).when(recordServiceClient).revokePermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
         final Tuple tuple = createTestTuple(PROPER_MCS_FILE_URL);
         final NotificationTuple expectedNotification = NotificationTuple.prepareNotification(1,
-                "fileUrl", NotificationTuple.States.ERROR, "There was exception while trying to remove permissions on: {}http://localhost:8080/mcs/records/RJUK2YK567SH75DW5GXVH5MXUUGVGX2QUKZC4L6HTPQPZEDE3Q5Q/representations/RepName_0000001/versions/5f860750-8c36-11e5-80b8-0a0027000001/files/cb8f8dc1-78cb-4cb3-a6ad-84e34aa6ca91null", "{OUTPUT_URL=http://localhost:8080/mcs/records/RJUK2YK567SH75DW5GXVH5MXUUGVGX2QUKZC4L6HTPQPZEDE3Q5Q/representations/RepName_0000001/versions/5f860750-8c36-11e5-80b8-0a0027000001/files/cb8f8dc1-78cb-4cb3-a6ad-84e34aa6ca91, TASK_SUBMITTER_NAME=user}");
+                "fileUrl", States.ERROR, "There was exception while trying to remove permissions on: {}http://localhost:8080/mcs/records/RJUK2YK567SH75DW5GXVH5MXUUGVGX2QUKZC4L6HTPQPZEDE3Q5Q/representations/RepName_0000001/versions/5f860750-8c36-11e5-80b8-0a0027000001/files/cb8f8dc1-78cb-4cb3-a6ad-84e34aa6ca91null", "{OUTPUT_URL=http://localhost:8080/mcs/records/RJUK2YK567SH75DW5GXVH5MXUUGVGX2QUKZC4L6HTPQPZEDE3Q5Q/representations/RepName_0000001/versions/5f860750-8c36-11e5-80b8-0a0027000001/files/cb8f8dc1-78cb-4cb3-a6ad-84e34aa6ca91, TASK_SUBMITTER_NAME=user}");
         //when
         testedBolt.execute(tuple);
         //then

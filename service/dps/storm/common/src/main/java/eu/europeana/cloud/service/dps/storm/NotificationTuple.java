@@ -3,6 +3,9 @@ package eu.europeana.cloud.service.dps.storm;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import eu.europeana.cloud.common.model.dps.InformationTypes;
+import eu.europeana.cloud.common.model.dps.States;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,22 +18,7 @@ public class NotificationTuple
     public static final String taskIdFieldName = "TASK_ID";
     public static final String informationTypeFieldName = "INFORMATION_TYPE";
     public static final String parametersFieldName = "PARAMETERS";
-    
-    public enum InformationTypes
-    {
-        BASIC_INFO,
-        NOTIFICATION
-    }
-    
-    public enum States
-    {
-        SUCCESS,
-        DROPPED,
-        KILLED,
-        ERROR,
-        
-        FINISHED    //this status is used by notification bolt when whole DPS taks is processed
-    }
+
     
     private final long taskId;
     private final InformationTypes informationType;

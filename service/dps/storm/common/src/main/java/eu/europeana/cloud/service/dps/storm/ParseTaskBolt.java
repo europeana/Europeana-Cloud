@@ -4,6 +4,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import java.io.IOException;
 
+import eu.europeana.cloud.common.model.dps.States;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,13 +72,13 @@ public class ParseTaskBolt extends BaseRichBolt
         {
             declarer.declare(StormTaskTuple.getFields());
         }
-        
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
     @Override
     public void execute(Tuple tuple) 
     {
+        LOGGER.info("_____________i____________message:" + tuple.getFields() + tuple.getValues());
         ObjectMapper mapper = new ObjectMapper();
         DpsTask task;
         try 
@@ -187,7 +188,7 @@ public class ParseTaskBolt extends BaseRichBolt
             String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
-                resource, NotificationTuple.States.DROPPED, message, additionalInformations);
+                resource, States.DROPPED, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
     
