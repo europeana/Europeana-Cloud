@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import eu.europeana.cloud.common.model.dps.States;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      */
     protected void emitDropNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, NotificationTuple.States.DROPPED, message, additionalInformations);
+                resource, States.DROPPED, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
@@ -123,7 +124,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      */
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, NotificationTuple.States.ERROR, message, additionalInformations);
+                resource, States.ERROR, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
@@ -138,7 +139,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      */
     protected void emitKillNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, NotificationTuple.States.KILLED, message, additionalInformations);
+                resource, States.KILLED, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

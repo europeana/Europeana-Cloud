@@ -5,6 +5,8 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
+import eu.europeana.cloud.common.model.dps.States;
+
 import java.util.Map;
 
 /**
@@ -40,7 +42,7 @@ public class EndBolt extends BaseRichBolt
             String message, String additionalInformations)
     {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, 
-                resource, NotificationTuple.States.SUCCESS, message, additionalInformations);
+                resource, States.SUCCESS, message, additionalInformations);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
