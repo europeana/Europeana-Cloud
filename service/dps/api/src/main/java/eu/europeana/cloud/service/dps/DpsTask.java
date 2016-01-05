@@ -40,6 +40,7 @@ public class DpsTask implements Serializable {
 	/* Name for the task */
 	private String taskName;
 
+
 	public DpsTask() {
             this("");
 	}
