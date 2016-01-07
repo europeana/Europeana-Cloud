@@ -84,7 +84,7 @@
         <module>tools</module>
         <module>integration</module>
         <module>service/ics</module>
-        <module>service/image-publisher</module>
+        <module>service/image-presenter</module>
     </modules>
     <repositories>
         <repository>
