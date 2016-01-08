@@ -1,5 +1,4 @@
-package eu.europeana.cloud;
-
+package eu.europeana.cloud.bolts;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -11,7 +10,7 @@ import backtype.storm.utils.Utils;
 
 import java.util.Map;
 
-public class TestSpaut extends BaseRichSpout {
+public class TestSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
 
     @Override
