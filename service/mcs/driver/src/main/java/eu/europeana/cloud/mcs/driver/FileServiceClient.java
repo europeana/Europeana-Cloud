@@ -8,6 +8,7 @@ import java.net.URI;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -231,6 +232,41 @@ public class FileServiceClient {
         }
     }
 
+
+    /**
+     * Uploads file content without checking checksum.
+     *
+     * @param cloudId            id of uploaded file.
+     * @param representationName representation name of uploaded file.
+     * @param version            version of uploaded file.
+     * @param data               InputStream (content) of uploaded file.
+     * @param mediaType          mediaType of uploaded file.
+     * @param fileName           user file name
+     * @return URI of uploaded file.
+     * @throws RepresentationNotExistsException              when representation does not exist in specified version.
+     * @throws CannotModifyPersistentRepresentationException when specified representation version is persistent and modifying its files is not allowed.
+     * @throws DriverException                               call to service has not succeeded because of server side error.
+     * @throws MCSException                                  on unexpected situations.
+     */
+    public URI uploadFile(String cloudId, String representationName, String version, String fileName, InputStream data, String mediaType)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, DriverException,
+            MCSException {
+        WebTarget target = client.target(baseUrl).path(filesPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mediaType).field(
+                ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, fileName);
+        Invocation.Builder request = target.request();
+
+        Response response = request.post(Entity.entity(multipart, multipart.getMediaType()));
+
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            return response.getLocation();
+        } else {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        }
+    }
 
     /**
      * Uploads file content without checking checksum.
