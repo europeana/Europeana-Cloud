@@ -13,13 +13,17 @@ import java.util.Properties;
  * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
  *
  */
-public class ReadTopologyProperties {
-
-	public ReadTopologyProperties() {
-		
+public class PropertyFileLoader {
+	
+	public static void loadPropertyFile(String defaultPropertyFile, String providedPropertyFile, Properties topologyProperties) {
+		topologyProperties = new Properties();
+		PropertyFileLoader reader = new PropertyFileLoader();
+		reader.loadDefaultPropertyFile(defaultPropertyFile, topologyProperties);
+		if (providedPropertyFile != "")
+			reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
 	}
 		
-	public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) {
+	private void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) {
 		try {
 			InputStream propertiesInputStream = Thread.currentThread()
 				    .getContextClassLoader().getResourceAsStream(defaultPropertyFile);
@@ -31,7 +35,7 @@ public class ReadTopologyProperties {
 		}
 	}
 
-	public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) {
+	private void loadProvidedPropertyFile(String fileName, Properties topologyProperties) {
 		try {
 			File file = new File(fileName);
 			FileInputStream fileInput = new FileInputStream(file);

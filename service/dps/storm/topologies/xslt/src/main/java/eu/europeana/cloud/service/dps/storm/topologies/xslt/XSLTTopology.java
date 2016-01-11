@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 
 import java.util.Arrays;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +22,9 @@ import eu.europeana.cloud.service.dps.storm.io.GrantPermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RemovePermissionsToFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.eCloudAbstractTopology;
-import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
@@ -38,14 +39,16 @@ import storm.kafka.ZkHosts;
  * @author Franco Maria Nardini (francomaria.nardini@isti.cnr.it)
  *
  */
-public class XSLTTopology extends eCloudAbstractTopology {
+public class XSLTTopology {
 
+	private static Properties topologyProperties;
 	private final BrokerHosts brokerHosts;
 	private final static String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
 	public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
 
 	public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
-		super(defaultPropertyFile, providedPropertyFile);
+		topologyProperties = new Properties();
+		PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
 		brokerHosts = new ZkHosts(topologyProperties.getProperty("INPUT_ZOOKEEPER_ADDRESS"));
 	}
 
@@ -76,36 +79,45 @@ public class XSLTTopology extends eCloudAbstractTopology {
 		// TOPOLOGY STRUCTURE!
 		builder.setSpout("kafkaReader", kafkaSpout,
 				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
 		builder.setBolt("parseKafkaInput", new ParseTaskBolt(),
-				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				((int) Integer
+						.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("kafkaReader");
 
 		builder.setBolt("retrieveFileBolt", retrieveFileBolt,
-				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				((int) Integer
+						.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("parseKafkaInput");
 
 		builder.setBolt("xsltTransformationBolt", new XsltBolt(),
 				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.XSLT_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("retrieveFileBolt");
 
 		builder.setBolt("writeRecordBolt", writeRecordBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("xsltTransformationBolt");
 
 		builder.setBolt("grantPermBolt", grantPermBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.GRANT_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("writeRecordBolt");
 
 		builder.setBolt("removePermBolt", removePermBolt,
 				((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REMOVE_BOLT_PARALLEL))))
-				.setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+				.setNumTasks(
+						((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
 				.shuffleGrouping("grantPermBolt");
 
 		builder.setBolt("endBolt", new EndBolt(),
@@ -164,12 +176,14 @@ public class XSLTTopology extends eCloudAbstractTopology {
 			String password = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_PASS);
 
 			StormTopology stormTopology = XsltTopology.buildTopology(
-					topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS), kafkaTopic, ecloudMcsAddress, username,
-					password);
+					topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS), kafkaTopic,
+					ecloudMcsAddress, username, password);
 
 			config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
-			config.setMaxTaskParallelism(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
-			config.put(Config.NIMBUS_THRIFT_PORT, Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
+			config.setMaxTaskParallelism(
+					Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));
+			config.put(Config.NIMBUS_THRIFT_PORT,
+					Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
 			config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
 					topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
 			config.put(Config.NIMBUS_HOST, "localhost");

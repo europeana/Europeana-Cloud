@@ -15,12 +15,12 @@ public class ReadTopologyPropertiesTest {
 	String TOPOLOGY_PROPERTIES_FILE = "test-config.properties";
 	String PROVIDED_TOPOLOGY_PROPERTIES_FILE = "src/main/resources/test-config.properties";
 	public static Properties topologyProperties;
-	ReadTopologyProperties reader;
+	PropertyFileLoader reader;
 
 	@Before
 	public void init() {
 		topologyProperties = new Properties();
-		reader = new ReadTopologyProperties();
+		reader = new PropertyFileLoader();
 	}
 
 	@Test
