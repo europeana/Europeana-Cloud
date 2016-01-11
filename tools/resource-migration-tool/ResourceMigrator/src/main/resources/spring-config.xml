@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <context:annotation-config />
+    <context:component-scan base-package="eu.europeana.cloud.migrator"/>
+
+    <bean id="migrator" class="eu.europeana.cloud.migrator.ResourceMigrator">
+        <constructor-arg ref="resProvider"/>
+    </bean>
+
+    <bean id="mcs" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">
+        <constructor-arg name="baseUrl" value="${mcs.url}"/>
+        <constructor-arg name="username" value="${cloud.username}"/>
+        <constructor-arg name="password" value="${cloud.password}"/>
+    </bean>
+
+    <bean id="uis" class="eu.europeana.cloud.client.uis.rest.UISClient">
+        <constructor-arg name="uisUrl" value="${uis.url}"/>
+        <constructor-arg name="username" value="${cloud.username}"/>
+        <constructor-arg name="password" value="${cloud.password}"/>
+    </bean>
+
+    <bean id="fsc" class="eu.europeana.cloud.mcs.driver.FileServiceClient">
+        <constructor-arg name="baseUrl" value="${mcs.url}"/>
+        <constructor-arg name="username" value="${cloud.username}"/>
+        <constructor-arg name="password" value="${cloud.password}"/>
+    </bean>
+
+    <bean id="resProvider" class="${provider.class}">
+        <constructor-arg name="representationName" value="${representation.name}"/>
+        <constructor-arg name="mappingFile" value="${mapping.filename}"/>
+        <constructor-arg name="locations" value="${locations}"/>
+    </bean>
+
+</beans>
