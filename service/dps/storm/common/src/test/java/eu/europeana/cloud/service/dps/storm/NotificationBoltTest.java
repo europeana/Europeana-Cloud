@@ -12,6 +12,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,10 +56,37 @@ public class NotificationBoltTest extends CassandraTestBase {
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchById(String.valueOf(taskId));
+        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
         assertThat(result, notNullValue());
         assertThat(result.size(), is(equalTo(1)));
         TaskInfo info = result.get(0);
+        assertThat(info, is(expectedTaskInfo));
+    }
+
+    @Test
+    public void testSuccessfulBasicInfoAndNotificationTuple() throws Exception {
+        //given
+        long taskId = 1;
+        int containsElements = 2;
+        String topologyName = "";
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName);
+
+        String resource = "resource";
+        States state = States.SUCCESS;
+        String text = "text";
+        String additionalInformations = "additionalInformations";
+        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements));
+        testedBolt.execute(setUpTuple);
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations));
+        //when
+        testedBolt.execute(tuple);
+        //then
+        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
+        assertThat(result, notNullValue());
+        assertThat(result.size(), is(equalTo(1)));
+        TaskInfo info = result.get(0);
+        expectedTaskInfo.equals(info);
         assertThat(info, is(expectedTaskInfo));
     }
 
@@ -74,14 +102,14 @@ public class NotificationBoltTest extends CassandraTestBase {
         States state = States.SUCCESS;
         String text = "text";
         String additionalInformations = "additionalInformations";
-        expectedTaskInfo.addSubtask(new SubTaskInfo(resource,state,text,additionalInformations));
+        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations));
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements));
         testedBolt.execute(setUpTuple);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(String.valueOf(taskId));
+        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
         assertThat(result, notNullValue());
         assertThat(result.size(), is(equalTo(1)));
         TaskInfo info = result.get(0);
