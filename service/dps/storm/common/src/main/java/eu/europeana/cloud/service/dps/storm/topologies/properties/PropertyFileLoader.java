@@ -23,7 +23,7 @@ public class PropertyFileLoader {
 			reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
 	}
 		
-	private void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) {
+	public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) {
 		try {
 			InputStream propertiesInputStream = Thread.currentThread()
 				    .getContextClassLoader().getResourceAsStream(defaultPropertyFile);
@@ -35,7 +35,7 @@ public class PropertyFileLoader {
 		}
 	}
 
-	private void loadProvidedPropertyFile(String fileName, Properties topologyProperties) {
+	public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) {
 		try {
 			File file = new File(fileName);
 			FileInputStream fileInput = new FileInputStream(file);

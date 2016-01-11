@@ -10,7 +10,7 @@ import org.junit.Test;
 /**
  * Created by Tarek on 11/13/2015.
  */
-public class ReadTopologyPropertiesTest {
+public class PropertyFileLoaderTest {
 
 	String TOPOLOGY_PROPERTIES_FILE = "test-config.properties";
 	String PROVIDED_TOPOLOGY_PROPERTIES_FILE = "src/main/resources/test-config.properties";
