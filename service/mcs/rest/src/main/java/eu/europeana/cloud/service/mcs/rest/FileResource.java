@@ -49,7 +49,7 @@ import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMappe
  * Resource to manage representation version's files with their content.
  */
 @Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{"
-        + P_FILENAME + "}")
+        + P_FILENAME + ":(.+)?}")
 @Component
 @Scope("request")
 public class FileResource {
