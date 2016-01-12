@@ -34,6 +34,7 @@ public final class TopologyPropertyKeys {
 	public static final String PARSE_TASKS_BOLT_PARALLEL = "PARSE_TASKS_BOLT_PARALLEL";
 	public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
 	public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
+	public static final String IC_BOLT_PARALLEL = "IC_BOLT_PARALLEL";
 	public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
 	public static final String GRANT_BOLT_PARALLEL = "GRANT_BOLT_PARALLEL";
 	public static final String REMOVE_BOLT_PARALLEL = "REMOVE_BOLT_PARALLEL";
