@@ -128,7 +128,10 @@ public class CassandraReportService implements TaskExecutionReportService
             
             line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS, 
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS));
-            
+
+            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE,
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
+
             res.add(line);
         }
         

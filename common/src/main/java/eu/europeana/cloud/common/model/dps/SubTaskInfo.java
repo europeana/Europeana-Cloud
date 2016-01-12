@@ -5,12 +5,18 @@ public class SubTaskInfo {
     private States state;
     private String info;
     private String additionalInformations;
+    private String resultResource;
 
     public SubTaskInfo(String resource, States state, String info, String additionalInformations) {
         this(resource);
         this.state = state;
         this.info = info;
         this.additionalInformations = additionalInformations;
+    }
+
+    public SubTaskInfo(String resource, States state, String info, String additionalInformations, String resultResource) {
+        this(resource, state, info, additionalInformations);
+        this.resultResource = resultResource;
     }
 
     public SubTaskInfo(String resource) {
@@ -45,6 +51,14 @@ public class SubTaskInfo {
         this.additionalInformations = additionalInformations;
     }
 
+    public String getResultResource() {
+        return resultResource;
+    }
+
+    public void setResultResource(String resultResource) {
+        this.resultResource = resultResource;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -56,6 +70,8 @@ public class SubTaskInfo {
             return false;
         if (info != null ? !info.equals(that.info) : that.info != null) return false;
         if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
+        if (resultResource != null ? !resultResource.equals(that.resultResource) : that.resultResource != null)
+            return false;
         if (state != that.state) return false;
 
         return true;
@@ -67,6 +83,7 @@ public class SubTaskInfo {
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (info != null ? info.hashCode() : 0);
         result = 31 * result + (additionalInformations != null ? additionalInformations.hashCode() : 0);
+        result = 31 * result + (resultResource != null ? resultResource.hashCode() : 0);
         return result;
     }
 }

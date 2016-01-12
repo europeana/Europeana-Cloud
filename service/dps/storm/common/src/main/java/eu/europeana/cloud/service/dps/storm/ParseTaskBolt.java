@@ -2,20 +2,19 @@ package eu.europeana.cloud.service.dps.storm;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import java.io.IOException;
-
-import eu.europeana.cloud.common.model.dps.States;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +77,6 @@ public class ParseTaskBolt extends BaseRichBolt
     @Override
     public void execute(Tuple tuple) 
     {
-        LOGGER.info("_____________i____________message:" + tuple.getFields() + tuple.getValues());
         ObjectMapper mapper = new ObjectMapper();
         DpsTask task;
         try 

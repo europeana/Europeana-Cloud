@@ -27,5 +27,6 @@ CREATE TABLE notifications (
     state varchar,
     info_text text,
     additional_informations text,
+    result_resource varchar,
     PRIMARY KEY(task_id, topology_name, resource)
 );

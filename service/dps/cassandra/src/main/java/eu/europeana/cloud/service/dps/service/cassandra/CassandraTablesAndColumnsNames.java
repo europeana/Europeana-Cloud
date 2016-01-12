@@ -22,4 +22,5 @@ public class CassandraTablesAndColumnsNames
     public static final String NOTIFICATION_STATE = "state";
     public static final String NOTIFICATION_INFO_TEXT = "info_text";
     public static final String NOTIFICATION_ADDITIONAL_INFORMATIONS = "additional_informations";
+    public static final String NOTIFICATION_RESULT_RESOURCE = "result_resource";
 }
