@@ -133,7 +133,7 @@ public class icTopologyTest extends icTestMocksHelper implements TestConstantsHe
                 printDefaultStreamTuples(result);
 
                 String actual = parse(Testing.readTuples(result, END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
-                String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
+                String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
 
                 assertEquals(expectedTuple, actual, true);
             }

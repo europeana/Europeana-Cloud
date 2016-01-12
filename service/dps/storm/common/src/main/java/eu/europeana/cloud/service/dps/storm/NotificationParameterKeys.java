@@ -17,4 +17,5 @@ public class NotificationParameterKeys
     public static final String STATE = "state";
     public static final String INFO_TEXT = "info_text";
     public static final String ADDITIONAL_INFORMATIONS = "additionalInfo";
+    public static final String RESULT_RESOURCE = "resultResource";
 }

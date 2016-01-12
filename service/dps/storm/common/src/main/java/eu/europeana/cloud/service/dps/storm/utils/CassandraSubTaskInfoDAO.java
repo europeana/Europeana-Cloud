@@ -38,16 +38,17 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
-                + ") VALUES (?,?,?,?,?,?)");
+                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
+                + ") VALUES (?,?,?,?,?,?,?)");
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         subtaskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
         subtaskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    public void insert(long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations)
+    public void insert(long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, topologyName, resource, state, infoTxt, additionalInformations));
+        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 
     public List<SubTaskInfo> searchById(long taskId)
@@ -58,7 +59,8 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
             result.add(new SubTaskInfo(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
                     States.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS)
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE)
             ));
         }
         return result;

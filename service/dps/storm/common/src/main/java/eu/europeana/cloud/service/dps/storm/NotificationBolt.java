@@ -13,6 +13,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import org.apache.storm.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +143,6 @@ public class NotificationBolt extends BaseRichBolt {
 
             cache.remove(notificationTuple.getTaskId());
         }
-
         outputCollector.ack(tuple);
     }
 
@@ -167,51 +167,32 @@ public class NotificationBolt extends BaseRichBolt {
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
         //TODO remove one
         ofd.declare(NotificationTuple.getFields());
-
         ofd.declareStream(TaskFinishedStreamName, NotificationTuple.getFields());
     }
 
     private int storeBasicInfo(long taskId, Map<String, String> parameters) throws DatabaseConnectionException {
-        int expectedSize = -1;
-        if (parameters != null) {
-            String tmp = parameters
-                    .get(NotificationParameterKeys.EXPECTED_SIZE);
-            if (tmp != null && !tmp.isEmpty()) {
-                expectedSize = Integer.valueOf(tmp);
-            }
-        }
+        Validate.notNull(parameters);
+        int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE));
         taskInfoDAO.insert(taskId, topologyName, expectedSize);
         return expectedSize;
     }
 
     private void storeNotification(long taskId, Map<String, String> parameters) throws DatabaseConnectionException {
-        String tmp;
+        Validate.notNull(parameters);
+        String resource = assignIfNotNull(parameters.get(NotificationParameterKeys.RESOURCE));
+        String state = assignIfNotNull(parameters.get(NotificationParameterKeys.STATE));
+        String infoText = assignIfNotNull(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        String additionalInfo = assignIfNotNull(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        String resultResource = assignIfNotNull(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
+        subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
+    }
 
-        String resource = "";
-        String state = "";
-        String infoText = "";
-        String additionalInfo = "";
+    private String assignIfNotNull(String input) {
+        return input != null && !input.isEmpty() ? input : null;
+    }
 
-        if (parameters != null) {
-            tmp = parameters.get(NotificationParameterKeys.RESOURCE);
-            if (tmp != null) {
-                resource = tmp;
-            }
-            tmp = parameters.get(NotificationParameterKeys.STATE);
-            if (tmp != null) {
-                state = tmp;
-            }
-            tmp = parameters.get(NotificationParameterKeys.INFO_TEXT);
-            if (tmp != null) {
-                infoText = tmp;
-            }
-            tmp = parameters
-                    .get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS);
-            if (tmp != null) {
-                additionalInfo = tmp;
-            }
-        }
-        subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo);
+    private int convertIfNotNull(String input) {
+        return input != null && !input.isEmpty() ? Integer.valueOf(input) : -1;
     }
 
     private class NotificationCache {
