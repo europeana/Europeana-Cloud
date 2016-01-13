@@ -1,37 +1,83 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
-import static org.junit.Assert.assertEquals;
-
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by Tarek on 11/13/2015.
  */
 public class PropertyFileLoaderTest {
 
-	String TOPOLOGY_PROPERTIES_FILE = "test-config.properties";
-	String PROVIDED_TOPOLOGY_PROPERTIES_FILE = "src/main/resources/test-config.properties";
-	public static Properties topologyProperties;
-	PropertyFileLoader reader;
+    String DEFAULT_PROPERTIES_FILE = "test-config.properties";
+    String PROVIDED_PROPERTIES_FILE = "src/main/resources/test-config.properties";
+    public static Properties topologyProperties;
+    PropertyFileLoader reader;
 
-	@Before
-	public void init() {
-		topologyProperties = new Properties();
-		reader = new PropertyFileLoader();
-	}
+    @Before
+    public void init() {
+        topologyProperties = new Properties();
+        reader = new PropertyFileLoader();
+    }
 
-	@Test
-	public void getDefaultPropertiesTest() {
-		reader.loadDefaultPropertyFile(TOPOLOGY_PROPERTIES_FILE, topologyProperties);
-		assertEquals(topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME), "xslt_topology_1");
-	}
+    @Test
+    public void testLoadingDefaultPropertiesFile() throws FileNotFoundException, IOException {
+        reader.loadDefaultPropertyFile(DEFAULT_PROPERTIES_FILE, topologyProperties);
+        assertNotNull(topologyProperties);
+        assertFalse(topologyProperties.isEmpty());
+        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
+            assertNotNull(e.getKey());
+        }
 
-	@Test
-	public void getProvidedValueTest() {
-		reader.loadProvidedPropertyFile(PROVIDED_TOPOLOGY_PROPERTIES_FILE, topologyProperties);
-		assertEquals(topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME), "xslt_topology_1");
-	}
+    }
+
+    @Test
+    public void testLoadingProvidedPropertiesFile() throws FileNotFoundException, IOException {
+        reader.loadProvidedPropertyFile(PROVIDED_PROPERTIES_FILE, topologyProperties);
+        assertNotNull(topologyProperties);
+        assertFalse(topologyProperties.isEmpty());
+        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
+            assertNotNull(e.getKey());
+
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testLoadingNonExistedDefaultFile() throws FileNotFoundException, IOException {
+        reader.loadDefaultPropertyFile("NON_EXISTED_FILE", topologyProperties);
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testLoadingNonExistedProvidedFile() throws FileNotFoundException, IOException {
+        reader.loadProvidedPropertyFile("NON_EXISTED_FILE", topologyProperties);
+    }
+
+
+    @Test
+    public void testLoadingFileWhenProvidedPropertyFileNotExisted() throws FileNotFoundException, IOException {
+        PropertyFileLoader.loadPropertyFile(DEFAULT_PROPERTIES_FILE, "NON_EXISTED_PROVIDED_FILE", topologyProperties);
+        assertNotNull(topologyProperties);
+        assertFalse(topologyProperties.isEmpty());
+        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
+            assertNotNull(e.getKey());
+        }
+    }
+
+
+    //in case of provided property file and not existing default file. the loaded property file will be empty !
+    @Test
+    public void testLoadingFileWhenDefaultFileNotExists()
+            throws FileNotFoundException, IOException
+
+    {
+        PropertyFileLoader.loadPropertyFile("NON_EXISTED_DEFAULT_FILE", PROVIDED_PROPERTIES_FILE, topologyProperties);
+        assertTrue(topologyProperties.isEmpty());
+    }
 }

@@ -15,17 +15,11 @@ import java.util.Properties;
 public class PropertyFileLoader {
 
     public static void loadPropertyFile(String defaultPropertyFile, String providedPropertyFile, Properties topologyProperties) {
-        PropertyFileLoader reader = new PropertyFileLoader();
-        reader.loadDefaultPropertyFile(defaultPropertyFile, topologyProperties);
-        if (providedPropertyFile != "")
-            reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
-    }
-
-    public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) {
         try {
-            InputStream propertiesInputStream = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(defaultPropertyFile);
-            topologyProperties.load(propertiesInputStream);
+            PropertyFileLoader reader = new PropertyFileLoader();
+            reader.loadDefaultPropertyFile(defaultPropertyFile, topologyProperties);
+            if (providedPropertyFile != "")
+                reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -33,16 +27,21 @@ public class PropertyFileLoader {
         }
     }
 
-    public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) {
-        try {
-            File file = new File(fileName);
-            FileInputStream fileInput = new FileInputStream(file);
-            topologyProperties.load(fileInput);
-            fileInput.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void loadDefaultPropertyFile(String defaultPropertyFile, Properties topologyProperties) throws FileNotFoundException, IOException {
+        InputStream propertiesInputStream = Thread.currentThread()
+                .getContextClassLoader().getResourceAsStream(defaultPropertyFile);
+        if (propertiesInputStream == null)
+            throw new FileNotFoundException();
+        topologyProperties.load(propertiesInputStream);
+
+    }
+
+    public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) throws FileNotFoundException, IOException {
+
+        File file = new File(fileName);
+        FileInputStream fileInput = new FileInputStream(file);
+        topologyProperties.load(fileInput);
+        fileInput.close();
+
     }
 }
