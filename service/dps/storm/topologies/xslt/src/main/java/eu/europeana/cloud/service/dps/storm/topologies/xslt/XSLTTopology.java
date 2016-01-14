@@ -75,16 +75,6 @@ public class XSLTTopology {
 
 		TopologyBuilder builder = new TopologyBuilder();
 		KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
-		System.out.println("kafka_parallel" + topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL));
-		System.out.println("NUMBER_OF_TASKS" + topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS));
-		System.out.println("PARSE_TASKS_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL));
-		System.out.println("RETRIEVE_FILE_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL));
-		System.out.println("IC_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.IC_BOLT_PARALLEL));
-		System.out.println("WRITE_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL));
-		System.out.println("GRANT_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.GRANT_BOLT_PARALLEL));
-		System.out.println("REMOVE_BOLT_PARALLEL" + topologyProperties.getProperty(TopologyPropertyKeys.REMOVE_BOLT_PARALLEL));
-		System.out.println("kafka_parallel" + topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL));
-		System.out.println("kafka_parallel" + topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL));
 
 		// TOPOLOGY STRUCTURE!
 		builder.setSpout("kafkaReader", kafkaSpout,
