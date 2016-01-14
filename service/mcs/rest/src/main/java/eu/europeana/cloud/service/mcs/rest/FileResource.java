@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.activation.MimeType;
+import javax.activation.MimetypesFileTypeMap;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,6 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -166,6 +169,7 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
+        String fileMimeType = null;
         Response.Status status;
         if (contentRange.isSpecified()) {
             status = Response.Status.PARTIAL_CONTENT;
@@ -173,6 +177,9 @@ public class FileResource {
             status = Response.Status.OK;
             final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
             md5 = requestedFile.getMd5();
+            if(StringUtils.isNotBlank(requestedFile.getMimeType())){
+                fileMimeType = requestedFile.getMimeType();
+            }
         }
 
         // stream output
@@ -193,7 +200,7 @@ public class FileResource {
             }
         };
 
-        return Response.status(status).entity(output).tag(md5).build();
+        return Response.status(status).entity(output).type(fileMimeType).tag(md5).build();
     }
 
     /**

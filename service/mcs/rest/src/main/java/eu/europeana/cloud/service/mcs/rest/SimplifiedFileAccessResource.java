@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +92,11 @@ public class SimplifiedFileAccessResource {
             final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
             String md5 = requestedFile.getMd5();
-
+            String fileMimeType = null;
+            if(StringUtils.isNotBlank(requestedFile.getMimeType())){
+                fileMimeType = requestedFile.getMimeType();
+            }
+            
             StreamingOutput output = new StreamingOutput() {
                 @Override
                 public void write(OutputStream output)
@@ -110,7 +115,7 @@ public class SimplifiedFileAccessResource {
                 }
             };
 
-            return Response.status(Response.Status.OK).entity(output).tag(md5).build();
+            return Response.status(Response.Status.OK).entity(output).type(fileMimeType).tag(md5).build();
         } else {
             throw new AccessDeniedException("Access is denied");
         }
