@@ -1,5 +1,8 @@
 package eu.europeana.cloud.migrator;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -8,13 +11,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 
 public class ResourceMigratorApp {
+
+    private static final Logger logger = Logger.getLogger(ResourceMigratorApp.class);
+
     public static void main(String[] args) {
         boolean clean = false;
         if (args.length > 0)
@@ -25,7 +30,7 @@ public class ResourceMigratorApp {
         ApplicationContext context = getContext(builtIn);
 
         if (context == null) {
-            System.err.println("Configuration files not found!");
+            logger.error("Spring configuration files not found!");
             System.exit(-1);
         }
 
@@ -41,12 +46,12 @@ public class ResourceMigratorApp {
             is = new FileInputStream(dpFile);
             props.load(is);
         } catch (IOException e) {
-            System.err.println("Problem with file " + dpFile.getAbsolutePath());
+            logger.error("Could not load properties file " + dpFile.getAbsolutePath());
         } finally {
             try {
                 is.close();
             } catch (IOException e) {
-                System.err.println("Could not close input stream.");
+                logger.error("Could not close input stream.", e);
             }
         }
         return props;

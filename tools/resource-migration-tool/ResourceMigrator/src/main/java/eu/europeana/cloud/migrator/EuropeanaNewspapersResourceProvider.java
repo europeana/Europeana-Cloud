@@ -1,11 +1,9 @@
 package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -16,7 +14,7 @@ public class EuropeanaNewspapersResourceProvider
 
     private Map<String, String> reversedMapping = new HashMap<String, String>();
 
-    private static final Logger logger = LoggerFactory.getLogger(EuropeanaNewspapersResourceProvider.class);
+    private static final Logger logger = Logger.getLogger(EuropeanaNewspapersResourceProvider.class);
 
     public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations) {
         super(representationName, mappingFile, locations);

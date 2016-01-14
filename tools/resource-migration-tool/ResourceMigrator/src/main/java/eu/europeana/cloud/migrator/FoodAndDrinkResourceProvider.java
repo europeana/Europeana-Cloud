@@ -1,11 +1,9 @@
 package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.net.URI;
 
 public class FoodAndDrinkResourceProvider
         extends DefaultResourceProvider {
@@ -13,7 +11,7 @@ public class FoodAndDrinkResourceProvider
 
     private static final String PROPERTIES_EXTENSION = ".properties";
 
-    private static final Logger logger = LoggerFactory.getLogger(FoodAndDrinkResourceProvider.class);
+    private static final Logger logger = Logger.getLogger(FoodAndDrinkResourceProvider.class);
 
 
     public FoodAndDrinkResourceProvider(String representationName, String mappingFile, String locations) {

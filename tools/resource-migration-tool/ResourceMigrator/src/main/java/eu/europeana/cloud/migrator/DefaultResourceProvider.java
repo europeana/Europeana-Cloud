@@ -1,8 +1,7 @@
 package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,7 +50,7 @@ public abstract class DefaultResourceProvider
 
     public static final String DEFAULT_REMARKS = "Example remarks";
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultResourceProvider.class);
+    private static final Logger logger = Logger.getLogger(DefaultResourceProvider.class);
 
     protected String representationName;
 

@@ -4,6 +4,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -11,15 +12,16 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordExistsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.ProcessingException;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
@@ -35,7 +37,7 @@ public class ResourceMigrator {
 
     public static final String WINDOWS_SEPARATOR = "\\";
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceMigrator.class);
+    private static final Logger logger = Logger.getLogger(ResourceMigrator.class);
 
     private static final Map<String, String> mimeTypes = new HashMap<String, String>();
 
@@ -296,7 +298,7 @@ public class ResourceMigrator {
         connection.setRequestMethod("HEAD");
         if (isRedirect(connection.getResponseCode())) {
             String newUrl = connection.getHeaderField("Location"); // get redirect url from "location" header field
-            logger.warn("Original request URL: '{}' redirected to: '{}'", url.toString(), newUrl);
+            logger.warn("Original request URL: " + url.toString() + " redirected to: " + newUrl);
             return getContentType(new URL(newUrl));
         }
         return connection.getContentType();
@@ -403,8 +405,11 @@ public class ResourceMigrator {
                     if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null) {
                         // persist previous version if it was created
                         URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-                        if (persistent != null)
+                        if (persistent != null) {
+                            if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " +cloudIds.get(prevLocalId) + ". Version is only available for current user.");
                             saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                        }
                     }
                     prevLocalId = localId;
                 }
@@ -447,8 +452,11 @@ public class ResourceMigrator {
             if (prevLocalId != null) {
                 // persist previous version
                 URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-                if (persistent != null)
+                if (persistent != null) {
+                    if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " +cloudIds.get(prevLocalId) + ". Version is only available for current user.");
                     saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                }
             }
         }
         if (errors > 0)
@@ -494,6 +502,28 @@ public class ResourceMigrator {
             }
         }
         return null;
+    }
+
+    private boolean permitVersion(String cloudId, String version) {
+        int retries = DEFAULT_RETRIES;
+        while (retries-- > 0) {
+            try {
+                mcs.grantPermissionsToVersion(cloudId, resourceProvider.getRepresentationName(), version, "ROLE_ANONYMOUS", Permission.READ);
+                mcs.grantPermissionsToVersion(cloudId, resourceProvider.getRepresentationName(), version, "ROLE_USER", Permission.READ);
+                return true;
+            } catch (ProcessingException e) {
+                logger.warn("Error processing HTTP request while granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries, e);
+            } catch (MCSException e) {
+                logger.error("ECloud error when granting permissions to version: " + version + " for record: " + cloudId, e);
+                if (e.getCause() instanceof ConnectException) {
+                    logger.warn("Connection timeout error when granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                } else if (e.getCause() instanceof SocketTimeoutException) {
+                    logger.warn("Read time out error when granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries);
+                } else
+                    break;
+            }
+        }
+        return false;
     }
 
     /*
