@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +26,6 @@ import java.net.URI;
 import java.util.Arrays;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
@@ -67,6 +67,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
 	private final static String PROGRESS = "100%";
 	private DpsTask TASK;
+    private DpsTask TASK_1;
+    private DpsTask TASK_WITH_MALFORMED_URL;
 
     private UriInfo URI_INFO;
     
@@ -78,6 +80,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 		TASK = new DpsTask("xsltTask");
         TASK.addDataEntry("FILE_URLS", Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         TASK.getTaskId();
+
+        TASK_1 = new DpsTask("xsltTask");
+        TASK_1.addDataEntry("FILE_URLS", Arrays.asList("http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        
+        TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
+        TASK_WITH_MALFORMED_URL.addDataEntry("FILE_URLS", Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
 		
         URI_INFO = Mockito.mock(UriInfo.class);
         Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
@@ -264,6 +272,40 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         } catch (AccessDeniedOrTopologyDoesNotExistException e) {
         }
     }
+    
+    @Test(expected = RuntimeException.class)
+    public void runtimeExceptionShouldBeThrownWhenMCSIsNotAvailable() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
 
+        Mockito.doThrow(new RuntimeException()).when(recordServiceClient).grantPermissionsToVersion(Mockito.matches("sampleId"), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Permission.class));
+
+        login(ADMIN, ADMIN_PASSWORD);
+        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
+        login(RONALDO, RONALD_PASSWORD);
+        topologyTasksResource.submitTask(TASK_1, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+
+    }
+
+    @Test(expected = TaskSubmissionException.class)
+    public void exceptionShouldBeThrownWhenMCSIsNotAvailable() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
+
+        Mockito.doThrow(new MCSException()).when(recordServiceClient).grantPermissionsToVersion(Mockito.matches("sampleId"), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Permission.class));
+
+        login(ADMIN, ADMIN_PASSWORD);
+        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
+        login(RONALDO, RONALD_PASSWORD);
+        topologyTasksResource.submitTask(TASK_1, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+    }
+
+    @Test(expected = TaskSubmissionException.class)
+    public void exceptionShouldBeThrownWhenTaskUrlIsMalformed() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
+
+        login(ADMIN, ADMIN_PASSWORD);
+        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
+        login(RONALDO, RONALD_PASSWORD);
+        topologyTasksResource.submitTask(TASK_WITH_MALFORMED_URL, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+    }
+    
+    
+    
 }
 
