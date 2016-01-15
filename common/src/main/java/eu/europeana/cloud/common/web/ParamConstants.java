@@ -24,6 +24,8 @@ public interface ParamConstants {
 
     static final String PERSIST = "persist";
 
+    static final String PERMIT = "permit";
+
     // path parameters' names
     static final String P_CLOUDID = "CLOUDID";
 

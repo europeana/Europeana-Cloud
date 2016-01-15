@@ -56,6 +56,8 @@ public class RecordServiceClient {
     private static final String persistPath;
     //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permissions/{TYPE}/users/{USER_NAME}
     private static final String grantingPermissionsToVesionPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permit
+    private static final String permitPath;
 
     static {
         StringBuilder builder = new StringBuilder();
@@ -89,6 +91,7 @@ public class RecordServiceClient {
 
         copyPath = versionPath + "/" + ParamConstants.COPY;
         persistPath = versionPath + "/" + ParamConstants.PERSIST;
+        permitPath = versionPath + "/" + ParamConstants.PERMIT;
 
         grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
         
@@ -482,8 +485,28 @@ public class RecordServiceClient {
             throw MCSExceptionProvider.generateException(errorInfo);
         }
     }
-    
-    
+
+    /**
+     * Adds selected permission(s) to selected representation version.
+     *
+     * @param cloudId record identifier
+     * @param representationName representation name
+     * @param version representation version
+     * @throws MCSException
+     */
+    public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
+        WebTarget target = client.target(baseUrl).path(permitPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version);
+
+        Builder request = target.request();
+        Response response = request.post(null);
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            throwException(response);
+        }
+    }
+
     private void throwException(Response response) throws MCSException {
         try{
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);

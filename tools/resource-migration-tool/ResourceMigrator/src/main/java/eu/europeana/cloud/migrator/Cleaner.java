@@ -5,6 +5,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -17,6 +18,7 @@ import java.util.StringTokenizer;
  */
 public class Cleaner {
 
+    private static final Logger logger = Logger.getLogger(Cleaner.class);
 
     public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {
@@ -33,6 +35,26 @@ public class Cleaner {
                     mcs.deleteRecord(id);
                     uis.deleteCloudId(id);
                 }
+            }
+        } catch (IOException e) {
+        } catch (RecordNotExistsException e) {
+            e.printStackTrace();
+        } catch (MCSException e) {
+            e.printStackTrace();
+        } catch (CloudException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public void cleanRecords(String providerId, RecordServiceClient mcs, UISClient uis) {
+        try {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"), Charset.forName("UTF-8"))) {
+                String id = line.trim();
+                logger.info("Cleaning record: " + id);
+                mcs.deleteRecord(id);
+                uis.deleteCloudId(id);
             }
         } catch (IOException e) {
         } catch (RecordNotExistsException e) {

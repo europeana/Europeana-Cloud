@@ -4,7 +4,6 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -508,8 +507,7 @@ public class ResourceMigrator {
         int retries = DEFAULT_RETRIES;
         while (retries-- > 0) {
             try {
-                mcs.grantPermissionsToVersion(cloudId, resourceProvider.getRepresentationName(), version, "ROLE_ANONYMOUS", Permission.READ);
-                mcs.grantPermissionsToVersion(cloudId, resourceProvider.getRepresentationName(), version, "ROLE_USER", Permission.READ);
+                mcs.permitVersion(cloudId, resourceProvider.getRepresentationName(), version);
                 return true;
             } catch (ProcessingException e) {
                 logger.warn("Error processing HTTP request while granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries, e);
@@ -583,6 +581,8 @@ public class ResourceMigrator {
     public void clean(String providerId) {
         try {
             List<String> toSave = new ArrayList<String>();
+
+            new Cleaner().cleanRecords(providerId, mcs, uis);
 
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
                 StringTokenizer st = new StringTokenizer(line, "=");
