@@ -24,7 +24,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Gives access to latest persistent representation using 'friendly' URL
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + "}/representations/{" + P_REPRESENTATIONNAME + "}")
+@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}/representations/{" + P_REPRESENTATIONNAME + "}")
 @Component
 @Scope("request")
 public class SimplifiedRepresentationResource {
