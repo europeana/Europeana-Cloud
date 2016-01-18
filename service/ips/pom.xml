@@ -8,7 +8,7 @@
 </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ecloud-image-presenter</artifactId>
+    <artifactId>ecloud-service-ips-rest</artifactId> 
     <packaging>war</packaging>
     <name>Europeana Cloud: Image Presenter Service REST</name>
 
