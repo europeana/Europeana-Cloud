@@ -25,7 +25,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + "}")
+@Path("/data-providers/{" + P_PROVIDER + "}/records/{" + P_LOCALID + ":.+}")
 @Component
 @Scope("request")
 public class SimplifiedRecordsResource {
