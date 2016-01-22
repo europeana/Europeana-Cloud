@@ -6,7 +6,9 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.LocalRecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -51,13 +53,22 @@ public class SimplifiedRecordsResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord(@Context UriInfo uriInfo,
                             @PathParam(P_PROVIDER) String providerId,
-                            @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException {
+                            @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
 
-        final String cloudId = findCloudIdFor(providerId, localId);
+        try {
+            final String cloudId = findCloudIdFor(providerId, localId);
 
-        Record record = recordService.getRecord(cloudId);
-        prepare(uriInfo, record);
-        return record;
+            Record record = recordService.getRecord(cloudId);
+            prepare(uriInfo, record);
+            return record;
+        }
+        catch (CloudException e) {
+            if (e.getCause() instanceof RecordDoesNotExistException) {
+                throw new LocalRecordNotExistsException(providerId, localId);
+            }
+            else
+                throw e;
+        }
     }
 
     private String findCloudIdFor(String providerId, String localId) throws CloudException {

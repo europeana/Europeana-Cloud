@@ -6,8 +6,11 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.LocalRecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,7 +50,7 @@ public class SimplifiedRecordsResourceTest {
 
 
     @Before
-    public void init() throws CloudException, RecordNotExistsException {
+    public void init() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
         if (setUpIsDone) {
             return;
         }
@@ -58,22 +61,22 @@ public class SimplifiedRecordsResourceTest {
     }
 
     @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RecordNotExistsException {
+    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
         recordsResource.getRecord(null, NOT_EXISTING_PROVIDER_ID, "anyLocalId");
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RecordNotExistsException {
+    @Test(expected = LocalRecordNotExistsException.class)
+    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD);
     }
 
     @Test(expected = RecordNotExistsException.class)
-    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws CloudException, RecordNotExistsException {
+    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
     }
 
     @Test
-    public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException {
+    public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
         UriInfo info = Mockito.mock(UriInfo.class);
         Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
@@ -101,7 +104,7 @@ public class SimplifiedRecordsResourceTest {
         recordWithoutRepresentations.setLocalId(lid);
         //
         Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(CloudException.class);
-        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(CloudException.class);
+        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD)).thenReturn(cid);
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)).thenReturn(recordWithoutRepresentations);
     }
