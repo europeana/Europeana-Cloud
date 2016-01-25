@@ -132,17 +132,6 @@ public class UnitedExceptionMapper {
 
 
     /**
-     * Maps {@link LocalRecordNotExistsException} to {@link Response}. Returns a response with HTTP status code 404 -
-     * "Not Found" and a {@link ErrorInfo} with exception details as a message body.
-     *
-     * @param exception the exception to map to a response
-     * @return a response mapped from the supplied exception
-     */
-    public Response toResponse(LocalRecordNotExistsException exception) {
-        return buildResponse(Response.Status.NOT_FOUND, McsErrorCode.LOCAL_RECORD_NOT_EXISTS, exception);
-    }
-
-    /**
      * Maps {@link FileContentHashMismatchException} to {@link Response}. Returns a response with HTTP status code 422 -
      * "Unprocessable Entity" and a {@link ErrorInfo} with exception details as a message body.
      *

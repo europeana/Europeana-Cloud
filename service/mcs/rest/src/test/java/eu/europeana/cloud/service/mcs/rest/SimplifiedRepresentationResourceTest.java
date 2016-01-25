@@ -2,10 +2,15 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,23 +62,23 @@ public class SimplifiedRepresentationResourceTest {
         setUpIsDone = true;
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RepresentationNotExistsException {
+    @Test(expected = ProviderNotExistsException.class)
+    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
         representationResource.getRepresentation(null, NOT_EXISTING_PROVIDER_ID, "localID", "repName");
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RepresentationNotExistsException {
+    @Test(expected = RecordNotExistsException.class)
+    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
         representationResource.getRepresentation(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD, "repName");
     }
 
     @Test(expected = RepresentationNotExistsException.class)
-    public void exceptionShouldBeThrowForRecordWithoutNamedRepresentation() throws CloudException, RepresentationNotExistsException {
+    public void exceptionShouldBeThrowForRecordWithoutNamedRepresentation() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
         representationResource.getRepresentation(null, PROVIDER_ID, LOCAL_ID, RANDOM_REPRESENTATION_NAME);
     }
 
     @Test
-    public void properRepresentationShouldBeReturned() throws CloudException, RepresentationNotExistsException {
+    public void properRepresentationShouldBeReturned() throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
         UriInfo info = Mockito.mock(UriInfo.class);
         Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
@@ -92,8 +97,10 @@ public class SimplifiedRepresentationResourceTest {
         CloudId cid = new CloudId();
         cid.setId(CLOUD_ID);
         //
-        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(CloudException.class);
-        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(CloudException.class);
+
+
+        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(new CloudException("", new ProviderDoesNotExistException(new ErrorInfo())));
+        Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID)).thenReturn(cid);
     }
 

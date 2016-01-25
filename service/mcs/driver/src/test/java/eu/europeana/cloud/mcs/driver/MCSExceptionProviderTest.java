@@ -77,7 +77,7 @@ public class MCSExceptionProviderTest {
 
 
     /*
-        This one is separate becouse it returns different details message...
+        This one is separate because it returns different details message...
     */
     @Test
     public void shouldReturnRecordNotExistsException() {

@@ -2,14 +2,16 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.LocalRecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
@@ -34,7 +36,7 @@ public class SimplifiedRecordsResourceTest {
 
     @Autowired
     private RecordService recordService;
-    
+
     @Autowired
     private UISClient uisClient;
 
@@ -50,7 +52,7 @@ public class SimplifiedRecordsResourceTest {
 
 
     @Before
-    public void init() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+    public void init() throws CloudException, RecordNotExistsException  {
         if (setUpIsDone) {
             return;
         }
@@ -60,23 +62,23 @@ public class SimplifiedRecordsResourceTest {
         setUpIsDone = true;
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+    @Test(expected = ProviderNotExistsException.class)
+    public void exceptionShouldBeThrowForNotExistingProviderId() throws CloudException, RecordNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, NOT_EXISTING_PROVIDER_ID, "anyLocalId");
     }
 
-    @Test(expected = LocalRecordNotExistsException.class)
-    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+    @Test(expected = RecordNotExistsException.class)
+    public void exceptionShouldBeThrowForNotExistingCloudId() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD);
     }
 
     @Test(expected = RecordNotExistsException.class)
-    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+    public void exceptionShouldBeThrowForRecordWithoutRepresentations() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
     }
 
     @Test
-    public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+    public void properRecordShouldBeReturned() throws CloudException, RecordNotExistsException, RepresentationNotExistsException, ProviderNotExistsException {
         UriInfo info = Mockito.mock(UriInfo.class);
         Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
@@ -103,7 +105,7 @@ public class SimplifiedRecordsResourceTest {
         lid.setRecordId(LOCAL_ID_FOR_EXISTING_RECORD);
         recordWithoutRepresentations.setLocalId(lid);
         //
-        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(CloudException.class);
+        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(new CloudException("", new ProviderDoesNotExistException(new ErrorInfo())));
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD)).thenReturn(cid);
         Mockito.when(uisClient.getCloudId(PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)).thenReturn(recordWithoutRepresentations);

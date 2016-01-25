@@ -2,12 +2,16 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.LocalRecordNotExistsException;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -33,10 +37,10 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 public class SimplifiedRecordsResource {
 
     @Autowired
-    private UISClient uisClient;
+    private RecordService recordService;
 
     @Autowired
-    private RecordService recordService;
+    private UISClientHandler uisHandler;
 
     /**
      * Returns record with all representations
@@ -53,26 +57,17 @@ public class SimplifiedRecordsResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Record getRecord(@Context UriInfo uriInfo,
                             @PathParam(P_PROVIDER) String providerId,
-                            @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException, LocalRecordNotExistsException {
+                            @PathParam(P_LOCALID) String localId) throws CloudException, RecordNotExistsException, ProviderNotExistsException {
 
-        try {
             final String cloudId = findCloudIdFor(providerId, localId);
 
             Record record = recordService.getRecord(cloudId);
             prepare(uriInfo, record);
             return record;
-        }
-        catch (CloudException e) {
-            if (e.getCause() instanceof RecordDoesNotExistException) {
-                throw new LocalRecordNotExistsException(providerId, localId);
-            }
-            else
-                throw e;
-        }
     }
 
-    private String findCloudIdFor(String providerId, String localId) throws CloudException {
-        CloudId foundCloudId = uisClient.getCloudId(providerId, localId);
+    private String findCloudIdFor(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
+        CloudId foundCloudId =  uisHandler.getCloudIdFromProviderAndLocalId(providerId, localId);
         return foundCloudId.getId();
     }
     

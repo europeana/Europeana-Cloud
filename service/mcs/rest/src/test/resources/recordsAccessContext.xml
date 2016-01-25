@@ -10,7 +10,7 @@
 						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
     <bean id="recordsResource" class="eu.europeana.cloud.service.mcs.rest.SimplifiedRecordsResource"/>
-
+    <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <mockito:mock id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient"/>
     <mockito:mock id="recordService" class="eu.europeana.cloud.service.mcs.RecordService"/>
 </beans>

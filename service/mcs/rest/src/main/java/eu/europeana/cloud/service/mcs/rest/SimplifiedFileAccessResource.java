@@ -1,17 +1,14 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.selectors.LatestPersistentRepresentationVersionSelector;
 import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -53,7 +50,7 @@ public class SimplifiedFileAccessResource {
     private RecordService recordService;
 
     @Autowired
-    private UISClient uisClient;
+    private UISClientHandler uisClientHandler;
 
     @Autowired
     private PermissionEvaluator permissionEvaluator;
@@ -78,7 +75,7 @@ public class SimplifiedFileAccessResource {
                             @PathParam(P_LOCALID) final String localId,
                             @PathParam(P_REPRESENTATIONNAME) final String representationName,
                             @PathParam(P_FILENAME) final String fileName)
-            throws RepresentationNotExistsException, FileNotExistsException, CloudException, RecordNotExistsException {
+            throws RepresentationNotExistsException, FileNotExistsException, CloudException, RecordNotExistsException, ProviderNotExistsException {
 
         LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
                 providerId, localId, representationName, fileName);
@@ -131,8 +128,8 @@ public class SimplifiedFileAccessResource {
         return hasAccess;
     }
 
-    private String findCloudIdFor(String providerID, String localId) throws CloudException {
-        CloudId foundCloudId = uisClient.getCloudId(providerID, localId);
+    private String findCloudIdFor(String providerID, String localId) throws CloudException, ProviderNotExistsException, RecordNotExistsException {
+        CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
         return foundCloudId.getId();
     }
 

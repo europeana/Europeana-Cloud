@@ -12,7 +12,7 @@
     <bean id="test" class="eu.europeana.cloud.service.mcs.rest.SimplifiedFileAccessResource">
         
     </bean>
-    
+    <bean id="uisClientHandler" class="eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl"/>
     <mockito:mock id="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient"/>
     <mockito:mock id="recordService" class="eu.europeana.cloud.service.mcs.RecordService"/>
     <mockito:mock id="permissionEvaluator" class="org.springframework.security.access.PermissionEvaluator"/>

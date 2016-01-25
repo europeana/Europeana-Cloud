@@ -8,11 +8,9 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.User;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
@@ -78,29 +76,29 @@ public class SimplifiedFileAccessResourceTest {
         setUpIsDone = true;
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrownWhenProviderIdDoesNotExist() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException {
+    @Test(expected = RecordNotExistsException.class)
+    public void exceptionShouldBeThrownWhenProviderIdDoesNotExist() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException {
         fileAccessResource.getFile(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName", "fileName");
     }
 
-    @Test(expected = CloudException.class)
-    public void exceptionShouldBeThrownWhenLocalIdDoesNotExist() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException {
+    @Test(expected = RecordNotExistsException.class)
+    public void exceptionShouldBeThrownWhenLocalIdDoesNotExist() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException {
         fileAccessResource.getFile(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName", "fileName");
     }
 
     @Test(expected = RepresentationNotExistsException.class)
-    public void exceptionShouldBeThrownWhenRepresentationIsMissing() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException {
+    public void exceptionShouldBeThrownWhenRepresentationIsMissing() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException {
         fileAccessResource.getFile(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, NOT_EXISTING_REPRESENTATION_NAME, "fileName");
     }
 
 
     @Test(expected = RepresentationNotExistsException.class)
-    public void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException {
+    public void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException {
         fileAccessResource.getFile(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION, existingRepresentationName, "fileName");
     }
 
     @Test
-    public void fileShouldBeReadSuccessfully() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException {
+    public void fileShouldBeReadSuccessfully() throws RecordNotExistsException, DatabaseConnectionException, FileNotExistsException, CloudException, RecordDatasetEmptyException, ProviderDoesNotExistException, WrongContentRangeException, RepresentationNotExistsException, RecordDoesNotExistException, ProviderNotExistsException {
         Response response = fileAccessResource.getFile(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, existingRepresentationName, "fileWithoutReadRights");
         Assert.assertEquals(response.getStatus(), 200);
         response.toString();
@@ -125,11 +123,11 @@ public class SimplifiedFileAccessResourceTest {
         cid2.setId(EXISTING_CLOUD_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
         cid2.setLocalId(localId);
 
-        Mockito.when(uisClient.getCloudId(Mockito.eq(NOT_EXISTING_PROVIDER_ID), Mockito.anyString())).thenThrow(CloudException.class);
-        Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID)).thenThrow(CloudException.class);
+        Mockito.when(uisClient.getCloudId(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
+        Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
         Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID)).thenReturn(cid);
         Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION)).thenReturn(cid2);
-        Mockito.when(uisClient.getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID)).thenThrow(CloudException.class);
+        Mockito.when(uisClient.getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
     }
 
     private void setupRecordService() throws RepresentationNotExistsException, FileNotExistsException {

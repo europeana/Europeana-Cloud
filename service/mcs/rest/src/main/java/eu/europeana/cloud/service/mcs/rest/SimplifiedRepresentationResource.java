@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ public class SimplifiedRepresentationResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedRepresentationResource.class);
 
     @Autowired
-    private UISClient uisClient;
+    private UISClientHandler uisClientHandler;
 
     @Autowired
     private RecordService recordService;
@@ -57,7 +59,7 @@ public class SimplifiedRepresentationResource {
     public Representation getRepresentation(@Context UriInfo uriInfo,
                                             @PathParam(P_PROVIDER) String providerId,
                                             @PathParam(P_LOCALID) String localId,
-                                            @PathParam(P_REPRESENTATIONNAME) String representationName) throws CloudException, RepresentationNotExistsException {
+                                            @PathParam(P_REPRESENTATIONNAME) String representationName) throws CloudException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
 
         LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName, providerId, localId);
         final String cloudId = findCloudIdFor(providerId, localId);
@@ -68,8 +70,8 @@ public class SimplifiedRepresentationResource {
         return representation;
     }
 
-    private String findCloudIdFor(String providerID, String localId) throws CloudException {
-        CloudId foundCloudId = uisClient.getCloudId(providerID, localId);
+    private String findCloudIdFor(String providerID, String localId) throws CloudException, ProviderNotExistsException, RecordNotExistsException {
+        CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
         return foundCloudId.getId();
     }
 }
