@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <schema name="representations" version="1.5">
+    <!--
+            Build info:
+
+            git.commit.id.describe=${git.commit.id.describe}
+            git.commit.id=${git.commit.id}
+            git.branch=${git.branch}
+            git.commit.user.email=${git.commit.user.email}
+            git.commit.time=${git.commit.time}
+            git.build.user.email=${git.build.user.email}
+            git.build.time=${git.build.time}
+        -->
+
     <types>
         <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 

@@ -23,6 +23,18 @@
 <config>
 
 
+    <!--
+	    Build info:
+
+		git.commit.id.describe=${git.commit.id.describe}
+		git.commit.id=${git.commit.id}
+		git.branch=${git.branch}
+		git.commit.user.email=${git.commit.user.email}
+		git.commit.time=${git.commit.time}
+		git.build.user.email=${git.build.user.email}
+		git.build.time=${git.build.time}
+	-->
+
     <!-- In all configuration below, a prefix of "solr." for class names
          is an alias that causes solr to search appropriate packages,
          including org.apache.solr.(search|update|request|core|analysis)
