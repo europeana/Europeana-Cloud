@@ -301,6 +301,39 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.12</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <verbose>true</verbose>
+                    <!-- @since 2.1.12 -->
+                    <!--
+                       Use with caution!
+
+                       In a multi-module build, only run once. This means that the plugins effects will only execute once, for the parent project.
+                       This probably won't "do the right thing" if your project has more than one git repository.
+
+                       Important: If you're using `generateGitPropertiesFile`, setting `runOnlyOnce` will make the plugin
+                       only generate the file in the directory where you started your build (!).
+
+                       The `git.*` maven properties are available in all modules.
+                       Default value is `false`.
+                    -->
+                    <!--<runOnlyOnce>true</runOnlyOnce>-->
+                </configuration>
+
+            </plugin>
+            <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>

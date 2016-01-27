@@ -313,7 +313,17 @@
 				<version>2.1.1</version>
 				<configuration>
 					<failOnMissingWebXml>false</failOnMissingWebXml>
-				</configuration>
+				<filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+				<webResources>
+					<resource>
+						<filtering>true</filtering>
+						<directory>src/main/webapp</directory>
+						<includes>
+							<include>**/web.xml</include>
+						</includes>
+					</resource>
+				</webResources>
+			</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

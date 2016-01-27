@@ -6,6 +6,17 @@ see implementation details http://jersey.java.net/nonav/documentation/latest/jax
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
+    <!--
+      git.commit.id.describe=${git.commit.id.describe}
+      git.commit.id=${git.commit.id}
+      git.branch=${git.branch}
+      git.commit.user.email=${git.commit.user.email}
+      git.commit.time=${git.commit.time}
+      git.build.user.email=${git.build.user.email}
+      git.build.time=${git.build.time}
+  -->
+
+
      <display-name>Identifier Service Api</display-name>
 
     <listener>
