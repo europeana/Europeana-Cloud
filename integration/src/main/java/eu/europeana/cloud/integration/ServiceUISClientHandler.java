@@ -3,6 +3,11 @@ package eu.europeana.cloud.integration;
 
 import java.util.List;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -40,6 +45,16 @@ public class ServiceUISClientHandler implements UISClientHandler {
             // ignore
         }
         return exists;
+    }
+
+    @Override
+    public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
+        CloudId cloudId= null;
+        try {
+            return uniqueIdentifierService.getCloudId(providerId,localId);
+        } catch (ProviderDoesNotExistException | RecordDoesNotExistException | RecordDatasetEmptyException | DatabaseConnectionException e) {
+        }
+        return cloudId;
     }
 
     @Override
