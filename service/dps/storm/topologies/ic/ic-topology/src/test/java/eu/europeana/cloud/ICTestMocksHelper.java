@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author krystian.
  */
-public class icTestMocksHelper {
+public class ICTestMocksHelper {
     protected FileServiceClient fileServiceClient;
     protected ImageConverterServiceImpl imageConverterService;
     protected RecordServiceClient recordServiceClient;

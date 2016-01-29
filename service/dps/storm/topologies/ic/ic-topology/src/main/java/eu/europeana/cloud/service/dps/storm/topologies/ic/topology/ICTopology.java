@@ -36,14 +36,14 @@ import storm.kafka.ZkHosts;
  * cloud.
  */
 
-public class ICSTopology {
+public class ICTopology {
 
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
-    public static final Logger LOGGER = LoggerFactory.getLogger(ICSTopology.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
 
-    public ICSTopology(String defaultPropertyFile, String providedPropertyFile) {
+    public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
@@ -144,7 +144,7 @@ public class ICSTopology {
             if (args.length == 1) {
                 providedPropertyFile = args[0];
             }
-            ICSTopology icsTopology = new ICSTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+            ICTopology icTopology = new ICTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
             String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
 
             // kafka topic == topology name
@@ -153,7 +153,7 @@ public class ICSTopology {
             String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
             String username = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_NAME);
             String password = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_PASS);
-            StormTopology stormTopology = icsTopology.buildTopology(kafkaTopic, ecloudMcsAddress, username, password);
+            StormTopology stormTopology = icTopology.buildTopology(kafkaTopic, ecloudMcsAddress, username, password);
             config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
             config.setMaxTaskParallelism(
                     Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.MAX_TASK_PARALLELISM)));

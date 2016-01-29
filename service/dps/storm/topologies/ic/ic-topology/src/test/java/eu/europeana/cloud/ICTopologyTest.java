@@ -50,21 +50,21 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, IcBolt.class, WriteRecordBolt.class, GrantPermissionsToFileBolt.class, RemovePermissionsToFileBolt.class, EndBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
-public class icTopologyTest extends icTestMocksHelper implements TestConstantsHelper {
+public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
 
-    public icTopologyTest() {
+    public ICTopologyTest() {
 
     }
 
 
     @Before
     public void setUp() throws Exception {
-        dirtyMockZookeeperKS();
-        dirtyMockRecordSC();
-        dirtyMockFileSC();
-        dirtyMockImageCS();
-        dirtyMockDPSDAO();
+        mockZookeeperKS();
+        mockRecordSC();
+        mockFileSC();
+        mockImageCS();
+        mockDPSDAO();
     }
 
 
