@@ -321,7 +321,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.ic.topology.ICSTopology</mainClass>
+                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.ic.topology.ICTopology</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -415,7 +415,7 @@
                     <configuration>
                         <archive>
                             <manifest>
-                                <mainClass>eu.europeana.cloud.service.dps.storm.topologies.ic.topology.ICSTopology
+                                <mainClass>eu.europeana.cloud.service.dps.storm.topologies.ic.topology.ICTopology
                                 </mainClass>
                             </manifest>
                         </archive>

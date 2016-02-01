@@ -4,6 +4,7 @@ import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.common.model.dps.States;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
+        LOGGER.debug("Received tuple :" + tuple.toString());
         inputTuple = tuple;
 
         StormTaskTuple t = null;
@@ -56,7 +58,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 outputCollector.ack(tuple);
                 return;
             }
-
+            LOGGER.debug("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
         } catch (Exception e) {
             LOGGER.error("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());

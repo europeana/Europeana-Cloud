@@ -13,7 +13,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import org.apache.storm.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,13 +183,18 @@ public class NotificationBolt extends BaseRichBolt {
         String state = assignIfNotNull(parameters.get(NotificationParameterKeys.STATE));
         String infoText = assignIfNotNull(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInfo = assignIfNotNull(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        String resultResource = assignIfNotNull(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
+        String resultResource = assignEmptyStringIfNull(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
         subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 
     private String assignIfNotNull(String input) {
         return input != null && !input.isEmpty() ? input : null;
     }
+
+    private String assignEmptyStringIfNull(String input) {
+        return input != null ? input : "";
+    }
+
 
     private int convertIfNotNull(String input) {
         return input != null && !input.isEmpty() ? Integer.valueOf(input) : -1;
