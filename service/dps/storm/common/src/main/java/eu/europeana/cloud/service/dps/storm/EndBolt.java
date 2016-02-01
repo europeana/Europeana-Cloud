@@ -7,7 +7,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import org.apache.storm.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
