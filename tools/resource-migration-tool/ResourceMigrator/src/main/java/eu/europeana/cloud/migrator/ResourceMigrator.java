@@ -114,6 +114,7 @@ public class ResourceMigrator {
             }
             logger.info("Starting task thread for provider " + providerId + "...");
             tasks.add(new ProviderMigrator(providerId, paths.get(providerId)));
+            break;
         }
 
         try {
@@ -242,6 +243,8 @@ public class ResourceMigrator {
                 fullURI = new URI(path);
                 mimeType = getContentType(fullURI.toURL());
             }
+            if (mimeType == null)
+                mimeType = mimeFromExtension(path);
             if (fullURI == null) {
                 logger.error("URI for path " + path + " could not be created.");
                 return null;

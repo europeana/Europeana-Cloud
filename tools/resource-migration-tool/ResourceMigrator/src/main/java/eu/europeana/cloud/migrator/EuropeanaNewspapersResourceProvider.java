@@ -4,12 +4,16 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.*;
 
 public class EuropeanaNewspapersResourceProvider
         extends DefaultResourceProvider {
+    public static final String IMAGE_DIR = "image";
     private Map<String, String> mapping = new HashMap<String, String>();
 
     private Map<String, String> reversedMapping = new HashMap<String, String>();
@@ -18,6 +22,7 @@ public class EuropeanaNewspapersResourceProvider
 
     public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations) {
         super(representationName, mappingFile, locations);
+        readMappingFile();
     }
 
     /**
@@ -26,18 +31,24 @@ public class EuropeanaNewspapersResourceProvider
      * Encoding is UTF-8.
      */
     private void readMappingFile() {
-        File f = new File(mappingFile);
-        BufferedReader br = null;
-
         try {
-            br = new BufferedReader(
-                    new InputStreamReader(
-                            new FileInputStream(f), "UTF8"));
-            String line;
+            Path mappingPath = null;
+            try {
+                // try to treat the mapping file as local file
+                mappingPath = FileSystems.getDefault().getPath(".", mappingFile);
+            } catch (InvalidPathException e) {
+                // in case path cannot be created try to treat the mapping file as absolute path
+                mappingPath = FileSystems.getDefault().getPath(mappingFile);
+            }
+            if (!mappingPath.toFile().exists()) {
+                logger.warn("Mapping file cannot be found: " + mappingFile + ".\nMapping will not be used!");
+                return;
+            }
+
             String localId;
             String path;
 
-            while ((line = br.readLine()) != null) {
+            for (String line : Files.readAllLines(mappingPath, Charset.forName("UTF-8"))) {
                 StringTokenizer tokenizer = new StringTokenizer(line, ";");
                 if (tokenizer.hasMoreTokens())
                     localId = tokenizer.nextToken();
@@ -55,21 +66,13 @@ public class EuropeanaNewspapersResourceProvider
 
                 // add mapping
                 mapping.put(localId, path);
+                if (reversedMapping.get(path) != null)
+                    logger.warn("Path " + path + " already has a local id = " + reversedMapping.get(path));
                 // add reversed mapping
                 reversedMapping.put(path, localId);
             }
-        } catch (FileNotFoundException e) {
-            logger.error("File not found " + mappingFile, e);
-        } catch (UnsupportedEncodingException e) {
-            logger.error("File " + mappingFile + " is not UTF-8 encoded.", e);
         } catch (IOException e) {
-            logger.error("Problem reading file " + mappingFile, e);
-        } finally {
-            try {
-                br.close();
-            } catch (IOException e) {
-                logger.error("Could not close reader for file " + mappingFile, e);
-            }
+            logger.warn("Problem occured when reading mapping file!", e);
         }
     }
 
@@ -81,7 +84,20 @@ public class EuropeanaNewspapersResourceProvider
 
     @Override
     public String getProviderId(String path) {
-        return null;
+        if (!path.contains(IMAGE_DIR)) {
+            logger.error("No image directory found in resource path.");
+            return null;
+        }
+
+        int pos = path.indexOf(IMAGE_DIR);
+        String rest = path.substring(pos + IMAGE_DIR.length());
+        if (rest.startsWith(ResourceMigrator.LINUX_SEPARATOR) || rest.startsWith(ResourceMigrator.WINDOWS_SEPARATOR))
+            rest = rest.substring(1);
+        pos = rest.indexOf(ResourceMigrator.LINUX_SEPARATOR);
+        if (pos == -1)
+            pos = rest.indexOf(ResourceMigrator.WINDOWS_SEPARATOR);
+
+        return rest.substring(0, pos > -1 ? pos : rest.length());
     }
 
     @Override
