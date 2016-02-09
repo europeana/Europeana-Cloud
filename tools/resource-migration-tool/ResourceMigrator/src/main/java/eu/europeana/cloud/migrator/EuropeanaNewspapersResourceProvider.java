@@ -72,7 +72,7 @@ public class EuropeanaNewspapersResourceProvider
                 reversedMapping.put(path, localId);
             }
         } catch (IOException e) {
-            logger.warn("Problem occured when reading mapping file!", e);
+            logger.warn("Problem occurred when reading mapping file!", e);
         }
     }
 
@@ -102,11 +102,23 @@ public class EuropeanaNewspapersResourceProvider
 
     @Override
     public DataProviderProperties getDataProviderProperties(String path) {
-        return null;
+        // get provider name from path
+        String id = getProviderId(path);
+        // create directory object for provider
+        File f = new File(path.substring(0, path.indexOf(id) + id.length()));
+        if (!f.isDirectory())
+            return getDefaultDataProviderProperties();
+
+        // assume we can find a file with data provider properties named id.properties
+        File dpFile = new File(f, id + PROPERTIES_EXTENSION);
+        if (!dpFile.exists())
+            return getDefaultDataProviderProperties();
+        return getDataProviderPropertiesFromFile(dpFile);
     }
 
     @Override
     public String getLocalIdentifier(String path, String providerId) {
+
         return null;
     }
 }

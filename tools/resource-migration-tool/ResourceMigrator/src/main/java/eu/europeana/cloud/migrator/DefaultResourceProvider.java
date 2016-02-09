@@ -50,6 +50,8 @@ public abstract class DefaultResourceProvider
 
     public static final String DEFAULT_REMARKS = "Example remarks";
 
+    protected static final String PROPERTIES_EXTENSION = ".properties";
+
     private static final Logger logger = Logger.getLogger(DefaultResourceProvider.class);
 
     protected String representationName;

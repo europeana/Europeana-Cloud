@@ -9,8 +9,6 @@ public class FoodAndDrinkResourceProvider
         extends DefaultResourceProvider {
     private static final String DATA_PROVIDERS_DIR = "users";
 
-    private static final String PROPERTIES_EXTENSION = ".properties";
-
     private static final Logger logger = Logger.getLogger(FoodAndDrinkResourceProvider.class);
 
 
