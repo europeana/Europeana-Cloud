@@ -3,13 +3,16 @@ package eu.europeana.cloud.migrator;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 public class EuropeanaNewspapersResourceProvider
         extends DefaultResourceProvider {
@@ -117,8 +120,41 @@ public class EuropeanaNewspapersResourceProvider
     }
 
     @Override
-    public String getLocalIdentifier(String path, String providerId) {
+    public String getLocalIdentifier(String location, String path) {
+        // first get the local path within location
+        String localPath = getLocalPath(location, path);
+        // we have to find the identifier in the mapping file
+        String localId = reversedMapping.get(localPath);
+        if (localId == null)
+            logger.warn("Local identifier for file " + path + " was not found in the mapping file!");
+        return localId;
+    }
 
-        return null;
+    private String getLocalPath(String location, String path) {
+        int i = path.indexOf(location);
+        if (i == -1)
+            return path;
+        String local = path.substring(i + location.length() + 1);
+        i = local.lastIndexOf("/");
+        if (i == -1)
+            i = path.lastIndexOf("\\");
+        // when there are no slashes or backslashes it means that the local path is just a filename
+        if (i == -1)
+            return local;
+        return local.substring(0, i);
+    }
+
+
+    private String getIssue(String path, String dataProvider) {
+        int i = path.indexOf(dataProvider);
+        if (i == -1)
+            return null;
+        i += dataProvider.length() + 1;
+        int j = path.lastIndexOf("/");
+        if (j == -1)
+            j = path.lastIndexOf("\\");
+        if (j == -1)
+            j = path.length();
+        return path.substring(i, j);
     }
 }

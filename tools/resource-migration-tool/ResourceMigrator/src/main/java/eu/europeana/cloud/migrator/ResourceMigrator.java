@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -92,13 +89,15 @@ public class ResourceMigrator {
         long start = System.currentTimeMillis();
 
         // key is provider id, value is a list of files to add
-        Map<String, List<String>> paths = resourceProvider.scan();
+        Map<String, List<FilePaths>> paths = resourceProvider.scan();
 
         if (logger.isDebugEnabled()) {
-            for (Map.Entry<String, List<String>> entry : paths.entrySet()) {
-                logger.debug("Found paths for provider " + entry.getKey() + " (" + entry.getValue().size() + "):");
-                for (String s : entry.getValue())
-                    logger.debug(s);
+            for (Map.Entry<String, List<FilePaths>> entry : paths.entrySet()) {
+                for (FilePaths fp : entry.getValue()) {
+                    logger.debug("Found paths for provider " + entry.getKey() + " in location " + fp.getLocation() + " (" + fp.getFullPaths().size() + "):");
+                    for (String s : fp.getFullPaths())
+                        logger.debug(s);
+                }
             }
         }
 
@@ -354,7 +353,7 @@ public class ResourceMigrator {
         return null;
     }
 
-    private void removeProcessedPaths(String providerId, List<String> paths) {
+    private void removeProcessedPaths(String providerId, FilePaths paths) {
         try {
             List<String> processed = new ArrayList<String>();
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
@@ -363,14 +362,14 @@ public class ResourceMigrator {
                     processed.add(st.nextToken());
                 }
             }
-            paths.removeAll(processed);
+            paths.getFullPaths().removeAll(processed);
         } catch (IOException e) {
             logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.", e);
         }
     }
 
 
-    private boolean processProvider(String providerId, List<String> providerPaths) {
+    private boolean processProvider(String providerId, FilePaths providerPaths) {
         // key is local identifier, value is cloud identifier
         Map<String, String> cloudIds = new HashMap<String, String>();
         // key is local identifier, value is version identifier
@@ -386,18 +385,18 @@ public class ResourceMigrator {
 
         if (providerPaths.size() > 0) {
             // first create provider, one path is enough to determine
-            if (createProvider(providerPaths.get(0)) == null) {
+            if (createProvider(providerPaths.getFullPaths().get(0)) == null) {
                 // when create provider was not successful finish processing
                 return false;
             }
 
             String prevLocalId = null;
-            for (String path : providerPaths) {
+            for (String path : providerPaths.getFullPaths()) {
                 if ((int) (((float) (counter) / (float) providerPaths.size()) * 100) > (int) (((float) (counter - 1) / (float) providerPaths.size()) * 100))
                     logger.info("Provider: " + providerId + ". Progress: " + counter + " of " + providerPaths.size() + " (" + (int) (((float) (counter) / (float) providerPaths.size()) * 100) + "%). Errors: " + errors);
                 counter++;
                 // get local record identifier
-                String localId = resourceProvider.getLocalIdentifier(path, providerId);
+                String localId = resourceProvider.getLocalIdentifier(providerPaths.getLocation(), path);
                 if (localId == null) {
                     // when local identifier is null it means that the path may be wrong
                     logger.error("Local identifier for path: " + path + " could not be obtained. Skipping path...");
@@ -409,7 +408,7 @@ public class ResourceMigrator {
                         URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
                         if (persistent != null) {
                             if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " +cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
                             saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
                         }
                     }
@@ -456,7 +455,7 @@ public class ResourceMigrator {
                 URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
                 if (persistent != null) {
                     if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " +cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
                     saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
                 }
             }
@@ -540,9 +539,9 @@ public class ResourceMigrator {
 
     private class ProviderMigrator implements Callable<MigrationResult> {
         String providerId;
-        List<String> paths;
+        List<FilePaths> paths;
 
-        ProviderMigrator(String providerId, List<String> paths) {
+        ProviderMigrator(String providerId, List<FilePaths> paths) {
             this.providerId = providerId;
             this.paths = paths;
         }
@@ -550,7 +549,10 @@ public class ResourceMigrator {
         public MigrationResult call()
                 throws Exception {
             long start = System.currentTimeMillis();
-            boolean success = processProvider(providerId, paths);
+            boolean success = true;
+
+            for (FilePaths fp : paths)
+                success &= processProvider(providerId, fp);
 
             return new MigrationResult(success, providerId, (float) (System.currentTimeMillis() - start) / (float) 1000);
         }

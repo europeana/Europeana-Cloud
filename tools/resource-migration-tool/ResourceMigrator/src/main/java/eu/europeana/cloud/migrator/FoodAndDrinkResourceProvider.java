@@ -20,11 +20,13 @@ public class FoodAndDrinkResourceProvider
      * Return local record identifier from the path to image file. Path must contain provider identifier
      * and must point to the file.
      *
+     * @param location not used here
      * @param path path to image file
      * @return local identifier
      */
     @Override
-    public String getLocalIdentifier(String path, String providerId) {
+    public String getLocalIdentifier(String location, String path) {
+        String providerId = getProviderId(path);
         if (path == null || path.isEmpty() || providerId == null || providerId.isEmpty()) {
             logger.warn("Either path or provider identifier is null or empty. Local record identifier cannot be retrieved.");
             return null;

@@ -157,8 +157,8 @@ public abstract class DefaultResourceProvider
     }
 
     @Override
-    public Map<String, List<String>> scan() {
-        Map<String, List<String>> paths = new HashMap<String, List<String>>();
+    public Map<String, List<FilePaths>> scan() {
+        Map<String, List<FilePaths>> paths = new HashMap<String, List<FilePaths>>();
         if (!local) {
             logger.warn("Location is not local. Scanning is not possible.");
             return paths;
@@ -170,7 +170,7 @@ public abstract class DefaultResourceProvider
         return paths;
     }
 
-    private void collectPaths(Path rootPath, Map<String, List<String>> paths, URI location) {
+    private void collectPaths(Path rootPath, Map<String, List<FilePaths>> paths, URI location) {
         if (rootPath == null)
             return;
 
@@ -186,11 +186,8 @@ public abstract class DefaultResourceProvider
                 else {
                     String absolute = path.toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
                     String providerId = getProviderId(absolute);
-                    if (paths.get(providerId) == null) {
-                        List<String> list = new ArrayList<String>();
-                        paths.put(providerId, list);
-                    }
-                    paths.get(providerId).add(absolute);
+                    FilePaths providerPaths = getProviderPaths(Paths.get(location).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), providerId, paths);
+                    providerPaths.getFullPaths().add(absolute);
                     if (providersLocation.get(providerId) == null)
                         providersLocation.put(providerId, location);
                 }
@@ -207,6 +204,18 @@ public abstract class DefaultResourceProvider
         }
     }
 
+    protected FilePaths getProviderPaths(String location, String providerId, Map<String, List<FilePaths>> paths) {
+        if (paths.get(providerId) == null)
+            paths.put(providerId, new ArrayList<FilePaths>());
+        for (FilePaths p : paths.get(providerId)) {
+            if (p.getLocation().equals(location))
+                return p;
+        }
+        FilePaths fp = new FilePaths(location, providerId);
+        paths.get(providerId).add(fp);
+        return fp;
+    }
+
     public URI getProvidersLocation(String providerId) {
         return providersLocation.get(providerId);
     }
@@ -214,8 +223,8 @@ public abstract class DefaultResourceProvider
     /**
      * Default implementation of determining filename from path.
      * The result is either path without location, part of the specified path after "/" or "\" character or path itself.
-     * @param path    path to file either local or remote in URI syntax
      *
+     * @param path path to file either local or remote in URI syntax
      * @return filename to be stored in ECloud
      */
     @Override

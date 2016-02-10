@@ -30,11 +30,11 @@ public interface ResourceProvider {
     /**
      * Get local identifier of the record for the specified path to file and provider identifier.
      *
+     * @param location location of the file path
      * @param path path to file
-     * @param providerId provider identifier
      * @return local identifier of the record
      */
-    public String getLocalIdentifier(String path, String providerId);
+    public String getLocalIdentifier(String location, String path);
 
     /**
      * Return the default representation name of records added for this resource provider.
@@ -64,7 +64,7 @@ public interface ResourceProvider {
      *
      * @return map of provider identifiers associated to the list of paths to files
      */
-    public Map<String, List<String>> scan();
+    public Map<String, List<FilePaths>> scan();
 
     /**
      * Determines user filename from the specified path to file.
