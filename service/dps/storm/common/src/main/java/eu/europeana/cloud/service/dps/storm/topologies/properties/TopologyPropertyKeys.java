@@ -45,4 +45,6 @@ public final class TopologyPropertyKeys {
 	public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
 	public static final String METRICS_CONSUMER_PARALLEL = "METRICS_CONSUMER_PARALLEL";
 
+	public static final String KAKADU_ARGUEMENTS="KAKADU_ARGUEMENTS";
+
 }

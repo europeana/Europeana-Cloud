@@ -22,11 +22,13 @@ public class IcBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(IcBolt.class);
 
+
     /**
      * compress image file.
      *
      * @param stormTaskTuple Tuple which DpsTask is part of ...
      */
+
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
             String fileUrl = stormTaskTuple.getFileUrl();

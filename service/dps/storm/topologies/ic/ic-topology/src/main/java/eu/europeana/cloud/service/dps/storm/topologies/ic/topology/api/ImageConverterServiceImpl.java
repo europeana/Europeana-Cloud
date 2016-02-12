@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.Ka
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.ExtensionHelper;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.MimeTypeHelper;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
@@ -18,6 +19,9 @@ import org.apache.tika.mime.MimeTypeException;
 import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,28 +54,24 @@ public class ImageConverterServiceImpl implements ImageConverterService {
 
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
 
-        String inputFilePath = null;
-        String outputFilePath = null;
         String folderPath = null;
         InputStream inputStream = null;
         InputStream outputStream = null;
-        ByteArrayOutputStream baos = null;
         try {
             TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
             inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
                 String fileName = findFileName(fileURI);
                 folderPath = persistStreamToTemporaryStorage(inputStream, fileName);
-                inputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.INPUT_EXTENSION));
-                outputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_EXTENSION));
+                String inputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.INPUT_EXTENSION));
+                String outputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_EXTENSION));
                 if (outputFilePath != null) {
-                    converterContext.convert(inputFilePath, outputFilePath, null);//TODO ! null will be changed to kakadu-compressing properties
+                    List<String> properties = new ArrayList<>();
+                    properties.add(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
+                    converterContext.convert(inputFilePath, outputFilePath, properties);
                     File outputFile = new File(outputFilePath);
                     outputStream = new FileInputStream(outputFile);
-                    baos = new ByteArrayOutputStream();
-                    IOUtils.copy(outputStream, baos);
-                    InputStream stream = new ByteArrayInputStream(baos.toByteArray());
-                    stormTaskTuple.setFileData(stream);
+                    stormTaskTuple.setFileData(outputStream);
                     LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " completed successfully");
                 }
 
@@ -83,7 +83,6 @@ public class ImageConverterServiceImpl implements ImageConverterService {
 
         } finally {
             outputStream.close();
-            baos.close();
             FileUtils.deleteDirectory(new java.io.File(folderPath));
             inputStream.close();
 
