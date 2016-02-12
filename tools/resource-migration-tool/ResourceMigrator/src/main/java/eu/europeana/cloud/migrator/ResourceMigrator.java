@@ -330,7 +330,7 @@ public class ResourceMigrator {
         return mimeTypes.get(path.substring(i + 1));
     }
 
-    public String createProvider(String path) {
+    private String createProvider(String path) {
         String providerId = resourceProvider.getProviderId(path);
         DataProviderProperties providerProps = resourceProvider.getDataProviderProperties(path);
 

@@ -91,8 +91,10 @@ public abstract class DefaultResourceProvider
                 if (firstChange) {
                     firstChange = false;
                     allLocal = locationLocal;
-                } else
+                } else {
                     logger.error("All locations must be either local or remote");
+                    throw new IllegalArgumentException("All locations must be either local or remote. locations: " + locations);
+                }
             }
         }
         return allLocal;
