@@ -8,8 +8,6 @@ import java.util.Map;
 
 public interface ResourceProvider {
 
-    public void migrate();
-
     /**
      * Get data provider identifier as string.
      *

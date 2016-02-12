@@ -31,7 +31,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     private static final String LOCAL_ID_1 = "1234";
 
-    private static final String LOCAL_ID_2 = "5678";
+    private static final String LOCAL_ID_2 = "9293";
 
     private static final String PATH_1 = "node-1/image/LFT/Alpenzeitung/1926/04/02";
 
@@ -42,6 +42,10 @@ public class EuropeanaNewspapersResourceProviderTest {
     private static final String FILE_1 = "AZ_1926_04_02_0001.jp2";
 
     private static final String FILE_2 = "18640205_1-0001.jp2";
+
+    private static final String FILE_3 = "AZ1_1926_04_02_0001.jp2";
+
+    private static final String FILE_4 = "AZ1_1926_04_02_0001.jp2";
 
     private static final String PROVIDER_1 = "LFT";
 
@@ -72,9 +76,15 @@ public class EuropeanaNewspapersResourceProviderTest {
     public void testGetLocalIdentifier() throws Exception {
         provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
 
-        String file1 = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1;
-        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1);
+        String file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1;
+        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
         assertEquals(localId, LOCAL_ID_1);
+        file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3;
+        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
+        assertEquals(localId, LOCAL_ID_2);
+        file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4;
+        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
+        assertEquals(localId, LOCAL_ID_2);
     }
 
     @Test
@@ -113,10 +123,12 @@ public class EuropeanaNewspapersResourceProviderTest {
         assertEquals(PROVIDER_1, paths.get(PROVIDER_1).get(0).getDataProvider());
         assertEquals(PROVIDER_2, paths.get(PROVIDER_2).get(0).getDataProvider());
         // there should be only one path in FilePaths object
-        assertEquals(1, paths.get(PROVIDER_1).get(0).getFullPaths().size());
+        assertEquals(3, paths.get(PROVIDER_1).get(0).getFullPaths().size());
         assertEquals(1, paths.get(PROVIDER_2).get(0).getFullPaths().size());
         // path should be equal to the real one
-        assertEquals(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1, paths.get(PROVIDER_1).get(0).getFullPaths().get(0));
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1));
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3));
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4));
         assertEquals(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2, paths.get(PROVIDER_2).get(0).getFullPaths().get(0));
     }
 

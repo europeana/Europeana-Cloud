@@ -77,10 +77,6 @@ public class FoodAndDrinkResourceProvider
         return getDataProviderPropertiesFromFile(dpFile);
     }
 
-    @Override
-    public void migrate() {
-
-    }
 
     /**
      * User filename must contain provider id and all intermediate directory names between provider directory and image filename

@@ -16,8 +16,8 @@ import java.util.StringTokenizer;
 
 public class EuropeanaNewspapersResourceProvider
         extends DefaultResourceProvider {
+
     public static final String IMAGE_DIR = "image";
-    private Map<String, String> mapping = new HashMap<String, String>();
 
     private Map<String, String> reversedMapping = new HashMap<String, String>();
 
@@ -30,7 +30,7 @@ public class EuropeanaNewspapersResourceProvider
 
     /**
      * Reads mapping file given while constructing this object.
-     * File must be a csv file with ; delimited pairs of local identifier and path to issue.
+     * File must be a csv file with ; delimited lists of local identifier and paths to files of the issue.
      * Encoding is UTF-8.
      */
     private void readMappingFile() {
@@ -53,36 +53,30 @@ public class EuropeanaNewspapersResourceProvider
 
             for (String line : Files.readAllLines(mappingPath, Charset.forName("UTF-8"))) {
                 StringTokenizer tokenizer = new StringTokenizer(line, ";");
+                // first token is local identifier
                 if (tokenizer.hasMoreTokens())
                     localId = tokenizer.nextToken();
                 else
                     localId = null;
-                if (tokenizer.hasMoreTokens())
-                    path = tokenizer.nextToken();
-                else
-                    path = null;
-
-                if (localId == null || path == null) {
-                    logger.warn("Either local identifier or path is null (" + localId + " , " + path + "). Skipping line.");
+                if (localId == null) {
+                    logger.warn("Local identifier is null (" + localId + "). Skipping line.");
                     continue;
                 }
+                while (tokenizer.hasMoreTokens()) {
+                    path = tokenizer.nextToken();
+                    // when path is empty do not add to map
+                    if (path.isEmpty())
+                        break;
 
-                // add mapping
-                mapping.put(localId, path);
-                if (reversedMapping.get(path) != null)
-                    logger.warn("Path " + path + " already has a local id = " + reversedMapping.get(path));
-                // add reversed mapping
-                reversedMapping.put(path, localId);
+                    // add reversed mapping
+                    if (reversedMapping.get(path) != null)
+                        logger.warn("File " + path + " already has a local id = " + reversedMapping.get(path));
+                    reversedMapping.put(path, localId);
+                }
             }
         } catch (IOException e) {
             logger.warn("Problem occurred when reading mapping file!", e);
         }
-    }
-
-    @Override
-    public void migrate() {
-        // read mapping file and prepare mapping and reversed mapping
-        readMappingFile();
     }
 
     @Override
@@ -134,14 +128,7 @@ public class EuropeanaNewspapersResourceProvider
         int i = path.indexOf(location);
         if (i == -1)
             return path;
-        String local = path.substring(i + location.length() + 1);
-        i = local.lastIndexOf("/");
-        if (i == -1)
-            i = path.lastIndexOf("\\");
-        // when there are no slashes or backslashes it means that the local path is just a filename
-        if (i == -1)
-            return local;
-        return local.substring(0, i);
+        return path.substring(i + location.length() + 1);
     }
 
 
