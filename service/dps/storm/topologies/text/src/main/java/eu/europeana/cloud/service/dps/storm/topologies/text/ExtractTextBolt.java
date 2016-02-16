@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractorFactory;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +116,7 @@ public class ExtractTextBolt extends AbstractDpsBolt
         
         if(extractedText != null && !extractedText.isEmpty())
         {
-            t.setFileData(extractedText);
+            t.setFileData(extractedText.getBytes(Charset.forName("UTF-8")));
             t.addParameter(PluginParameterKeys.MIME_TYPE, "text/plain");
             t.addParameter(PluginParameterKeys.REPRESENTATION_NAME, extractor.getRepresentationName());
             t.addParameter(PluginParameterKeys.ORIGINAL_FILE_URL, t.getFileUrl());

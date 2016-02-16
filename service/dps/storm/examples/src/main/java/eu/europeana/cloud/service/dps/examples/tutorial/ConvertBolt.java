@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import javax.imageio.ImageIO;
 
 /**
@@ -26,7 +27,7 @@ public class ConvertBolt extends AbstractDpsBolt {
             // transcoding to jpeg
             ImageIO.write(bufferedImage, "jpg", os);
 
-            t.setFileData(os.toString());
+            t.setFileData(os.toString().getBytes(Charset.forName("UTF-8")));
             //emitting to the next bolt
             outputCollector.emit("stream-to-next-bolt", t.toStormTuple());
 

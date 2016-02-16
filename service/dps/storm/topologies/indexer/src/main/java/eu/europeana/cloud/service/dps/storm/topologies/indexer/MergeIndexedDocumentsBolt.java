@@ -126,7 +126,7 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt
         
         try 
         {
-            t.setFileData(new ObjectMapper().writeValueAsString(mergedData));
+            t.setFileData(new ObjectMapper().writeValueAsBytes(mergedData));
         } 
         catch (IOException ex) 
         {

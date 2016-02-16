@@ -54,10 +54,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
-
-            final String record = t.getFileByteData();
             String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-
             boolean outputUrlMissing = false;
 
             if (outputUrl == null) {

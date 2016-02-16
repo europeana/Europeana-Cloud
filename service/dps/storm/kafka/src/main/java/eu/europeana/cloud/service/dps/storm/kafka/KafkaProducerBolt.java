@@ -73,8 +73,8 @@ public class KafkaProducerBolt extends AbstractDpsBolt
 
         msg.setTaskName(taskName);
         msg.addParameter(PluginParameterKeys.FILE_URL, t.getFileUrl());
-        msg.addParameter(PluginParameterKeys.FILE_DATA, t.getFileByteData());
-        
+        msg.addParameter(PluginParameterKeys.FILE_DATA, new String(t.getFileData()));
+
         //add extension parameters (optional)
         if(parameters != null)
         {

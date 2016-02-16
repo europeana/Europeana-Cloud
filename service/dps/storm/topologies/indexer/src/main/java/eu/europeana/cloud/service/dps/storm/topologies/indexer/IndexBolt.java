@@ -59,7 +59,7 @@ public class IndexBolt extends AbstractDpsBolt
         }
         
         String fileWithDataForIndex = t.getFileUrl();
-        String rawData = t.getFileByteData();
+        String rawData = new String(t.getFileData());
         String originalFile = t.getParameter(PluginParameterKeys.ORIGINAL_FILE_URL);        
         String fileMetadata = t.getParameter(PluginParameterKeys.FILE_METADATA);    //extracted metadata
 

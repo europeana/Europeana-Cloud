@@ -53,7 +53,7 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 			System.out.println("emmiting..." + fileUrl);
 			collector
 					.emit(new StormTaskTuple(task.getTaskId(), task
-							.getTaskName(), fileUrl, "", taskParameters)
+							.getTaskName(), fileUrl, null, taskParameters)
 							.toStormTuple());
 		}
 	}

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.Charset;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -32,14 +33,14 @@ public class XsltBolt extends AbstractDpsBolt {
 	@Override
 	public void execute(StormTaskTuple t) {
 
-		String file = null;
+		byte[] fileContent = null;
 		String fileUrl = null;
 		String xsltUrl = null;
 
 		try {
 
 			fileUrl = t.getFileUrl();
-			file = t.getFileByteData();
+			fileContent = t.getFileData();
 			xsltUrl = t.getParameter(PluginParameterKeys.XSLT_URL);
 
 			LOGGER.info("processing file: {}", fileUrl);
@@ -58,7 +59,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
 		try {
 			xslDoc = new StreamSource(new URL(xsltUrl).openStream());
-			InputStream stream = new ByteArrayInputStream(file.getBytes());
+			InputStream stream = new ByteArrayInputStream(fileContent);
 			xmlDoc = new StreamSource(stream);
 		} catch (IOException e) {
 			LOGGER.error("XsltBolt error:" + e.getMessage());
@@ -100,7 +101,7 @@ public class XsltBolt extends AbstractDpsBolt {
 		LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
 
 		// pass data to next Bolt
-		t.setFileData(writer.toString());
+		t.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
 		// outputCollector.emit(t.toStormTuple());
 		emitBasicInfo(t.getTaskId(), 1);
 		outputCollector.emit(inputTuple, t.toStormTuple());
