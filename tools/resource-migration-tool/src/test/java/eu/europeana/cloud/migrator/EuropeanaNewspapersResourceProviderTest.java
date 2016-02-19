@@ -1,10 +1,7 @@
 package eu.europeana.cloud.migrator;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.file.FileSystems;
 import java.util.List;
@@ -12,7 +9,6 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class EuropeanaNewspapersResourceProviderTest {
 
     private static final String REPRESENTATION_NAME = "presentation_images";

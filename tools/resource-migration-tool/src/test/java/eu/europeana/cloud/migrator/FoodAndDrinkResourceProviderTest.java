@@ -5,14 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.FileSystems;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-/**
- * Created by helin on 2016-02-12.
- */
 public class FoodAndDrinkResourceProviderTest {
     private static final String REPRESENTATION_NAME = "presentation";
 

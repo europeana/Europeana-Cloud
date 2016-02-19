@@ -13,5 +13,6 @@
   <name>Europeana Cloud: Tools</name>
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
+    <module>resource-migration-tool</module>
   </modules>
 </project>
