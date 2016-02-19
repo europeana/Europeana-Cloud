@@ -113,7 +113,6 @@ public class ResourceMigrator {
             }
             logger.info("Starting task thread for provider " + providerId + "...");
             tasks.add(new ProviderMigrator(providerId, paths.get(providerId)));
-            break;
         }
 
         try {
@@ -225,7 +224,7 @@ public class ResourceMigrator {
      * @param version  version string, must be appropriate for the given record
      * @param recordId global record identifier
      */
-    private URI createFilename(String path, String version, String recordId) {
+    private URI createFilename(String location, String path, String version, String recordId) {
         String mimeType = "";
         InputStream is = null;
         URI fullURI = null;
@@ -261,14 +260,14 @@ public class ResourceMigrator {
             try {
                 is = fullURI.toURL().openStream();
 
-                // filename is retrieved from URI instead of path in order to contain proper slash characters ("/")
-                return fsc.uploadFile(recordId, resourceProvider.getRepresentationName(), version, resourceProvider.getFilename(fullURI.toString()), is, mimeType);
+                // path should contain proper slash characters ("/")
+                return fsc.uploadFile(recordId, resourceProvider.getRepresentationName(), version, resourceProvider.getFilename(location, resourceProvider.isLocal() ? path : fullURI.toString()), is, mimeType);
             } catch (ProcessingException e) {
-                logger.warn("Processing HTTP request failed. Upload file: " + resourceProvider.getFilename(fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.warn("Processing HTTP request failed. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
             } catch (SocketTimeoutException e) {
-                logger.warn("Read time out. Upload file: " + resourceProvider.getFilename(fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.warn("Read time out. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
             } catch (ConnectException e) {
-                logger.error("Connection timeout. Upload file: " + resourceProvider.getFilename(fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
+                logger.error("Connection timeout. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
             } catch (FileNotFoundException e) {
                 logger.error("Could not open input stream to file!", e);
             } catch (IOException e) {
@@ -380,8 +379,7 @@ public class ResourceMigrator {
         // first remove already processed paths, if there is no progress file for the provider no filtering is performed
         removeProcessedPaths(providerId, providerPaths);
 
-        int counter = 0;
-        int errors = 0;
+        boolean result = true;
 
         if (providerPaths.size() > 0) {
             // first create provider, one path is enough to determine
@@ -390,79 +388,120 @@ public class ResourceMigrator {
                 return false;
             }
 
-            String prevLocalId = null;
-            for (String path : providerPaths.getFullPaths()) {
-                if ((int) (((float) (counter) / (float) providerPaths.size()) * 100) > (int) (((float) (counter - 1) / (float) providerPaths.size()) * 100))
-                    logger.info("Provider: " + providerId + ". Progress: " + counter + " of " + providerPaths.size() + " (" + (int) (((float) (counter) / (float) providerPaths.size()) * 100) + "%). Errors: " + errors);
-                counter++;
-                // get local record identifier
-                String localId = resourceProvider.getLocalIdentifier(providerPaths.getLocation(), path);
-                if (localId == null) {
-                    // when local identifier is null it means that the path may be wrong
-                    logger.error("Local identifier for path: " + path + " could not be obtained. Skipping path...");
-                    continue;
-                }
-                if (!localId.equals(prevLocalId)) {
-                    if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null) {
-                        // persist previous version if it was created
-                        URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-                        if (persistent != null) {
-                            if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                            saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
-                        }
-                    }
-                    prevLocalId = localId;
-                }
-                if (cloudIds.get(localId) == null) {
-                    // create new record when it was not created before
-                    String cloudId = createRecord(providerId, localId);
-                    if (cloudId == null) {
-                        // this is an error
-                        errors++;
-                        continue; // skip this path
-                    }
-                    cloudIds.put(localId, cloudId);
-                    // create representation for the record
-                    URI uri = createRepresentationName(providerId, cloudId);
-                    if (uri == null) {
-                        // this is not an error, version is already there and is persistent
-                        continue; // skip this path
-                    }
-                    String verId = getVersionIdentifier(uri);
-                    if (verId == null) {
-                        // this is an error, version identifier could not be retrieved from representation URI
-                        errors++;
-                        continue; // skip this path
-                    }
-                    versionIds.put(localId, verId);
-                }
+            List<String> duplicates = new ArrayList<String>();
+            result &= processPaths(providerId, providerPaths.getFullPaths(), providerPaths.getLocation(), false, duplicates);
+            if (duplicates.size() > 0)
+                result &= processPaths(providerId, duplicates, providerPaths.getLocation(), true, null);
+        }
+        return result;
+    }
 
-                // create file name in ECloud with the specified name
-                URI fileAdded = createFilename(path, versionIds.get(localId), cloudIds.get(localId));
-                if (fileAdded == null) {
-                    // this is an error, upload failed
-                    prevLocalId = null; // this should prevent persisting the version and saving progress
+    private boolean processPaths(String providerId, List<String> paths, String location, boolean duplicate, List<String> duplicates) {
+        // key is local identifier, value is cloud identifier
+        Map<String, String> cloudIds = new HashMap<String, String>();
+        // key is local identifier, value is version identifier
+        Map<String, String> versionIds = new HashMap<String, String>();
+        // key is version identifier, value is a list of strings containing path=URI
+        Map<String, List<String>> processed = new HashMap<String, List<String>>();
+        // key is local identifier, value is files that were added
+        Map<String, Integer> fileCount = new HashMap<String, Integer>();
+
+        int counter = 0;
+        int errors = 0;
+
+        if (paths.size() == 0)
+            return false;
+
+        String prevLocalId = null;
+        for (String path : paths) {
+            if ((int) (((float) (counter) / (float) paths.size()) * 100) > (int) (((float) (counter - 1) / (float) paths.size()) * 100))
+                logger.info("Provider: " + providerId + ". Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
+            counter++;
+            // get local record identifier
+            String localId = resourceProvider.getLocalIdentifier(location, path, duplicate);
+            if (localId == null) {
+                if (!duplicate) {
+                    // check whether there is a duplicate record for the path and store the path for later use if so
+                    if (resourceProvider.getLocalIdentifier(location, path, true) != null)
+                        duplicates.add(path);
+                }
+                // when local identifier is null it means that the path may be wrong
+                logger.error("Local identifier for path: " + path + " could not be obtained. Skipping path...");
+                continue;
+            }
+
+            if (!duplicate) {
+                // check whether there is a duplicate record for the path and store the path for later use if so
+                if (resourceProvider.getLocalIdentifier(location, path, true) != null)
+                    duplicates.add(path);
+            }
+
+            if (!localId.equals(prevLocalId)) {
+                if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
+                    if (logger.isDebugEnabled())
+                        logger.debug("Record " + prevLocalId + " complete. Saving...");
+                    // persist previous version if it was created
+                    URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
+                    if (persistent != null) {
+                        if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                            logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                        saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                    }
+                }
+                prevLocalId = localId;
+            }
+            if (cloudIds.get(localId) == null) {
+                // create new record when it was not created before
+                String cloudId = createRecord(providerId, localId);
+                if (cloudId == null) {
+                    // this is an error
+                    errors++;
                     continue; // skip this path
                 }
-                // put the created URI for path to processed list
-                if (processed.get(versionIds.get(localId)) == null)
-                    processed.put(versionIds.get(localId), new ArrayList<String>());
-                processed.get(versionIds.get(localId)).add(path + "=" + fileAdded);
-            }
-            if (prevLocalId != null) {
-                // persist previous version
-                URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-                if (persistent != null) {
-                    if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                    saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                cloudIds.put(localId, cloudId);
+                // create representation for the record
+                URI uri = createRepresentationName(providerId, cloudId);
+                if (uri == null) {
+                    // this is not an error, version is already there and is persistent
+                    continue; // skip this path
                 }
+                String verId = getVersionIdentifier(uri);
+                if (verId == null) {
+                    // this is an error, version identifier could not be retrieved from representation URI
+                    errors++;
+                    continue; // skip this path
+                }
+                versionIds.put(localId, verId);
+            }
+
+            // create file name in ECloud with the specified name
+            URI fileAdded = createFilename(location, path, versionIds.get(localId), cloudIds.get(localId));
+            if (fileAdded == null) {
+                // this is an error, upload failed
+                prevLocalId = null; // this should prevent persisting the version and saving progress
+                continue; // skip this path
+            }
+            // put the created URI for path to processed list
+            if (processed.get(versionIds.get(localId)) == null)
+                processed.put(versionIds.get(localId), new ArrayList<String>());
+            processed.get(versionIds.get(localId)).add(path + "=" + fileAdded);
+            // increase file count or set to 1 if it's a first file
+            fileCount.put(localId, fileCount.get(localId) != null ? (fileCount.get(localId) + 1) : 1);
+        }
+        if (prevLocalId != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
+            if (logger.isDebugEnabled())
+                logger.debug("Record " + prevLocalId + " complete. Saving...");
+            // persist previous version
+            URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
+            if (persistent != null) {
+                if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                    logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
             }
         }
         if (errors > 0)
             logger.warn("Migration of " + providerId + " encoutered " + errors + " errors.");
-        return (counter - errors) == providerPaths.size();
+        return (counter - errors) == paths.size();
     }
 
     private void saveProgress(String providerId, List<String> strings, boolean truncate) {

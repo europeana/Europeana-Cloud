@@ -59,7 +59,7 @@ public class FoodAndDrinkResourceProviderTest {
     @Test
     public void testGetLocalIdentifier() throws Exception {
         String file1 = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
-        String localId = provider.getLocalIdentifier(LOCATION.replace("$1", resDir), file1);
+        String localId = provider.getLocalIdentifier(LOCATION.replace("$1", resDir), file1, false);
         assertEquals(localId, LOCAL_ID);
     }
 
@@ -106,7 +106,7 @@ public class FoodAndDrinkResourceProviderTest {
     @Test
     public void testGetFilename() throws Exception {
         String file = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
-        String fileName = provider.getFilename(file);
+        String fileName = provider.getFilename(LOCATION.replace("$1", resDir), file);
         // file name for ecloud should contain the provider id and the file name itself
         assertEquals(PROVIDER + "/" + FILE, fileName);
     }

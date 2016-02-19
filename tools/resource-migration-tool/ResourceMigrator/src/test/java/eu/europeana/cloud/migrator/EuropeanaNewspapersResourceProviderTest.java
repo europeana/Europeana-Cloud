@@ -77,13 +77,13 @@ public class EuropeanaNewspapersResourceProviderTest {
         provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
 
         String file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1;
-        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
+        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
         assertEquals(localId, LOCAL_ID_1);
         file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3;
-        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
+        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
         assertEquals(localId, LOCAL_ID_2);
         file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4;
-        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file);
+        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
         assertEquals(localId, LOCAL_ID_2);
     }
 
@@ -93,12 +93,12 @@ public class EuropeanaNewspapersResourceProviderTest {
 
         // location is different
         String file1 = LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2;
-        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1);
+        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1, false);
         assertNull(localId);
 
         // no association between path and local identifier
         file1 = LOCATION_1.replace("$1", resDir) + "/" + PATH_NON_EXISTING + "/" + FILE_1;
-        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1);
+        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1, false);
         assertNull(localId);
     }
 

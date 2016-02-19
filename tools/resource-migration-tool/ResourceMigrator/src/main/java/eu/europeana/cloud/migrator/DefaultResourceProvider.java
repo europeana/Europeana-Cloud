@@ -168,8 +168,16 @@ public abstract class DefaultResourceProvider
 
         for (URI location : locations) {
             collectPaths(Paths.get(location), paths, location);
+            sortPaths(paths);
         }
         return paths;
+    }
+
+    private void sortPaths(Map<String, List<FilePaths>> paths) {
+        for (List<FilePaths> list : paths.values()) {
+            for (FilePaths fp : list)
+                Collections.sort(fp.getFullPaths());
+        }
     }
 
     private void collectPaths(Path rootPath, Map<String, List<FilePaths>> paths, URI location) {
@@ -226,20 +234,31 @@ public abstract class DefaultResourceProvider
      * Default implementation of determining filename from path.
      * The result is either path without location, part of the specified path after "/" or "\" character or path itself.
      *
-     * @param path path to file either local or remote in URI syntax
+     * @param location location where path is placed, usually path starts with location
+     * @param path     path to file either local or remote in URI syntax
      * @return filename to be stored in ECloud
      */
     @Override
-    public String getFilename(String path) {
-        URI location = providersLocation.get(getProviderId(path));
-        if (path.startsWith(location.toString()))
-            return path.substring(location.toString().length());
+    public String getFilename(String location, String path) {
+        int pos = -1;
+        if (path.startsWith(location)) {
+            path = path.substring(location.length());
+            pos = path.indexOf(ResourceMigrator.LINUX_SEPARATOR);
+            if (pos == -1)
+                pos = path.indexOf(ResourceMigrator.WINDOWS_SEPARATOR);
+        }
         else {
-            int pos = path.lastIndexOf(ResourceMigrator.LINUX_SEPARATOR);
+            pos = path.lastIndexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
                 pos = path.lastIndexOf(ResourceMigrator.WINDOWS_SEPARATOR);
-            // when pos == -1 whole path is returned, otherwise only part after pos
-            return path.substring(pos + 1);
         }
+        // when pos == -1 whole path is returned, otherwise only part after pos
+        return path.substring(pos + 1);
+    }
+
+    @Override
+    public int getFileCount(String localId) {
+        // impossible to determine in anstract class
+        return -1;
     }
 }

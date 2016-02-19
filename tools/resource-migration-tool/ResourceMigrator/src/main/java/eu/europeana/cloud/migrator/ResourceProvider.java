@@ -32,7 +32,7 @@ public interface ResourceProvider {
      * @param path path to file
      * @return local identifier of the record
      */
-    public String getLocalIdentifier(String location, String path);
+    public String getLocalIdentifier(String location, String path, boolean duplicate);
 
     /**
      * Return the default representation name of records added for this resource provider.
@@ -65,11 +65,22 @@ public interface ResourceProvider {
     public Map<String, List<FilePaths>> scan();
 
     /**
-     * Determines user filename from the specified path to file.
+     * Determines user filename from the specified path to file and location.
      *
+     * @param location location where the path is placed, usually needed to determine file path relative to location
      * @param path    path to file either local or remote in URI syntax
      *
      * @return filename to be stored in ECloud
      */
-    public String getFilename(String path);
+    public String getFilename(String location, String path);
+
+    /**
+     * Determine the number of files that should be added for the specified local identifier.
+     * It may be done using the mapping file or any other way proper for the resource provider.
+     * When it is impossible to determine -1 is returned.
+     *
+     * @param localId local identifier of the record
+     * @return number of files the record should have or -1 if it's impossible to determine
+     */
+    public int getFileCount(String localId);
 }

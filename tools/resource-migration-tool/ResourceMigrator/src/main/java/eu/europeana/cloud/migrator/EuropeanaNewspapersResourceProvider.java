@@ -3,16 +3,16 @@ package eu.europeana.cloud.migrator;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class EuropeanaNewspapersResourceProvider
         extends DefaultResourceProvider {
@@ -20,6 +20,10 @@ public class EuropeanaNewspapersResourceProvider
     public static final String IMAGE_DIR = "image";
 
     private Map<String, String> reversedMapping = new HashMap<String, String>();
+
+    private Map<String, String> duplicateMapping = new HashMap<String, String>();
+
+    private Map<String, Integer> fileCounts = new HashMap<String, Integer>();
 
     private static final Logger logger = Logger.getLogger(EuropeanaNewspapersResourceProvider.class);
 
@@ -50,30 +54,55 @@ public class EuropeanaNewspapersResourceProvider
 
             String localId;
             String path;
+            List<String> paths = new ArrayList<String>();
 
-            for (String line : Files.readAllLines(mappingPath, Charset.forName("UTF-8"))) {
+            BufferedReader reader = Files.newBufferedReader(mappingPath, Charset.forName("UTF-8"));
+            for (; ; ) {
+                String line = reader.readLine();
+                if (line == null)
+                    break;
                 StringTokenizer tokenizer = new StringTokenizer(line, ";");
                 // first token is local identifier
                 if (tokenizer.hasMoreTokens())
-                    localId = tokenizer.nextToken();
+                    localId = tokenizer.nextToken().trim();
                 else
                     localId = null;
                 if (localId == null) {
                     logger.warn("Local identifier is null (" + localId + "). Skipping line.");
                     continue;
                 }
+
+                boolean duplicate = false;
+
+                paths.clear();
+                int count = 0;
+
                 while (tokenizer.hasMoreTokens()) {
-                    path = tokenizer.nextToken();
+                    path = tokenizer.nextToken().trim();
                     // when path is empty do not add to map
                     if (path.isEmpty())
-                        break;
-
-                    // add reversed mapping
-                    if (reversedMapping.get(path) != null)
-                        logger.warn("File " + path + " already has a local id = " + reversedMapping.get(path));
-                    reversedMapping.put(path, localId);
+                        continue;
+                    if (reversedMapping.get(path) != null && !duplicate) {
+                        logger.warn("File " + path + " already has a local id = " + reversedMapping.get(path) + ". New local id = " + localId);
+                        duplicate = true;
+                        for (String s : paths) {
+                            reversedMapping.remove(s);
+                            duplicateMapping.put(s, localId);
+                        }
+                    }
+                    if (duplicate)
+                        // add reversed mapping to duplicates map
+                        duplicateMapping.put(path, localId);
+                    else {
+                        // add reversed mapping
+                        reversedMapping.put(path, localId);
+                        paths.add(path);
+                    }
+                    count++;
                 }
+                fileCounts.put(localId, Integer.valueOf(count));
             }
+            reader.close();
         } catch (IOException e) {
             logger.warn("Problem occurred when reading mapping file!", e);
         }
@@ -114,13 +143,13 @@ public class EuropeanaNewspapersResourceProvider
     }
 
     @Override
-    public String getLocalIdentifier(String location, String path) {
+    public String getLocalIdentifier(String location, String path, boolean duplicate) {
         // first get the local path within location
         String localPath = getLocalPath(location, path);
         // we have to find the identifier in the mapping file
-        String localId = reversedMapping.get(localPath);
+        String localId = duplicate ? duplicateMapping.get(localPath) : reversedMapping.get(localPath);
         if (localId == null)
-            logger.warn("Local identifier for file " + path + " was not found in the mapping file!");
+            logger.warn("Local identifier for file " + localPath + " was not found in the mapping file!" + (duplicate ? " Duplicate not present also." : ""));
         return localId;
     }
 
@@ -131,17 +160,11 @@ public class EuropeanaNewspapersResourceProvider
         return path.substring(i + location.length() + 1);
     }
 
-
-    private String getIssue(String path, String dataProvider) {
-        int i = path.indexOf(dataProvider);
-        if (i == -1)
-            return null;
-        i += dataProvider.length() + 1;
-        int j = path.lastIndexOf("/");
-        if (j == -1)
-            j = path.lastIndexOf("\\");
-        if (j == -1)
-            j = path.length();
-        return path.substring(i, j);
+    @Override
+    public int getFileCount(String localId) {
+        Integer count = fileCounts.get(localId);
+        if (count == null)
+            return -1;
+        return count.intValue();
     }
 }

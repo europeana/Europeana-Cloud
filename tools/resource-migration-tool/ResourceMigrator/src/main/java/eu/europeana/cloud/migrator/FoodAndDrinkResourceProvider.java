@@ -22,10 +22,15 @@ public class FoodAndDrinkResourceProvider
      *
      * @param location not used here
      * @param path path to image file
+     * @param duplicate not used here
      * @return local identifier
      */
     @Override
-    public String getLocalIdentifier(String location, String path) {
+    public String getLocalIdentifier(String location, String path, boolean duplicate) {
+        // food and drink cannot have duplicates, always return null in such case
+        if (duplicate)
+            return null;
+
         String providerId = getProviderId(path);
         if (path == null || path.isEmpty() || providerId == null || providerId.isEmpty()) {
             logger.warn("Either path or provider identifier is null or empty. Local record identifier cannot be retrieved.");
@@ -86,11 +91,17 @@ public class FoodAndDrinkResourceProvider
      * @return filename containing provider id and image filename
      */
     @Override
-    public String getFilename(String path) {
+    public String getFilename(String location, String path) {
         String providerId = getProviderId(path);
         int pos = path.indexOf(providerId);
         if (pos == -1)
             return null;
         return path.substring(pos);
+    }
+
+
+    @Override
+    public int getFileCount(String localId) {
+        return 1;
     }
 }
