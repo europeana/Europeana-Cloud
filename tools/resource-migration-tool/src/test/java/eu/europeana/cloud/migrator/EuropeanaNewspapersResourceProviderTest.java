@@ -55,7 +55,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().toString().replace("\\", "/");
+        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().normalize().toString().replace("\\", "/");
     }
 
 
