@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        resDir = FileSystems.getDefault().getPath(".", "src/test/resources").toFile().getAbsolutePath().replace("\\", "/");
+        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().toString().replace("\\", "/");
     }
 
 

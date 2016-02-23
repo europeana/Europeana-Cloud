@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -48,7 +49,7 @@ public class FoodAndDrinkResourceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        resDir = FileSystems.getDefault().getPath(".", "src/test/resources").toFile().getAbsolutePath().replace("\\", "/");
+        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().toString().replace("\\", "/");
         provider = new FoodAndDrinkResourceProvider(REPRESENTATION_NAME, null, LOCAL_LOCATIONS.replace("$1", resDir));
     }
 
