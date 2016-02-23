@@ -27,7 +27,7 @@ public class EuropeanaNewspapersResourceProvider
 
     private static final Logger logger = Logger.getLogger(EuropeanaNewspapersResourceProvider.class);
 
-    public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations) {
+    public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations) throws IOException {
         super(representationName, mappingFile, locations);
         readMappingFile();
     }
@@ -37,26 +37,25 @@ public class EuropeanaNewspapersResourceProvider
      * File must be a csv file with ; delimited lists of local identifier and paths to files of the issue.
      * Encoding is UTF-8.
      */
-    private void readMappingFile() {
+    private void readMappingFile() throws IOException {
+        Path mappingPath = null;
         try {
-            Path mappingPath = null;
-            try {
-                // try to treat the mapping file as local file
-                mappingPath = FileSystems.getDefault().getPath(".", mappingFile);
-            } catch (InvalidPathException e) {
-                // in case path cannot be created try to treat the mapping file as absolute path
-                mappingPath = FileSystems.getDefault().getPath(mappingFile);
-            }
-            if (!mappingPath.toFile().exists()) {
-                logger.warn("Mapping file cannot be found: " + mappingFile + ".\nMapping will not be used!");
-                return;
-            }
+            // try to treat the mapping file as local file
+            mappingPath = FileSystems.getDefault().getPath(".", mappingFile);
+        } catch (InvalidPathException e) {
+            // in case path cannot be created try to treat the mapping file as absolute path
+            mappingPath = FileSystems.getDefault().getPath(mappingFile);
+        }
+        if (!mappingPath.toFile().exists())
+            throw new IOException("Mapping file cannot be found: " + mappingFile);
 
-            String localId;
-            String path;
-            List<String> paths = new ArrayList<String>();
+        String localId;
+        String path;
+        List<String> paths = new ArrayList<String>();
+        BufferedReader reader = null;
 
-            BufferedReader reader = Files.newBufferedReader(mappingPath, Charset.forName("UTF-8"));
+        try {
+            reader = Files.newBufferedReader(mappingPath, Charset.forName("UTF-8"));
             for (; ; ) {
                 String line = reader.readLine();
                 if (line == null)
@@ -103,8 +102,9 @@ public class EuropeanaNewspapersResourceProvider
                 fileCounts.put(localId, Integer.valueOf(count));
             }
             reader.close();
-        } catch (IOException e) {
-            logger.warn("Problem occurred when reading mapping file!", e);
+        } finally {
+            if (reader != null)
+                reader.close();
         }
     }
 

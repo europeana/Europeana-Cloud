@@ -369,13 +369,6 @@ public class ResourceMigrator {
 
 
     private boolean processProvider(String providerId, FilePaths providerPaths) {
-        // key is local identifier, value is cloud identifier
-        Map<String, String> cloudIds = new HashMap<String, String>();
-        // key is local identifier, value is version identifier
-        Map<String, String> versionIds = new HashMap<String, String>();
-        // key is version identifier, value is a list of strings containing path=URI
-        Map<String, List<String>> processed = new HashMap<String, List<String>>();
-
         // first remove already processed paths, if there is no progress file for the provider no filtering is performed
         removeProcessedPaths(providerId, providerPaths);
 
