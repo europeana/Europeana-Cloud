@@ -3,10 +3,10 @@ package eu.europeana.cloud.migrator;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.FilenameUtils;
 
 import static org.junit.Assert.*;
 
@@ -115,18 +115,21 @@ public class EuropeanaNewspapersResourceProviderTest {
         assertEquals(1, paths.get(PROVIDER_1).size());
         assertEquals(1, paths.get(PROVIDER_2).size());
         // FilePaths object should have proper location and provider
-        assertEquals(LOCATION_1.replace("$1", resDir), paths.get(PROVIDER_1).get(0).getLocation());
-        assertEquals(LOCATION_2.replace("$1", resDir), paths.get(PROVIDER_2).get(0).getLocation());
+        assertEquals(FilenameUtils.normalize(LOCATION_1.replace("$1", resDir)), paths.get(PROVIDER_1).get(0).getLocation());
+        assertEquals(FilenameUtils.normalize(LOCATION_2.replace("$1", resDir)), paths.get(PROVIDER_2).get(0).getLocation());
         assertEquals(PROVIDER_1, paths.get(PROVIDER_1).get(0).getDataProvider());
         assertEquals(PROVIDER_2, paths.get(PROVIDER_2).get(0).getDataProvider());
         // there should be only one path in FilePaths object
         assertEquals(3, paths.get(PROVIDER_1).get(0).getFullPaths().size());
         assertEquals(1, paths.get(PROVIDER_2).get(0).getFullPaths().size());
         // path should be equal to the real one
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1));
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3));
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4));
-        assertEquals(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2, paths.get(PROVIDER_2).get(0).getFullPaths().get(0));
+        String path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1);
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3);
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4);
+        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        assertEquals(FilenameUtils.normalize(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2), FilenameUtils.normalize(paths.get(PROVIDER_2).get(0).getFullPaths().get(0)));
     }
 
     @Test
