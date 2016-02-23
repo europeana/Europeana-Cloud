@@ -12,15 +12,14 @@ public class DpsTaskValidatorFactory {
 
     public static DpsTaskValidator createValidator(String topologyName) {
         if (topologyName.equals(XSLT_TOPOLOGY_NAME)) {
-            DpsTaskValidator validator = new DpsTaskValidator().withParameter(PluginParameterKeys.XSLT_URL)
+            DpsTaskValidator validator = new DpsTaskValidator()
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE)
+                    .withParameter(PluginParameterKeys.XSLT_URL)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
             return validator;
         } else if (topologyName.equals(IC_TOPOLOGY_NAME)) {
             DpsTaskValidator validator = new DpsTaskValidator()
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE)
-                    .withParameter(PluginParameterKeys.MIME_TYPE)
-                    .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
             return validator;
         } else {
