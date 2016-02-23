@@ -46,7 +46,7 @@ public class EuropeanaNewspapersResourceProvider
             // in case path cannot be created try to treat the mapping file as absolute path
             mappingPath = FileSystems.getDefault().getPath(mappingFile);
         }
-        if (!mappingPath.toFile().exists())
+        if (mappingPath == null || !mappingPath.toFile().exists())
             throw new IOException("Mapping file cannot be found: " + mappingFile);
 
         String localId;
@@ -101,7 +101,6 @@ public class EuropeanaNewspapersResourceProvider
                 }
                 fileCounts.put(localId, Integer.valueOf(count));
             }
-            reader.close();
         } finally {
             if (reader != null)
                 reader.close();
