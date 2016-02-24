@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 
@@ -15,7 +16,7 @@ public class FoodAndDrinkResourceProviderTest {
 
     private static final String LOCAL_LOCATIONS = "file:///$1/test3";
 
-    private static final String LOCATION = "$1/test3";
+    private static final String LOCATION = "file:///$1/test3";
 
     private static final String LOCAL_ID = "00008270_1.JPG";
 
@@ -49,27 +50,27 @@ public class FoodAndDrinkResourceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().toString().replace("\\", "/");
+        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().normalize().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         provider = new FoodAndDrinkResourceProvider(REPRESENTATION_NAME, null, LOCAL_LOCATIONS.replace("$1", resDir));
     }
 
     @Test
     public void testGetLocalIdentifier() throws Exception {
-        String file1 = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
-        String localId = provider.getLocalIdentifier(LOCATION.replace("$1", resDir), file1, false);
+        String file1 = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        String localId = provider.getLocalIdentifier(Paths.get(new URI(LOCATION.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file1, false);
         assertEquals(localId, LOCAL_ID);
     }
 
     @Test
     public void testGetProviderId() throws Exception {
-        String file = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         String dataProvider = provider.getProviderId(file);
         assertEquals(PROVIDER, dataProvider);
     }
 
     @Test
     public void testGetDataProviderProperties() throws Exception {
-        String file = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         DataProviderProperties p = provider.getDataProviderProperties(file);
         assertNotNull(p);
         // test whether all props are from file
@@ -85,7 +86,7 @@ public class FoodAndDrinkResourceProviderTest {
 
     @Test
     public void testGetDefaultDataProviderProperties() throws Exception {
-        String file = LOCATION.replace("$1", resDir) + "/" + PATH_NON_EXISTING + "/" + FILE;
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH_NON_EXISTING + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         DataProviderProperties p = provider.getDataProviderProperties(file);
         // when no properties file is supplied default values should be used
         assertNotNull(p);
@@ -102,8 +103,8 @@ public class FoodAndDrinkResourceProviderTest {
 
     @Test
     public void testGetFilename() throws Exception {
-        String file = LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE;
-        String fileName = provider.getFilename(LOCATION.replace("$1", resDir), file);
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        String fileName = provider.getFilename(Paths.get(new URI(LOCATION.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file);
         // file name for ecloud should contain the provider id and the file name itself
         assertEquals(PROVIDER + "/" + FILE, fileName);
     }

@@ -3,9 +3,11 @@ package eu.europeana.cloud.migrator;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.io.FilenameUtils;
 
 import static org.junit.Assert.*;
@@ -22,9 +24,9 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     private static final String MIXED_LOCATIONS = "http://www.test.com/test1;file:///c:/temp/test2";
 
-    private static final String LOCATION_1 = "$1/test1";
+    private static final String LOCATION_1 = "file:///$1/test1";
 
-    private static final String LOCATION_2 = "$1/test2";
+    private static final String LOCATION_2 = "file:///$1/test2";
 
     private static final String LOCAL_ID_1 = "1234";
 
@@ -55,7 +57,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().normalize().toString().replace("\\", "/");
+        resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().normalize().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
     }
 
 
@@ -63,9 +65,9 @@ public class EuropeanaNewspapersResourceProviderTest {
     public void testGetProviderId() throws Exception {
         provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
 
-        String file1 = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1;
+        String file1 = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertEquals(PROVIDER_1, provider.getProviderId(file1));
-        String file2 = LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2;
+        String file2 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertEquals(PROVIDER_2, provider.getProviderId(file2));
     }
 
@@ -73,14 +75,14 @@ public class EuropeanaNewspapersResourceProviderTest {
     public void testGetLocalIdentifier() throws Exception {
         provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
 
-        String file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1;
-        String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
+        String file = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        String localId = provider.getLocalIdentifier(Paths.get(new URI(LOCATION_1.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file, false);
         assertEquals(localId, LOCAL_ID_1);
-        file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3;
-        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
+        file = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        localId = provider.getLocalIdentifier(Paths.get(new URI(LOCATION_1.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file, false);
         assertEquals(localId, LOCAL_ID_2);
-        file = LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4;
-        localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file, false);
+        file = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        localId = provider.getLocalIdentifier(Paths.get(new URI(LOCATION_1.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file, false);
         assertEquals(localId, LOCAL_ID_2);
     }
 
@@ -89,12 +91,12 @@ public class EuropeanaNewspapersResourceProviderTest {
         provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
 
         // location is different
-        String file1 = LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2;
+        String file1 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         String localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1, false);
         assertNull(localId);
 
         // no association between path and local identifier
-        file1 = LOCATION_1.replace("$1", resDir) + "/" + PATH_NON_EXISTING + "/" + FILE_1;
+        file1 = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_NON_EXISTING + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         localId = provider.getLocalIdentifier(LOCATION_1.replace("$1", resDir), file1, false);
         assertNull(localId);
     }
@@ -115,21 +117,24 @@ public class EuropeanaNewspapersResourceProviderTest {
         assertEquals(1, paths.get(PROVIDER_1).size());
         assertEquals(1, paths.get(PROVIDER_2).size());
         // FilePaths object should have proper location and provider
-        assertEquals(FilenameUtils.normalize(LOCATION_1.replace("$1", resDir)), paths.get(PROVIDER_1).get(0).getLocation());
-        assertEquals(FilenameUtils.normalize(LOCATION_2.replace("$1", resDir)), paths.get(PROVIDER_2).get(0).getLocation());
+        String path = Paths.get(new URI(LOCATION_1.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        assertEquals(path, paths.get(PROVIDER_1).get(0).getLocation());
+        path = Paths.get(new URI(LOCATION_2.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        assertEquals(path, paths.get(PROVIDER_2).get(0).getLocation());
         assertEquals(PROVIDER_1, paths.get(PROVIDER_1).get(0).getDataProvider());
         assertEquals(PROVIDER_2, paths.get(PROVIDER_2).get(0).getDataProvider());
         // there should be only one path in FilePaths object
         assertEquals(3, paths.get(PROVIDER_1).get(0).getFullPaths().size());
         assertEquals(1, paths.get(PROVIDER_2).get(0).getFullPaths().size());
         // path should be equal to the real one
-        String path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1);
+        path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
-        path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3);
+        path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
-        path = FilenameUtils.normalize(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4);
+        path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
-        assertEquals(FilenameUtils.normalize(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2), FilenameUtils.normalize(paths.get(PROVIDER_2).get(0).getFullPaths().get(0)));
+        path = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        assertEquals(path, paths.get(PROVIDER_2).get(0).getFullPaths().get(0));
     }
 
     @Test
