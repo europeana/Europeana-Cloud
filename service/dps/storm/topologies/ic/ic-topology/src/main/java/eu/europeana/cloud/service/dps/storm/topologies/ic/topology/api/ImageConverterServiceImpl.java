@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.I
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -30,9 +31,8 @@ public class ImageConverterServiceImpl implements ImageConverterService {
 
     private ConverterContext converterContext;
     private final static Logger LOGGER = Logger.getLogger(ImageConverterServiceImpl.class);
-    private static final int BATCH_MAX_SIZE=10240;
 
-
+    private static final int BATCH_MAX_SIZE = 1240*4;
 
     /**
      * Converts image file with a format to the same image with different format
@@ -49,7 +49,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         URI fileURI = URI.create(stormTaskTuple.getFileUrl());
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
         String folderPath = null;
-        InputStream outputStream = null;
+
         try {
             TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
             ByteArrayInputStream inputStream = stormTaskTuple.getFileByteDataAsStream();
@@ -64,14 +64,12 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                     properties.add(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
                     converterContext.convert(inputFilePath, outputFilePath, properties);
                     File outputFile = new File(outputFilePath);
-                    outputStream = new FileInputStream(outputFile);
+                    InputStream outputStream = new FileInputStream(outputFile);
                     stormTaskTuple.setFileData(outputStream);
                     LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " completed successfully");
                 }
             }
         } finally {
-            if (outputStream != null)
-                outputStream.close();
             FileUtils.deleteDirectory(new java.io.File(folderPath));
         }
     }
@@ -87,11 +85,8 @@ public class ImageConverterServiceImpl implements ImageConverterService {
             folderPath = Files.createTempDirectory(fileName) + File.separator;
             File file = new File(folderPath + fileName + "." + extension);
             outputStream = new FileOutputStream(file.toPath().toString());
-            int read = 0;
-            byte[] bytes = new byte[BATCH_MAX_SIZE];
-            while ((read = inputStream.read(bytes)) != -1) {
-                outputStream.write(bytes, 0, read);
-            }
+            byte[] buffer = new byte[BATCH_MAX_SIZE];
+            IOUtils.copyLarge(inputStream, outputStream, buffer);
         } finally {
             if (outputStream != null)
                 outputStream.close();

@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import org.apache.commons.io.IOUtils;
 
 import java.util.Map;
 
@@ -28,7 +29,8 @@ public class StormTaskTuple implements Serializable {
     private Map<String, String> parameters;
 
 
-    private static final int BATCH_MAX_SIZE=10240;
+    private static final int BATCH_MAX_SIZE = 1024*4;
+
     public StormTaskTuple() {
 
         this.taskName = "";
@@ -75,19 +77,19 @@ public class StormTaskTuple implements Serializable {
     }
 
     public void setFileData(InputStream is) throws IOException {
-
-        if (is != null) {
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            int read = 0;
-            byte[] bytes = new byte[BATCH_MAX_SIZE];
-            while ((read = is.read(bytes)) != -1) {
-                buffer.write(bytes, 0, read);
+        try {
+            if (is != null) {
+                ByteArrayOutputStream tempByteArrayOutputStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[BATCH_MAX_SIZE];
+                IOUtils.copyLarge(is,tempByteArrayOutputStream,buffer);
+                this.fileData = tempByteArrayOutputStream.toByteArray();
+            } else {
+                this.fileData = null;
             }
-            this.fileData = buffer.toByteArray();
-        } else {
-            this.fileData = null;
+        } finally {
+            if (is != null)
+                is.close();
         }
-
     }
 
     public byte[] getFileData() {
