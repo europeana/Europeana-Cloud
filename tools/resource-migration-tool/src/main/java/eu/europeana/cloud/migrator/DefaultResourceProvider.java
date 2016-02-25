@@ -246,8 +246,7 @@ public abstract class DefaultResourceProvider
             pos = path.indexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
                 pos = path.indexOf(ResourceMigrator.WINDOWS_SEPARATOR);
-        }
-        else {
+        } else {
             pos = path.lastIndexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
                 pos = path.lastIndexOf(ResourceMigrator.WINDOWS_SEPARATOR);

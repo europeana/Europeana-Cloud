@@ -8,6 +8,7 @@
 
     <bean id="migrator" class="eu.europeana.cloud.migrator.ResourceMigrator">
         <constructor-arg ref="resProvider"/>
+        <constructor-arg name="dataProvidersMappingFile" value="${data.providers.mapping}"/>
     </bean>
 
     <bean id="mcs" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">

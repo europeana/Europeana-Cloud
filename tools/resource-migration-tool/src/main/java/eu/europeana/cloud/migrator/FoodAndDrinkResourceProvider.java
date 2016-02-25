@@ -20,8 +20,8 @@ public class FoodAndDrinkResourceProvider
      * Return local record identifier from the path to image file. Path must contain provider identifier
      * and must point to the file.
      *
-     * @param location not used here
-     * @param path path to image file
+     * @param location  not used here
+     * @param path      path to image file
      * @param duplicate not used here
      * @return local identifier
      */
@@ -86,8 +86,7 @@ public class FoodAndDrinkResourceProvider
     /**
      * User filename must contain provider id and all intermediate directory names between provider directory and image filename
      *
-     * @param path    path to file either local or remote in URI syntax
-     *
+     * @param path path to file either local or remote in URI syntax
      * @return filename containing provider id and image filename
      */
     @Override

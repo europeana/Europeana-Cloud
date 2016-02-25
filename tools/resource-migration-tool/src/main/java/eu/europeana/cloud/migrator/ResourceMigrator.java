@@ -79,8 +79,62 @@ public class ResourceMigrator {
      */
     private ResourceProvider resourceProvider;
 
-    public ResourceMigrator(ResourceProvider resProvider) {
-        resourceProvider = resProvider;
+    /**
+     * Key is directory name, value is identifier that should be used in ECloud
+     */
+    protected Map<String, String> dataProvidersMapping;
+
+    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile) throws IOException {
+        this.resourceProvider = resProvider;
+        this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
+    }
+
+    private Map<String, String> readDataProvidersMapping(String dataProvidersMappingFile) throws IOException {
+        Map<String, String> mapping = new HashMap<String, String>();
+        // data providers mapping is optional so return empty map when not provided
+        if (dataProvidersMappingFile == null || dataProvidersMappingFile.isEmpty())
+            return mapping;
+
+        Path mappingPath = null;
+        try {
+            // try to treat the mapping file as local file
+            mappingPath = FileSystems.getDefault().getPath(".", dataProvidersMappingFile);
+        } catch (InvalidPathException e) {
+            // in case path cannot be created try to treat the mapping file as absolute path
+            mappingPath = FileSystems.getDefault().getPath(dataProvidersMappingFile);
+        }
+        if (mappingPath == null || !mappingPath.toFile().exists())
+            throw new IOException("Mapping file cannot be found: " + dataProvidersMappingFile);
+
+        String directory;
+        String identifier;
+
+        for (String line : Files.readAllLines(mappingPath, Charset.forName("UTF-8"))) {
+            if (line == null)
+                break;
+            StringTokenizer tokenizer = new StringTokenizer(line, ";");
+            // first token is directory name
+            if (tokenizer.hasMoreTokens())
+                directory = tokenizer.nextToken().trim();
+            else
+                directory = null;
+            if (directory == null || directory.isEmpty()) {
+                logger.warn("Directory name for data provider is missing (" + directory + "). Skipping line.");
+                continue;
+            }
+
+            if (tokenizer.hasMoreTokens())
+                identifier = tokenizer.nextToken().trim();
+            else
+                identifier = null;
+
+            // when identifier is null or empty do not add to map
+            if (identifier == null || identifier.isEmpty())
+                continue;
+            mapping.put(directory, identifier);
+        }
+
+        return mapping;
     }
 
     public boolean migrate(boolean clean) {
@@ -145,6 +199,7 @@ public class ResourceMigrator {
      */
     private URI createRepresentationName(String providerId, String cloudId) {
         int retries = DEFAULT_RETRIES;
+        String dataProviderId = getProviderId(providerId);
         while (retries-- > 0) {
             try {
                 // get all representations
@@ -154,7 +209,7 @@ public class ResourceMigrator {
                     representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
                 } catch (RepresentationNotExistsException e) {
                     // when there are no representations add a new one
-                    return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), providerId);
+                    return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
                 }
 
                 // when there are some old representations it means that somebody had to add them, delete non persistent ones
@@ -165,11 +220,11 @@ public class ResourceMigrator {
                         mcs.deleteRepresentation(cloudId, resourceProvider.getRepresentationName(), representation.getVersion());
                 }
                 // when there are no representations add a new one
-                return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), providerId);
+                return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating representation for record " + cloudId + ", provider " + providerId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while creating representation for record " + cloudId + ", provider " + dataProviderId + ". Retries left: " + retries, e);
             } catch (ProviderNotExistsException e) {
-                logger.error("Provider " + providerId + " does not exist!");
+                logger.error("Provider " + dataProviderId + " does not exist!");
                 break;
             } catch (RecordNotExistsException e) {
                 logger.error("Record " + cloudId + " does not exist!");
@@ -191,25 +246,27 @@ public class ResourceMigrator {
      */
     private String createRecord(String providerId, String localId) {
         int retries = DEFAULT_RETRIES;
+        // get mapped data provider identifier
+        String dataProviderId = getProviderId(providerId);
         while (retries-- > 0) {
             try {
-                CloudId cloudId = uis.createCloudId(providerId, localId);
+                CloudId cloudId = uis.createCloudId(dataProviderId, localId);
                 if (cloudId != null)
                     return cloudId.getId();
             } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating record for provider " + providerId + " and local id " + localId + ". Retries left: " + retries, e);
+                logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + " and local id " + localId + ". Retries left: " + retries, e);
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordExistsException) {
                     try {
-                        return uis.getCloudId(providerId, localId).getId();
+                        return uis.getCloudId(dataProviderId, localId).getId();
                     } catch (ProcessingException e1) {
-                        logger.warn("Error processing HTTP request while creating record for provider " + providerId + ". Retries left: " + retries, e);
+                        logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + ". Retries left: " + retries, e);
                     } catch (CloudException e1) {
-                        logger.warn("Record for provider " + providerId + " with local id " + localId + " could not be created", e1);
+                        logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e1);
                         break;
                     }
                 } else {
-                    logger.warn("Record for provider " + providerId + " with local id " + localId + " could not be created", e);
+                    logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e);
                     break;
                 }
             }
@@ -329,8 +386,16 @@ public class ResourceMigrator {
         return mimeTypes.get(path.substring(i + 1));
     }
 
+    private String getProviderId(String providerId) {
+        String mapped = dataProvidersMapping.get(providerId);
+        if (mapped == null)
+            return providerId;
+        return mapped;
+    }
+
     private String createProvider(String path) {
-        String providerId = resourceProvider.getProviderId(path);
+        // get mapped data provider identifier
+        String providerId = getProviderId(resourceProvider.getProviderId(path));
         DataProviderProperties providerProps = resourceProvider.getDataProviderProperties(path);
 
         int retries = DEFAULT_RETRIES;

@@ -8,8 +8,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FilenameUtils;
-
 import static org.junit.Assert.*;
 
 public class EuropeanaNewspapersResourceProviderTest {
@@ -70,6 +68,7 @@ public class EuropeanaNewspapersResourceProviderTest {
         String file2 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         assertEquals(PROVIDER_2, provider.getProviderId(file2));
     }
+
 
     @Test
     public void testGetLocalIdentifier() throws Exception {
