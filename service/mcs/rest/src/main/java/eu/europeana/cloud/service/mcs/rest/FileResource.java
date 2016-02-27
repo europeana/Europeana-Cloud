@@ -231,10 +231,6 @@ public class FileResource {
     }
     
     
-    public static void main(String[] sample){
-        System.out.println("sample");
-    }
-    
     /**
      * Deletes file from representation version.
      *<strong>Delete permissions required.</strong>
