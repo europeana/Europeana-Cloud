@@ -1,37 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -40,10 +11,36 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.junit.Assert.*;
 
 /**
  * FileResourceTest
@@ -338,4 +335,19 @@ public class FileResourceTest extends JerseyTest {
 	assertEquals("File content tag mismatch", contentMd5, getFileResponse
 		.getEntityTag().getValue());
     }
+	
+	@Test
+	public void shouldReturnCorrectHeaderForHeadRequest() throws CannotModifyPersistentRepresentationException, RepresentationNotExistsException {
+		byte[] content = { 1, 2, 3, 4 };
+		recordService.putContent(rep.getCloudId(), rep.getRepresentationName(),
+				rep.getVersion(), file, new ByteArrayInputStream(content));
+
+		// when part of file is requested (skip first byte)
+		Response getFileResponse = fileWebTarget.request().head();
+
+        assertEquals(getFileResponse.getStatus(), 200);
+        String locationHeader = getFileResponse.getHeaderString("Location");
+        String fileUri = fileWebTarget.getUri().toString();
+        assertEquals(locationHeader, fileUri);
+	}
 }
