@@ -22,7 +22,9 @@
 # --uisTest or --1				Runs uisTest case.
 # --mcsDatasetTest or --2			Runs mcsDatasetTest case.
 # --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.
-# --mcsUploadFileTest or --4                    Runs mcsUploadFileTest case.					
+# --mcsUploadFileTest or --4                    Runs mcsUploadFileTest case.
+# --dpsTest or --5 		Runs dpsTest case.
+					
 #
 #
 # Eg. performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
@@ -39,22 +41,30 @@ interTestDelay=1
 uisTest=false
 mcsDatasetTest=false
 mcsRepresentationsTest=false
+dpsTest=false
 mcsUploadFileTest=false
 fileSize=100 #size in KiB
 user=""
 password=""
 uisPath="/uis"
 mcsPath="/mcs"
+aasPath="/aas"
+dpsPath="/dps"
 gangliaUrl=""
 gangliaPeriod="hour"
 gangliaNodeName="heliopsis"
 gangliaClusterName="apps+cluster"
 protocolType="HTTP"
+imageMimeType="image/tiff"
+imageFile="example.TIF"
+xmlFile="example.xml"
 
 function setAllTestsOn() { 
 uisTest=true
 mcsDatasetTest=true
 mcsRepresentationsTest=true
+dpsTest=true
+
 # mcsUploadFileTest is intentionaly excluded
 }
 
@@ -78,6 +88,13 @@ case $1 in
 --interTestDelay) shift 1 ; interTestDelay=${1}; shift 1 ;;
 --uisPath) shift 1 ; uisPath=${1}; shift 1 ;;
 --mcsPath) shift 1 ; mcsPath=${1}; shift 1 ;;
+--aasPath) shift 1 ; aasPath=${1}; shift 1 ;;
+--dpsPath) shift 1 ; dpsPath=${1}; shift 1 ;;
+
+--imageMimeType) shift 1 ; imageMimeType=${1}; shift 1 ;;
+--imageFile) shift 1 ; imageFile=${1}; shift 1 ;;
+--xmlFile) shift 1 ; xmlFile=${1}; shift 1 ;;
+
 --ganglia) shift 1 ; gangliaUrl=${1} ;  shift 1 ; gangliaPeriod=${1} ; shift 1 ; gangliaNodeName=${1}  ;  shift 1 ; gangliaClusterName=${1} ; shift 1 ;;
 --allTests)  shift 1 ; setAllTestsOn; continue ;;
 --uisTest)  shift 1 ; uisTest=true; continue ;;
@@ -85,10 +102,12 @@ case $1 in
 --mcsDatasetTest)  shift 1 ; mcsDatasetTest=true; continue ;;
 --mcsRepresentationsTest) shift 1 ;  mcsRepresentationsTest=true; continue ;;
 --mcsUploadFileTest) shift 1; mcsUploadFileTest=true; continue ;;
+--dpsTest) shift 1 ;  dpsTest=true; continue ;;
 --1)  shift 1 ; uisTest=true; continue ;;
 --2)  shift 1 ; mcsDatasetTest=true; continue ;;
 --3) shift 1 ;  mcsRepresentationsTest=true; continue ;;
 --4) shift 1; mcsUploadFileTest=true; continue ;;
+--5) shift 1; dpsTest=true; continue ;;
 --HTTP) shift 1 ; protocolType="HTTP"; continue ;;
 --HTTPS) shift 1 ; protocolType="HTTPS"; continue ;;
 --Auth) shift 1; user=${1} ; shift 1 ; password=${1} ; shift 1 ;;
@@ -96,7 +115,7 @@ case $1 in
 *) echo "Unsuppored paramiter ${1}"; shift 1 ;;
 esac
 done
-if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ]     
+if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ] &&  [ "$dpsTest" = false ]      
 then 
 setAllTestsOn; 
 fi
@@ -109,9 +128,7 @@ rampUpPeriod=0
 recordsPerProvider=1
 datasetsPerProvider=1
 representationNamePerCloudId=1
-
 timestamp="$(date +%Y%m%d_%H.%M.%s)"
-
 mimeTypeFile="application/xml"
 uloadedFileName="example_metadata.xml"
 mimeTypeLargeFile="application/octet-stream"
@@ -144,14 +161,18 @@ echo uisTest=$uisTest | tee -a ${resultDir}/test.parms
 echo fileSize=$fileSize | tee -a ${resultDir}/test.parms
 echo mcsDatasetTest=$mcsDatasetTest | tee -a ${resultDir}/test.parms
 echo mcsRepresentationsTest=$mcsRepresentationsTest | tee -a ${resultDir}/test.parms
+echo dpsTest=$dpsTest | tee -a ${resultDir}/test.parms
 echo gangliaUrl=$gangliaUrl | tee -a ${resultDir}/test.parms
 echo user=$user | tee -a ${resultDir}/test.parms
 echo password=$password | tee -a ${resultDir}/test.parms
 echo protocolType=$protocolType | tee -a ${resultDir}/test.parms
 echo uisPath=$uisPath | tee -a ${resultDir}/test.parms
 echo mcsPath=$mcsPath | tee -a ${resultDir}/test.parms
-
-
+echo aasPath=$aasPath | tee -a ${resultDir}/test.parms
+echo dpsPath=$dpsPath | tee -a ${resultDir}/test.parms
+echo imageMimeType=$imageMimeType | tee -a ${resultDir}/test.parms
+echo imageFile=$imageFile | tee -a ${resultDir}/test.parms
+echo xmlFile=$xmlFile | tee -a ${resultDir}/test.parms
 
 #UIS test
 function uisTest() {
@@ -291,6 +312,35 @@ sleep $interTestDelay
 
 }
 
+#MCS Representation test
+function dpsTest() {
+echo "--- DPS Tests ---";
+jmeter $testMode \
+-Jhost=$host \
+-Jport=$port \
+-Juis=$uisPath \
+-Jmcs=$mcsPath \
+-Jaas=$aasPath \
+-Jdps=$dpsPath \
+-Jthreads=$threads \
+-JrampUpPeriod=$rampUpPeriod \
+-Jloops=$loops \
+-JimageMimeType=$imageMimeType \
+-JuploadedXMLFileName=$xmlFile \
+-JuploadedImageFileName=$imageFile \
+-JconnectTimeOut=$connectTimeOut \
+-JresponseTimeOut=$responseMCSRepresentationTimeOut \
+-JresultLocation=${resultDir}/ \
+-Juser=$user \
+-Jpassword=$password \
+-t ./testCases/dpsTestCase.jmx -l ${resultDir}/dps_PerformanceTest.log
+
+cat ${resultDir}/dps_PerformanceTest.log >> ${resultDir}/$cummulatedCsvFileName
+sleep $interTestDelay
+
+}
+
+
 #download graphs from ganglia
 function gangliaDownload() {
 echo "############################### GANGLIA GRAPH IMPORT ############################### ";
@@ -330,6 +380,11 @@ mcsUploadFileTest;
 sleep $interTestDelay;
 fi
 
+if [ "$dpsTest" = true ] 
+then 
+dpsTest;
+sleep $interTestDelay;
+fi
 
 if [ "$gangliaUrl" != "" ] 
 then 
