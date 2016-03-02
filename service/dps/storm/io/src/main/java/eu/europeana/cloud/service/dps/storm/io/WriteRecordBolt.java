@@ -66,9 +66,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                 LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
             }
             LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
-
             URI uri = uploadFileInNewRepresentation(t);
-
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 
             if (outputUrlMissing) {
@@ -76,8 +74,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                 LOGGER.info("WriteRecordBolt: pushing new URI as OUTPUT_URL: " + t.getParameter(PluginParameterKeys.OUTPUT_URL));
             }
 
-            //outputCollector.emit(t.toStormTuple());
-            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.emit(inputTuple, t.toStormTuple());
             outputCollector.ack(inputTuple);
 
@@ -90,7 +86,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: " + e.getMessage(),
                     stack.toString());
-            emitBasicInfo(t.getTaskId(), 1);
             outputCollector.ack(inputTuple);
             return;
         }
