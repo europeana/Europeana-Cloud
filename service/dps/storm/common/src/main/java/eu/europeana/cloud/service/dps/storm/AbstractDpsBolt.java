@@ -160,7 +160,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void logAndEmitError(StormTaskTuple t, String message) {
         LOGGER.error(message);
         emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-        emitBasicInfo(t.getTaskId(), 1);
+        outputCollector.ack(inputTuple);
     }
 
     protected void logAndEmitError(StormTaskTuple t, String message, Exception e) {
@@ -171,7 +171,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void emitSuccess(StormTaskTuple t) {
-        emitBasicInfo(t.getTaskId(), 1);
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
     }
