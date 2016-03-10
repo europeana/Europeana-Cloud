@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URI;
-import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
@@ -44,6 +43,8 @@ public class FoodAndDrinkResourceProviderTest {
 
     private static final String REMARKS = "Diantha";
 
+    private static final String DP_PROPERTIES_FILE = "DianthaOs.properties";
+
     private FoodAndDrinkResourceProvider provider;
 
     private String resDir;
@@ -51,7 +52,7 @@ public class FoodAndDrinkResourceProviderTest {
     @Before
     public void setUp() throws Exception {
         resDir = Paths.get(Paths.get(".").toAbsolutePath().normalize().toString(), "src/test/resources").toAbsolutePath().normalize().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        provider = new FoodAndDrinkResourceProvider(REPRESENTATION_NAME, null, LOCAL_LOCATIONS.replace("$1", resDir));
+        provider = new FoodAndDrinkResourceProvider(REPRESENTATION_NAME, null, LOCAL_LOCATIONS.replace("$1", resDir), null);
     }
 
     @Test
@@ -64,13 +65,29 @@ public class FoodAndDrinkResourceProviderTest {
     @Test
     public void testGetProviderId() throws Exception {
         String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        String dataProvider = provider.getProviderId(file);
+        String dataProvider = provider.getResourceProviderId(file);
         assertEquals(PROVIDER, dataProvider);
     }
 
     @Test
-    public void testGetDataProviderProperties() throws Exception {
-        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+    public void testGetDataProviderPropertiesFromPath() throws Exception {
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        DataProviderProperties p = provider.getDataProviderProperties(file);
+        assertNotNull(p);
+        // test whether all props are from file
+        assertEquals(ORGANISATION_NAME, p.getOrganisationName());
+        assertEquals(OFFICIAL_ADDRESS, p.getOfficialAddress());
+        assertEquals(ORGANISATION_WEBSITE, p.getOrganisationWebsite());
+        assertEquals(ORGANISATION_WEBSITE_URL, p.getOrganisationWebsiteURL());
+        assertEquals(DIGITAL_LIBRARY_WEBSITE, p.getDigitalLibraryWebsite());
+        assertEquals(DIGITAL_LIBRARY_URL, p.getDigitalLibraryURL());
+        assertEquals(CONTACT_PERSON, p.getContactPerson());
+        assertEquals(REMARKS, p.getRemarks());
+    }
+
+    @Test
+    public void testGetDataProviderPropertiesFromFile() throws Exception {
+        String file = Paths.get(new URI(LOCATION.replace("$1", resDir) + "/" + PATH + "/" + DP_PROPERTIES_FILE)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         DataProviderProperties p = provider.getDataProviderProperties(file);
         assertNotNull(p);
         // test whether all props are from file

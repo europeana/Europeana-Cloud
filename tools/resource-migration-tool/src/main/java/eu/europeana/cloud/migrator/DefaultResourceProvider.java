@@ -18,6 +18,7 @@ import java.util.*;
 public abstract class DefaultResourceProvider
         implements ResourceProvider {
 
+    // Keys for data provider properties
     public static final String ORGANISATION_NAME_KEY = "organisationName";
 
     public static final String OFFICIAL_ADDRESS_KEY = "officialAddress";
@@ -34,6 +35,7 @@ public abstract class DefaultResourceProvider
 
     public static final String REMARKS_KEY = "remarks";
 
+    // Default data provider properties
     public static final String DEFAULT_ORGANISATION_NAME = "Example Organisation";
 
     public static final String DEFAULT_OFFICIAL_ADDRESS = "Example Address";
@@ -50,26 +52,38 @@ public abstract class DefaultResourceProvider
 
     public static final String DEFAULT_REMARKS = "Example remarks";
 
-    protected static final String PROPERTIES_EXTENSION = ".properties";
+    public static final String PROPERTIES_EXTENSION = ".properties";
 
+    // Logger
     private static final Logger logger = Logger.getLogger(DefaultResourceProvider.class);
 
+    // Representation name from configuration
     protected String representationName;
 
+    // Mapping file storing the association between local identifiers and files/directories in the filesystem
     protected String mappingFile;
 
+    // list of location retrieved from configuration file
     protected List<URI> locations;
 
+    // local indicator = when false the resource location is remote
     protected boolean local;
 
+    // map associating resource provider with its location
     private Map<String, URI> providersLocation;
 
-    protected DefaultResourceProvider(String representationName, String mappingFile, String locations) {
+    // data provider identifier, may be null, if null the identifier is derived from the file path, otherwise it is used for all files
+    protected String dataProviderId;
+
+    protected DefaultResourceProvider(String representationName, String mappingFile, String locations, String dataProviderId) {
+        if (representationName == null)
+            throw new IllegalArgumentException("Representation name cannot be null!");
         this.representationName = representationName;
         this.mappingFile = mappingFile;
         this.locations = new ArrayList<URI>();
         this.providersLocation = new HashMap<String, URI>();
         this.local = detectLocations(locations);
+        this.dataProviderId = dataProviderId != null ? (dataProviderId.isEmpty() ? null : dataProviderId) : null;
     }
 
     private boolean detectLocations(String locations) {
@@ -195,7 +209,7 @@ public abstract class DefaultResourceProvider
                     collectPaths(path, paths, location);
                 else {
                     String absolute = path.toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-                    String providerId = getProviderId(absolute);
+                    String providerId = getResourceProviderId(absolute);
                     FilePaths providerPaths = getProviderPaths(Paths.get(location).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), providerId, paths);
                     providerPaths.getFullPaths().add(absolute);
                     if (providersLocation.get(providerId) == null)

@@ -9,18 +9,30 @@ import java.util.Map;
 public interface ResourceProvider {
 
     /**
-     * Get data provider identifier as string.
+     * Get resource provider identifier as string. Resource provider is usually institution that has
+     * its directory within the resource location. It is NOT the data provider used in ECloud however
+     * the same identifier may be used.
      *
      * @param path path to resource
-     * @return data provider identifier
+     * @return resource provider identifier
      */
-    public String getProviderId(String path);
+    public String getResourceProviderId(String path);
+
+
+    /**
+     * Returns the data provider identifier used in ECloud. Usually it is the same for all ResourceProvider records
+     * and it's defined in configuration file.
+     *
+     * @param path path to file that may be used to determine the data provider identifier if it's not defined in configuration
+     * @return data provider identifier for ECloud
+     */
+    public String getDataProviderId(String path);
 
     /**
      * Get basic information on data provider such as organisation name, address and others.
      * See <code>DataProviderProperties</code> for details.
      *
-     * @param path path to resource
+     * @param path path to directory where the data provider properties file is located
      * @return data provider properties
      */
     public DataProviderProperties getDataProviderProperties(String path);

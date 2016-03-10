@@ -106,32 +106,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <id>foodanddrink</id>
-            <properties>
-                <provider.class>eu.europeana.cloud.migrator.FoodAndDrinkResourceProvider</provider.class>
-                <representation.name>presentation</representation.name>
-                <mapping.filename></mapping.filename>
-                <!-- locations parameter can contain more than one URI separated with ; character -->
-                <locations>file:///home/centos/foodanddrink/users/DianthaOs;file:///home/centos/foodanddrink/users/rmca/1</locations>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>newspapers</id>
-            <properties>
-                <provider.class>eu.europeana.cloud.migrator.EuropeanaNewspapersResourceProvider</provider.class>
-                <representation.name>presentation-images</representation.name>
-                <mapping.filename>newspapers_record_ids_to_folder_map.csv</mapping.filename>
-                <locations></locations>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
         <finalName>resource-migrator</finalName>
         <filters>
