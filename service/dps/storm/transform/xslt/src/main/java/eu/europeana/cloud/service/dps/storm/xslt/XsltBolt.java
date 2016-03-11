@@ -25,90 +25,85 @@ import eu.europeana.cloud.service.dps.util.LRUCache;
 
 public class XsltBolt extends AbstractDpsBolt {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-	private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
-			100);
+    private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
+            100);
 
-	@Override
-	public void execute(StormTaskTuple t) {
+    @Override
+    public void execute(StormTaskTuple t) {
 
-		byte[] fileContent = null;
-		String fileUrl = null;
-		String xsltUrl = null;
+        byte[] fileContent = null;
+        String fileUrl = null;
+        String xsltUrl = null;
 
-		try {
+        try {
 
-			fileUrl = t.getFileUrl();
-			fileContent = t.getFileData();
-			xsltUrl = t.getParameter(PluginParameterKeys.XSLT_URL);
+            fileUrl = t.getFileUrl();
+            fileContent = t.getFileData();
+            xsltUrl = t.getParameter(PluginParameterKeys.XSLT_URL);
 
-			LOGGER.info("processing file: {}", fileUrl);
-			LOGGER.debug("xslt schema:" + xsltUrl);
+            LOGGER.info("processing file: {}", fileUrl);
+            LOGGER.debug("xslt schema:" + xsltUrl);
 
-		} catch (Exception e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
-					.getParameters().toString());
-			emitBasicInfo(t.getTaskId(), 1);
-			outputCollector.ack(inputTuple);
-		}
+        } catch (Exception e) {
+            LOGGER.error("XsltBolt error:" + e.getMessage());
+            emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+                    .getParameters().toString());
+            outputCollector.ack(inputTuple);
+        }
 
-		Source xslDoc = null;
-		Source xmlDoc = null;
+        Source xslDoc = null;
+        Source xmlDoc = null;
 
-		try {
-			xslDoc = new StreamSource(new URL(xsltUrl).openStream());
-			InputStream stream = new ByteArrayInputStream(fileContent);
-			xmlDoc = new StreamSource(stream);
-		} catch (IOException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
-					.getParameters().toString());
-			emitBasicInfo(t.getTaskId(), 1);
-			outputCollector.ack(inputTuple);
-		}
+        try {
+            xslDoc = new StreamSource(new URL(xsltUrl).openStream());
+            InputStream stream = new ByteArrayInputStream(fileContent);
+            xmlDoc = new StreamSource(stream);
+        } catch (IOException e) {
+            LOGGER.error("XsltBolt error:" + e.getMessage());
+            emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+                    .getParameters().toString());
+            outputCollector.ack(inputTuple);
+        }
 
-		TransformerFactory tFactory = TransformerFactory.newInstance();
-		Transformer transformer = null;
-		StringWriter writer = new StringWriter();
+        TransformerFactory tFactory = TransformerFactory.newInstance();
+        Transformer transformer = null;
+        StringWriter writer = new StringWriter();
 
-		if (cache.containsKey(xsltUrl)) {
-			transformer = cache.get(xsltUrl);
-		} else {
-			try {
-				transformer = tFactory.newTransformer(xslDoc);
-				cache.put(xsltUrl, transformer);
-			} catch (TransformerConfigurationException e) {
-				LOGGER.error("XsltBolt error:" + e.getMessage());
-				emitDropNotification(t.getTaskId(), "", e.getMessage(), t
-						.getParameters().toString());
-				emitBasicInfo(t.getTaskId(), 1);
-				outputCollector.ack(inputTuple);
-			}
-		}
+        if (cache.containsKey(xsltUrl)) {
+            transformer = cache.get(xsltUrl);
+        } else {
+            try {
+                transformer = tFactory.newTransformer(xslDoc);
+                cache.put(xsltUrl, transformer);
+            } catch (TransformerConfigurationException e) {
+                LOGGER.error("XsltBolt error:" + e.getMessage());
+                emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+                        .getParameters().toString());
+                outputCollector.ack(inputTuple);
+            }
+        }
 
-		try {
-			transformer.transform(xmlDoc, new StreamResult(writer));
-		} catch (TransformerException e) {
-			LOGGER.error("XsltBolt error:" + e.getMessage());
-			emitDropNotification(t.getTaskId(), "", e.getMessage(), t
-					.getParameters().toString());
-			emitBasicInfo(t.getTaskId(), 1);
-			outputCollector.ack(inputTuple);
-		}
+        try {
+            transformer.transform(xmlDoc, new StreamResult(writer));
+        } catch (TransformerException e) {
+            LOGGER.error("XsltBolt error:" + e.getMessage());
+            emitDropNotification(t.getTaskId(), "", e.getMessage(), t
+                    .getParameters().toString());
+            outputCollector.ack(inputTuple);
+        }
 
-		LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
+        LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
 
-		// pass data to next Bolt
-		t.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
-		// outputCollector.emit(t.toStormTuple());
-		emitBasicInfo(t.getTaskId(), 1);
-		outputCollector.emit(inputTuple, t.toStormTuple());
-		outputCollector.ack(inputTuple);
-	}
+        // pass data to next Bolt
+        t.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
+        // outputCollector.emit(t.toStormTuple());
+        outputCollector.emit(inputTuple, t.toStormTuple());
+        outputCollector.ack(inputTuple);
+    }
 
-	@Override
-	public void prepare() {
-	}
+    @Override
+    public void prepare() {
+    }
 }
