@@ -482,7 +482,7 @@ public class ResourceMigrator {
             }
             paths.getFullPaths().removeAll(processed);
         } catch (IOException e) {
-            logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.", e);
+            logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.");
         }
     }
 

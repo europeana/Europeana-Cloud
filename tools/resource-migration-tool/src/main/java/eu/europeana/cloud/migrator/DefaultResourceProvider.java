@@ -254,9 +254,15 @@ public abstract class DefaultResourceProvider
      */
     @Override
     public String getFilename(String location, String path) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get filename for location: " + location + ", path: " + path);
+        }
         int pos = -1;
         if (path.startsWith(location)) {
             path = path.substring(location.length());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Path without location: " + path);
+            }
             pos = path.indexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
                 pos = path.indexOf(ResourceMigrator.WINDOWS_SEPARATOR);
@@ -264,6 +270,9 @@ public abstract class DefaultResourceProvider
             pos = path.lastIndexOf(ResourceMigrator.LINUX_SEPARATOR);
             if (pos == -1)
                 pos = path.lastIndexOf(ResourceMigrator.WINDOWS_SEPARATOR);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Returning: " + path.substring(pos + 1));
         }
         // when pos == -1 whole path is returned, otherwise only part after pos
         return path.substring(pos + 1);
