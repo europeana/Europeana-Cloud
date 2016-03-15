@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.I
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.tika.mime.MimeTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public class IcBolt extends AbstractDpsBolt {
             LOGGER.info("IC Bolt: conversion success for: {}", fileUrl);
             outputCollector.emit(stormTaskTuple.toStormTuple());
             outputCollector.ack(inputTuple);
-        } catch (IOException | MCSException | ICSException e) {
+        } catch (IOException | MimeTypeException | MCSException | ICSException e) {
             LOGGER.error("IC Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
         }
     }

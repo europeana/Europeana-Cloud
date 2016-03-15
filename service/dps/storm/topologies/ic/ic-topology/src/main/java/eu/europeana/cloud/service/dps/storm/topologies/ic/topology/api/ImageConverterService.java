@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.I
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.apache.tika.mime.MimeTypeException;
 
 import java.io.IOException;
 
@@ -22,6 +23,6 @@ public interface ImageConverterService {
      * @throws ICSException
      * @throws IOException
      */
-    public void convertFile(StormTaskTuple stormTaskTuple) throws   IOException, MCSException, ICSException;
+    public void convertFile(StormTaskTuple stormTaskTuple) throws   IOException,MimeTypeException, MCSException, ICSException;
 }
 

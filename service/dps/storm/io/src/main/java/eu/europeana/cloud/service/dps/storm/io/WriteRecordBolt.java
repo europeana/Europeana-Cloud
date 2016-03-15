@@ -93,18 +93,20 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
         Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
-
-
         TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
         String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
         String outputMimeType = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
         Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);
-        URI newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
+        URI newFileUri = null;
+        if (stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_EXTENSION) != null) {
+            String fileName = urlParams.get(ParamConstants.P_FILENAME) + stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_EXTENSION);
+            newFileUri = mcsClient.uploadFile(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
+        } else
+            newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
 
         recordServiceClient.persistRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion);
-
         return newFileUri;
     }
 

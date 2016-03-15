@@ -6,11 +6,13 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.KakaduConverterTiffToJP2;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.ExtensionHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.apache.tika.mime.MimeTypeException;
 
 import java.io.*;
 import java.net.URI;
@@ -32,7 +34,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
     private ConverterContext converterContext;
     private final static Logger LOGGER = Logger.getLogger(ImageConverterServiceImpl.class);
 
-    private static final int BATCH_MAX_SIZE = 1240*4;
+    private static final int BATCH_MAX_SIZE = 1240 * 4;
 
     /**
      * Converts image file with a format to the same image with different format
@@ -41,10 +43,11 @@ public class ImageConverterServiceImpl implements ImageConverterService {
      * @return path for the newly created file
      * @throws MCSException on unexpected situations.
      * @throws ICSException
+     * @throws MimeTypeException : when mimetype is not recognized or null
      * @throws IOException
      */
     @Override
-    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MCSException, ICSException {
+    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException {
         converterContext = new ConverterContext(new KakaduConverterTiffToJP2());
         URI fileURI = URI.create(stormTaskTuple.getFileUrl());
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
@@ -55,10 +58,11 @@ public class ImageConverterServiceImpl implements ImageConverterService {
             ByteArrayInputStream inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
                 String fileName = findFileName(fileURI);
-                String inputExtension = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.INPUT_EXTENSION);
+                String inputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
                 folderPath = persistStreamToTemporaryStorage(inputStream, fileName, inputExtension);
                 String inputFilePath = buildFilePath(folderPath, fileName, inputExtension);
-                String outputFilePath = buildFilePath(folderPath, fileName, taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_EXTENSION));
+                String outputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
+                String outputFilePath = buildFilePath(folderPath, fileName, outputExtension);
                 if (outputFilePath != null) {
                     List<String> properties = new ArrayList<>();
                     properties.add(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
@@ -66,6 +70,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                     File outputFile = new File(outputFilePath);
                     InputStream outputStream = new FileInputStream(outputFile);
                     stormTaskTuple.setFileData(outputStream);
+                    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_EXTENSION, outputExtension);
                     LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " completed successfully");
                 }
             }
