@@ -16,6 +16,9 @@
 
     <context:component-scan
         base-package="eu.europeana.cloud.service.dps.rest"/>
+
+    <bean id="permissionManager"
+            class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
         
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
