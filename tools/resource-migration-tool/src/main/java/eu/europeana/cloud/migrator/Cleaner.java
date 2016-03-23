@@ -23,7 +23,7 @@ public class Cleaner {
     public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
-                StringTokenizer st = new StringTokenizer(line, "=");
+                StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     st.nextToken();
                 }

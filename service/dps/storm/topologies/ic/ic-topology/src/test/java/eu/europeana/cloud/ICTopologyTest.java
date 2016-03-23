@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.tika.mime.MimeTypeException;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +70,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     @Test
-    public void testBasicTopology() throws MCSException, IOException, ICSException, URISyntaxException {
+    public void testBasicTopology() throws MCSException,MimeTypeException, IOException, ICSException, URISyntaxException {
         //given
         configureMocks();
         final String input = "{\"inputData\":" +
@@ -148,7 +149,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     }
 
 
-    private void configureMocks() throws MCSException, IOException, ICSException, URISyntaxException {
+    private void configureMocks() throws MCSException,MimeTypeException, IOException, ICSException, URISyntaxException {
         when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         Representation representation = new Representation();

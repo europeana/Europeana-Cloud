@@ -16,16 +16,15 @@ public class DpsTaskValidatorFactory {
     public static List<DpsTaskValidator> createValidators(String topologyName) {
         List<DpsTaskValidator> validators = new ArrayList<>();
         if (topologyName.equals(XSLT_TOPOLOGY_NAME)) {
-            DpsTaskValidator validator = new DpsTaskValidator().withParameter(PluginParameterKeys.XSLT_URL)
+            DpsTaskValidator validator = new DpsTaskValidator()
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE)
+                    .withParameter(PluginParameterKeys.XSLT_URL)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
             validators.add(validator);
             return validators;
         } else if (topologyName.equals(IC_TOPOLOGY_NAME)) {
             DpsTaskValidator validator_for_file_urls = new DpsTaskValidator("FileUrl validator")
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE)
-                    .withParameter(PluginParameterKeys.MIME_TYPE)
-                    .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
             validators.add(validator_for_file_urls);
             //

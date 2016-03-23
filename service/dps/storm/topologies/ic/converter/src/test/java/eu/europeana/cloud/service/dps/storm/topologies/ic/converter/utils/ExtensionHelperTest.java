@@ -40,5 +40,23 @@ public class ExtensionHelperTest {
 
     }
 
+    @Test
+    public void testRecognizedMimeType() throws MimeTypeException {
+        String tiffExtension = ExtensionHelper.getExtension(TIFF_MIME_TYPE);
+        assertEquals(".tiff", tiffExtension);
+    }
+
+    @Test(expected = MimeTypeException.class)
+    public void testUnRecognizedMimeType() throws MimeTypeException {
+        String tiffExtension = ExtensionHelper.getExtension("unrecognized MimeType");
+        assertEquals("tif", tiffExtension);
+    }
+
+    @Test(expected = MimeTypeException.class)
+    public void testNullMimeType() throws MimeTypeException {
+        ExtensionHelper.getExtension(null);
+    }
+
+
 }
 

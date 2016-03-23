@@ -33,6 +33,8 @@ public class ResourceMigrator {
 
     public static final String WINDOWS_SEPARATOR = "\\";
 
+    private static final String FILES_PART = "files";
+
     private static final Logger logger = Logger.getLogger(ResourceMigrator.class);
 
     private static final Map<String, String> mimeTypes = new HashMap<String, String>();
@@ -99,6 +101,8 @@ public class ResourceMigrator {
         try {
             // try to treat the mapping file as local file
             mappingPath = FileSystems.getDefault().getPath(".", dataProvidersMappingFile);
+            if (!mappingPath.toFile().exists())
+                mappingPath = FileSystems.getDefault().getPath(dataProvidersMappingFile);
         } catch (InvalidPathException e) {
             // in case path cannot be created try to treat the mapping file as absolute path
             mappingPath = FileSystems.getDefault().getPath(dataProvidersMappingFile);
@@ -137,7 +141,7 @@ public class ResourceMigrator {
         return mapping;
     }
 
-    public boolean migrate(boolean clean) {
+    public boolean migrate(boolean clean, boolean simulate) {
         boolean success = true;
 
         long start = System.currentTimeMillis();
@@ -156,18 +160,31 @@ public class ResourceMigrator {
         }
 
         logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
+
+        // when simulate is true just a simulation is performed - it scans the locations and stores summary to a file
+        if (!clean && simulate) {
+            summarize(paths);
+            return true;
+        }
+
         List<Future<MigrationResult>> results = null;
         List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
 
-        // create task for each provider
+        // create task for each resource provider
         for (String providerId : paths.keySet()) {
             if (clean) {
                 logger.info("Cleaning " + providerId);
                 clean(providerId);
             }
-            logger.info("Starting task thread for provider " + providerId + "...");
-            tasks.add(new ProviderMigrator(providerId, paths.get(providerId)));
+            if (!simulate) {
+                logger.info("Starting task thread for provider " + providerId + "...");
+                tasks.add(new ProviderMigrator(providerId, paths.get(providerId)));
+            }
         }
+
+        // when simulation mode is on no tasks to invoke should be created, return immediately
+        if (tasks.size() == 0)
+            return success;
 
         try {
             // invoke a separate thread for each provider
@@ -188,6 +205,34 @@ public class ResourceMigrator {
         return success;
     }
 
+    private void summarize(Map<String, List<FilePaths>> paths) {
+        String summaryFile = "simulation" + System.currentTimeMillis() + ".txt";
+        try {
+            // create a file called simulation{timestamp}.txt
+
+            Path dest = FileSystems.getDefault().getPath(".", summaryFile);
+            String msg = "Found " + paths.size() + " data providers.\n";
+            Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+            for (Map.Entry<String, List<FilePaths>> entry : paths.entrySet()) {
+                msg = "\nData provider " + entry.getKey();
+                if (dataProvidersMapping.get(entry.getKey()) != null)
+                    msg += " (mapped: " + dataProvidersMapping.get(entry.getKey()) + ")";
+                msg += ": " + entry.getValue().size() + " locations\n";
+                Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                for (FilePaths fp : entry.getValue()) {
+                    msg = "\nLocation: " + fp.getLocation() + " - " + fp.getFullPaths().size() + " paths\n\n";
+                    Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                    int counter = 1;
+                    for (String s : fp.getFullPaths()) {
+                        Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Summary file " + summaryFile + " could not be saved.", e);
+        }
+    }
+
     /**
      * Create representation for the specified provider and cloud identifier. Representation name is supplied by the resource provider.
      * If there is already a representation and it is persistent then we cannot add anything to this record. If there are non persistent
@@ -199,6 +244,7 @@ public class ResourceMigrator {
      */
     private URI createRepresentationName(String providerId, String cloudId) {
         int retries = DEFAULT_RETRIES;
+        // get the mapped identifier if any
         String dataProviderId = getProviderId(providerId);
         while (retries-- > 0) {
             try {
@@ -246,7 +292,7 @@ public class ResourceMigrator {
      */
     private String createRecord(String providerId, String localId) {
         int retries = DEFAULT_RETRIES;
-        // get mapped data provider identifier
+        // get mapped data provider identifier if any
         String dataProviderId = getProviderId(providerId);
         while (retries-- > 0) {
             try {
@@ -281,7 +327,11 @@ public class ResourceMigrator {
      * @param version  version string, must be appropriate for the given record
      * @param recordId global record identifier
      */
-    private URI createFilename(String location, String path, String version, String recordId) {
+    private String createFilename(String location, String path, String version, String recordId) {
+        // when any of input parameter is null it is impossible to prepare filename
+        if (location == null || path == null || version == null || recordId == null)
+            return null;
+
         String mimeType = "";
         InputStream is = null;
         URI fullURI = null;
@@ -317,8 +367,25 @@ public class ResourceMigrator {
             try {
                 is = fullURI.toURL().openStream();
 
+                String fileName = resourceProvider.getFilename(location, resourceProvider.isLocal() ? path : fullURI.toString());
+                if (logger.isDebugEnabled())
+                    logger.debug("Trying to upload file with name: " + fileName);
+
                 // path should contain proper slash characters ("/")
-                return fsc.uploadFile(recordId, resourceProvider.getRepresentationName(), version, resourceProvider.getFilename(location, resourceProvider.isLocal() ? path : fullURI.toString()), is, mimeType);
+                URI result = fsc.uploadFile(recordId, resourceProvider.getRepresentationName(), version, fileName, is, mimeType);
+                // operations below replace the filename got from File Service Client to the original filename, because the FSC returns encoded values of / and diacritic characters
+                if (result != null) {
+                    String fileURL = result.toString();
+                    int i = fileURL.indexOf(FILES_PART);
+                    // when there is no "files" part of the URL return the originally retrieved one
+                    if (i == -1)
+                        return fileURL;
+                    // remove the filename part
+                    fileURL = fileURL.substring(0, i + FILES_PART.length() + 1);
+                    // add original filename
+                    fileURL += fileName;
+                    return fileURL;
+                }
             } catch (ProcessingException e) {
                 logger.warn("Processing HTTP request failed. Upload file: " + resourceProvider.getFilename(location, fullURI.toString()) + " for record id: " + recordId + ". Retries left: " + retries);
             } catch (SocketTimeoutException e) {
@@ -393,9 +460,9 @@ public class ResourceMigrator {
         return mapped;
     }
 
-    private String createProvider(String path) {
+    synchronized private String createProvider(String path) {
         // get mapped data provider identifier
-        String providerId = getProviderId(resourceProvider.getProviderId(path));
+        String providerId = getProviderId(resourceProvider.getDataProviderId(path));
         DataProviderProperties providerProps = resourceProvider.getDataProviderProperties(path);
 
         int retries = DEFAULT_RETRIES;
@@ -421,40 +488,58 @@ public class ResourceMigrator {
         try {
             List<String> processed = new ArrayList<String>();
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
-                StringTokenizer st = new StringTokenizer(line, "=");
+                StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     processed.add(st.nextToken());
                 }
             }
+            if (logger.isDebugEnabled()) {
+                if (processed.size() > 0) {
+                    logger.debug("Processed from file: ");
+                    logger.debug(processed);
+                }
+                logger.debug("Scanned: ");
+                logger.debug(paths.getFullPaths());
+            }
             paths.getFullPaths().removeAll(processed);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Scanned after removing processed: ");
+                logger.debug(paths.getFullPaths());
+            }
         } catch (IOException e) {
-            logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.", e);
+            logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.");
         }
     }
 
 
-    private boolean processProvider(String providerId, FilePaths providerPaths) {
+    private boolean processProvider(String resourceProviderId, FilePaths providerPaths) {
         // first remove already processed paths, if there is no progress file for the provider no filtering is performed
-        removeProcessedPaths(providerId, providerPaths);
+        removeProcessedPaths(resourceProviderId, providerPaths);
 
         boolean result = true;
 
-        if (providerPaths.size() > 0) {
-            // first create provider, one path is enough to determine
-            if (createProvider(providerPaths.getFullPaths().get(0)) == null) {
-                // when create provider was not successful finish processing
-                return false;
-            }
+        try {
+            if (providerPaths.size() > 0) {
+                // first create provider, pass the path to the possible properties file, use first path to determine data provider id
+                String propsFile = providerPaths.getLocation() + LINUX_SEPARATOR + resourceProvider.getDataProviderId(providerPaths.getFullPaths().get(0)) + DefaultResourceProvider.PROPERTIES_EXTENSION;
+                if (createProvider(propsFile) == null) {
+                    // when create provider was not successful finish processing
+                    return false;
+                }
 
-            List<String> duplicates = new ArrayList<String>();
-            result &= processPaths(providerId, providerPaths.getFullPaths(), providerPaths.getLocation(), false, duplicates);
-            if (duplicates.size() > 0)
-                result &= processPaths(providerId, duplicates, providerPaths.getLocation(), true, null);
+                List<String> duplicates = new ArrayList<String>();
+                result &= processPaths(resourceProviderId, providerPaths.getFullPaths(), providerPaths.getLocation(), false, duplicates);
+                if (duplicates.size() > 0)
+                    result &= processPaths(resourceProviderId, duplicates, providerPaths.getLocation(), true, null);
+            }
+        } catch (Exception e) {
+            // when any uncaught exception occurs just catch it and report false result
+            return false;
         }
         return result;
     }
 
-    private boolean processPaths(String providerId, List<String> paths, String location, boolean duplicate, List<String> duplicates) {
+    private boolean processPaths(String resourceProviderId, List<String> paths, String location, boolean duplicate, List<String> duplicates) {
         // key is local identifier, value is cloud identifier
         Map<String, String> cloudIds = new HashMap<String, String>();
         // key is local identifier, value is version identifier
@@ -473,7 +558,7 @@ public class ResourceMigrator {
         String prevLocalId = null;
         for (String path : paths) {
             if ((int) (((float) (counter) / (float) paths.size()) * 100) > (int) (((float) (counter - 1) / (float) paths.size()) * 100))
-                logger.info("Provider: " + providerId + ". Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
+                logger.info("Resource provider: " + resourceProviderId + ". Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
             counter++;
             // get local record identifier
             String localId = resourceProvider.getLocalIdentifier(location, path, duplicate);
@@ -484,7 +569,7 @@ public class ResourceMigrator {
                         duplicates.add(path);
                 }
                 // when local identifier is null it means that the path may be wrong
-                logger.error("Local identifier for path: " + path + " could not be obtained. Skipping path...");
+                logger.warn("Local identifier for path: " + path + " could not be obtained. Skipping path...");
                 continue;
             }
 
@@ -494,6 +579,9 @@ public class ResourceMigrator {
                     duplicates.add(path);
             }
 
+            if (logger.isDebugEnabled()) {
+                logger.debug("Local identifier for path: " + path + ": " + localId);
+            }
             if (!localId.equals(prevLocalId)) {
                 if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
                     if (logger.isDebugEnabled())
@@ -503,14 +591,17 @@ public class ResourceMigrator {
                     if (persistent != null) {
                         if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
                             logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                        saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                        saveProgress(resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
                     }
                 }
                 prevLocalId = localId;
             }
             if (cloudIds.get(localId) == null) {
                 // create new record when it was not created before
-                String cloudId = createRecord(providerId, localId);
+                String cloudId = createRecord(resourceProvider.getDataProviderId(path), localId);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Cloud identifier for path: " + path + ": " + cloudId);
+                }
                 if (cloudId == null) {
                     // this is an error
                     errors++;
@@ -518,12 +609,18 @@ public class ResourceMigrator {
                 }
                 cloudIds.put(localId, cloudId);
                 // create representation for the record
-                URI uri = createRepresentationName(providerId, cloudId);
+                URI uri = createRepresentationName(resourceProvider.getDataProviderId(path), cloudId);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Representation for path: " + path + ": " + (uri != null ? uri.toString() : "null"));
+                }
                 if (uri == null) {
                     // this is not an error, version is already there and is persistent
                     continue; // skip this path
                 }
                 String verId = getVersionIdentifier(uri);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Version identifier for path: " + path + ": " + verId);
+                }
                 if (verId == null) {
                     // this is an error, version identifier could not be retrieved from representation URI
                     errors++;
@@ -532,8 +629,12 @@ public class ResourceMigrator {
                 versionIds.put(localId, verId);
             }
 
+            if (logger.isDebugEnabled()) {
+                logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) +"\nCloudId: " + cloudIds.get(localId));
+            }
+
             // create file name in ECloud with the specified name
-            URI fileAdded = createFilename(location, path, versionIds.get(localId), cloudIds.get(localId));
+            String fileAdded = createFilename(location, path, versionIds.get(localId), cloudIds.get(localId));
             if (fileAdded == null) {
                 // this is an error, upload failed
                 prevLocalId = null; // this should prevent persisting the version and saving progress
@@ -542,7 +643,7 @@ public class ResourceMigrator {
             // put the created URI for path to processed list
             if (processed.get(versionIds.get(localId)) == null)
                 processed.put(versionIds.get(localId), new ArrayList<String>());
-            processed.get(versionIds.get(localId)).add(path + "=" + fileAdded);
+            processed.get(versionIds.get(localId)).add(path + ";" + fileAdded);
             // increase file count or set to 1 if it's a first file
             fileCount.put(localId, fileCount.get(localId) != null ? (fileCount.get(localId) + 1) : 1);
         }
@@ -554,11 +655,11 @@ public class ResourceMigrator {
             if (persistent != null) {
                 if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
                     logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                saveProgress(providerId, processed.get(versionIds.get(prevLocalId)), false);
+                saveProgress(resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
             }
         }
         if (errors > 0)
-            logger.warn("Migration of " + providerId + " encoutered " + errors + " errors.");
+            logger.warn("Migration of " + resourceProviderId + " encoutered " + errors + " errors.");
         return (counter - errors) == paths.size();
     }
 
@@ -687,7 +788,7 @@ public class ResourceMigrator {
             new Cleaner().cleanRecords(providerId, mcs, uis);
 
             for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
-                StringTokenizer st = new StringTokenizer(line, "=");
+                StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     st.nextToken();
                 }

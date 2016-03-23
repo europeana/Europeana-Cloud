@@ -26,8 +26,10 @@ public class EuropeanaNewspapersResourceProvider
 
     private static final Logger logger = Logger.getLogger(EuropeanaNewspapersResourceProvider.class);
 
-    public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations) throws IOException {
-        super(representationName, mappingFile, locations);
+    public EuropeanaNewspapersResourceProvider(String representationName, String mappingFile, String locations, String dataProviderId) throws IOException {
+        super(representationName, mappingFile, locations, dataProviderId);
+        if (dataProviderId == null)
+            throw new IllegalArgumentException("Data provider identifier must be specified for Europeana Newspapers migration!");
         readMappingFile();
     }
 
@@ -41,9 +43,12 @@ public class EuropeanaNewspapersResourceProvider
         try {
             // try to treat the mapping file as local file
             mappingPath = FileSystems.getDefault().getPath(".", mappingFile);
+            if (!mappingPath.toFile().exists())
+                mappingPath = FileSystems.getDefault().getPath(mappingFile);
         } catch (InvalidPathException e) {
             // in case path cannot be created try to treat the mapping file as absolute path
             mappingPath = FileSystems.getDefault().getPath(mappingFile);
+            logger.info("Invalid Path exception. Mapping file " + mappingFile + " as absolute path: " + mappingPath);
         }
         if (mappingPath == null || !mappingPath.toFile().exists())
             throw new IOException("Mapping file cannot be found: " + mappingFile);
@@ -107,7 +112,7 @@ public class EuropeanaNewspapersResourceProvider
     }
 
     @Override
-    public String getProviderId(String path) {
+    public String getResourceProviderId(String path) {
         if (!path.contains(IMAGE_DIR)) {
             logger.error("No image directory found in resource path.");
             return null;
@@ -125,19 +130,32 @@ public class EuropeanaNewspapersResourceProvider
     }
 
     @Override
-    public DataProviderProperties getDataProviderProperties(String path) {
-        // get provider name from path
-        String id = getProviderId(path);
-        // create directory object for provider
-        File f = new File(path.substring(0, path.indexOf(id) + id.length()));
-        if (!f.isDirectory())
-            return getDefaultDataProviderProperties();
+    public String getDataProviderId(String path) {
+        // path is not used to determine data provider, always use the configured data provider
+        return dataProviderId;
+    }
 
-        // assume we can find a file with data provider properties named id.properties
-        File dpFile = new File(f, id + PROPERTIES_EXTENSION);
-        if (!dpFile.exists())
-            return getDefaultDataProviderProperties();
-        return getDataProviderPropertiesFromFile(dpFile);
+    @Override
+    public DataProviderProperties getDataProviderProperties(String path) {
+        String id = getDataProviderId(path);
+        if (id == null) {
+            // something is wrong, data provider not specified, this should never happen
+            throw new IllegalArgumentException("Data provider identifier must be specified for Europeana Newspapers migration!");
+        }
+
+        File f = new File(path);
+        // when file is id.properties return properties from file
+        if (f.exists() && f.isFile() && f.getName().equals(id + PROPERTIES_EXTENSION))
+            return getDataProviderPropertiesFromFile(f);
+
+        // when file is directory try to search for file id.properties inside
+        if (f.isDirectory()) {
+            File dpFile = new File(f, id + PROPERTIES_EXTENSION);
+            if (dpFile.exists())
+                return getDataProviderPropertiesFromFile(dpFile);
+        }
+
+        return getDefaultDataProviderProperties();
     }
 
     @Override
@@ -146,8 +164,9 @@ public class EuropeanaNewspapersResourceProvider
         String localPath = getLocalPath(location, path);
         // we have to find the identifier in the mapping file
         String localId = duplicate ? duplicateMapping.get(localPath) : reversedMapping.get(localPath);
-        if (localId == null)
-            logger.warn("Local identifier for file " + localPath + " was not found in the mapping file!" + (duplicate ? " Duplicate not present also." : ""));
+        // when searching in normal mapping and id is not found display a warning
+        if (localId == null && !duplicate)
+            logger.warn("Local identifier for file " + localPath + " was not found in the mapping file!");
         return localId;
     }
 

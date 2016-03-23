@@ -33,6 +33,7 @@
         <constructor-arg name="representationName" value="${representation.name}"/>
         <constructor-arg name="mappingFile" value="${mapping.filename}"/>
         <constructor-arg name="locations" value="${locations}"/>
+        <constructor-arg name="dataProviderId" value="${data.provider.id}"/>
     </bean>
 
 </beans>

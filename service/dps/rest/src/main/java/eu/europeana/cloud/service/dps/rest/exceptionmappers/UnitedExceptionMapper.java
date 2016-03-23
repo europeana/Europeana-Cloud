@@ -84,7 +84,7 @@ public class UnitedExceptionMapper {
     }
 
     public Response toResponse(DpsTaskValidationException exception) {
-        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.TASK_NOT_VALID, exception);
+        return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.TASK_NOT_VALID, exception);
     }
 
     public Response toResponse(TaskSubmissionException exception) {

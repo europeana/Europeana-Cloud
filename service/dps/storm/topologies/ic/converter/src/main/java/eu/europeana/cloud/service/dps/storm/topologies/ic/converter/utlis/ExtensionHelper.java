@@ -24,4 +24,21 @@ public class ExtensionHelper {
         }
         return false;
     }
+
+    /**
+     * Gets the extension based on a mime type
+     *
+     * @param type the mimetype
+     * @return the extension .
+     * @throws MimeTypeException thrown if MimeType wasn't detected
+     */
+    public static String getExtension(String type) throws MimeTypeException {
+
+        TikaConfig config = TikaConfig.getDefaultConfig();
+        MimeType mimeType = config.getMimeRepository().forName(type);
+        String extension = mimeType.getExtension();
+        return extension;
+
+    }
+
 }

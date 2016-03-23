@@ -25,9 +25,9 @@ public class ResourceMigratorApp {
         if (args.length > 0)
             clean = Boolean.valueOf(args[0]);
 
-        boolean builtIn = args.length == 1 && "in".equals(args[0]) || args.length == 2 && "in".equals(args[1]);
+        boolean simulate = args.length == 1 && "simulate".equals(args[0]) || args.length == 2 && "simulate".equals(args[1]);
 
-        ApplicationContext context = getContext(builtIn);
+        ApplicationContext context = getContext();
 
         if (context == null) {
             logger.error("Spring configuration files not found!");
@@ -35,7 +35,7 @@ public class ResourceMigratorApp {
         }
 
         ResourceMigrator migrator = (ResourceMigrator) context.getBean("migrator");
-        migrator.migrate(clean);
+        migrator.migrate(clean, simulate);
         System.exit(0);
     }
 
@@ -57,10 +57,7 @@ public class ResourceMigratorApp {
         return props;
     }
 
-    private static ApplicationContext getContext(boolean builtIn) {
-        if (builtIn)
-            return new ClassPathXmlApplicationContext("spring-config.xml");
-
+    private static ApplicationContext getContext() {
         Properties config = loadPropertiesFile(new File("config.properties"));
         if (config.isEmpty())
             return null;

@@ -17,7 +17,10 @@
 
     <context:component-scan
         base-package="eu.europeana.cloud.service.dps.rest"/>
-        
+
+    <bean id="permissionManager"
+          class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
+
 	<bean id="zookeeperService" class="eu.europeana.cloud.service.coordination.ZookeeperService">
         <constructor-arg name="zookeeperAddress">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperAddress"/>

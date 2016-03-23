@@ -10,6 +10,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.validation.constraints.NotNull;
 
+
+//TODO fix commented test
 //@RunWith(SpringJUnit4ClassRunner.class)
 public class TopologiesResourceAATest extends AbstractSecurityTest {
 

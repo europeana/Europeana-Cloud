@@ -48,6 +48,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     private static final String PROVIDER_2 = "NLE";
 
+    private static final String DATA_PROVIDER = "TheEuropeanLibrary";
     private EuropeanaNewspapersResourceProvider provider;
 
     private String resDir;
@@ -60,19 +61,31 @@ public class EuropeanaNewspapersResourceProviderTest {
 
 
     @Test
-    public void testGetProviderId() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
+    public void testGetResourceProviderId() throws Exception {
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
 
         String file1 = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertEquals(PROVIDER_1, provider.getProviderId(file1));
+        assertEquals(PROVIDER_1, provider.getResourceProviderId(file1));
         String file2 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertEquals(PROVIDER_2, provider.getProviderId(file2));
+        assertEquals(PROVIDER_2, provider.getResourceProviderId(file2));
+    }
+
+
+    @Test
+    public void testGetDataProviderId() throws Exception {
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
+
+        // data provider identifier should be independent from the path, always the same and the one provided in constructor
+        String file1 = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        assertEquals(DATA_PROVIDER, provider.getDataProviderId(file1));
+        String file2 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
+        assertEquals(DATA_PROVIDER, provider.getDataProviderId(file2));
     }
 
 
     @Test
     public void testGetLocalIdentifier() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
 
         String file = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
         String localId = provider.getLocalIdentifier(Paths.get(new URI(LOCATION_1.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), file, false);
@@ -87,7 +100,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Test
     public void testGetLocalIdentifierReturnsNull() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
 
         // location is different
         String file1 = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
@@ -102,7 +115,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Test
     public void testScan() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
 
         Map<String, List<FilePaths>> paths = provider.scan();
 
@@ -138,7 +151,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Test
     public void testDetectLocalLocations() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir));
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS.replace("$1", resDir), DATA_PROVIDER);
 
         assertTrue(provider.isLocal());
     }
@@ -146,7 +159,7 @@ public class EuropeanaNewspapersResourceProviderTest {
 
     @Test
     public void testDetectRemoteLocations() throws Exception {
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, REMOTE_LOCATIONS);
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, REMOTE_LOCATIONS, DATA_PROVIDER);
 
         assertFalse(provider.isLocal());
     }
@@ -155,6 +168,13 @@ public class EuropeanaNewspapersResourceProviderTest {
     @Test(expected = IllegalArgumentException.class)
     public void testDetectMixedLocations() throws Exception {
         // just create a new object, locations are detected in constructor
-        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, MIXED_LOCATIONS);
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, MIXED_LOCATIONS, DATA_PROVIDER);
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullDataProvider() throws Exception {
+        // just create a new object, data provider is checked in constructor
+        provider = new EuropeanaNewspapersResourceProvider(REPRESENTATION_NAME, MAPPING_FILE_NAME, LOCAL_LOCATIONS, null);
     }
 }
