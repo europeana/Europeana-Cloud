@@ -10,13 +10,26 @@ import java.util.List;
 public class DpsTaskValidator {
 
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
+    private String validatorName;
 
+    public DpsTaskValidator(){
+        this("Default validator");
+    }
+    
+    public DpsTaskValidator(String validatorName){
+        this.validatorName = validatorName;
+    }
+    
     public DpsTaskValidator withParameter(String parameterName) {
         DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, parameterName);
 
         dpsTaskConstraints.add(constraint);
         return this;
 
+    }
+
+    public String getValidatorName() {
+        return validatorName;
     }
 
     /**

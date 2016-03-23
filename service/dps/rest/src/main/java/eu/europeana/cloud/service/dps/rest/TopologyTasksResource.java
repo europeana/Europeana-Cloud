@@ -422,8 +422,20 @@ public class TopologyTasksResource {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        DpsTaskValidator taskValidator = DpsTaskValidatorFactory.createValidator(topologyName);
-        taskValidator.validate(task);
+        List<DpsTaskValidator> taskValidators = DpsTaskValidatorFactory.createValidators(topologyName);
+        StringBuilder errorMessages = new StringBuilder();
+        for (DpsTaskValidator validator : taskValidators) {
+            try{
+                validator.validate(task);
+                return;
+            }catch(DpsTaskValidationException e){
+                errorMessages.append(validator.getValidatorName());
+                errorMessages.append(":");
+                errorMessages.append(e.getMessage());
+                errorMessages.append("\n");
+            }
+        }
+        throw new DpsTaskValidationException("Validation failed. Errors returned by validators are:\n "+errorMessages);
     }
 
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
