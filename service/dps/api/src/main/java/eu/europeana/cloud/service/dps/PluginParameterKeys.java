@@ -59,7 +59,7 @@ public final class PluginParameterKeys {
     public static final String OUTPUT_EXTENSION = "OUTPUT_EXTENSION";
     public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
-    public static final String DATASETS = "DATASETS";
+    public static final String DATASET_URLS = "DATASET_URLS";
     public static final String FILE_URLS = "FILE_URLS";
 
     public static final String TASK_SUBMITTER_NAME = "TASK_SUBMITTER_NAME";
@@ -115,7 +115,7 @@ public final class PluginParameterKeys {
         PLUGIN_PARAMETERS.put(KAKADU_ARGUEMENTS, "-rate 1.0,0.84,0.7,0.6,0.5,0.4,0.35,0.3,0.25,0.21,0.18,0.15,0.125,0.1,0.088,0.075,0.0625,0.05,0.04419,0.03716,0.03125,0.025,0.0221,0.01858,0.015625 Clevels=6 Cmodes={BYPASS} Corder=RLCP -no_palette");
 
         //----------- DPS task --------
-        PLUGIN_PARAMETERS.put(DATASETS, "DATASETS");
+        PLUGIN_PARAMETERS.put(DATASET_URLS, "DATASET_URLS");
 
         /* File URL Key */
         PLUGIN_PARAMETERS.put(FILE_URLS, "FILE_URLS");

@@ -14,7 +14,7 @@ import java.util.Map;
 public class DpsTask implements Serializable {
 
 	/* Dataset Key */
-	public static final String DATASETS = "DATASETS";
+	public static final String DATASET_URLS = "DATASET_URLS";
 	
 	/* File URL Key */
 	public static final String FILE_URLS = "FILE_URLS";

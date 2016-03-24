@@ -27,6 +27,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -154,7 +155,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: FILE_URLS"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 
@@ -175,7 +176,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: XSLT_URL"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 
@@ -195,7 +196,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 
@@ -228,7 +229,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: FILE_URLS"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 
@@ -247,7 +248,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 

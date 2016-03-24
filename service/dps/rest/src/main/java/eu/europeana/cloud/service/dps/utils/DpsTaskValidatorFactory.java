@@ -29,7 +29,7 @@ public class DpsTaskValidatorFactory {
             validators.add(validator_for_file_urls);
             //
             DpsTaskValidator validator_for_dataset_urls = new DpsTaskValidator("DataSet validator")
-                    .withDataEntry(PluginParameterKeys.DATASET_URL, InputDataValueType.LINK_TO_DATASET)
+                    .withDataEntry(PluginParameterKeys.DATASET_URLS, InputDataValueType.LINK_TO_DATASET)
                     .withParameter(PluginParameterKeys.MIME_TYPE)
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
