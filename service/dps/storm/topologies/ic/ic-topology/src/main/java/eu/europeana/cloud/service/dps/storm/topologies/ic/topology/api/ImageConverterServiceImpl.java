@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api;
 
 
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
@@ -10,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.Extens
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.mime.MimeTypeException;
@@ -19,6 +22,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +46,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
      *
      * @param stormTaskTuple Tuple which DpsTask is part of ...
      * @return path for the newly created file
-     * @throws MCSException on unexpected situations.
+     * @throws MCSException      on unexpected situations.
      * @throws ICSException
      * @throws MimeTypeException : when mimetype is not recognized or null
      * @throws IOException
@@ -57,12 +62,16 @@ public class ImageConverterServiceImpl implements ImageConverterService {
             TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
             ByteArrayInputStream inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
-                String fileName = findFileName(fileURI);
+                Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
+                String fileName = urlParams.get(ParamConstants.P_FILENAME);
+                String cleanName = FilenameUtils.removeExtension(fileName);
                 String inputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
-                folderPath = persistStreamToTemporaryStorage(inputStream, fileName, inputExtension);
-                String inputFilePath = buildFilePath(folderPath, fileName, inputExtension);
+                long randomValue = UUID.randomUUID().getMostSignificantBits();
+                String tempFileName = "" + randomValue;
+                folderPath = persistStreamToTemporaryStorage(inputStream, tempFileName, inputExtension);
+                String inputFilePath = buildFilePath(folderPath, tempFileName, inputExtension);
                 String outputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
-                String outputFilePath = buildFilePath(folderPath, fileName, outputExtension);
+                String outputFilePath = buildFilePath(folderPath, tempFileName, outputExtension);
                 if (outputFilePath != null) {
                     List<String> properties = new ArrayList<>();
                     properties.add(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
@@ -70,7 +79,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                     File outputFile = new File(outputFilePath);
                     InputStream outputStream = new FileInputStream(outputFile);
                     stormTaskTuple.setFileData(outputStream);
-                    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_EXTENSION, outputExtension);
+                    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_FILE_NAME, cleanName +  outputExtension);
                     LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " completed successfully");
                 }
             }
@@ -100,14 +109,4 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         return folderPath;
     }
 
-    private String findFileName(URI uri) throws MCSException {
-        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)/files/([^/]+)");
-        Matcher m = p.matcher(uri.toString());
-
-        if (m.find()) {
-            return m.group(4);
-        } else {
-            throw new MCSException("Unable to find file in representation URL");
-        }
-    }
 }

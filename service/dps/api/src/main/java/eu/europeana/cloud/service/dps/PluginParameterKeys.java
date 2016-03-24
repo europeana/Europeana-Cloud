@@ -57,6 +57,7 @@ public final class PluginParameterKeys {
 
     // ---------  IC  -----------
     public static final String OUTPUT_EXTENSION = "OUTPUT_EXTENSION";
+    public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
     public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
     public static final String DATASET_URLS = "DATASET_URLS";
