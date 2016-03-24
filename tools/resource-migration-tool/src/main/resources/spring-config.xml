@@ -9,6 +9,7 @@
     <bean id="migrator" class="eu.europeana.cloud.migrator.ResourceMigrator">
         <constructor-arg ref="resProvider"/>
         <constructor-arg name="dataProvidersMappingFile" value="${data.providers.mapping}"/>
+        <constructor-arg name="threadsCount" value="${provider.threads.count}"/>
     </bean>
 
     <bean id="mcs" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">

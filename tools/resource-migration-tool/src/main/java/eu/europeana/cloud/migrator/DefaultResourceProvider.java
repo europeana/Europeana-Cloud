@@ -283,4 +283,11 @@ public abstract class DefaultResourceProvider
         // impossible to determine in anstract class
         return -1;
     }
+
+
+    @Override
+    public List<FilePaths> split(List<FilePaths> paths) {
+        // default behaviour is to return the list of paths as it is
+        return paths;
+    }
 }

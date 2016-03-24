@@ -4,12 +4,15 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FoodAndDrinkResourceProvider
         extends DefaultResourceProvider {
     private static final String DATA_PROVIDERS_DIR = "users";
 
     private static final Logger logger = Logger.getLogger(FoodAndDrinkResourceProvider.class);
+    public static final int DEFAULT_LIST_SIZE = 500;
 
 
     public FoodAndDrinkResourceProvider(String representationName, String mappingFile, String locations, String dataProviderId) {
@@ -129,5 +132,49 @@ public class FoodAndDrinkResourceProvider
     @Override
     public int getFileCount(String localId) {
         return 1;
+    }
+
+
+    /**
+     * Food And Drink resource provider splits the paths list to several lists of more or less equal size around 500.
+     *
+     * @param paths
+     * @return
+     */
+    @Override
+    public List<FilePaths> split(List<FilePaths> paths) {
+        List<FilePaths> result = new ArrayList<FilePaths>();
+        for (FilePaths fp : paths) {
+            result.addAll(split(fp));
+        }
+        return result;
+    }
+
+    private List<FilePaths> split(FilePaths fp) {
+        // size of the list
+        int size = fp.size();
+        // number of full DEFAULT_LIST_SIZE parts
+        int count = size / DEFAULT_LIST_SIZE;
+        // size of the last part
+        int rest = size % DEFAULT_LIST_SIZE;
+
+        List<FilePaths> result = new ArrayList<FilePaths>();
+
+        // when no need to split return the same file paths object
+        if (size <= DEFAULT_LIST_SIZE)
+            result.add(fp);
+        else {
+            for (int i = 0; i < count; i++) {
+                FilePaths filePath = new FilePaths(fp.getLocation(), fp.getDataProvider());
+                filePath.getFullPaths().addAll(fp.getFullPaths().subList(i * DEFAULT_LIST_SIZE, (i + 1) * DEFAULT_LIST_SIZE < size ? (i + 1) * DEFAULT_LIST_SIZE : size));
+                result.add(filePath);
+            }
+            if (rest > 0) {
+                FilePaths filePath = new FilePaths(fp.getLocation(), fp.getDataProvider());
+                filePath.getFullPaths().addAll(fp.getFullPaths().subList(count * DEFAULT_LIST_SIZE, size));
+                result.add(filePath);
+            }
+        }
+        return result;
     }
 }

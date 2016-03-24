@@ -20,12 +20,18 @@ public class FilePaths {
     private String dataProvider;
 
 
+    /**
+     * Identifier
+     */
+    private String identifier;
+
     private List<String> paths;
 
     public FilePaths(String location, String dataProvider) {
         this.location = location;
         this.dataProvider = dataProvider;
         this.paths = new ArrayList<String>();
+        this.identifier = null;
     }
 
     public List<String> getFullPaths() {
@@ -42,5 +48,15 @@ public class FilePaths {
 
     public int size() {
         return paths.size();
+    }
+
+    public void setIdentifier(String id) {
+        identifier = id;
+    }
+
+    public String getIdentifier() {
+        if (identifier == null)
+            return dataProvider;
+        return identifier;
     }
 }

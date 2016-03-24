@@ -184,4 +184,60 @@ public class EuropeanaNewspapersResourceProvider
             return -1;
         return count.intValue();
     }
+
+    @Override
+    public List<FilePaths> split(List<FilePaths> paths) {
+        List<FilePaths> result = new ArrayList<FilePaths>();
+        for (FilePaths fp : paths) {
+            result.addAll(split(fp, true));
+        }
+        return result;
+    }
+
+    private List<FilePaths> split(FilePaths fp, boolean year) {
+        // split will be done for every newspaper title which is the directory just inside the provider directory
+        List<FilePaths> result = new ArrayList<FilePaths>();
+        Map<String, List<String>> titlePaths = new HashMap<String, List<String>>();
+
+        for (String path : fp.getFullPaths()) {
+            int i = path.indexOf(fp.getLocation());
+            i = path.indexOf(fp.getDataProvider(), i == -1 ? 0 : i + fp.getLocation().length() + 1);
+            if (i == -1) {
+                // no data provider name in path, strange so return the FilePaths object unchanged regardless the other paths could contain provider name
+                result.add(fp);
+                return result;
+            }
+            String title = path.substring(i + fp.getDataProvider().length() + 1);
+            i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR);
+            if (i == -1) {
+                // no directory found in path, strange so return the FilePaths object unchanged regardless the other paths
+                result.add(fp);
+                return result;
+            }
+            if (year) {
+                // add year to title, for every year of a title there will be a separate thread
+                // find next separator
+                i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, i + 1);
+            }
+            title = title.substring(0, i);
+            if (titlePaths.get(title) == null) {
+                titlePaths.put(title, new ArrayList<String>());
+            }
+            titlePaths.get(title).add(path);
+        }
+
+        if (titlePaths.size() == 1) {
+            // all paths belong to the same title so no need to create a new FilePaths object as it would be the same as the input one
+            result.add(fp);
+        } else {
+            // now create FilePaths object for every newspapers title
+            for (Map.Entry<String, List<String>> entry : titlePaths.entrySet()) {
+                FilePaths filePaths = new FilePaths(fp.getLocation(), fp.getDataProvider());
+                filePaths.getFullPaths().addAll(entry.getValue());
+                filePaths.setIdentifier(entry.getKey().replace(ResourceMigrator.LINUX_SEPARATOR, "_"));
+                result.add(filePaths);
+            }
+        }
+        return result;
+    }
 }

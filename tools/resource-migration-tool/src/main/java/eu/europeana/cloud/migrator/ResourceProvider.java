@@ -42,6 +42,7 @@ public interface ResourceProvider {
      *
      * @param location location of the file path
      * @param path path to file
+     * @param duplicate indicate whether this may be a duplicate
      * @return local identifier of the record
      */
     public String getLocalIdentifier(String location, String path, boolean duplicate);
@@ -95,4 +96,14 @@ public interface ResourceProvider {
      * @return number of files the record should have or -1 if it's impossible to determine
      */
     public int getFileCount(String localId);
+
+    /**
+     * Resource provider implementation may split the file paths that will be migrated into several parts.
+     * The way of splitting is specific for a resource provider. The idea of splitting the file paths is to
+     * use many threads during the migration process. For each FilePaths object there will be a separate thread.
+     *
+     * @param paths paths to files that will be migrated
+     * @return a list of lists
+     */
+    public List<FilePaths> split(List<FilePaths> paths);
 }

@@ -17,10 +17,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.ProcessingException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -58,6 +55,9 @@ public class ResourceMigrator {
     private static final ExecutorService threadPool = Executors
             .newFixedThreadPool(DEFAULT_POOL_SIZE);
 
+    // Default threads pool size
+    private static final byte DEFAULT_PROVIDER_POOL_SIZE = 50;
+
     /**
      * MCS java client
      */
@@ -86,9 +86,20 @@ public class ResourceMigrator {
      */
     protected Map<String, String> dataProvidersMapping;
 
-    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile) throws IOException {
+    protected int threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
+
+    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile, String threadsCount) throws IOException {
         this.resourceProvider = resProvider;
         this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
+        if (threadsCount != null && !threadsCount.isEmpty()) {
+            try {
+                this.threadsCount = Integer.valueOf(threadsCount);
+                if (this.threadsCount < 0)
+                    this.threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
+            } catch (NumberFormatException e) {
+                // leave the default value
+            }
+        }
     }
 
     private Map<String, String> readDataProvidersMapping(String dataProvidersMappingFile) throws IOException {
@@ -149,15 +160,15 @@ public class ResourceMigrator {
         // key is provider id, value is a list of files to add
         Map<String, List<FilePaths>> paths = resourceProvider.scan();
 
-        if (logger.isDebugEnabled()) {
-            for (Map.Entry<String, List<FilePaths>> entry : paths.entrySet()) {
-                for (FilePaths fp : entry.getValue()) {
-                    logger.debug("Found paths for provider " + entry.getKey() + " in location " + fp.getLocation() + " (" + fp.getFullPaths().size() + "):");
-                    for (String s : fp.getFullPaths())
-                        logger.debug(s);
-                }
-            }
-        }
+//        if (logger.isDebugEnabled()) {
+//            for (Map.Entry<String, List<FilePaths>> entry : paths.entrySet()) {
+//                for (FilePaths fp : entry.getValue()) {
+//                    logger.debug("Found paths for provider " + entry.getKey() + " in location " + fp.getLocation() + " (" + fp.getFullPaths().size() + "):");
+//                    for (String s : fp.getFullPaths())
+//                        logger.debug(s);
+//                }
+//            }
+//        }
 
         logger.info("Scanning resource provider locations finished in " + String.valueOf(((float) (System.currentTimeMillis() - start) / (float) 1000)) + " sec.");
 
@@ -178,7 +189,7 @@ public class ResourceMigrator {
             }
             if (!simulate) {
                 logger.info("Starting task thread for provider " + providerId + "...");
-                tasks.add(new ProviderMigrator(providerId, paths.get(providerId)));
+                tasks.add(new ProviderMigrator(providerId, paths.get(providerId), null));
             }
         }
 
@@ -277,9 +288,11 @@ public class ResourceMigrator {
                 break;
             } catch (MCSException e) {
                 logger.error("Problem with creating representation name!");
-                break;
+            } catch (Exception e) {
+                logger.error("Exception when creating representation occured.", e);
             }
         }
+        logger.warn("All attempts to create representation failed. ProviderId: " + providerId + " CloudId: " + cloudId + " Representation: " + resourceProvider.getRepresentationName());
         return null;
     }
 
@@ -310,13 +323,18 @@ public class ResourceMigrator {
                     } catch (CloudException e1) {
                         logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e1);
                         break;
+                    } catch (Exception e1) {
+                        logger.info("Provider: " + providerId + " Local: " + localId, e);
                     }
                 } else {
                     logger.warn("Record for provider " + dataProviderId + " with local id " + localId + " could not be created", e);
                     break;
                 }
+            } catch (Exception e) {
+                logger.error("Exception when creating record occured.", e);
             }
         }
+        logger.warn("All attempts to create record failed. ProviderId: " + providerId + " LocalId: " + localId);
         return null;
     }
 
@@ -398,6 +416,8 @@ public class ResourceMigrator {
                 logger.error("Problem with detecting mime type from file (" + path + ")", e);
             } catch (MCSException e) {
                 logger.error("ECloud error when uploading file.", e);
+            } catch (Exception e) {
+                logger.error("ECloud error when uploading file.", e);
             } finally {
                 try {
                     is.close();
@@ -406,6 +426,7 @@ public class ResourceMigrator {
                 }
             }
         }
+        logger.warn("All attempts to upload file failed. Location: " + location + " Path: " + path + " Version: " + version + " RecordId: " + recordId);
         return null;
     }
 
@@ -478,9 +499,11 @@ public class ResourceMigrator {
                     return providerId;
                 }
                 logger.error("Exception when creating provider occured.", e);
-                break;
+            } catch (Exception e) {
+                logger.error("Exception when creating provider occured.", e);
             }
         }
+        logger.warn("All attempts to create data provider failed. Provider: " + providerId + " Path: " + path);
         return null;
     }
 
@@ -493,19 +516,7 @@ public class ResourceMigrator {
                     processed.add(st.nextToken());
                 }
             }
-            if (logger.isDebugEnabled()) {
-                if (processed.size() > 0) {
-                    logger.debug("Processed from file: ");
-                    logger.debug(processed);
-                }
-                logger.debug("Scanned: ");
-                logger.debug(paths.getFullPaths());
-            }
             paths.getFullPaths().removeAll(processed);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Scanned after removing processed: ");
-                logger.debug(paths.getFullPaths());
-            }
         } catch (IOException e) {
             logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.");
         }
@@ -514,7 +525,7 @@ public class ResourceMigrator {
 
     private boolean processProvider(String resourceProviderId, FilePaths providerPaths) {
         // first remove already processed paths, if there is no progress file for the provider no filtering is performed
-        removeProcessedPaths(resourceProviderId, providerPaths);
+        removeProcessedPaths(providerPaths.getIdentifier() != null ? providerPaths.getIdentifier() : resourceProviderId, providerPaths);
 
         boolean result = true;
 
@@ -528,9 +539,13 @@ public class ResourceMigrator {
                 }
 
                 List<String> duplicates = new ArrayList<String>();
-                result &= processPaths(resourceProviderId, providerPaths.getFullPaths(), providerPaths.getLocation(), false, duplicates);
-                if (duplicates.size() > 0)
-                    result &= processPaths(resourceProviderId, duplicates, providerPaths.getLocation(), true, null);
+                result &= processPaths(providerPaths, false, duplicates);
+                if (duplicates.size() > 0) {
+                    FilePaths duplicatePaths = new FilePaths(providerPaths.getLocation(), providerPaths.getDataProvider());
+                    duplicatePaths.setIdentifier(providerPaths.getIdentifier());
+                    duplicatePaths.getFullPaths().addAll(duplicates);
+                    result &= processPaths(duplicatePaths, true, null);
+                }
             }
         } catch (Exception e) {
             // when any uncaught exception occurs just catch it and report false result
@@ -539,7 +554,22 @@ public class ResourceMigrator {
         return result;
     }
 
-    private boolean processPaths(String resourceProviderId, List<String> paths, String location, boolean duplicate, List<String> duplicates) {
+    private boolean processPaths(FilePaths fp, boolean duplicate, List<String> duplicates) {
+        if (fp == null)
+            return false;
+
+        // Resource provider identifier
+        String resourceProviderId = fp.getDataProvider();
+
+        // Paths to files that will be migrated
+        List<String> paths = fp.getFullPaths();
+
+        // Location of the files
+        String location = fp.getLocation();
+
+        // Identifier of the file paths list
+        String identifier = fp.getIdentifier();
+
         // key is local identifier, value is cloud identifier
         Map<String, String> cloudIds = new HashMap<String, String>();
         // key is local identifier, value is version identifier
@@ -558,7 +588,7 @@ public class ResourceMigrator {
         String prevLocalId = null;
         for (String path : paths) {
             if ((int) (((float) (counter) / (float) paths.size()) * 100) > (int) (((float) (counter - 1) / (float) paths.size()) * 100))
-                logger.info("Resource provider: " + resourceProviderId + ". Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
+                logger.info("Resource provider: " + resourceProviderId + "." + (identifier.equals(resourceProviderId) ? "" : (" Part: " + identifier + ".")) + " Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
             counter++;
             // get local record identifier
             String localId = resourceProvider.getLocalIdentifier(location, path, duplicate);
@@ -591,7 +621,7 @@ public class ResourceMigrator {
                     if (persistent != null) {
                         if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
                             logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                        saveProgress(resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
+                        saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
                     }
                 }
                 prevLocalId = localId;
@@ -630,7 +660,7 @@ public class ResourceMigrator {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) +"\nCloudId: " + cloudIds.get(localId));
+                logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) + "\nCloudId: " + cloudIds.get(localId));
             }
 
             // create file name in ECloud with the specified name
@@ -655,7 +685,7 @@ public class ResourceMigrator {
             if (persistent != null) {
                 if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
                     logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                saveProgress(resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
+                saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
             }
         }
         if (errors > 0)
@@ -736,12 +766,23 @@ public class ResourceMigrator {
     }
 
     private class ProviderMigrator implements Callable<MigrationResult> {
-        String providerId;
-        List<FilePaths> paths;
+        // resource provider identifier
+        private String providerId;
 
-        ProviderMigrator(String providerId, List<FilePaths> paths) {
+        // paths to files that will be migrated
+        private List<FilePaths> paths;
+
+        // identifier of part of file paths (usually a name of the directory), may be null
+        private String identifier;
+
+        // Pool of threads used to migrate files
+        private final ExecutorService threadProviderPool = Executors
+                .newFixedThreadPool(threadsCount);
+
+        ProviderMigrator(String providerId, List<FilePaths> paths, String identifier) {
             this.providerId = providerId;
             this.paths = paths;
+            this.identifier = identifier;
         }
 
         public MigrationResult call()
@@ -749,23 +790,114 @@ public class ResourceMigrator {
             long start = System.currentTimeMillis();
             boolean success = true;
 
-            for (FilePaths fp : paths)
-                success &= processProvider(providerId, fp);
+            List<FilePaths> split = resourceProvider.split(paths);
+            if (split.equals(paths)) {
+                // when split operation did not change anything just run the migration for the given paths
+                for (FilePaths fp : paths)
+                    success &= processProvider(providerId, fp);
+            } else { // initial paths were split into more sets, for each set run separate thread and gather results
+                List<Future<MigrationResult>> results = null;
+                List<Callable<MigrationResult>> tasks = new ArrayList<Callable<MigrationResult>>();
 
-            return new MigrationResult(success, providerId, (float) (System.currentTimeMillis() - start) / (float) 1000);
+                boolean mergeProgress = false;
+
+                // create task for each file path
+                for (FilePaths fp : split) {
+                    logger.info("Starting task thread for file paths " + fp.getIdentifier() + "...");
+                    List<FilePaths> lst = new ArrayList<FilePaths>();
+                    lst.add(fp);
+                    mergeProgress |= !fp.getIdentifier().equals(fp.getDataProvider());
+                    tasks.add(new ProviderMigrator(providerId, lst, fp.getIdentifier()));
+                }
+
+                try {
+                    // invoke a separate thread for each provider
+                    results = threadProviderPool.invokeAll(tasks);
+
+                    MigrationResult partResult;
+                    for (Future<MigrationResult> result : results) {
+                        partResult = result.get();
+                        logger.info("Migration of part " + partResult.getIdentifier() + " (" + partResult.getProviderId() + ") performed " + (partResult.isSuccessful() ? "" : "un") + "successfully. Migration time: " + partResult.getTime() + " sec.");
+                        success &= partResult.isSuccessful();
+                    }
+                    // concatenate progress files to one if necessary
+                    if (mergeProgress)
+                        saveProgressFromThreads(providerId, split);
+                } catch (InterruptedException e) {
+                    logger.error("Migration processed interrupted.", e);
+                } catch (ExecutionException e) {
+                    logger.error("Problem with migration task thread execution.", e);
+                }
+
+            }
+
+            return new MigrationResult(success, providerId, (float) (System.currentTimeMillis() - start) / (float) 1000, identifier);
+        }
+    }
+
+    private void saveProgressFromThreads(String providerId, List<FilePaths> paths) {
+        BufferedReader reader = null;
+
+        try {
+            // new progress file with provider name
+            Path dest = FileSystems.getDefault().getPath(".", providerId + ".txt");
+            if (Files.exists(dest)) {
+                // make copy
+                Path bkp = FileSystems.getDefault().getPath(".", providerId + ".bkp");
+                int c = 0;
+                while (Files.exists(bkp))
+                    bkp = FileSystems.getDefault().getPath(".", providerId + ".bkp" + String.valueOf(c++));
+
+                Files.copy(dest, bkp);
+                Files.delete(dest);
+            }
+
+            // read every file for a paths object and append it to the destination file
+            for (FilePaths fp : paths) {
+                if (fp.getIdentifier() == null || fp.getIdentifier().equals(providerId))
+                    continue;
+                Path progressFile = FileSystems.getDefault().getPath(".", fp.getIdentifier() + ".txt");
+                try {
+                    reader = Files.newBufferedReader(progressFile, Charset.forName("UTF-8"));
+                    for (; ; ) {
+                        String line = reader.readLine();
+                        if (line == null)
+                            break;
+                        if (!line.endsWith("\n"))
+                            line += "\n";
+                        Files.write(dest, line.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                    }
+                } catch (IOException e) {
+                    // do nothing, move to the next file
+                    logger.warn("Problem with file " + progressFile.toAbsolutePath().toString());
+                } finally {
+                    if (reader != null)
+                        reader.close();
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Progress file " + providerId + ".txt could not be saved.", e);
         }
     }
 
     private class MigrationResult {
+        // success indicator
         Boolean success;
+
+        // resource provider identifier
         String providerId;
 
+        // Part identifier
+        String identifier;
+
+        // execution time
         float time;
 
-        MigrationResult(Boolean success, String providerId, float time) {
+        MigrationResult(Boolean success, String providerId, float time, String identifier) {
             this.success = success;
             this.providerId = providerId;
             this.time = time;
+            this.identifier = identifier;
         }
 
         String getProviderId() {
@@ -776,8 +908,12 @@ public class ResourceMigrator {
             return success;
         }
 
-        public float getTime() {
+        float getTime() {
             return time;
+        }
+
+        String getIdentifier() {
+            return identifier;
         }
     }
 
