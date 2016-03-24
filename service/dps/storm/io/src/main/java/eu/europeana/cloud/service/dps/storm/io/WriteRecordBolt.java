@@ -100,8 +100,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);
         URI newFileUri = null;
-        if (stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_EXTENSION) != null) {
-            String fileName = urlParams.get(ParamConstants.P_FILENAME) + stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_EXTENSION);
+        if (stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME) != null) {
+            String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
             newFileUri = mcsClient.uploadFile(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
         } else
             newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);

@@ -420,7 +420,7 @@ public class FileServiceClient {
      * @return Map with indexes: CLOUDID, REPRESENTATIONNAME, VERSION, FILENAME(potentially null)
      */
     public static Map<String, String> parseFileUri(String uri) {
-        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)/files/*([^/]+)*.*");
+        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)/files/(.*)");
         Matcher m = p.matcher(uri);
 
         if (m.find()) {
