@@ -15,6 +15,8 @@ public interface TestConstantsHelper {
     static final String VERSION = "Version";
     static final String FILE = "FileName";
     static final String WRITE_RECORD_BOLT = "writeRecordBolt";
+    static final String DATASET_NAME = "dataSet";
+    static final String DATA_PROVIDER = "testDataProvider";
 
     static final String SOURCE_VERSION_URL = "http://localhost:8080/mcs/records/"
             + SOURCE + CLOUD_ID + "/representations/"
@@ -26,6 +28,11 @@ public interface TestConstantsHelper {
             + RESULT + REPRESENTATION_NAME + "/versions/"
             + RESULT + VERSION;
     static final String RESULT_FILE_URL = RESULT_VERSION_URL + "/files/" + FILE;
+
+    static final String SOURCE_DATASET_URL = "http://localhost:8080/mcs/data-providers/"
+            + DATA_PROVIDER + "/data-sets/"
+            + DATASET_NAME;
+
 
     static final int NUM_WORKERS = 2;
 

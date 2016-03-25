@@ -73,6 +73,14 @@
     <bean id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
         <constructor-arg name="baseUrl" ref="mcsLocation"/>
     </bean>
+
+    <bean id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" ref="mcsLocation"/>
+    </bean>
+
+    <bean id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" ref="mcsLocation"/>
+    </bean>
   	<import resource="authentication.xml"/>
   	<import resource="authorization.xml"/>
 </beans>

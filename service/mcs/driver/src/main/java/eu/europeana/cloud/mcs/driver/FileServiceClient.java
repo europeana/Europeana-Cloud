@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -434,5 +435,16 @@ public class FileServiceClient {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Client will use provided authorization header for all requests;
+     *
+     * @param headerValue authorization header value
+     * @return
+     */
+    public FileServiceClient useAuthorizationHeader(final String headerValue){
+        client.register(new ECloudBasicAuthFilter(headerValue));
+        return this;
     }
 }

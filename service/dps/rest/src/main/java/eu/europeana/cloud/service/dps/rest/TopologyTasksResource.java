@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.TaskExecutionKillService;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
@@ -17,6 +18,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidation
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -76,6 +79,12 @@ public class TopologyTasksResource {
     @Autowired
     private RecordServiceClient recordServiceClient;
 
+    @Autowired
+    private FileServiceClient fileServiceClient;
+
+    @Autowired
+    private DataSetServiceClient dataSetServiceClient;
+
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
 
@@ -83,22 +92,21 @@ public class TopologyTasksResource {
 
     /**
      * Retrieves a task with the given taskId from the specified topology.
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Authenticated user</li>
-     *     			<li>Read permission for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
-     * @summary Task retrieval
-     *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return The requested task.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Task retrieval
      * @summary Task retrieval
      */
     @GET
@@ -118,23 +126,22 @@ public class TopologyTasksResource {
 
     /**
      * Retrieves the current progress for the requested task.
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Read permissions for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Read permissions for selected task</li>
+     * </ul>
      * </div>
      *
-     * @summary Get Task Progress
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return Progress for the requested task
      * (number of records of the specified task that have been fully processed).
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Get Task Progress
      * @summary Get Task Progress
      */
     @GET
@@ -154,17 +161,15 @@ public class TopologyTasksResource {
     /**
      * Submits a Task for execution.
      * Each Task execution is associated with a specific plugin.
-     *
+     * <p/>
      * <strong>Write permissions required</strong>.
      *
-     * @summary Submit Task
-     * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data,
-     * either in form of cloud-records or cloud-datasets.
-     *
+     * @param task         <strong>REQUIRED</strong> Task to be executed. Should contain links to input data,
+     *                     either in form of cloud-records or cloud-datasets.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     *
      * @return URI with information about the submitted task execution.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Submit Task
      * @summary Submit Task
      */
     @POST
@@ -190,7 +195,7 @@ public class TopologyTasksResource {
             permissionManager.grantPermissionsForTask(task.getTaskId() + "");
             String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
             try {
-                LOGGER.info("Task submitted succesfully");
+                LOGGER.info("Task submitted successfully");
                 return Response.created(new URI(createdTaskUrl)).build();
             } catch (URISyntaxException e) {
                 LOGGER.error("Task submition failed");
@@ -213,11 +218,9 @@ public class TopologyTasksResource {
      * </ul>
      * </div>
      *
-     * @summary Retrieve task notifications
-     *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     *
      * @return Notification messages for the specified task.
+     * @summary Retrieve task notifications
      */
     @GET
     @Path("{taskId}/notification")
@@ -230,23 +233,21 @@ public class TopologyTasksResource {
 
     /**
      * Grants read / write permissions for a task to the specified user.
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Admin permissions</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Admin permissions</li>
+     * </ul>
      * </div>
      *
-     * @summary Grant task permissions to user
-     *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param username <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
-     *
+     * @param username     <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Grant task permissions to user
      * @summary Grant task permissions to user
      */
     @POST
@@ -267,25 +268,23 @@ public class TopologyTasksResource {
 
     /**
      * Submit kill flag to the specific task.
-     *
+     * <p/>
      * Side effect: remove all flags older than 5 days (per topology).
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Authenticated user</li>
-     *     			<li>Write permission for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Write permission for selected task</li>
+     * </ul>
      * </div>
      *
-     * @summary Kill task
-     *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     *
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Kill task
      * @summary Kill task
      */
     @POST
@@ -305,23 +304,21 @@ public class TopologyTasksResource {
 
     /**
      * Check kill flag for the specified task.
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Authenticated user</li>
-     *     			<li>Read permission for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
-     * @summary Check kill flag
-     *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return true if provided task id has kill flag, false otherwise
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Check kill flag
      * @summary Check kill flag
      */
     @GET
@@ -335,23 +332,21 @@ public class TopologyTasksResource {
 
     /**
      * Remove kill flag for the specified task.
-     *
+     * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * 		<strong>Required permissions:</strong>
-     * 			<ul>
-     *     			<li>Authenticated user</li>
-     *     			<li>Write permission for selected task</li>
-     * 			</ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Write permission for selected task</li>
+     * </ul>
      * </div>
      *
-     * @summary Remove kill flag
-     *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @summary Remove kill flag
      * @summary Remove kill flag
      */
     @DELETE
@@ -367,7 +362,6 @@ public class TopologyTasksResource {
         }
         return Response.notModified().build();
     }
-
 
 
     private String buildTaskUrl(UriInfo uriInfo, DpsTask task, String topologyName) {
@@ -392,17 +386,17 @@ public class TopologyTasksResource {
         List<DpsTaskValidator> taskValidators = DpsTaskValidatorFactory.createValidators(topologyName);
         StringBuilder errorMessages = new StringBuilder();
         for (DpsTaskValidator validator : taskValidators) {
-            try{
+            try {
                 validator.validate(task);
                 return;
-            }catch(DpsTaskValidationException e){
+            } catch (DpsTaskValidationException e) {
                 errorMessages.append(validator.getValidatorName());
                 errorMessages.append(":");
                 errorMessages.append(e.getMessage());
                 errorMessages.append("\n");
             }
         }
-        throw new DpsTaskValidationException("Validation failed. Errors returned by validators are:\n "+errorMessages);
+        throw new DpsTaskValidationException("Validation failed. Errors returned by validators are:\n " + errorMessages);
     }
 
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
@@ -415,11 +409,52 @@ public class TopologyTasksResource {
         }
 
         List<String> fileUrls = submittedTask.getInputData().get(DpsTask.FILE_URLS);
-        if(fileUrls == null){
-            LOGGER.info("FIles list is empty. Permissions will not be granted");
-            return;
+        if (fileUrls == null) {
+            List<String> dataSets = submittedTask.getInputData().get(DpsTask.DATASET_URLS);
+            if (dataSets == null) {
+                LOGGER.info("Datasets or files urls list is empty. Permissions will not be granted");
+                throw new TaskSubmissionException("Datasets or files urls list is empty. Permissions will not be granted. Submission process stopped.");
+            } else {
+                String representationName = submittedTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+                fileUrls = new ArrayList<>();
+                for (String dataSet : dataSets) {
+                    try {
+                        UrlParser urlParser = new UrlParser(dataSet);
+                        if (urlParser.isUrlToDataset()) {
+                            dataSetServiceClient = context.getBean(DataSetServiceClient.class);
+                            List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
+                                    urlParser.getPart(UrlPart.DATA_SETS));
+                            for (Representation representation : representations) {
+                                if (representationName == null || representation.getRepresentationName().equals(representationName)) {
+                                    List<File> files = representation.getFiles();
+                                    for (File file : files) {
+                                        fileServiceClient = context.getBean(FileServiceClient.class);
+                                        String fileUrl = fileServiceClient.useAuthorizationHeader(authorizationHeader).getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
+                                        fileUrls.add(fileUrl);
+                                    }
+                                }
+
+                            }
+                        }
+                    } catch (DataSetNotExistsException ex) {
+                        LOGGER.warn("Provided dataset is not existed {}", dataSet);
+                        throw new TaskSubmissionException("Provided dataset is not existed: " + dataSet + ". Submission process stopped.");
+
+
+                    } catch (MalformedURLException ex) {
+                        LOGGER.error("URL in task's dataset list is malformed. Submission terminated. Wrong entry: " + dataSet);
+                        throw new TaskSubmissionException("Malformed URL in task: " + dataSet + ". Submission process stopped.");
+
+                    } catch (MCSException ex) {
+                        LOGGER.error("Error while communicating MCS", ex);
+                        throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");
+
+                    }
+                }
+            }
         }
         Iterator<String> it = fileUrls.iterator();
+        int size = 0;
         while (it.hasNext()) {
             String fileUrl = it.next();
             try {
@@ -434,19 +469,21 @@ public class TopologyTasksResource {
                                     parser.getPart(UrlPart.VERSIONS),
                                     topologyUserName,
                                     Permission.ALL);
+                    size++;
                     LOGGER.info("Permissions granted to: {}", fileUrl);
-                }else{
+                } else {
                     LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
                 }
             } catch (MalformedURLException e) {
-                LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: "+fileUrl);
-                throw new TaskSubmissionException("Malformed URL in task: " + fileUrl+". Submission process stopped.");
+                LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
+                throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
             } catch (MCSException e) {
                 LOGGER.error("Error while communicating MCS", e);
-                throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl+". Submission process stopped.");
+                throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage() + ". Submission process stopped");
             }
         }
+        submittedTask.addParameter("EXPECTED_SIZE", size + "");
     }
 }
