@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Permission;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.TaskExecutionKillService;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
@@ -18,7 +17,6 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidation
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +41,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -78,12 +75,6 @@ public class TopologyTasksResource {
 
     @Autowired
     private RecordServiceClient recordServiceClient;
-
-    @Autowired
-    private FileServiceClient fileServiceClient;
-
-    @Autowired
-    private DataSetServiceClient dataSetServiceClient;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
@@ -195,7 +186,7 @@ public class TopologyTasksResource {
             permissionManager.grantPermissionsForTask(task.getTaskId() + "");
             String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
             try {
-                LOGGER.info("Task submitted successfully");
+                LOGGER.info("Task submitted succesfully");
                 return Response.created(new URI(createdTaskUrl)).build();
             } catch (URISyntaxException e) {
                 LOGGER.error("Task submition failed");
@@ -410,51 +401,10 @@ public class TopologyTasksResource {
 
         List<String> fileUrls = submittedTask.getInputData().get(DpsTask.FILE_URLS);
         if (fileUrls == null) {
-            List<String> dataSets = submittedTask.getInputData().get(DpsTask.DATASET_URLS);
-            if (dataSets == null) {
-                LOGGER.info("Datasets or files urls list is empty. Permissions will not be granted");
-                throw new TaskSubmissionException("Datasets or files urls list is empty. Permissions will not be granted. Submission process stopped.");
-            } else {
-                String representationName = submittedTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-                fileUrls = new ArrayList<>();
-                for (String dataSet : dataSets) {
-                    try {
-                        UrlParser urlParser = new UrlParser(dataSet);
-                        if (urlParser.isUrlToDataset()) {
-                            dataSetServiceClient = context.getBean(DataSetServiceClient.class);
-                            List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                                    urlParser.getPart(UrlPart.DATA_SETS));
-                            for (Representation representation : representations) {
-                                if (representationName == null || representation.getRepresentationName().equals(representationName)) {
-                                    List<File> files = representation.getFiles();
-                                    for (File file : files) {
-                                        fileServiceClient = context.getBean(FileServiceClient.class);
-                                        String fileUrl = fileServiceClient.useAuthorizationHeader(authorizationHeader).getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                                        fileUrls.add(fileUrl);
-                                    }
-                                }
-
-                            }
-                        }
-                    } catch (DataSetNotExistsException ex) {
-                        LOGGER.warn("Provided dataset is not existed {}", dataSet);
-                        throw new TaskSubmissionException("Provided dataset is not existed: " + dataSet + ". Submission process stopped.");
-
-
-                    } catch (MalformedURLException ex) {
-                        LOGGER.error("URL in task's dataset list is malformed. Submission terminated. Wrong entry: " + dataSet);
-                        throw new TaskSubmissionException("Malformed URL in task: " + dataSet + ". Submission process stopped.");
-
-                    } catch (MCSException ex) {
-                        LOGGER.error("Error while communicating MCS", ex);
-                        throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");
-
-                    }
-                }
-            }
+            LOGGER.info("FIles list is empty. Permissions will not be granted");
+            return;
         }
         Iterator<String> it = fileUrls.iterator();
-        int size = 0;
         while (it.hasNext()) {
             String fileUrl = it.next();
             try {
@@ -469,7 +419,6 @@ public class TopologyTasksResource {
                                     parser.getPart(UrlPart.VERSIONS),
                                     topologyUserName,
                                     Permission.ALL);
-                    size++;
                     LOGGER.info("Permissions granted to: {}", fileUrl);
                 } else {
                     LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
@@ -484,6 +433,5 @@ public class TopologyTasksResource {
                 throw new RuntimeException(e.getMessage() + ". Submission process stopped");
             }
         }
-        submittedTask.addParameter("EXPECTED_SIZE", size + "");
     }
 }

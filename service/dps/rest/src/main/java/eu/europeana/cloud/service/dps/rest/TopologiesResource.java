@@ -69,17 +69,17 @@ public class TopologiesResource {
         assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
-        
+
         try {
             topologyAcl = (MutableAcl)mutableAclService.readAclById(topologyIdentity);
-            
+
         } catch (Exception e) {
-        	// not really an exception
+            // not really an exception
             LOGGER.info("ACL not found for topology {} and user {}. "
-            		+ "This is ok if it is the first time you are trying to assign permissions for this topology.", topology, userName);
+                    + "This is ok if it is the first time you are trying to assign permissions for this topology.", topology, userName);
             topologyAcl = mutableAclService.createAcl(topologyIdentity);
         }
-        
+
         topologyAcl.insertAce(topologyAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(userName), true);
         mutableAclService.updateAcl(topologyAcl);
 
