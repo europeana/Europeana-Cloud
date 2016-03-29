@@ -54,7 +54,6 @@ public class ImageConverterServiceImpl implements ImageConverterService {
     @Override
     public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException {
         converterContext = new ConverterContext(new KakaduConverterTiffToJP2());
-        URI fileURI = URI.create(stormTaskTuple.getFileUrl());
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
         String folderPath = null;
 
@@ -67,7 +66,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                 String cleanName = FilenameUtils.removeExtension(fileName);
                 String inputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
                 long randomValue = UUID.randomUUID().getMostSignificantBits();
-                String tempFileName = "" + randomValue;
+                String tempFileName = String.valueOf(randomValue);
                 folderPath = persistStreamToTemporaryStorage(inputStream, tempFileName, inputExtension);
                 String inputFilePath = buildFilePath(folderPath, tempFileName, inputExtension);
                 String outputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
@@ -79,7 +78,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                     File outputFile = new File(outputFilePath);
                     InputStream outputStream = new FileInputStream(outputFile);
                     stormTaskTuple.setFileData(outputStream);
-                    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_FILE_NAME, cleanName +  outputExtension);
+                    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_FILE_NAME, cleanName + outputExtension);
                     LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " completed successfully");
                 }
             }

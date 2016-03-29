@@ -25,6 +25,8 @@ public class DpsTaskValidatorFactory {
         } else if (topologyName.equals(IC_TOPOLOGY_NAME)) {
             DpsTaskValidator validator_for_file_urls = new DpsTaskValidator("FileUrl validator")
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE)
+                    .withParameter(PluginParameterKeys.MIME_TYPE)
+                    .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
                     .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME);
             validators.add(validator_for_file_urls);
             //

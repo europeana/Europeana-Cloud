@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ApplicationContextUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -10,6 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
@@ -39,6 +42,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget webTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
+    private DataSetServiceClient dataSetServiceClient;
+    private FileServiceClient fileServiceClient;
 
     @Override
     protected Application configure() {
@@ -52,6 +57,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
         context = applicationContext.getBean(ApplicationContext.class);
+        dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
+        fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
     }
 
@@ -61,6 +68,27 @@ public class TopologyTasksResourceTest extends JerseyTest {
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
+        String topologyName = "ic_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithDatsetEntry() throws MCSException {
+        //given
+        DpsTask task = new DpsTask("icTask");
+        task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         String topologyName = "ic_topology";
         prepareMocks(topologyName);
 
@@ -99,10 +127,13 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
-        when(context.getBean(any(Class.class))).thenReturn(recordServiceClient);
+        when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
+        when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
+        when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
         when(recordServiceClient.useAuthorizationHeader(null)).thenReturn(recordServiceClient);
-        doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(),any(eu.europeana.cloud.common.model.Permission.class));
+        when(dataSetServiceClient.useAuthorizationHeader(null)).thenReturn(dataSetServiceClient);
+        when(fileServiceClient.useAuthorizationHeader(null)).thenReturn(fileServiceClient);
+        doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
     }
-
 
 }

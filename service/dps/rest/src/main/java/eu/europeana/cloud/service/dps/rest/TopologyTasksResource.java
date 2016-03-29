@@ -407,7 +407,7 @@ public class TopologyTasksResource {
             LOGGER.error("There is no user for topology '{}' in users map. Permissions will not be granted.", topologyName);
             return;
         }
-
+        int size = 0;
         List<String> fileUrls = submittedTask.getInputData().get(DpsTask.FILE_URLS);
         if (fileUrls == null) {
             List<String> dataSets = submittedTask.getInputData().get(DpsTask.DATASET_URLS);
@@ -416,13 +416,10 @@ public class TopologyTasksResource {
                 throw new TaskSubmissionException("Datasets or files urls list is empty. Permissions will not be granted. Submission process stopped.");
             } else {
                 String representationName = submittedTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-                fileUrls = new ArrayList<>();
                 for (String dataSet : dataSets) {
                     try {
                         UrlParser urlParser = new UrlParser(dataSet);
-
                         if (urlParser.isUrlToDataset()) {
-
                             dataSetServiceClient = context.getBean(DataSetServiceClient.class);
                             List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
                                     urlParser.getPart(UrlPart.DATA_SETS));
@@ -432,11 +429,10 @@ public class TopologyTasksResource {
                                     for (File file : files) {
                                         fileServiceClient = context.getBean(FileServiceClient.class);
                                         String fileUrl = fileServiceClient.useAuthorizationHeader(authorizationHeader).getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                                        fileUrls.add(fileUrl);
-
+                                        grantPermissionToFile(fileUrl, authorizationHeader, topologyUserName);
+                                        size++;
                                     }
                                 }
-
                             }
                         }
                     } catch (DataSetNotExistsException ex) {
@@ -451,41 +447,45 @@ public class TopologyTasksResource {
                     } catch (MCSException ex) {
                         LOGGER.error("Error while communicating MCS", ex);
                         throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");
-
                     }
                 }
             }
-        }
-        Iterator<String> it = fileUrls.iterator();
-        int size = 0;
-        while (it.hasNext()) {
-            String fileUrl = it.next();
-            try {
-                UrlParser parser = new UrlParser(fileUrl);
-                if (parser.isUrlToRepresentationVersionFile()) {
-                    recordServiceClient = context.getBean(RecordServiceClient.class);
-                    recordServiceClient
-                            .useAuthorizationHeader(authorizationHeader)
-                            .grantPermissionsToVersion(
-                                    parser.getPart(UrlPart.RECORDS),
-                                    parser.getPart(UrlPart.REPRESENTATIONS),
-                                    parser.getPart(UrlPart.VERSIONS),
-                                    topologyUserName,
-                                    Permission.ALL);
-                    size++;
-                } else {
-                    LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
-                }
-            } catch (MalformedURLException e) {
-                LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
-                throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
-            } catch (MCSException e) {
-                LOGGER.error("Error while communicating MCS", e);
-                throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage() + ". Submission process stopped");
+        } else {
+            Iterator<String> it = fileUrls.iterator();
+            while (it.hasNext()) {
+                String fileUrl = it.next();
+                grantPermissionToFile(fileUrl, authorizationHeader, topologyUserName);
+                size++;
             }
         }
-        submittedTask.addParameter("EXPECTED_SIZE", size + "");
+        submittedTask.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(size));
+    }
+
+    private void grantPermissionToFile(String fileUrl, String authorizationHeader, String topologyUserName) throws TaskSubmissionException {
+        try {
+            UrlParser parser = new UrlParser(fileUrl);
+            if (parser.isUrlToRepresentationVersionFile()) {
+                recordServiceClient = context.getBean(RecordServiceClient.class);
+                recordServiceClient
+                        .useAuthorizationHeader(authorizationHeader)
+                        .grantPermissionsToVersion(
+                                parser.getPart(UrlPart.RECORDS),
+                                parser.getPart(UrlPart.REPRESENTATIONS),
+                                parser.getPart(UrlPart.VERSIONS),
+                                topologyUserName,
+                                Permission.ALL);
+                LOGGER.info("Permissions granted to: {}", fileUrl);
+            } else {
+                LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
+            }
+        } catch (MalformedURLException e) {
+            LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
+            throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
+        } catch (MCSException e) {
+            LOGGER.error("Error while communicating MCS", e);
+            throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage() + ". Submission process stopped");
+        }
     }
 }

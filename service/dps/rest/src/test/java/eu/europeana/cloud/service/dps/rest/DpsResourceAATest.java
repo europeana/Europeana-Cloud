@@ -2,6 +2,8 @@ package eu.europeana.cloud.service.dps.rest;
 
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.Permission;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -53,6 +55,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     @Autowired
     private RecordServiceClient recordServiceClient;
+
+    @Autowired
+    private DataSetServiceClient dataSetServiceClient;
+
+    @Autowired
+    private FileServiceClient fileServiceClient;
 
     /**
      * Pre-defined users
@@ -120,8 +128,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
         logoutEveryone();
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        DpsTask sampleTask = new DpsTask();
-        topologyTasksResource.submitTask(sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        DpsTask task = new DpsTask();
+        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
+        topologyTasksResource.submitTask(task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -206,6 +218,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         String topologyName = "ic_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);

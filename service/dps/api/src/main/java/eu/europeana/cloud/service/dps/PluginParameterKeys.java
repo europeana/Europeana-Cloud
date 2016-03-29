@@ -62,6 +62,7 @@ public final class PluginParameterKeys {
     //----------  DPS task  ----
     public static final String DATASET_URLS = "DATASET_URLS";
     public static final String FILE_URLS = "FILE_URLS";
+    public static final String EXPECTED_SIZE="EXPECTED_SIZE";
 
     public static final String TASK_SUBMITTER_NAME = "TASK_SUBMITTER_NAME";
 

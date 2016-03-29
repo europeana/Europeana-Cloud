@@ -106,7 +106,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
     }
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
-        emitBasicInfo(t.getTaskId(), files.size());
         StormTaskTuple tt;
 
         for (String file : files) {
@@ -142,8 +141,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-        int size = getFilesCountInsideDataSets(t, dataSets, representationName);
-        emitBasicInfo(t.getTaskId(), size);
         String fileUrl = null;
         for (String dataSet : dataSets) {
             try {
@@ -189,25 +186,5 @@ public class ReadFileBolt extends AbstractDpsBolt {
                 outputCollector.ack(inputTuple);
             }
         }
-    }
-
-    private int getFilesCountInsideDataSets(StormTaskTuple t, List<String> dataSets, String representationName) {
-        int size = 0;
-        for (String dataSet : dataSets) {
-            try {
-                UrlParser urlParser = new UrlParser(dataSet);
-                if (urlParser.isUrlToDataset()) {
-                    List<Representation> representations = dataSetClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                            urlParser.getPart(UrlPart.DATA_SETS));
-                    for (Representation representation : representations) {
-                        if (representationName == null || representation.getRepresentationName().equals(representationName))
-                            size += representation.getFiles().size();
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Error while counting the number of files inside datasets" + e.getMessage());
-            }
-        }
-        return size;
     }
 }
