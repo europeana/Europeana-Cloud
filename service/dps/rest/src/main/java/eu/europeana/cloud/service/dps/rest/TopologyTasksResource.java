@@ -9,7 +9,11 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.TaskExecutionKillService;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
@@ -43,7 +47,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -383,20 +386,22 @@ public class TopologyTasksResource {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        List<DpsTaskValidator> taskValidators = DpsTaskValidatorFactory.createValidators(topologyName);
-        StringBuilder errorMessages = new StringBuilder();
-        for (DpsTaskValidator validator : taskValidators) {
-            try {
-                validator.validate(task);
-                return;
-            } catch (DpsTaskValidationException e) {
-                errorMessages.append(validator.getValidatorName());
-                errorMessages.append(":");
-                errorMessages.append(e.getMessage());
-                errorMessages.append("\n");
-            }
+        
+        String taskType = specifyTaskType(task,topologyName);
+        DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
+        validator.validate(task);
+    }
+
+    private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
+        if(topologyName.equals("xslt_topology"))
+            return topologyName;
+        if (task.getDataEntry(PluginParameterKeys.FILE_URLS) != null) {
+            return topologyName + "_" + PluginParameterKeys.FILE_URLS.toLowerCase();
         }
-        throw new DpsTaskValidationException("Validation failed. Errors returned by validators are:\n " + errorMessages);
+        if (task.getDataEntry(PluginParameterKeys.DATASET_URLS) != null) {
+            return topologyName + "_" + PluginParameterKeys.DATASET_URLS.toLowerCase();
+        }
+        throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {

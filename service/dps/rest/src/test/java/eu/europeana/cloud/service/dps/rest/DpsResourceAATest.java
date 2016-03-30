@@ -167,7 +167,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
+            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: FILE_URLS"));
         }
     }
 
@@ -188,7 +188,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
+            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: XSLT_URL"));
         }
     }
 
@@ -208,7 +208,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
+            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
         }
     }
 
@@ -252,6 +252,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //when
         IC_TASK = new DpsTask("icTask");
         IC_TASK.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        IC_TASK.addParameter(PluginParameterKeys.MIME_TYPE, "mimeType");
+        IC_TASK.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "mimeType");
         String topologyName = "ic_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -262,7 +264,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), startsWith("Validation failed"));
+            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
         }
     }
 
