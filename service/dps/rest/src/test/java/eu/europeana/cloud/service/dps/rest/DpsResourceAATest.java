@@ -167,7 +167,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             fail();
         } catch (DpsTaskValidationException e) {
             //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: FILE_URLS"));
+            assertThat(e.getMessage(), startsWith("Validation failed"));
         }
     }
 

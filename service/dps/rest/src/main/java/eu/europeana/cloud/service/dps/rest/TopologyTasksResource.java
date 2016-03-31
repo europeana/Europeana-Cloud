@@ -386,15 +386,13 @@ public class TopologyTasksResource {
     }
 
     private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        
-        String taskType = specifyTaskType(task,topologyName);
+
+        String taskType = specifyTaskType(task, topologyName);
         DpsTaskValidator validator = DpsTaskValidatorFactory.createValidator(taskType);
         validator.validate(task);
     }
 
     private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        if(topologyName.equals("xslt_topology"))
-            return topologyName;
         if (task.getDataEntry(PluginParameterKeys.FILE_URLS) != null) {
             return topologyName + "_" + PluginParameterKeys.FILE_URLS.toLowerCase();
         }
