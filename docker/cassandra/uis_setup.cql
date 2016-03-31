@@ -4,7 +4,8 @@ CREATE TABLE data_providers (
         properties map<varchar, text>,
         data_sets map<varchar, varchar>,
         creation_date timestamp,
-        partition_key int
+        partition_key int,
+        active boolean
 );
 CREATE TABLE Cloud_Id (
         cloud_id varchar,

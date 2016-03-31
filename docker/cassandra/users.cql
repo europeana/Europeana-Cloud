@@ -5,6 +5,8 @@ CREATE KEYSPACE ecloud_mcs
     WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 CREATE KEYSPACE ecloud_aas
     WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+CREATE KEYSPACE ecloud_dps
+    WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
  
 //create users mcs
 CREATE USER ecloud_mcs WITH PASSWORD 'password' NOSUPERUSER;
@@ -19,7 +21,6 @@ GRANT MODIFY ON KEYSPACE ecloud_mcs TO ecloud_admin_mcs;
 GRANT SELECT ON KEYSPACE ecloud_mcs TO ecloud_admin_mcs;
  
 //crate users uis
- 
 CREATE USER ecloud_uis WITH PASSWORD 'password' NOSUPERUSER;
 GRANT SELECT ON KEYSPACE ecloud_uis TO ecloud_uis;
 GRANT MODIFY ON KEYSPACE ecloud_uis TO ecloud_uis;
@@ -42,3 +43,15 @@ GRANT CREATE ON KEYSPACE ecloud_aas TO ecloud_admin_aas;
 GRANT DROP ON KEYSPACE ecloud_aas TO ecloud_admin_aas;
 GRANT MODIFY ON KEYSPACE ecloud_aas TO ecloud_admin_aas;
 GRANT SELECT ON KEYSPACE ecloud_aas TO ecloud_admin_aas;
+
+//crate users dps
+CREATE USER ecloud_dps WITH PASSWORD 'password' NOSUPERUSER;
+GRANT SELECT ON KEYSPACE ecloud_dps TO ecloud_dps;
+GRANT MODIFY ON KEYSPACE ecloud_dps TO ecloud_dps;
+  
+CREATE USER ecloud_admin_dps WITH PASSWORD 'password' NOSUPERUSER;
+GRANT ALTER ON KEYSPACE ecloud_dps TO ecloud_admin_dps;
+GRANT CREATE ON KEYSPACE ecloud_dps TO ecloud_admin_dps;
+GRANT DROP ON KEYSPACE ecloud_dps TO ecloud_admin_dps;
+GRANT MODIFY ON KEYSPACE ecloud_dps TO ecloud_admin_dps;
+GRANT SELECT ON KEYSPACE ecloud_dps TO ecloud_admin_dps;

@@ -47,15 +47,15 @@
               pathname="conf/tomcat-users.xml" />
      
     <!-- UIS local specific configuration -->
-    <Environment name="uis/cassandra/hosts" type="java.lang.String" value="192.168.59.103"/>
+    <Environment name="uis/cassandra/hosts" type="java.lang.String" value="cassandra"/>
     <Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/>
     <Environment name="uis/cassandra/user" type="java.lang.String" value="ecloud_uis"/>
     <Environment name="uis/cassandra/password" type="java.lang.String" value="password"/>
     <Environment name="uis/cassandra/keyspace" type="java.lang.String" value="ecloud_uis"/>
     <Environment name="uis/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
-    
+
     <!-- MCS local Cassandra specific configuration -->
-    <Environment name="mcs/cassandra/hosts" type="java.lang.String" value="192.168.59.103"/>
+    <Environment name="mcs/cassandra/hosts" type="java.lang.String" value="cassandra"/>
     <Environment name="mcs/cassandra/port" type="java.lang.Integer" value="9042"/>
     <Environment name="mcs/cassandra/user" type="java.lang.String" value="ecloud_mcs"/>
     <Environment name="mcs/cassandra/password" type="java.lang.String" value="password"/>
@@ -63,21 +63,18 @@
     <!-- MCS Swift specific configuration -->
     <Environment name="mcs/swift/provider" type="java.lang.String" value="swift" />
     <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud" />
-    <Environment name="mcs/swift/user" type="java.lang.String" value="admin" />
+    <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin" />
     <Environment name="mcs/swift/password" type="java.lang.String" value="admin" />
-    <Environment name="mcs/swift/endpoint" type="java.lang.String" value="http://192.168.59.103:8888/v1.0" />
+    <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://swift:8888/auth/v1.0" />
     <!-- MCS Solr specific configuration -->
-    <Environment name="mcs/solr/url" type="java.lang.String" value="http://192.168.59.103:8080/solr/" />
-    <Environment name="mcs/uis-url" value="http://localhost:8080/ecloud-service-uis-rest-0.3-SNAPSHOT/" type="java.lang.String" override="false" />
-    <!-- MCS Solr specific configuration -->
-    <Environment name="mcs/solr/url" type="java.lang.String" value="http://192.168.59.103:8080/solr/" />
-    <Environment name="mcs/uis-url" value="http://localhost:8080/ecloud-service-uis-rest-0.3-SNAPSHOT/" type="java.lang.String" override="false" />
+    <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/" />
+    <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false" />
     <!-- Kafka local specific configuration -->
-    <Environment name="kafka/brokerList" type="java.lang.String" value="192.168.59.103:9093,192.168.59.103:9094" />
-    <Environment name="kafka/zookeeperList" type="java.lang.String" value="192.168.59.103:2181" />
+    <Environment name="kafka/brokerList" type="java.lang.String" value="kafka:9092" />
+    <Environment name="kafka/zookeeperList" type="java.lang.String" value="zk:2181" />
     <Environment name="kafka/topic" type="java.lang.String" value="topic" />
     <!-- AAS local specific configuration -->
-    <Environment name="aas/cassandra/hosts" type="java.lang.String" value="192.168.59.103" />
+    <Environment name="aas/cassandra/hosts" type="java.lang.String" value="cassandra" />
     <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042" />
     <Environment name="aas/cassandra/user" type="java.lang.String" value="ecloud_aas" />
     <Environment name="aas/cassandra/password" type="java.lang.String" value="password" />

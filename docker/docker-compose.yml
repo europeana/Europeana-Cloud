@@ -1,7 +1,5 @@
 tomcat:
-  #image: ecloud/tomcat 
   build: tomcat
-  # command: docker run -it --name="ecloud_tomcat" -p 8080:8080 ecloud/tomcat
   ports:
     - "8080:8080"
   links:
@@ -11,65 +9,67 @@ tomcat:
     - kafka:kafka
 
 cassandra:
-  #image: ecloud/cassandra
   build: cassandra
   ports:
     - "9042:9042"
     - "9160:9160"
 
-swift: 
-  #image: ecloud/swift
+swift:
   build: docker-swift-onlyone
   ports:
     - "8888:8888"
-  volumes: 
+  volumes:
     - /srv
 
 zookeeper:
-  image: wurstmeister/zookeeper
-  ports: 
-    - "2181"
-    - "22"
-nimbus:
-  image: wurstmeister/storm-nimbus
+  image: wurstmeister/zookeeper:3.4.6
   ports:
-    - "3773"
-    - "3772"
-    - "6627"
-    - "22"
-  links: 
-    - zookeeper:zk
-supervisor:
-  image: wurstmeister/storm-supervisor
-  ports:
-    - "8000"
-    - "22"
-  links: 
-    - nimbus:nimbus
-    - zookeeper:zk
-ui:
-  image: wurstmeister/storm-ui
-  ports:
-    - "49080:8080"
-    - "22"
-  links: 
-    - nimbus:nimbus
-    - zookeeper:zk     
-kafka: 
-  image: wurstmeister/kafka
-  ports:
-    - "9092"
-  links: 
-    - zookeeper:zk
-  environment:
-    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
+    - "2182:2181"
 
-elasticsearch:
-  image: tutum/elasticsearch
-  ports:
-    - "9200:9200"
+kafka:
+  image: wurstmeister/kafka:0.8.2.0
+  links:
+   - zookeeper:zk
   environment:
-    ELASTICSEARCH_USER: admin
-    ELASTICSEARCH_PASS: password
+    KAFKA_CREATE_TOPICS: "topic:1:1"
+  ports:
+   - "9092:9092"
+  volumes:
+   - /var/run/docker.sock:/var/run/docker.sock
+
+
+
+
+#nimbus:
+#  image: wurstmeister/storm-nimbus
+#  ports:
+#    - "3773"
+#    - "3772"
+#    - "6627"
+#    - "22"
+#  links:
+#    - zookeeper:zk
+#supervisor:
+#  image: wurstmeister/storm-supervisor
+#  ports:
+#    - "8000"
+#    - "22"
+#  links:
+#    - nimbus:nimbus
+#    - zookeeper:zk
+#ui:
+#  image: wurstmeister/storm-ui
+#  ports:
+#    - "49080:8080"
+#    - "22"
+#  links:
+#    - nimbus:nimbus
+#    - zookeeper:zk
+#
+#elasticsearch:
+#  image: tutum/elasticsearch
+#  ports:
+#    - "9200:9200"
+#  environment:
+#    ELASTICSEARCH_USER: admin
+#    ELASTICSEARCH_PASS: password
