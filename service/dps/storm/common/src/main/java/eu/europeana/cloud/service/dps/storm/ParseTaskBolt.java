@@ -8,6 +8,7 @@ import backtype.storm.tuple.Tuple;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -97,7 +98,7 @@ public class ParseTaskBolt extends BaseRichBolt {
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
                                 importantParameter.getKey(), val);
                         emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                        emitBasicInfo(task.getTaskId(), 1);
+                        emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
                         outputCollector.ack(tuple);
                         return;
                     }
@@ -108,7 +109,7 @@ public class ParseTaskBolt extends BaseRichBolt {
 
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
                     emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                    emitBasicInfo(task.getTaskId(), 1);
+                    emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
                     outputCollector.ack(tuple);
                     return;
                 }
@@ -121,7 +122,7 @@ public class ParseTaskBolt extends BaseRichBolt {
 
             String message = String.format("Dropped because it contains an empty task.");
             emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-            emitBasicInfo(task.getTaskId(), 0);
+            emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
             outputCollector.ack(tuple);
             return;
         } else {
@@ -161,10 +162,10 @@ public class ParseTaskBolt extends BaseRichBolt {
                     LOGGER.warn(message);
                     emitDropNotification(task.getTaskId(), "", message,
                             taskParameters != null ? taskParameters.toString() : "");
-                    emitBasicInfo(task.getTaskId(), expectedSize);
+                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED);
                 }
             } else {
-                emitBasicInfo(task.getTaskId(), expectedSize);
+                emitBasicInfo(task.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING);
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
             }
             outputCollector.ack(tuple);
@@ -180,8 +181,8 @@ public class ParseTaskBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

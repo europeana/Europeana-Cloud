@@ -5,6 +5,7 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,10 +31,10 @@ public class NotificationTuple {
         this.parameters = parameters;
     }
 
-    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize) {
+    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize, TaskState state) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
-
+        parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
         return new NotificationTuple(taskId, InformationTypes.BASIC_INFO, parameters);
     }
 

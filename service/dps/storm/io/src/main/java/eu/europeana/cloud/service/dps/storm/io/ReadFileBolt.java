@@ -11,6 +11,7 @@ import java.util.Map;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -74,6 +75,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
                     List<String> files = fromJson.get(DpsTask.FILE_URLS);
                     if (!files.isEmpty()) {
                         emitFiles(t, files);
+                        emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
                         outputCollector.ack(inputTuple);
                         return;
                     }
@@ -82,6 +84,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
                         List<String> dataSets = fromJson.get(DpsTask.DATASET_URLS);
                         if (!dataSets.isEmpty()) {
                             emitFilesFromDataSets(t, dataSets);
+                            emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
                             outputCollector.ack(inputTuple);
                             return;
                         }
@@ -93,7 +96,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1);
+            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED);
             outputCollector.ack(inputTuple);
             return;
         }

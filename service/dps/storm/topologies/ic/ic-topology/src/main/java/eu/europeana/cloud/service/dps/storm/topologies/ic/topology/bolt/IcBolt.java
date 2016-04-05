@@ -41,6 +41,7 @@ public class IcBolt extends AbstractDpsBolt {
             outputCollector.ack(inputTuple);
         } catch (IOException | MimeTypeException | MCSException | ICSException e) {
             LOGGER.error("IC Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
+            logAndEmitError(stormTaskTuple, e.getMessage());
         }
     }
 

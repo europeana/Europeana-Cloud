@@ -64,6 +64,8 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("topologyName", basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME));
             res.addProperty("totalSize", expectedSize);
             res.addProperty("processed", processed);
+            res.addProperty("state", basicInfo.getString(CassandraTablesAndColumnsNames.STATE));
+            res.addProperty("info", basicInfo.getString(CassandraTablesAndColumnsNames.INFO));
         } else {
             //read number of processed tasks from Cassandra
             Statement selectFromNotification = QueryBuilder.select().countAll()
@@ -77,6 +79,8 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("topologyName", "");
             res.addProperty("totalSize", "?");
             res.addProperty("processed", processed);
+            res.addProperty("state", "");
+            res.addProperty("info", "");
         }
 
         return new Gson().toJson(res);

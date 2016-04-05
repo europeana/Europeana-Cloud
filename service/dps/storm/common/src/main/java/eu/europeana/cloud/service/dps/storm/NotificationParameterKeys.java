@@ -2,16 +2,17 @@ package eu.europeana.cloud.service.dps.storm;
 
 /**
  * Keys for Map of parameters.
+ *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
-public class NotificationParameterKeys 
-{
+public class NotificationParameterKeys {
     //------- for BASIC INFO -------
     public static final String EXPECTED_SIZE = "expectedSize";
-    
+    public static final String TASK_STATE = "state";
+
     //------- for RELATION -------
     public static final String CHILD_TASK_ID = "childTaskId";
-    
+
     //------- for NOTIFICATION -------
     public static final String RESOURCE = "resource";
     public static final String STATE = "state";

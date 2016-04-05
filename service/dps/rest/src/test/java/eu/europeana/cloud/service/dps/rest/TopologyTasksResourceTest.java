@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.ApplicationContextUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.hamcrest.CoreMatchers;
@@ -44,6 +45,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
     private FileServiceClient fileServiceClient;
+    private CassandraTaskInfoDAO taskDAO;
 
     @Override
     protected Application configure() {
@@ -59,6 +61,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         context = applicationContext.getBean(ApplicationContext.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
+        taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
     }
 
@@ -126,6 +129,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(topologyManager.getNameToUserMap()).thenReturn(user);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
+        doNothing().when(taskDAO).insert(anyLong(),anyString(),anyInt(),anyString(),anyString());
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);

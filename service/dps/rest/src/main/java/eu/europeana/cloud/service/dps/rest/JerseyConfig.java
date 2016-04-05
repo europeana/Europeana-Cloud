@@ -9,7 +9,6 @@ import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 /**
  * Jersey Configuration for Exception Mappers and Resources
- * 
  */
 public class JerseyConfig extends ResourceConfig {
 
@@ -35,5 +34,6 @@ public class JerseyConfig extends ResourceConfig {
         // resources
         register(TopologyTasksResource.class);
         register(TopologiesResource.class);
+        
     }
 }

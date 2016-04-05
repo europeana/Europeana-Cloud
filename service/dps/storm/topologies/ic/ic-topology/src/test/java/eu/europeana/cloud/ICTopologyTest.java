@@ -84,6 +84,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "[\"" + SOURCE_VERSION_URL + "\"]}," +
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
+                "\"EXPECTED_SIZE\":\"1\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +
@@ -117,6 +118,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "[\"" + SOURCE_DATASET_URL + "\"]}," +
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
+                "\"EXPECTED_SIZE\":\"1\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +

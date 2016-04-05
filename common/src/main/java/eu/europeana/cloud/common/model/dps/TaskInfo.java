@@ -8,11 +8,38 @@ public class TaskInfo {
     private final long id;
     private final String topologyName;
     private int containsElements;
+    private TaskState state;
+    private String info;
     private List<SubTaskInfo> subtasks = new ArrayList<>();
 
-    public TaskInfo(long id, String topologyName) {
+    public TaskState getState() {
+        return state;
+    }
+
+    public void setState(TaskState state) {
+        this.state = state;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+
+    public TaskInfo(long id, String topologyName, TaskState state, String info) {
         this.id = id;
         this.topologyName = topologyName;
+        this.state = state;
+        this.info = info;
+
+    }
+
+    public TaskInfo(long id, String topologyName, TaskState state) {
+        this(id, topologyName, state, "");
+
     }
 
     public long getId() {

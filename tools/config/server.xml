@@ -10,13 +10,13 @@
     <Listener className="org.apache.catalina.security.SecurityListener" />
     -->
     <!--APR library loader. Documentation at /docs/apr.html -->
-    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on"/>
     <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
-    <Listener className="org.apache.catalina.core.JasperListener" />
+    <Listener className="org.apache.catalina.core.JasperListener"/>
     <!-- Prevent memory leaks due to use of particular java/javax APIs-->
-    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
-    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
-    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener"/>
 
     <!-- Global JNDI resources
          Documentation at /docs/jndi-resources-howto.html
@@ -29,7 +29,7 @@
                   type="org.apache.catalina.UserDatabase"
                   description="User database that can be updated and saved"
                   factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
-                  pathname="conf/tomcat-users.xml" />
+                  pathname="conf/tomcat-users.xml"/>
 
         <!-- UIS local specific configuration -->
         <Environment name="uis/cassandra/hosts" type="java.lang.String" value="localhost"/>
@@ -47,7 +47,8 @@
         <Environment name="mcs/cassandra/password" type="java.lang.String" value="cassandra"/>
 
         <!-- MCS Swift specific configuration -->
-        <Environment name="mcs/swift/provider" type="java.lang.String" value="swift"/> <!-- please note that that should be "swift" if you are not using keystone-->
+        <Environment name="mcs/swift/provider" type="java.lang.String" value="swift"/>
+        <!-- please note that that should be "swift" if you are not using keystone-->
         <Environment name="mcs/swift/container" type="java.lang.String" value="ecloudA"/>
         <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>
         <Environment name="mcs/swift/password" type="java.lang.String" value="admin"/>
@@ -70,28 +71,26 @@
         <Environment name="aas/cassandra/autoCreateTables" type="java.lang.Boolean" value="false"/>
         <Environment name="aas/cassandra/user" type="java.lang.String" value="cassandra"/>
         <Environment name="aas/cassandra/password" type="java.lang.String" value="cassandra"/>
-        
+
         <!--DPS local specyfic configuration -->
         <Environment name="dps/cassandra/hosts" type="java.lang.String" value="localhost"/>
         <Environment name="dps/cassandra/port" type="java.lang.Integer" value="9042"/>
         <Environment name="dps/cassandra/keyspace" type="java.lang.String" value="ecloud_dps"/>
-        <Environment name="dps/cassandra/user" type="java.lang.String" value="ecloud_dps"/>
-        <Environment name="dps/cassandra/password" type="java.lang.String" value="ecloud_dps"/>
-        
+        <Environment name="dps/cassandra/user" type="java.lang.String" value="cassandra"/>
+        <Environment name="dps/cassandra/password" type="java.lang.String" value="cassandra"/>
+
         <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="localhost:9092"/>
         <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
         <Environment name="dps/zookeeper/address" type="java.lang.String" value="localhost:2181"/>
 
         <Environment name="dps/topology/userNameList" type="java.lang.String" value="user1,ic_user,xslt_user"/>
         <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,ic_topology,xslt_topology"/>
-        
+
         <Environment name="dps/mcsLocation" type="java.lang.String" value="http://iks-kbase.synat.pcss.pl:9090/mcs"/>
 
-        <!--ICS -->
-        <Environment name="ics/mcs-url" type="java.lang.String" value="http://localhost:9090/mcs/"/>
-
         <!--Image publisher -->
-        <Environment name="ips/iipHost" type="java.lang.String" value="http://loheria.man.poznan.pl/www-fcgi/iipsrv.fcgi"/>
+        <Environment name="ips/iipHost" type="java.lang.String"
+                     value="http://loheria.man.poznan.pl/www-fcgi/iipsrv.fcgi"/>
 
     </GlobalNamingResources>
 
@@ -118,7 +117,7 @@
         -->
         <Connector port="9090" protocol="HTTP/1.1"
                    connectionTimeout="20000"
-                   redirectPort="8443" />
+                   redirectPort="8443"/>
         <!-- A "Connector" using the shared thread pool-->
         <!--
         <Connector executor="tomcatThreadPool"
@@ -137,7 +136,7 @@
         -->
 
         <!-- Define an AJP 1.3 Connector on port 8009 -->
-        <Connector port="9009" protocol="AJP/1.3" redirectPort="8443" />
+        <Connector port="9009" protocol="AJP/1.3" redirectPort="8443"/>
 
 
         <!-- An Engine represents the entry point (within Catalina) that processes
@@ -169,7 +168,7 @@
                        resourceName="UserDatabase"/>
             </Realm>
 
-            <Host name="localhost"  appBase="webapps"
+            <Host name="localhost" appBase="webapps"
                   unpackWARs="false" autoDeploy="false">
 
                 <!-- SingleSignOn valve, share authentication between web applications
@@ -183,7 +182,7 @@
                 Note: The pattern used is equivalent to using pattern="common" -->
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logsDir}"
                        prefix="localhost_access_log." suffix=".txt"
-                       pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
 
             </Host>
         </Engine>

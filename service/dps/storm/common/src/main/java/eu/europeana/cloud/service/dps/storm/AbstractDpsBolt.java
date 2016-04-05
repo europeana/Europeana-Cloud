@@ -4,6 +4,7 @@ import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,8 +153,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param taskId       task ID
      * @param expectedSize number of emitted {@link StormTaskTuple}
      */
-    protected void emitBasicInfo(long taskId, int expectedSize) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize);
+    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

@@ -32,4 +32,5 @@
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
          
     <mockito:mock id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService"/>
+    <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
 </beans>

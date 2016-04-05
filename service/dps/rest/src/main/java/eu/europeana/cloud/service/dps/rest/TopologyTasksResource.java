@@ -1,25 +1,25 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.TaskExecutionKillService;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
-import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -40,6 +40,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -87,6 +90,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private DataSetServiceClient dataSetServiceClient;
+
+    @Autowired
+    private CassandraTaskInfoDAO taskDAO;
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
@@ -179,31 +185,38 @@ public class TopologyTasksResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     @Path("/")
-    public Response submitTask(
-            DpsTask task,
-            @PathParam("topologyName") String topologyName,
-            @Context UriInfo uriInfo,
-            @HeaderParam("Authorization") String authorizationHeader
+    public Response submitTask(@Suspended final AsyncResponse asyncResponse,
+                               DpsTask task,
+                               @PathParam("topologyName") String topologyName,
+                               @Context UriInfo uriInfo,
+                               @HeaderParam("Authorization") String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
-
-        LOGGER.info("Submiting task");
-
-        assertContainTopology(topologyName);
-        validateTask(task, topologyName);
-
         if (task != null) {
-            grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
-
-            submitService.submitTask(task, topologyName);
-            permissionManager.grantPermissionsForTask(task.getTaskId() + "");
-            String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+            LOGGER.info("Submiting task");
+            assertContainTopology(topologyName);
+            validateTask(task, topologyName);
             try {
+                String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+                Response response = Response.created(new URI(createdTaskUrl)).build();
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission");
+                asyncResponse.resume(response);
+                LOGGER.info("The task is in a pending mode");
+                grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
+                submitService.submitTask(task, topologyName);
+                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+                int expectedSize = 0;
+                String sizeParameter = task.getParameter(PluginParameterKeys.EXPECTED_SIZE);
+                if (sizeParameter != null)
+                    expectedSize = Integer.parseInt(sizeParameter);
                 LOGGER.info("Task submitted successfully");
-                return Response.created(new URI(createdTaskUrl)).build();
+                taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "");
+                asyncResponse.resume(response);
             } catch (URISyntaxException e) {
                 LOGGER.error("Task submition failed");
                 e.printStackTrace();
-                return Response.serverError().build();
+                Response response = Response.serverError().build();
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                asyncResponse.resume(response);
             }
         }
         return Response.notModified().build();
@@ -402,6 +415,7 @@ public class TopologyTasksResource {
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 
+
     private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
 
         LOGGER.info("Granting permissions to files from DPS task");
@@ -428,21 +442,14 @@ public class TopologyTasksResource {
                                     urlParser.getPart(UrlPart.DATA_SETS));
                             for (Representation representation : representations) {
                                 if (representationName == null || representation.getRepresentationName().equals(representationName)) {
-                                    List<File> files = representation.getFiles();
-                                    for (File file : files) {
-                                        fileServiceClient = context.getBean(FileServiceClient.class);
-                                        String fileUrl = fileServiceClient.useAuthorizationHeader(authorizationHeader).getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                                        grantPermissionToFile(fileUrl, authorizationHeader, topologyUserName);
-                                        size++;
-                                    }
+                                    grantPermissionToVersion(authorizationHeader, topologyUserName, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+                                    size += representation.getFiles().size();
                                 }
                             }
                         }
                     } catch (DataSetNotExistsException ex) {
                         LOGGER.warn("Provided dataset is not existed {}", dataSet);
                         throw new TaskSubmissionException("Provided dataset is not existed: " + dataSet + ". Submission process stopped.");
-
-
                     } catch (MalformedURLException ex) {
                         LOGGER.error("URL in task's dataset list is malformed. Submission terminated. Wrong entry: " + dataSet);
                         throw new TaskSubmissionException("Malformed URL in task: " + dataSet + ". Submission process stopped.");
@@ -457,38 +464,72 @@ public class TopologyTasksResource {
             Iterator<String> it = fileUrls.iterator();
             while (it.hasNext()) {
                 String fileUrl = it.next();
-                grantPermissionToFile(fileUrl, authorizationHeader, topologyUserName);
-                size++;
+                try {
+                    UrlParser parser = new UrlParser(fileUrl);
+                    if (parser.isUrlToRepresentationVersionFile()) {
+                        size++;
+                        grantPermissionToVersion(authorizationHeader, topologyUserName,
+                                parser.getPart(UrlPart.RECORDS),
+                                parser.getPart(UrlPart.REPRESENTATIONS),
+                                parser.getPart(UrlPart.VERSIONS));
+                        LOGGER.info("Permissions granted to: {}", fileUrl);
+                    } else {
+                        LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
+                    }
+                } catch (MalformedURLException e) {
+                    LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
+                    throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
+                } catch (MCSException e) {
+                    LOGGER.error("Error while communicating MCS", e);
+                    throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
+                } catch (Exception e) {
+                    throw new RuntimeException(e.getMessage() + ". Submission process stopped");
+                }
+
             }
         }
         submittedTask.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(size));
     }
 
-    private void grantPermissionToFile(String fileUrl, String authorizationHeader, String topologyUserName) throws TaskSubmissionException {
-        try {
-            UrlParser parser = new UrlParser(fileUrl);
-            if (parser.isUrlToRepresentationVersionFile()) {
-                recordServiceClient = context.getBean(RecordServiceClient.class);
-                recordServiceClient
-                        .useAuthorizationHeader(authorizationHeader)
-                        .grantPermissionsToVersion(
-                                parser.getPart(UrlPart.RECORDS),
-                                parser.getPart(UrlPart.REPRESENTATIONS),
-                                parser.getPart(UrlPart.VERSIONS),
-                                topologyUserName,
-                                Permission.ALL);
-                LOGGER.info("Permissions granted to: {}", fileUrl);
-            } else {
-                LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
-            }
-        } catch (MalformedURLException e) {
-            LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
-            throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
-        } catch (MCSException e) {
-            LOGGER.error("Error while communicating MCS", e);
-            throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage() + ". Submission process stopped");
+    private void grantPermissionToVersion(String authorizationHeader, String topologyUserName, String cloudId, String representationName, String version) throws MCSException, TaskSubmissionException {
+        recordServiceClient = context.getBean(RecordServiceClient.class);
+        recordServiceClient
+                .useAuthorizationHeader(authorizationHeader)
+                .grantPermissionsToVersion(
+                        cloudId,
+                        representationName,
+                        version, topologyUserName,
+                        Permission.ALL);
+    }
+
+    private class CancelTimeoutHandlerImpl implements TimeoutHandler {
+        private String taskUrl;
+        private long taskId;
+        private String topologyName;
+
+        public CancelTimeoutHandlerImpl(String taskUrl, long taskId, String topologyName) {
+            this.taskUrl = taskUrl;
+            this.taskId = taskId;
+            this.topologyName = topologyName;
         }
+
+        @Override
+        public void handleTimeout(AsyncResponse asyncResponse) {
+            try {
+                LOGGER.info("Task submission taking too long, it is in pending mode");
+                Response response = Response.created(new URI(taskUrl)).build();
+                taskDAO.insert(taskId, topologyName, 0, TaskState.PENDING.toString(), "The task is being processed before submission");
+                asyncResponse.resume(response);
+            } catch (URISyntaxException e) {
+                LOGGER.error("Task submition failed");
+                e.printStackTrace();
+                Response response = Response.serverError().build();
+                taskDAO.insert(taskId, topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                asyncResponse.resume(response);
+            }
+
+
+        }
+
     }
 }

@@ -173,7 +173,8 @@ public class NotificationBolt extends BaseRichBolt {
     private int storeBasicInfo(long taskId, Map<String, String> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
         int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE));
-        taskInfoDAO.insert(taskId, topologyName, expectedSize);
+        String state = parameters.get(NotificationParameterKeys.TASK_STATE);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, "");
         return expectedSize;
     }
 

@@ -11,7 +11,7 @@
 
 
     <context:annotation-config/>
-    <import resource="classpath:config.xml" />
+    <import resource="classpath:config.xml"/>
 
     <context:component-scan
             base-package="eu.europeana.cloud.service.dps.rest"/>
@@ -24,17 +24,17 @@
     <mockito:mock id="killService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService"/>
     <!--<mockito:mock  id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>-->
     <mockito:mock id="topologyManager" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager"/>
-    <mockito:mock  id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
+    <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
     <bean id="mcsLocation" class="java.lang.String">
-        <constructor-arg type="java.lang.String" value="test" />
+        <constructor-arg type="java.lang.String" value="test"/>
     </bean>
-    <mockito:mock  id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"/>
+    <mockito:mock id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"/>
 
-    <mockito:mock  id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient"/>
+    <mockito:mock id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient"/>
 
-    <mockito:mock  id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient"/>
+    <mockito:mock id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient"/>
 
-
+    <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
 
 
 </beans>
