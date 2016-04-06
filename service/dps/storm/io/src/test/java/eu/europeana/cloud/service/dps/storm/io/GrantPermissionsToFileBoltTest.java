@@ -119,7 +119,7 @@ public class GrantPermissionsToFileBoltTest {
 
     private void assertErrorEmit(Tuple tuple, NotificationTuple expectedNotification) {
         verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), eq(expectedNotification.toStormTuple()));
-        verify(collector, times(0)).ack(tuple);
+        verify(collector, times(1)).ack(tuple);
     }
 
     private Tuple createTestTuple(String fileUrl) {

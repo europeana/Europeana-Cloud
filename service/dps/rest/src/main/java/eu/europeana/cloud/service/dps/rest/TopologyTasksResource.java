@@ -501,35 +501,4 @@ public class TopologyTasksResource {
                         version, topologyUserName,
                         Permission.ALL);
     }
-
-    private class CancelTimeoutHandlerImpl implements TimeoutHandler {
-        private String taskUrl;
-        private long taskId;
-        private String topologyName;
-
-        public CancelTimeoutHandlerImpl(String taskUrl, long taskId, String topologyName) {
-            this.taskUrl = taskUrl;
-            this.taskId = taskId;
-            this.topologyName = topologyName;
-        }
-
-        @Override
-        public void handleTimeout(AsyncResponse asyncResponse) {
-            try {
-                LOGGER.info("Task submission taking too long, it is in pending mode");
-                Response response = Response.created(new URI(taskUrl)).build();
-                taskDAO.insert(taskId, topologyName, 0, TaskState.PENDING.toString(), "The task is being processed before submission");
-                asyncResponse.resume(response);
-            } catch (URISyntaxException e) {
-                LOGGER.error("Task submition failed");
-                e.printStackTrace();
-                Response response = Response.serverError().build();
-                taskDAO.insert(taskId, topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
-                asyncResponse.resume(response);
-            }
-
-
-        }
-
-    }
 }

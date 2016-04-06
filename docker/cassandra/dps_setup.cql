@@ -1,10 +1,12 @@
 USE ecloud_dps ;
 
 CREATE TABLE basic_info (
-    task_id bigint,
-    topology_name varchar,
-    expected_size int,
-    PRIMARY KEY(task_id, topology_name)
+task_id bigint,
+topology_name varchar,
+expected_size int,
+state varchar,
+info varchar,
+PRIMARY KEY(task_id, topology_name)
 );
 
 CREATE TABLE notifications (

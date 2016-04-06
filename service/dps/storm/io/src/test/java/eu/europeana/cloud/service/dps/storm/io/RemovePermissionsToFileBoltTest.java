@@ -50,16 +50,15 @@ public class RemovePermissionsToFileBoltTest {
     private OutputCollector collector;
 
 
-
     @Before
     public void setUp() throws Exception {
         dirtyMockZookeeperKS();
         dirtyMockRecordSC();
         testedBolt = new RemovePermissionsToFileBolt("http://localhost:8080/mcs/", "admin", "admin");
-        Map<String,Object> boltConfig = new HashMap<>();
-        boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("",""));
-        boltConfig.put(Config.STORM_ZOOKEEPER_PORT,"");
-        boltConfig.put(Config.TOPOLOGY_NAME,"");
+        Map<String, Object> boltConfig = new HashMap<>();
+        boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
+        boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
+        boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
     }
 
@@ -72,8 +71,8 @@ public class RemovePermissionsToFileBoltTest {
         //when
         testedBolt.execute(tuple);
         //then
-        verify(collector,times(1)).ack(tuple);
-        verify(collector,times(1)).emit(eq(tuple),any(Values.class));
+        verify(collector, times(1)).ack(tuple);
+        verify(collector, times(1)).emit(eq(tuple), any(Values.class));
     }
 
     @Test
@@ -86,8 +85,8 @@ public class RemovePermissionsToFileBoltTest {
         //when
         testedBolt.execute(tuple);
         //then
-        verify(collector,times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), eq(expectedNotification.toStormTuple()));
-        verify(collector,times(0)).ack(tuple);
+        verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), eq(expectedNotification.toStormTuple()));
+        verify(collector, times(1)).ack(tuple);
     }
 
 
@@ -101,8 +100,8 @@ public class RemovePermissionsToFileBoltTest {
         //when
         testedBolt.execute(tuple);
         //then
-        verify(collector,times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), eq(expectedNotification.toStormTuple()));
-        verify(collector,times(0)).ack(tuple);
+        verify(collector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), eq(expectedNotification.toStormTuple()));
+        verify(collector, times(1)).ack(tuple);
 
     }
 
@@ -128,7 +127,6 @@ public class RemovePermissionsToFileBoltTest {
         PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zookeeperKillService);
 
     }
-
 
 
     private void dirtyMockRecordSC() throws Exception {
