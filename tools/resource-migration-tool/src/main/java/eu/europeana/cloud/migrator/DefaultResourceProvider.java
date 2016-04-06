@@ -190,7 +190,7 @@ public abstract class DefaultResourceProvider
     private void sortPaths(Map<String, List<FilePaths>> paths) {
         for (List<FilePaths> list : paths.values()) {
             for (FilePaths fp : list)
-                Collections.sort(fp.getFullPaths());
+                fp.sort();
         }
     }
 
@@ -211,7 +211,8 @@ public abstract class DefaultResourceProvider
                     String absolute = path.toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
                     String providerId = getResourceProviderId(absolute);
                     FilePaths providerPaths = getProviderPaths(Paths.get(location).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), providerId, paths);
-                    providerPaths.getFullPaths().add(absolute);
+                    //providerPaths.getFullPaths().add(absolute);
+                    providerPaths.addPath(absolute);
                     if (providersLocation.get(providerId) == null)
                         providersLocation.put(providerId, location);
                 }
@@ -236,6 +237,8 @@ public abstract class DefaultResourceProvider
                 return p;
         }
         FilePaths fp = new FilePaths(location, providerId);
+        if (usePathsFile())
+            fp.useFile(location.replace(ResourceMigrator.LINUX_SEPARATOR, "_").replace(":", "_") + "_" + providerId);
         paths.get(providerId).add(fp);
         return fp;
     }
@@ -289,5 +292,11 @@ public abstract class DefaultResourceProvider
     public List<FilePaths> split(List<FilePaths> paths) {
         // default behaviour is to return the list of paths as it is
         return paths;
+    }
+
+
+    @Override
+    public boolean usePathsFile() {
+        return false;
     }
 }

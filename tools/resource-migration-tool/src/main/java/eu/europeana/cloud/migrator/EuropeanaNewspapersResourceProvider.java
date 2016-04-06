@@ -90,20 +90,20 @@ public class EuropeanaNewspapersResourceProvider
                         duplicate = true;
                         for (String s : paths) {
                             reversedMapping.remove(s);
-                            duplicateMapping.put(s, localId);
+                            duplicateMapping.put(s, localId.intern());
                         }
                     }
                     if (duplicate)
                         // add reversed mapping to duplicates map
-                        duplicateMapping.put(path, localId);
+                        duplicateMapping.put(path, localId.intern());
                     else {
                         // add reversed mapping
-                        reversedMapping.put(path, localId);
-                        paths.add(path);
+                        reversedMapping.put(path.intern(), localId.intern());
+                        paths.add(path.intern());
                     }
                     count++;
                 }
-                fileCounts.put(localId, Integer.valueOf(count));
+                fileCounts.put(localId.intern(), Integer.valueOf(count));
             }
         } finally {
             if (reader != null)
@@ -199,31 +199,51 @@ public class EuropeanaNewspapersResourceProvider
         List<FilePaths> result = new ArrayList<FilePaths>();
         Map<String, List<String>> titlePaths = new HashMap<String, List<String>>();
 
-        for (String path : fp.getFullPaths()) {
-            int i = path.indexOf(fp.getLocation());
-            i = path.indexOf(fp.getDataProvider(), i == -1 ? 0 : i + fp.getLocation().length() + 1);
-            if (i == -1) {
-                // no data provider name in path, strange so return the FilePaths object unchanged regardless the other paths could contain provider name
-                result.add(fp);
-                return result;
+        BufferedReader pathsReader = fp.getPathsReader();
+
+        try {
+            for (; ; ) {
+                String path = pathsReader.readLine();
+                if (path == null)
+                    break;
+
+                int i = path.indexOf(fp.getLocation());
+                i = path.indexOf(fp.getDataProvider(), i == -1 ? 0 : i + fp.getLocation().length() + 1);
+                if (i == -1) {
+                    // no data provider name in path, strange so return the FilePaths object unchanged regardless the other paths could contain provider name
+                    result.add(fp);
+                    return result;
+                }
+                String title = path.substring(i + fp.getDataProvider().length() + 1);
+                i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR);
+                if (i == -1) {
+                    // no directory found in path, strange so return the FilePaths object unchanged regardless the other paths
+                    result.add(fp);
+                    return result;
+                }
+                if (year) {
+                    // add year to title, for every year of a title there will be a separate thread
+                    // find next separator
+                    i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, i + 1);
+                }
+                title = title.substring(0, i);
+                if (titlePaths.get(title) == null) {
+                    titlePaths.put(title, new ArrayList<String>());
+                }
+                titlePaths.get(title).add(path);
             }
-            String title = path.substring(i + fp.getDataProvider().length() + 1);
-            i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR);
-            if (i == -1) {
-                // no directory found in path, strange so return the FilePaths object unchanged regardless the other paths
-                result.add(fp);
-                return result;
+        }
+        catch (IOException e) {
+            logger.error("Cannot read paths file for location " + fp.getLocation() + " and provider " + fp.getDataProvider());
+        }
+        finally {
+            if (pathsReader != null) {
+                try {
+                    pathsReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            if (year) {
-                // add year to title, for every year of a title there will be a separate thread
-                // find next separator
-                i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, i + 1);
-            }
-            title = title.substring(0, i);
-            if (titlePaths.get(title) == null) {
-                titlePaths.put(title, new ArrayList<String>());
-            }
-            titlePaths.get(title).add(path);
         }
 
         if (titlePaths.size() == 1) {
@@ -233,11 +253,17 @@ public class EuropeanaNewspapersResourceProvider
             // now create FilePaths object for every newspapers title
             for (Map.Entry<String, List<String>> entry : titlePaths.entrySet()) {
                 FilePaths filePaths = new FilePaths(fp.getLocation(), fp.getDataProvider());
-                filePaths.getFullPaths().addAll(entry.getValue());
                 filePaths.setIdentifier(entry.getKey().replace(ResourceMigrator.LINUX_SEPARATOR, "_"));
+                filePaths.useFile(filePaths.getIdentifier());
+                filePaths.addPaths(entry.getValue());
                 result.add(filePaths);
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean usePathsFile() {
+        return true;
     }
 }
