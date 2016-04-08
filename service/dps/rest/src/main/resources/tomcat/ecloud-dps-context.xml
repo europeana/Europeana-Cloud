@@ -101,6 +101,18 @@
         </constructor-arg>
     </bean>
 
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.security.core.context.SecurityContextHolder"/>
+        <property name="targetMethod" value="setStrategyName"/>
+        <property name="arguments">
+            <list>
+                <value>MODE_INHERITABLETHREADLOCAL</value>
+            </list>
+        </property>
+    </bean>
+
+
+
     <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
         <constructor-arg ref="dpsCassandraProvider"/>
     </bean>

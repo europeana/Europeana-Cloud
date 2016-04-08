@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter;
 
 
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.command.CommandBuilderContext;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ConversionException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.UnexpectedExtensionsException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.extension.ExtensionCheckerContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.CommandExecutor;
@@ -20,8 +21,8 @@ public class ConsoleBasedConverter implements Converter {
     /**
      * Constructs a ConsoleBasedConverter with the specified command context and extension checkers contexts.
      *
-     * @param commandBuilderContext Command builder context
-     * @param inputFileExtensionChecker Extension checker context for input file
+     * @param commandBuilderContext      Command builder context
+     * @param inputFileExtensionChecker  Extension checker context for input file
      * @param outputFileExtensionChecker Extension checker context for output file
      */
     public ConsoleBasedConverter(CommandBuilderContext commandBuilderContext,
@@ -43,7 +44,7 @@ public class ConsoleBasedConverter implements Converter {
      * @throws IOException
      */
     public void convert(String inputFilePath, String outputFilePath,
-                        List<String> properties) throws UnexpectedExtensionsException, IOException {
+                        List<String> properties) throws UnexpectedExtensionsException, ConversionException, IOException {
 
         if (inputFileExtensionChecker.isGoodExtension(inputFilePath) && (outputFileExtensionChecker.isGoodExtension(outputFilePath))) {
             String command = commandBuilderContext.constructCommand(

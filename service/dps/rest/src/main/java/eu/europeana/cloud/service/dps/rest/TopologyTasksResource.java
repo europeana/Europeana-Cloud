@@ -22,8 +22,11 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
+import eu.europeana.cloud.service.dps.utils.permissionmanager.PermissionManagerFactory;
+import eu.europeana.cloud.service.dps.utils.permissionmanager.ResourcePermissionManager;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,15 +187,16 @@ public class TopologyTasksResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+    @ManagedAsync
     @Path("/")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
                                DpsTask task,
                                @PathParam("topologyName") String topologyName,
                                @Context UriInfo uriInfo,
                                @HeaderParam("Authorization") String authorizationHeader
-    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
+    ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         if (task != null) {
-            LOGGER.info("Submiting task");
+            LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
             try {
@@ -201,18 +205,24 @@ public class TopologyTasksResource {
                 taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission");
                 asyncResponse.resume(response);
                 LOGGER.info("The task is in a pending mode");
-                grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
+                int expectedSize = grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
+                task.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
                 submitService.submitTask(task, topologyName);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-                int expectedSize = 0;
-                String sizeParameter = task.getParameter(PluginParameterKeys.EXPECTED_SIZE);
-                if (sizeParameter != null)
-                    expectedSize = Integer.parseInt(sizeParameter);
                 LOGGER.info("Task submitted successfully");
                 taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "");
-                asyncResponse.resume(response);
             } catch (URISyntaxException e) {
-                LOGGER.error("Task submition failed");
+                LOGGER.error("Task submission failed");
+                e.printStackTrace();
+                Response response = Response.serverError().build();
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                asyncResponse.resume(response);
+            } catch (TaskSubmissionException e) {
+                LOGGER.error("Task submission failed" + e.getMessage());
+                e.printStackTrace();
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+            } catch (Exception e) {
+                LOGGER.error("Task submission failed." + e.getMessage());
                 e.printStackTrace();
                 Response response = Response.serverError().build();
                 taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
@@ -415,90 +425,35 @@ public class TopologyTasksResource {
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 
-
-    private void grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
-
+    /**
+     * Grants permissions to all the resources inside the task.
+     *
+     * @return The number of records inside the task which  permission is successfully given to their versions.
+     */
+    private int grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
         LOGGER.info("Granting permissions to files from DPS task");
         String topologyUserName = topologyManager.getNameToUserMap().get(topologyName);
         if (topologyUserName == null) {
             LOGGER.error("There is no user for topology '{}' in users map. Permissions will not be granted.", topologyName);
-            return;
-        }
-        int size = 0;
-        List<String> fileUrls = submittedTask.getInputData().get(DpsTask.FILE_URLS);
-        if (fileUrls == null) {
-            List<String> dataSets = submittedTask.getInputData().get(DpsTask.DATASET_URLS);
-            if (dataSets == null) {
-                LOGGER.info("Datasets or files urls list is empty. Permissions will not be granted");
-                throw new TaskSubmissionException("Datasets or files urls list is empty. Permissions will not be granted. Submission process stopped.");
-            } else {
-                String representationName = submittedTask.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-                for (String dataSet : dataSets) {
-                    try {
-                        UrlParser urlParser = new UrlParser(dataSet);
-                        if (urlParser.isUrlToDataset()) {
-                            dataSetServiceClient = context.getBean(DataSetServiceClient.class);
-                            List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                                    urlParser.getPart(UrlPart.DATA_SETS));
-                            for (Representation representation : representations) {
-                                if (representationName == null || representation.getRepresentationName().equals(representationName)) {
-                                    grantPermissionToVersion(authorizationHeader, topologyUserName, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-                                    size += representation.getFiles().size();
-                                }
-                            }
-                        }
-                    } catch (DataSetNotExistsException ex) {
-                        LOGGER.warn("Provided dataset is not existed {}", dataSet);
-                        throw new TaskSubmissionException("Provided dataset is not existed: " + dataSet + ". Submission process stopped.");
-                    } catch (MalformedURLException ex) {
-                        LOGGER.error("URL in task's dataset list is malformed. Submission terminated. Wrong entry: " + dataSet);
-                        throw new TaskSubmissionException("Malformed URL in task: " + dataSet + ". Submission process stopped.");
+            throw new TaskSubmissionException("There is no user for topology" + topologyName + " in users map. Permissions will not be granted.");
 
-                    } catch (MCSException ex) {
-                        LOGGER.error("Error while communicating MCS", ex);
-                        throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");
-                    }
-                }
-            }
-        } else {
-            Iterator<String> it = fileUrls.iterator();
-            while (it.hasNext()) {
-                String fileUrl = it.next();
-                try {
-                    UrlParser parser = new UrlParser(fileUrl);
-                    if (parser.isUrlToRepresentationVersionFile()) {
-                        size++;
-                        grantPermissionToVersion(authorizationHeader, topologyUserName,
-                                parser.getPart(UrlPart.RECORDS),
-                                parser.getPart(UrlPart.REPRESENTATIONS),
-                                parser.getPart(UrlPart.VERSIONS));
-                        LOGGER.info("Permissions granted to: {}", fileUrl);
-                    } else {
-                        LOGGER.info("Permissions was not granted. Url does not point to file: {}", fileUrl);
-                    }
-                } catch (MalformedURLException e) {
-                    LOGGER.error("URL in task's file list is malformed. Submission terminated. Wrong entry: " + fileUrl);
-                    throw new TaskSubmissionException("Malformed URL in task: " + fileUrl + ". Submission process stopped.");
-                } catch (MCSException e) {
-                    LOGGER.error("Error while communicating MCS", e);
-                    throw new TaskSubmissionException("Error while communicating MCS. " + e.getMessage() + " for: " + fileUrl + ". Submission process stopped.");
-                } catch (Exception e) {
-                    throw new RuntimeException(e.getMessage() + ". Submission process stopped");
-                }
-
-            }
         }
-        submittedTask.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(size));
+        int recordsInsideTask = 0;
+        PermissionManagerFactory permissionManagerFactory = new PermissionManagerFactory(context);
+        String taskType = getTaskType(submittedTask);
+        ResourcePermissionManager resourcePermissionManager = permissionManagerFactory.createPermissionManager(taskType);
+        recordsInsideTask = resourcePermissionManager.grantPermissionsToTaskResources(submittedTask, topologyName, topologyUserName, authorizationHeader);
+        return recordsInsideTask;
     }
 
-    private void grantPermissionToVersion(String authorizationHeader, String topologyUserName, String cloudId, String representationName, String version) throws MCSException, TaskSubmissionException {
-        recordServiceClient = context.getBean(RecordServiceClient.class);
-        recordServiceClient
-                .useAuthorizationHeader(authorizationHeader)
-                .grantPermissionsToVersion(
-                        cloudId,
-                        representationName,
-                        version, topologyUserName,
-                        Permission.ALL);
+
+    //get TaskType
+    private String getTaskType(DpsTask task) {
+// can't be null since it is already validated
+        if (task.getInputData().get(DpsTask.FILE_URLS) != null)
+            return PluginParameterKeys.FILE_URLS;
+        return PluginParameterKeys.DATASET_URLS;
+
     }
+
 }

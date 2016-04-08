@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter;
 
 
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ConversionException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.UnexpectedExtensionsException;
 
 import java.io.IOException;
@@ -19,6 +20,6 @@ public interface Converter {
      * @throws UnexpectedExtensionsException : throws when providing invalid or inconsistent extensions
      * @throws IOException
      */
-    public void convert(String inputFilePath, String outputFilePath, List<String> properties) throws UnexpectedExtensionsException, IOException;
+    public void convert(String inputFilePath, String outputFilePath, List<String> properties) throws UnexpectedExtensionsException,ConversionException, IOException;
 
 }

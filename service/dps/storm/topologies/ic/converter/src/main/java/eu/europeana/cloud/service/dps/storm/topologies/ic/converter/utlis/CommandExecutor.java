@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis;
 
 
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ConversionException;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
@@ -15,25 +17,42 @@ public class CommandExecutor {
 
     /**
      * Executes a shell command and logs the output message
-     * @param command
-     * The shell command to be executed
+     *
+     * @param command The shell command to be executed
      */
-    public void execute(String command) throws IOException{
-        StringBuffer output = new StringBuffer();
+    public void execute(String command) throws ConversionException, IOException {
+        String output = "";
         if (command != null) {
             Process p;
-
-                p = Runtime.getRuntime().exec(command);
-                BufferedReader reader =
-                        new BufferedReader(new InputStreamReader(p.getInputStream()));
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    output.append(line + "\n");
-                }
+            p = Runtime.getRuntime().exec(command);
+            output = readOutPut(p.getInputStream());
+            if (!"".equals(output))
                 LOGGER.info("The command was executed successfully with the following output message: " + output);
-
-
+            else {
+                output = readOutPut(p.getErrorStream());
+                throw new ConversionException(output);
+            }
+            p.destroy();
         }
+    }
+
+    private String readOutPut(InputStream stream) throws IOException {
+        StringBuffer output = new StringBuffer();
+        BufferedReader reader = null;
+        try {
+            reader =
+                    new BufferedReader(new InputStreamReader(stream));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                output.append(line + "\n");
+            }
+        } finally {
+            if (reader != null)
+                reader.close();
+        }
+
+        return output.toString();
+
     }
 
 }
