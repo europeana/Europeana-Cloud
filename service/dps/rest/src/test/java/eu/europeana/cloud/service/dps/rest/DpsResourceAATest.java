@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidation
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -94,6 +95,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     private static final String AUTH_HEADER_VALUE = "header_value";
 
+
     @Before
     public void mockUp() throws Exception {
 
@@ -126,7 +128,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         DpsTask t = new DpsTask("xsltTask");
         String topology = "xsltTopology";
 
-        topologyTasksResource.submitTask(asyncResponse,t, topology, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, t, topology, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -140,7 +142,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
-        topologyTasksResource.submitTask(asyncResponse,task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -155,7 +157,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         grantUserToTopology(topologyName, user);
         login(user, VAN_PERSIE_PASSWORD);
         //then
-        topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -170,7 +172,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -191,7 +193,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -211,7 +213,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -232,7 +234,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         grantUserToTopology(topologyName, user);
         login(user, VAN_PERSIE_PASSWORD);
         //then
-        topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     @Test
@@ -246,7 +248,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(asyncResponse,task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -267,7 +269,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         try {
             //when
-            topologyTasksResource.submitTask(asyncResponse,IC_TASK, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, IC_TASK, topologyName, URI_INFO, AUTH_HEADER_VALUE);
             fail();
         } catch (DpsTaskValidationException e) {
             //then
@@ -291,7 +293,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(RONALDO, RONALD_PASSWORD);
         DpsTask sampleTask = new DpsTask();
 
-        topologyTasksResource.submitTask(asyncResponse,sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, sampleTask, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
 
     // -- progress report tests --
@@ -303,7 +305,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
 
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
     }
 
@@ -321,7 +323,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
     }
@@ -350,7 +352,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(RONALDO, RONALD_PASSWORD);
         //when
         try {
-            topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+            topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
             fail();
             //then
         } catch (AccessDeniedOrTopologyDoesNotExistException e) {
@@ -363,11 +365,11 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-
+        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -383,11 +385,11 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-
+        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.killTask(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -403,11 +405,11 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-
+        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.checkKillFlag(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -423,11 +425,11 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-
+        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
+        topologyTasksResource.submitTask(asyncResponse, XSLT_TASK, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
         //when
         try {
             topologyTasksResource.removeKillFlag(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -435,38 +437,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
             //then
         } catch (AccessDeniedOrTopologyDoesNotExistException e) {
         }
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void runtimeExceptionShouldBeThrownWhenMCSIsNotAvailable() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
-
-        Mockito.doThrow(new RuntimeException()).when(recordServiceClient).grantPermissionsToVersion(Mockito.matches("sampleId"), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Permission.class));
-
-        login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
-        login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK2, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
-
-    }
-
-    @Test(expected = TaskSubmissionException.class)
-    public void exceptionShouldBeThrownWhenMCSIsNotAvailable() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
-
-        Mockito.doThrow(new MCSException()).when(recordServiceClient).grantPermissionsToVersion(Mockito.matches("sampleId"), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Permission.class));
-
-        login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
-        login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK2, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
-    }
-
-    @Test(expected = TaskSubmissionException.class)
-    public void exceptionShouldBeThrownWhenTaskUrlIsMalformed() throws MCSException, AccessDeniedOrTopologyDoesNotExistException, TaskSubmissionException, DpsTaskValidationException {
-
-        login(ADMIN, ADMIN_PASSWORD);
-        topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
-        login(RONALDO, RONALD_PASSWORD);
-        topologyTasksResource.submitTask(asyncResponse,XSLT_TASK_WITH_MALFORMED_URL, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
     }
 
 

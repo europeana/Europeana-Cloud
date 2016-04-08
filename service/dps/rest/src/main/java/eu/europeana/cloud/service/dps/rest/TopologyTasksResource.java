@@ -107,11 +107,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Authenticated user</li>
+     *              <li>Read permission for selected task</li>
+     *          </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -141,10 +141,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Read permissions for selected task</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Read permissions for selected task</li>
+     *          </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -219,13 +219,13 @@ public class TopologyTasksResource {
                 asyncResponse.resume(response);
             } catch (TaskSubmissionException e) {
                 LOGGER.error("Task submission failed" + e.getMessage());
-                e.printStackTrace();
                 taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                e.printStackTrace();
             } catch (Exception e) {
                 LOGGER.error("Task submission failed." + e.getMessage());
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
                 e.printStackTrace();
                 Response response = Response.serverError().build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
                 asyncResponse.resume(response);
             }
         }
@@ -237,11 +237,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Authenticated user</li>
+     *              <li>Read permission for selected task</li>
+     *          </ul>
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -262,10 +262,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Admin permissions</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Admin permissions</li>
+     *          </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -298,13 +298,13 @@ public class TopologyTasksResource {
      * Side effect: remove all flags older than 5 days (per topology).
      * <p/>
      * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Write permission for selected task</li>
-     * </ul>
-     * </div>
+     *      <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     *          <strong>Required permissions:</strong>
+     *              <ul>
+     *                  <li>Authenticated user</li>
+     *                  <li>Write permission for selected task</li>
+     *              </ul>
+     *      </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -333,11 +333,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Authenticated user</li>
+     *              <li>Read permission for selected task</li>
+     *          </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -361,11 +361,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Write permission for selected task</li>
-     * </ul>
+     *      <strong>Required permissions:</strong>
+     *          <ul>
+     *              <li>Authenticated user</li>
+     *              <li>Write permission for selected task</li>
+     *          </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.

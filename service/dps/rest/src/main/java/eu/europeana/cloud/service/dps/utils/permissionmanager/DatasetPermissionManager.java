@@ -52,6 +52,9 @@ public class DatasetPermissionManager extends ResourcePermissionManager {
             } catch (MCSException ex) {
                 LOGGER.error("Error while communicating MCS", ex);
                 throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");
+            } catch (Exception ex) {
+                LOGGER.error("an exception happened !! " + ex.getMessage());
+                throw new RuntimeException(ex.getMessage() + ". Submission process stopped");
             }
         }
         return size;
