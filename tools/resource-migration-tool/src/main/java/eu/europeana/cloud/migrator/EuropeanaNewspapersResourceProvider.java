@@ -224,7 +224,13 @@ public class EuropeanaNewspapersResourceProvider
                 if (year) {
                     // add year to title, for every year of a title there will be a separate thread
                     // find next separator
-                    i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, i + 1);
+                    int j = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, i + 1);
+                    String yearStr = title.substring(i + 1, j);
+                    if (yearStr.length() < 4) {
+                        i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, j + 1);
+                    }
+                    else
+                        i = j;
                 }
                 title = title.substring(0, i);
                 if (titlePaths.get(title) == null) {

@@ -335,6 +335,7 @@ public class ResourceMigrator {
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordExistsException) {
                     try {
+                        logger.info("Record Exists" + localId);
                         return uis.getCloudId(dataProviderId, localId).getId();
                     } catch (ProcessingException e1) {
                         logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + ". Retries left: " + retries, e);
