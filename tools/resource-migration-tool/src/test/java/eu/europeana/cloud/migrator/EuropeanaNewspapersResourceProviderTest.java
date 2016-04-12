@@ -3,8 +3,11 @@ package eu.europeana.cloud.migrator;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -136,17 +139,47 @@ public class EuropeanaNewspapersResourceProviderTest {
         assertEquals(PROVIDER_1, paths.get(PROVIDER_1).get(0).getDataProvider());
         assertEquals(PROVIDER_2, paths.get(PROVIDER_2).get(0).getDataProvider());
         // there should be only one path in FilePaths object
-        assertEquals(3, paths.get(PROVIDER_1).get(0).getFullPaths().size());
-        assertEquals(1, paths.get(PROVIDER_2).get(0).getFullPaths().size());
+        assertEquals(3, paths.get(PROVIDER_1).get(0).size());
+        assertEquals(1, paths.get(PROVIDER_2).get(0).size());
         // path should be equal to the real one
+
+        List<String> allPaths = getAllPaths(paths.get(PROVIDER_1).get(0));
+
         path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_1)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        assertTrue(allPaths.contains(path));
         path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_3)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        assertTrue(allPaths.contains(path));
         path = Paths.get(new URI(LOCATION_1.replace("$1", resDir) + "/" + PATH_1 + "/" + FILE_4)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertTrue(paths.get(PROVIDER_1).get(0).getFullPaths().contains(path));
+        assertTrue(allPaths.contains(path));
+
+        allPaths = getAllPaths(paths.get(PROVIDER_2).get(0));
+
         path = Paths.get(new URI(LOCATION_2.replace("$1", resDir) + "/" + PATH_2 + "/" + FILE_2)).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
-        assertEquals(path, paths.get(PROVIDER_2).get(0).getFullPaths().get(0));
+        assertTrue(allPaths.contains(path));
+    }
+
+    private List<String> getAllPaths(FilePaths paths) {
+        BufferedReader reader = paths.getPathsReader();
+        assertNotNull(reader);
+        List<String> allPaths = new ArrayList<String>();
+        try {
+            for (; ; ) {
+                String line = null;
+                line = reader.readLine();
+                if (line == null)
+                    break;
+                allPaths.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return allPaths;
     }
 
     @Test

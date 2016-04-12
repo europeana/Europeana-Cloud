@@ -106,4 +106,12 @@ public interface ResourceProvider {
      * @return a list of lists
      */
     public List<FilePaths> split(List<FilePaths> paths);
+
+
+    /**
+     * Indicates whether file paths to process should be stored in a file. If false they are stored in memory.
+     *
+     * @return true when paths should be stored in a file or false otherwise
+     */
+    public boolean usePathsFile();
 }

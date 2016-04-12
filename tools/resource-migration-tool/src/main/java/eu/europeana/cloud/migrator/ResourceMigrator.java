@@ -30,6 +30,8 @@ public class ResourceMigrator {
 
     public static final String WINDOWS_SEPARATOR = "\\";
 
+    public static final String TEXT_EXTENSION = ".txt";
+
     private static final String FILES_PART = "files";
 
     private static final Logger logger = Logger.getLogger(ResourceMigrator.class);
@@ -217,7 +219,7 @@ public class ResourceMigrator {
     }
 
     private void summarize(Map<String, List<FilePaths>> paths) {
-        String summaryFile = "simulation" + System.currentTimeMillis() + ".txt";
+        String summaryFile = "simulation" + System.currentTimeMillis() + ResourceMigrator.TEXT_EXTENSION;
         try {
             // create a file called simulation{timestamp}.txt
 
@@ -231,11 +233,27 @@ public class ResourceMigrator {
                 msg += ": " + entry.getValue().size() + " locations\n";
                 Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                 for (FilePaths fp : entry.getValue()) {
-                    msg = "\nLocation: " + fp.getLocation() + " - " + fp.getFullPaths().size() + " paths\n\n";
-                    Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
-                    int counter = 1;
-                    for (String s : fp.getFullPaths()) {
-                        Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                    BufferedReader reader = fp.getPathsReader();
+                    try {
+                        msg = "\nLocation: " + fp.getLocation() + " - " + fp.size() + " paths\n\n";
+                        Files.write(dest, msg.getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                        int counter = 1;
+                        if (reader != null) {
+                            for (; ; ) {
+                                String s = reader.readLine();
+                                if (s == null)
+                                    break;
+                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                            }
+                        }
+                        else {
+                            for (String s : fp.getFullPaths()) {
+                                Files.write(dest, String.valueOf(counter++ + ". " + s + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                            }
+                        }
+                    } finally {
+                        if (reader != null)
+                            reader.close();
                     }
                 }
             }
@@ -317,6 +335,7 @@ public class ResourceMigrator {
             } catch (CloudException e) {
                 if (e.getCause() instanceof RecordExistsException) {
                     try {
+                        logger.info("Record Exists" + localId);
                         return uis.getCloudId(dataProviderId, localId).getId();
                     } catch (ProcessingException e1) {
                         logger.warn("Error processing HTTP request while creating record for provider " + dataProviderId + ". Retries left: " + retries, e);
@@ -510,13 +529,13 @@ public class ResourceMigrator {
     private void removeProcessedPaths(String providerId, FilePaths paths) {
         try {
             List<String> processed = new ArrayList<String>();
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     processed.add(st.nextToken());
                 }
             }
-            paths.getFullPaths().removeAll(processed);
+            paths.removeAll(processed);
         } catch (IOException e) {
             logger.warn("Progress file for provider " + providerId + " could not be opened. Returning all paths.");
         }
@@ -531,8 +550,15 @@ public class ResourceMigrator {
 
         try {
             if (providerPaths.size() > 0) {
+                String dataProviderId = retrieveDataProviderId(providerPaths);
+                if (dataProviderId == null)
+                {
+                    logger.error("Cannot determine data provider.");
+                    return false;
+                }
+
                 // first create provider, pass the path to the possible properties file, use first path to determine data provider id
-                String propsFile = providerPaths.getLocation() + LINUX_SEPARATOR + resourceProvider.getDataProviderId(providerPaths.getFullPaths().get(0)) + DefaultResourceProvider.PROPERTIES_EXTENSION;
+                String propsFile = providerPaths.getLocation() + LINUX_SEPARATOR + dataProviderId + DefaultResourceProvider.PROPERTIES_EXTENSION;
                 if (createProvider(propsFile) == null) {
                     // when create provider was not successful finish processing
                     return false;
@@ -554,15 +580,37 @@ public class ResourceMigrator {
         return result;
     }
 
-    private boolean processPaths(FilePaths fp, boolean duplicate, List<String> duplicates) {
+    private String retrieveDataProviderId(FilePaths providerPaths) {
+        String path = null;
+
+        BufferedReader reader = providerPaths.getPathsReader();
+        if (reader != null) {
+            try {
+                path = reader.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            finally {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        else
+            path = providerPaths.size() > 0 ? providerPaths.getFullPaths().get(0) : null;
+        if (path == null)
+            return null;
+        return resourceProvider.getDataProviderId(path);
+    }
+
+    private boolean processPaths(FilePaths fp, boolean duplicate, List<String> duplicates) throws IOException {
         if (fp == null)
             return false;
 
         // Resource provider identifier
         String resourceProviderId = fp.getDataProvider();
-
-        // Paths to files that will be migrated
-        List<String> paths = fp.getFullPaths();
 
         // Location of the files
         String location = fp.getLocation();
@@ -582,120 +630,151 @@ public class ResourceMigrator {
         int counter = 0;
         int errors = 0;
 
-        if (paths.size() == 0)
+        int size = fp.size();
+
+        if (size == 0)
             return false;
 
+        BufferedReader reader = fp.getPathsReader();
+
         String prevLocalId = null;
-        for (String path : paths) {
-            if ((int) (((float) (counter) / (float) paths.size()) * 100) > (int) (((float) (counter - 1) / (float) paths.size()) * 100))
-                logger.info("Resource provider: " + resourceProviderId + "." + (identifier.equals(resourceProviderId) ? "" : (" Part: " + identifier + ".")) + " Progress: " + counter + " of " + paths.size() + " (" + (int) (((float) (counter) / (float) paths.size()) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
-            counter++;
-            // get local record identifier
-            String localId = resourceProvider.getLocalIdentifier(location, path, duplicate);
-            if (localId == null) {
+        try {
+            String path;
+            for (; ; ) {
+                if ((int) (((float) (counter) / (float) size) * 100) > (int) (((float) (counter - 1) / (float) size) * 100))
+                    logger.info("Resource provider: " + resourceProviderId + "." + (identifier.equals(resourceProviderId) ? "" : (" Part: " + identifier + ".")) + " Progress: " + counter + " of " + size + " (" + (int) (((float) (counter) / (float) size) * 100) + "%). Errors: " + errors + ". Duplicates: " + duplicate);
+                if (reader == null) {
+                    // paths in list
+                    if (counter >= size)
+                        break;
+                    path = fp.getFullPaths().get(counter);
+                }
+                else {
+                    path = reader.readLine();
+                    if (path == null)
+                        break;
+                }
+                counter++;
+                // get local record identifier
+                String localId = resourceProvider.getLocalIdentifier(location, path, duplicate);
+                if (localId == null) {
+                    if (!duplicate) {
+                        // check whether there is a duplicate record for the path and store the path for later use if so
+                        if (resourceProvider.getLocalIdentifier(location, path, true) != null)
+                            duplicates.add(path);
+                    }
+                    // when local identifier is null it means that the path may be wrong
+                    logger.warn("Local identifier for path: " + path + " could not be obtained. Skipping path...");
+                    continue;
+                }
+
                 if (!duplicate) {
                     // check whether there is a duplicate record for the path and store the path for later use if so
                     if (resourceProvider.getLocalIdentifier(location, path, true) != null)
                         duplicates.add(path);
                 }
-                // when local identifier is null it means that the path may be wrong
-                logger.warn("Local identifier for path: " + path + " could not be obtained. Skipping path...");
-                continue;
-            }
 
-            if (!duplicate) {
-                // check whether there is a duplicate record for the path and store the path for later use if so
-                if (resourceProvider.getLocalIdentifier(location, path, true) != null)
-                    duplicates.add(path);
-            }
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("Local identifier for path: " + path + ": " + localId);
-            }
-            if (!localId.equals(prevLocalId)) {
-                if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
-                    if (logger.isDebugEnabled())
-                        logger.debug("Record " + prevLocalId + " complete. Saving...");
-                    // persist previous version if it was created
-                    URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-                    if (persistent != null) {
-                        if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                            logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                        saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Local identifier for path: " + path + ": " + localId);
+                }
+                if (!localId.equals(prevLocalId)) {
+                    if (prevLocalId != null && cloudIds.get(prevLocalId) != null && versionIds.get(prevLocalId) != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
+                        if (logger.isDebugEnabled())
+                            logger.debug("Record " + prevLocalId + " complete. Saving...");
+                        // persist previous version if it was created
+                        URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
+                        if (persistent != null) {
+                            if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                                logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                            saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
+                            // remove already saved paths
+                            processed.get(versionIds.get(prevLocalId)).clear();
+                            processed.remove(versionIds.get(prevLocalId));
+                            cloudIds.remove(prevLocalId);
+                            versionIds.remove(prevLocalId);
+                        }
                     }
+                    prevLocalId = localId;
                 }
-                prevLocalId = localId;
-            }
-            if (cloudIds.get(localId) == null) {
-                // create new record when it was not created before
-                String cloudId = createRecord(resourceProvider.getDataProviderId(path), localId);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Cloud identifier for path: " + path + ": " + cloudId);
+                if (cloudIds.get(localId) == null) {
+                    // create new record when it was not created before
+                    String cloudId = createRecord(resourceProvider.getDataProviderId(path), localId);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Cloud identifier for path: " + path + ": " + cloudId);
+                    }
+                    if (cloudId == null) {
+                        // this is an error
+                        errors++;
+                        continue; // skip this path
+                    }
+                    cloudIds.put(localId, cloudId);
+                    // create representation for the record
+                    URI uri = createRepresentationName(resourceProvider.getDataProviderId(path), cloudId);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Representation for path: " + path + ": " + (uri != null ? uri.toString() : "null"));
+                    }
+                    if (uri == null) {
+                        // this is not an error, version is already there and is persistent
+                        continue; // skip this path
+                    }
+                    String verId = getVersionIdentifier(uri);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Version identifier for path: " + path + ": " + verId);
+                    }
+                    if (verId == null) {
+                        // this is an error, version identifier could not be retrieved from representation URI
+                        errors++;
+                        continue; // skip this path
+                    }
+                    versionIds.put(localId, verId);
                 }
-                if (cloudId == null) {
-                    // this is an error
-                    errors++;
-                    continue; // skip this path
-                }
-                cloudIds.put(localId, cloudId);
-                // create representation for the record
-                URI uri = createRepresentationName(resourceProvider.getDataProviderId(path), cloudId);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Representation for path: " + path + ": " + (uri != null ? uri.toString() : "null"));
-                }
-                if (uri == null) {
-                    // this is not an error, version is already there and is persistent
-                    continue; // skip this path
-                }
-                String verId = getVersionIdentifier(uri);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Version identifier for path: " + path + ": " + verId);
-                }
-                if (verId == null) {
-                    // this is an error, version identifier could not be retrieved from representation URI
-                    errors++;
-                    continue; // skip this path
-                }
-                versionIds.put(localId, verId);
-            }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) + "\nCloudId: " + cloudIds.get(localId));
-            }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Before creating file: \nLocation: " + location + "\nPath: " + path + "\nVersion: " + versionIds.get(localId) + "\nCloudId: " + cloudIds.get(localId));
+                }
 
-            // create file name in ECloud with the specified name
-            String fileAdded = createFilename(location, path, versionIds.get(localId), cloudIds.get(localId));
-            if (fileAdded == null) {
-                // this is an error, upload failed
-                prevLocalId = null; // this should prevent persisting the version and saving progress
-                continue; // skip this path
+                // create file name in ECloud with the specified name
+                String fileAdded = createFilename(location, path, versionIds.get(localId), cloudIds.get(localId));
+                if (fileAdded == null) {
+                    // this is an error, upload failed
+                    prevLocalId = null; // this should prevent persisting the version and saving progress
+                    continue; // skip this path
+                }
+                // put the created URI for path to processed list
+                if (processed.get(versionIds.get(localId)) == null)
+                    processed.put(versionIds.get(localId), new ArrayList<String>());
+                processed.get(versionIds.get(localId)).add(path + ";" + fileAdded);
+                // increase file count or set to 1 if it's a first file
+                fileCount.put(localId, fileCount.get(localId) != null ? (fileCount.get(localId) + 1) : 1);
             }
-            // put the created URI for path to processed list
-            if (processed.get(versionIds.get(localId)) == null)
-                processed.put(versionIds.get(localId), new ArrayList<String>());
-            processed.get(versionIds.get(localId)).add(path + ";" + fileAdded);
-            // increase file count or set to 1 if it's a first file
-            fileCount.put(localId, fileCount.get(localId) != null ? (fileCount.get(localId) + 1) : 1);
+            if (prevLocalId != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
+                if (logger.isDebugEnabled())
+                    logger.debug("Record " + prevLocalId + " complete. Saving...");
+                // persist previous version
+                URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
+                if (persistent != null) {
+                    if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
+                        logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
+                    saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
+                    processed.get(versionIds.get(prevLocalId)).clear();
+                    processed.remove(versionIds.get(prevLocalId));
+                    cloudIds.remove(prevLocalId);
+                    versionIds.remove(prevLocalId);
+                }
+            }
         }
-        if (prevLocalId != null && resourceProvider.getFileCount(prevLocalId) == fileCount.get(prevLocalId)) {
-            if (logger.isDebugEnabled())
-                logger.debug("Record " + prevLocalId + " complete. Saving...");
-            // persist previous version
-            URI persistent = persistVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId));
-            if (persistent != null) {
-                if (!permitVersion(cloudIds.get(prevLocalId), versionIds.get(prevLocalId)))
-                    logger.warn("Could not grant permissions to version " + versionIds.get(prevLocalId) + " of record " + cloudIds.get(prevLocalId) + ". Version is only available for current user.");
-                saveProgress(fp.getIdentifier() != null ? fp.getIdentifier() : resourceProviderId, processed.get(versionIds.get(prevLocalId)), false);
-            }
+        finally {
+            if (reader != null)
+                reader.close();
         }
         if (errors > 0)
             logger.warn("Migration of " + resourceProviderId + " encoutered " + errors + " errors.");
-        return (counter - errors) == paths.size();
+        return (counter - errors) == size;
     }
 
     private void saveProgress(String providerId, List<String> strings, boolean truncate) {
         try {
-            Path dest = FileSystems.getDefault().getPath(".", providerId + ".txt");
+            Path dest = FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION);
             if (truncate) {
                 // make copy
                 Path bkp = FileSystems.getDefault().getPath(".", providerId + ".bkp");
@@ -840,7 +919,7 @@ public class ResourceMigrator {
 
         try {
             // new progress file with provider name
-            Path dest = FileSystems.getDefault().getPath(".", providerId + ".txt");
+            Path dest = FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION);
             if (Files.exists(dest)) {
                 // make copy
                 Path bkp = FileSystems.getDefault().getPath(".", providerId + ".bkp");
@@ -856,7 +935,7 @@ public class ResourceMigrator {
             for (FilePaths fp : paths) {
                 if (fp.getIdentifier() == null || fp.getIdentifier().equals(providerId))
                     continue;
-                Path progressFile = FileSystems.getDefault().getPath(".", fp.getIdentifier() + ".txt");
+                Path progressFile = FileSystems.getDefault().getPath(".", fp.getIdentifier() + ResourceMigrator.TEXT_EXTENSION);
                 try {
                     reader = Files.newBufferedReader(progressFile, Charset.forName("UTF-8"));
                     for (; ; ) {
@@ -923,7 +1002,7 @@ public class ResourceMigrator {
 
             new Cleaner().cleanRecords(providerId, mcs, uis);
 
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ".txt"), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     st.nextToken();
