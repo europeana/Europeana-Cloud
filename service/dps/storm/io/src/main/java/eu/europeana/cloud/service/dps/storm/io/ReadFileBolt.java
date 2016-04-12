@@ -63,49 +63,30 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        String fileUrl = t.getFileUrl();
-        if (fileUrl == null || fileUrl.isEmpty()) {
-            //try data from DPS task
-            String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-            if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
-                Type type = new TypeToken<Map<String, List<String>>>() {
-                }.getType();
-                Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-                if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
-                    List<String> files = fromJson.get(DpsTask.FILE_URLS);
-                    if (!files.isEmpty()) {
-                        emitFiles(t, files);
-                        emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
-                        outputCollector.ack(inputTuple);
-                        return;
-                    }
-                } else {
-                    if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
-                        List<String> dataSets = fromJson.get(DpsTask.DATASET_URLS);
-                        if (!dataSets.isEmpty()) {
-                            emitFilesFromDataSets(t, dataSets);
-                            emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
-                            outputCollector.ack(inputTuple);
-                            return;
-                        }
-                    }
-
+        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
+            Type type = new TypeToken<Map<String, List<String>>>() {
+            }.getType();
+            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
+            if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
+                List<String> files = fromJson.get(DpsTask.FILE_URLS);
+                if (!files.isEmpty()) {
+                    emitFiles(t, files);
+                    emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
+                    outputCollector.ack(inputTuple);
+                    return;
                 }
             }
+        } else {
 
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED);
+            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED, message);
             outputCollector.ack(inputTuple);
             return;
         }
 
-        List<String> files = new ArrayList<>();
-        files.add(fileUrl);
-        emitFiles(t, files);
-
-        outputCollector.ack(inputTuple);
     }
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
@@ -115,21 +96,10 @@ public class ReadFileBolt extends AbstractDpsBolt {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
 
             try {
-
                 LOGGER.info("HERE THE LINK: " + file);
-
                 InputStream is = fileClient.getFile(file);
-
                 tt.setFileData(is);
-
-                Map<String, String> parsedUri = FileServiceClient.parseFileUri(file);
-                tt.addParameter(PluginParameterKeys.CLOUD_ID, parsedUri.get(ParamConstants.P_CLOUDID));
-                tt.addParameter(PluginParameterKeys.REPRESENTATION_NAME, parsedUri.get(ParamConstants.P_REPRESENTATIONNAME));
-                tt.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, parsedUri.get(ParamConstants.P_VER));
-                tt.addParameter(PluginParameterKeys.FILE_NAME, parsedUri.get(ParamConstants.P_FILENAME));
-
                 tt.setFileUrl(file);
-
                 outputCollector.emit(inputTuple, tt.toStormTuple());
             } catch (RepresentationNotExistsException | FileNotExistsException |
                     WrongContentRangeException ex) {
@@ -138,55 +108,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
             } catch (DriverException | MCSException | IOException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());
-            }
-        }
-    }
-
-    private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
-        String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-        String fileUrl = null;
-        for (String dataSet : dataSets) {
-            try {
-                StormTaskTuple stormTaskTuple = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-                UrlParser urlParser = new UrlParser(dataSet);
-                if (urlParser.isUrlToDataset()) {
-                    List<Representation> representations = dataSetClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                            urlParser.getPart(UrlPart.DATA_SETS));
-                    for (Representation representation : representations) {
-                        if (representationName == null || representation.getRepresentationName().equals(representationName)) {
-                            List<File> files = representation.getFiles();
-                            for (File file : files) {
-                                try {
-                                    fileUrl = fileClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                                    LOGGER.info("HERE THE LINK: " + fileUrl);
-                                    InputStream is = fileClient.getFile(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName());
-                                    stormTaskTuple.setFileData(is);
-                                    stormTaskTuple.setFileUrl(fileUrl);
-                                    outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
-                                } catch (RepresentationNotExistsException | FileNotExistsException |
-                                        WrongContentRangeException ex) {
-                                    LOGGER.warn("Can not retrieve file at {}", fileUrl);
-                                    emitDropNotification(t.getTaskId(), fileUrl, "Can not retrieve file", "");
-                                } catch (DriverException | MCSException | IOException ex) {
-                                    LOGGER.error("ReadFileBolt error:" + ex.getMessage());
-                                    emitErrorNotification(t.getTaskId(), fileUrl, ex.getMessage(), t.getParameters().toString());
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    LOGGER.warn("dataset url is not formulated correctly {}", dataSet);
-                    emitDropNotification(t.getTaskId(), dataSet, "dataset url is not formulated correctly", "");
-                    outputCollector.ack(inputTuple);
-                }
-            } catch (DataSetNotExistsException ex) {
-                LOGGER.warn("Provided dataset is not existed {}", dataSet);
-                emitDropNotification(t.getTaskId(), dataSet, "Can not retrieve a dataset", "");
-                outputCollector.ack(inputTuple);
-            } catch (MalformedURLException | MCSException ex) {
-                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
-                emitErrorNotification(t.getTaskId(), dataSet, ex.getMessage(), t.getParameters().toString());
-                outputCollector.ack(inputTuple);
             }
         }
     }

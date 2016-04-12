@@ -1,8 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +22,6 @@ import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.io.GrantPermissionsToFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.RemovePermissionsToFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import storm.kafka.BrokerHosts;
@@ -42,6 +42,8 @@ public class ICTopology {
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
     public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
+    private final String datasetStream = "DATASET_STREAM";
+    private final String fileStream = "FILE_STREAM";
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -50,6 +52,9 @@ public class ICTopology {
     }
 
     public StormTopology buildTopology(String icTopic, String ecloudMcsAddress, String username, String password) {
+        Map<String, String> routingRules = new HashMap<>();
+        routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
+        routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
@@ -68,23 +73,32 @@ public class ICTopology {
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(),
+        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
                 .shuffleGrouping("kafkaReader");
 
+
+        builder.setBolt("RetrieveDatasetBolt", new ReadDatasetBolt(ecloudMcsAddress, username, password),
+                ((int) Integer
+                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+                .setNumTasks(
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+                .shuffleGrouping("parseKafkaInput", datasetStream);
+
         builder.setBolt("retrieveFileBolt", retrieveFileBolt,
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("parseKafkaInput");
+                .shuffleGrouping("parseKafkaInput", fileStream);
 
         builder.setBolt("imageConversionBolt", new IcBolt(),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IC_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+                .shuffleGrouping("RetrieveDatasetBolt")
                 .shuffleGrouping("retrieveFileBolt");
 
         builder.setBolt("writeRecordBolt", writeRecordBolt,
@@ -119,6 +133,8 @@ public class ICTopology {
                 .fieldsGrouping("parseKafkaInput", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping("RetrieveDatasetBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))

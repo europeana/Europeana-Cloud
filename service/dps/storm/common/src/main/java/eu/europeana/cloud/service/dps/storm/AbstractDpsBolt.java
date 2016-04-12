@@ -153,10 +153,16 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param taskId       task ID
      * @param expectedSize number of emitted {@link StormTaskTuple}
      */
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state);
+    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
+
+    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
+        emitBasicInfo(taskId, expectedSize, state, "");
+
+    }
+
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
         LOGGER.error(message);

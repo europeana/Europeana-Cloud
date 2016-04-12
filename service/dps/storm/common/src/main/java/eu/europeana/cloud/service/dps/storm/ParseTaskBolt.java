@@ -30,6 +30,8 @@ public class ParseTaskBolt extends BaseRichBolt {
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;
+    private final String datasetStream = "DATASET_STREAM";
+    private final String fileStream = "FILE_STREAM";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
 
@@ -98,7 +100,7 @@ public class ParseTaskBolt extends BaseRichBolt {
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
                                 importantParameter.getKey(), val);
                         emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                        emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
+                        emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message);
                         outputCollector.ack(tuple);
                         return;
                     }
@@ -109,24 +111,22 @@ public class ParseTaskBolt extends BaseRichBolt {
 
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
                     emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                    emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
+                    emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message);
                     outputCollector.ack(tuple);
                     return;
                 }
             }
         }
-        int expectedSize = Integer.parseInt(taskParameters.get(PluginParameterKeys.EXPECTED_SIZE));
+        int expectedSize = parseExpectedSize(taskParameters.get(PluginParameterKeys.EXPECTED_SIZE));
         if (expectedSize == 0) {
             LOGGER.warn("DpsTask with id {} is dropped because it contains an empty task",
                     task.getTaskId());
-
             String message = String.format("Dropped because it contains an empty task.");
             emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-            emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED);
+            emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message);
             outputCollector.ack(tuple);
             return;
         } else {
-
             StormTaskTuple stormTaskTuple = new StormTaskTuple(
                     task.getTaskId(),
                     task.getTaskName(),
@@ -151,18 +151,18 @@ public class ParseTaskBolt extends BaseRichBolt {
                 }.getType();
                 stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, new Gson().toJson(inputData, type));
             }
-
             //use specific streams or default strem?
             if (routingRules != null) {
-                String stream = routingRules.get(task.getTaskName());
+                String stream = getStream(task);
                 if (stream != null) {
+                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING);
                     outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
                 } else {
-                    String message = "Unknown task name: " + task.getTaskName();
+                    String message = "The taskType is not recognised!";
                     LOGGER.warn(message);
                     emitDropNotification(task.getTaskId(), "", message,
                             taskParameters != null ? taskParameters.toString() : "");
-                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED);
+                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message);
                 }
             } else {
                 emitBasicInfo(task.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING);
@@ -170,8 +170,6 @@ public class ParseTaskBolt extends BaseRichBolt {
             }
             outputCollector.ack(tuple);
         }
-
-
     }
 
     private void emitDropNotification(long taskId, String resource,
@@ -181,9 +179,31 @@ public class ParseTaskBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state);
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
+        emitBasicInfo(taskId, expectedSize, state, "");
+    }
+
+    private String getStream(DpsTask task) {
+        String stream = null;
+        if (task.getInputData().get(DpsTask.FILE_URLS) != null)
+            stream = fileStream;
+        else if (task.getInputData().get(DpsTask.DATASET_URLS) != null)
+            stream = datasetStream;
+        return stream;
+
+    }
+
+    private int parseExpectedSize(String number) {
+        try {
+            return Integer.parseInt(number);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     @Override

@@ -18,11 +18,9 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.helpers.TestConstantsHelper;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
-import eu.europeana.cloud.service.dps.storm.io.GrantPermissionsToFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.RemovePermissionsToFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -42,6 +40,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +52,13 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, IcBolt.class, WriteRecordBolt.class, GrantPermissionsToFileBolt.class, RemovePermissionsToFileBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, GrantPermissionsToFileBolt.class, RemovePermissionsToFileBolt.class, EndBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
+
+    private final String datasetStream = "DATASET_STREAM";
+    private final String fileStream = "FILE_STREAM";
+    Map<String, String> routingRules;
 
 
     public ICTopologyTest() {
@@ -72,6 +75,9 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         mockDPSDAO();
         mockDatSetClient();
         mockRepresentation();
+        routingRules = new HashMap<>();
+        routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
+        routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
     }
 
 
@@ -173,6 +179,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     private StormTopology buildTopology() {
         // build the test topology
         ReadFileBolt retrieveFileBolt = new ReadFileBolt("", "", "");
+        ReadDatasetBolt readDatasetBolt = new ReadDatasetBolt("", "", "");
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt("", "", "");
         GrantPermissionsToFileBolt grantPermissionsToFileBolt = new GrantPermissionsToFileBolt("", "", "");
         RemovePermissionsToFileBolt removePermBolt = new RemovePermissionsToFileBolt("", "", "");
@@ -182,9 +189,10 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(SPOUT, new TestSpout(), 1);
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt()).shuffleGrouping(SPOUT);
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT);
-        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT);
+        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules, null)).shuffleGrouping(SPOUT);
+        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream);
+        builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
+        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
         builder.setBolt(GRANT_PERMISSIONS_TO_FILE_BOLT, grantPermissionsToFileBolt).shuffleGrouping(WRITE_RECORD_BOLT);
         builder.setBolt(REMOVE_PERMISSIONS_TO_FILE_BOLT, removePermBolt).shuffleGrouping(GRANT_PERMISSIONS_TO_FILE_BOLT);
@@ -193,6 +201,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(RETRIEVE_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(GRANT_PERMISSIONS_TO_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))

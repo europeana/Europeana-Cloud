@@ -174,7 +174,8 @@ public class NotificationBolt extends BaseRichBolt {
         Validate.notNull(parameters);
         int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE));
         String state = parameters.get(NotificationParameterKeys.TASK_STATE);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, "");
+        String info = parameters.get(NotificationParameterKeys.INFO);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info);
         return expectedSize;
     }
 

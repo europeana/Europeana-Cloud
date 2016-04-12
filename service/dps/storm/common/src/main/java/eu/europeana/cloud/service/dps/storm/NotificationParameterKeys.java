@@ -9,6 +9,7 @@ public class NotificationParameterKeys {
     //------- for BASIC INFO -------
     public static final String EXPECTED_SIZE = "expectedSize";
     public static final String TASK_STATE = "state";
+    public static final String INFO = "info";
 
     //------- for RELATION -------
     public static final String CHILD_TASK_ID = "childTaskId";
