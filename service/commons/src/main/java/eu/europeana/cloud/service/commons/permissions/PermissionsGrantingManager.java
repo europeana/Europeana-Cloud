@@ -56,9 +56,11 @@ public class PermissionsGrantingManager {
 
         for (int i = objectAcl.getEntries().size() - 1; i >= 0; i--) {
             AccessControlEntry currentEntry = objectAcl.getEntries().get(i);
-            PrincipalSid s = (PrincipalSid) currentEntry.getSid();
-            if (userName.equals(s.getPrincipal()) && isPermissionOnTheList(currentEntry.getPermission(), listOfPermissions)) {
-                objectAcl.deleteAce(i);
+            if (currentEntry.getSid() instanceof PrincipalSid) {
+                PrincipalSid s = (PrincipalSid) currentEntry.getSid();
+                if (userName.equals(s.getPrincipal()) && isPermissionOnTheList(currentEntry.getPermission(), listOfPermissions)) {
+                    objectAcl.deleteAce(i);
+                }
             }
         }
         mutableAclService.updateAcl(objectAcl);
