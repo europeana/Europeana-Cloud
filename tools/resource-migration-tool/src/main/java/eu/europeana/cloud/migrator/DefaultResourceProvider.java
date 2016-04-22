@@ -299,4 +299,10 @@ public abstract class DefaultResourceProvider
     public boolean usePathsFile() {
         return false;
     }
+
+
+    @Override
+    public Map<String, String> getReversedMapping() {
+        return new HashMap<String, String>();
+    }
 }

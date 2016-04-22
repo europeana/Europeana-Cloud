@@ -228,8 +228,7 @@ public class EuropeanaNewspapersResourceProvider
                     String yearStr = title.substring(i + 1, j);
                     if (yearStr.length() < 4) {
                         i = title.indexOf(ResourceMigrator.LINUX_SEPARATOR, j + 1);
-                    }
-                    else
+                    } else
                         i = j;
                 }
                 title = title.substring(0, i);
@@ -238,11 +237,9 @@ public class EuropeanaNewspapersResourceProvider
                 }
                 titlePaths.get(title).add(path);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Cannot read paths file for location " + fp.getLocation() + " and provider " + fp.getDataProvider());
-        }
-        finally {
+        } finally {
             if (pathsReader != null) {
                 try {
                     pathsReader.close();
@@ -271,5 +268,10 @@ public class EuropeanaNewspapersResourceProvider
     @Override
     public boolean usePathsFile() {
         return true;
+    }
+
+    @Override
+    public Map<String, String> getReversedMapping() {
+        return reversedMapping;
     }
 }

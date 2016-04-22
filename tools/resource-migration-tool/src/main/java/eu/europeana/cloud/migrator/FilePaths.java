@@ -1,7 +1,6 @@
 package eu.europeana.cloud.migrator;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -155,7 +154,7 @@ public class FilePaths {
         else {
             Path dest = FileSystems.getDefault().getPath(".", prefix + fileName + ".tmp");
             try {
-                for(;;) {
+                for (; ; ) {
                     String line = reader.readLine();
                     if (line == null)
                         break;
@@ -167,8 +166,7 @@ public class FilePaths {
                 }
             } catch (IOException e) {
                 // do nothing, all paths will be used
-            }
-            finally {
+            } finally {
                 if (reader != null) {
                     try {
                         reader.close();

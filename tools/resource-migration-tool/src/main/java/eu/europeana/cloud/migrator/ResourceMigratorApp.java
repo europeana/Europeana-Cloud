@@ -1,10 +1,13 @@
 package eu.europeana.cloud.migrator;
 
-import org.apache.log4j.Level;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.MutuallyExclusiveGroup;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import java.io.File;
@@ -20,12 +23,37 @@ public class ResourceMigratorApp {
 
     private static final Logger logger = Logger.getLogger(ResourceMigratorApp.class);
 
-    public static void main(String[] args) {
-        boolean clean = false;
-        if (args.length > 0)
-            clean = Boolean.valueOf(args[0]);
+    private static final String CLEAN = "clean";
 
-        boolean simulate = args.length == 1 && "simulate".equals(args[0]) || args.length == 2 && "simulate".equals(args[1]);
+    private static final String SIMULATE = "simulate";
+
+    private static final String VERIFY = "verify";
+
+    private static final String VERIFYLOCAL = "verifylocal";
+
+    private static ArgumentParser prepareArgumentParser() {
+        ArgumentParser parser = ArgumentParsers.newArgumentParser("ResourceMigratorApp")
+                .defaultHelp(true)
+                .description("Migrate files from specified location to Europeana Cloud.");
+        parser.addArgument("-c", "--clean").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Clean previously added records.");
+
+        MutuallyExclusiveGroup group = parser.addMutuallyExclusiveGroup();
+        group.addArgument("-v", "--verify").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Verify the migration from files point of view.");
+        group.addArgument("-V", "--verifylocal").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Verify whether all local identifiers given in a mapping file were migrated. NOTE: works for selected resource providers only.");
+        group.addArgument("-s", "--simulate").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Simulate migration to get the names of the files affected by the migration.");
+
+        return parser;
+    }
+
+    public static void main(String[] args) {
+        ArgumentParser parser = prepareArgumentParser();
+        Namespace ns = null;
+        try {
+            ns = parser.parseArgs(args);
+        } catch (ArgumentParserException e) {
+            parser.handleError(e);
+            System.exit(1);
+        }
 
         ApplicationContext context = getContext();
 
@@ -35,7 +63,12 @@ public class ResourceMigratorApp {
         }
 
         ResourceMigrator migrator = (ResourceMigrator) context.getBean("migrator");
-        migrator.migrate(clean, simulate);
+        if (ns.getBoolean(VERIFYLOCAL))
+            migrator.verifyLocalIds();
+        else if (ns.getBoolean(VERIFY))
+            migrator.verify();
+        else
+            migrator.migrate(ns.getBoolean(CLEAN), ns.getBoolean(SIMULATE));
         System.exit(0);
     }
 

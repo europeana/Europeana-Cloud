@@ -40,8 +40,8 @@ public interface ResourceProvider {
     /**
      * Get local identifier of the record for the specified path to file and provider identifier.
      *
-     * @param location location of the file path
-     * @param path path to file
+     * @param location  location of the file path
+     * @param path      path to file
      * @param duplicate indicate whether this may be a duplicate
      * @return local identifier of the record
      */
@@ -81,8 +81,7 @@ public interface ResourceProvider {
      * Determines user filename from the specified path to file and location.
      *
      * @param location location where the path is placed, usually needed to determine file path relative to location
-     * @param path    path to file either local or remote in URI syntax
-     *
+     * @param path     path to file either local or remote in URI syntax
      * @return filename to be stored in ECloud
      */
     public String getFilename(String location, String path);
@@ -114,4 +113,14 @@ public interface ResourceProvider {
      * @return true when paths should be stored in a file or false otherwise
      */
     public boolean usePathsFile();
+
+
+    /**
+     * Mapping file can associate local record identifier with a set of paths to files. Internally mapping is stored
+     * in a reversed form since the lookups are done using path to file and not the local identifier. This method
+     * returns reversed mapping.
+     *
+     * @return reversed mapping
+     */
+    public Map<String, String> getReversedMapping();
 }
