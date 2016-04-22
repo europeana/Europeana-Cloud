@@ -36,6 +36,7 @@ public class ResourceMigratorApp {
                 .defaultHelp(true)
                 .description("Migrate files from specified location to Europeana Cloud.");
         parser.addArgument("-c", "--clean").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Clean previously added records.");
+        parser.addArgument("-path").help("Only in Windows.");
 
         MutuallyExclusiveGroup group = parser.addMutuallyExclusiveGroup();
         group.addArgument("-v", "--verify").type(Boolean.TYPE).action(Arguments.storeTrue()).help("Verify the migration from files point of view.");
