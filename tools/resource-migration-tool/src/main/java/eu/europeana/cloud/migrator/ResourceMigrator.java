@@ -647,7 +647,10 @@ public class ResourceMigrator {
                 }
 
                 // first create provider, pass the path to the possible properties file, use first path to determine data provider id
-                String propsFile = providerPaths.getLocation() + LINUX_SEPARATOR + dataProviderId + DefaultResourceProvider.PROPERTIES_EXTENSION;
+                String propsFile = providerPaths.getLocation();
+                if (!propsFile.endsWith(dataProviderId))
+                    propsFile += LINUX_SEPARATOR + dataProviderId;
+                propsFile += LINUX_SEPARATOR + dataProviderId + DefaultResourceProvider.PROPERTIES_EXTENSION;
                 if (createProvider(propsFile) == null) {
                     // when create provider was not successful finish processing
                     return false;

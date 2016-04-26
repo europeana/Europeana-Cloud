@@ -210,6 +210,8 @@ public abstract class DefaultResourceProvider
                 else {
                     String absolute = path.toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR);
                     String providerId = getResourceProviderId(absolute);
+                    if (absolute.endsWith(providerId + PROPERTIES_EXTENSION))
+                        continue;
                     FilePaths providerPaths = getProviderPaths(Paths.get(location).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR), providerId, paths);
                     //providerPaths.getFullPaths().add(absolute);
                     providerPaths.addPath(absolute);
