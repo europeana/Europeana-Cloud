@@ -971,8 +971,6 @@ public class ResourceMigrator {
 
     private long verifyProvider(String resourceProviderId, FilePaths providerPaths) {
         BufferedReader reader = providerPaths.getPathsReader();
-        if (reader == null)
-            return 0;
 
         String line = "";
         String localId = "";
