@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>ecloud-service-dps-rest</artifactId>
@@ -54,7 +54,7 @@
                 </dependency>
             </dependencies>
         </profile>
-		
+
         <profile>
             <id>tomcat</id>
             <activation>
@@ -74,7 +74,40 @@
                     <artifactId>ecloud-service-dps-zoo</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>ecloud-service-dps-cassandra</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
+        </profile>
+        <profile>
+            <id>kafkaLogging</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
+                        <executions>
+                            <execution>
+                                <id>copy-log4j-resources</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/classes</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/resources/kafkaLogging</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -86,6 +119,7 @@
                     <exclude>zoo/</exclude>
                     <exclude>zookeeper-kafka/</exclude>
                     <exclude>tomcat/</exclude>
+                    <exclude>kafkaLogging/</exclude>
                 </excludes>
             </resource>
         </resources>
@@ -113,11 +147,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+                    <webResources>
+                        <resource>
+                            <filtering>true</filtering>
+                            <directory>src/main/webapp</directory>
+                            <includes>
+                                <include>**/web.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
             <!--configuration of miredot - REST API documentation generator. -->
             <plugin>
                 <groupId>com.qmino</groupId>
                 <artifactId>miredot-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>${version.miredotPlugin}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -140,14 +190,26 @@
                                 <httpCode>500</httpCode>
                                 <document>always</document>
                                 <defaultMessage>Internal server exception. The service call did
-                                    not succeed.</defaultMessage>
+                                    not succeed.
+                                </defaultMessage>
                             </httpStatusCode>
                             <httpStatusCode>
                                 <httpCode>405</httpCode>
                                 <document>explicit:
-                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException</document>
+                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
+                                </document>
                                 <defaultMessage>Access denied or object does not exist. The service call did
-                                    not succeed.</defaultMessage>
+                                    not succeed.
+                                </defaultMessage>
+                            </httpStatusCode>
+                            <httpStatusCode>
+                                <httpCode>405</httpCode>
+                                <document>explicit:
+                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException
+                                </document>
+                                <defaultMessage>Access denied or Topology does not exist. The service call did
+                                    not succeed.
+                                </defaultMessage>
                             </httpStatusCode>
                         </httpStatusCodes>
                         <fieldVisibility>
@@ -203,7 +265,11 @@
             <artifactId>ecloud-service-cos</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Authentication + Authorization -->
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -213,6 +279,11 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-aas-authentication</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -252,6 +323,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
+            <artifactId>jersey-guava</artifactId>
+            <version>2.22.2</version>
+        </dependency>
+
+
         <!--Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.ext</groupId>
@@ -265,17 +343,16 @@
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>${version.jersey}</version>
+        </dependency>
 
         <!-- JSON serialization with moxy -->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-moxy</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <!--logging -->
@@ -339,13 +416,13 @@
         <dependency>
             <groupId>org.glassfish.jersey.test-framework.providers</groupId>
             <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-            <version>2.13</version>
+            <version>2.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.test-framework</groupId>
             <artifactId>jersey-test-framework-core</artifactId>
-            <version>2.13</version>
+            <version>2.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -359,6 +436,16 @@
             <artifactId>cassandra-unit</artifactId>
             <version>${version.cassandra-unit}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

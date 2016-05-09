@@ -3,12 +3,12 @@ package eu.europeana.cloud.service.dps.storm.transform.text.oai;
 import eu.europeana.cloud.service.dps.storm.transform.text.MethodsEnumeration;
 
 /**
- *
+ * Supported extraction methods for OAI.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public enum OaiExtractionMethods implements MethodsEnumeration<OaiExtractionMethods>
 {
-    DC; //default extractor
+    DC_EXTRACTOR; //default extractor
     
     @Override
     public OaiExtractionMethods getMethod(String value) 
@@ -20,7 +20,7 @@ public enum OaiExtractionMethods implements MethodsEnumeration<OaiExtractionMeth
         }
         catch(IllegalArgumentException | NullPointerException ex)
         {
-           return DC; //defaul enum constant
+           return DC_EXTRACTOR; //defaul enum constant
         }
         
         return ret;

@@ -124,7 +124,8 @@ public class UISExceptionMapper {
 
     private Response buildResponse(GenericException e) {
 	return Response.status(e.getErrorInfo().getHttpCode())
-		.entity(e.getErrorInfo().getErrorInfo()).build();
+//		.entity(e.getErrorInfo().getErrorInfo()).type(MediaType.APPLICATION_XML_TYPE).build();
+        .entity(e.getErrorInfo().getErrorInfo()).build();
     }
 
     /**

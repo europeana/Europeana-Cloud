@@ -22,7 +22,8 @@ nbactions.xml
 /service/mcs/driver/target/
 /tools/ecloud-dlf-ingestion-tool/target/
 /service/dls/target/
-/service/aas/rest/target//service/dls/target/
+/service/aas/rest/target/
+/service/dls/target/
 
 **/.vagrant
 /cassandra-connector/target/
@@ -34,4 +35,7 @@ nbactions.xml
 /service/dps/storm/io/target/
 /service/dps/storm/transform/xslt/target/
 /service/dps/storm/topology/xslt/target/
+/service/dps/storm/topology/ic/converter/target/
+/service/dps/storm/topology/ic/ic-topology/target/
 /service/dps/storm/examples/target/
+/service/image-publisher/target/

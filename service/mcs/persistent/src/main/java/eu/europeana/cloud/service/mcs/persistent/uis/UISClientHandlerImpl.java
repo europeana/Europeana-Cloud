@@ -7,9 +7,13 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import java.util.Iterator;
+
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -57,8 +61,25 @@ public class UISClientHandlerImpl implements UISClientHandler {
 	}
 	return result;
     }
-    
-     /**
+
+	@Override
+	public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
+		try {
+			return uisClient.getCloudId(providerId,localId);
+		} catch (CloudException ex) {
+			if (ex.getCause() instanceof RecordDoesNotExistException) {
+				throw new RecordNotExistsException(localId, providerId);
+			}
+			else if (ex.getCause() instanceof ProviderDoesNotExistException) {
+				throw new ProviderNotExistsException(ex.getMessage());
+			} else {
+				throw new SystemException(ex);
+			}
+		}
+	}
+
+
+	/**
      * @inheritDoc
      */
     @Override

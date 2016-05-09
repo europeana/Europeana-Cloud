@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -40,5 +40,9 @@
         <module>storm/topologies/indexer</module>
         <module>similarity</module>
         <module>index</module>
+        <module>cassandra</module>
+        <module>storm/topologies/extract_and_index</module>
+        <module>storm/topologies/ic</module>
+        <module>utils</module>
     </modules>
 </project>

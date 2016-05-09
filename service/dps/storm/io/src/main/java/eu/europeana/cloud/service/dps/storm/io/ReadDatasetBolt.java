@@ -1,18 +1,19 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.metric.api.CountMetric;
-import backtype.storm.metric.api.MeanReducer;
-import backtype.storm.metric.api.ReducedMetric;
-import backtype.storm.task.TopologyContext;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.metrics.PersistentCountMetric;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -21,147 +22,120 @@ import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rits.cloning.Cloner;
 
 /**
- *
- * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
+ * Read dataset and emit every file in dataset as a separate {@link StormTaskTuple}.
  */
-public class ReadDatasetBolt extends AbstractDpsBolt
-{
-    private final String zkAddress;
+public class ReadDatasetBolt extends AbstractDpsBolt {
     private final String ecloudMcsAddress;
     private final String username;
     private final String password;
-    
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
-    
     private DataSetServiceClient datasetClient;
     private FileServiceClient fileClient;
-    
-    private transient CountMetric countMetric;
-    private transient PersistentCountMetric pCountMetric;
-    private transient ReducedMetric wordLengthMeanMetric;
 
-    public ReadDatasetBolt(String zkAddress, String ecloudMcsAddress, String username, String password) 
-    {
-        this.zkAddress = zkAddress;
+    /**
+     * Constructor of ReadDatasetBolt.
+     *
+     * @param ecloudMcsAddress MCS API URL
+     * @param username         eCloud username
+     * @param password         eCloud password
+     */
+    public ReadDatasetBolt(String ecloudMcsAddress, String username, String password) {
         this.ecloudMcsAddress = ecloudMcsAddress;
         this.username = username;
         this.password = password;
     }
 
     @Override
-    public void execute(StormTaskTuple t) 
-    {
-        String providerId = t.getParameter(PluginParameterKeys.PROVIDER_ID);
-        String datasetId = t.getParameter(PluginParameterKeys.DATASET_ID);
-        
-        if(providerId == null || providerId.isEmpty() ||
-            datasetId == null || datasetId.isEmpty())
-        {
-            LOGGER.warn("No ProviderId or DatasetId for retrieve dataset.");
+    public void execute(StormTaskTuple t) {
+        //try data from DPS task
+        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
+            Type type = new TypeToken<Map<String, List<String>>>() {
+            }.getType();
+            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
+            if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
+                List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
+                if (!datasets.isEmpty()) {
+                    emitFilesFromDataSets(t, datasets);
+                    emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
+                    outputCollector.ack(inputTuple);
+                    return;
+                }
+            }
+        } else {
+            String message = "No dataset were provided";
+            LOGGER.warn(message);
+            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, message);
             outputCollector.ack(inputTuple);
             return;
         }
-        
-        LOGGER.info("Reading dataset with providerId: {} and datasetId: {}", providerId, datasetId);
-        
-        StormTaskTuple tt;
-        
-        try 
-        {
-            List<Representation> dataSetRepresentations = datasetClient.getDataSetRepresentations(providerId, datasetId);
-            
-            for(Representation representation : dataSetRepresentations)
-            { 
-                for(File file : representation.getFiles())
-                {   
-                    if(file == null)
-                    {
-                        continue;
-                    }
-                    
-                    tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-                    
-                    tt.addParameter(PluginParameterKeys.CLOUD_ID, representation.getCloudId());
-                    tt.addParameter(PluginParameterKeys.REPRESENTATION_NAME, representation.getRepresentationName());
-                    tt.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, representation.getVersion());
-                    tt.addParameter(PluginParameterKeys.FILE_NAME, file.getFileName());
-                    
-                    URI uri = fileClient.getFileUri(
-                            representation.getCloudId(), 
-                            representation.getRepresentationName(), 
-                            representation.getVersion(), 
-                            file.getFileName());                       
 
-                    String url = uri.toString();    //TODO: why file.contentUrl is null???!!!!!!!
-                    tt.setFileUrl(url);
-
-                    InputStream is;
-                    try 
-                    {
-                        is = fileClient.getFile(url);
-                    } 
-                    catch (RepresentationNotExistsException | FileNotExistsException | 
-                            WrongContentRangeException ex) 
-                    {
-                        LOGGER.info("Can not retrieve file at {}", url);
-                        continue;
-                    }
-
-                    tt.setFileData(is);
-
-                    updateMetrics(tt, IOUtils.toString(is));
-   
-                    outputCollector.emit(inputTuple, tt.toStormTuple()); //TODO: use different taskId for every emit (otherwise suffice only one ack for all emits!!!)
-                }
-            }           
-            outputCollector.ack(inputTuple);
-        } 
-        catch (DataSetNotExistsException ex)
-        {
-            LOGGER.info("Dataset for providerId: {} and datasetId: {} not exists.", providerId, datasetId);
-            outputCollector.ack(inputTuple);
-        }
-        catch (MCSException | DriverException | IOException ex) 
-        {
-            LOGGER.error("ReadDatasetBolt error:" + ex.getMessage());
-            outputCollector.ack(inputTuple);   
-        }
     }
 
     @Override
-    public void prepare() 
-    {       
+    public void prepare() {
         datasetClient = new DataSetServiceClient(ecloudMcsAddress, username, password);
         fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
-        
-        initMetrics(topologyContext);
     }
-    
-    void initMetrics(TopologyContext context) 
-    {
-        countMetric = new CountMetric();
-        pCountMetric = new PersistentCountMetric();
-        wordLengthMeanMetric = new ReducedMetric(new MeanReducer());
 
-        context.registerMetric("read_records=>", countMetric, 10);
-        context.registerMetric("pCountMetric_records=>", pCountMetric, 10);
-        context.registerMetric("word_length=>", wordLengthMeanMetric, 10);
+    private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
+        String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        String fileUrl = null;
+        for (String dataSet : dataSets) {
+            try {
+                StormTaskTuple stormTaskTuple = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
+                UrlParser urlParser = new UrlParser(dataSet);
+                if (urlParser.isUrlToDataset()) {
+                    List<Representation> representations = datasetClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
+                            urlParser.getPart(UrlPart.DATA_SETS));
+                    for (Representation representation : representations) {
+                        if (representationName == null || representation.getRepresentationName().equals(representationName)) {
+                            for (File file : representation.getFiles()) {
+                                try {
+                                    fileUrl = fileClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
+                                    LOGGER.info("HERE THE LINK: " + fileUrl);
+                                    InputStream is = fileClient.getFile(fileUrl);
+                                    stormTaskTuple.setFileData(is);
+                                    stormTaskTuple.setFileUrl(fileUrl);
+                                    outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+                                } catch (RepresentationNotExistsException | FileNotExistsException |
+                                        WrongContentRangeException ex) {
+                                    LOGGER.warn("Can not retrieve file at {}", fileUrl);
+                                    emitDropNotification(t.getTaskId(), fileUrl, "Can not retrieve file", "");
+                                } catch (DriverException | MCSException | IOException ex) {
+                                    LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+                                    emitErrorNotification(t.getTaskId(), fileUrl, ex.getMessage(), t.getParameters().toString());
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LOGGER.warn("dataset url is not formulated correctly {}", dataSet);
+                    emitDropNotification(t.getTaskId(), dataSet, "dataset url is not formulated correctly", "");
+                    outputCollector.ack(inputTuple);
+                }
+            } catch (DataSetNotExistsException ex) {
+                LOGGER.warn("Provided dataset is not existed {}", dataSet);
+                emitDropNotification(t.getTaskId(), dataSet, "Can not retrieve a dataset", "");
+                outputCollector.ack(inputTuple);
+            } catch (MalformedURLException | MCSException ex) {
+                LOGGER.error("ReadFileBolt error:" + ex.getMessage());
+                emitErrorNotification(t.getTaskId(), dataSet, ex.getMessage(), t.getParameters().toString());
+                outputCollector.ack(inputTuple);
+            }
+        }
     }
-    
-    void updateMetrics(StormTaskTuple t, String word) 
-    {		
-        countMetric.incr();
-        pCountMetric.incr();
-        wordLengthMeanMetric.update(word.length());
-    }   
 }
+

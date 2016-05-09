@@ -11,12 +11,15 @@
                         http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
                         http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
-    <context:annotation-config/>    
-    <import resource="classpath:config.xml" />
+    <context:annotation-config/>
+    <import resource="classpath:config.xml"/>
 
     <context:component-scan
-        base-package="eu.europeana.cloud.service.dps.rest"/>
-        
+            base-package="eu.europeana.cloud.service.dps.rest"/>
+
+    <bean id="permissionManager"
+          class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
+
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
@@ -28,13 +31,93 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
     </bean>
-    
-    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperReportService">
-        <constructor-arg name="zookeeperAddress">
+
+    <bean id="taskKillService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService">
+        <constructor-arg name="zookeeperConnectString">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/zookeeper/address"/>
         </constructor-arg>
     </bean>
-    
-  	<import resource="authentication.xml"/>
-  	<import resource="authorization.xml"/>
+
+    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService">
+        <constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/dps/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="userName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/password"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
+    <bean id="topologyManger" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager">
+        <constructor-arg name="nameList">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/nameList"/>
+        </constructor-arg>
+        <constructor-arg name="userNameList">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/userNameList"/>
+        </constructor-arg>
+    </bean>
+    <bean id="mcsLocation" class="java.lang.String">
+        <constructor-arg type="java.lang.String">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/mcsLocation"/>
+        </constructor-arg>
+    </bean>
+    <bean id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" ref="mcsLocation"/>
+    </bean>
+
+    <bean id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" ref="mcsLocation"/>
+    </bean>
+
+    <bean id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" ref="mcsLocation"/>
+    </bean>
+
+
+    <bean id="dpsCassandraProvider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
+        </constructor-arg>
+        <constructor-arg name="port">
+            <jee:jndi-lookup expected-type="java.lang.Integer" jndi-name="java:comp/env/dps/cassandra/port"/>
+        </constructor-arg>
+        <constructor-arg name="keyspaceName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/keyspace"/>
+        </constructor-arg>
+        <constructor-arg name="userName">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/user"/>
+        </constructor-arg>
+        <constructor-arg name="password">
+            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/password"/>
+        </constructor-arg>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.springframework.security.core.context.SecurityContextHolder"/>
+        <property name="targetMethod" value="setStrategyName"/>
+        <property name="arguments">
+            <list>
+                <value>MODE_INHERITABLETHREADLOCAL</value>
+            </list>
+        </property>
+    </bean>
+
+
+
+    <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">
+        <constructor-arg ref="dpsCassandraProvider"/>
+    </bean>
+
+
+    <import resource="authentication.xml"/>
+    <import resource="authorization.xml"/>
 </beans>

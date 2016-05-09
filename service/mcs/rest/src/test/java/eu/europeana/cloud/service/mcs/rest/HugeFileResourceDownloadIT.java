@@ -86,7 +86,7 @@ public class HugeFileResourceDownloadIT extends JerseyTest {
         // given representation with file in service
         String globalId = "globalId", schema = "schema", version = "v1";
         MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
-        File file = new File("fileName", "mime", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
+        File file = new File("fileName", "text/plain", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
 
         // mock answers:
         doAnswer(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),

@@ -8,6 +8,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class TopologiesResource {
     @Autowired
     private MutableAclService mutableAclService;
 
+    @Autowired
+    private TopologyManager topologyManager;
+
     private final static String TOPOLOGY_PREFIX = "Topology";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesResource.class);
@@ -60,24 +65,30 @@ public class TopologiesResource {
     @POST
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) {
-        
+    public Response grantPermissionsToTopology(@FormParam("username") String userName, @PathParam("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException{
+        assertContainTopology(topology);
         ObjectIdentity topologyIdentity = new ObjectIdentityImpl(TOPOLOGY_PREFIX, topology);
         MutableAcl topologyAcl = null;
-        
+
         try {
             topologyAcl = (MutableAcl)mutableAclService.readAclById(topologyIdentity);
-            
+
         } catch (Exception e) {
-        	// not really an exception
+            // not really an exception
             LOGGER.info("ACL not found for topology {} and user {}. "
-            		+ "This is ok if it is the first time you are trying to assign permissions for this topology.", topology, userName);
+                    + "This is ok if it is the first time you are trying to assign permissions for this topology.", topology, userName);
             topologyAcl = mutableAclService.createAcl(topologyIdentity);
         }
-        
+
         topologyAcl.insertAce(topologyAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(userName), true);
         mutableAclService.updateAcl(topologyAcl);
 
         return Response.ok().build();
+    }
+
+    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+        if(!topologyManager.containsTopology(topology)){
+            throw new AccessDeniedOrTopologyDoesNotExistException();
+        }
     }
 }

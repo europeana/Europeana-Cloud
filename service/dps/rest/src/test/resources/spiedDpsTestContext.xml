@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+
+    <context:annotation-config/>
+    <import resource="classpath:config.xml"/>
+
+    <context:component-scan
+            base-package="eu.europeana.cloud.service.dps.rest"/>
+
+    <bean class="eu.europeana.cloud.service.dps.ApplicationContextUtils"/>
+    <mockito:mock id="context" class="org.springframework.context.ApplicationContext"/>
+    <mockito:mock id="permissionManger" class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
+    <mockito:mock id="reportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService"/>
+    <mockito:mock id="submitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService"/>
+    <mockito:mock id="killService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService"/>
+    <!--<mockito:mock  id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>-->
+    <mockito:mock id="topologyManager" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager"/>
+    <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
+    <bean id="mcsLocation" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="test"/>
+    </bean>
+    <mockito:mock id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"/>
+
+    <mockito:mock id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient"/>
+
+    <mockito:mock id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient"/>
+
+    <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
+
+
+</beans>

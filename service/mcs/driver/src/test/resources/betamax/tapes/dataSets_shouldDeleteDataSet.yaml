@@ -11,7 +11,7 @@ interactions:
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.3.1 (HttpUrlConnection 1.7.0_45)
   response:
-    status: 200
+    status: 204
     headers:
       Date: Tue, 18 Feb 2014 13:29:24 GMT
       Server: Apache-Coyote/1.1

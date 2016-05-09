@@ -80,7 +80,7 @@ public class TikaExtractionTest
     {
         TikaExtractor extractor = new TikaExtractor();
         
-        assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, extractor.getExtractorMethod());
+        assertEquals(PdfExtractionMethods.TIKA_EXTRACTOR, extractor.getExtractionMethod());
         
         String name = extractor.getRepresentationName();
         

@@ -1,0 +1,24 @@
+!tape
+name: records_shouldRevokePermissionsWhenAuthorizationHeaderIsCorrect
+interactions:
+- recorded: 2015-11-20T12:45:01.210Z
+  request:
+    method: DELETE
+    uri: http://localhost:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/permissions/read/users/user
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_67)
+  response:
+    status: 204
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Date: Fri, 20 Nov 2015 12:45:01 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block

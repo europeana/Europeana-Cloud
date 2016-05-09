@@ -1,26 +1,12 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static org.hamcrest.number.OrderingComparisons.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
+import co.freeside.betamax.TapeMode;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -28,6 +14,18 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+
+import static org.hamcrest.number.OrderingComparisons.greaterThan;
+import static org.junit.Assert.*;
 
 public class RecordServiceClientTest {
 
@@ -854,5 +852,61 @@ public class RecordServiceClientTest {
 				username, password);
 
 		instance.persistRepresentation(cloudId, representationName, version);
+	}
+
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	@Betamax(tape = "records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToUpdatePermissions")
+	public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToUpdatePermissions()
+			throws MCSException, IOException {
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
+	}
+
+	@Test
+	@Betamax(tape = "records_shouldUpdatePermissionsWhenAuthorizationHeaderIsCorrect")
+	public void shouldUpdatePermissionsWhenAuthorizationHeaderIsCorrect()
+			throws MCSException, IOException {
+		String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client
+			.useAuthorizationHeader(correctHeaderValue)
+			.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+	}
+	
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	@Betamax(tape = "records_accessDeniedRequest")
+	public void shouldThrowAccessDeniedExceptionWhenAuthorizationHeaderIsNotCorrect()
+			throws MCSException, IOException {
+		String headerValue = "Basic wrongHeaderValue";
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client
+				.useAuthorizationHeader(headerValue)
+				.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+	}
+
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	@Betamax(tape = "records_shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions")
+	public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions()
+			throws MCSException, IOException {
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client.revokePermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
+	}
+
+	@Test
+	@Betamax(tape = "records_shouldRevokePermissionsWhenAuthorizationHeaderIsCorrect")
+	public void shouldRevokePermissionsWhenAuthorizationHeaderIsCorrect()
+			throws MCSException, IOException {
+		String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client
+				.useAuthorizationHeader(correctHeaderValue)
+				.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+	}
+	
+	@Test(expected = DriverException.class)
+	@Betamax(tape = "records_shouldThrowDriverExceptionWhileMcsIsNotAvailable")
+	public void shouldThrowMcsExceptionWhileMcsIsNotAvailable() throws MCSException {
+		RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
+		client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
 	}
 }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-uis</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.6-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -331,11 +331,6 @@
             <artifactId>spring-web</artifactId>
             <scope>compile</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -445,6 +440,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
+                    <!--<filters>-->
+                        <!--<filter>${project.build.outputDirectory}/git.properties</filter>-->
+                    <!--</filters>-->
+                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
                     <webResources>
                         <resource>
                             <filtering>true</filtering>
@@ -456,19 +455,19 @@
                     </webResources>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <licence> <!-- MireDot free open source license, valid until 2017-01-15 -->
+        <plugin>
+            <groupId>com.qmino</groupId>
+            <artifactId>miredot-plugin</artifactId>
+            <version>${version.miredotPlugin}</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>restdoc</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <licence> <!-- MireDot free open source license, valid until 2017-01-15 -->
                         UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNy0wMS0xNXxmYWxzZSNNQ3dDRkdMbHdnL1VLTGw2RXVMZkZXYi93anBKaWQvMUFoUmNsYWxYZkN3TzFFRXlDWmdLbkpaelJiU3p6dz09
                     </licence>
                     <restModel>

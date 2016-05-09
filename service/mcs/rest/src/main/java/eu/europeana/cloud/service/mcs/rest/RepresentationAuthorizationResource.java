@@ -1,20 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.AASParamConstants.P_USER_NAME;
-import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
-import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +13,23 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.cloud.common.model.Representation;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
+
+import static eu.europeana.cloud.common.web.AASParamConstants.P_PERMISSION;
+import static eu.europeana.cloud.common.web.AASParamConstants.P_USER_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to authorize other users to read specific versions.
@@ -38,30 +38,91 @@ import eu.europeana.cloud.common.model.Representation;
 @Component
 public class RepresentationAuthorizationResource {
 
+    private static final List<String> acceptedPermissionValues
+            = Arrays.asList(
+            eu.europeana.cloud.common.model.Permission.ALL.getValue(),
+            eu.europeana.cloud.common.model.Permission.READ.getValue(),
+            eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
+            eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
+            eu.europeana.cloud.common.model.Permission.DELETE.getValue());
+
     @Autowired
     private MutableAclService mutableAclService;
+
+    @Autowired
+    private PermissionsGrantingManager permissionsGrantingManager;
 
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationAuthorizationResource.class);
 
     /**
+     * Removes permissions for selected user to selected representation version.<br/><br/>
+     * Permissions option:<br/>
+     * <li>all</li>
+     * <li>read</li>
+     * <li>write</li>
+     * <li>delete</li>
+     * <li>administration</li>
+     *
+     * @param globalId   cloud id of the record (required).
+     * @param schema     schema of representation (required).
+     * @param version    a specific version of the representation(required).
+     * @param userName   username as part of credential (required).
+     * @param permission permission as part of credential (required).
+     * @return response tells you if authorization has been updated or not
+     * @summary Permissions removal
+     */
+    @DELETE
+    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', write)")
+    public Response removePermissions(@PathParam(P_CLOUDID) String globalId,
+                                      @PathParam(P_REPRESENTATIONNAME) String schema,
+                                      @PathParam(P_VER) String version,
+                                      @PathParam(P_USER_NAME) String userName,
+                                      @PathParam(P_PERMISSION) String permission) {
+
+
+        ParamUtil.require(P_CLOUDID, globalId);
+        ParamUtil.require(P_REPRESENTATIONNAME, schema);
+        ParamUtil.require(P_VER, version);
+        ParamUtil.require(P_USER_NAME, userName);
+        ParamUtil.require(P_PERMISSION, permission);
+        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
+
+        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+
+        ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
+                globalId + "/" + schema + "/" + version);
+
+        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'", userName, versionIdentity.getType(), versionIdentity.getIdentifier());
+
+        List<Permission> permissionsToBeRemoved = Arrays.asList(_permission.getSpringPermissions());
+        permissionsGrantingManager.removePermissions(versionIdentity, userName, permissionsToBeRemoved);
+
+        return Response.noContent().build();
+    }
+
+    /**
      * Modify authorization of versions operation. Updates authorization for a
      * specific representation version.
-     *
+     * <p/>
      * <strong>Write permissions required.</strong>
-     * @param globalId cloud id of the record (required).
-     * @param schema   schema of representation (required).
-     * @param version  a specific version of the representation(required).
-     * @param username  username as part of credential (required).
+     *
+     * @param globalId   cloud id of the record (required).
+     * @param schema     schema of representation (required).
+     * @param version    a specific version of the representation(required).
+     * @param username   username as part of credential (required).
      * @param permission permission as part of credential (required).
      * @return response tells you if authorization has been updated or not
      * @summary update authorization for a representation version
-     * @statuscode 204 object has been updated.
+     * @statuscode 200 object has been updated.
+     * @statuscode 204 object has not been updated.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/users/{" + P_USER_NAME + "}/permit/{" + P_PERMISSION + "}")
+    @Path("/permissions/{" + P_PERMISSION + "}/users/{" + P_USER_NAME + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', write)")
     public Response updateAuthorization(
@@ -77,22 +138,18 @@ public class RepresentationAuthorizationResource {
         ParamUtil.require(P_VER, version);
         ParamUtil.require(P_USER_NAME, username);
         ParamUtil.require(P_PERMISSION, permission);
+        ParamUtil.validate(P_PERMISSION, permission, acceptedPermissionValues);
 
         ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
                 globalId + "/" + schema + "/" + version);
-
+        eu.europeana.cloud.common.model.Permission _permission = eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
         MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
 
         if (versionAcl != null) {
-
             try {
-                int pAsInt = Integer.parseInt(permission);
-                if (pAsInt == BasePermission.READ.getMask()) {
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                }
-                if (pAsInt == BasePermission.WRITE.getMask()) {
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, new PrincipalSid(username), true);
-                    versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.WRITE, new PrincipalSid(username), true);
+                final Permission[] permissions = _permission.getSpringPermissions();
+                for (Permission singlePermission : permissions) {
+                    versionAcl.insertAce(versionAcl.getEntries().size(), singlePermission, new PrincipalSid(username), true);
                 }
                 mutableAclService.updateAcl(versionAcl);
             } catch (Exception e) {
@@ -107,7 +164,7 @@ public class RepresentationAuthorizationResource {
 
     /**
      * Gives read access to everyone (even anonymous users) for the specified File.
-     *
+     * <p/>
      * <strong>Write permissions required.</strong>
      *
      * @param globalId cloud id of the record (required).

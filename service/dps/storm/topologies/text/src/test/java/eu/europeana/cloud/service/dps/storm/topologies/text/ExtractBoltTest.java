@@ -15,6 +15,8 @@ import backtype.storm.testing.TrackedTopology;
 import backtype.storm.topology.TopologyBuilder;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,24 +28,39 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import org.junit.runner.RunWith;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Class for test {@link ExtractBolt}.
- * Environment variable STORM_TEST_TIMEOUT_MS must be set! (recommended value is 60000)
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AbstractDpsBolt.class)
+@PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ExtractBoltTest 
 {
     private final String storeStream = "storeStream";
     private final String informStream = "informStream";
     
     private final String pdfFilePath = "/rightTestFile.pdf";
-    private final String oaiFilePath = "/rightDcTestFile.xml";
+    private final String txtFilePath = "/ascii-file.txt";
     private final String imgFilePath = "/Koala.jpg";
     
     @Test
-    public void acksTest()
+    public void acksTest() throws Exception
     {
+        //--- prepare zookeeper kill service mock
+        ZookeeperKillService zooKillMock = Mockito.mock(ZookeeperKillService.class);
+        Mockito.when(zooKillMock.hasKillFlag(anyString(), anyLong())).thenReturn(false);       
+        PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zooKillMock);
+        
         Testing.withTrackedCluster(new TestJob() 
             {
                 @Override
@@ -57,7 +74,7 @@ public class ExtractBoltTest
                     //build topology
                     TopologyBuilder builder = new TopologyBuilder();
                     builder.setSpout("testSpout", spout);
-                    builder.setBolt("extractBolt", new ExtractTextBolt(storeStream, informStream))
+                    builder.setBolt("extractBolt", new ExtractTextBolt(informStream, storeStream))
                             .shuffleGrouping("testSpout");
                     
                     StormTopology topology = builder.createTopology();
@@ -69,7 +86,7 @@ public class ExtractBoltTest
                     config.setNumWorkers(1);
                     //config.setDebug(true);      
 
-                    cluster.submitTopology("testTopology", config, tt.getTopology());                                    
+                    cluster.submitTopology("testTopology", config, tt.getTopology());  
                     
                     //prepare test data                    
                     List<StormTaskTuple> data = prepareInputData();
@@ -77,7 +94,8 @@ public class ExtractBoltTest
                     for(StormTaskTuple tuple: data)
                     {
                         spout.feed(tuple.toStormTuple());
-                        Testing.trackedWait(tt);
+                        //Waits until topology is idle and 'amt' more tuples have been emitted by spouts
+                        Testing.trackedWait(tt, 1, 60000);  //topology, amt, timeout
                     }
                     
                     assertEquals(data.size(), tracker.getNumAcks());
@@ -85,12 +103,14 @@ public class ExtractBoltTest
             });
     }
     
-	/**
-	 * DISABLED: @see ECL-522 (https://jira.man.poznan.pl/jira/browse/ECL-522)
-	 */
-//    @Test
-    public void outputsTest()
+    @Test
+    public void outputsTest() throws Exception
     {
+        //--- prepare zookeeper kill service mock
+        ZookeeperKillService zooKillMock = Mockito.mock(ZookeeperKillService.class);
+        Mockito.when(zooKillMock.hasKillFlag(anyString(), anyLong())).thenReturn(false);       
+        PowerMockito.whenNew(ZookeeperKillService.class).withAnyArguments().thenReturn(zooKillMock);
+        
         Testing.withLocalCluster(new TestJob() 
             {
                 @Override
@@ -99,7 +119,7 @@ public class ExtractBoltTest
                     //build topology
                     TopologyBuilder builder = new TopologyBuilder();
                     builder.setSpout("testSpout", new FeederSpout(StormTaskTuple.getFields()));
-                    builder.setBolt("extractBolt", new ExtractTextBolt(storeStream, informStream))
+                    builder.setBolt("extractBolt", new ExtractTextBolt(informStream, storeStream))
                             .shuffleGrouping("testSpout");
                     
                     StormTopology topology = builder.createTopology();
@@ -120,13 +140,17 @@ public class ExtractBoltTest
                     CompleteTopologyParam completeTopology = new CompleteTopologyParam();
                     completeTopology.setMockedSources(mockedSources);
                     completeTopology.setStormConf(config);
+                    completeTopology.setTimeoutMs(60000);
                     
                     Map result = Testing.completeTopology(cluster, topology, completeTopology);
                     
                     List touplesForStore = Testing.readTuples(result, "extractBolt", storeStream);
-                    assertEquals(3, touplesForStore.size());
+                    assertEquals(4, touplesForStore.size());
                     List touplesForInform = Testing.readTuples(result, "extractBolt", informStream);
-                    assertEquals(8, touplesForInform.size());                         
+                    assertEquals(9, touplesForInform.size());  
+                    List touplesForNotification = Testing.readTuples(result, "extractBolt", 
+                            ExtractTextBolt.NOTIFICATION_STREAM_NAME);
+                    assertEquals(37, touplesForNotification.size());
                 }
             });
     }
@@ -136,7 +160,7 @@ public class ExtractBoltTest
         List<StormTaskTuple> ret = new ArrayList();
         
         List<InputStream> inputDatas= new ArrayList();
-        String[] paths = {pdfFilePath, oaiFilePath, imgFilePath};
+        String[] paths = {pdfFilePath, txtFilePath, imgFilePath};
         for(String path: paths)
         {
             //InputStream is = new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(path)));  //fileInputStream not supported reset
@@ -163,44 +187,32 @@ public class ExtractBoltTest
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "True");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "txt");  //can read everything (e.g. pdf)
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "txt");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
         params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
-        param.put(PluginParameterKeys.EXTRACTOR, "some_extractor");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        param.put(PluginParameterKeys.EXTRACTOR, "some_extractor");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "False");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "True");
-        params.add(param); 
-        param = new HashMap<>();
-        param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "true");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param);
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "fdsa");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
         params.add(param); 
         param = new HashMap<>();
         param.put(PluginParameterKeys.STORE_EXTRACTED_TEXT, "");
-        param.put(PluginParameterKeys.REPRESENTATION_NAME, "oai");
-        params.add(param); 
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "pdf");
+        params.add(param);  
+        param = new HashMap<>();
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "xxx");
+        param.put(PluginParameterKeys.FILE_FORMATS, "{\"xxx\":\"pdf\"}");
+        params.add(param);
+        param = new HashMap<>();
+        param.put(PluginParameterKeys.REPRESENTATION_NAME, "xxx");
+        param.put(PluginParameterKeys.FILE_FORMATS, "{\"xxx\":\"pdf\"}");
+        param.put(PluginParameterKeys.EXTRACTORS, "{\"pdf\":\"tika_extractor\"}");
+        params.add(param);
         param = new HashMap<>();
         params.add(param); 
 

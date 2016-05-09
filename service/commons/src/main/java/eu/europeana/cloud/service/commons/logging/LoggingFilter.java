@@ -59,7 +59,8 @@ public class LoggingFilter implements ContainerResponseFilter, ContainerRequestF
                 .withStatusCode(responseContext.getStatus())
                 .withRemoteAddr(readRemoteAddr())
                 .withRequestTime(calculateRequestTime(requestContext))
-                .withResourcePatch(readRequestPath(requestContext))
+                .withResourcePath(readRequestPath(requestContext))
+                .withRequestMethod(readRequestMethod(requestContext))
                 .build();
         
         return message;
@@ -81,5 +82,9 @@ public class LoggingFilter implements ContainerResponseFilter, ContainerRequestF
     
     private String readRequestPath(ContainerRequestContext requestContext){
         return requestContext.getUriInfo().getPath().replaceAll(" ","%20");
+    }
+    
+    private String readRequestMethod(ContainerRequestContext requestContext){
+        return requestContext.getMethod();
     }
 }

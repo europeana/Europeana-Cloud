@@ -1,0 +1,24 @@
+!tape
+name: records_shouldThrowDriverExceptionWhileMcsIsNotAvailable
+interactions:
+- recorded: 2015-12-29T11:11:15.225Z
+  request:
+    method: POST
+    uri: http://localhost:8080/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_67)sou
+  response:
+    status: 404
+    headers:
+      Content-Language: en
+      Content-Type: text/html;charset=utf-8
+      Date: Tue, 29 Dec 2015 11:11:14 GMT
+      Server: Apache-Coyote/1.1
+    body: '<html><head><title>Apache Tomcat/7.0.57 - Error report</title><style><!--H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;} H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;}
+      H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;} BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;} B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;} P
+      {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A {color : black;}A.name {color : black;}HR {color : #525D76;}--></style> </head><body><h1>HTTP Status 404 - /mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user</h1><HR
+      size="1" noshade="noshade"><p><b>type</b> Status report</p><p><b>message</b> <u>/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user</u></p><p><b>description</b> <u>The requested resource
+      is not available.</u></p><HR size="1" noshade="noshade"><h3>Apache Tomcat/7.0.57</h3></body></html>'

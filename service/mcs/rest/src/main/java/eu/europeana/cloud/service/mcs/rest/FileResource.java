@@ -1,21 +1,25 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
-import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_FILENAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -26,30 +30,20 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.stereotype.Component;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to manage representation version's files with their content.
  */
 @Path("/records/{" + P_CLOUDID + "}/representations/{" + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/files/{"
-        + P_FILENAME + "}")
+        + P_FILENAME + ":(.+)?}")
 @Component
 @Scope("request")
 public class FileResource {
@@ -166,6 +160,7 @@ public class FileResource {
 
         // get file md5 if complete file is requested
         String md5 = null;
+        String fileMimeType = null;
         Response.Status status;
         if (contentRange.isSpecified()) {
             status = Response.Status.PARTIAL_CONTENT;
@@ -173,6 +168,9 @@ public class FileResource {
             status = Response.Status.OK;
             final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
             md5 = requestedFile.getMd5();
+            if(StringUtils.isNotBlank(requestedFile.getMimeType())){
+                fileMimeType = requestedFile.getMimeType();
+            }
         }
 
         // stream output
@@ -193,9 +191,46 @@ public class FileResource {
             }
         };
 
-        return Response.status(status).entity(output).tag(md5).build();
+        return Response.status(status).entity(output).type(fileMimeType).tag(md5).build();
     }
 
+    /**
+     * 
+     * Returns only HTTP headers for file request. 
+     * 
+     * @param uriInfo
+     * @param globalId cloud id of the record (required).
+     * @param schema schema of representation (required).
+     * @param version a specific version of the representation(required).
+     * @param fileName the name of the file(required).
+     *              
+     * @return empty response with proper http headers
+     * @summary get HTTP headers for file request
+     * @throws RepresentationNotExistsException
+     * @throws FileNotExistsException
+     */
+    @HEAD
+    @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
+            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    public Response getFileHeaders(@Context UriInfo uriInfo,
+                                   @PathParam(P_CLOUDID) final String globalId,
+                                   @PathParam(P_REPRESENTATIONNAME) final String schema,
+                                   @PathParam(P_VER) final String version,
+                                   @PathParam(P_FILENAME) final String fileName)
+            throws RepresentationNotExistsException, FileNotExistsException {
+
+        URI requestUri = uriInfo.getRequestUri();
+        final File requestedFile = recordService.getFile(globalId, schema, version, fileName);
+        String fileMimeType = null;
+        String md5 = requestedFile.getMd5();
+        if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
+            fileMimeType = requestedFile.getMimeType();
+        }
+
+        return Response.status(Response.Status.OK).type(fileMimeType).location(requestUri).tag(md5).build();
+    }
+    
+    
     /**
      * Deletes file from representation version.
      *<strong>Delete permissions required.</strong>

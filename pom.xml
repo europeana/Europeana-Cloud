@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.6-SNAPSHOT</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,8 +16,8 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <developers>
         <developer>
             <id>1nf1n1ty08</id>
@@ -83,6 +83,7 @@
         <module>service/commons</module>
         <module>tools</module>
         <module>integration</module>
+        <module>service/ips</module>
     </modules>
     <repositories>
         <repository>
@@ -114,24 +115,26 @@
     </repositories>
     <properties>
         <version.jdk>1.7</version.jdk>
-        <version.junit>4.10</version.junit>
+        <version.junit>4.12</version.junit>
+        <version.powermock>1.6.2</version.powermock>
+        <version.powermock-mockito>1.5.3</version.powermock-mockito>
         <version.jersey>2.4</version.jersey>
-        <version.slf4j>1.7.5</version.slf4j>
+        <version.slf4j>1.7.12</version.slf4j>
         <version.spring-framework>3.2.4.RELEASE</version.spring-framework>
-        <version.solr>4.5.1</version.solr>
         <version.servlet>2.5</version.servlet>
         <version.junitparams>1.0.2</version.junitparams>
-        <version.commonscodec>1.8</version.commonscodec>
+        <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
         <version.uuid>3.4</version.uuid>
         <version.blobstore>1.6.0</version.blobstore>
         <version.swift>1.6.0</version.swift>
         <version.keystone>1.6.3</version.keystone>
-        <version.gson>2.2.1</version.gson>
+        <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>0.8.1.1</version.kafka>
-        <version.cassandra-unit>2.0.2.1</version.cassandra-unit>
-        <version.storm>0.9.2-incubating</version.storm>
+        <version.cassandra-unit>2.1.3.1</version.cassandra-unit>
+        <version.storm>0.10.0-beta1</version.storm>
+        <!-- 0.10.0 is minimum -->
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -139,12 +142,72 @@
         <version.log4j>1.2.17</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
-        
-        <spring-security.version>3.1.4.RELEASE</spring-security.version>
-        <commons-logging.version>1.1.1</commons-logging.version>
-        <version.cassandra-driver>2.0.2</version.cassandra-driver>
+        <version.miredotPlugin>1.6.1</version.miredotPlugin>
 
+        <spring-security.version>3.1.4.RELEASE</spring-security.version>
+
+        <commons-logging.version>1.2</commons-logging.version>
+        <version.cassandra-driver>2.1.4</version.cassandra-driver>
+
+        <version.solr_war>4.5.1</version.solr_war>
+        <version.solr>5.2.1</version.solr>
+        <version.elasticsearch>1.7.0</version.elasticsearch>
+        <version.lucene>4.10.4</version.lucene>
+
+        <version.tika>1.9</version.tika>
+        <version.zookeeper>3.4.6</version.zookeeper>
+        <version.corelib>2.1-SNAPSHOT</version.corelib>
+        <version.jibx>1.2.6</version.jibx>
+        <version.jdom>2.0.6</version.jdom>
+        <version.jackson>1.9.13</version.jackson>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>sonar-coverage</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.jacoco</groupId>
+                            <artifactId>jacoco-maven-plugin</artifactId>
+                            <version>0.7.6.201602180812</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <configuration>
+                            <append>true</append>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>agent-for-ut</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>agent-for-it</id>
+                                <goals>
+                                    <goal>prepare-agent-integration</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>jacoco-site</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <build>
         <pluginManagement>
             <plugins>
@@ -238,12 +301,30 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.12</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                </configuration>
+
+            </plugin>
+            <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <server>TomcatServer</server>  
-                    <url>http://localhost:8080/manager/text</url>  
+                    <server>TomcatServer</server>
+                    <url>http://localhost:8080/manager/text</url>
                 </configuration>
             </plugin>
             <plugin>
@@ -311,7 +392,7 @@
                 <artifactId>guava</artifactId>
                 <groupId>com.google.guava</groupId>
                 <type>jar</type>
-                <version>15.0</version>
+                <version>16.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -344,17 +425,17 @@
                 <artifactId>log4j</artifactId>
                 <version>1.2.17</version>
             </dependency>
-            <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-core</artifactId>
-                <version>2.0.7</version>
-            </dependency>
+            <!--            <dependency>
+                            <groupId>com.datastax.cassandra</groupId>
+                            <artifactId>cassandra-driver-core</artifactId>
+                            <version>2.0.7</version>
+                        </dependency>-->
             <dependency>
                 <!-- forked kafka with fixed appender, KAFKA-847 -->
                 <!-- TODO ECL-317 -->
                 <groupId>eu.europeana.cloud.kafka</groupId>
                 <artifactId>kafka_2.10</artifactId>
-                <version>0.8.1</version> 
+                <version>0.8.1</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>

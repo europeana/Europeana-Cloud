@@ -24,14 +24,12 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields(
-                StormTupleKeys.TASK_ID_TUPLE_KEY,
-                StormTupleKeys.TASK_NAME_TUPLE_KEY,
-                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY));
-    }
-
+		declarer.declare(new Fields(StormTupleKeys.TASK_ID_TUPLE_KEY,
+				StormTupleKeys.TASK_NAME_TUPLE_KEY,
+				StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+				StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+				StormTupleKeys.PARAMETERS_TUPLE_KEY));
+	}
 
 	@Override
 	public void execute(Tuple tuple, BasicOutputCollector collector) {
@@ -50,29 +48,13 @@ public class KafkaParseTaskBolt extends BaseBasicBolt {
 		LOGGER.info("files size=" + files.size());
 
 		for (String fileUrl : files) {
-			
-			LOGGER.info("emitting: " + fileUrl);
 
-			// TODO: output url
-			
-//			if (taskParameters.containsKey("OUTPUT_EXT")) {
-//				String outputUrl = fileUrl + "."
-//						+ taskParameters.get("OUTPUT_EXT");
-//				taskParameters.put("OUTPUT_URL", outputUrl);
-//			}
-			
+			LOGGER.info("emitting: " + fileUrl);
 			System.out.println("emmiting..." + fileUrl);
-			
-			//List<Object> envelope = new ArrayList<Object>();
-			//envelope.add(task.getTaskId());
-			//envelope.add(task.getTaskName());
-			//envelope.add(fileUrl);
-			//envelope.add("");
-			//envelope.add(taskParameters);
-			collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), fileUrl, "", taskParameters).toStormTuple());
-			
-			//collector.emit(envelope);
-			
+			collector
+					.emit(new StormTaskTuple(task.getTaskId(), task
+							.getTaskName(), fileUrl, null, taskParameters)
+							.toStormTuple());
 		}
 	}
 }

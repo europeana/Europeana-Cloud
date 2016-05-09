@@ -47,7 +47,8 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 		// TODO fetching properties from Conf does not work right now
 		// TODO hardcoded Kafka properties
 		kafkaTopic = "storm_metrics_topic";
-		kafkaBroker = "ecloud.eanadev.org:9093";
+		//kafkaBroker = "ecloud.eanadev.org:9093";
+                kafkaBroker = "192.168.47.129:9093";
 
 		Properties props = new Properties();
 		props.put("metadata.broker.list", kafkaBroker);
@@ -114,7 +115,7 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 		
 		LOG.info("Kafka: reporting: {}={}", s, number);
 
-		String kafkaMessage = s + number;
+		String kafkaMessage = s + " = " + number;
 		String key = "";
 		KeyedMessage<String, String> data = new KeyedMessage<String, String>(
 				kafkaTopic, key, kafkaMessage);

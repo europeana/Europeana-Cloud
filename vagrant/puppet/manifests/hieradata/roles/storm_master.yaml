@@ -1,4 +1,0 @@
----
-classes:
-  - storm::nimbus
-  - storm::ui

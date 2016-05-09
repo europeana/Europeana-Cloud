@@ -55,6 +55,8 @@ public class AASClient {
                 .queryParam(AASParamConstants.P_USER_NAME, username)
                 .queryParam(AASParamConstants.P_PASSWORD, password).request()
                 .post(null);
+		System.out.println(resp);
+		System.out.println(resp.getStatus());
 		
 		if (resp.getStatus() == Status.OK.getStatusCode()) {
 			LOGGER.debug("createEcloudUser: user {} is now part of ecloud", username);

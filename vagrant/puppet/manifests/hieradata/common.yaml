@@ -1,5 +1,0 @@
----
-classes:
-  - wirbelsturm_common
-
-wirbelsturm_common::java_package_name: 'java-1.7.0-openjdk-devel'
