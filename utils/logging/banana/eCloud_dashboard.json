@@ -23,15 +23,17 @@
       ]
     },
     "filter": {
-      "idQueue": [],
+      "idQueue": [
+        2
+      ],
       "list": {
         "0": {
           "from": "NOW/DAY-7DAY",
           "to": "NOW/DAY%2B1DAY",
           "field": "event_timestamp",
           "type": "time",
-          "fromDateObj": "2016-05-09T10:10:38.307Z",
-          "toDateObj": "2016-05-16T10:10:38.308Z",
+          "fromDateObj": "2016-05-04T08:53:25.530Z",
+          "toDateObj": "2016-05-11T08:53:25.530Z",
           "mandate": "must",
           "active": true,
           "alias": "",
@@ -44,22 +46,11 @@
           "active": true,
           "alias": "",
           "id": 1
-        },
-        "2": {
-          "type": "range",
-          "from": 2000,
-          "to": 10000,
-          "field": "responseDuration",
-          "mandate": "must",
-          "active": true,
-          "alias": "",
-          "id": 2
         }
       },
       "ids": [
         1,
-        0,
-        2
+        0
       ]
     }
   },
@@ -164,7 +155,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.range=event_timestamp&facet.range.start=NOW/DAY-7DAY&facet.range.end=NOW/DAY%2B1DAY&facet.range.gap=%2B1HOUR\n",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.range=event_timestamp&facet.range.start=NOW/DAY-7DAY&facet.range.end=NOW/DAY%2B1DAY&facet.range.gap=%2B1HOUR\n",
             "custom": ""
           },
           "max_rows": 100000,
@@ -223,7 +214,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=message&facet.limit=100&facet.missing=true"
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=message&facet.limit=100&facet.missing=true"
           },
           "field": "message",
           "exclude": [],
@@ -327,7 +318,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=responseCode&facet.limit=20&facet.missing=true",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=responseCode&facet.limit=20&facet.missing=true",
             "custom": ""
           },
           "mode": "count",
@@ -422,7 +413,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=clientIP&facet.limit=10&facet.missing=true",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=clientIP&facet.limit=10&facet.missing=true",
             "custom": ""
           },
           "mode": "count",
@@ -517,7 +508,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=category&facet.limit=10&facet.missing=true",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=category&facet.limit=10&facet.missing=true",
             "custom": ""
           },
           "mode": "count",
@@ -621,7 +612,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=instance&facet.limit=10&facet.missing=true",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=instance&facet.limit=10&facet.missing=true",
             "custom": ""
           },
           "mode": "count",
@@ -716,7 +707,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.field=method&facet.limit=10&facet.missing=true",
+            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&facet=true&facet.field=method&facet.limit=10&facet.missing=true",
             "custom": ""
           },
           "mode": "count",
@@ -811,7 +802,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&wt=json&rows=0\n",
+            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&wt=json&rows=0\n",
             "basic_query": "",
             "custom": "&fq=responseCode:500"
           },
@@ -847,7 +838,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&wt=json&rows=0&facet=true&facet.pivot=category,instance&facet.limit=300&facet.pivot.mincount=0",
+            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&wt=json&rows=0&facet=true&facet.pivot=category,instance&facet.limit=300&facet.pivot.mincount=0",
             "custom": ""
           },
           "size": 0,
@@ -872,7 +863,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&wt=json&rows=0&facet=true&facet.pivot=category,responseCode&facet.limit=300&facet.pivot.mincount=0",
+            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&wt=json&rows=0&facet=true&facet.pivot=category,responseCode&facet.limit=300&facet.pivot.mincount=0",
             "custom": ""
           },
           "size": 0,
@@ -897,7 +888,7 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&wt=json&rows=0&facet=true&facet.pivot=instance,responseCode&facet.limit=300&facet.pivot.mincount=0",
+            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&wt=json&rows=0&facet=true&facet.pivot=instance,responseCode&facet.limit=300&facet.pivot.mincount=0",
             "custom": ""
           },
           "size": 0,
@@ -911,71 +902,6 @@
           "transposed": false,
           "show_queries": true,
           "title": "Instance per ResponseCode"
-        }
-      ]
-    },
-    {
-      "title": "ResponseTimes",
-      "height": "300px",
-      "editable": true,
-      "collapse": false,
-      "collapsable": true,
-      "panels": [
-        {
-          "span": 12,
-          "editable": true,
-          "type": "rangeFacet",
-          "loadingEditor": false,
-          "mode": "count",
-          "time_field": "timestamp",
-          "queries": {
-            "mode": "all",
-            "ids": [
-              0
-            ],
-            "query": "q=*&df=message&wt=json&rows=0&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&facet=true&facet.range=responseDuration&facet.range.start=2000&facet.range.end=10001&facet.range.gap=100\n",
-            "custom": ""
-          },
-          "max_rows": 100000,
-          "value_field": null,
-          "group_field": null,
-          "fill": 0,
-          "linewidth": 3,
-          "auto_int": false,
-          "resolution": 100,
-          "interval": "100",
-          "resolutions": [
-            5,
-            10,
-            25,
-            50,
-            75,
-            100
-          ],
-          "spyable": true,
-          "zoomlinks": true,
-          "bars": false,
-          "stack": true,
-          "points": false,
-          "lines": true,
-          "lines_smooth": false,
-          "legend": true,
-          "x-axis": true,
-          "y-axis": true,
-          "percentage": false,
-          "interactive": true,
-          "options": true,
-          "tooltip": {
-            "value_type": "cumulative",
-            "query_as_alias": false
-          },
-          "showChart": true,
-          "show_queries": true,
-          "title": "Response Times",
-          "range_field": "responseDuration",
-          "minimum": 2000,
-          "maximum": 10000,
-          "unit": "100 ms"
         }
       ]
     },
@@ -1017,8 +943,8 @@
             "ids": [
               0
             ],
-            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&sort=id desc&wt=json&rows=500",
-            "basic_query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&fq=responseDuration:[2000 TO 10000]&sort=id desc"
+            "query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&sort=id desc&wt=json&rows=500",
+            "basic_query": "q=*&df=message&fq=event_timestamp:[NOW/DAY-7DAY%20TO%20NOW/DAY%2B1DAY]&fq=-category:storm&sort=id desc"
           },
           "field_list": true,
           "status": "Stable",
@@ -1080,12 +1006,12 @@
     "server": "http://x.y.z:8983/solr/",
     "core_name": "core-all-alias",
     "core_list": [
-      "core-2016-05-11",
-      "core-2016-05-12",
-      "core-2016-05-13",
-      "core-2016-05-14",
-      "core-2016-05-15",
-      "core-2016-05-16"
+      "core-2016-05-06",
+      "core-2016-05-07",
+      "core-2016-05-08",
+      "core-2016-05-09",
+      "core-2016-05-10",
+      "core-2016-05-11"
     ],
     "global_params": "&df=message"
   }
