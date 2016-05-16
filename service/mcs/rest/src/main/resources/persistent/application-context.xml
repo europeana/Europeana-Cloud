@@ -60,18 +60,10 @@
           class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
-    
-    <bean id="dynamicBlobStore" 
-          class="eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore"/>
     <bean id="swiftContentDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
-
-    <bean id="retryBlobStoreExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor"/>
-    
-    <bean id="retryOnTokenExpiryExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryOnTokenExpiryExecutor"/>
-    
     <bean id="swiftConnectionProvider" 
-          class="eu.europeana.cloud.service.mcs.persistent.swift.DynamicSwiftConnectionProvider">
+          class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" >
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/provider"/>
@@ -80,9 +72,9 @@
             <jee:jndi-lookup expected-type="java.lang.String" 
                              jndi-name="java:comp/env/mcs/swift/container"/>
         </constructor-arg>
-        <constructor-arg name="endpointsList">
+        <constructor-arg name="endpoint">
             <jee:jndi-lookup expected-type="java.lang.String" 
-                             jndi-name="java:comp/env/mcs/swift/endpointList"/>
+                             jndi-name="java:comp/env/mcs/swift/endpoint"/>
         </constructor-arg>
         <constructor-arg name="user">
             <jee:jndi-lookup expected-type="java.lang.String" 

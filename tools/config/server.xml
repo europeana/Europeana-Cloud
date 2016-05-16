@@ -52,7 +52,7 @@
         <Environment name="mcs/swift/container" type="java.lang.String" value="ecloudA"/>
         <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>
         <Environment name="mcs/swift/password" type="java.lang.String" value="admin"/>
-        <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://localhost:9999/auth/v1.0"/>
+        <Environment name="mcs/swift/endpoint" type="java.lang.String" value="http://localhost:9999/auth/v1.0"/>
 
         <!-- MCS Solr specific configuration -->
         <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:9090/solr/"/>

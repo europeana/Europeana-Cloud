@@ -25,16 +25,5 @@
     <mockito:mock id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
     <mockito:mock id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
-        
-    <!-- RetryBlobStoreExecutorTest -->   
-<!--    <bean id="dynamicBlobStore" class="eu.europeana.cloud.service.mcs.persistent.swift.DynamicBlobStore" />
-    <bean id="retryBlobStoreExecutor" class="eu.europeana.cloud.service.mcs.persistent.aspects.RetryBlobStoreExecutor"/>-->
-    
-
-    
-    <!--    <mockito:spy beanName="retryBlobStoreExecutor" />-->
-        
-
- 
 
 </beans>

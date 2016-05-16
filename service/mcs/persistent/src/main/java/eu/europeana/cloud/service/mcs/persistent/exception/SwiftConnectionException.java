@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent.exception;
 
 /**
  * Exception to be thrown if there are problem with connection to Open Stack
- * Swift Proxies.
+ * Swift Proxy.
  */
 public class SwiftConnectionException extends RuntimeException {
 
@@ -11,6 +11,6 @@ public class SwiftConnectionException extends RuntimeException {
      * 
      */
     public SwiftConnectionException() {
-        super("Cannot establish connection to any proxy.");
+        super("Cannot establish connection to proxy.");
     }
 }
