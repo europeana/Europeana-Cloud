@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +61,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         //try data from DPS task
         String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+
         if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
             Type type = new TypeToken<Map<String, List<String>>>() {
             }.getType();
@@ -67,8 +69,11 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
                 List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
                 if (!datasets.isEmpty()) {
+                    Date startTime = new Date();
+                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
+                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFilesFromDataSets(t, datasets);
-                    emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
+                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     outputCollector.ack(inputTuple);
                     return;
                 }

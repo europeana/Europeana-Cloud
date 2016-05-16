@@ -54,7 +54,7 @@ public class IndexBolt extends AbstractDpsBolt {
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED);
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.");
             outputCollector.ack(inputTuple);
             return;
         }
@@ -106,14 +106,14 @@ public class IndexBolt extends AbstractDpsBolt {
             ex.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: " + ex.getMessage(),
                     stack.toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED);
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage());
             outputCollector.ack(inputTuple);
             return;
         }
 
         LOGGER.info("Data from task {} is indexed.", t.getTaskId());
 
-        emitBasicInfo(t.getTaskId(), 1, TaskState.CURRENTLY_PROCESSING);
+        emitBasicInfo(t.getTaskId(), 1, TaskState.CURRENTLY_PROCESSING, "");
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
     }

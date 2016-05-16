@@ -17,6 +17,9 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -170,33 +173,34 @@ public class NotificationBolt extends BaseRichBolt {
         ofd.declareStream(TaskFinishedStreamName, NotificationTuple.getFields());
     }
 
-    private int storeBasicInfo(long taskId, Map<String, String> parameters) throws DatabaseConnectionException {
+    private int storeBasicInfo(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
-        int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE));
-        String state = parameters.get(NotificationParameterKeys.TASK_STATE);
-        String info = parameters.get(NotificationParameterKeys.INFO);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info);
+        int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE).toString());
+        String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
+        String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
+        Date startTime = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
+        Date finishTime = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, startTime, finishTime);
         return expectedSize;
     }
 
-    private void storeNotification(long taskId, Map<String, String> parameters) throws DatabaseConnectionException {
+    private static Date prepareDate(Object dateObject) {
+        if (dateObject instanceof Date)
+            return (Date) dateObject;
+        return null;
+
+    }
+
+
+    private void storeNotification(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
-        String resource = assignIfNotNull(parameters.get(NotificationParameterKeys.RESOURCE));
-        String state = assignIfNotNull(parameters.get(NotificationParameterKeys.STATE));
-        String infoText = assignIfNotNull(parameters.get(NotificationParameterKeys.INFO_TEXT));
-        String additionalInfo = assignIfNotNull(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        String resultResource = assignEmptyStringIfNull(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
+        String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
+        String state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
+        String infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
         subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
-
-    private String assignIfNotNull(String input) {
-        return input != null && !input.isEmpty() ? input : null;
-    }
-
-    private String assignEmptyStringIfNull(String input) {
-        return input != null ? input : "";
-    }
-
 
     private int convertIfNotNull(String input) {
         return input != null && !input.isEmpty() ? Integer.valueOf(input) : -1;

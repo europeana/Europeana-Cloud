@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +86,7 @@ public class ParseTaskBolt extends BaseRichBolt {
         }
 
         Map<String, String> taskParameters = task.getParameters();
+        Date now = new Date();
 
         //chceck necessary parameters for current topology
         if (prerequisites != null && taskParameters != null) {
@@ -155,7 +157,6 @@ public class ParseTaskBolt extends BaseRichBolt {
             if (routingRules != null) {
                 String stream = getStream(task);
                 if (stream != null) {
-                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING);
                     outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
                 } else {
                     String message = "The taskType is not recognised!";
@@ -165,7 +166,6 @@ public class ParseTaskBolt extends BaseRichBolt {
                     emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message);
                 }
             } else {
-                emitBasicInfo(task.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING);
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
             }
             outputCollector.ack(tuple);
@@ -179,13 +179,13 @@ public class ParseTaskBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info);
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startTime, Date finishTime) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, startTime, finishTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize, TaskState state) {
-        emitBasicInfo(taskId, expectedSize, state, "");
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
+        emitBasicInfo(taskId, expectedSize, state, info, null, null);
     }
 
     private String getStream(DpsTask task) {

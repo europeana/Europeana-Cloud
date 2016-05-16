@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,8 +44,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME + ","
                 + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + ","
                 + CassandraTablesAndColumnsNames.STATE + ","
-                + CassandraTablesAndColumnsNames.INFO +
-                ") VALUES (?,?,?,?,?)");
+                + CassandraTablesAndColumnsNames.INFO + ","
+                + CassandraTablesAndColumnsNames.START_TIME + ","
+                + CassandraTablesAndColumnsNames.FINISH_TIME +
+                ") VALUES (?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -64,9 +67,14 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
 
+    public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date startTime, Date finishTime)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, state, info, startTime, finishTime));
+    }
+
     public void insert(long taskId, String topologyName, int expectedSize, String state, String info)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, state, info));
+        insert(taskId, topologyName, expectedSize, state, info, null, null);
     }
 
     public List<TaskInfo> searchByIdWithSubtasks(long taskId)

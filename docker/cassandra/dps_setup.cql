@@ -6,6 +6,8 @@ topology_name varchar,
 expected_size int,
 state varchar,
 info varchar,
+start_time timestamp,
+finish_time timestamp,
 PRIMARY KEY(task_id, topology_name)
 );
 

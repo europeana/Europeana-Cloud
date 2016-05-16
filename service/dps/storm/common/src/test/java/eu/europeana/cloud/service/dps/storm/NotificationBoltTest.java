@@ -56,7 +56,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo));
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
         //when
         testedBolt.execute(tuple);
         //then
@@ -83,7 +83,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String additionalInformations = "additionalInformations";
         String resultResource = "resultResource";
         expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
         testedBolt.execute(setUpTuple);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations, resultResource));
         //when
@@ -113,9 +113,9 @@ public class NotificationBoltTest extends CassandraTestBase {
         String additionalInformations = "additionalInformations";
         String resultResource = "";
         expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations));
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations,resultResource));
         //when
         testedBolt.execute(tuple);
         //then

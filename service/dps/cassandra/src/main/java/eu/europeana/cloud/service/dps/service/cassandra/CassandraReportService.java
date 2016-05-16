@@ -11,6 +11,8 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
+import java.util.Date;
+
 /**
  * Report service powered by Cassandra.
  *
@@ -66,6 +68,8 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("processed", processed);
             res.addProperty("state", basicInfo.getString(CassandraTablesAndColumnsNames.STATE));
             res.addProperty("info", basicInfo.getString(CassandraTablesAndColumnsNames.INFO));
+            res.addProperty("start_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME)));
+            res.addProperty("finish_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)));
         } else {
             //read number of processed tasks from Cassandra
             Statement selectFromNotification = QueryBuilder.select().countAll()
@@ -81,10 +85,17 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("processed", processed);
             res.addProperty("state", "");
             res.addProperty("info", "");
+            res.addProperty("start_time", "");
+            res.addProperty("finish_time", "");
         }
 
         return new Gson().toJson(res);
 
+    }
+
+
+    private String prepareDate(Date date) {
+        return date == null ? "" : date.toString();
     }
 
     @Override

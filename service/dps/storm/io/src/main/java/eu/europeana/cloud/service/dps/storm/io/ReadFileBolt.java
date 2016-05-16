@@ -7,6 +7,7 @@ import com.rits.cloning.Cloner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.Date;
 import java.util.Map;
 
 import eu.europeana.cloud.common.model.File;
@@ -71,8 +72,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
                 List<String> files = fromJson.get(DpsTask.FILE_URLS);
                 if (!files.isEmpty()) {
+                    Date startTime = new Date();
+                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
+                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFiles(t, files);
-                    emitBasicInfo(t.getTaskId(), Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE)), TaskState.PROCESSED);
+                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     outputCollector.ack(inputTuple);
                     return;
                 }
