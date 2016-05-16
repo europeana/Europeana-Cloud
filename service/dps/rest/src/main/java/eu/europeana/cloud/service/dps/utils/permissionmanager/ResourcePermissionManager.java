@@ -16,7 +16,6 @@ import java.util.List;
  */
 public abstract class ResourcePermissionManager {
     protected ApplicationContext context;
-    protected static final Logger LOGGER = LoggerFactory.getLogger(ResourcePermissionManager.class);
 
     protected ResourcePermissionManager(ApplicationContext context) {
         this.context = context;
@@ -24,6 +23,7 @@ public abstract class ResourcePermissionManager {
 
     /**
      * Grants permissions to all the resources inside the task.
+     *
      * @return The number of records inside the task which the permission is given to their version.
      */
     public abstract int grantPermissionsToTaskResources(DpsTask task, String topologyName, String topologyUserName, String authorizationHeader) throws TaskSubmissionException;

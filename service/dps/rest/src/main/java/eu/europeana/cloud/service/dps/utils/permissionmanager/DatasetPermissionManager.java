@@ -11,6 +11,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import java.net.MalformedURLException;
@@ -20,6 +22,7 @@ import java.util.List;
  * Created by Tarek on 4/6/2016.
  */
 public class DatasetPermissionManager extends ResourcePermissionManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetPermissionManager.class);
 
     DatasetPermissionManager(ApplicationContext context) {
         super(context);
