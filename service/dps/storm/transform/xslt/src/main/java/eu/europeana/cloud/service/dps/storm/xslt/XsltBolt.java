@@ -50,7 +50,6 @@ public class XsltBolt extends AbstractDpsBolt {
             LOGGER.error("XsltBolt error:" + e.getMessage());
             emitDropNotification(t.getTaskId(), "", e.getMessage(), t
                     .getParameters().toString());
-            outputCollector.ack(inputTuple);
         }
 
         Source xslDoc = null;
@@ -64,7 +63,6 @@ public class XsltBolt extends AbstractDpsBolt {
             LOGGER.error("XsltBolt error:" + e.getMessage());
             emitDropNotification(t.getTaskId(), "", e.getMessage(), t
                     .getParameters().toString());
-            outputCollector.ack(inputTuple);
         }
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -81,7 +79,6 @@ public class XsltBolt extends AbstractDpsBolt {
                 LOGGER.error("XsltBolt error:" + e.getMessage());
                 emitDropNotification(t.getTaskId(), "", e.getMessage(), t
                         .getParameters().toString());
-                outputCollector.ack(inputTuple);
             }
         }
 
@@ -91,7 +88,6 @@ public class XsltBolt extends AbstractDpsBolt {
             LOGGER.error("XsltBolt error:" + e.getMessage());
             emitDropNotification(t.getTaskId(), "", e.getMessage(), t
                     .getParameters().toString());
-            outputCollector.ack(inputTuple);
         }
 
         LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
@@ -100,7 +96,6 @@ public class XsltBolt extends AbstractDpsBolt {
         t.setFileData(writer.toString().getBytes(Charset.forName("UTF-8")));
         // outputCollector.emit(t.toStormTuple());
         outputCollector.emit(inputTuple, t.toStormTuple());
-        outputCollector.ack(inputTuple);
     }
 
     @Override

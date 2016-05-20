@@ -64,8 +64,6 @@ public class ICTopology {
                 password);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, icTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        kafkaConfig.forceFromStart = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
         builder.setSpout("kafkaReader", kafkaSpout,

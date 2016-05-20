@@ -62,6 +62,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             }
             LOGGER.debug("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
+            //Only this ack is needed
+            outputCollector.ack(tuple);
         } catch (Exception e) {
             LOGGER.error("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
 
@@ -173,7 +175,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void logAndEmitError(StormTaskTuple t, String message) {
         LOGGER.error(message);
         emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-        outputCollector.ack(inputTuple);
     }
 
     protected void logAndEmitError(StormTaskTuple t, String message, Exception e) {
@@ -185,6 +186,5 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     protected void emitSuccess(StormTaskTuple t) {
         outputCollector.emit(inputTuple, t.toStormTuple());
-        outputCollector.ack(inputTuple);
     }
 }

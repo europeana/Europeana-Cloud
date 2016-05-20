@@ -74,7 +74,6 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFilesFromDataSets(t, datasets);
                     emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
-                    outputCollector.ack(inputTuple);
                     return;
                 }
             }
@@ -83,7 +82,6 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
             emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, message);
-            outputCollector.ack(inputTuple);
             return;
         }
 
@@ -129,16 +127,15 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                 } else {
                     LOGGER.warn("dataset url is not formulated correctly {}", dataSet);
                     emitDropNotification(t.getTaskId(), dataSet, "dataset url is not formulated correctly", "");
-                    outputCollector.ack(inputTuple);
+
                 }
             } catch (DataSetNotExistsException ex) {
                 LOGGER.warn("Provided dataset is not existed {}", dataSet);
                 emitDropNotification(t.getTaskId(), dataSet, "Can not retrieve a dataset", "");
-                outputCollector.ack(inputTuple);
             } catch (MalformedURLException | MCSException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSet, ex.getMessage(), t.getParameters().toString());
-                outputCollector.ack(inputTuple);
+
             }
         }
     }

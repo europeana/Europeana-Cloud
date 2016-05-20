@@ -15,7 +15,7 @@ import java.net.MalformedURLException;
 
 /**
  * Will grant permissions to selected file for selected user
- * 
+ *
  */
 public class GrantPermissionsToFileBolt extends AbstractDpsBolt {
 
@@ -44,6 +44,7 @@ public class GrantPermissionsToFileBolt extends AbstractDpsBolt {
         String resultFileUrl = readResultFileUrl(tuple);
         if (resultFileUrl == null) {
             String message = String.format("Empty fileUrl. Permissions will not be granted {}.");
+            emitErrorNotification(tuple.getTaskId(), tuple.getFileUrl(), message, tuple.getParameters().toString());
             logAndEmitError(tuple, message);
             return;
         }
