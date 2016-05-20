@@ -40,7 +40,6 @@ public class RemovePermissionsToFileBolt extends AbstractDpsBolt {
         String resultFileUrl = readResultFileUrl(tuple);
         if (resultFileUrl == null) {
             LOGGER.info("Empty fileUrl. Permissions will not be removed");
-            outputCollector.ack(inputTuple);
             return;
         }
 

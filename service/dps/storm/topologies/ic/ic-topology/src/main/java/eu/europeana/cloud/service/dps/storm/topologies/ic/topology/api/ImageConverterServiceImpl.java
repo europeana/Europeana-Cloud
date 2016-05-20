@@ -52,7 +52,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
      * @throws IOException
      */
     @Override
-    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException {
+    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException,RuntimeException {
         converterContext = new ConverterContext(new KakaduConverterTiffToJP2());
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
         String folderPath = null;
@@ -91,7 +91,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         return folderPath + fileName + "." + extension;
     }
 
-    private String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException {
+    private String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException,RuntimeException {
         OutputStream outputStream = null;
         String folderPath = null;
         try {

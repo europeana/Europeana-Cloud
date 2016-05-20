@@ -77,7 +77,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
                     emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFiles(t, files);
                     emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
-                    outputCollector.ack(inputTuple);
                     return;
                 }
             }
@@ -87,7 +86,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
             emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED, message);
-            outputCollector.ack(inputTuple);
+
             return;
         }
 
