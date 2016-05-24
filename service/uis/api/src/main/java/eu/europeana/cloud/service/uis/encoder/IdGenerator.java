@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.uis.encoder;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
+
 import org.apache.commons.codec.binary.Base32;
 
 /**
@@ -21,8 +21,8 @@ public class IdGenerator {
      * 
      * @return A 52 character encoded version of the String representation
      */
-    public static String timeEncode(final String input) {
-	    return encodeWithSha256AndBase32(input + new Date().getTime());
+    public static  String timeEncode(final String input) {
+        return encodeWithSha256AndBase32(input + System.nanoTime());
     }
 
 
