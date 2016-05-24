@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
@@ -44,6 +45,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AbstractDpsBolt.class)
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
+@Ignore
 public class ExtractBoltTest 
 {
     private final String storeStream = "storeStream";
