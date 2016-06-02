@@ -11,6 +11,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.util.DateUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.
@@ -86,8 +90,16 @@ public class ParseTaskBolt extends BaseRichBolt {
         }
 
         Map<String, String> taskParameters = task.getParameters();
-        Date now = new Date();
-
+        Date sentTime = DateUtil.parseSentTime(taskParameters.get(PluginParameterKeys.SENT_TIME));
+        if (sentTime == null) {
+            LOGGER.warn("DpsTask with id {} is dropped because it doesn't contain a valid sent Date",
+                    task.getTaskId());
+            String message = String.format("dropped because it doesn't contain a valid sent Date.");
+            emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
+            emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message, null);
+            outputCollector.ack(tuple);
+            return;
+        }
         //chceck necessary parameters for current topology
         if (prerequisites != null && taskParameters != null) {
             for (Map.Entry<String, String> importantParameter : prerequisites.entrySet()) {
@@ -102,7 +114,7 @@ public class ParseTaskBolt extends BaseRichBolt {
                         String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
                                 importantParameter.getKey(), val);
                         emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                        emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message);
+                        emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message, sentTime);
                         outputCollector.ack(tuple);
                         return;
                     }
@@ -113,7 +125,7 @@ public class ParseTaskBolt extends BaseRichBolt {
 
                     String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
                     emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                    emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message);
+                    emitBasicInfo(task.getTaskId(), 0, TaskState.DROPPED, message, sentTime);
                     outputCollector.ack(tuple);
                     return;
                 }
@@ -125,10 +137,11 @@ public class ParseTaskBolt extends BaseRichBolt {
                     task.getTaskId());
             String message = String.format("Dropped because it contains an empty task.");
             emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-            emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message);
+            emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message, sentTime);
             outputCollector.ack(tuple);
             return;
         } else {
+            Date startTime = new Date();
             StormTaskTuple stormTaskTuple = new StormTaskTuple(
                     task.getTaskId(),
                     task.getTaskName(),
@@ -157,15 +170,17 @@ public class ParseTaskBolt extends BaseRichBolt {
             if (routingRules != null) {
                 String stream = getStream(task);
                 if (stream != null) {
+                    emitBasicInfo(stormTaskTuple.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, "", sentTime, startTime, null);
                     outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
                 } else {
                     String message = "The taskType is not recognised!";
                     LOGGER.warn(message);
                     emitDropNotification(task.getTaskId(), "", message,
                             taskParameters != null ? taskParameters.toString() : "");
-                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message);
+                    emitBasicInfo(task.getTaskId(), expectedSize, TaskState.DROPPED, message, sentTime);
                 }
             } else {
+                emitBasicInfo(stormTaskTuple.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, "", sentTime, startTime, null);
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
             }
             outputCollector.ack(tuple);
@@ -179,13 +194,13 @@ public class ParseTaskBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startTime, Date finishTime) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, startTime, finishTime);
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, sentTime, startTime, finishTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
-        emitBasicInfo(taskId, expectedSize, state, info, null, null);
+    private void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime) {
+        emitBasicInfo(taskId, expectedSize, state, info, sentTime, null, null);
     }
 
     private String getStream(DpsTask task) {
@@ -205,6 +220,7 @@ public class ParseTaskBolt extends BaseRichBolt {
             return 0;
         }
     }
+
 
     @Override
     public void prepare(Map stormConfig, TopologyContext tc, OutputCollector oc) {

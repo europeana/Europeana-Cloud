@@ -17,6 +17,8 @@ import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -156,18 +158,13 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param taskId       task ID
      * @param expectedSize number of emitted {@link StormTaskTuple}
      */
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startDate, Date finishDate) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, startDate, finishDate);
+    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime, Date startDate, Date finishDate) {
+        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, sentTime, startDate, finishDate);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, Date startDate, Date finishDate) {
-        emitBasicInfo(taskId, expectedSize, state, "", startDate, finishDate);
-
-    }
-
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
-        emitBasicInfo(taskId, expectedSize, state, info, null, null);
+    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime) {
+        emitBasicInfo(taskId, expectedSize, state, info, sentTime, null, null);
 
     }
 
@@ -187,4 +184,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitSuccess(StormTaskTuple t) {
         outputCollector.emit(inputTuple, t.toStormTuple());
     }
+
+
 }

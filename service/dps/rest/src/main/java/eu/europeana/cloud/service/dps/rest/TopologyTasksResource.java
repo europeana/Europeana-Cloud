@@ -1,16 +1,10 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Permission;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -18,14 +12,11 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import eu.europeana.cloud.service.dps.utils.permissionmanager.PermissionManagerFactory;
 import eu.europeana.cloud.service.dps.utils.permissionmanager.ResourcePermissionManager;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +44,12 @@ import javax.ws.rs.core.UriInfo;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -97,6 +92,7 @@ public class TopologyTasksResource {
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
 
+
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
 
@@ -105,14 +101,14 @@ public class TopologyTasksResource {
     /**
      * Retrieves a task with the given taskId from the specified topology.
      * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Authenticated user</li>
-     *              <li>Read permission for selected task</li>
-     *          </ul>
-     * </div>
+        * <br/><br/>
+        * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+           * <strong>Required permissions:</strong>
+            * <ul>
+                * <li>Authenticated user</li>
+                * <li>Read permission for selected task</li>
+            * </ul>
+        * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -139,13 +135,13 @@ public class TopologyTasksResource {
     /**
      * Retrieves the current progress for the requested task.
      * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Read permissions for selected task</li>
-     *          </ul>
-     * </div>
+         * <br/><br/>
+         * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+            * <strong>Required permissions:</strong>
+            * <ul>
+                * <li>Read permissions for selected task</li>
+            * </ul>
+        * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -199,31 +195,33 @@ public class TopologyTasksResource {
             LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
+            Date sentTime = new Date();
             try {
                 String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
                 Response response = Response.created(new URI(createdTaskUrl)).build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission");
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
                 asyncResponse.resume(response);
                 LOGGER.info("The task is in a pending mode");
                 int expectedSize = grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
                 task.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
+                task.addParameter(PluginParameterKeys.SENT_TIME, String.valueOf(sentTime));
                 submitService.submitTask(task, topologyName);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 LOGGER.info("Task submitted successfully");
-                taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "");
+                taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
             } catch (URISyntaxException e) {
                 LOGGER.error("Task submission failed");
                 e.printStackTrace();
                 Response response = Response.serverError().build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                 asyncResponse.resume(response);
             } catch (TaskSubmissionException e) {
                 LOGGER.error("Task submission failed" + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                 e.printStackTrace();
             } catch (Exception e) {
                 LOGGER.error("Task submission failed." + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage());
+                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
                 e.printStackTrace();
                 Response response = Response.serverError().build();
                 asyncResponse.resume(response);
@@ -232,17 +230,18 @@ public class TopologyTasksResource {
         return Response.notModified().build();
     }
 
+
     /**
      * Retrieves notifications for the specified task.
      * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Authenticated user</li>
-     *              <li>Read permission for selected task</li>
-     *          </ul>
-     * </div>
+         * <br/><br/>
+         * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+              * <strong>Required permissions:</strong>
+              * <ul>
+                  * <li>Authenticated user</li>
+                  * <li>Read permission for selected task</li>
+              * </ul>
+         * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return Notification messages for the specified task.
@@ -262,10 +261,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Admin permissions</li>
-     *          </ul>
+           * <strong>Required permissions:</strong>
+           * <ul>
+               * <li>Admin permissions</li>
+           * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -295,16 +294,16 @@ public class TopologyTasksResource {
     /**
      * Submit kill flag to the specific task.
      * <p/>
-     * Side effect: remove all flags older than 5 days (per topology).
+         * Side effect: remove all flags older than 5 days (per topology).
      * <p/>
      * <br/><br/>
-     *      <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *          <strong>Required permissions:</strong>
-     *              <ul>
-     *                  <li>Authenticated user</li>
-     *                  <li>Write permission for selected task</li>
-     *              </ul>
-     *      </div>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+             * <strong>Required permissions:</strong>
+             * <ul>
+                 * <li>Authenticated user</li>
+                 * <li>Write permission for selected task</li>
+              * </ul>
+     * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -333,11 +332,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Authenticated user</li>
-     *              <li>Read permission for selected task</li>
-     *          </ul>
+            * <strong>Required permissions:</strong>
+            * <ul>
+               * <li>Authenticated user</li>
+               * <li>Read permission for selected task</li>
+            * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -361,11 +360,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     *      <strong>Required permissions:</strong>
-     *          <ul>
-     *              <li>Authenticated user</li>
-     *              <li>Write permission for selected task</li>
-     *          </ul>
+          * <strong>Required permissions:</strong>
+          * <ul>
+              * <li>Authenticated user</li>
+              * <li>Write permission for selected task</li>
+          * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -455,5 +454,6 @@ public class TopologyTasksResource {
         return PluginParameterKeys.DATASET_URLS;
 
     }
+
 
 }
