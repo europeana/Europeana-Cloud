@@ -33,11 +33,12 @@ public class NotificationTuple {
         this.parameters = parameters;
     }
 
-    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startTime, Date finishTime) {
+    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize, TaskState state, String info,Date sentTime, Date startTime, Date finishTime) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(NotificationParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
         parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO, info);
+        parameters.put(NotificationParameterKeys.SENT_TIME, sentTime);
         parameters.put(NotificationParameterKeys.START_TIME, startTime);
         parameters.put(NotificationParameterKeys.FINISH_TIME, finishTime);
         return new NotificationTuple(taskId, InformationTypes.BASIC_INFO, parameters);

@@ -27,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -129,7 +130,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(topologyManager.getNameToUserMap()).thenReturn(user);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(),anyString(),anyInt(),anyString(),anyString());
+        doNothing().when(taskDAO).insert(anyLong(), anyString(),anyInt(),anyString(),anyString(),isA(Date.class));
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);

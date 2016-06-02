@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.examples;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 

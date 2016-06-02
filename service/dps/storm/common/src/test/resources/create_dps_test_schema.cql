@@ -19,6 +19,7 @@ CREATE TABLE basic_info (
     expected_size int,
     state varchar,
     info varchar,
+    sent_time timestamp,
     start_time timestamp,
     finish_time timestamp,
     PRIMARY KEY(task_id, topology_name)

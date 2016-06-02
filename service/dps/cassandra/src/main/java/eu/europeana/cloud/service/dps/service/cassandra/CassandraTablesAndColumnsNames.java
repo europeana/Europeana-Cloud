@@ -16,6 +16,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String INFO = "info";
     public static final String START_TIME="start_time";
     public static final String FINISH_TIME="finish_time";
+    public static final String SENT_TIME="sent_time";
 
 
     //------- NOTIFICATION -------

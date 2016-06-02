@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -69,19 +71,17 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
                 List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
                 if (!datasets.isEmpty()) {
-                    Date startTime = new Date();
-                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFilesFromDataSets(t, datasets);
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     return;
                 }
             }
         } else {
             String message = "No dataset were provided";
             LOGGER.warn(message);
+            Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
+            int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
             emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, message);
+            emitBasicInfo(t.getTaskId(), expectedSize, TaskState.DROPPED, message, sentTime);
             return;
         }
 
@@ -127,7 +127,6 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                 } else {
                     LOGGER.warn("dataset url is not formulated correctly {}", dataSet);
                     emitDropNotification(t.getTaskId(), dataSet, "dataset url is not formulated correctly", "");
-
                 }
             } catch (DataSetNotExistsException ex) {
                 LOGGER.warn("Provided dataset is not existed {}", dataSet);
@@ -135,6 +134,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             } catch (MalformedURLException | MCSException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSet, ex.getMessage(), t.getParameters().toString());
+
 
             }
         }

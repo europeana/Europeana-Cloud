@@ -16,6 +16,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,11 +73,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
                 List<String> files = fromJson.get(DpsTask.FILE_URLS);
                 if (!files.isEmpty()) {
-                    Date startTime = new Date();
-                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFiles(t, files);
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     return;
                 }
             }
@@ -85,8 +82,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED, message);
-
+            int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
+            Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
+            emitBasicInfo(t.getTaskId(), expectedSize, TaskState.DROPPED, message, sentTime);
             return;
         }
 
@@ -94,10 +92,8 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
-
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-
             try {
                 LOGGER.info("HERE THE LINK: " + file);
                 InputStream is = fileClient.getFile(file);

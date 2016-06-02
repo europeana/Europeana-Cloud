@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.dps.index.Indexer;
 import eu.europeana.cloud.service.dps.index.IndexerFactory;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import eu.europeana.cloud.service.dps.index.SupportedIndexers;
 import eu.europeana.cloud.service.dps.index.exception.IndexerException;
@@ -18,6 +19,7 @@ import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -50,11 +52,12 @@ public class IndexBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         Indexer indexer = getIndexer(t.getParameter(PluginParameterKeys.INDEXER));
+        Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
 
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.");
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.",sentTime);
             outputCollector.ack(inputTuple);
             return;
         }
@@ -106,14 +109,14 @@ public class IndexBolt extends AbstractDpsBolt {
             ex.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot index data because: " + ex.getMessage(),
                     stack.toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage());
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage(),sentTime);
             outputCollector.ack(inputTuple);
             return;
         }
 
         LOGGER.info("Data from task {} is indexed.", t.getTaskId());
 
-        emitBasicInfo(t.getTaskId(), 1, TaskState.CURRENTLY_PROCESSING, "");
+        emitBasicInfo(t.getTaskId(), 1, TaskState.CURRENTLY_PROCESSING, "",sentTime);
         outputCollector.emit(inputTuple, t.toStormTuple());
         outputCollector.ack(inputTuple);
     }

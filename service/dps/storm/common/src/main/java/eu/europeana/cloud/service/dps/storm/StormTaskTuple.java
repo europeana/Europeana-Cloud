@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 import backtype.storm.tuple.Fields;
 
 import java.io.*;
+import java.util.Date;
 import java.util.HashMap;
 
 import backtype.storm.tuple.Tuple;
@@ -27,9 +28,7 @@ public class StormTaskTuple implements Serializable {
     private long taskId;
     private String taskName;
     private Map<String, String> parameters;
-
-
-    private static final int BATCH_MAX_SIZE = 1024*4;
+    private static final int BATCH_MAX_SIZE = 1024 * 4;
 
     public StormTaskTuple() {
 
@@ -81,7 +80,7 @@ public class StormTaskTuple implements Serializable {
             if (is != null) {
                 ByteArrayOutputStream tempByteArrayOutputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[BATCH_MAX_SIZE];
-                IOUtils.copyLarge(is,tempByteArrayOutputStream,buffer);
+                IOUtils.copyLarge(is, tempByteArrayOutputStream, buffer);
                 this.fileData = tempByteArrayOutputStream.toByteArray();
             } else {
                 this.fileData = null;
@@ -121,6 +120,7 @@ public class StormTaskTuple implements Serializable {
                 tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY),
                 (HashMap<String, String>) tuple
                         .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY));
+
     }
 
     public Values toStormTuple() {

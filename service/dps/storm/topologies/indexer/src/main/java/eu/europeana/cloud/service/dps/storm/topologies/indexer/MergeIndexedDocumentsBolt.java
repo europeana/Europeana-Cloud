@@ -10,16 +10,13 @@ import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
 import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -54,11 +51,12 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         Indexer indexer = getIndexer(t.getParameter(PluginParameterKeys.INDEXER));
+        Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
 
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.");
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.",sentTime);
             outputCollector.ack(inputTuple);
             return;
         }
@@ -121,7 +119,7 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
             StringWriter stack = new StringWriter();
             ex.printStackTrace(new PrintWriter(stack));
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "Cannot serialize merged data.", stack.toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage());
+            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage(),sentTime);
             outputCollector.ack(inputTuple);
             return;
         }

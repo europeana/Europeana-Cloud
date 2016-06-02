@@ -20,10 +20,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -55,8 +52,10 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
+        Date sentTime = new Date();
+        Date startTime = new Date();
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, startTime);
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, startTime, null));
         //when
         testedBolt.execute(tuple);
         //then
@@ -75,15 +74,15 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo);
-
+        Date sentTime = new Date();
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, null);
         String resource = "resource";
         States state = States.SUCCESS;
         String text = "text";
         String additionalInformations = "additionalInformations";
         String resultResource = "resultResource";
         expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, null, null));
         testedBolt.execute(setUpTuple);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations, resultResource));
         //when
@@ -105,17 +104,18 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = "";
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo);
-
+        Date sentTime = new Date();
+        Date startTime = new Date();
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, startTime);
         String resource = "resource";
         States state = States.SUCCESS;
         String text = "text";
         String additionalInformations = "additionalInformations";
         String resultResource = "";
         expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, null, null));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, startTime, null));
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations,resultResource));
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations, resultResource));
         //when
         testedBolt.execute(tuple);
         //then
@@ -127,8 +127,8 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(info, is(expectedTaskInfo));
     }
 
-    private TaskInfo createTaskInfo(long taskId, int containsElements, String topologyName, TaskState state, String info) {
-        TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info);
+    private TaskInfo createTaskInfo(long taskId, int containsElements, String topologyName, TaskState state, String info, Date sentTime, Date startTime) {
+        TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime);
         expectedTaskInfo.setContainsElements(containsElements);
         return expectedTaskInfo;
     }
