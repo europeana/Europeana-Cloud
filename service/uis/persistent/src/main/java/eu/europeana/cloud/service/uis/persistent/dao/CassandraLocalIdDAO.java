@@ -64,12 +64,13 @@ public class CassandraLocalIdDAO {
                 "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? ALLOW FILTERING");
         searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=?");
         searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByProviderPaginatedStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ? ALLOW FILTERING");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ?");
         searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
+
 
     public List<CloudId> searchById(boolean deleted, String... args) throws DatabaseConnectionException,
             ProviderDoesNotExistException, RecordDatasetEmptyException {
@@ -98,13 +99,13 @@ public class CassandraLocalIdDAO {
     /**
      * Enable pagination search on active local Id information
      *
-     * @param start Record to start from
-     * @param end The number of record to retrieve
+     * @param startCloudId Record to start from
+     * @param limit The number of record to retrieve
      * @param providerId The provider Identifier
      * @return A list of CloudId objects
      */
-    public List<CloudId> searchActiveWithPagination(String start, int end, String providerId) {
-        ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, start, end));
+    public List<CloudId> searchActiveWithPagination(String startCloudId, int limit, String providerId) {
+        ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, startCloudId, limit));
         return createCloudIdsFromRs(rs);
     }
 

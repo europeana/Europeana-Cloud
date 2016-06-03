@@ -298,7 +298,7 @@ public class UISClient {
                         + "/data-providers/{PROVIDER_ID}/localIds")
                 .resolveTemplate("PROVIDER_ID", providerId)
                 .queryParam(UISParamConstants.Q_FROM, recordId)
-                .queryParam(UISParamConstants.Q_TO, window).request().get();
+                .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
 
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             return resp.readEntity(ResultSlice.class);
@@ -325,7 +325,7 @@ public class UISClient {
                         + "/data-providers/{PROVIDER_ID}/cloudIds")
                 .resolveTemplate("PROVIDER_ID", providerId)
                 .queryParam(UISParamConstants.Q_FROM, cloudId)
-                .queryParam(UISParamConstants.Q_TO, window).request().get();
+                .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
 
         if (resp.getStatus() == Status.OK.getStatusCode()) {
             return resp.readEntity(ResultSlice.class);

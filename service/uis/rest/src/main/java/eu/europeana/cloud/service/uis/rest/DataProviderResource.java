@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -48,9 +47,11 @@ import org.springframework.security.acls.model.AlreadyExistsException;
 import org.springframework.security.acls.model.ChildrenExistException;
 import org.springframework.security.acls.model.NotFoundException;
 
+import java.util.List;
+
 /**
  * Resource for DataProvider.
- * 
+ *
  * @author
  */
 @Path("/data-providers/{" + P_PROVIDER + "}")
@@ -72,16 +73,16 @@ public class DataProviderResource {
 
     /**
      * Retrieves details about selected data provider
-     * 
+     *
      * @summary Data provider details retrieval
-     * 
-     * 
+     *
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of the provider that will
      *            be retrieved
-     * 
+     *
      * @return Selected Data provider details
-     * 
+     *
      * @throws ProviderDoesNotExistException
      *             The supplied provider does not exist
      */
@@ -95,7 +96,7 @@ public class DataProviderResource {
 
     /**
      * Updates data provider information.
-     * 
+     *
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -105,18 +106,18 @@ public class DataProviderResource {
      * <li>Write permission for the selected data provider</li>
      * </ul>
      * </div>
-     * 
+     *
      * @summary Data provider information update
-     * 
+     *
      * @param dataProviderProperties
      *            <strong>REQUIRED</strong> data provider properties.
-     * 
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of data provider which
      *            will be updated.
-     * 
+     *
      * @statuscode 204 object has been updated.
-     * 
+     *
      * @throws ProviderDoesNotExistException
      *             The supplied provider does not exist
      */
@@ -133,7 +134,7 @@ public class DataProviderResource {
 
     /**
      * Deletes data provider from database
-     * 
+     *
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -142,18 +143,18 @@ public class DataProviderResource {
      * <li>Admin role</li>
      * </ul>
      * </div>
-     * 
+     *
      * @summary Data provider deletion
-     * 
+     *
      * @param dataProviderId
      *            <strong>REQUIRED</strong> data provider id
-     * 
+     *
      * @return Empty response with http status code indicating whether the
      *         operation was successful or not
-     * 
+     *
      * @throws ProviderDoesNotExistException
      *             The supplied provider does not exist
-     * 
+     *
      */
     @DELETE
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -166,12 +167,12 @@ public class DataProviderResource {
 
 
     /**
-     * 
-     * Get the local identifiers for a specific provider identifier with
+     *
+     * Get the local Identifiers (with their cloud identifiers) for a specific provider identifier with
      * pagination
-     * 
+     *
      * @summary Local identifiers retrieval.
-     * 
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of provider for which all
      *            local identifiers will be retrieved
@@ -180,16 +181,16 @@ public class DataProviderResource {
      * @param to
      *            how many local identifiers should be contained in results
      *            list. Default is 10000
-     * 
+     *
      * @return A list of local Identifiers (with their cloud identifiers)
-     * 
+     *
      * @throws DatabaseConnectionException
      *             database error
      * @throws ProviderDoesNotExistException
      *             provider does not exist
      * @throws RecordDatasetEmptyException
      *             dataset is empty
-     * 
+     *
      */
     @GET
     @Path("localIds")
@@ -197,7 +198,7 @@ public class DataProviderResource {
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getLocalIdsByProvider(@PathParam(P_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_FROM) String from,
-            @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
+            @QueryParam(UISParamConstants.Q_LIMIT) @DefaultValue("10000") int to)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 
         ResultSlice<CloudId> pList = new ResultSlice<>();
@@ -210,23 +211,23 @@ public class DataProviderResource {
 
 
     /**
-     * 
-     * Get the cloud identifiers for a specific provider identifier with
+     *
+     * Get the cloud identifiers (with their local identifiers) for a specific provider identifier with
      * pagination
-     * 
-     * @summary Cloud identifiers retrieval.
-     * 
+     *
+     * @summary Cloud identifiers (with their local identifiers) retrieval.
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of provider for which all
-     *            cloud identifiers will be retrieved
+     *            record identifiers will be retrieved
      * @param from
-     *            from which one cloud identifier should we start.
-     * @param to
+     *            from which one <strong>local identifier</strong> should we start.
+     * @param limit
      *            how many cloud identifiers should be contained in results
-     *            list. Default is 10000
-     * 
-     * @return List of cloud identifiers for specific provider
-     * 
+     *            list. Default is 10000. <strong>Respected only if {@code from} parameter is defined.</strong>
+     *
+     * @return List of cloud identifiers (with their local identifiers) for specific provider
+     *
      * @throws DatabaseConnectionException
      *             database connection errot
      * @throws ProviderDoesNotExistException
@@ -240,22 +241,31 @@ public class DataProviderResource {
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getCloudIdsByProvider(@PathParam(P_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_FROM) String from,
-            @QueryParam(UISParamConstants.Q_TO) @DefaultValue("10000") int to)
+            @QueryParam(UISParamConstants.Q_LIMIT) @DefaultValue("10000") int limit)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
-        ResultSlice<CloudId> pList = new ResultSlice<>();
-        pList.setResults(uniqueIdentifierService.getCloudIdsByProvider(providerId, from, to));
-        if (pList.getResults().size() == to) {
-            pList.setNextSlice(pList.getResults().get(to - 1).getId());
+        ResultSlice<CloudId> slice = new ResultSlice<>();
+        final int limitWithNextSlice = limit + 1;
+
+        final List<CloudId> cloudIds = uniqueIdentifierService.getCloudIdsByProvider(providerId, from, limitWithNextSlice);
+
+        if (cloudIds.size() == limitWithNextSlice) {
+            setNextSliceAndRemoveLastElement(slice, limitWithNextSlice, cloudIds);
         }
-        return Response.ok(pList).build();
+        slice.setResults(cloudIds);
+        return Response.ok(slice).build();
+    }
+
+    private void setNextSliceAndRemoveLastElement(ResultSlice<CloudId> slice, int limitWithNextSlice, List<CloudId> cloudIdsByProvider) {
+        CloudId nextSlice = cloudIdsByProvider.remove(limitWithNextSlice - 1);
+        slice.setNextSlice(nextSlice.getLocalId().getRecordId());
     }
 
 
     /**
-     * 
+     *
      * Create a mapping between a cloud identifier and a record identifier for a
      * provider
-     * 
+     *
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -264,9 +274,9 @@ public class DataProviderResource {
      * <li>Authenticated user</li>
      * </ul>
      * </div>
-     * 
+     *
      * @summary Cloud identifier to record identifier mapping creation
-     * 
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of data provider, owner
      *            of the record
@@ -276,9 +286,9 @@ public class DataProviderResource {
      * @param localId
      *            record identifier which will be bound to selected cloud
      *            identifier. If not specified, random one will be generated
-     * 
+     *
      * @return The newly associated cloud identifier
-     * 
+     *
      * @throws DatabaseConnectionException
      *             datbase connection error
      * @throws CloudIdDoesNotExistException
@@ -291,7 +301,7 @@ public class DataProviderResource {
      *             empty dataset
      * @throws CloudIdAlreadyExistException
      *             cloud identifier alrrasy exist
-     * 
+     *
      */
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
@@ -334,9 +344,9 @@ public class DataProviderResource {
 
 
     /**
-     * 
+     *
      * Remove the mapping between a record identifier and a cloud identifier
-     * 
+     *
      * <br/>
      * <br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
@@ -347,19 +357,19 @@ public class DataProviderResource {
      * (granted at the mapping creation)</li>
      * </ul>
      * </div>
-     * 
+     *
      * @summary Mapping between record and cloud identifier removal
-     * 
+     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of the provider, owner of
      *            the record
-     * 
+     *
      * @param localId
      *            <strong>REQUIRED</strong> record identifier which will be
      *            detached from selected provider identifier.
-     * 
+     *
      * @return Confirmation that the mapping has been removed
-     * 
+     *
      * @throws DatabaseConnectionException
      *             database error
      * @throws ProviderDoesNotExistException

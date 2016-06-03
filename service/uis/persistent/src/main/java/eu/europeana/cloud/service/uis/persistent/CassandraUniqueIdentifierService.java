@@ -167,21 +167,21 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
 
 
     @Override
-    public List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
+    public List<CloudId> getCloudIdsByProvider(String providerId, String startRecordId, int limit)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
 
-        LOGGER.info("getCloudIdsByProvider() providerId='{}', start='{}', end='{}'", providerId, start, end);
+        LOGGER.info("getCloudIdsByProvider() providerId='{}', startRecordId='{}', end='{}'", providerId, startRecordId, limit);
         if (dataProviderDao.getProvider(providerId) == null) {
-            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', start='{}', end='{}'", providerId, start,
-                end);
+            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', startRecordId='{}', end='{}'", providerId, startRecordId,
+                limit);
             throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
-        if (start == null) {
+        if (startRecordId == null) {
             return localIdDao.searchActive(providerId);
         } else {
-            return localIdDao.searchActiveWithPagination(start, end, providerId);
+            return localIdDao.searchActiveWithPagination(startRecordId, limit, providerId);
         }
     }
 
