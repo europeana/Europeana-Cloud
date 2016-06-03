@@ -113,19 +113,55 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 
     /**
      * Test CloudIds by provider
-     * 
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testGetCloudIdsByProviderWithLimit() throws Exception {
+        //given
+        dataProviderDao.createDataProvider("test3",
+                new DataProviderProperties());
+        service.createCloudId("test3", "test3");
+        service.createCloudId("test3", "test2");
+        //when
+        List<CloudId> cIds = service
+                .getCloudIdsByProvider("test3", "test3", 1);
+        //then
+        assertEquals(cIds.size(), 1);
+    }
+
+    /**
+     * Test CloudIds by provider
+     *
      * @throws Exception
      */
     @Test
     public void testGetCloudIdsByProvider() throws Exception {
-	dataProviderDao.createDataProvider("test3",
-		new DataProviderProperties());
-	service.createCloudId("test3", "test3");
-	List<CloudId> cIds = service
-		.getCloudIdsByProvider("test3", null, 10000);
-	assertEquals(cIds.size(), 1);
-	cIds = service.getCloudIdsByProvider("test3", "test3", 1);
-	assertEquals(cIds.size(), 1);
+        //given
+        dataProviderDao.createDataProvider("test3",
+                new DataProviderProperties());
+        service.createCloudId("test3", "test3");
+        service.createCloudId("test3", "test2");
+        //when
+        List<CloudId> cIds = service
+                .getCloudIdsByProvider("test3", null, 10000);
+        //then
+        assertEquals(cIds.size(), 2);
+    }
+
+    /**
+     * Test CloudIds by provider
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testGetCloudIdsByProviderFilter() throws Exception {
+        dataProviderDao.createDataProvider("test3",
+                new DataProviderProperties());
+        service.createCloudId("test3", "test3");
+        service.createCloudId("test3", "test2");
+        List<CloudId> cIds = service.getCloudIdsByProvider("test3", "test3", 1);
+        assertEquals(cIds.size(), 1);
     }
 
     /**
