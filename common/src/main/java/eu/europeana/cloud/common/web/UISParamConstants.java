@@ -19,5 +19,5 @@ public final class UISParamConstants {
 	
     public static final String Q_FROM = "from";
 
-    public static final String Q_TO = "to";
+    public static final String Q_LIMIT = "limit";
 }
