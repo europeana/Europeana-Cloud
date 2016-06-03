@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -99,7 +100,7 @@ public class CassandraReportService implements TaskExecutionReportService {
 
 
     private String prepareDate(Date date) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss", Locale.ENGLISH);
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("CET"));
         return date == null ? "" : simpleDateFormat.format(date);
     }

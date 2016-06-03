@@ -46,10 +46,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -204,7 +201,8 @@ public class TopologyTasksResource {
                 LOGGER.info("The task is in a pending mode");
                 int expectedSize = grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
                 task.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
-                task.addParameter(PluginParameterKeys.SENT_TIME, String.valueOf(sentTime));
+                SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy", Locale.ENGLISH);
+                task.addParameter(PluginParameterKeys.SENT_TIME, formatter.format(sentTime));
                 submitService.submitTask(task, topologyName);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 LOGGER.info("Task submitted successfully");

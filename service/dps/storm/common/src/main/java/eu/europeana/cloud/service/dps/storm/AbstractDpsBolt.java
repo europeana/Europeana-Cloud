@@ -5,20 +5,15 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,25 +50,21 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-
             if (killService.hasKillFlag(topologyName, t.getTaskId())) {
                 LOGGER.info("Task {} going to be killed.", t.getTaskId());
                 emitKillNotification(t.getTaskId(), t.getFileUrl(), "", "");
-                outputCollector.ack(tuple);
                 return;
             }
             LOGGER.debug("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
-            //Only this ack is needed
-            outputCollector.ack(tuple);
         } catch (Exception e) {
             LOGGER.error("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
-
             if (t != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
             }
+        } finally {
             outputCollector.ack(tuple);
         }
     }

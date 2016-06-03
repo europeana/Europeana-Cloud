@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm;
 import backtype.storm.tuple.Fields;
 
 import java.io.*;
-import java.util.Date;
 import java.util.HashMap;
 
 import backtype.storm.tuple.Tuple;
