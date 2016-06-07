@@ -3,10 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.europeana.cloud</groupId>
-        <artifactId>ecloud-service-dps</artifactId>
+        <artifactId>ecloud-incubating</artifactId>
         <version>0.6-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ecloud-service-dps-similarity</artifactId>
+    <version>0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Europeana Cloud: DPS Service Similarity API</name>
     <dependencies>
