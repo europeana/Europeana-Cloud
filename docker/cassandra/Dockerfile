@@ -1,12 +1,11 @@
 FROM ubuntu:14.04
 MAINTAINER Lucas Anastasiou lucas.anastasiou@open.ac.uk
 
-RUN apt-get install -y wget
+RUN apt-get update && apt-get install -y wget
 RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz' | tar -C /opt -xz
 
 # Install Java.
 RUN \
-  apt-get update && \
   apt-get install -y openjdk-7-jdk && \
   rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
