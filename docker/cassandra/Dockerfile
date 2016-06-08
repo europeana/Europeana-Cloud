@@ -39,6 +39,9 @@ ADD initialize_tables.sh /etc/cassandra/
 
 RUN sh /etc/cassandra/change_host.sh
 
+# fix for issue http://stackoverflow.com/questions/36867832/cassandra-2-0-and-later-require-java-7u25-or-later-but-im-using-jdk1-7-0-101
+RUN sed -i -e "s/< \"25\"/< \"0\"/" /opt/apache-cassandra-2.1.8/conf/cassandra-env.sh
+
 # initialize keyspaces and tables
 RUN sh /etc/cassandra/initialize_tables.sh
 
