@@ -14,6 +14,22 @@
  */
 package eu.europeana.aas.acl.repository;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.AlreadyExistsException;
+import com.datastax.driver.core.querybuilder.Batch;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import eu.europeana.aas.acl.model.AclEntry;
+import eu.europeana.aas.acl.model.AclObjectIdentity;
+import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
+import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,23 +38,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.util.Assert;
-
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.exceptions.AlreadyExistsException;
-import com.datastax.driver.core.querybuilder.Batch;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
-import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 /**
  * Implementation of <code>AclRepository</code> using the DataStax Java Driver.
@@ -294,7 +293,7 @@ public final class CassandraAclRepository implements AclRepository {
 		new Object[] { aoi.getRowId(), aoi.getId(),
 			aoi.getObjectClass(), aoi.isEntriesInheriting(),
 			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
-			aoi.getParentObjectId(), aoi.getParentObjectClass() }));
+			aoi.getParentObjectId(), aoi.getParentObjectClass() })).setConsistencyLevel(ConsistencyLevel.ALL);
 
 	if (aoi.getParentRowId() != null) {
 	    batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(
@@ -333,10 +332,9 @@ public final class CassandraAclRepository implements AclRepository {
 		new Object[] { aoi.getRowId(), aoi.getId(),
 			aoi.getObjectClass(), aoi.isEntriesInheriting(),
 			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
-			aoi.getParentObjectId(), aoi.getParentObjectClass() }));
+			aoi.getParentObjectId(), aoi.getParentObjectClass() })).setDefaultTimestamp(System.nanoTime());
 	batch.add(QueryBuilder.delete().all().from(keyspace, ACL_TABLE)
-		.where(QueryBuilder.eq("id", aoi.getRowId())));
-
+		.where(QueryBuilder.eq("id", aoi.getRowId()))).setDefaultTimestamp(System.nanoTime());
 	// Check if parent is different and delete from children table
 	boolean parentChanged = false;
 	if (!(persistedAoi.getParentRowId() == null ? aoi.getParentRowId() == null
@@ -350,7 +348,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.from(keyspace, CHILDREN_TABLE)
 			.where(QueryBuilder.eq("id",
 				persistedAoi.getParentRowId()))
-			.and(QueryBuilder.eq("childId", aoi.getRowId())));
+			.and(QueryBuilder.eq("childId", aoi.getRowId()))).setDefaultTimestamp(System.nanoTime());
 	    }
 	}
 	session.execute(batch);
@@ -369,7 +367,7 @@ public final class CassandraAclRepository implements AclRepository {
 					entry.isSidPrincipal(),
 					entry.isGranting(),
 					entry.isAuditSuccess(),
-					entry.isAuditFailure() }));
+					entry.isAuditFailure() })).setDefaultTimestamp(System.nanoTime());
 	    }
 	    executeBatch = true;
 	}
@@ -379,7 +377,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.values(CHILD_KEYS,
 				new Object[] { aoi.getParentRowId(),
 					aoi.getRowId(), aoi.getId(),
-					aoi.getObjectClass() }));
+					aoi.getObjectClass() })).setDefaultTimestamp(System.nanoTime());
 	    }
 	    executeBatch = true;
 	}
