@@ -39,39 +39,29 @@ kafka:
   volumes:
    - /var/run/docker.sock:/var/run/docker.sock
 
+nimbus:
+  image: wurstmeister/storm-nimbus
+  ports:
+    - "3773"
+    - "3772"
+    - "6627"
+  links:
+    - zookeeper:zookeeper
 
+supervisor:
+  image: wurstmeister/storm-supervisor
+  ports:
+    - "8000"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zookeeper
+    - cassandra:cassandra
+    - tomcat:tomcat
 
-
-#nimbus:
-#  image: wurstmeister/storm-nimbus
-#  ports:
-#    - "3773"
-#    - "3772"
-#    - "6627"
-#    - "22"
-#  links:
-#    - zookeeper:zk
-#supervisor:
-#  image: wurstmeister/storm-supervisor
-#  ports:
-#    - "8000"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#ui:
-#  image: wurstmeister/storm-ui
-#  ports:
-#    - "49080:8080"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#
-#elasticsearch:
-#  image: tutum/elasticsearch
-#  ports:
-#    - "9200:9200"
-#  environment:
-#    ELASTICSEARCH_USER: admin
-#    ELASTICSEARCH_PASS: password
+ui:
+  image: wurstmeister/storm-ui
+  ports:
+    - "49080:8080"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zookeeper
