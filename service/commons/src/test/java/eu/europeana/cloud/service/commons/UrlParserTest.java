@@ -3,11 +3,19 @@ package eu.europeana.cloud.service.commons;
 import eu.europeana.cloud.service.commons.urls.UrlBuilderException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+@RunWith(JUnitParamsRunner.class)
 public class UrlParserTest {
 
 
@@ -31,7 +39,31 @@ public class UrlParserTest {
         UrlParser urlParser = new UrlParser(MALFORMED_URL);
         Assert.assertTrue(urlParser.isUrlToRepresentations());
     }
-    
+
+    @Test
+    @Parameters({
+            "/folder1/folder2/filename1",
+            "/folder1/folder2//filename1",
+            "/./folder1/folder2//filename1"
+    })
+    public void shouldParseProperlyUrlToFilePath(final String suffixFilePath) throws MalformedURLException {
+        //given
+        //when
+        UrlParser parser = new UrlParser(URL_TO_FILES_LIST + suffixFilePath);
+        //then
+        System.out.println(suffixFilePath);
+        assertProperFileUrl(parser);
+        assertThat(parser.getPart(UrlPart.FILES), is(suffixFilePath));
+    }
+
+    private void assertProperFileUrl(UrlParser parser) {
+        assertThat(parser.isUrlToRepresentationVersionFile(), is(true));
+        assertThat(parser.getPart(UrlPart.VERSIONS),notNullValue());
+        assertThat(parser.getPart(UrlPart.REPRESENTATIONS),notNullValue());
+        assertThat(parser.getPart(UrlPart.RECORDS),notNullValue());
+        assertThat(parser.getPart(UrlPart.FILES),notNullValue());
+    }
+
     @Test
     public void shouldHandleRandomUrl() throws MalformedURLException {
         UrlParser urlParser = new UrlParser(RANDOM_URL);
