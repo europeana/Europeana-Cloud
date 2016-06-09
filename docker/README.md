@@ -88,6 +88,16 @@ You can access storm-ui in <http://LOCALHOST_IP:49080> \*\*\*. You can upload st
 For further details on the way storm docker cluster works follow the source description <https://github.com/wurstmeister/storm-docker>
 
 
+## Solr
+a) automatic deploy
+- to deploy on the Europeana-Cloud/solr/distr run mvn (on the .m2/settings.xml should be declared credential for docker tomcat)
+- run maven command (build solr and deploy it on docker)
+mvn clean install -Dsolr.home="/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr" -Dsolr.data.dir="/root/" -Dsolr.replication.isMaster="true" -Dsolr.replication.isSlave="false" -Dsolr.replication.masterUrl="http://localhost:8080/solr" tomcat7:redeploy -Dmaven.tomcat.path="/solr"
+
+b) manual deploy
+- run maven command (build solr)
+mvn clean install -Dsolr.home="/usr/local/tomcat/webapps/solr/WEB-INF/classes/solr" -Dsolr.data.dir="/root/" -Dsolr.replication.isMaster="true" -Dsolr.replication.isSlave="false" -Dsolr.replication.masterUrl="http://localhost:8080/solr"
+- deploy on tomcat web manager Europeana-Cloud/solr/distr/target/solr.war
 
 
 
