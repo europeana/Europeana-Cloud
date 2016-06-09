@@ -332,9 +332,9 @@ public final class CassandraAclRepository implements AclRepository {
 		new Object[] { aoi.getRowId(), aoi.getId(),
 			aoi.getObjectClass(), aoi.isEntriesInheriting(),
 			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
-			aoi.getParentObjectId(), aoi.getParentObjectClass() })).setDefaultTimestamp(System.nanoTime());
+			aoi.getParentObjectId(), aoi.getParentObjectClass() }));
 	batch.add(QueryBuilder.delete().all().from(keyspace, ACL_TABLE)
-		.where(QueryBuilder.eq("id", aoi.getRowId()))).setDefaultTimestamp(System.nanoTime());
+		.where(QueryBuilder.eq("id", aoi.getRowId())));
 	// Check if parent is different and delete from children table
 	boolean parentChanged = false;
 	if (!(persistedAoi.getParentRowId() == null ? aoi.getParentRowId() == null
@@ -348,7 +348,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.from(keyspace, CHILDREN_TABLE)
 			.where(QueryBuilder.eq("id",
 				persistedAoi.getParentRowId()))
-			.and(QueryBuilder.eq("childId", aoi.getRowId()))).setDefaultTimestamp(System.nanoTime());
+			.and(QueryBuilder.eq("childId", aoi.getRowId())));
 	    }
 	}
 	session.execute(batch);
@@ -367,7 +367,7 @@ public final class CassandraAclRepository implements AclRepository {
 					entry.isSidPrincipal(),
 					entry.isGranting(),
 					entry.isAuditSuccess(),
-					entry.isAuditFailure() })).setDefaultTimestamp(System.nanoTime());
+					entry.isAuditFailure() }));
 	    }
 	    executeBatch = true;
 	}
@@ -377,7 +377,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.values(CHILD_KEYS,
 				new Object[] { aoi.getParentRowId(),
 					aoi.getRowId(), aoi.getId(),
-					aoi.getObjectClass() })).setDefaultTimestamp(System.nanoTime());
+					aoi.getObjectClass() }));
 	    }
 	    executeBatch = true;
 	}
