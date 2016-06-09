@@ -6,16 +6,11 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -24,9 +19,6 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -35,7 +27,6 @@ import java.util.*;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class NotificationBolt extends BaseRichBolt {
-    public static final String TaskFinishedStreamName = "FinishStream";
     private static final Logger LOGGER = LoggerFactory
             .getLogger(NotificationBolt.class);
     protected Map stormConfig;
@@ -94,13 +85,17 @@ public class NotificationBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        NotificationTuple notificationTuple = NotificationTuple
-                .fromStormTuple(tuple);
-
         try {
+            NotificationTuple notificationTuple = NotificationTuple
+                    .fromStormTuple(tuple);
+
             switch (notificationTuple.getInformationType()) {
-                case BASIC_INFO:
-                    storeBasicInfo(notificationTuple.getTaskId(),
+                case UPDATE_TASK:
+                    updateTask(notificationTuple.getTaskId(),
+                            notificationTuple.getParameters());
+                    break;
+                case END_TASK:
+                    endTask(notificationTuple.getTaskId(),
                             notificationTuple.getParameters());
                     break;
                 case NOTIFICATION:
@@ -139,16 +134,23 @@ public class NotificationBolt extends BaseRichBolt {
 
     }
 
-    private void storeBasicInfo(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void updateTask(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
-        int expectedSize = convertIfNotNull(parameters.get(NotificationParameterKeys.EXPECTED_SIZE).toString());
         String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
         String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        Date sentTime = prepareDate(parameters.get(NotificationParameterKeys.SENT_TIME));
-        Date startTime = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
-        Date finishTime = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, state, info, sentTime, startTime, finishTime);
+        Date startDate = prepareDate(parameters.get(NotificationParameterKeys.START_TIME));
+        taskInfoDAO.updateTask(taskId, info, state, startDate);
     }
+
+
+    private void endTask(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+        Validate.notNull(parameters);
+        String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
+        Date finishDate = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
+        String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
+        taskInfoDAO.endTask(taskId, info, state, finishDate);
+    }
+
 
     private static Date prepareDate(Object dateObject) {
         Date date = null;
@@ -163,7 +165,7 @@ public class NotificationBolt extends BaseRichBolt {
             long count = taskInfoDAO.getProcessedCount(taskId);
             int expectedSize = task.get(0).getContainsElements();
             if (count == expectedSize) {
-                taskInfoDAO.insert(taskId, topologyName, expectedSize, String.valueOf(TaskState.PROCESSED), "", task.get(0).getSentDate(), task.get(0).getStartDate(),new Date());
+                taskInfoDAO.endTask(taskId, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
             }
         }
     }
@@ -176,9 +178,5 @@ public class NotificationBolt extends BaseRichBolt {
         String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
         subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
-    }
-
-    private int convertIfNotNull(String input) {
-        return input != null && !input.isEmpty() ? Integer.valueOf(input) : -1;
     }
 }

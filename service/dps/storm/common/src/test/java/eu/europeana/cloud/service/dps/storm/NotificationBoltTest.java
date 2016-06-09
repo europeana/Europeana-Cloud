@@ -45,21 +45,20 @@ public class NotificationBoltTest extends CassandraTestBase {
     }
 
     @Test
-    public void testSuccessfulBasicInfoTuple() throws Exception {
+    public void testUpdateBasicInfoStateWithStartDateAndInfo() throws Exception {
         //given
         long taskId = 1;
-        int containsElements = 2;
-        String topologyName = "";
+        int containsElements = 0;
+        String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        Date sentTime = new Date();
         Date startTime = new Date();
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, startTime);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, startTime, null));
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, startTime, null);
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, startTime));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
+        List<TaskInfo> result = taskInfoDAO.searchById(taskId);
         assertThat(result, notNullValue());
         assertThat(result.size(), is(equalTo(1)));
         TaskInfo info = result.get(0);
@@ -67,32 +66,23 @@ public class NotificationBoltTest extends CassandraTestBase {
     }
 
     @Test
-    public void testSuccessfulBasicInfoAndNotificationTuple() throws Exception {
+    public void testUpdateBasicInfoStateWithFinishDateAndInfo() throws Exception {
         //given
         long taskId = 1;
-        int containsElements = 2;
-        String topologyName = "";
+        int containsElements = 0;
+        String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        Date sentTime = new Date();
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, null);
-        String resource = "resource";
-        States state = States.SUCCESS;
-        String text = "text";
-        String additionalInformations = "additionalInformations";
-        String resultResource = "resultResource";
-        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, null, null));
-        testedBolt.execute(setUpTuple);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations, resultResource));
+        Date finishDate = new Date();
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, finishDate);
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareEndTask(taskId, taskInfo, taskState, finishDate));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
+        List<TaskInfo> result = taskInfoDAO.searchById(taskId);
         assertThat(result, notNullValue());
         assertThat(result.size(), is(equalTo(1)));
         TaskInfo info = result.get(0);
-        expectedTaskInfo.equals(info);
         assertThat(info, is(expectedTaskInfo));
     }
 
@@ -100,22 +90,20 @@ public class NotificationBoltTest extends CassandraTestBase {
     public void testSuccessfulNotificationTuple() throws Exception {
         //given
         long taskId = 1;
-        int containsElements = 2;
-        String topologyName = "";
+        int containsElements = 1;
+        String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        Date sentTime = new Date();
-        Date startTime = new Date();
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, sentTime, startTime);
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, null);
         String resource = "resource";
         States state = States.SUCCESS;
         String text = "text";
-        String additionalInformations = "additionalInformations";
+        String additionalInformation = "additionalInformations";
         String resultResource = "";
-        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformations, resultResource));
-        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareBasicInfo(taskId, containsElements, taskState, taskInfo, sentTime, startTime, null));
+        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformation, resultResource));
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
-        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformations, resultResource));
+        final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformation, resultResource));
         //when
         testedBolt.execute(tuple);
         //then
@@ -123,13 +111,13 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(result, notNullValue());
         assertThat(result.size(), is(equalTo(1)));
         TaskInfo info = result.get(0);
-        expectedTaskInfo.equals(info);
+        info.setContainsElements(info.getSubtasks().size());
         assertThat(info, is(expectedTaskInfo));
     }
 
-    private TaskInfo createTaskInfo(long taskId, int containsElements, String topologyName, TaskState state, String info, Date sentTime, Date startTime) {
-        TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime);
-        expectedTaskInfo.setContainsElements(containsElements);
+    private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {
+        TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime, finishTime);
+        expectedTaskInfo.setContainsElements(containElement);
         return expectedTaskInfo;
     }
 
@@ -146,6 +134,4 @@ public class NotificationBoltTest extends CassandraTestBase {
         };
         return new TupleImpl(topologyContext, testValue, 1, "");
     }
-
-
 }
