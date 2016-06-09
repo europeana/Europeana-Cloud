@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
 import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 
 import java.io.IOException;
@@ -51,12 +50,11 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         Indexer indexer = getIndexer(t.getParameter(PluginParameterKeys.INDEXER));
-        Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
 
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, "No indexer. Task " + t.getTaskId() + " is dropped.",sentTime);
+            endTask(t.getTaskId(), "No indexer. Task " + t.getTaskId() + " is dropped.", TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }
@@ -119,7 +117,7 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
             StringWriter stack = new StringWriter();
             ex.printStackTrace(new PrintWriter(stack));
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "Cannot serialize merged data.", stack.toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, ex.getMessage(),sentTime);
+            endTask(t.getTaskId(), ex.getMessage(), TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }
