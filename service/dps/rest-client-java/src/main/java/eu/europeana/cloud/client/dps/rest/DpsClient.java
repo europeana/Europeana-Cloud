@@ -50,14 +50,20 @@ public class DpsClient {
 	 */
 	public void submitTask(DpsTask task, String topologyName) {
 
-		Response resp = client.target(dpsUrl)
-				.path(TASKS_URL)
-				.resolveTemplate(TOPOLOGY_NAME, topologyName)
-				.request()
-				.post(Entity.json(task));
+		Response resp = null;
+		try {
+			resp = client.target(dpsUrl)
+					.path(TASKS_URL)
+					.resolveTemplate(TOPOLOGY_NAME, topologyName)
+					.request()
+					.post(Entity.json(task));
 
-		if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
-			throw new RuntimeException("submiting taks failed!!");
+			if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
+				throw new RuntimeException("submiting taks failed!!");
+			}
+
+		} finally {
+			closeResponse(resp);
 		}
 	}
 
@@ -67,36 +73,47 @@ public class DpsClient {
     public void topologyPermit(String topologyName, String username) {
         Form form = new Form();
         form.param("userneme", username);
-        Response resp = client.target(dpsUrl)
-                .path(PERMIT_TIPOLOGY_URL)
-                .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                .request()
-                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+		Response resp = null;
+
+		try {
+			resp = client.target(dpsUrl)
+					.path(PERMIT_TIPOLOGY_URL)
+					.resolveTemplate(TOPOLOGY_NAME, topologyName)
+					.request()
+					.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
 
-        if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-            //TODO exception wrapping should be implemented
-            throw new RuntimeException("Permit topology failed!");
-        }
-    }
+			if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
+				//TODO exception wrapping should be implemented
+				throw new RuntimeException("Permit topology failed!");
+			}
+		} finally {
+			closeResponse(resp);
+		}
+	}
 
 
     public DpsTask getTask(String topologyName, long taskId) {
-		
-		Response getResponse = client
-				.target(dpsUrl)
-				.path(TASK_URL)
-				.resolveTemplate(TOPOLOGY_NAME, topologyName)
-				.resolveTemplate(TASK_ID, String.valueOf(taskId))
-				.request()
-				.header("Accept", MediaType.APPLICATION_JSON)
-				.get();
 
-		if(getResponse.getStatus() == Response.Status.OK.getStatusCode()){
-			DpsTask task = getResponse.readEntity(DpsTask.class);
-			return task;
-		}else{
-			throw new RuntimeException();
+		Response getResponse = null;
+		try {
+			getResponse = client
+					.target(dpsUrl)
+					.path(TASK_URL)
+					.resolveTemplate(TOPOLOGY_NAME, topologyName)
+					.resolveTemplate(TASK_ID, String.valueOf(taskId))
+					.request()
+					.header("Accept", MediaType.APPLICATION_JSON)
+					.get();
+
+			if(getResponse.getStatus() == Response.Status.OK.getStatusCode()){
+				DpsTask task = getResponse.readEntity(DpsTask.class);
+				return task;
+			}else{
+				throw new RuntimeException();
+			}
+		} finally {
+			closeResponse(getResponse);
 		}
 	}
 
@@ -105,37 +122,56 @@ public class DpsClient {
 	 */
 	public String getTaskProgress(String topologyName, final long taskId) {
 
-		Response getResponse = client
-				.target(dpsUrl)
-				.path(TASK_PROGRESS_URL)
-				.resolveTemplate(TOPOLOGY_NAME, topologyName)
-				.resolveTemplate(TASK_ID, taskId)
-				.request().get();
+		Response getResponse = null;
+		
+		try{
+			getResponse = client
+					.target(dpsUrl)
+					.path(TASK_PROGRESS_URL)
+					.resolveTemplate(TOPOLOGY_NAME, topologyName)
+					.resolveTemplate(TASK_ID, taskId)
+					.request().get();
 
-		if(getResponse.getStatus() == Response.Status.OK.getStatusCode()){
-			String taskProgress = getResponse.readEntity(String.class);
-			return taskProgress;
-		}else{
-			LOGGER.error("Task progress cannot be read");
-			throw new RuntimeException();
+			if(getResponse.getStatus() == Response.Status.OK.getStatusCode()){
+				String taskProgress = getResponse.readEntity(String.class);
+				return taskProgress;
+			}else{
+				LOGGER.error("Task progress cannot be read");
+				throw new RuntimeException();
+			}
+		}finally {
+			closeResponse(getResponse);
 		}
 	}
 	
 	public String getTaskNotification(final String topologyName, final long taskId) {
 
-		Response getResponse = client
-				.target(dpsUrl)
-				.path(TASK_NOTIFICATION_URL)
-				.resolveTemplate(TOPOLOGY_NAME, topologyName)
-				.resolveTemplate(TASK_ID, taskId)
-				.request().get();
+		Response getResponse = null;
 
-		if(getResponse.getStatus() == Response.Status.OK.getStatusCode()){
-			String taskProgress = getResponse.readEntity(String.class);
-			return taskProgress;
-		}else{
-			LOGGER.error("Task notification cannot be read");
-			throw new RuntimeException();
+        try {
+            getResponse = client
+                    .target(dpsUrl)
+                    .path(TASK_NOTIFICATION_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId)
+                    .request().get();
+
+            if (getResponse.getStatus() == Response.Status.OK.getStatusCode()) {
+                String taskProgress = getResponse.readEntity(String.class);
+                return taskProgress;
+            } else {
+                LOGGER.error("Task notification cannot be read");
+                throw new RuntimeException();
+            }
+
+        } finally {
+            closeResponse(getResponse);
+        }
+    }
+	
+	private void closeResponse(Response response) {
+		if (response != null) {
+			response.close();
 		}
 	}
 }

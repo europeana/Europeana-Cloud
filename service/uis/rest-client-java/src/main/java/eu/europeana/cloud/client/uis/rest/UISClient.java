@@ -1,15 +1,5 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import eu.europeana.cloud.client.uis.rest.web.DynamicUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
@@ -22,7 +12,15 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 
 /**
@@ -162,15 +160,22 @@ public class UISClient {
      */
     public CloudId createCloudId(String providerId, String recordId)
             throws CloudException {
-        Response resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                .post(null);
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(CloudId.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                    .post(null);
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(CloudId.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -182,14 +187,20 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     public CloudId createCloudId(String providerId) throws CloudException {
-        Response resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .request().post(null);
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(CloudId.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .request().post(null);
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(CloudId.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -203,15 +214,21 @@ public class UISClient {
      */
     public CloudId getCloudId(String providerId, String recordId)
             throws CloudException {
-        Response resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                .get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(CloudId.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client.target(urlProvider.getBaseUrl() + "/cloudIds")
+                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                    .get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(CloudId.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -225,14 +242,20 @@ public class UISClient {
     @SuppressWarnings("unchecked")
     public ResultSlice<CloudId> getRecordId(String cloudId)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
-                .resolveTemplate("CLOUD_ID", cloudId).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate("CLOUD_ID", cloudId).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -246,15 +269,21 @@ public class UISClient {
     @SuppressWarnings("unchecked")
     public ResultSlice<LocalId> getRecordIdsByProvider(String providerId)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/localIds")
-                .resolveTemplate("PROVIDER_ID", providerId).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/localIds")
+                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -268,15 +297,21 @@ public class UISClient {
     @SuppressWarnings("unchecked")
     public ResultSlice<CloudId> getCloudIdsByProvider(String providerId)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/cloudIds")
-                .resolveTemplate("PROVIDER_ID", providerId).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/cloudIds")
+                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -293,17 +328,23 @@ public class UISClient {
     public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(
             String providerId, String recordId, int window)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/localIds")
-                .resolveTemplate("PROVIDER_ID", providerId)
-                .queryParam(UISParamConstants.Q_FROM, recordId)
-                .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/localIds")
+                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .queryParam(UISParamConstants.Q_FROM, recordId)
+                    .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -320,17 +361,23 @@ public class UISClient {
     public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(
             String providerId, String cloudId, int window)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/cloudIds")
-                .resolveTemplate("PROVIDER_ID", providerId)
-                .queryParam(UISParamConstants.Q_FROM, cloudId)
-                .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/cloudIds")
+                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .queryParam(UISParamConstants.Q_FROM, cloudId)
+                    .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -345,20 +392,25 @@ public class UISClient {
      */
     public boolean createMapping(String cloudId, String providerId,
             String recordId) throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                .resolveTemplate("PROVIDER_ID", providerId)
-                .resolveTemplate("CLOUD_ID", cloudId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                .post(null);
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return true;
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .resolveTemplate("CLOUD_ID", cloudId)
+                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                    .post(null);
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return true;
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
-
     }
 
     /**
@@ -371,16 +423,22 @@ public class UISClient {
      */
     public boolean removeMappingByLocalId(String providerId, String recordId)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
-                .resolveTemplate("PROVIDER_ID", providerId)
-                .resolveTemplate("LOCAL_ID", recordId).request().delete();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return true;
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
+                    .resolveTemplate("PROVIDER_ID", providerId)
+                    .resolveTemplate("LOCAL_ID", recordId).request().delete();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return true;
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -393,14 +451,20 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     public boolean deleteCloudId(String cloudId) throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
-                .resolveTemplate("CLOUD_ID", cloudId).request().delete();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return true;
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl() + "/cloudIds/{CLOUD_ID}")
+                    .resolveTemplate("CLOUD_ID", cloudId).request().delete();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return true;
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -414,15 +478,21 @@ public class UISClient {
      */
     public String createProvider(String providerId, DataProviderProperties dp)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl() + "/data-providers")
-                .queryParam(UISParamConstants.Q_PROVIDER, providerId).request()
-                .post(Entity.json(dp));
 
-        if (resp.getStatus() == Status.CREATED.getStatusCode()) {
-            return resp.toString();
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl() + "/data-providers")
+                    .queryParam(UISParamConstants.Q_PROVIDER, providerId).request()
+                    .post(Entity.json(dp));
+
+            if (resp.getStatus() == Status.CREATED.getStatusCode()) {
+                return resp.toString();
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -436,16 +506,22 @@ public class UISClient {
      */
     public boolean updateProvider(String providerId, DataProviderProperties dp)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}")
-                .resolveTemplate("PROVIDER_ID", providerId).request()
-                .put(Entity.json(dp));
 
-        if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-            return true;
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}")
+                    .resolveTemplate("PROVIDER_ID", providerId).request()
+                    .put(Entity.json(dp));
+
+            if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+                return true;
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -459,14 +535,20 @@ public class UISClient {
     @SuppressWarnings("unchecked")
     public ResultSlice<DataProvider> getDataProviders(String from)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl() + "/data-providers")
-                .queryParam(UISParamConstants.Q_FROM, from).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(ResultSlice.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl() + "/data-providers")
+                    .queryParam(UISParamConstants.Q_FROM, from).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(ResultSlice.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -479,15 +561,21 @@ public class UISClient {
      */
     public DataProvider getDataProvider(String providerId)
             throws CloudException {
-        Response resp = client
-                .target(urlProvider.getBaseUrl()
-                        + "/data-providers/{PROVIDER_ID}")
-                .resolveTemplate("PROVIDER_ID", providerId).request().get();
 
-        if (resp.getStatus() == Status.OK.getStatusCode()) {
-            return resp.readEntity(DataProvider.class);
-        } else {
-            throw generateException(resp.readEntity(ErrorInfo.class));
+        Response resp = null;
+        try {
+            resp = client
+                    .target(urlProvider.getBaseUrl()
+                            + "/data-providers/{PROVIDER_ID}")
+                    .resolveTemplate("PROVIDER_ID", providerId).request().get();
+
+            if (resp.getStatus() == Status.OK.getStatusCode()) {
+                return resp.readEntity(DataProvider.class);
+            } else {
+                throw generateException(resp.readEntity(ErrorInfo.class));
+            }
+        } finally {
+            closeResponse(resp);
         }
     }
 
@@ -502,5 +590,16 @@ public class UISClient {
                 .getErrorCode());
         LOGGER.error(e.getDetails());
         return new CloudException(e.getErrorCode(), error.getException(e));
+    }
+    
+    private void closeResponse(Response response) {
+        if (response != null) {
+            response.close();
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
     }
 }

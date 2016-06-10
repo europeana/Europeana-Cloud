@@ -1,8 +1,20 @@
 package eu.europeana.cloud.mcs.driver;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -12,23 +24,9 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Client for managing datasets in MCS.
@@ -122,12 +120,19 @@ public class DataSetServiceClient {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
-        Response response = target.request().get();
-        if (response.getStatus() == Status.OK.getStatusCode()) {
-            return response.readEntity(ResultSlice.class);
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        Response response = null;
+        try{
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(ResultSlice.class);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 
@@ -199,20 +204,27 @@ public class DataSetServiceClient {
         form.param(ParamConstants.F_DATASET, dataSetId);
         form.param(ParamConstants.F_DESCRIPTION, description);
 
-        Response response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        Response response = null;
 
-        if (response.getStatus() == Status.CREATED.getStatusCode()) {
-            return response.getLocation();
+        try {
+            response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+
+            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            }
+
+            //TODO this does not function correctly,
+            //details are filled with "MessageBodyReader not found for media type=text/html; 
+            //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
+            //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
+            //simple strings like 'adsfd' get entitised correctly
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
-
-        //TODO this does not function correctly,
-        //details are filled with "MessageBodyReader not found for media type=text/html; 
-        //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
-        //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
-        //simple strings like 'adsfd' get entitised correctly
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        throw MCSExceptionProvider.generateException(errorInfo);
-
     }
 
     /**
@@ -247,14 +259,20 @@ public class DataSetServiceClient {
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
-
-        Response response = target.request().get();
-        if (response.getStatus() == Status.OK.getStatusCode()) {
-            return response.readEntity(ResultSlice.class);
+        
+        Response response = null;
+        try {
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(ResultSlice.class);
+            }
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        throw MCSExceptionProvider.generateException(errorInfo);
-
     }
 
     /**
@@ -276,7 +294,6 @@ public class DataSetServiceClient {
         List<Representation> resultList = new ArrayList<>();
         ResultSlice resultSlice;
         String startFrom = null;
-
         do {
             resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
@@ -324,13 +341,21 @@ public class DataSetServiceClient {
 
         Form form = new Form();
         form.param(ParamConstants.F_DESCRIPTION, description);
+        
+        Response response = null;
+                
+        try {
+            response = target.request().put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-        Response response = target.request().put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
 
-        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 
@@ -348,13 +373,22 @@ public class DataSetServiceClient {
                 .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
-        Response response = target.request().delete();
+        Response response = null;
+        
+        try {
+            response = target.request().delete();
 
-        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
 
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
+        
 
     }
 
@@ -393,13 +427,21 @@ public class DataSetServiceClient {
         form.param(ParamConstants.F_REPRESENTATIONNAME, representationName);
         form.param(ParamConstants.F_VER, versionId);
 
-        Response response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+        Response response = null;
+        
+        try {
+            response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
-
     }
 
     /**
@@ -424,19 +466,35 @@ public class DataSetServiceClient {
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId).queryParam(ParamConstants.F_CLOUDID, cloudId)
                 .queryParam(ParamConstants.F_REPRESENTATIONNAME, representationName);
 
-        Response response = target.request().delete();
+        Response response = null;
 
-        if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        try{
+            response = target.request().delete();
+
+            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        }finally{
+            closeResponse(response);
         }
 
     }
 
+    private void closeResponse(Response response) {
+        if (response != null) {
+            response.close();
+        }
+    }
 
     public DataSetServiceClient useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
         return this;
     }
 
+    
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
+    }
 }

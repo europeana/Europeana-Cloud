@@ -1,16 +1,14 @@
 package eu.europeana.cloud.client.aas.rest;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import eu.europeana.cloud.common.web.AASParamConstants;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.AASParamConstants;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * AAS REST API client.
@@ -51,17 +49,20 @@ public class AASClient {
 	public void createEcloudUser(final String username, final String password)
 			throws CloudException {
 		
-        Response resp = client.target(aasUrl + "/create-user")
-                .queryParam(AASParamConstants.P_USER_NAME, username)
-                .queryParam(AASParamConstants.P_PASSWORD, password).request()
-                .post(null);
-		System.out.println(resp);
-		System.out.println(resp.getStatus());
-		
-		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			LOGGER.debug("createEcloudUser: user {} is now part of ecloud", username);
-		} else {
-			throw new RuntimeException("createEcloudUser() failed!");
+		Response resp = null;
+		try {
+			resp = client.target(aasUrl + "/create-user")
+					.queryParam(AASParamConstants.P_USER_NAME, username)
+					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.post(null);
+
+			if (resp.getStatus() == Status.OK.getStatusCode()) {
+				LOGGER.debug("createEcloudUser: user {} is now part of ecloud", username);
+			} else {
+				throw new RuntimeException("createEcloudUser() failed!");
+			}
+		} finally {
+            closeResponse(resp);
 		}
 	}
 
@@ -71,15 +72,20 @@ public class AASClient {
 	public void updateEcloudUser(final String username, final String password)
 			throws CloudException {
 		
-        Response resp = client.target(aasUrl + "/update-user")
-                .queryParam(AASParamConstants.P_USER_NAME, username)
-                .queryParam(AASParamConstants.P_PASSWORD, password).request()
-                .post(null);
-		
-		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			LOGGER.debug("updateEcloudUser: user {} updated!", username);
-		} else {
-			throw new RuntimeException("updateEcloudUser() failed!");
+		Response resp = null;
+		try {
+			resp = client.target(aasUrl + "/update-user")
+					.queryParam(AASParamConstants.P_USER_NAME, username)
+					.queryParam(AASParamConstants.P_PASSWORD, password).request()
+					.post(null);
+
+			if (resp.getStatus() == Status.OK.getStatusCode()) {
+				LOGGER.debug("updateEcloudUser: user {} updated!", username);
+			} else {
+				throw new RuntimeException("updateEcloudUser() failed!");
+			}
+		} finally {
+            closeResponse(resp);
 		}
 	}
 	
@@ -88,15 +94,31 @@ public class AASClient {
 	 */
 	public void deleteEcloudUser(final String username)
 			throws CloudException {
-		
-        Response resp = client.target(aasUrl + "/delete-user")
-                .queryParam(AASParamConstants.P_USER_NAME, username).request()
-                .post(null);
-		
-		if (resp.getStatus() == Status.OK.getStatusCode()) {
-			LOGGER.debug("deleteEcloudUser: user {} deleted!", username);
-		} else {
-			throw new RuntimeException("deleteEcloudUser() failed!");
+
+		Response resp = null;
+		try {
+			resp = client.target(aasUrl + "/delete-user")
+					.queryParam(AASParamConstants.P_USER_NAME, username).request()
+					.post(null);
+
+			if (resp.getStatus() == Status.OK.getStatusCode()) {
+				LOGGER.debug("deleteEcloudUser: user {} deleted!", username);
+			} else {
+				throw new RuntimeException("deleteEcloudUser() failed!");
+			}
+		} finally {
+            closeResponse(resp);
 		}
 	}
+
+    private void closeResponse(Response response) {
+        if (response != null) {
+            response.close();
+        }
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
+    }
 }
