@@ -31,7 +31,7 @@ kafka:
   links:
    - zookeeper:zookeeper
   environment:
-    KAFKA_CREATE_TOPICS: "topic:1:1"
+    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1"
     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
   ports:
@@ -46,17 +46,19 @@ nimbus:
     - "3772"
     - "6627"
   links:
-    - zookeeper:zookeeper
+    - zookeeper:zk
 
 supervisor:
-  image: wurstmeister/storm-supervisor
+  #image: wurstmeister/storm-supervisor
+  build: supervisor
   ports:
     - "8000"
   links:
     - nimbus:nimbus
-    - zookeeper:zookeeper
+    - zookeeper:zk
     - cassandra:cassandra
     - tomcat:tomcat
+    - kafka:kafka
 
 ui:
   image: wurstmeister/storm-ui
@@ -64,4 +66,4 @@ ui:
     - "49080:8080"
   links:
     - nimbus:nimbus
-    - zookeeper:zookeeper
+    - zookeeper:zk
