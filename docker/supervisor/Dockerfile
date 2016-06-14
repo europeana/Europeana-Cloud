@@ -16,4 +16,6 @@ EXPOSE 8000
 
 RUN /usr/bin/config-supervisord.sh supervisor
 RUN /usr/bin/config-supervisord.sh logviewer
+ADD start-supervisor.sh /usr/bin/start-supervisor.sh
+RUN chmod 777 /usr/bin/start-supervisor.sh
 CMD /usr/bin/start-supervisor.sh
