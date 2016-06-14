@@ -35,7 +35,7 @@ public class CassandraLocalIdDAO {
     private PreparedStatement updateStatement;
     private PreparedStatement searchByProviderStatement;
     private PreparedStatement searchByRecordIdStatement;
-    private PreparedStatement searchByProviderPaginatedStatement;
+    private PreparedStatement searchByProviderAndRecordLessThanStatement;
 
     /**
      * The LocalId Dao
@@ -64,11 +64,11 @@ public class CassandraLocalIdDAO {
                 "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? ALLOW FILTERING");
         searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=?");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING");
         searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        searchByProviderPaginatedStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>=? LIMIT ?");
-        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchByProviderAndRecordLessThanStatement = dbService.getSession().prepare(
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>? AND deleted=? LIMIT ? ALLOW FILTERING");
+        searchByProviderAndRecordLessThanStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
 
@@ -99,14 +99,21 @@ public class CassandraLocalIdDAO {
     /**
      * Enable pagination search on active local Id information
      *
-     * @param startCloudId Record to start from
+     * @param startRecordId Record to start from
      * @param limit The number of record to retrieve
      * @param providerId The provider Identifier
      * @return A list of CloudId objects
      */
-    public List<CloudId> searchActiveWithPagination(String startCloudId, int limit, String providerId) {
-        ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(providerId, startCloudId, limit));
-        return createCloudIdsFromRs(rs);
+    public List<CloudId> searchActiveWithPagination(String startRecordId, int limit, String providerId) throws ProviderDoesNotExistException, RecordDatasetEmptyException, DatabaseConnectionException {
+        List<CloudId> first = searchActive(providerId,startRecordId);
+        if(first.size() > 0) {
+            ResultSet lessThanRS = dbService.getSession().execute(searchByProviderAndRecordLessThanStatement.bind(providerId, startRecordId, false, limit));
+            List<CloudId> result = createCloudIdsFromRs(lessThanRS);
+            result.addAll(first);
+            return result;
+        }else{
+            return first;
+        }
     }
 
     public List<CloudId> insert(String... args) throws DatabaseConnectionException, ProviderDoesNotExistException,
@@ -162,7 +169,6 @@ public class CassandraLocalIdDAO {
         List<CloudId> cloudIds = new ArrayList<>();
         if (rs != null) {
             for (Row row : rs.all()) {
-                if (!row.getBool("deleted")) {
                     LocalId lId = new LocalId();
                     lId.setProviderId(row.getString("provider_Id"));
                     lId.setRecordId(row.getString("record_Id"));
@@ -170,10 +176,8 @@ public class CassandraLocalIdDAO {
                     cloudId.setId(row.getString("cloud_id"));
                     cloudId.setLocalId(lId);
                     cloudIds.add(cloudId);
-                }
             }
         }
-
         return cloudIds;
     }
 
