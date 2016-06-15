@@ -2,7 +2,10 @@ package eu.europeana.cloud.service.uis.persistent;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
+
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -117,17 +120,43 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
      * @throws Exception
      */
     @Test
-    public void testGetCloudIdsByProviderWithLimit() throws Exception {
+    public void testGetCloudIdsByProviderWithLimitToSingle() throws Exception {
         //given
-        dataProviderDao.createDataProvider("test3",
+        String providerId = "provider";
+        dataProviderDao.createDataProvider(providerId,
                 new DataProviderProperties());
-        service.createCloudId("test3", "test3");
-        service.createCloudId("test3", "test2");
+        service.createCloudId(providerId, "test3");
+        service.createCloudId(providerId, "test2");
+        service.createCloudId(providerId, "test1");
         //when
         List<CloudId> cIds = service
-                .getCloudIdsByProvider("test3", "test3", 1);
+                .getCloudIdsByProvider(providerId, "test2", 1);
         //then
-        assertEquals(cIds.size(), 1);
+        assertThat(cIds.size(), is(1));
+        assertThat(cIds.get(0).getLocalId().getRecordId(), is("test2"));
+    }
+
+    /**
+     * Test CloudIds by provider
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testGetCloudIdsByProviderWithLimitToMultiple() throws Exception {
+        //given
+        String providerId = "providerId";
+        dataProviderDao.createDataProvider(providerId,
+                new DataProviderProperties());
+        service.createCloudId(providerId, "test3");
+        service.createCloudId(providerId, "test2");
+        service.createCloudId(providerId, "test1");
+        //when
+        List<CloudId> cIds = service
+                .getCloudIdsByProvider(providerId, "test2", 2);
+        //then
+        assertThat(cIds.size(), is(2));
+        assertThat(cIds.get(0).getLocalId().getRecordId(), is("test2"));
+        assertThat(cIds.get(1).getLocalId().getRecordId(), is("test3"));
     }
 
     /**
@@ -138,15 +167,16 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     @Test
     public void testGetCloudIdsByProviderWithLimitForNotExistingRecord() throws Exception {
         //given
-        dataProviderDao.createDataProvider("test3",
+        String providerId = "providerId";
+        dataProviderDao.createDataProvider(providerId,
                 new DataProviderProperties());
-        service.createCloudId("test3", "test3");
-        service.createCloudId("test3", "test2");
+        service.createCloudId(providerId, "test3");
+        service.createCloudId(providerId, "test2");
         //when
         List<CloudId> cIds = service
-                .getCloudIdsByProvider("test3", "a", 10);
+                .getCloudIdsByProvider(providerId, "notExisting", 10);
         //then
-        assertEquals(cIds.size(), 0);
+        assertThat(cIds.size(), is(0));
     }
 
     /**
@@ -157,15 +187,16 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     @Test
     public void testGetCloudIdsByProvider() throws Exception {
         //given
-        dataProviderDao.createDataProvider("test3",
+        String providerId = "providerId";
+        dataProviderDao.createDataProvider(providerId,
                 new DataProviderProperties());
-        service.createCloudId("test3", "test3");
-        service.createCloudId("test3", "test2");
+        service.createCloudId(providerId, "test3");
+        service.createCloudId(providerId, "test2");
         //when
         List<CloudId> cIds = service
-                .getCloudIdsByProvider("test3", null, 10000);
+                .getCloudIdsByProvider(providerId, null, 10000);
         //then
-        assertEquals(cIds.size(), 2);
+        assertThat(cIds.size(), is(2));
     }
 
     /**
