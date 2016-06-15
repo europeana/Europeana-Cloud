@@ -42,7 +42,6 @@ kafka:
    - /var/run/docker.sock:/var/run/docker.sock
 
 nimbus:
-  #image: wurstmeister/storm-nimbus
   build: nimbus
   ports:
     - "3773"
@@ -52,7 +51,6 @@ nimbus:
     - zookeeper:zk
 
 supervisor:
-  #image: wurstmeister/storm-supervisor
   build: supervisor
   ports:
     - "8000"
@@ -64,7 +62,6 @@ supervisor:
     - kafka:kafka
 
 ui:
-  #image: wurstmeister/storm-ui
   build: ui
   ports:
     - "49080:8080"
