@@ -6,30 +6,22 @@ import com.rits.cloning.Cloner;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Map;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.dps.DpsTask;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,21 +64,15 @@ public class ReadFileBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
                 List<String> files = fromJson.get(DpsTask.FILE_URLS);
                 if (!files.isEmpty()) {
-                    Date startTime = new Date();
-                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFiles(t, files);
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     return;
                 }
             }
         } else {
-
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 0, TaskState.DROPPED, message);
-
+            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
 
@@ -94,10 +80,8 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
-
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
-
             try {
                 LOGGER.info("HERE THE LINK: " + file);
                 InputStream is = fileClient.getFile(file);

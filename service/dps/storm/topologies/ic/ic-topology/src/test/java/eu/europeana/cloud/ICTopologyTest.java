@@ -90,7 +90,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "[\"" + SOURCE_VERSION_URL + "\"]}," +
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
-                "\"EXPECTED_SIZE\":\"1\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +
@@ -99,14 +98,11 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
             public void run(ILocalCluster cluster) throws JSONException {
-
                 StormTopology topology = buildTopology();
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(SPOUT, new Values(input));
-
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-
                 String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
 
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuple);
@@ -124,7 +120,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "[\"" + SOURCE_DATASET_URL + "\"]}," +
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
-                "\"EXPECTED_SIZE\":\"1\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +

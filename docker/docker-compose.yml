@@ -5,8 +5,10 @@ tomcat:
   links:
     - cassandra:cassandra
     - swift:swift
-    - zookeeper:zk
+    - zookeeper:zookeeper
     - kafka:kafka
+  volumes:
+    - ./tomcat/webapps/:/usr/local/tomcat/webapps/
 
 cassandra:
   build: cassandra
@@ -27,49 +29,45 @@ zookeeper:
     - "2182:2181"
 
 kafka:
-  image: wurstmeister/kafka:0.8.2.0
+  image: akrystian/kafka-docker
   links:
-   - zookeeper:zk
+   - zookeeper:zookeeper
   environment:
-    KAFKA_CREATE_TOPICS: "topic:1:1"
+    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1"
+    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
   ports:
    - "9092:9092"
   volumes:
    - /var/run/docker.sock:/var/run/docker.sock
 
+nimbus:
+  #image: wurstmeister/storm-nimbus
+  build: nimbus
+  ports:
+    - "3773"
+    - "3772"
+    - "6627"
+  links:
+    - zookeeper:zk
 
+supervisor:
+  #image: wurstmeister/storm-supervisor
+  build: supervisor
+  ports:
+    - "8000"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zk
+    - cassandra:cassandra
+    - tomcat:tomcat
+    - kafka:kafka
 
-
-#nimbus:
-#  image: wurstmeister/storm-nimbus
-#  ports:
-#    - "3773"
-#    - "3772"
-#    - "6627"
-#    - "22"
-#  links:
-#    - zookeeper:zk
-#supervisor:
-#  image: wurstmeister/storm-supervisor
-#  ports:
-#    - "8000"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#ui:
-#  image: wurstmeister/storm-ui
-#  ports:
-#    - "49080:8080"
-#    - "22"
-#  links:
-#    - nimbus:nimbus
-#    - zookeeper:zk
-#
-#elasticsearch:
-#  image: tutum/elasticsearch
-#  ports:
-#    - "9200:9200"
-#  environment:
-#    ELASTICSEARCH_USER: admin
-#    ELASTICSEARCH_PASS: password
+ui:
+  #image: wurstmeister/storm-ui
+  build: ui
+  ports:
+    - "49080:8080"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zk

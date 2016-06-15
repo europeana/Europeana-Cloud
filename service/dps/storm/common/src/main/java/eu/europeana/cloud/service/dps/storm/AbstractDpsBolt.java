@@ -5,10 +5,8 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
@@ -53,25 +51,21 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-
             if (killService.hasKillFlag(topologyName, t.getTaskId())) {
                 LOGGER.info("Task {} going to be killed.", t.getTaskId());
                 emitKillNotification(t.getTaskId(), t.getFileUrl(), "", "");
-                outputCollector.ack(tuple);
                 return;
             }
             LOGGER.debug("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
-            //Only this ack is needed
-            outputCollector.ack(tuple);
         } catch (Exception e) {
             LOGGER.error("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
-
             if (t != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
                 emitErrorNotification(t.getTaskId(), t.getFileUrl(), e.getMessage(), stack.toString());
             }
+        } finally {
             outputCollector.ack(tuple);
         }
     }
@@ -149,26 +143,15 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    /**
-     * Emit {@link NotificationTuple} with basic informations to {@link #NOTIFICATION_STREAM_NAME}.
-     * Only one call per task!
-     *
-     * @param taskId       task ID
-     * @param expectedSize number of emitted {@link StormTaskTuple}
-     */
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startDate, Date finishDate) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, startDate, finishDate);
+
+    protected void endTask(long taskId,String info, TaskState state, Date finishTime) {
+        NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, Date startDate, Date finishDate) {
-        emitBasicInfo(taskId, expectedSize, state, "", startDate, finishDate);
-
-    }
-
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info) {
-        emitBasicInfo(taskId, expectedSize, state, info, null, null);
-
+    protected void updateTask(long taskId,String info, TaskState state, Date startTime) {
+        NotificationTuple nt = NotificationTuple.prepareUpdateTask(taskId, info, state, startTime);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
 
@@ -187,4 +170,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitSuccess(StormTaskTuple t) {
         outputCollector.emit(inputTuple, t.toStormTuple());
     }
+
+
 }

@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.xslt.kafka.bolts;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -56,13 +56,14 @@ public final class PluginParameterKeys {
     public static final String ORIGINAL_FILE_URL = "ORIGINAL_FILE_URL";     //e.g. url to PDF file thich contains extracted text
 
     // ---------  IC  -----------
-    public static final String OUTPUT_EXTENSION = "OUTPUT_EXTENSION";
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
     public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
     public static final String DATASET_URLS = "DATASET_URLS";
     public static final String FILE_URLS = "FILE_URLS";
     public static final String EXPECTED_SIZE = "EXPECTED_SIZE";
+    public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+
 
     public static final String TASK_SUBMITTER_NAME = "TASK_SUBMITTER_NAME";
 

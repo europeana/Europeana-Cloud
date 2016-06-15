@@ -180,6 +180,25 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     }
 
     /**
+     * Test CloudIds by provider for not existing record
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testGetCloudIdsByProviderWithLimitForNotExistingRecord() throws Exception {
+        //given
+        dataProviderDao.createDataProvider("test3",
+                new DataProviderProperties());
+        service.createCloudId("test3", "test3");
+        service.createCloudId("test3", "test2");
+        //when
+        List<CloudId> cIds = service
+                .getCloudIdsByProvider("test3", "a", 10);
+        //then
+        assertEquals(cIds.size(), 0);
+    }
+
+    /**
      * Test CloudIds by provider
      *
      * @throws Exception

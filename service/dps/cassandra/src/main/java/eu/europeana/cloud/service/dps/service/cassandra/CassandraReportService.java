@@ -11,7 +11,10 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Report service powered by Cassandra.
@@ -68,6 +71,7 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("processed", processed);
             res.addProperty("state", basicInfo.getString(CassandraTablesAndColumnsNames.STATE));
             res.addProperty("info", basicInfo.getString(CassandraTablesAndColumnsNames.INFO));
+            res.addProperty("sent_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.SENT_TIME)));
             res.addProperty("start_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME)));
             res.addProperty("finish_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)));
         } else {
@@ -85,6 +89,7 @@ public class CassandraReportService implements TaskExecutionReportService {
             res.addProperty("processed", processed);
             res.addProperty("state", "");
             res.addProperty("info", "");
+            res.addProperty("sent_time", "");
             res.addProperty("start_time", "");
             res.addProperty("finish_time", "");
         }
@@ -95,7 +100,9 @@ public class CassandraReportService implements TaskExecutionReportService {
 
 
     private String prepareDate(Date date) {
-        return date == null ? "" : date.toString();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss", Locale.ENGLISH);
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("CET"));
+        return date == null ? "" : simpleDateFormat.format(date);
     }
 
     @Override

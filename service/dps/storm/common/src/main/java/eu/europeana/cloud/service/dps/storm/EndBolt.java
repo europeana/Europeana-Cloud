@@ -6,11 +6,15 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -69,4 +73,5 @@ public class EndBolt extends BaseRichBolt {
         this.topologyContext = tc;
         this.outputCollector = oc;
     }
+
 }

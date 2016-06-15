@@ -71,6 +71,8 @@ public class XSLTTopology {
 
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+        kafkaConfig.forceFromStart=true;
+        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
 

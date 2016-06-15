@@ -86,10 +86,6 @@ public class DpsTaskUtil {
         task.addDataEntry(DpsTask.FILE_URLS, records);
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
-        ///task.addParameter(PluginParameterKeys.OUTPUT_EXTENSION, "jp2");
-        //  task.setTaskName("nameOfTheTask");
-        // task.addParameter("outPut");
-
         return task;
     }
 

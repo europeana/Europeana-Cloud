@@ -69,11 +69,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
                 List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
                 if (!datasets.isEmpty()) {
-                    Date startTime = new Date();
-                    int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.CURRENTLY_PROCESSING, startTime, null);
                     emitFilesFromDataSets(t, datasets);
-                    emitBasicInfo(t.getTaskId(), expectedSize, TaskState.PROCESSED, startTime, new Date());
                     return;
                 }
             }
@@ -81,7 +77,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             String message = "No dataset were provided";
             LOGGER.warn(message);
             emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), 1, TaskState.DROPPED, message);
+            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
 
@@ -127,7 +123,6 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                 } else {
                     LOGGER.warn("dataset url is not formulated correctly {}", dataSet);
                     emitDropNotification(t.getTaskId(), dataSet, "dataset url is not formulated correctly", "");
-
                 }
             } catch (DataSetNotExistsException ex) {
                 LOGGER.warn("Provided dataset is not existed {}", dataSet);
@@ -135,6 +130,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             } catch (MalformedURLException | MCSException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSet, ex.getMessage(), t.getParameters().toString());
+
 
             }
         }

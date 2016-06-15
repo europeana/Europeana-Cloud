@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.dps.InformationTypes;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,15 +32,23 @@ public class NotificationTuple {
         this.parameters = parameters;
     }
 
-    public static NotificationTuple prepareBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date startTime, Date finishTime) {
+
+    public static NotificationTuple prepareUpdateTask(long taskId, String info, TaskState state, Date startTime) {
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put(NotificationParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
         parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
-        parameters.put(NotificationParameterKeys.INFO, info);
         parameters.put(NotificationParameterKeys.START_TIME, startTime);
-        parameters.put(NotificationParameterKeys.FINISH_TIME, finishTime);
-        return new NotificationTuple(taskId, InformationTypes.BASIC_INFO, parameters);
+        parameters.put(NotificationParameterKeys.INFO, info);
+        return new NotificationTuple(taskId, InformationTypes.UPDATE_TASK, parameters);
     }
+
+    public static NotificationTuple prepareEndTask(long taskId, String info, TaskState state, Date finishTime) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(NotificationParameterKeys.TASK_STATE, state.toString());
+        parameters.put(NotificationParameterKeys.FINISH_TIME, finishTime);
+        parameters.put(NotificationParameterKeys.INFO, info);
+        return new NotificationTuple(taskId, InformationTypes.END_TASK, parameters);
+    }
+
 
     public static NotificationTuple prepareNotification(long taskId, String resource,
                                                         States state, String text, String additionalInformations) {

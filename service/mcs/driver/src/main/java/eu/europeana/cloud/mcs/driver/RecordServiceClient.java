@@ -6,7 +6,6 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -141,12 +140,18 @@ public class RecordServiceClient {
         WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
 
-        Response response = request.get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return response.readEntity(Record.class);
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(Record.class);
+            }
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+
+        } finally {
+            closeResponse(response);
         }
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        throw MCSExceptionProvider.generateException(errorInfo);
 
     }
 
@@ -167,11 +172,16 @@ public class RecordServiceClient {
         WebTarget target = client.target(baseUrl).path(recordPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
         Builder request = target.request();
 
-        Response response = request.delete();
+        Response response = null;
+        try {
+            response = request.delete();
 
-        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -189,15 +199,20 @@ public class RecordServiceClient {
         WebTarget target = client.target(baseUrl).path(representationsPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId);
 
-        Response response = target.request().get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return response.readEntity(new GenericType<List<Representation>>() {
-            }); //formatting here is irreadble
+        Response response = null;
+        try {
+            response = target.request().get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(new GenericType<List<Representation>>() {
+                }); //formatting here is irreadble
+            }
+
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw MCSExceptionProvider.generateException(errorInfo);
+
+        } finally {
+            closeResponse(response);
         }
-
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        throw MCSExceptionProvider.generateException(errorInfo);
-
     }
 
     /**
@@ -216,14 +231,21 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        Response response = request.get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()
-                || response.getStatus() == Response.Status.TEMPORARY_REDIRECT.getStatusCode()) {
-            Representation representation = response.readEntity(Representation.class);
-            return representation;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()
+                    || response.getStatus() == Response.Status.TEMPORARY_REDIRECT.getStatusCode()) {
+                Representation representation = response.readEntity(Representation.class);
+                return representation;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -251,13 +273,18 @@ public class RecordServiceClient {
         Form form = new Form();
         form.param("providerId", providerId);
 
-        Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            URI uri = response.getLocation();
-            return uri;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+        Response response = null;
+        try {
+            response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                URI uri = response.getLocation();
+                return uri;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -277,12 +304,17 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        Response response = request.delete();
-        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
 
+        Response response = null;
+        try {
+            response = request.delete();
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
     }
 
     /**
@@ -300,14 +332,20 @@ public class RecordServiceClient {
         WebTarget target = client.target(baseUrl).path(versionsPath).resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        Response response = request.get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            List<Representation> list = response.readEntity(new GenericType<List<Representation>>() {
-            });
-            return list;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                List<Representation> list = response.readEntity(new GenericType<List<Representation>>() {
+                });
+                return list;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -333,14 +371,20 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
-        Response response = request.get();
-        System.out.println(response);
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            Representation representation = response.readEntity(Representation.class);
-            return representation;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.get();
+            System.out.println(response);
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                Representation representation = response.readEntity(Representation.class);
+                return representation;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -364,12 +408,17 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = webtarget.request();
-        Response response = request.delete();
-        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
 
+        Response response = null;
+        try {
+            response = request.delete();
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
     }
 
     /**
@@ -392,12 +441,18 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(ParamConstants.P_VER, version);
         Builder request = target.request();
-        Response response = request.post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -425,13 +480,19 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
         Form form = new Form();
         Builder request = target.request();
-        Response response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            URI uri = response.getLocation();
-            return uri;
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                URI uri = response.getLocation();
+                return uri;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -454,9 +515,15 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_USERNAME, userName);
 
         Builder request = target.request();
-        Response response = request.post(null);
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            throwException(response);
+
+        Response response = null;
+        try {
+            response = request.post(null);
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                throwException(response);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -479,10 +546,16 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_USERNAME, userName);
 
         Builder request = target.request();
-        Response response = request.delete();
-        if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
+
+        Response response = null;
+        try {
+            response = request.delete();
+            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -501,9 +574,15 @@ public class RecordServiceClient {
                 .resolveTemplate(ParamConstants.P_VER, version);
 
         Builder request = target.request();
-        Response response = request.post(null);
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            throwException(response);
+
+        Response response = null;
+        try {
+            response = request.post(null);
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                throwException(response);
+            }
+        } finally {
+            closeResponse(response);
         }
     }
 
@@ -517,5 +596,16 @@ public class RecordServiceClient {
             errorInfo.setDetails("Mcs not available");
             throw MCSExceptionProvider.generateException(errorInfo);
         }
+    }
+    
+    private void closeResponse(Response response) {
+        if (response != null) {
+            response.close();
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        client.close();
     }
 }

@@ -45,7 +45,7 @@
               description="User database that can be updated and saved"
               factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
               pathname="conf/tomcat-users.xml" />
-     
+
     <!-- UIS local specific configuration -->
     <Environment name="uis/cassandra/hosts" type="java.lang.String" value="cassandra"/>
     <Environment name="uis/cassandra/port" type="java.lang.Integer" value="9042"/>
@@ -65,14 +65,14 @@
     <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud" />
     <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin" />
     <Environment name="mcs/swift/password" type="java.lang.String" value="admin" />
-    <Environment name="mcs/swift/endpointList" type="java.lang.String" value="http://swift:8888/auth/v1.0" />
+    <Environment name="mcs/swift/endpoint" type="java.lang.String" value="http://swift:8888/auth/v1.0" />
     <!-- MCS Solr specific configuration -->
     <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/" />
     <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false" />
     <!-- Kafka local specific configuration -->
     <Environment name="kafka/brokerList" type="java.lang.String" value="kafka:9092" />
-    <Environment name="kafka/zookeeperList" type="java.lang.String" value="zk:2181" />
-    <Environment name="kafka/topic" type="java.lang.String" value="topic" />
+    <Environment name="kafka/zookeeperList" type="java.lang.String" value="zookeeper:2181" />
+    <Environment name="kafka/topic" type="java.lang.String" value="indexing" />
     <!-- AAS local specific configuration -->
     <Environment name="aas/cassandra/hosts" type="java.lang.String" value="cassandra" />
     <Environment name="aas/cassandra/port" type="java.lang.Integer" value="9042" />
@@ -81,6 +81,24 @@
     <Environment name="aas/cassandra/authorization-keyspace" type="java.lang.String" value="ecloud_aas" />
     <Environment name="aas/cassandra/authentication-keyspace" type="java.lang.String" value="ecloud_aas" />
     <Environment name="aas/cassandra/autoCreateTables" type="java.lang.Boolean" value="false" />
+
+      <!--DPS local specyfic configuration -->
+      <Environment name="dps/cassandra/hosts" type="java.lang.String" value="cassandra"/>
+      <Environment name="dps/cassandra/port" type="java.lang.Integer" value="9042"/>
+      <Environment name="dps/cassandra/keyspace" type="java.lang.String" value="ecloud_dps"/>
+      <Environment name="dps/cassandra/user" type="java.lang.String" value="ecloud_dps"/>
+      <Environment name="dps/cassandra/password" type="java.lang.String" value="password"/>
+
+      <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="kafka:9092"/>
+      <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
+      <Environment name="dps/zookeeper/address" type="java.lang.String" value="zookeeper:2181"/>
+
+      <Environment name="dps/topology/userNameList" type="java.lang.String" value="user1,ic_user,xslt_user"/>
+      <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,ic_topology,xslt_topology"/>
+
+      <Environment name="dps/mcsLocation" type="java.lang.String" value="http://localhost:8080/mcs"/>
+
+
 
   </GlobalNamingResources>
 
