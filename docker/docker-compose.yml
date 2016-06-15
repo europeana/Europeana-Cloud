@@ -7,6 +7,8 @@ tomcat:
     - swift:swift
     - zookeeper:zookeeper
     - kafka:kafka
+  volumes:
+    - ./tomcat/webapps/:/usr/local/tomcat/webapps/
 
 cassandra:
   build: cassandra
