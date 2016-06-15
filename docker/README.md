@@ -166,3 +166,26 @@ exit 0;
 
 For deploying one service separately change directory to the "rest" directory of the service and run the maven command:
 `mvn clean install tomcat7:redeploy -Dmaven.tomcat.path="/dls" -DskipTests=true`
+
+## ECloud Rest API Test
+Check your ECloud Rest API installation using jmeter tests.
+Install jmeter 3.0(replace link depending on the official [site](http://jmeter.apache.org/download_jmeter.cgi))
+
+```
+cd /opt
+curl -LO http://www-us.apache.org/dist/jmeter/binaries/apache-jmeter-3.0.tgz
+tar -xzvf apache-jmeter-3.0.tgz
+sudo ln -s /opt/apache-jmeter-3.0/bin/jmeter /usr/bin/jmeter
+```
+
+Install jmeter plugins:
+```
+curl -LO http://jmeter-plugins.org/downloads/file/JMeterPlugins-Standard-1.4.0.zip
+unzip -o JMeterPlugins-Standard-1.4.0.zip -d apache-jmeter-3.0/
+```
+
+Run jmeter Tests:
+```
+cd $ECLOUD_HOME/tools/performanceTest/
+./performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
+```
