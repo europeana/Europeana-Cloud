@@ -107,7 +107,7 @@ public class FileServiceClient {
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
         }finally {
-//            closeResponse(response);
+            closeResponse(response);
         }
     }
 
