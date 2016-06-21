@@ -167,7 +167,7 @@ public final class CassandraAclRepository implements AclRepository {
         }
 
         ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE)
-                .where(QueryBuilder.in("id", ids.toArray())));
+                .where(QueryBuilder.in("id", ids.toArray())).setConsistencyLevel(ConsistencyLevel.QUORUM));
         for (Row row : resultSet.all()) {
             resultMap.put(convertToAclObjectIdentity(row, true), new TreeSet<>(new Comparator<AclEntry>() {
 
@@ -179,7 +179,7 @@ public final class CassandraAclRepository implements AclRepository {
         }
 
         resultSet = session.execute(QueryBuilder.select().all().from(keyspace, ACL_TABLE)
-                .where(QueryBuilder.in("id", ids.toArray())));
+                .where(QueryBuilder.in("id", ids.toArray())).setConsistencyLevel(ConsistencyLevel.QUORUM));
         for (Row row : resultSet.all()) {
             String aoiId = row.getString("id");
 
@@ -218,7 +218,7 @@ public final class CassandraAclRepository implements AclRepository {
 
 	Row row = session.execute(
 		QueryBuilder.select().all().from(keyspace, AOI_TABLE)
-			.where(QueryBuilder.eq("id", objectId.getRowId())))
+			.where(QueryBuilder.eq("id", objectId.getRowId())).setConsistencyLevel(ConsistencyLevel.QUORUM))
 		.one();
 	AclObjectIdentity objectIdentity = convertToAclObjectIdentity(row, true);
 
@@ -239,7 +239,7 @@ public final class CassandraAclRepository implements AclRepository {
         List<AclObjectIdentity> result = new ArrayList<>();
 
         ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, CHILDREN_TABLE)
-                .where(QueryBuilder.eq("id", objectId.getRowId())));
+                .where(QueryBuilder.eq("id", objectId.getRowId())).setConsistencyLevel(ConsistencyLevel.QUORUM));
         for (Row row : resultSet.all()) {
             result.add(convertToAclObjectIdentity(row, false));
         }
@@ -265,7 +265,7 @@ public final class CassandraAclRepository implements AclRepository {
         Batch batch = QueryBuilder.batch();
         batch.add(QueryBuilder.delete().all().from(keyspace, AOI_TABLE).where(QueryBuilder.in("id", ids.toArray())));
         batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE)
-                .where(QueryBuilder.in("id", ids.toArray())));
+                .where(QueryBuilder.in("id", ids.toArray()))).setConsistencyLevel(ConsistencyLevel.QUORUM);
         session.execute(batch);
 
         if (LOG.isDebugEnabled()) {
@@ -293,13 +293,13 @@ public final class CassandraAclRepository implements AclRepository {
 		new Object[] { aoi.getRowId(), aoi.getId(),
 			aoi.getObjectClass(), aoi.isEntriesInheriting(),
 			aoi.getOwnerId(), aoi.isOwnerPrincipal(),
-			aoi.getParentObjectId(), aoi.getParentObjectClass() })).setConsistencyLevel(ConsistencyLevel.ALL);
+			aoi.getParentObjectId(), aoi.getParentObjectClass() })).setConsistencyLevel(ConsistencyLevel.QUORUM);
 
 	if (aoi.getParentRowId() != null) {
 	    batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(
 		    CHILD_KEYS,
 		    new Object[] { aoi.getParentRowId(), aoi.getRowId(),
-			    aoi.getId(), aoi.getObjectClass() }));
+			    aoi.getId(), aoi.getObjectClass() })).setConsistencyLevel(ConsistencyLevel.QUORUM);
 	}
 	session.execute(batch);
 
@@ -348,7 +348,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.from(keyspace, CHILDREN_TABLE)
 			.where(QueryBuilder.eq("id",
 				persistedAoi.getParentRowId()))
-			.and(QueryBuilder.eq("childId", aoi.getRowId())));
+			.and(QueryBuilder.eq("childId", aoi.getRowId()))).setConsistencyLevel(ConsistencyLevel.QUORUM);
 	    }
 	}
 	session.execute(batch);
@@ -377,7 +377,7 @@ public final class CassandraAclRepository implements AclRepository {
 			.values(CHILD_KEYS,
 				new Object[] { aoi.getParentRowId(),
 					aoi.getRowId(), aoi.getId(),
-					aoi.getObjectClass() }));
+					aoi.getObjectClass() })).setConsistencyLevel(ConsistencyLevel.QUORUM);
 	    }
 	    executeBatch = true;
 	}
