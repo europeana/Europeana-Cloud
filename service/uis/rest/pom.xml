@@ -12,10 +12,6 @@
     <artifactId>ecloud-service-uis-rest</artifactId>
     <packaging>war</packaging>
     <name>Europeana Cloud: Unique Identifier Service REST</name>
-    <properties>
-        <version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
-    </properties>
-
     <profiles>
         <profile>
             <id>persistent</id>

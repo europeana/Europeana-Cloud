@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +85,8 @@ public class DataSetServiceClient {
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
         this.baseUrl = baseUrl;
-        client.register(new HttpBasicAuthFilter(username, password));
+        client
+                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
     /**

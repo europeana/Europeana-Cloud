@@ -13,7 +13,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +113,7 @@ public class RecordServiceClient {
      */
     public RecordServiceClient(String baseUrl, final String username, final String password) {
         this.baseUrl = baseUrl;
-        client.register(new HttpBasicAuthFilter(username, password));
+        client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
     /**

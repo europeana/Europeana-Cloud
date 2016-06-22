@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ public class FileServiceClient {
     public FileServiceClient(String baseUrl, final String username, final String password) {
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
-                .register(new HttpBasicAuthFilter(username, password));
+                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         this.baseUrl = baseUrl;
     }
 

@@ -2,7 +2,8 @@ package eu.europeana.cloud.client.dps.rest;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class DpsClient {
      */
 	public DpsClient(final String dpsUrl, final String username, final String password)  {
 		
-        client.register(new HttpBasicAuthFilter(username, password));
+        client.register(HttpAuthenticationFeature.basic(username, password));
 		this.dpsUrl = dpsUrl;
 	}
 
