@@ -39,10 +39,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.H_RANGE;
 /**
  * Exposes API related to files.
  */
-public class FileServiceClient {
+public class FileServiceClient extends MCSClient {
 
     private final Client client;
-    private final String baseUrl;
     private static final Logger logger = LoggerFactory.getLogger(FileServiceClient.class);
     //records/CLOUDID/representations/REPRESENTATIONNAME/versions/VERSION/files/
     private static final String filesPath = "records/{" + ParamConstants.P_CLOUDID + "}/representations/{"
@@ -57,8 +56,8 @@ public class FileServiceClient {
      * @param baseUrl url of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl) {
+        super(baseUrl);
         client = JerseyClientBuilder.newClient().register(MultiPartFeature.class);
-        this.baseUrl = baseUrl;
     }
 
     /**
@@ -68,10 +67,10 @@ public class FileServiceClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl, final String username, final String password) {
+        super(baseUrl);
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
                 .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
-        this.baseUrl = baseUrl;
     }
 
     /**
