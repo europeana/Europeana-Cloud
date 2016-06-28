@@ -98,14 +98,14 @@ public class TopologyTasksResource {
     /**
      * Retrieves a task with the given taskId from the specified topology.
      * <p/>
-        * <br/><br/>
-        * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-           * <strong>Required permissions:</strong>
-            * <ul>
-                * <li>Authenticated user</li>
-                * <li>Read permission for selected task</li>
-            * </ul>
-        * </div>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+       * <strong>Required permissions:</strong>
+         * <ul>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
+         * </ul>
+       * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -132,13 +132,13 @@ public class TopologyTasksResource {
     /**
      * Retrieves the current progress for the requested task.
      * <p/>
-         * <br/><br/>
-         * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-            * <strong>Required permissions:</strong>
-            * <ul>
-                * <li>Read permissions for selected task</li>
-            * </ul>
-        * </div>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+        * <strong>Required permissions:</strong>
+         * <ul>
+             * <li>Read permissions for selected task</li>
+         * </ul>
+     * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -200,9 +200,6 @@ public class TopologyTasksResource {
                 asyncResponse.resume(response);
                 LOGGER.info("The task is in a pending mode");
                 int expectedSize = grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
-                task.addParameter(PluginParameterKeys.EXPECTED_SIZE, String.valueOf(expectedSize));
-                SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy", Locale.ENGLISH);
-                task.addParameter(PluginParameterKeys.SENT_TIME, formatter.format(sentTime));
                 submitService.submitTask(task, topologyName);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 LOGGER.info("Task submitted successfully");
@@ -232,14 +229,14 @@ public class TopologyTasksResource {
     /**
      * Retrieves notifications for the specified task.
      * <p/>
-         * <br/><br/>
-         * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-              * <strong>Required permissions:</strong>
-              * <ul>
-                  * <li>Authenticated user</li>
-                  * <li>Read permission for selected task</li>
-              * </ul>
-         * </div>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+          * <strong>Required permissions:</strong>
+          * <ul>
+               * <li>Authenticated user</li>
+               * <li>Read permission for selected task</li>
+          * </ul>
+     * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return Notification messages for the specified task.
@@ -259,10 +256,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-           * <strong>Required permissions:</strong>
-           * <ul>
-               * <li>Admin permissions</li>
-           * </ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
+          * <li>Admin permissions</li>
+         * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -292,15 +289,15 @@ public class TopologyTasksResource {
     /**
      * Submit kill flag to the specific task.
      * <p/>
-         * Side effect: remove all flags older than 5 days (per topology).
+     * Side effect: remove all flags older than 5 days (per topology).
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-             * <strong>Required permissions:</strong>
-             * <ul>
-                 * <li>Authenticated user</li>
-                 * <li>Write permission for selected task</li>
-              * </ul>
+          * <strong>Required permissions:</strong>
+          * <ul>
+             * <li>Authenticated user</li>
+             * <li>Write permission for selected task</li>
+          * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -330,11 +327,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-            * <strong>Required permissions:</strong>
-            * <ul>
-               * <li>Authenticated user</li>
-               * <li>Read permission for selected task</li>
-            * </ul>
+        * <strong>Required permissions:</strong>
+        * <ul>
+            * <li>Authenticated user</li>
+            * <li>Read permission for selected task</li>
+        * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -358,11 +355,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-          * <strong>Required permissions:</strong>
-          * <ul>
-              * <li>Authenticated user</li>
-              * <li>Write permission for selected task</li>
-          * </ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
+             * <li>Authenticated user</li>
+             * <li>Write permission for selected task</li>
+         * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.

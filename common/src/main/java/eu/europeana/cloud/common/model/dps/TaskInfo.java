@@ -12,24 +12,8 @@ public class TaskInfo {
     private TaskState state;
     private String info;
 
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
+    private Date finishDate;
     private Date startDate;
-
-    public Date getSentDate() {
-        return sentDate;
-    }
-
-    public void setSentDate(Date sentDate) {
-        this.sentDate = sentDate;
-    }
-
     private Date sentDate;
     private List<SubTaskInfo> subtasks = new ArrayList<>();
 
@@ -50,13 +34,14 @@ public class TaskInfo {
     }
 
 
-    public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate) {
+    public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
         this.info = info;
         this.sentDate = sentDate;
         this.startDate = startDate;
+        this.finishDate = finishDate;
     }
 
 
@@ -105,6 +90,10 @@ public class TaskInfo {
             if (taskInfo.sentDate != null) return false;
         if (sentDate != null)
             if (sentDate.getTime() != taskInfo.sentDate.getTime()) return false;
+        if (finishDate == null)
+            if (taskInfo.finishDate != null) return false;
+        if (finishDate != null)
+            if (finishDate.getTime() != taskInfo.finishDate.getTime()) return false;
 
         return true;
     }

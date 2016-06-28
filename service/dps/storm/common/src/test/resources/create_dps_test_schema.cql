@@ -22,7 +22,7 @@ CREATE TABLE basic_info (
     sent_time timestamp,
     start_time timestamp,
     finish_time timestamp,
-    PRIMARY KEY(task_id, topology_name)
+    PRIMARY KEY(task_id)
 );
 
 CREATE TABLE notifications (
@@ -33,5 +33,5 @@ CREATE TABLE notifications (
     info_text text,
     additional_informations text,
     result_resource varchar,
-    PRIMARY KEY(task_id, topology_name, resource)
+    PRIMARY KEY(task_id, resource)
 );

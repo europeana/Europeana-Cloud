@@ -12,6 +12,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.service.dps.TaskExecutionKillService;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
@@ -142,21 +143,15 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    /**
-     * Emit {@link NotificationTuple} with basic informations to {@link #NOTIFICATION_STREAM_NAME}.
-     * Only one call per task!
-     *
-     * @param taskId       task ID
-     * @param expectedSize number of emitted {@link StormTaskTuple}
-     */
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime, Date startDate, Date finishDate) {
-        NotificationTuple nt = NotificationTuple.prepareBasicInfo(taskId, expectedSize, state, info, sentTime, startDate, finishDate);
+
+    protected void endTask(long taskId,String info, TaskState state, Date finishTime) {
+        NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
-    protected void emitBasicInfo(long taskId, int expectedSize, TaskState state, String info, Date sentTime) {
-        emitBasicInfo(taskId, expectedSize, state, info, sentTime, null, null);
-
+    protected void updateTask(long taskId,String info, TaskState state, Date startTime) {
+        NotificationTuple nt = NotificationTuple.prepareUpdateTask(taskId, info, state, startTime);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
 

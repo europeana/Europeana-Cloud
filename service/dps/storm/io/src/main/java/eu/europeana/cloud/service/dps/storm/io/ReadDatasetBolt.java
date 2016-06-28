@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.util.DateUtil;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,10 +76,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
         } else {
             String message = "No dataset were provided";
             LOGGER.warn(message);
-            Date sentTime = DateUtil.parseSentTime(t.getParameter(PluginParameterKeys.SENT_TIME));
-            int expectedSize = Integer.parseInt(t.getParameter(PluginParameterKeys.EXPECTED_SIZE));
             emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-            emitBasicInfo(t.getTaskId(), expectedSize, TaskState.DROPPED, message, sentTime);
+            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
 

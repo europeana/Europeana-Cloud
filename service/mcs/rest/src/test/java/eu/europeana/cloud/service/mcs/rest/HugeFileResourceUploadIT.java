@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import eu.europeana.cloud.test.ChunkedHttpUrlConnector;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +89,6 @@ public class HugeFileResourceUploadIT extends JerseyTest {
     protected void configureClient(ClientConfig config) {
         config.register(MultiPartFeature.class);
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 1024);
-        config.connector(new ChunkedHttpUrlConnector(config));
     }
 
 
