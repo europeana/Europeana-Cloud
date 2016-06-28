@@ -611,13 +611,4 @@ public class RecordServiceClient extends MCSClient {
     protected void finalize() throws Throwable {
         client.close();
     }
-
-    public static void main(String[] args) throws MCSException {
-        String mcsUrl= "http://172.17.0.8:8080/mcs";
-        String username  = "ic_user";
-        String password  = "ic_user";
-        RecordServiceClient mcsClient = new RecordServiceClient(mcsUrl,username,password);//,username,password)
-        Representation record  = mcsClient.getRepresentation("ZBE4YWAMQF5TVRSVWQ6TBSBIRD2UYQAOKMPF26V3KPTWMX6ZLCWA","Representation__2016_06_23_14_22_14.296_1_1","215b03e0-393d-11e6-9f54-0242ac110008" );
-        System.out.println(record);
-    }
 }
