@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.persistent.dao;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.datastax.driver.core.PreparedStatement;
@@ -106,10 +107,10 @@ public class CassandraLocalIdDAO {
      */
     public List<CloudId> searchActiveWithPagination(String startRecordId, int limit, String providerId) throws ProviderDoesNotExistException, RecordDatasetEmptyException, DatabaseConnectionException {
         List<CloudId> first = searchActive(providerId,startRecordId);
-        if(first.size() > 0) {
-            ResultSet lessThanRS = dbService.getSession().execute(searchByProviderAndRecordLessThanStatement.bind(providerId, startRecordId, false, limit));
+        if(first.size() > 0 && first.size() < limit) {
+            ResultSet lessThanRS = dbService.getSession().execute(searchByProviderAndRecordLessThanStatement.bind(providerId, startRecordId, false, limit - 1));
             List<CloudId> result = createCloudIdsFromRs(lessThanRS);
-            result.addAll(first);
+            result.add(0,first.get(0));
             return result;
         }else{
             return first;
@@ -166,7 +167,7 @@ public class CassandraLocalIdDAO {
     }
 
     private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
-        List<CloudId> cloudIds = new ArrayList<>();
+        List<CloudId> cloudIds = new LinkedList<>();
         if (rs != null) {
             for (Row row : rs.all()) {
                     LocalId lId = new LocalId();

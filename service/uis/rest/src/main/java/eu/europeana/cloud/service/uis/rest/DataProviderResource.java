@@ -27,6 +27,9 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -241,7 +244,7 @@ public class DataProviderResource {
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getCloudIdsByProvider(@PathParam(P_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_FROM) String from,
-            @QueryParam(UISParamConstants.Q_LIMIT) @DefaultValue("10000") int limit)
+            @Min(0) @Max(10000) @QueryParam(UISParamConstants.Q_LIMIT) @DefaultValue("10000")  int limit)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException {
         ResultSlice<CloudId> slice = new ResultSlice<>();
         final int limitWithNextSlice = limit + 1;
