@@ -319,14 +319,14 @@ public class UISClient {
      * Retrieve the record ids associated with a provider with pagination.
      *
      * @param providerId The provider id
-     * @param recordId The record id to start retrieval from
-     * @param window The maximum number of records to fetch
+     * @param startRecordId The local identifier to start retrieval from
+     * @param limit The maximum number of records to fetch
      * @return A list of record ids associated with the provider
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
     public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(
-            String providerId, String recordId, int window)
+            String providerId, String startRecordId, int limit)
             throws CloudException {
 
         Response resp = null;
@@ -335,8 +335,8 @@ public class UISClient {
                     .target(urlProvider.getBaseUrl()
                             + "/data-providers/{PROVIDER_ID}/localIds")
                     .resolveTemplate("PROVIDER_ID", providerId)
-                    .queryParam(UISParamConstants.Q_FROM, recordId)
-                    .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
+                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
+                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
@@ -352,14 +352,14 @@ public class UISClient {
      * Retrieve the cloud ids associated with a provider with pagination.
      *
      * @param providerId The provider id
-     * @param cloudId The cloud id to start retrieval from
-     * @param window The maximum number of records to fetch
+     * @param startRecordId The local identifier to start retrieval from
+     * @param limit The maximum number of records to fetch
      * @return A list of cloud ids associated with the provider
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
     public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(
-            String providerId, String cloudId, int window)
+            String providerId, String startRecordId, int limit)
             throws CloudException {
 
         Response resp = null;
@@ -368,8 +368,8 @@ public class UISClient {
                     .target(urlProvider.getBaseUrl()
                             + "/data-providers/{PROVIDER_ID}/cloudIds")
                     .resolveTemplate("PROVIDER_ID", providerId)
-                    .queryParam(UISParamConstants.Q_FROM, cloudId)
-                    .queryParam(UISParamConstants.Q_LIMIT, window).request().get();
+                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
+                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
 
             if (resp.getStatus() == Status.OK.getStatusCode()) {
                 return resp.readEntity(ResultSlice.class);
