@@ -81,7 +81,6 @@ public class DynamicUrlProvider implements UrlProvider {
 	}
 
 	public DynamicUrlProvider(final ServiceProvider provider) {
-
 		LOGGER.info("DynamicUrlProvider: Starting UrlProvider...");
 		this.provider = provider;
 		LOGGER.info("DynamicUrlProvider: UrlProvider started successfully.");
@@ -92,7 +91,6 @@ public class DynamicUrlProvider implements UrlProvider {
 	 */
 	@Override
 	public String getBaseUrl() {
-		
 		final String address = provider.getService().getListenAddress();
 		LOGGER.info("DynamicUrlProvider: using url: {}", address);
 		return address;

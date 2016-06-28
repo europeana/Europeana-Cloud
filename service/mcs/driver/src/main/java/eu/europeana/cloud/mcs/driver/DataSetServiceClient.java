@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +28,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+
 /**
  * Client for managing datasets in MCS.
  */
-public class DataSetServiceClient {
+public class DataSetServiceClient extends MCSClient {
 
-    private final String baseUrl;
     private final Client client = ClientBuilder.newClient();
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
@@ -73,7 +74,7 @@ public class DataSetServiceClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl) {
-        this.baseUrl = baseUrl;
+        super(baseUrl);
 
     }
 
@@ -84,8 +85,9 @@ public class DataSetServiceClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
-        this.baseUrl = baseUrl;
-        client.register(new HttpBasicAuthFilter(username, password));
+        this(baseUrl);
+        client
+                .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
     }
 
     /**

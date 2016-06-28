@@ -13,7 +13,8 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,7 @@ public class UISClient {
     public UISClient(final ServiceProvider uisProvider, final String username, final String password) {
         LOGGER.info("UISClient starting...");
 
-        client.register(new HttpBasicAuthFilter(username, password));
+        client.register(HttpAuthenticationFeature.basic(username, password));
 
         try {
             urlProvider = new DynamicUrlProvider(uisProvider);
@@ -122,7 +123,7 @@ public class UISClient {
     public UISClient(final String uisUrl, final String username, final String password) {
         LOGGER.info("UISClient starting...");
 
-        client.register(new HttpBasicAuthFilter(username, password));
+        client.register(HttpAuthenticationFeature.basic(username, password));
 
         try {
             urlProvider = new StaticUrlProvider(uisUrl);

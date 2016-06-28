@@ -13,10 +13,6 @@
 	<packaging>war</packaging>
 	<name>Europeana Cloud: Authentication Authorization Service REST</name>
 
-	<properties>
-		<version.org.glassfish.jersey.test-framework>2.3.1</version.org.glassfish.jersey.test-framework>
-	</properties>
-
 	<profiles>
 		<profile>
 			<activation>

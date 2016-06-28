@@ -2,7 +2,8 @@ package eu.europeana.cloud.client.aas.rest;
 
 import eu.europeana.cloud.common.web.AASParamConstants;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.glassfish.jersey.client.filter.HttpBasicAuthFilter;
+
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class AASClient {
 		
 		LOGGER.info("AASClient starting...");
 
-		client.register(new HttpBasicAuthFilter(username, password));
+		client.register(HttpAuthenticationFeature.basic(username, password));
 		this.aasUrl = aasUrl;
 		
 		LOGGER.info("AASClient started successfully.");

@@ -4,6 +4,8 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
+import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+
 /**
  * List of properties required to connect to a Service.
  * 
@@ -44,7 +46,7 @@ public final class ServiceProperties {
 			final @JsonProperty("listenAddress") String listenAddress,
 			final @JsonProperty("datacenterLocation") String datacenterLocation) {
 		
-		this.listenAddress = listenAddress;
+		this.listenAddress = removeLastSlash(listenAddress);
 		this.serviceName = serviceName;
 		this.datacenterLocation = datacenterLocation;
 	}
