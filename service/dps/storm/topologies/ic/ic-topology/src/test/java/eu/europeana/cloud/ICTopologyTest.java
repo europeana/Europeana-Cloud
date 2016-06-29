@@ -52,7 +52,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, GrantPermissionsToFileBolt.class, RemovePermissionsToFileBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
@@ -91,6 +91,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
@@ -121,6 +122,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
                 "\"TASK_SUBMITTER_NAME\":\"user\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
@@ -153,6 +155,11 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
+        when(fileServiceClient.useAuthorizationHeader(anyString())).thenReturn(fileServiceClient);
+
+        when(recordServiceClient.useAuthorizationHeader(anyString())).thenReturn(recordServiceClient);
+        when(dataSetClient.useAuthorizationHeader(anyString())).thenReturn(dataSetClient);
+
         when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         Representation representation = new Representation();
         List<Representation> representationList = new ArrayList<>();
@@ -162,6 +169,8 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         files.add(new File());
         when(representation.getFiles()).thenReturn(files);
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(SOURCE_VERSION_URL));
+
+
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         when(recordServiceClient.getRepresentation(anyString(), anyString(), anyString())).thenReturn(representation);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
@@ -173,11 +182,9 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
     private StormTopology buildTopology() {
         // build the test topology
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt("", "", "");
-        ReadDatasetBolt readDatasetBolt = new ReadDatasetBolt("", "", "");
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt("", "", "");
-        GrantPermissionsToFileBolt grantPermissionsToFileBolt = new GrantPermissionsToFileBolt("", "", "");
-        RemovePermissionsToFileBolt removePermBolt = new RemovePermissionsToFileBolt("", "", "");
+        ReadFileBolt retrieveFileBolt = new ReadFileBolt("");
+        ReadDatasetBolt readDatasetBolt = new ReadDatasetBolt("");
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt("");
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
 
@@ -189,9 +196,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
         builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
-        builder.setBolt(GRANT_PERMISSIONS_TO_FILE_BOLT, grantPermissionsToFileBolt).shuffleGrouping(WRITE_RECORD_BOLT);
-        builder.setBolt(REMOVE_PERMISSIONS_TO_FILE_BOLT, removePermBolt).shuffleGrouping(GRANT_PERMISSIONS_TO_FILE_BOLT);
-        builder.setBolt(END_BOLT, new EndBolt()).shuffleGrouping(REMOVE_PERMISSIONS_TO_FILE_BOLT);
+        builder.setBolt(END_BOLT, new EndBolt()).shuffleGrouping(WRITE_RECORD_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
@@ -199,8 +204,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 .fieldsGrouping(RETRIEVE_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(GRANT_PERMISSIONS_TO_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(REMOVE_PERMISSIONS_TO_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
 

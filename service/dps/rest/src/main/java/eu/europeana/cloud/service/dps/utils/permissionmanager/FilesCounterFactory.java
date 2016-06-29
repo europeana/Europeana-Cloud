@@ -6,18 +6,18 @@ import org.springframework.context.ApplicationContext;
 /**
  * Created by Tarek on 4/6/2016.
  */
-public class PermissionManagerFactory {
+public class FilesCounterFactory {
     private ApplicationContext context;
 
-    public PermissionManagerFactory(ApplicationContext context) {
+    public FilesCounterFactory(ApplicationContext context) {
         this.context = context;
     }
 
-    public ResourcePermissionManager createPermissionManager(String taskType) {
+    public FilesCounter createFilesCounter(String taskType) {
         if (PluginParameterKeys.FILE_URLS.equals(taskType))
-            return new RecordPermissionManager(context);
+            return new RecordFilesCounter(context);
         if (PluginParameterKeys.DATASET_URLS.equals(taskType))
-            return new DatasetPermissionManager(context);
+            return new DatasetFilesCounter(context);
         else
             return null;
     }

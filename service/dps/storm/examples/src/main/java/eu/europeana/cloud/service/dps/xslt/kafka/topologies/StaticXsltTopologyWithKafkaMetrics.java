@@ -56,8 +56,8 @@ public class StaticXsltTopologyWithKafkaMetrics {
 		
 		StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDpsTask());
 		
-		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
-		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
+		ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+		WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
 
 		builder.setSpout("taskSpout", taskSpout, 1);
 		

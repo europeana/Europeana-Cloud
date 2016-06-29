@@ -29,25 +29,20 @@ import java.util.regex.Pattern;
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
     private String ecloudMcsAddress;
-    private String username;
-    private String password;
     private FileServiceClient mcsClient;
     private RecordServiceClient recordServiceClient;
     public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
-    public WriteRecordBolt(String ecloudMcsAddress, String username,
-                           String password) {
-
+    public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        this.username = username;
-        this.password = password;
+
     }
 
     @Override
     public void prepare() {
 
-        mcsClient = new FileServiceClient(ecloudMcsAddress, username, password);
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, username, password);
+        mcsClient = new FileServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
     }
 
     @Override
@@ -94,6 +89,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
         String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
         String outputMimeType = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
+        String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        mcsClient = mcsClient.useAuthorizationHeader(authorizationHeader);
+        recordServiceClient = recordServiceClient.useAuthorizationHeader(authorizationHeader);
         Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);

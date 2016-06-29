@@ -34,7 +34,7 @@ public class ConvertTopology {
                 .shuffleGrouping("KafkaSpout");
 
         //bolt 2
-        builder.setBolt("RetrieveFile", new ReadFileBolt(ECLOUD_MCS_ADDRESS, ECLOUD_MCS_USERNAME, ECLOUD_MCS_PASSWORD), 1)
+        builder.setBolt("RetrieveFile", new ReadFileBolt(ECLOUD_MCS_ADDRESS), 1)
                 .shuffleGrouping("ParseDpsTask");
 
         //bolt 3

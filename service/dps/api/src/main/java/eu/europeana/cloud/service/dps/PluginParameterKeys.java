@@ -33,6 +33,7 @@ public final class PluginParameterKeys {
     public static final String FILE_NAME = "FILE_NAME";
     public static final String MIME_TYPE = "MIME_TYPE";
     public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
+    public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
 
     // ---------  Messages  -----------
     public static final String NEW_DATASET_MESSAGE = "NewDataset";

@@ -85,35 +85,12 @@ public class ParseTaskBolt extends BaseRichBolt {
             return;
         }
         Map<String, String> taskParameters = task.getParameters();
-        if (prerequisites != null && taskParameters != null) {
-            for (Map.Entry<String, String> importantParameter : prerequisites.entrySet()) {
-                String p = taskParameters.get(importantParameter.getKey());
-                if (p != null) {
-                    String val = importantParameter.getValue();
-                    if (val != null && !val.toLowerCase().equals(p.toLowerCase())) {
-                        //values not equal => drop this task
-                        LOGGER.warn("DpsTask with id {} is dropped because parameter {} does not have a required value '{}'.",
-                                task.getTaskId(), importantParameter.getKey(), val);
-
-                        String message = String.format("Dropped because parameter %s does not have a required value '%s'.",
-                                importantParameter.getKey(), val);
-                        emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                        endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
-                        outputCollector.ack(tuple);
-                        return;
-                    }
-                } else    //parameter not exists => drop this task
-                {
-                    LOGGER.warn("DpsTask with id {} is dropped because parameter {} is missing.",
-                            task.getTaskId(), importantParameter.getKey());
-
-                    String message = String.format("Dropped because parameter %s is missing.", importantParameter.getKey());
-                    emitDropNotification(task.getTaskId(), "", message, taskParameters.toString());
-                    endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
-                    outputCollector.ack(tuple);
-                    return;
-                }
-            }
+        String authenticationHeader = taskParameters.get(PluginParameterKeys.AUTHORIZATION_HEADER);
+        if (authenticationHeader == null) {
+            LOGGER.error("Message '{}' rejected because: {}", tuple.getString(0), "missing authentication Header");
+            endTask(task.getTaskId(), "missing authentication Header", TaskState.DROPPED, new Date());
+            outputCollector.ack(tuple);
+            return;
         }
 
         StormTaskTuple stormTaskTuple = new StormTaskTuple(

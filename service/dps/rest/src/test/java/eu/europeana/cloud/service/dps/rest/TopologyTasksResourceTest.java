@@ -127,10 +127,9 @@ public class TopologyTasksResourceTest extends JerseyTest {
         MutableAcl mutableAcl = mock(MutableAcl.class);
         //Mock
         when(topologyManager.containsTopology(topologyName)).thenReturn(true);
-        when(topologyManager.getNameToUserMap()).thenReturn(user);
         when(mutableAcl.getEntries()).thenReturn(Collections.EMPTY_LIST);
         doNothing().when(mutableAcl).insertAce(anyInt(), any(Permission.class), any(Sid.class), anyBoolean());
-        doNothing().when(taskDAO).insert(anyLong(), anyString(),anyInt(),anyString(),anyString(),isA(Date.class));
+        doNothing().when(taskDAO).insert(anyLong(), anyString(), anyInt(), anyString(), anyString(), isA(Date.class));
         when(mutableAclService.readAclById(any(ObjectIdentity.class))).thenReturn(mutableAcl);
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);

@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.Map;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,22 +35,15 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
-    private final String username;
-    private final String password;
-
     private FileServiceClient fileClient;
-    private DataSetServiceClient dataSetClient;
 
-    public ReadFileBolt(String ecloudMcsAddress, String username, String password) {
+    public ReadFileBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        this.username = username;
-        this.password = password;
     }
 
     @Override
     public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
-        dataSetClient = new DataSetServiceClient(ecloudMcsAddress, username, password);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
     }
 
     @Override
@@ -75,16 +67,16 @@ public class ReadFileBolt extends AbstractDpsBolt {
             endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
-
     }
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
+        String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
             try {
                 LOGGER.info("HERE THE LINK: " + file);
-                InputStream is = fileClient.getFile(file);
+                InputStream is = fileClient.useAuthorizationHeader(authorizationHeader).getFile(file);
                 tt.setFileData(is);
                 tt.setFileUrl(file);
                 outputCollector.emit(inputTuple, tt.toStormTuple());

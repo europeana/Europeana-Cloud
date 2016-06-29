@@ -38,8 +38,6 @@ import com.rits.cloning.Cloner;
  */
 public class ReadDatasetBolt extends AbstractDpsBolt {
     private final String ecloudMcsAddress;
-    private final String username;
-    private final String password;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
     private DataSetServiceClient datasetClient;
     private FileServiceClient fileClient;
@@ -48,13 +46,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
      * Constructor of ReadDatasetBolt.
      *
      * @param ecloudMcsAddress MCS API URL
-     * @param username         eCloud username
-     * @param password         eCloud password
      */
-    public ReadDatasetBolt(String ecloudMcsAddress, String username, String password) {
+    public ReadDatasetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-        this.username = username;
-        this.password = password;
+
     }
 
     @Override
@@ -85,12 +80,15 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        datasetClient = new DataSetServiceClient(ecloudMcsAddress, username, password);
-        fileClient = new FileServiceClient(ecloudMcsAddress, username, password);
+        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
     }
 
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient = fileClient.useAuthorizationHeader(authorizationHeader);
+        datasetClient = datasetClient.useAuthorizationHeader(authorizationHeader);
         String fileUrl = null;
         for (String dataSet : dataSets) {
             try {

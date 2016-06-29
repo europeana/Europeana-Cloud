@@ -55,8 +55,8 @@ public class StaticICTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         StaticDpsTaskSpout taskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC());
-        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress, username, password);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress, username, password);
+        ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         builder.setSpout("taskSpout", taskSpout, 1);
         builder.setBolt("retrieveFileBolt", retrieveFileBolt, 1).shuffleGrouping(
                 "taskSpout");

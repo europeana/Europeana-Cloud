@@ -114,7 +114,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
 
         Mockito.when(recordServiceClient.useAuthorizationHeader(Mockito.anyString())).thenReturn(recordServiceClient);
     }
@@ -280,7 +279,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private void grantUserToTopology(String topologyName, String user) throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         Mockito.when(topologyManager.containsTopology(topologyName)).thenReturn(true);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(topologyName, "userName"));
         topologiesResource.grantPermissionsToTopology(user, topologyName);
         logoutEveryone();
     }
@@ -365,7 +363,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -385,7 +382,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -405,7 +401,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -425,7 +420,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);

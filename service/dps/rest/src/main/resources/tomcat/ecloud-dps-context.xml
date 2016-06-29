@@ -61,9 +61,6 @@
         <constructor-arg name="nameList">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/nameList"/>
         </constructor-arg>
-        <constructor-arg name="userNameList">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/userNameList"/>
-        </constructor-arg>
     </bean>
     <bean id="mcsLocation" class="java.lang.String">
         <constructor-arg type="java.lang.String">
@@ -110,7 +107,6 @@
             </list>
         </property>
     </bean>
-
 
 
     <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">

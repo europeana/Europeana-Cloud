@@ -13,13 +13,13 @@ import static org.junit.Assert.fail;
 
 public class TopologyManagerTest {
 
-    final String userList = "userA,userB";
+
     final String nameList = "topologyA,topologyB";
     TopologyManager instance;
 
     @Before
     public void init() {
-        instance = new TopologyManager(nameList, userList);
+        instance = new TopologyManager(nameList);
     }
 
     @Test
@@ -30,18 +30,6 @@ public class TopologyManagerTest {
         assertThat(instance, is(notNullValue()));
     }
 
-    @Test
-    public void should_throwAssertionError_OnInstanceCreation() {
-        //given
-        final String brokenUserList = "userA";
-        //when
-        try {
-            final TopologyManager result = new TopologyManager(nameList, brokenUserList);
-            fail();
-        } catch (IllegalArgumentException exception) {
-            assertThat(exception, is(instanceOf(IllegalArgumentException.class)));
-        }
-    }
 
     @Test
     public void should_successfully_getTopologyNames() {
@@ -53,36 +41,6 @@ public class TopologyManagerTest {
         assertThat(resultNameList, is(equalTo(expectedNameList)));
     }
 
-    @Test
-    public void should_successfully_getUserNames() {
-        //given
-        //when
-        List<String> resultUserList = instance.getUserNames();
-        //then
-        List<String> expectedUserList = convertStringToList(userList);
-        assertThat(resultUserList, is(equalTo(expectedUserList)));
-    }
-
-    @Test
-    public void should_successfully_getNameToUserMapping() {
-        //given
-        //when
-        Map<String, String> resultNameToUserMap = instance.getNameToUserMap();
-        //then
-        Map<String, String> expectedNameToUserMap = constructMap();
-        assertThat(resultNameToUserMap, is(equalTo(expectedNameToUserMap)));
-    }
-
-    private Map<String, String> constructMap() {
-        Map<String, String> expectedNameToUserMap;
-        expectedNameToUserMap = new HashMap<>();
-        String[] names = getSplit(nameList);
-        String[] userNames = getSplit(userList);
-        for (int i = 0; i < names.length; i++) {
-            expectedNameToUserMap.put(names[i], userNames[i]);
-        }
-        return expectedNameToUserMap;
-    }
 
     @Test
     public void should_successfully_containsTopology1() {
