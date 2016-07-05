@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.utils.permissionmanager;
+package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
