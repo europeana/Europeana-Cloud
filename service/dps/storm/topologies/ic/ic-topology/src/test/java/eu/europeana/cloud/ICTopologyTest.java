@@ -155,11 +155,9 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
-        when(fileServiceClient.useAuthorizationHeader(anyString())).thenReturn(fileServiceClient);
-
-        when(recordServiceClient.useAuthorizationHeader(anyString())).thenReturn(recordServiceClient);
-        when(dataSetClient.useAuthorizationHeader(anyString())).thenReturn(dataSetClient);
-
+        doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
         when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         Representation representation = new Representation();
         List<Representation> representationList = new ArrayList<>();
@@ -170,14 +168,12 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         when(representation.getFiles()).thenReturn(files);
         when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(SOURCE_VERSION_URL));
 
-
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         when(recordServiceClient.getRepresentation(anyString(), anyString(), anyString())).thenReturn(representation);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
-        doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
-        doNothing().when(recordServiceClient).revokePermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
+
     }
 
     private StormTopology buildTopology() {

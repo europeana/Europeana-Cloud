@@ -15,12 +15,6 @@ import java.util.List;
  * Created by Tarek on 4/6/2016.
  */
 public abstract class FilesCounter {
-    protected ApplicationContext context;
-
-    protected FilesCounter(ApplicationContext context) {
-        this.context = context;
-    }
-
     /**
      * @return The number of records inside the task.
      */

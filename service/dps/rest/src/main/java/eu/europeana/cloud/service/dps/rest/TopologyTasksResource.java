@@ -85,6 +85,9 @@ public class TopologyTasksResource {
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
 
+    @Autowired
+    private FilesCounterFactory filesCounterFactory;
+
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
@@ -420,7 +423,6 @@ public class TopologyTasksResource {
      * @return The number of files inside the task.
      */
     private int getFilesCountInsideTask(DpsTask submittedTask, String authorizationHeader) throws TaskSubmissionException {
-        FilesCounterFactory filesCounterFactory = new FilesCounterFactory(context);
         String taskType = getTaskType(submittedTask);
         FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
         int recordsInsideTask = filesCounter.getFilesCount(submittedTask, authorizationHeader);

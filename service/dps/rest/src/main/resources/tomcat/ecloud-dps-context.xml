@@ -20,6 +20,8 @@
     <bean id="permissionManager"
           class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
 
+    <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory" scope="prototype"/>
+
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>

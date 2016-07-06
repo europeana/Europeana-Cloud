@@ -87,8 +87,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        fileClient = fileClient.useAuthorizationHeader(authorizationHeader);
-        datasetClient = datasetClient.useAuthorizationHeader(authorizationHeader);
+        fileClient.useAuthorizationHeader(authorizationHeader);
+        datasetClient.useAuthorizationHeader(authorizationHeader);
         String fileUrl = null;
         for (String dataSet : dataSets) {
             try {

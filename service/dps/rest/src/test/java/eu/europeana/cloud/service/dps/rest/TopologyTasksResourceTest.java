@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.hamcrest.CoreMatchers;
@@ -47,6 +48,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private DataSetServiceClient dataSetServiceClient;
     private FileServiceClient fileServiceClient;
     private CassandraTaskInfoDAO taskDAO;
+    private FilesCounterFactory filesCounterFactory;
 
     @Override
     protected Application configure() {
@@ -59,11 +61,13 @@ public class TopologyTasksResourceTest extends JerseyTest {
         topologyManager = applicationContext.getBean(TopologyManager.class);
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
+        filesCounterFactory = applicationContext.getBean(FilesCounterFactory.class);
         context = applicationContext.getBean(ApplicationContext.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
+
     }
 
     @Test
@@ -134,9 +138,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
-        when(recordServiceClient.useAuthorizationHeader(null)).thenReturn(recordServiceClient);
-        when(dataSetServiceClient.useAuthorizationHeader(null)).thenReturn(dataSetServiceClient);
-        when(fileServiceClient.useAuthorizationHeader(null)).thenReturn(fileServiceClient);
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
     }
 

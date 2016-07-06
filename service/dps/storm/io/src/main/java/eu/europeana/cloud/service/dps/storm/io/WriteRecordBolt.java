@@ -90,12 +90,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
         String outputMimeType = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
         String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        mcsClient = mcsClient.useAuthorizationHeader(authorizationHeader);
-        recordServiceClient = recordServiceClient.useAuthorizationHeader(authorizationHeader);
+        mcsClient.useAuthorizationHeader(authorizationHeader);
+        recordServiceClient.useAuthorizationHeader(authorizationHeader);
         Representation rep = recordServiceClient.getRepresentation(urlParams.get(ParamConstants.P_CLOUDID), urlParams.get(ParamConstants.P_REPRESENTATIONNAME), urlParams.get(ParamConstants.P_VER));
         URI newRepresentation = recordServiceClient.createRepresentation(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, rep.getDataProvider());
         String newRepresentationVersion = findRepresentationVersion(newRepresentation);
-        URI newFileUri = null;
+        URI newFileUri;
         if (stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME) != null) {
             String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
             newFileUri = mcsClient.uploadFile(urlParams.get(ParamConstants.P_CLOUDID), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);

@@ -72,11 +72,12 @@ public class ReadFileBolt extends AbstractDpsBolt {
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
             try {
                 LOGGER.info("HERE THE LINK: " + file);
-                InputStream is = fileClient.useAuthorizationHeader(authorizationHeader).getFile(file);
+                InputStream is = fileClient.getFile(file);
                 tt.setFileData(is);
                 tt.setFileUrl(file);
                 outputCollector.emit(inputTuple, tt.toStormTuple());

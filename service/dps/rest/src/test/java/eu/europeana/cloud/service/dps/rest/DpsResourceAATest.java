@@ -14,6 +14,9 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.utils.files.counter.DatasetFilesCounter;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,6 +38,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
@@ -67,6 +73,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
+
+    @Autowired
+    private FilesCounterFactory filesCounterFactory;
+
+    @Autowired
+    private FilesCounter filesCounter;
 
     /**
      * Pre-defined users
@@ -114,8 +126,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
-
-        Mockito.when(recordServiceClient.useAuthorizationHeader(Mockito.anyString())).thenReturn(recordServiceClient);
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        Mockito.when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
     }
 
     /*

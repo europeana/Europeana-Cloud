@@ -15,17 +15,13 @@ import java.util.List;
 public class RecordFilesCounter extends FilesCounter {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFilesCounter.class);
 
-    RecordFilesCounter(ApplicationContext context) {
-        super(context);
-    }
-
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
         try {
             List<String> fileUrls = task.getInputData().get(DpsTask.FILE_URLS);
             int size = fileUrls.size();
             return size;
         } catch (Exception ex) {
-            LOGGER.error("An error occurred while reading the file counts of the task "+task.getTaskId());
+            LOGGER.error("An error occurred while reading the file counts of the task " + task.getTaskId());
             throw new RuntimeException(ex.getMessage() + ". Submission process stopped");
         }
     }
