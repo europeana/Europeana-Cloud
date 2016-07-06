@@ -45,9 +45,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 public class StaticICTopology {
 
     private static String ecloudMcsAddress = "http://iks-kbase.synat.pcss.pl:9090/mcs";
-    private static String username = "admin";
-    private static String password = "admin";
-
 
     public static void main(String[] args) throws Exception {
 
@@ -63,7 +60,6 @@ public class StaticICTopology {
                 "retrieveFileBolt");
         builder.setBolt("writeRecordBolt", writeRecordBolt, 1).shuffleGrouping(
                 "imageConversionBolt");
-
         builder.setBolt("notificationBolt", new NotificationBolt("iks-kbase.synat.pcss.pl",
                         9042, "ecloud_dps",
                         "cassandra", "cassandra", true),

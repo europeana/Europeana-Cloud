@@ -51,8 +51,7 @@ public class XSLTTopology {
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public StormTopology buildTopology(String dpsZkAddress, String xsltTopic, String ecloudMcsAddress, String username,
-                                       String password) {
+    public StormTopology buildTopology(String xsltTopic, String ecloudMcsAddress) {
 
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
@@ -126,11 +125,6 @@ public class XSLTTopology {
                 .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
-
-        // builder.setBolt("progressBolt", progressBolt,
-        // 1).setNumTasks(1).shuffleGrouping("writeRecordBolt");
-        // END OF TOPOLOGY STRUCTURE
-
         return builder.createTopology();
     }
 
@@ -153,12 +147,10 @@ public class XSLTTopology {
             String kafkaTopic = topologyName;
 
             String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-            String username = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_NAME);
-            String password = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_PASS);
 
             StormTopology stormTopology = XsltTopology.buildTopology(
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS), kafkaTopic,
-                    ecloudMcsAddress, username, password);
+                    kafkaTopic,
+                    ecloudMcsAddress);
 
             config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
             config.setMaxTaskParallelism(

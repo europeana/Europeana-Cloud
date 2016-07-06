@@ -11,8 +11,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,24 +49,10 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple t) {
         try {
             LOGGER.info("WriteRecordBolt: persisting...");
-            String outputUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-            boolean outputUrlMissing = false;
-
-            if (outputUrl == null) {
-                // in case OUTPUT_URL is not provided use a random one, using the input URL as the base
-                outputUrl = t.getFileUrl();
-                outputUrl = StringUtils.substringBefore(outputUrl, "/files");
-                outputUrlMissing = true;
-
-                LOGGER.info("WriteRecordBolt: OUTPUT_URL is not provided");
-            }
-            LOGGER.info("WriteRecordBolt: OUTPUT_URL: {}", outputUrl);
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-
             emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
-
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
