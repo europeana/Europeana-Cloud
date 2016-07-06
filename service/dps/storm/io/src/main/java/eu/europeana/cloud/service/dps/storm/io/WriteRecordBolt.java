@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -64,18 +66,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
 
-            if (outputUrlMissing) {
-                t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
-                LOGGER.info("WriteRecordBolt: pushing new URI as OUTPUT_URL: " + t.getParameter(PluginParameterKeys.OUTPUT_URL));
-            }
-
+            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
 
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
-
-            // added to deal with EndBolt and NotificationBolt
             StringWriter stack = new StringWriter();
             e.printStackTrace(new PrintWriter(stack));
             emitErrorNotification(t.getTaskId(), t.getFileUrl(), "Cannot process data because: " + e.getMessage(),
@@ -116,4 +112,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             throw new MCSException("Unable to find representation version in representation URL");
         }
     }
+
+    private void emitSuccessNotification(long taskId, String resource,
+                                         String message, String additionalInformations, String resultResource) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.SUCCESS, message, additionalInformations, resultResource);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
 }

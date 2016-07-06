@@ -26,7 +26,6 @@ import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -64,7 +63,6 @@ public class StaticICTopology {
                 "retrieveFileBolt");
         builder.setBolt("writeRecordBolt", writeRecordBolt, 1).shuffleGrouping(
                 "imageConversionBolt");
-        builder.setBolt("endBolt", new EndBolt(), 1).shuffleGrouping("writeRecordBolt");
 
         builder.setBolt("notificationBolt", new NotificationBolt("iks-kbase.synat.pcss.pl",
                         9042, "ecloud_dps",
@@ -72,8 +70,7 @@ public class StaticICTopology {
                 1)
                 .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
         Config conf = new Config();
         conf.put(Config.TOPOLOGY_DEBUG, false);
 

@@ -4,8 +4,9 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
+
 import static eu.europeana.cloud.service.dps.examples.tutorial.TopologyConstants.*;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
+
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -16,14 +17,13 @@ import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 
 /**
- *
  * @author lucasanastasiou
  */
 public class ConvertTopology {
 
     public static void main(String args[]) {
         TopologyBuilder builder = new TopologyBuilder();
-        
+
         // entry spout
         BrokerHosts brokerHosts = new ZkHosts(ZOOKEEPER_LOCATION);
         SpoutConfig spoutConf = new SpoutConfig(brokerHosts, KAFKA_TOPIC, ZK_ROOT, ID);
@@ -45,16 +45,13 @@ public class ConvertTopology {
         builder.setBolt("StoreBolt", new StoreFileAsRepresentationBolt(ECLOUD_MCS_ADDRESS, ECLOUD_MCS_USERNAME, ECLOUD_MCS_PASSWORD), 1)
                 .shuffleGrouping("ConvertBolt", "stream-to-next-bolt");
 
-        //bolt5
-        builder.setBolt("EndBolt", new EndBolt(), 1).shuffleGrouping("StoreBolt");
 
         //notification bolt
         builder.setBolt("NotificationBolt", new NotificationBolt(CASSANDRA_HOSTS, CASSANDRA_PORT, CASSANDRA_KEYSPACE_NAME, CASSANDRA_USERNAME, CASSANDRA_PASSWORD), 1)
                 .shuffleGrouping("ParseDpsTask")
                 .shuffleGrouping("RetrieveFile")
                 .shuffleGrouping("ConvertBolt")
-                .shuffleGrouping("StoreBolt")
-                .shuffleGrouping("EndBolt");
+                .shuffleGrouping("StoreBolt");
 
 // run in local mode for debugging...
         Config conf = new Config();

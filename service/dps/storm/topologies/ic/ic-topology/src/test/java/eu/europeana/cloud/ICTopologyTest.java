@@ -15,7 +15,6 @@ import backtype.storm.tuple.Values;
 import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.helpers.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -52,7 +51,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
@@ -192,16 +191,13 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
         builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
-        builder.setBolt(END_BOLT, new EndBolt()).shuffleGrouping(WRITE_RECORD_BOLT);
-        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
-
+                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         StormTopology topology = builder.createTopology();
         return topology;
@@ -226,7 +222,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         //then
         printDefaultStreamTuples(result);
 
-        String actual = parse(Testing.readTuples(result, END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
+        String actual = parse(Testing.readTuples(result, WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
         assertEquals(expectedTuple, actual, true);
     }
 }
