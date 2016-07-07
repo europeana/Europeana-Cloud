@@ -43,7 +43,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress);
+
     }
 
     @Override
@@ -72,6 +72,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
         fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
