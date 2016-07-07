@@ -41,8 +41,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
 
-        mcsClient = new FileServiceClient(ecloudMcsAddress);
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
+
     }
 
     @Override
@@ -85,6 +84,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MCSException {
+        mcsClient = new FileServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
         Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
         TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
         String newRepresentationName = taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);

@@ -80,11 +80,11 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
-        fileClient = new FileServiceClient(ecloudMcsAddress);
     }
 
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
+        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         fileClient.useAuthorizationHeader(authorizationHeader);
