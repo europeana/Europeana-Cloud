@@ -1,4 +1,4 @@
-package eu.europeana.cloud.helpers;
+package eu.europeana.cloud.service.dps.storm.utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +23,11 @@ public interface TestConstantsHelper {
             + SOURCE + REPRESENTATION_NAME + "/versions/"
             + SOURCE + VERSION + "/files/"
             + SOURCE + FILE;
+    static final String SOURCE_VERSION_URL2 = "http://localhost:8080/mcs/records/"
+            + SOURCE + CLOUD_ID + "/representations/"
+            + SOURCE + REPRESENTATION_NAME + "/versions/"
+            + SOURCE + VERSION + 2 + "/files/"
+            + SOURCE + FILE;
     static final String RESULT_VERSION_URL = "http://localhost:8080/mcs/records/"
             + RESULT + CLOUD_ID + "/representations/"
             + RESULT + REPRESENTATION_NAME + "/versions/"
@@ -32,6 +37,7 @@ public interface TestConstantsHelper {
     static final String SOURCE_DATASET_URL = "http://localhost:8080/mcs/data-providers/"
             + DATA_PROVIDER + "/data-sets/"
             + DATASET_NAME;
+    static final String SOURCE_DATASET_URL2 = SOURCE_DATASET_URL + 2;
 
 
     static final int NUM_WORKERS = 2;

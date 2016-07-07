@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import backtype.storm.task.OutputCollector;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.File;
@@ -52,6 +53,19 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
 
     }
 
+    /**
+     * Should be used only on tests.
+     */
+    public static ReadDatasetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
+                                                  DataSetServiceClient datasetClient, FileServiceClient fileClient) {
+        ReadDatasetBolt instance = new ReadDatasetBolt(ecloudMcsAddress);
+        instance.outputCollector = outputCollector;
+        instance.datasetClient = datasetClient;
+        instance.fileClient = fileClient;
+        return instance;
+
+    }
+
     @Override
     public void execute(StormTaskTuple t) {
         //try data from DPS task
@@ -87,8 +101,8 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        fileClient = fileClient.useAuthorizationHeader(authorizationHeader);
-        datasetClient = datasetClient.useAuthorizationHeader(authorizationHeader);
+        fileClient.useAuthorizationHeader(authorizationHeader);
+        datasetClient.useAuthorizationHeader(authorizationHeader);
         String fileUrl = null;
         for (String dataSet : dataSets) {
             try {
