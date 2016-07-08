@@ -18,9 +18,7 @@ import eu.europeana.cloud.common.model.Representation;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
-import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
-import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
@@ -49,7 +47,8 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadDataSetBolt.class, ReadRepresentationBolt.class,
+        IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestConstantsHelper {
 
@@ -57,10 +56,6 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
     private final String fileStream = "FILE_STREAM";
     Map<String, String> routingRules;
 
-
-    public ICTopologyDataSetTest() {
-
-    }
 
 
     @Before
@@ -77,20 +72,11 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
     }
 
 
-      @Test
+    @Test
     public void testTopologyWithDataSetsAsDataEntry() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
         //given
         configureMocks();
-        final String input = "{\"inputData\":" +
-                "{\"DATASET_URLS\":" +
-                "[\"" + SOURCE_DATASET_URL + "\",\"" + SOURCE_DATASET_URL2 + "\"]}," +
-                "\"parameters\":" +
-                "{\"MIME_TYPE\":\"image/tiff\"," +
-                "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-                "\"TASK_SUBMITTER_NAME\":\"user\"}," +
-                "\"taskId\":1," +
-                "\"taskName\":\"taskName\"}";
+
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
@@ -99,65 +85,11 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
                 StormTopology topology = buildTopology();
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
-                mockedSources.addMockData(SPOUT, new Values(input));
+                mockedSources.addMockData(SPOUT, new Values(inputTuple));
 
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                List<String> expectedTuples = Arrays.asList("[\n" +
-                        "  [\n" +
-                        "    1,\n" +
-                        "    \"taskName\",\n" +
-                        "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\n" +
-                        "    [\n" +
-                        "      116,\n" +
-                        "      101,\n" +
-                        "      115,\n" +
-                        "      116,\n" +
-                        "      67,\n" +
-                        "      111,\n" +
-                        "      110,\n" +
-                        "      116,\n" +
-                        "      101,\n" +
-                        "      110,\n" +
-                        "      116\n" +
-                        "    ],\n" +
-                        "    {\n" +
-                        "      \"MIME_TYPE\": \"image/tiff\",\n" +
-                        "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
-                        "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
-                        "      \"TASK_SUBMITTER_NAME\": \"user\",\n" +
-                        "      \"DPS_TASK_INPUT_DATA\": \"{\\\"DATASET_URLS\\\":[\\\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\\\",\\\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2\\\"]}\"\n" +
-                        "    }\n" +
-                        "  ]\n" +
-                        "]",
-                        " [ [\n" +
-                        "    1,\n" +
-                        "    \"taskName\",\n" +
-                        "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName\",\n" +
-                        "    [\n" +
-                        "      116,\n" +
-                        "      101,\n" +
-                        "      115,\n" +
-                        "      116,\n" +
-                        "      67,\n" +
-                        "      111,\n" +
-                        "      110,\n" +
-                        "      116,\n" +
-                        "      101,\n" +
-                        "      110,\n" +
-                        "      116\n" +
-                        "    ],\n" +
-                        "    {\n" +
-                        "      \"MIME_TYPE\": \"image/tiff\",\n" +
-                        "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
-                        "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
-                        "      \"TASK_SUBMITTER_NAME\": \"user\",\n" +
-                        "      \"DPS_TASK_INPUT_DATA\": \"{\\\"DATASET_URLS\\\":[\\\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\\\",\\\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2\\\"]}\"\n" +
-                        "    }\n" +
-                        "  ]\n" +
-                        "]");
+
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
-
-
             }
         });
     }
@@ -205,30 +137,37 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
 
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(representation2);
-
-
-
     }
 
     private StormTopology buildTopology() {
         // build the test topology
         ReadFileBolt retrieveFileBolt = new ReadFileBolt("");
-        ReadDatasetBolt readDatasetBolt = new ReadDatasetBolt("");
+        ReadDatasetsBolt readDatasetsBolt = new ReadDatasetsBolt();
+        ReadDataSetBolt readDataSetBolt = new ReadDataSetBolt("");
+        ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt("");
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
 
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(SPOUT, new TestSpout(), 1);
         builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules, null)).shuffleGrouping(SPOUT);
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream);
-        builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
-        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);
+
+
+        builder.setBolt(READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
+        builder.setBolt(READ_DATASET_BOLT, readDataSetBolt).shuffleGrouping(READ_DATASETS_BOLT);
+        builder.setBolt(READ_REPRESENTATION_BOLT, readRepresentationBolt).shuffleGrouping(READ_DATASET_BOLT);
+
+        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream)
+                .shuffleGrouping(READ_REPRESENTATION_BOLT);
+
+        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT);
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(RETRIEVE_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_DATASETS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
-
 
         StormTopology topology = builder.createTopology();
         return topology;
@@ -262,4 +201,67 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
     private List selectSingle(List actualTuples, int index) {
         return Arrays.asList(actualTuples.get(index));
     }
+
+    final String inputTuple = "{\"inputData\":" +
+            "{\"DATASET_URLS\":" +
+            "[\"" + SOURCE_DATASET_URL + "\",\"" + SOURCE_DATASET_URL2 + "\"]}," +
+            "\"parameters\":" +
+            "{\"MIME_TYPE\":\"image/tiff\"," +
+            "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
+            "\"TASK_SUBMITTER_NAME\":\"user\"}," +
+            "\"taskId\":1," +
+            "\"taskName\":\"taskName\"}";
+
+    final List<String> expectedTuples = Arrays.asList("[\n" +
+                    "  [\n" +
+                    "    1,\n" +
+                    "    \"taskName\",\n" +
+                    "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\n" +
+                    "    [\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      115,\n" +
+                    "      116,\n" +
+                    "      67,\n" +
+                    "      111,\n" +
+                    "      110,\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      110,\n" +
+                    "      116\n" +
+                    "    ],\n" +
+                    "    {\n" +
+                    "      \"MIME_TYPE\": \"image/tiff\",\n" +
+                    "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
+                    "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
+                    "      \"TASK_SUBMITTER_NAME\": \"user\"\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "]",
+            " [ [\n" +
+                    "    1,\n" +
+                    "    \"taskName\",\n" +
+                    "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName\",\n" +
+                    "    [\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      115,\n" +
+                    "      116,\n" +
+                    "      67,\n" +
+                    "      111,\n" +
+                    "      110,\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      110,\n" +
+                    "      116\n" +
+                    "    ],\n" +
+                    "    {\n" +
+                    "      \"MIME_TYPE\": \"image/tiff\",\n" +
+                    "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
+                    "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
+                    "      \"TASK_SUBMITTER_NAME\": \"user\"\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "]");
 }

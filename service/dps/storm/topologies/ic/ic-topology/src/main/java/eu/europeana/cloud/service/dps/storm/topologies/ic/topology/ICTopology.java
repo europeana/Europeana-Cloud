@@ -44,6 +44,16 @@ public class ICTopology {
     public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
     private final String datasetStream = "DATASET_STREAM";
     private final String fileStream = "FILE_STREAM";
+    private final String kafkaReader = "kafkaReader";
+    private final String parseKafkaInput = "parseKafkaInput";
+    private final String readDatasetsBolt = "RetrieveDatasetBolt";
+    private final String RetrieveFileBolt = "RetrieveFileBolt";
+    private final String imageConversionBolt = "imageConversionBolt";
+    private final String endBolt = "endBolt";
+    private final String WriteRecordBolt = "WriteRecordBolt";
+    private final String notificationBolt = "notificationBolt";
+    private final String readDataSetBolt = "ReadDataSetBolt";
+    private final String readRepresentationBolt = "ReadRepresentationBolt";
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -63,67 +73,85 @@ public class ICTopology {
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
-        builder.setSpout("kafkaReader", kafkaSpout,
+        builder.setSpout(kafkaReader, kafkaSpout,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
+        builder.setBolt(parseKafkaInput, new ParseTaskBolt(routingRules, null),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("kafkaReader");
+                .shuffleGrouping(kafkaReader);
 
 
-        builder.setBolt("RetrieveDatasetBolt", new ReadDatasetBolt(ecloudMcsAddress),
+        builder.setBolt(readDatasetsBolt, new ReadDatasetsBolt(),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("parseKafkaInput", datasetStream);
+                .shuffleGrouping(parseKafkaInput, datasetStream);
 
-        builder.setBolt("retrieveFileBolt", retrieveFileBolt,
+        builder.setBolt(readDataSetBolt, new ReadDataSetBolt(ecloudMcsAddress),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("parseKafkaInput", fileStream);
+                .shuffleGrouping(readDatasetsBolt);
 
-        builder.setBolt("imageConversionBolt", new IcBolt(),
+
+        builder.setBolt(readRepresentationBolt, new ReadRepresentationBolt(ecloudMcsAddress),
+                ((int) Integer
+                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+                .setNumTasks(
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+                .shuffleGrouping(readDataSetBolt);
+
+        builder.setBolt(RetrieveFileBolt, retrieveFileBolt,
+                ((int) Integer
+                        .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
+                .setNumTasks(
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+                .shuffleGrouping(parseKafkaInput, fileStream).shuffleGrouping(readRepresentationBolt);
+
+        builder.setBolt(imageConversionBolt, new IcBolt(),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IC_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("RetrieveDatasetBolt")
-                .shuffleGrouping("retrieveFileBolt");
+                .shuffleGrouping(RetrieveFileBolt);
 
-        builder.setBolt("writeRecordBolt", writeRecordBolt,
+        builder.setBolt(WriteRecordBolt, writeRecordBolt,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping("imageConversionBolt");
+                .shuffleGrouping(imageConversionBolt);
 
-        builder.setBolt("endBolt", new EndBolt(),
+        builder.setBolt(endBolt, new EndBolt(),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.END_BOLT_PARALLEL))))
-                .shuffleGrouping("writeRecordBolt");
+                .shuffleGrouping(WriteRecordBolt);
 
-        builder.setBolt("notificationBolt",
+        builder.setBolt(notificationBolt,
                 new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD), true),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
-                .fieldsGrouping("parseKafkaInput", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(parseKafkaInput, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(RetrieveFileBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("RetrieveDatasetBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(readDatasetsBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(readDataSetBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(readRepresentationBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping(imageConversionBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(WriteRecordBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(endBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();

@@ -15,7 +15,6 @@ import backtype.storm.tuple.Values;
 import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -38,10 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -51,7 +47,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
@@ -73,7 +69,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         mockImageCS();
         mockDPSDAO();
         mockDatSetClient();
-        mockRepresentation();
         routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
         routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
@@ -152,37 +147,53 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         }
     }
 
-
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
         when(fileServiceClient.useAuthorizationHeader(anyString())).thenReturn(fileServiceClient);
 
         when(recordServiceClient.useAuthorizationHeader(anyString())).thenReturn(recordServiceClient);
         when(dataSetClient.useAuthorizationHeader(anyString())).thenReturn(dataSetClient);
 
-        when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-        Representation representation = new Representation();
+
+        String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
+        when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+        when(fileServiceClient.getFile("http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName")).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+
+
+        List<File> files = new ArrayList<>();
+        files.add(new File("sourceFileName","text/plain", "md5","1",5,new URI(fileUrl)));
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER,files,false,new Date());
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
-        when(dataSetClient.getDataSetRepresentations(anyString(), anyString())).thenReturn(representationList);
-        List<File> files = new ArrayList<>();
-        files.add(new File());
-        when(representation.getFiles()).thenReturn(files);
-        when(fileServiceClient.getFileUri(anyString(), anyString(), anyString(), anyString())).thenReturn(new URI(SOURCE_VERSION_URL));
 
+
+        List<File> files2 = new ArrayList<>();
+        files2.add(new File("sourceFileName","text/plain", "md5","1",5,new URI(fileUrl)));
+        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER,files2,false,new Date());
+        List<Representation> representationList2 = new ArrayList<>();
+        representationList2.add(representation2);
+
+        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
+        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet2")).thenReturn(representationList2);
+
+        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
+        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
 
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
-        when(recordServiceClient.getRepresentation(anyString(), anyString(), anyString())).thenReturn(representation);
+
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(representation2);
+
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
-        doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
-        doNothing().when(recordServiceClient).revokePermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(Permission.class));
     }
 
     private StormTopology buildTopology() {
         // build the test topology
         ReadFileBolt retrieveFileBolt = new ReadFileBolt("");
-        ReadDatasetBolt readDatasetBolt = new ReadDatasetBolt("");
+        ReadDatasetsBolt readDatasetsBolt = new ReadDatasetsBolt();
+        ReadDataSetBolt readDataSetBolt = new ReadDataSetBolt("");
+        ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt("");
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt("");
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
@@ -191,16 +202,25 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
         builder.setSpout(SPOUT, new TestSpout(), 1);
         builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules, null)).shuffleGrouping(SPOUT);
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream);
-        builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
-        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);
+
+
+        builder.setBolt(READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
+        builder.setBolt(READ_DATASET_BOLT, readDataSetBolt).shuffleGrouping(READ_DATASETS_BOLT);
+        builder.setBolt(READ_REPRESENTATION_BOLT, readRepresentationBolt).shuffleGrouping(READ_DATASET_BOLT);
+
+        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream)
+                .shuffleGrouping(READ_REPRESENTATION_BOLT);
+
+        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT);
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
         builder.setBolt(END_BOLT, new EndBolt()).shuffleGrouping(WRITE_RECORD_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(RETRIEVE_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_DATASETS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));

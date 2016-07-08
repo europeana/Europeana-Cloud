@@ -83,7 +83,7 @@ public class XSLTTopology {
                 .shuffleGrouping("kafkaReader");
 
 
-        builder.setBolt("RetrieveDatasetBolt", new ReadDatasetBolt(ecloudMcsAddress),
+        builder.setBolt("RetrieveDatasetBolt", new ReadDatasetsBolt(),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(

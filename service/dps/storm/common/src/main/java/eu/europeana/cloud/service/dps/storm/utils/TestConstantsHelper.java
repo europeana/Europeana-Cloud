@@ -46,7 +46,10 @@ public interface TestConstantsHelper {
     static final String SPOUT = "spout";
     static final String PARSE_TASK_BOLT = "parseTaskBolt";
     static final String RETRIEVE_FILE_BOLT = "retrieveFileBolt";
-    static final String RETRIEVE_DATASET_BOLT = "retrieveDatasetBolt";
+    static final String RETRIEVE_DATASETS_BOLT = "retrieveDatasetBolt";
+    static final String READ_DATASETS_BOLT = "readDatasetsBolt";
+    static final String READ_DATASET_BOLT = "readDatasetBolt";
+    static final String READ_REPRESENTATION_BOLT = "readRepresentationBolt";
     static final String IC_BOLT = "icBolt";
     static final String GRANT_PERMISSIONS_TO_FILE_BOLT = "grantPermissionsToFileBolt";
     static final String REMOVE_PERMISSIONS_TO_FILE_BOLT = "removePermissionsToFileBolt";

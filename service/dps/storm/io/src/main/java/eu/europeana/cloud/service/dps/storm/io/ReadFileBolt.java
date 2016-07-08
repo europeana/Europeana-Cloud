@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import backtype.storm.task.OutputCollector;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.rits.cloning.Cloner;
@@ -10,6 +11,7 @@ import java.util.Date;
 import java.util.Map;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,19 @@ public class ReadFileBolt extends AbstractDpsBolt {
         fileClient = new FileServiceClient(ecloudMcsAddress);
     }
 
-    @Override
+    /**
+     * Should be used only on tests.
+     */
+    public static ReadFileBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
+                                                  FileServiceClient fileClient) {
+        ReadFileBolt instance = new ReadFileBolt(ecloudMcsAddress);
+        instance.outputCollector = outputCollector;
+        instance.fileClient = fileClient;
+        return instance;
+    }
+
+
+        @Override
     public void execute(StormTaskTuple t) {
         String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
@@ -76,7 +90,8 @@ public class ReadFileBolt extends AbstractDpsBolt {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
             try {
                 LOGGER.info("HERE THE LINK: " + file);
-                InputStream is = fileClient.useAuthorizationHeader(authorizationHeader).getFile(file);
+                fileClient.useAuthorizationHeader(authorizationHeader);
+                InputStream is = fileClient.getFile(file);
                 tt.setFileData(is);
                 tt.setFileUrl(file);
                 outputCollector.emit(inputTuple, tt.toStormTuple());
