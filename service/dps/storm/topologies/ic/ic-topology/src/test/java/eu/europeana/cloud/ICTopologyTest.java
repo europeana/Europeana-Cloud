@@ -55,8 +55,8 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = "DATASET_URLS";
+    private final String fileStream = "FILE_URLS";
     Map<String, String> routingRules;
 
 

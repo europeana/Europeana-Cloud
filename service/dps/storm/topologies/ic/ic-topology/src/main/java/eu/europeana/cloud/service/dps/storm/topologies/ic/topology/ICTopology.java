@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
@@ -41,8 +42,8 @@ public class ICTopology {
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
     public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = DpsTask.DATASET_URLS;
+    private final String fileStream = DpsTask.FILE_URLS;
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();

@@ -7,6 +7,7 @@ import backtype.storm.utils.Utils;
 
 import static eu.europeana.cloud.service.dps.examples.tutorial.TopologyConstants.*;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -16,13 +17,22 @@ import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author lucasanastasiou
  */
 public class ConvertTopology {
+    private final static String datasetStream = "DATASET_URLS";
+    private final static String fileStream = "FILE_URLS";
 
     public static void main(String args[]) {
         TopologyBuilder builder = new TopologyBuilder();
+
+        Map<String, String> routingRules = new HashMap<>();
+        routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
+        routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
 
         // entry spout
         BrokerHosts brokerHosts = new ZkHosts(ZOOKEEPER_LOCATION);
@@ -30,7 +40,7 @@ public class ConvertTopology {
         builder.setSpout("KafkaSpout", new KafkaSpout(spoutConf), 1);
 
         //bolt 1
-        builder.setBolt("ParseDpsTask", new ParseTaskBolt(), 1)
+        builder.setBolt("ParseDpsTask", new ParseTaskBolt(routingRules), 1)
                 .shuffleGrouping("KafkaSpout");
 
         //bolt 2
