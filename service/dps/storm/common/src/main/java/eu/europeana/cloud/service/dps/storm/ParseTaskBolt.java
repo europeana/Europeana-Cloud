@@ -39,26 +39,22 @@ public class ParseTaskBolt extends BaseRichBolt {
     public static final String NOTIFICATION_STREAM_NAME = AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
     public final Map<String, String> routingRules;
-    private final Map<String, String> prerequisites;
 
     /**
      * Constructor for ParseTaskBolt without routing and conditions.
      */
     public ParseTaskBolt() {
-        this(null, null);
+        this(null);
     }
 
     /**
      * Constructor for ParseTaskBolt with routing.
      * Task is dropped if TaskName is not in routingRules.
      *
-     * @param routingRules  routing table in the form ("TaskName": "StreamName")
-     * @param prerequisites Necessary parameters in DpsTask for continue. ("ParameterName": "CaseInsensitiveValue" or null if value is not important)
-     *                      If parameter name is set in this structure and is not set in DpsTask or has a different value, than DpsTask will be dropped.
+     * @param routingRules routing table in the form ("TaskName": "StreamName")
      */
-    public ParseTaskBolt(Map<String, String> routingRules, Map<String, String> prerequisites) {
+    public ParseTaskBolt(Map<String, String> routingRules) {
         this.routingRules = routingRules;
-        this.prerequisites = prerequisites;
     }
 
     @Override
@@ -102,11 +98,6 @@ public class ParseTaskBolt extends BaseRichBolt {
             String fileUrl = taskParameters.get(PluginParameterKeys.FILE_URL);
             if (fileUrl != null && !fileUrl.isEmpty()) {
                 stormTaskTuple.setFileUrl(fileUrl);
-            }
-
-            String fileData = taskParameters.get(PluginParameterKeys.FILE_DATA);
-            if (fileData != null && !fileData.isEmpty()) {
-                stormTaskTuple.setFileData(fileData.getBytes(Charset.forName("UTF-8")));
             }
         }
         //add data from InputData as a parameter

@@ -67,7 +67,7 @@ public class ICTopology {
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
+        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(

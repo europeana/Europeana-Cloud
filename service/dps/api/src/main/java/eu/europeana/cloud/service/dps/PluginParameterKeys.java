@@ -65,9 +65,6 @@ public final class PluginParameterKeys {
     public static final String EXPECTED_SIZE = "EXPECTED_SIZE";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
 
-
-    public static final String TASK_SUBMITTER_NAME = "TASK_SUBMITTER_NAME";
-
     public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {
