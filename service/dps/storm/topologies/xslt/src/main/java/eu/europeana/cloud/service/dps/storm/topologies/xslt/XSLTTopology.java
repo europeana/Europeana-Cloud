@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import org.slf4j.Logger;
@@ -42,8 +43,8 @@ public class XSLTTopology {
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
     public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = DpsTask.DATASET_URLS;
+    private final String fileStream = DpsTask.FILE_URLS;
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -72,7 +73,7 @@ public class XSLTTopology {
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
+        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(

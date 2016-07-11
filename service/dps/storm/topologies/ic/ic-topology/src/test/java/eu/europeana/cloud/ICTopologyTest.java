@@ -55,8 +55,8 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = "DATASET_URLS";
+    private final String fileStream = "FILE_URLS";
     Map<String, String> routingRules;
 
 
@@ -90,8 +90,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-                "\"TASK_SUBMITTER_NAME\":\"user\"}," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
         MkClusterParam mkClusterParam = prepareMKClusterParm();
@@ -121,8 +120,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-                "\"TASK_SUBMITTER_NAME\":\"user\"}," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
         MkClusterParam mkClusterParam = prepareMKClusterParm();
@@ -186,7 +184,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(SPOUT, new TestSpout(), 1);
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules, null)).shuffleGrouping(SPOUT);
+        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules)).shuffleGrouping(SPOUT);
         builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream);
         builder.setBolt(RETRIEVE_DATASET_BOLT, readDatasetBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
         builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT).shuffleGrouping(RETRIEVE_DATASET_BOLT);

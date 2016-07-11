@@ -31,34 +31,20 @@ public class ParseTaskBolt extends BaseRichBolt {
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseTaskBolt.class);
 
     public static final String NOTIFICATION_STREAM_NAME = AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 
     public final Map<String, String> routingRules;
-    private final Map<String, String> prerequisites;
-
-    /**
-     * Constructor for ParseTaskBolt without routing and conditions.
-     */
-    public ParseTaskBolt() {
-        this(null, null);
-    }
 
     /**
      * Constructor for ParseTaskBolt with routing.
      * Task is dropped if TaskName is not in routingRules.
      *
-     * @param routingRules  routing table in the form ("TaskName": "StreamName")
-     * @param prerequisites Necessary parameters in DpsTask for continue. ("ParameterName": "CaseInsensitiveValue" or null if value is not important)
-     *                      If parameter name is set in this structure and is not set in DpsTask or has a different value, than DpsTask will be dropped.
+     * @param routingRules routing table in the form ("TaskName": "StreamName")
      */
-    public ParseTaskBolt(Map<String, String> routingRules, Map<String, String> prerequisites) {
+    public ParseTaskBolt(Map<String, String> routingRules) {
         this.routingRules = routingRules;
-        this.prerequisites = prerequisites;
     }
 
     @Override
@@ -92,50 +78,27 @@ public class ParseTaskBolt extends BaseRichBolt {
             outputCollector.ack(tuple);
             return;
         }
+        Date startTime = new Date();
 
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 task.getTaskId(),
                 task.getTaskName(),
                 null, null, taskParameters);
-
-        if (taskParameters != null) {
-            String fileUrl = taskParameters.get(PluginParameterKeys.FILE_URL);
-            if (fileUrl != null && !fileUrl.isEmpty()) {
-                stormTaskTuple.setFileUrl(fileUrl);
-            }
-
-            String fileData = taskParameters.get(PluginParameterKeys.FILE_DATA);
-            if (fileData != null && !fileData.isEmpty()) {
-                stormTaskTuple.setFileData(fileData.getBytes(Charset.forName("UTF-8")));
-            }
-        }
-        //add data from InputData as a parameter
-        Map<String, List<String>> inputData = task.getInputData();
-        if (inputData != null && !inputData.isEmpty()) {
-            Type type = new TypeToken<Map<String, List<String>>>() {
-            }.getType();
-            stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, new Gson().toJson(inputData, type));
-        }
-        Date startTime = new Date();
-        //use specific streams or default strem?
-        if (routingRules != null) {
-            String stream = getStream(task);
-            if (stream != null) {
-                updateTask(task.getTaskId(), "", TaskState.CURRENTLY_PROCESSING, startTime);
-                outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
-            } else {
-                String message = "The taskType is not recognised!";
-                LOGGER.warn(message);
-                emitDropNotification(task.getTaskId(), "", message,
-                        taskParameters != null ? taskParameters.toString() : "");
-                endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
-            }
-        } else {
+        String stream = getStream(task);
+        if (stream != null) {
+            String dataEntry = convertListToString(task.getDataEntry(stream));
+            stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
             updateTask(task.getTaskId(), "", TaskState.CURRENTLY_PROCESSING, startTime);
-            outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
+            outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
+        } else {
+            String message = "The taskType is not recognised!";
+            LOGGER.warn(message);
+            emitDropNotification(task.getTaskId(), "", message,
+                    taskParameters != null ? taskParameters.toString() : "");
+            endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
         }
-        outputCollector.ack(tuple);
 
+        outputCollector.ack(tuple);
     }
 
     private void emitDropNotification(long taskId, String resource,
@@ -157,12 +120,17 @@ public class ParseTaskBolt extends BaseRichBolt {
     }
 
     private String getStream(DpsTask task) {
-        String stream = null;
         if (task.getInputData().get(DpsTask.FILE_URLS) != null)
-            stream = fileStream;
+            return DpsTask.FILE_URLS;
         else if (task.getInputData().get(DpsTask.DATASET_URLS) != null)
-            stream = datasetStream;
-        return stream;
+            return DpsTask.DATASET_URLS;
+        return null;
+
+    }
+
+    private String convertListToString(List<String> list) {
+        String listString = list.toString();
+        return listString.substring(1, listString.length() - 1);
 
     }
 

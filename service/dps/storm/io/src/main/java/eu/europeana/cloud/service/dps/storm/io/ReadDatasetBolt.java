@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,19 +53,13 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     @Override
     public void execute(StormTaskTuple t) {
         //try data from DPS task
-        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
 
-        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
-            Type type = new TypeToken<Map<String, List<String>>>() {
-            }.getType();
-            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-            if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
-                List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
-                if (!datasets.isEmpty()) {
-                    emitFilesFromDataSets(t, datasets);
-                    return;
-                }
-            }
+        Map<String, String> parameters = t.getParameters();
+        List<String> dataSets = Arrays.asList(parameters.get(PluginParameterKeys.DPS_TASK_INPUT_DATA).split("\\s*,\\s*"));
+        if (dataSets != null && !dataSets.isEmpty()) {
+            t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            emitFilesFromDataSets(t, dataSets);
+            return;
         } else {
             String message = "No dataset were provided";
             LOGGER.warn(message);
@@ -80,11 +72,11 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
-        fileClient = new FileServiceClient(ecloudMcsAddress);
     }
 
     private void emitFilesFromDataSets(StormTaskTuple t, List<String> dataSets) {
+        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
         String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         fileClient.useAuthorizationHeader(authorizationHeader);

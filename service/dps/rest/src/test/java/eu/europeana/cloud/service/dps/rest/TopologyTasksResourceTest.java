@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -12,7 +11,6 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,7 +73,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         String topologyName = "ic_topology";
@@ -94,7 +91,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         String topologyName = "ic_topology";

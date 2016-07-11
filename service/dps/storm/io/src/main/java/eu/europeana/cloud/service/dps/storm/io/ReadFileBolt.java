@@ -6,8 +6,7 @@ import com.rits.cloning.Cloner;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -21,7 +20,6 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.DpsTask;
 
 import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
@@ -43,23 +41,17 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress);
+
     }
 
     @Override
     public void execute(StormTaskTuple t) {
-        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
-            Type type = new TypeToken<Map<String, List<String>>>() {
-            }.getType();
-            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-            if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
-                List<String> files = fromJson.get(DpsTask.FILE_URLS);
-                if (!files.isEmpty()) {
-                    emitFiles(t, files);
-                    return;
-                }
-            }
+        Map<String, String> parameters = t.getParameters();
+        List<String> files = Arrays.asList(parameters.get(PluginParameterKeys.DPS_TASK_INPUT_DATA).split("\\s*,\\s*"));
+        if (files != null && !files.isEmpty()) {
+            t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            emitFiles(t, files);
+            return;
         } else {
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
@@ -72,6 +64,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
         String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        fileClient = new FileServiceClient(ecloudMcsAddress);
         fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!
