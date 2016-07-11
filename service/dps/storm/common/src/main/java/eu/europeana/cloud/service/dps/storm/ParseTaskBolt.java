@@ -94,12 +94,6 @@ public class ParseTaskBolt extends BaseRichBolt {
                 task.getTaskName(),
                 null, null, taskParameters);
 
-        if (taskParameters != null) {
-            String fileUrl = taskParameters.get(PluginParameterKeys.FILE_URL);
-            if (fileUrl != null && !fileUrl.isEmpty()) {
-                stormTaskTuple.setFileUrl(fileUrl);
-            }
-        }
         //add data from InputData as a parameter
         Map<String, List<String>> inputData = task.getInputData();
         if (inputData != null && !inputData.isEmpty()) {

@@ -64,6 +64,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
                 List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
                 if (!datasets.isEmpty()) {
+                    t.getParameters().remove("DPS_TASK_INPUT_DATA");
                     emitFilesFromDataSets(t, datasets);
                     return;
                 }

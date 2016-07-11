@@ -56,6 +56,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             if (fromJson != null && fromJson.containsKey(DpsTask.FILE_URLS)) {
                 List<String> files = fromJson.get(DpsTask.FILE_URLS);
                 if (!files.isEmpty()) {
+                    t.getParameters().remove("DPS_TASK_INPUT_DATA");
                     emitFiles(t, files);
                     return;
                 }
