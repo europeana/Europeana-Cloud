@@ -51,11 +51,8 @@ public interface TestConstantsHelper {
     static final String READ_DATASET_BOLT = "readDatasetBolt";
     static final String READ_REPRESENTATION_BOLT = "readRepresentationBolt";
     static final String IC_BOLT = "icBolt";
-    static final String GRANT_PERMISSIONS_TO_FILE_BOLT = "grantPermissionsToFileBolt";
-    static final String REMOVE_PERMISSIONS_TO_FILE_BOLT = "removePermissionsToFileBolt";
-    static final String END_BOLT = "endBolt";
     static final String NOTIFICATION_BOLT = "notificationBolt";
     static final String TEST_END_BOLT = "testEndBolt";
-    static final List<String> PRINT_ORDER = Arrays.asList(SPOUT, PARSE_TASK_BOLT, RETRIEVE_FILE_BOLT, IC_BOLT, WRITE_RECORD_BOLT, GRANT_PERMISSIONS_TO_FILE_BOLT, REMOVE_PERMISSIONS_TO_FILE_BOLT, END_BOLT, NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(SPOUT, PARSE_TASK_BOLT, RETRIEVE_FILE_BOLT,RETRIEVE_DATASET_BOLT, IC_BOLT, WRITE_RECORD_BOLT, NOTIFICATION_BOLT, TEST_END_BOLT);
 
 }

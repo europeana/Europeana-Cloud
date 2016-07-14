@@ -47,12 +47,13 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class, EndBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class,  NotificationBolt.class})
+
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = "DATASET_URLS";
+    private final String fileStream = "FILE_URLS";
     Map<String, String> routingRules;
 
 
@@ -85,8 +86,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-                "\"TASK_SUBMITTER_NAME\":\"user\"}," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
         MkClusterParam mkClusterParam = prepareMKClusterParm();
@@ -116,8 +116,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 "\"parameters\":" +
                 "{\"MIME_TYPE\":\"image/tiff\"," +
                 "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-                "\"TASK_SUBMITTER_NAME\":\"user\"}," +
+                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
                 "\"taskId\":1," +
                 "\"taskName\":\"taskName\"}";
         MkClusterParam mkClusterParam = prepareMKClusterParm();
@@ -148,20 +147,18 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     }
 
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
-        when(fileServiceClient.useAuthorizationHeader(anyString())).thenReturn(fileServiceClient);
-
-        when(recordServiceClient.useAuthorizationHeader(anyString())).thenReturn(recordServiceClient);
-        when(dataSetClient.useAuthorizationHeader(anyString())).thenReturn(dataSetClient);
-
 
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-        when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-        when(fileServiceClient.getFile("http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName")).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-
 
         List<File> files = new ArrayList<>();
         files.add(new File("sourceFileName","text/plain", "md5","1",5,new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER,files,false,new Date());
+
+        doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
+        when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
 
@@ -182,10 +179,10 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(representation2);
-
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+
     }
 
     private StormTopology buildTopology() {
@@ -201,7 +198,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(SPOUT, new TestSpout(), 1);
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules, null)).shuffleGrouping(SPOUT);
+        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules)).shuffleGrouping(SPOUT);
 
 
         builder.setBolt(READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
@@ -213,8 +210,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
         builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT);
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
-        builder.setBolt(END_BOLT, new EndBolt()).shuffleGrouping(WRITE_RECORD_BOLT);
-        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
         builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
@@ -222,9 +218,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 .fieldsGrouping(READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
-
+                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         StormTopology topology = builder.createTopology();
         return topology;
@@ -249,7 +243,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         //then
         printDefaultStreamTuples(result);
 
-        String actual = parse(Testing.readTuples(result, END_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
+        String actual = parse(Testing.readTuples(result, WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
         assertEquals(expectedTuple, actual, true);
     }
 }

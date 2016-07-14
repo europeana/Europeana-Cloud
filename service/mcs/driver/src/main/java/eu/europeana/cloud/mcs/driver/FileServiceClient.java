@@ -94,18 +94,18 @@ public class FileServiceClient extends MCSClient {
         Builder requset = target.request();
 
         Response response = null;
-                
-        try{
+
+        try {
             response = requset.get();
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 InputStream contentResponse = response.readEntity(InputStream.class);
-                
+
                 return copiedInputStream(contentResponse);
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
-        }finally {
+        } finally {
             closeResponse(response);
         }
     }
@@ -501,9 +501,8 @@ public class FileServiceClient extends MCSClient {
      * @param headerValue authorization header value
      * @return
      */
-    public FileServiceClient useAuthorizationHeader(final String headerValue){
+    public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-        return this;
     }
 
     private InputStream copiedInputStream(InputStream originIS) throws IOException {
@@ -516,13 +515,13 @@ public class FileServiceClient extends MCSClient {
         buffer.flush();
         return new ByteArrayInputStream(buffer.toByteArray());
     }
-    
+
     private void closeResponse(Response response) {
         if (response != null) {
             response.close();
         }
     }
-    
+
     @Override
     protected void finalize() throws Throwable {
         client.close();

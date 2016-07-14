@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import org.slf4j.Logger;
@@ -17,11 +18,9 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-//import eu.europeana.cloud.service.dps.storm.ProgressBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
@@ -44,8 +43,8 @@ public class XSLTTopology {
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
     public static final Logger LOGGER = LoggerFactory.getLogger(XSLTTopology.class);
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+    private final String datasetStream = DpsTask.DATASET_URLS;
+    private final String fileStream = DpsTask.FILE_URLS;
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -53,8 +52,7 @@ public class XSLTTopology {
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public StormTopology buildTopology(String dpsZkAddress, String xsltTopic, String ecloudMcsAddress, String username,
-                                       String password) {
+    public StormTopology buildTopology(String xsltTopic, String ecloudMcsAddress) {
 
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
@@ -75,7 +73,7 @@ public class XSLTTopology {
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
 
-        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules, null),
+        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
@@ -110,10 +108,6 @@ public class XSLTTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
                 .shuffleGrouping("xsltTransformationBolt");
 
-        builder.setBolt("endBolt", new EndBolt(),
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.END_BOLT_PARALLEL))))
-                .shuffleGrouping("writeRecordBolt");
-
         builder.setBolt("notificationBolt",
                 new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
@@ -130,13 +124,7 @@ public class XSLTTopology {
                 .fieldsGrouping("xsltTransformationBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("endBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
-
-        // builder.setBolt("progressBolt", progressBolt,
-        // 1).setNumTasks(1).shuffleGrouping("writeRecordBolt");
-        // END OF TOPOLOGY STRUCTURE
 
         return builder.createTopology();
     }
@@ -160,12 +148,10 @@ public class XSLTTopology {
             String kafkaTopic = topologyName;
 
             String ecloudMcsAddress = topologyProperties.getProperty(TopologyPropertyKeys.MCS_URL);
-            String username = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_NAME);
-            String password = topologyProperties.getProperty(TopologyPropertyKeys.MCS_USER_PASS);
 
             StormTopology stormTopology = XsltTopology.buildTopology(
-                    topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS), kafkaTopic,
-                    ecloudMcsAddress, username, password);
+                    kafkaTopic,
+                    ecloudMcsAddress);
 
             config.setNumWorkers(Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WORKER_COUNT)));
             config.setMaxTaskParallelism(

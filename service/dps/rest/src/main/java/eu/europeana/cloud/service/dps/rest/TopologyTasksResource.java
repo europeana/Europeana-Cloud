@@ -15,8 +15,8 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.dps.utils.permissionmanager.FilesCounterFactory;
-import eu.europeana.cloud.service.dps.utils.permissionmanager.FilesCounter;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +84,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
+
+    @Autowired
+    private FilesCounterFactory filesCounterFactory;
 
 
     private final static String TOPOLOGY_PREFIX = "Topology";
@@ -420,7 +423,6 @@ public class TopologyTasksResource {
      * @return The number of files inside the task.
      */
     private int getFilesCountInsideTask(DpsTask submittedTask, String authorizationHeader) throws TaskSubmissionException {
-        FilesCounterFactory filesCounterFactory = new FilesCounterFactory(context);
         String taskType = getTaskType(submittedTask);
         FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
         int recordsInsideTask = filesCounter.getFilesCount(submittedTask, authorizationHeader);

@@ -24,7 +24,6 @@ import backtype.storm.utils.Utils;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.index.SupportedIndexers;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
@@ -96,9 +95,7 @@ public class IndexerTopology
                 .shuffleGrouping("MergeDocuments")
                 .shuffleGrouping("RetrieveFile");
 
-        builder.setBolt("EndBolt", new EndBolt(), IndexerConstants.END_BOLT_PARALLEL)
-                .shuffleGrouping("IndexBolt");
-        
+
         builder.setBolt("NotificationBolt", new NotificationBolt(IndexerConstants.CASSANDRA_HOSTS, 
                             IndexerConstants.CASSANDRA_PORT, IndexerConstants.CASSANDRA_KEYSPACE_NAME,
                             IndexerConstants.CASSANDRA_USERNAME, IndexerConstants.CASSANDRA_PASSWORD, true), 
@@ -106,8 +103,7 @@ public class IndexerTopology
                 .fieldsGrouping("ParseDpsTask", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("MergeDocuments", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("RetrieveFile", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("IndexBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping("EndBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+                .fieldsGrouping("IndexBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         return builder.createTopology();
     }

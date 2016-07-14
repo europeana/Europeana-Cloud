@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
@@ -18,7 +19,6 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.EndBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
@@ -42,8 +42,7 @@ public class ICTopology {
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
     public static final Logger LOGGER = LoggerFactory.getLogger(ICTopology.class);
-    private final String datasetStream = "DATASET_STREAM";
-    private final String fileStream = "FILE_STREAM";
+
     private final String kafkaReader = "kafkaReader";
     private final String parseKafkaInput = "parseKafkaInput";
     private final String readDatasetsBolt = "RetrieveDatasetBolt";
@@ -54,6 +53,9 @@ public class ICTopology {
     private final String notificationBolt = "notificationBolt";
     private final String readDataSetBolt = "ReadDataSetBolt";
     private final String readRepresentationBolt = "ReadRepresentationBolt";
+
+    private final String datasetStream = DpsTask.DATASET_URLS;
+    private final String fileStream = DpsTask.FILE_URLS;
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -77,8 +79,7 @@ public class ICTopology {
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))));
-
-        builder.setBolt(parseKafkaInput, new ParseTaskBolt(routingRules, null),
+        builder.setBolt("parseKafkaInput", new ParseTaskBolt(routingRules),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
@@ -126,12 +127,8 @@ public class ICTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
                 .shuffleGrouping(imageConversionBolt);
 
-        builder.setBolt(endBolt, new EndBolt(),
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.END_BOLT_PARALLEL))))
-                .shuffleGrouping(WriteRecordBolt);
 
-        builder.setBolt(notificationBolt,
-                new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+        builder.setBolt(notificationBolt, new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
@@ -149,10 +146,9 @@ public class ICTopology {
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(imageConversionBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(WriteRecordBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(endBolt, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                .fieldsGrouping("writeRecordBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
+
 
         return builder.createTopology();
     }

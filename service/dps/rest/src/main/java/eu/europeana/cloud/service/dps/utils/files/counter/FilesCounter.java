@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.utils.permissionmanager;
+package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -15,12 +15,6 @@ import java.util.List;
  * Created by Tarek on 4/6/2016.
  */
 public abstract class FilesCounter {
-    protected ApplicationContext context;
-
-    protected FilesCounter(ApplicationContext context) {
-        this.context = context;
-    }
-
     /**
      * @return The number of records inside the task.
      */

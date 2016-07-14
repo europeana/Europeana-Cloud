@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.utils.permissionmanager;
+package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -21,21 +21,22 @@ import java.util.List;
  * File counters inside a dataset task
  */
 public class DatasetFilesCounter extends FilesCounter {
+    private DataSetServiceClient dataSetServiceClient;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
-    DatasetFilesCounter(ApplicationContext context) {
-        super(context);
+    DatasetFilesCounter(DataSetServiceClient dataSetServiceClient) {
+        this.dataSetServiceClient = dataSetServiceClient;
     }
 
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
         int size = 0;
         List<String> dataSets = task.getInputData().get(DpsTask.DATASET_URLS);
         String representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-        DataSetServiceClient dataSetServiceClient = context.getBean(DataSetServiceClient.class);
+        dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
         for (String dataSet : dataSets) {
             try {
                 UrlParser urlParser = new UrlParser(dataSet);
-                List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
+                List<Representation> representations = dataSetServiceClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
                         urlParser.getPart(UrlPart.DATA_SETS));
                 for (Representation representation : representations) {
                     if (representationName == null || representation.getRepresentationName().equals(representationName)) {

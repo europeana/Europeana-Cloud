@@ -489,9 +489,9 @@ public class DataSetServiceClient extends MCSClient {
         }
     }
 
-    public DataSetServiceClient useAuthorizationHeader(final String headerValue) {
+    public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-        return this;
+
     }
 
     
