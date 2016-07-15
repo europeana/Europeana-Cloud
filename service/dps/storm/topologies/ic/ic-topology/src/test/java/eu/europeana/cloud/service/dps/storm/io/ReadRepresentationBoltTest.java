@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -40,17 +41,15 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-    private final String FILE_URL2 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName2";
-    private final byte[] FILE_DATA = "Data".getBytes();
+    private final byte[] FILE_DATA = null;
     private FileServiceClient fileClient;
-
 
 
     @Before
     public void init() {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
-        instance = getTestInstance("URL", oc, fileClient);
+        instance = getTestInstance("http://localhost:8080/mcs", oc, fileClient);
     }
 
     @Captor
@@ -59,78 +58,40 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        List<Representation> representationList = prepareRepresentationList();
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representationList));
+        Representation representation = prepareRepresentation();
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation));
 
 
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID,SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
+        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
 
         //when
         instance.execute(tuple);
         //then
 
-        String exptectedFileUrls = "{\"FILE_URLS\":[\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\"]}";
+        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertRepresentation(exptectedFileUrls, allValues, 0);
+        assertFile(exptectedFileUrl, allValues);
         verifyNoMoreInteractions(oc);
     }
 
-    @Test
-    public void successfulExecuteStormTupleWithTwoFiles() throws MCSException, URISyntaxException {
-        //given
-        List<Representation> representationList = prepareRepresentationListWithTwoFiles();
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representationList));
-
-
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID,SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID,SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE + 2)).thenReturn(new URI(FILE_URL2));
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
-        //when
-        instance.execute(tuple);
-        //then
-
-        String exptectedFileUrls = "{\"FILE_URLS\":[\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\"]}";
-        String exptectedFileUrls2 = "{\"FILE_URLS\":[\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName2\"]}";
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), is(2));
-        List<Values> allValues = captor.getAllValues();
-        assertRepresentation(exptectedFileUrls, allValues, 0);
-        assertRepresentation(exptectedFileUrls2, allValues, 1);
-        verifyNoMoreInteractions(oc);
-    }
-
-    private List<Representation> prepareRepresentationList() throws URISyntaxException {
+    private Representation prepareRepresentation() throws URISyntaxException {
         List<File> files = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER,files,false,new Date());
-        List<Representation> representationList = new ArrayList<>();
-        representationList.add(representation);
-        return representationList;
-    }
-
-    private List<Representation> prepareRepresentationListWithTwoFiles() throws URISyntaxException {
-        List<File> files = new ArrayList<>();
-        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
-        files.add(new File("sourceFileName2", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER,files,false,new Date());
-        List<Representation> representationList = new ArrayList<>();
-        representationList.add(representation);
-        return representationList;
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
+        return representation;
     }
 
 
-    private void assertRepresentation(String expectedRepresentation, List<Values> allValues, int index) {
-        String representationJson = ((Map<String, String>) allValues.get(index).get(4)).get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        assertThat(representationJson,is(expectedRepresentation));
+    private void assertFile(String expectedFileUrl, List<Values> allValues) {
+        String fileUrl = ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+        assertThat(fileUrl, is(expectedFileUrl));
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters(List<Representation> representation) {
+    private HashMap<String, String> prepareStormTaskTupleParameters(Representation representation) {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER,"AUTHORIZATION_HEADER");
         String RepresentationsJson = new Gson().toJson(representation);
         parameters.put(PluginParameterKeys.REPRESENTATION, RepresentationsJson);
         return parameters;

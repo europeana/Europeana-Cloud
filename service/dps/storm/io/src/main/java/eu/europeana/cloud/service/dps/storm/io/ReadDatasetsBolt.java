@@ -45,24 +45,16 @@ public class ReadDatasetsBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        //try data from DPS task
-        String dpsTaskInputData = t.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-
-        if (dpsTaskInputData != null && !dpsTaskInputData.isEmpty()) {
-            Type type = new TypeToken<Map<String, List<String>>>() {
-            }.getType();
-            Map<String, List<String>> fromJson = (Map<String, List<String>>) new Gson().fromJson(dpsTaskInputData, type);
-            if (fromJson != null && fromJson.containsKey(DpsTask.DATASET_URLS)) {
-                List<String> datasets = fromJson.get(DpsTask.DATASET_URLS);
-                if (!datasets.isEmpty()) {
-                    emitSingleDataSetFromDataSets(t, datasets);
-                    return;
-                }
-            }
+        Map<String, String> parameters = t.getParameters();
+        List<String> datasets = Arrays.asList(parameters.get(PluginParameterKeys.DPS_TASK_INPUT_DATA).split("\\s*,\\s*"));
+        if (datasets != null && !datasets.isEmpty()) {
+            t.getParameters().remove(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            emitSingleDataSetFromDataSets(t, datasets);
+            return;
         } else {
-            String message = "No dataset were provided";
+            String message = "No URL to retrieve dataset.";
             LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
+            emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
             endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
@@ -71,17 +63,10 @@ public class ReadDatasetsBolt extends AbstractDpsBolt {
 
     private void emitSingleDataSetFromDataSets(StormTaskTuple t, List<String> dataSets) {
         for (String dataSet : dataSets) {
-            StormTaskTuple next = buildStormTaskTuple(t, dataSet);
-            outputCollector.emit(inputTuple, next.toStormTuple());
+            StormTaskTuple stormTaskTuple = new Cloner().deepClone(t);
+            stormTaskTuple.getParameters().put(PluginParameterKeys.DATASET_URL, dataSet);
+            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
         }
-    }
-
-    private StormTaskTuple buildStormTaskTuple(StormTaskTuple t, String dataSet) {
-        StormTaskTuple stormTaskTuple = new Cloner().deepClone(t);
-        Map<String, List<String>> dpsTaskInputData = new HashMap<>();
-        dpsTaskInputData.put(DpsTask.DATASET_URLS, Arrays.asList(dataSet));
-        stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, new Gson().toJson(dpsTaskInputData));
-        return stormTaskTuple;
     }
 }
 

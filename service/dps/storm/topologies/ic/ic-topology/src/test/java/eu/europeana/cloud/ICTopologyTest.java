@@ -22,6 +22,7 @@ import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.tika.mime.MimeTypeException;
 import org.json.JSONException;
@@ -47,7 +48,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class,  NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
 
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
@@ -96,7 +97,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 StormTopology topology = buildTopology();
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
-                mockedSources.addMockData(SPOUT, new Values(input));
+                mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
                 String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
 
@@ -127,7 +128,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 StormTopology topology = buildTopology();
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
-                mockedSources.addMockData(SPOUT, new Values(input));
+                mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
 
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
 
@@ -149,34 +150,29 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
 
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-
-        List<File> files = new ArrayList<>();
-        files.add(new File("sourceFileName","text/plain", "md5","1",5,new URI(fileUrl)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER,files,false,new Date());
-
         doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
         when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
 
+        List<File> files = new ArrayList<>();
+        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
+
+
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
-
-
         List<File> files2 = new ArrayList<>();
-        files2.add(new File("sourceFileName","text/plain", "md5","1",5,new URI(fileUrl)));
-        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER,files2,false,new Date());
+        files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
+        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, false, new Date());
         List<Representation> representationList2 = new ArrayList<>();
         representationList2.add(representation2);
 
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet2")).thenReturn(representationList2);
-
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
-
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
-
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(representation2);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
@@ -197,28 +193,24 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout(SPOUT, new TestSpout(), 1);
-        builder.setBolt(PARSE_TASK_BOLT, new ParseTaskBolt(routingRules)).shuffleGrouping(SPOUT);
-
-
-        builder.setBolt(READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(PARSE_TASK_BOLT, datasetStream);
-        builder.setBolt(READ_DATASET_BOLT, readDataSetBolt).shuffleGrouping(READ_DATASETS_BOLT);
-        builder.setBolt(READ_REPRESENTATION_BOLT, readRepresentationBolt).shuffleGrouping(READ_DATASET_BOLT);
-
-        builder.setBolt(RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(PARSE_TASK_BOLT, fileStream)
-                .shuffleGrouping(READ_REPRESENTATION_BOLT);
-
-        builder.setBolt(IC_BOLT, new IcBolt()).shuffleGrouping(RETRIEVE_FILE_BOLT);
-        builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(IC_BOLT);
-        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
-        builder.setBolt(NOTIFICATION_BOLT, notificationBolt)
-                .fieldsGrouping(PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(READ_DATASETS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
-                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
+        builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
+        builder.setBolt(TopologyHelper.PARSE_TASK_BOLT, new ParseTaskBolt(routingRules)).shuffleGrouping(TopologyHelper.SPOUT);
+        builder.setBolt(TopologyHelper.READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, datasetStream);
+        builder.setBolt(TopologyHelper.READ_DATASET_BOLT, readDataSetBolt).shuffleGrouping(TopologyHelper.READ_DATASETS_BOLT);
+        builder.setBolt(TopologyHelper.READ_REPRESENTATION_BOLT, readRepresentationBolt).shuffleGrouping(TopologyHelper.READ_DATASET_BOLT);
+        builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, fileStream)
+                .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
+        builder.setBolt(TopologyHelper.IC_BOLT, new IcBolt()).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
+        builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.IC_BOLT);
+        builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+        builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
+                .fieldsGrouping(TopologyHelper.PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.READ_DATASETS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         StormTopology topology = builder.createTopology();
         return topology;
@@ -243,7 +235,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         //then
         printDefaultStreamTuples(result);
 
-        String actual = parse(Testing.readTuples(result, WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
+        String actual = parse(Testing.readTuples(result, TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
         assertEquals(expectedTuple, actual, true);
     }
 }

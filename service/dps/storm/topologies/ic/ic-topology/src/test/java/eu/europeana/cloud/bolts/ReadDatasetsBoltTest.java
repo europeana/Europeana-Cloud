@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.ReadDatasetsBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -32,7 +33,6 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-    private final String FILE_URL2 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName2";
     private final byte[] FILE_DATA = "Data".getBytes();
 
 
@@ -45,7 +45,7 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        String dataSetUrls = "{\"DATASET_URLS\":[\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"]}";
+        String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
 
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
@@ -54,11 +54,11 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
         instance.execute(tuple);
         //then
 
-        String expectedDataSetUrls = "{\"DATASET_URLS\":[\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"]}";
+        String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertDpsTaskInputData(expectedDataSetUrls, allValues, 0);
+        assertDpsTaskInputData(expectedDataSetUrl, allValues, 0);
         verifyNoMoreInteractions(oc);
 
     }
@@ -69,8 +69,7 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
     @Test
     public void successfulExecuteStormTupleProcessingDataSets() throws MCSException, URISyntaxException {
         //given
-        String dataSetUrls = "{\"DATASET_URLS\":[\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
-                "\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2\"]}";
+        String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet,http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
 
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
@@ -79,19 +78,19 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
         instance.execute(tuple);
 
         //then
-        String expectedDataSetUrls = "{\"DATASET_URLS\":[\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"]}";
-        String expectedDataSetUrls2 = "{\"DATASET_URLS\":[\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2\"]}";
+        String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
+        String expectedDataSetUrl2 = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
         verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(2));
         List<Values> allValues = captor.getAllValues();
-        assertDpsTaskInputData(expectedDataSetUrls, allValues, 0);
-        assertDpsTaskInputData(expectedDataSetUrls2, allValues, 1);
+        assertDpsTaskInputData(expectedDataSetUrl, allValues, 0);
+        assertDpsTaskInputData(expectedDataSetUrl2, allValues, 1);
         verifyNoMoreInteractions(oc);
     }
 
-    private void assertDpsTaskInputData(String expectedDataSetUrls, List<Values> allValues, int index) {
-        String dpsTaskInputData = ((Map<String, String>) allValues.get(index).get(4)).get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        assertThat(dpsTaskInputData, is(expectedDataSetUrls));
+    private void assertDpsTaskInputData(String expectedDataSetUrl, List<Values> allValues, int index) {
+        String dpsTaskInputData = ((Map<String, String>) allValues.get(index).get(4)).get(PluginParameterKeys.DATASET_URL);
+        assertThat(dpsTaskInputData, is(expectedDataSetUrl));
     }
 
     private HashMap<String, String> prepareStormTaskTupleParameters(String dataSetUrls) {
