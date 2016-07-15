@@ -16,11 +16,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import static eu.europeana.cloud.service.dps.storm.io.ReadDataSetBolt.getTestInstance;
+
+import static eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt.getTestInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.any;
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ReadDataSetBoltTest implements TestConstantsHelper {
 
 
-    private ReadDataSetBolt instance;
+    private ReadDatasetBolt instance;
     private OutputCollector oc;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
@@ -56,9 +58,9 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
         String dataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrl));
         List<Representation> representationList = prepareRepresentationList();
-
         when(datasetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+
 
         //when
         instance.emitSingleRepresentationFromDataSet(tuple);

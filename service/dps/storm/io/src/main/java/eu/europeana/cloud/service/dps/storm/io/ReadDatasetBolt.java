@@ -21,23 +21,23 @@ import java.util.List;
 /**
  * @author krystian.
  */
-public class ReadDataSetBolt extends AbstractDpsBolt {
+public class ReadDatasetBolt extends AbstractDpsBolt {
 
 
     private DataSetServiceClient datasetClient;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReadDataSetBolt.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
     private final String ecloudMcsAddress;
 
-    public ReadDataSetBolt(String ecloudMcsAddress) {
+    public ReadDatasetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
     }
 
     /**
      * Should be used only on tests.
      */
-    public static ReadDataSetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
+    public static ReadDatasetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
                                                   DataSetServiceClient datasetClient) {
-        ReadDataSetBolt instance = new ReadDataSetBolt(ecloudMcsAddress);
+        ReadDatasetBolt instance = new ReadDatasetBolt(ecloudMcsAddress);
         instance.outputCollector = outputCollector;
         instance.datasetClient = datasetClient;
         return instance;

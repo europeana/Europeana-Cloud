@@ -9,8 +9,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
@@ -89,7 +87,7 @@ public class XSLTTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, datasetStream);
 
-        builder.setBolt(TopologyHelper.READ_DATASET_BOLT, new ReadDataSetBolt(ecloudMcsAddress),
+        builder.setBolt(TopologyHelper.READ_DATASET_BOLT, new ReadDatasetBolt(ecloudMcsAddress),
                 ((int) Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.READ_DATASET_BOLT_PARALLEL))))
                 .setNumTasks(

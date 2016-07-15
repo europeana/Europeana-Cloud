@@ -48,7 +48,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDataSetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
 
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
@@ -185,7 +185,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         // build the test topology
         ReadFileBolt retrieveFileBolt = new ReadFileBolt("");
         ReadDatasetsBolt readDatasetsBolt = new ReadDatasetsBolt();
-        ReadDataSetBolt readDataSetBolt = new ReadDataSetBolt("");
+        ReadDatasetBolt readDataSetBolt = new ReadDatasetBolt("");
         ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt("");
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt("");
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
