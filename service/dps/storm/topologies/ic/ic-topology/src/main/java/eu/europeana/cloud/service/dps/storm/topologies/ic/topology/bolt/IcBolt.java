@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt;
 
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
@@ -37,11 +39,17 @@ public class IcBolt extends AbstractDpsBolt {
             ImageConverterService imageConverterService = new ImageConverterServiceImpl();
             imageConverterService.convertFile(stormTaskTuple);
             LOGGER.info("IC Bolt: conversion success for: {}", fileUrl);
+            StormTaskTuple next = buildStormTaskTuple(stormTaskTuple);
             outputCollector.emit(inputTuple,stormTaskTuple.toStormTuple());
         } catch (IOException | MimeTypeException | MCSException | ICSException | RuntimeException e) {
             LOGGER.error("IC Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
             logAndEmitError(stormTaskTuple, e.getMessage());
         }
+    }
+
+    private StormTaskTuple buildStormTaskTuple(StormTaskTuple t) {
+        t.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,null);
+        return t;
     }
 
     @Override

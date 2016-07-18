@@ -70,7 +70,7 @@ public class Representation {
 
     /**
      * Creates a new instance of this class.
-     * 
+     *
      * @param cloudId
      * @param representationName
      * @param version
@@ -82,7 +82,7 @@ public class Representation {
      * @param creationDate
      */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-            String dataProvider, List<File> files, boolean persistent, Date creationDate) {
+                          String dataProvider, List<File> files, boolean persistent, Date creationDate) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -98,7 +98,7 @@ public class Representation {
 
     /**
      * Creates a new instance of this class.
-     * 
+     *
      * @param representation
      */
     public Representation(final Representation representation) {
@@ -207,14 +207,14 @@ public class Representation {
     }
 
     /**
-     * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations() 
+     * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations()
      */
-    public String getId(){
+    public String getId() {
         return getACLId();
     }
-    
-    private String getACLId(){
-        return this.getCloudId()+"/"+this.getRepresentationName()+"/"+this.getVersion();
+
+    private String getACLId() {
+        return this.getCloudId() + "/" + this.getRepresentationName() + "/" + this.getVersion();
     }
 
     @Override
@@ -254,7 +254,7 @@ public class Representation {
         if (!Objects.equals(this.files, other.files)) {
             return false;
         }
-        if (!Objects.equals(this.creationDate, other.creationDate)) {
+        if (!Objects.equals(this.creationDate.toString(), other.creationDate.toString())) {
             return false;
         }
         if (this.persistent != other.persistent) {

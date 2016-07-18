@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import backtype.storm.task.OutputCollector;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.rits.cloning.Cloner;
@@ -9,6 +10,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +19,6 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.DpsTask;
 
 import java.lang.reflect.Type;
 
@@ -41,7 +42,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
-        String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         fileClient = new FileServiceClient(ecloudMcsAddress);
         fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
