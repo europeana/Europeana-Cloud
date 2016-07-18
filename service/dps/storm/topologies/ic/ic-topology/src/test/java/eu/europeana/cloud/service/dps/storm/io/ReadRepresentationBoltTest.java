@@ -60,15 +60,11 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
         //given
         Representation representation = prepareRepresentation();
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation));
-
-
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
         //when
         instance.execute(tuple);
         //then
-
         String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));

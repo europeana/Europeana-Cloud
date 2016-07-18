@@ -47,13 +47,10 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
-
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
         //when
         instance.execute(tuple);
         //then
-
         String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
@@ -71,12 +68,9 @@ public class ReadDatasetsBoltTest implements TestConstantsHelper {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet,http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
-
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
         //when
         instance.execute(tuple);
-
         //then
         String expectedDataSetUrl = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
         String expectedDataSetUrl2 = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";

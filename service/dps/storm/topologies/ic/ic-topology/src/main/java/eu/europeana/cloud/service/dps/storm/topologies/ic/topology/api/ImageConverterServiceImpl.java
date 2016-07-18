@@ -52,28 +52,27 @@ public class ImageConverterServiceImpl implements ImageConverterService {
      * @throws IOException
      */
     @Override
-    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException,RuntimeException {
+    public void convertFile(StormTaskTuple stormTaskTuple) throws IOException, MimeTypeException, MCSException, ICSException, RuntimeException {
         converterContext = new ConverterContext(new KakaduConverterTiffToJP2());
         LOGGER.info("The converting process for file " + stormTaskTuple.getFileUrl() + " started successfully");
         String folderPath = null;
 
         try {
-            TaskTupleUtility taskTupleUtility = new TaskTupleUtility();
             ByteArrayInputStream inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
                 Map<String, String> urlParams = FileServiceClient.parseFileUri(stormTaskTuple.getFileUrl());
                 String fileName = urlParams.get(ParamConstants.P_FILENAME);
                 String cleanName = FilenameUtils.removeExtension(fileName);
-                String inputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
+                String inputExtension = ExtensionHelper.getExtension(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE));
                 long randomValue = UUID.randomUUID().getMostSignificantBits();
                 String tempFileName = String.valueOf(randomValue);
                 folderPath = persistStreamToTemporaryStorage(inputStream, tempFileName, inputExtension);
                 String inputFilePath = buildFilePath(folderPath, tempFileName, inputExtension);
-                String outputExtension = ExtensionHelper.getExtension(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
+                String outputExtension = ExtensionHelper.getExtension(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
                 String outputFilePath = buildFilePath(folderPath, tempFileName, outputExtension);
                 if (outputFilePath != null) {
                     List<String> properties = new ArrayList<>();
-                    properties.add(taskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
+                    properties.add(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
                     converterContext.convert(inputFilePath, outputFilePath, properties);
                     File outputFile = new File(outputFilePath);
                     InputStream outputStream = new FileInputStream(outputFile);
@@ -91,7 +90,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
         return folderPath + fileName + "." + extension;
     }
 
-    private String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException,RuntimeException {
+    private String persistStreamToTemporaryStorage(ByteArrayInputStream inputStream, String fileName, String extension) throws IOException, RuntimeException {
         OutputStream outputStream = null;
         String folderPath = null;
         try {

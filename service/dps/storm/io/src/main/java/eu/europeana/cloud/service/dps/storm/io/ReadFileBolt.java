@@ -42,20 +42,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-
     }
-
-    /**
-     * Should be used only on tests.
-     */
-    public static ReadFileBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
-                                               FileServiceClient fileClient) {
-        ReadFileBolt instance = new ReadFileBolt(ecloudMcsAddress);
-        instance.outputCollector = outputCollector;
-        instance.fileClient = fileClient;
-        return instance;
-    }
-
 
     @Override
     public void execute(StormTaskTuple t) {
@@ -76,7 +63,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
-        String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         fileClient = new FileServiceClient(ecloudMcsAddress);
         fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
