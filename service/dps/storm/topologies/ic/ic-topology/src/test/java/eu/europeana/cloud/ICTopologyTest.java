@@ -49,7 +49,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
-
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 

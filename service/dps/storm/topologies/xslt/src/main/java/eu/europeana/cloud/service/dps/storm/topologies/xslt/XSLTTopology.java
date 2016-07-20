@@ -128,7 +128,7 @@ public class XSLTTopology {
                         Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                         topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD), true),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
