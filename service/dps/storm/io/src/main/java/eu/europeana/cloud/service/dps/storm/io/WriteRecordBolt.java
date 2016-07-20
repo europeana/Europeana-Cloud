@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -33,8 +31,6 @@ import java.util.regex.Pattern;
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
     private String ecloudMcsAddress;
-    private FileServiceClient mcsClient;
-    private RecordServiceClient recordServiceClient;
     public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
 
     public WriteRecordBolt(String ecloudMcsAddress) {
@@ -66,8 +62,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException {
-        mcsClient = new FileServiceClient(ecloudMcsAddress);
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
+        FileServiceClient mcsClient = new FileServiceClient(ecloudMcsAddress);
+        RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
         URI newFileUri = null;
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
         if (urlParser.isUrlToRepresentationVersionFile()) {

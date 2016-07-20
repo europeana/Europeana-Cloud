@@ -1,16 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.task.OutputCollector;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.rits.cloning.Cloner;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +28,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
-    private FileServiceClient fileClient;
 
     public ReadFileBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -64,7 +57,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     private void emitFiles(StormTaskTuple t, List<String> files) {
         StormTaskTuple tt;
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        fileClient = new FileServiceClient(ecloudMcsAddress);
+        FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
         fileClient.useAuthorizationHeader(authorizationHeader);
         for (String file : files) {
             tt = new Cloner().deepClone(t);  //without cloning every emitted tuple will have the same object!!!

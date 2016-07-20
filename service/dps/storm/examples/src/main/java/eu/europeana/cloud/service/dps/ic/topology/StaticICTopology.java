@@ -62,7 +62,7 @@ public class StaticICTopology {
                 "imageConversionBolt");
         builder.setBolt("notificationBolt", new NotificationBolt("iks-kbase.synat.pcss.pl",
                         9042, "ecloud_dps",
-                        "cassandra", "cassandra", true),
+                        "cassandra", "cassandra"),
                 1)
                 .fieldsGrouping("retrieveFileBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping("imageConversionBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))

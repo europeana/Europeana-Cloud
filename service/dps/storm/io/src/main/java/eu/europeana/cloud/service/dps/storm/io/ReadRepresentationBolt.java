@@ -21,7 +21,7 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadRepresentationBolt.class);
     private final String ecloudMcsAddress;
-    private FileServiceClient fileClient;
+
 
     public ReadRepresentationBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
@@ -30,11 +30,10 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
     /**
      * Should be used only on tests.
      */
-    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
-                                                         FileServiceClient fileClient) {
+    public static ReadRepresentationBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector
+    ) {
         ReadRepresentationBolt instance = new ReadRepresentationBolt(ecloudMcsAddress);
         instance.outputCollector = outputCollector;
-        instance.fileClient = fileClient;
         return instance;
 
     }
@@ -46,11 +45,11 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-        fileClient = new FileServiceClient(ecloudMcsAddress);
         readRepresentationBolt(t);
     }
 
     private void readRepresentationBolt(StormTaskTuple t) {
+        FileServiceClient fileClient = new FileServiceClient(ecloudMcsAddress);
         final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
         final String jsonRepresentation = t.getParameter(PluginParameterKeys.REPRESENTATION);
         t.getParameters().remove(PluginParameterKeys.REPRESENTATION);
