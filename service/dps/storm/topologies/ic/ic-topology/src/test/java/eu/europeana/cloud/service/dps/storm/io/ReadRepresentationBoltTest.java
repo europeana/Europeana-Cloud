@@ -49,7 +49,7 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
     public void init() {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
-        instance = getTestInstance("http://localhost:8080/mcs", oc, fileClient);
+        instance = getTestInstance("http://localhost:8080/mcs", oc);
     }
 
     @Captor

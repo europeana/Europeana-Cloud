@@ -46,7 +46,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
     public void init() {
         oc = mock(OutputCollector.class);
         datasetClient = mock(DataSetServiceClient.class);
-        instance = getTestInstance("http://localhost:8080/mcs", oc, datasetClient);
+        instance = getTestInstance("http://localhost:8080/mcs", oc);
     }
 
     @Captor
@@ -63,7 +63,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
 
 
         //when
-        instance.emitSingleRepresentationFromDataSet(tuple);
+        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient);
         //then
 
         Representation expectedRepresentation = representationList.get(0);

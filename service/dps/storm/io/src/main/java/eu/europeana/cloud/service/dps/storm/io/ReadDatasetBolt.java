@@ -23,8 +23,6 @@ import java.util.List;
  */
 public class ReadDatasetBolt extends AbstractDpsBolt {
 
-
-    private DataSetServiceClient datasetClient;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadDatasetBolt.class);
     private final String ecloudMcsAddress;
 
@@ -35,37 +33,36 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     /**
      * Should be used only on tests.
      */
-    public static ReadDatasetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector,
-                                                  DataSetServiceClient datasetClient) {
+    public static ReadDatasetBolt getTestInstance(String ecloudMcsAddress, OutputCollector outputCollector
+    ) {
         ReadDatasetBolt instance = new ReadDatasetBolt(ecloudMcsAddress);
         instance.outputCollector = outputCollector;
-        instance.datasetClient = datasetClient;
         return instance;
 
     }
 
     @Override
     public void prepare() {
-
     }
 
     @Override
     public void execute(StormTaskTuple t) {
-        datasetClient = new DataSetServiceClient(ecloudMcsAddress);
-        emitSingleRepresentationFromDataSet(t);
+        DataSetServiceClient datasetClient = new DataSetServiceClient(ecloudMcsAddress);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        datasetClient.useAuthorizationHeader(authorizationHeader);
+        emitSingleRepresentationFromDataSet(t, datasetClient);
     }
 
-    public void emitSingleRepresentationFromDataSet(StormTaskTuple t) {
-        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+    public void emitSingleRepresentationFromDataSet(StormTaskTuple t, DataSetServiceClient dataSetServiceClient) {
         final String dataSetUrl = t.getParameter(PluginParameterKeys.DATASET_URL);
         final String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         t.getParameters().remove(PluginParameterKeys.DATASET_URL);
-        datasetClient.useAuthorizationHeader(authorizationHeader);
+
         if (dataSetUrl != null) {
             try {
                 final UrlParser urlParser = new UrlParser(dataSetUrl);
                 if (urlParser.isUrlToDataset()) {
-                    List<Representation> representations = datasetClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
+                    List<Representation> representations = dataSetServiceClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
                             urlParser.getPart(UrlPart.DATA_SETS));
                     t.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
                     for (Representation representation : representations) {
