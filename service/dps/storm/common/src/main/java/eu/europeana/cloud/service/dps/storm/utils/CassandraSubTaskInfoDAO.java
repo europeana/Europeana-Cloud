@@ -32,23 +32,24 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     @Override
     void prepareStatements() {
         subtaskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + "("
-                + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
+                + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
+                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-                + ") VALUES (?,?,?,?,?,?,?)");
+                + ") VALUES (?,?,?,?,?,?,?,?)");
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         subtaskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?");
         subtaskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    public void insert(long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource)
+    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
+        dbService.getSession().execute(subtaskInsertStatement.bind(resourceNum, taskId, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 
     public List<SubTaskInfo> searchById(long taskId)
@@ -56,7 +57,9 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
         ResultSet rs = dbService.getSession().execute(subtaskSearchStatement.bind(taskId));
         List<SubTaskInfo> result = new ArrayList<>();
         for (Row row : rs.all()) {
-            result.add(new SubTaskInfo(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
+            result.add(new SubTaskInfo(
+                    row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
                     States.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
