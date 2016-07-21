@@ -98,7 +98,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String text = "text";
         String additionalInformation = "additionalInformations";
         String resultResource = "";
-        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformation, resultResource));
+        expectedTaskInfo.addSubtask(new SubTaskInfo(1,resource, state, text, additionalInformation, resultResource));
 
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);

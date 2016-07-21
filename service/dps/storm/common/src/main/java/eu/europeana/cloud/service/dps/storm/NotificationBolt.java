@@ -15,10 +15,10 @@ import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 /**
@@ -38,7 +38,9 @@ public class NotificationBolt extends BaseRichBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private Map<Long, NotificationCache> cache;
+    private LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
+            100);
+
     private String topologyName;
     private CassandraTaskInfoDAO taskInfoDAO;
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
@@ -67,8 +69,11 @@ public class NotificationBolt extends BaseRichBolt {
         try {
             NotificationTuple notificationTuple = NotificationTuple
                     .fromStormTuple(tuple);
-
-            NotificationCache nCache = getNotificationCache(notificationTuple);
+            NotificationCache nCache = cache.get(notificationTuple.getTaskId());
+            if (nCache == null) {
+                nCache = new NotificationCache(getExpectedSize(notificationTuple.getTaskId()));
+                cache.put(notificationTuple.getTaskId(), nCache);
+            }
             storeTaskDetails(notificationTuple, nCache);
 
         } catch (NoHostAvailableException | QueryExecutionException ex) {
@@ -84,19 +89,6 @@ public class NotificationBolt extends BaseRichBolt {
         }
     }
 
-
-    private NotificationCache getNotificationCache(NotificationTuple notificationTuple) throws TaskInfoDoesNotExistException {
-        NotificationCache nCache = cache.get(notificationTuple.getTaskId());
-        if (nCache == null) {
-            nCache = new NotificationCache();
-            long taskId = notificationTuple.getTaskId();
-            nCache.setTotalSize(getExpectedSize(taskId));
-            cache.put(taskId, nCache);
-
-        }
-        return nCache;
-    }
-
     private void storeTaskDetails(NotificationTuple notificationTuple, NotificationCache nCache) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
         long taskId = notificationTuple.getTaskId();
         switch (notificationTuple.getInformationType()) {
@@ -109,13 +101,12 @@ public class NotificationBolt extends BaseRichBolt {
                         notificationTuple.getParameters());
                 break;
             case NOTIFICATION:
-                storeNotification(taskId,
-                        notificationTuple.getParameters());
                 if (nCache != null) {
                     nCache.inc();
+                    storeNotification(nCache.getProcessed(), taskId,
+                            notificationTuple.getParameters());
                     if (nCache.isComplete()) {
                         storeFinishState(taskId);
-                        cache.remove(taskId);
                     }
                 }
                 break;
@@ -132,8 +123,6 @@ public class NotificationBolt extends BaseRichBolt {
         this.stormConfig = stormConf;
         this.topologyContext = tc;
         this.outputCollector = oc;
-        cache = new HashMap<>();
-
     }
 
     @Override
@@ -170,21 +159,21 @@ public class NotificationBolt extends BaseRichBolt {
         taskInfoDAO.endTask(taskId, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
-    private void storeNotification(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         String state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
         String infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
         String additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-        subTaskInfoDAO.insert(taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
+        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 
     private class NotificationCache {
-        int totalSize = -1;
+        int totalSize;
         int processed = 0;
 
-        public void setTotalSize(int totalSize) {
+        NotificationCache(int totalSize) {
             this.totalSize = totalSize;
         }
 
@@ -194,6 +183,10 @@ public class NotificationBolt extends BaseRichBolt {
 
         public Boolean isComplete() {
             return totalSize != -1 ? processed >= totalSize : false;
+        }
+
+        public int getProcessed() {
+            return processed;
         }
     }
 

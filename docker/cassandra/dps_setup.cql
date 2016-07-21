@@ -13,6 +13,7 @@ PRIMARY KEY(task_id)
 );
 
 CREATE TABLE notifications (
+    resource_num int,
     task_id bigint,
     topology_name varchar,
     resource varchar,
@@ -20,5 +21,5 @@ CREATE TABLE notifications (
     info_text text,
     additional_informations text,
     result_resource varchar,
-    PRIMARY KEY(task_id, resource)
+    PRIMARY KEY(task_id,resource_num)
 );

@@ -1,21 +1,26 @@
 package eu.europeana.cloud.common.model.dps;
 
 public class SubTaskInfo {
+
+
+    private int resourceNum;
     private final String resource;
     private States state;
     private String info;
     private String additionalInformations;
     private String resultResource;
 
-    public SubTaskInfo(String resource, States state, String info, String additionalInformations) {
+    public SubTaskInfo(int resourceNum, String resource, States state, String info, String additionalInformations) {
         this(resource);
         this.state = state;
         this.info = info;
         this.additionalInformations = additionalInformations;
+        this.resourceNum = resourceNum;
+
     }
 
-    public SubTaskInfo(String resource, States state, String info, String additionalInformations, String resultResource) {
-        this(resource, state, info, additionalInformations);
+    public SubTaskInfo(int resourceNum, String resource, States state, String info, String additionalInformations, String resultResource) {
+        this(resourceNum, resource, state, info, additionalInformations);
         this.resultResource = resultResource;
     }
 
@@ -43,22 +48,6 @@ public class SubTaskInfo {
         this.info = info;
     }
 
-    public String getAdditionalInformations() {
-        return additionalInformations;
-    }
-
-    public void setAdditionalInformations(String additionalInformations) {
-        this.additionalInformations = additionalInformations;
-    }
-
-    public String getResultResource() {
-        return resultResource;
-    }
-
-    public void setResultResource(String resultResource) {
-        this.resultResource = resultResource;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -70,6 +59,9 @@ public class SubTaskInfo {
             return false;
         if (info != null ? !info.equals(that.info) : that.info != null) return false;
         if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
+
+        if (resourceNum != that.resourceNum) return false;
+
         if (resultResource != null ? !resultResource.equals(that.resultResource) : that.resultResource != null)
             return false;
         if (state != that.state) return false;
