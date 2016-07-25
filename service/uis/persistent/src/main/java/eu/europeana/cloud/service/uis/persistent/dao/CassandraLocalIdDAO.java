@@ -62,13 +62,13 @@ public class CassandraLocalIdDAO {
                 "UPDATE Provider_Record_Id SET cloud_id=? WHERE provider_id=? AND record_Id=?");
         updateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByProviderStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ? ALLOW FILTERING");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND deleted = ?");
         searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=? ALLOW FILTERING");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id=? AND deleted=?");
         searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByProviderAndRecordLessThanStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>? AND deleted=? LIMIT ? ALLOW FILTERING");
+                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND record_id>? AND deleted=? LIMIT ?");
         searchByProviderAndRecordLessThanStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 

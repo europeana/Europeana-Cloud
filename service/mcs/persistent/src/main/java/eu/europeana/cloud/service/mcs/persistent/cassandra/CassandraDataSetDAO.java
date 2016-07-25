@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -9,18 +8,20 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -106,7 +107,7 @@ public class CassandraDataSetDAO {
 				+ "cloud_id, schema_id, version_id  " //
 				+ "FROM data_set_assignments " //
 				+ "WHERE provider_dataset_id = ? AND token(cloud_id) >= token(?) AND schema_id >= ? "
-				+ "LIMIT ? ALLOW FILTERING;");
+				+ "LIMIT ?;");
 	listDataSetRepresentationsStatement
 		.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
