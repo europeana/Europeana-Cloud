@@ -33,6 +33,7 @@ public final class PluginParameterKeys {
     public static final String FILE_NAME = "FILE_NAME";
     public static final String MIME_TYPE = "MIME_TYPE";
     public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
+    public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
 
     // ---------  Messages  -----------
     public static final String NEW_DATASET_MESSAGE = "NewDataset";
@@ -61,11 +62,8 @@ public final class PluginParameterKeys {
     //----------  DPS task  ----
     public static final String DATASET_URLS = "DATASET_URLS";
     public static final String FILE_URLS = "FILE_URLS";
-    public static final String EXPECTED_SIZE = "EXPECTED_SIZE";
+    public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
-
-
-    public static final String TASK_SUBMITTER_NAME = "TASK_SUBMITTER_NAME";
 
     public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 

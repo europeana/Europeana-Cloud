@@ -29,8 +29,13 @@
     <mockito:mock  id="dataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient"/>
 
 
+    <mockito:mock id="filesCounter" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter" />
+
+
+
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
          
     <mockito:mock id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService"/>
     <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
+    <mockito:mock id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
 </beans>

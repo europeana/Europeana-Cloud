@@ -82,8 +82,6 @@
         <Environment name="dps/kafka/brokerLocation" type="java.lang.String" value="localhost:9092"/>
         <Environment name="dps/kafka/groupId" type="java.lang.String" value="someGroupId"/>
         <Environment name="dps/zookeeper/address" type="java.lang.String" value="localhost:2181"/>
-
-        <Environment name="dps/topology/userNameList" type="java.lang.String" value="user1,ic_user,xslt_user"/>
         <Environment name="dps/topology/nameList" type="java.lang.String" value="name1,ic_topology,xslt_topology"/>
 
         <Environment name="dps/mcsLocation" type="java.lang.String" value="http://iks-kbase.synat.pcss.pl:9090/mcs"/>

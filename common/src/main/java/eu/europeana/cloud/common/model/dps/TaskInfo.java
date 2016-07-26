@@ -84,15 +84,15 @@ public class TaskInfo {
         if (state != taskInfo.state) return false;
         if (startDate == null)
             if (taskInfo.startDate != null) return false;
-        if (startDate != null)
+        if (startDate != null && taskInfo.startDate != null)
             if (startDate.getTime() != taskInfo.startDate.getTime()) return false;
         if (sentDate == null)
             if (taskInfo.sentDate != null) return false;
-        if (sentDate != null)
+        if (sentDate != null && taskInfo.sentDate != null)
             if (sentDate.getTime() != taskInfo.sentDate.getTime()) return false;
         if (finishDate == null)
             if (taskInfo.finishDate != null) return false;
-        if (finishDate != null)
+        if (finishDate != null && taskInfo.finishDate != null)
             if (finishDate.getTime() != taskInfo.finishDate.getTime()) return false;
 
         return true;

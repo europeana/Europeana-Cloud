@@ -14,13 +14,14 @@ public class CassandraTablesAndColumnsNames {
     public static final String BASIC_EXPECTED_SIZE = "expected_size";
     public static final String STATE = "state";
     public static final String INFO = "info";
-    public static final String START_TIME="start_time";
-    public static final String FINISH_TIME="finish_time";
-    public static final String SENT_TIME="sent_time";
+    public static final String START_TIME = "start_time";
+    public static final String FINISH_TIME = "finish_time";
+    public static final String SENT_TIME = "sent_time";
 
 
     //------- NOTIFICATION -------
     public static final String NOTIFICATION_TASK_ID = "task_id";
+    public static final String NOTIFICATION_RESOURCE_NUM = "resource_num";
     public static final String NOTIFICATION_TOPOLOGY_NAME = "topology_name";
     public static final String NOTIFICATION_RESOURCE = "resource";
     public static final String NOTIFICATION_STATE = "state";

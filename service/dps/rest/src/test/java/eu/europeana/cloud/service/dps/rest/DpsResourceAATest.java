@@ -14,6 +14,9 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.utils.files.counter.DatasetFilesCounter;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,6 +38,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DpsResourceAATest extends AbstractSecurityTest {
@@ -67,6 +73,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
+
+    @Autowired
+    private FilesCounterFactory filesCounterFactory;
+
+    @Autowired
+    private FilesCounter filesCounter;
 
     /**
      * Pre-defined users
@@ -114,9 +126,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
-
-        Mockito.when(recordServiceClient.useAuthorizationHeader(Mockito.anyString())).thenReturn(recordServiceClient);
+        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
+        Mockito.when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
     }
 
     /*
@@ -139,7 +150,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         DpsTask task = new DpsTask();
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         topologyTasksResource.submitTask(asyncResponse, task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
@@ -150,7 +160,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //when
         DpsTask task = new DpsTask("xsltTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
@@ -164,7 +173,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingFileUrls() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("xsltTask");
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
@@ -185,8 +193,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //when
         DpsTask task = new DpsTask("xsltTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
-
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -201,32 +207,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-    @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingTaskSubmitterName() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
-        //when
-        DpsTask task = new DpsTask("xsltTask");
-        task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        String topologyName = "xslt_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        try {
-            //when
-            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
-        }
-    }
 
     @Test
     public void shouldBeAbleToSubmitTaskToIcTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         String topologyName = "ic_topology";
@@ -241,7 +227,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToIcTopologyWithMissingFileUrls() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("icTask");
-        task.addParameter(PluginParameterKeys.TASK_SUBMITTER_NAME, "some");
         String topologyName = "ic_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -256,31 +241,10 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         }
     }
 
-    @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToIcTopologyWithMissingTaskSubmitterName() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
-        //when
-        IC_TASK = new DpsTask("icTask");
-        IC_TASK.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-        IC_TASK.addParameter(PluginParameterKeys.MIME_TYPE, "mimeType");
-        IC_TASK.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "mimeType");
-        String topologyName = "ic_topology";
-        String user = VAN_PERSIE;
-        grantUserToTopology(topologyName, user);
-        login(user, VAN_PERSIE_PASSWORD);
-        try {
-            //when
-            topologyTasksResource.submitTask(asyncResponse, IC_TASK, topologyName, URI_INFO, AUTH_HEADER_VALUE);
-            fail();
-        } catch (DpsTaskValidationException e) {
-            //then
-            assertThat(e.getMessage(), is("Expected parameter does not exist in dpsTask. Parameter name: TASK_SUBMITTER_NAME"));
-        }
-    }
 
     private void grantUserToTopology(String topologyName, String user) throws AccessDeniedOrTopologyDoesNotExistException {
         login(ADMIN, ADMIN_PASSWORD);
         Mockito.when(topologyManager.containsTopology(topologyName)).thenReturn(true);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(topologyName, "userName"));
         topologiesResource.grantPermissionsToTopology(user, topologyName);
         logoutEveryone();
     }
@@ -365,7 +329,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -385,7 +348,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -405,7 +367,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //given
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);
@@ -425,7 +386,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         Mockito.reset(topologyManager);
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true, true, false);
-        Mockito.when(topologyManager.getNameToUserMap()).thenReturn(ImmutableMap.of(SAMPLE_TOPOLOGY_NAME, "userName"));
         login(ADMIN, ADMIN_PASSWORD);
         topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
         login(RONALDO, RONALD_PASSWORD);

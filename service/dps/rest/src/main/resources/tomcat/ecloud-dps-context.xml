@@ -20,6 +20,8 @@
     <bean id="permissionManager"
           class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
 
+    <bean id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory" scope="prototype"/>
+
     <bean id="taskSubmitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService">
         <constructor-arg name="kafkaBroker">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/kafka/brokerLocation"/>
@@ -60,9 +62,6 @@
     <bean id="topologyManger" class="eu.europeana.cloud.service.dps.service.utils.TopologyManager">
         <constructor-arg name="nameList">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/nameList"/>
-        </constructor-arg>
-        <constructor-arg name="userNameList">
-            <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/topology/userNameList"/>
         </constructor-arg>
     </bean>
     <bean id="mcsLocation" class="java.lang.String">
@@ -110,7 +109,6 @@
             </list>
         </property>
     </bean>
-
 
 
     <bean id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO">

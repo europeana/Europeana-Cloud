@@ -15,8 +15,8 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.dps.utils.permissionmanager.PermissionManagerFactory;
-import eu.europeana.cloud.service.dps.utils.permissionmanager.ResourcePermissionManager;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,16 +36,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -89,6 +85,9 @@ public class TopologyTasksResource {
     @Autowired
     private CassandraTaskInfoDAO taskDAO;
 
+    @Autowired
+    private FilesCounterFactory filesCounterFactory;
+
 
     private final static String TOPOLOGY_PREFIX = "Topology";
     public final static String TASK_PREFIX = "DPS_Task";
@@ -100,12 +99,12 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-       * <strong>Required permissions:</strong>
+         * <strong>Required permissions:</strong>
          * <ul>
-             * <li>Authenticated user</li>
-             * <li>Read permission for selected task</li>
+            * <li>Authenticated user</li>
+            * <li>Read permission for selected task</li>
          * </ul>
-       * </div>
+     * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -135,9 +134,9 @@ public class TopologyTasksResource {
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
         * <strong>Required permissions:</strong>
-         * <ul>
+        * <ul>
              * <li>Read permissions for selected task</li>
-         * </ul>
+        * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -199,7 +198,8 @@ public class TopologyTasksResource {
                 taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
                 asyncResponse.resume(response);
                 LOGGER.info("The task is in a pending mode");
-                int expectedSize = grantPermissionsToTaskResources(topologyName, authorizationHeader, task);
+                int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
+                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                 submitService.submitTask(task, topologyName);
                 permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                 LOGGER.info("Task submitted successfully");
@@ -231,11 +231,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-          * <strong>Required permissions:</strong>
-          * <ul>
-               * <li>Authenticated user</li>
-               * <li>Read permission for selected task</li>
-          * </ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
+            * <li>Authenticated user</li>
+            * <li>Read permission for selected task</li>
+         * </ul>
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -258,7 +258,7 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
          * <ul>
-          * <li>Admin permissions</li>
+             * <li>Admin permissions</li>
          * </ul>
      * </div>
      *
@@ -293,11 +293,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-          * <strong>Required permissions:</strong>
-          * <ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
              * <li>Authenticated user</li>
              * <li>Write permission for selected task</li>
-          * </ul>
+         * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -327,11 +327,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
             * <li>Authenticated user</li>
             * <li>Read permission for selected task</li>
-        * </ul>
+         * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -357,8 +357,8 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
          * <ul>
-             * <li>Authenticated user</li>
-             * <li>Write permission for selected task</li>
+            * <li>Authenticated user</li>
+            * <li>Write permission for selected task</li>
          * </ul>
      * </div>
      *
@@ -420,30 +420,17 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Grants permissions to all the resources inside the task.
-     *
-     * @return The number of records inside the task which  permission is successfully given to their versions.
+     * @return The number of files inside the task.
      */
-    private int grantPermissionsToTaskResources(String topologyName, String authorizationHeader, DpsTask submittedTask) throws TaskSubmissionException {
-        LOGGER.info("Granting permissions to files from DPS task");
-        String topologyUserName = topologyManager.getNameToUserMap().get(topologyName);
-        if (topologyUserName == null) {
-            LOGGER.error("There is no user for topology '{}' in users map. Permissions will not be granted.", topologyName);
-            throw new TaskSubmissionException("There is no user for topology" + topologyName + " in users map. Permissions will not be granted.");
-
-        }
-        int recordsInsideTask = 0;
-        PermissionManagerFactory permissionManagerFactory = new PermissionManagerFactory(context);
+    private int getFilesCountInsideTask(DpsTask submittedTask, String authorizationHeader) throws TaskSubmissionException {
         String taskType = getTaskType(submittedTask);
-        ResourcePermissionManager resourcePermissionManager = permissionManagerFactory.createPermissionManager(taskType);
-        recordsInsideTask = resourcePermissionManager.grantPermissionsToTaskResources(submittedTask, topologyName, topologyUserName, authorizationHeader);
+        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
+        int recordsInsideTask = filesCounter.getFilesCount(submittedTask, authorizationHeader);
         return recordsInsideTask;
     }
 
-
     //get TaskType
     private String getTaskType(DpsTask task) {
-// can't be null since it is already validated
         if (task.getInputData().get(DpsTask.FILE_URLS) != null)
             return PluginParameterKeys.FILE_URLS;
         return PluginParameterKeys.DATASET_URLS;

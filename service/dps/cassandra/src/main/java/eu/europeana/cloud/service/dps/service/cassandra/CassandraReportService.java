@@ -127,8 +127,12 @@ public class CassandraReportService implements TaskExecutionReportService {
         for (Row row : data) {
             JsonObject line = new JsonObject();
 
+
             line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
                     row.getLong(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID));
+
+            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
+                    row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM));
 
             line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME));

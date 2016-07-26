@@ -1,9 +1,7 @@
-package eu.europeana.cloud.service.dps.utils.permissionmanager;
+package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -20,28 +18,28 @@ import java.util.List;
 
 /**
  * Created by Tarek on 4/6/2016.
+ * File counters inside a dataset task
  */
-public class DatasetPermissionManager extends ResourcePermissionManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetPermissionManager.class);
+public class DatasetFilesCounter extends FilesCounter {
+    private DataSetServiceClient dataSetServiceClient;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
-    DatasetPermissionManager(ApplicationContext context) {
-        super(context);
+    DatasetFilesCounter(DataSetServiceClient dataSetServiceClient) {
+        this.dataSetServiceClient = dataSetServiceClient;
     }
 
-    public int grantPermissionsToTaskResources(DpsTask task, String topologyName, String
-            topologyUserName, String authorizationHeader) throws TaskSubmissionException {
+    public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
         int size = 0;
         List<String> dataSets = task.getInputData().get(DpsTask.DATASET_URLS);
         String representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
-        DataSetServiceClient dataSetServiceClient = context.getBean(DataSetServiceClient.class);
+        dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
         for (String dataSet : dataSets) {
             try {
                 UrlParser urlParser = new UrlParser(dataSet);
-                List<Representation> representations = dataSetServiceClient.useAuthorizationHeader(authorizationHeader).getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
+                List<Representation> representations = dataSetServiceClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
                         urlParser.getPart(UrlPart.DATA_SETS));
                 for (Representation representation : representations) {
                     if (representationName == null || representation.getRepresentationName().equals(representationName)) {
-                        grantPermissionToVersion(authorizationHeader, topologyUserName, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
                         size += representation.getFiles().size();
                     }
                 }
@@ -51,7 +49,6 @@ public class DatasetPermissionManager extends ResourcePermissionManager {
             } catch (MalformedURLException ex) {
                 LOGGER.error("URL in task's dataset list is malformed. Submission terminated. Wrong entry: " + dataSet);
                 throw new TaskSubmissionException("Malformed URL in task: " + dataSet + ". Submission process stopped.");
-
             } catch (MCSException ex) {
                 LOGGER.error("Error while communicating MCS", ex);
                 throw new TaskSubmissionException("Error while communicating MCS. " + ex.getMessage() + " for: " + dataSet + ". Submission process stopped.");

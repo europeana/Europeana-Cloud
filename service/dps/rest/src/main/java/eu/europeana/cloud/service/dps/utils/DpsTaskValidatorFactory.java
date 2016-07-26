@@ -17,27 +17,23 @@ public class DpsTaskValidatorFactory {
         if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_URLS)) {
             DpsTaskValidator validator = new DpsTaskValidator("FileUrl validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
-                    .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME)
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE);
             return validator;
         } else if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS)) {
             DpsTaskValidator validator = new DpsTaskValidator("DataSet validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
-                    .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME)
             .withDataEntry(PluginParameterKeys.DATASET_URLS, InputDataValueType.LINK_TO_DATASET);
             return validator;
         } else if (taskType.equalsIgnoreCase(IC_TOPOLOGY_TASK_WITH_FILE_URLS)) {
             DpsTaskValidator validator = new DpsTaskValidator("FileUrl validator for IC Topology")
                     .withParameter(PluginParameterKeys.MIME_TYPE)
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
-                    .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME)
                     .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE);
             return validator;
         }else if(taskType.equalsIgnoreCase(IC_TOPOLOGY_TASK_WITH_DATASETS)){
             DpsTaskValidator validator = new DpsTaskValidator("DataSet validator for IC Topology")
                     .withParameter(PluginParameterKeys.MIME_TYPE)
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE)
-                    .withParameter(PluginParameterKeys.TASK_SUBMITTER_NAME)
                     .withDataEntry(PluginParameterKeys.DATASET_URLS, InputDataValueType.LINK_TO_DATASET);
             return validator;
         } else {

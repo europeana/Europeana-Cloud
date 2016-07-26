@@ -36,5 +36,9 @@
 
     <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
 
+    <mockito:mock id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
+
+
+
 
 </beans>

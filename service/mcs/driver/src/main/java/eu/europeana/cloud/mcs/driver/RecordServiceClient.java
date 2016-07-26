@@ -119,11 +119,9 @@ public class RecordServiceClient extends MCSClient {
      * Client will use provided authorization header for all requests;
      *
      * @param headerValue authorization header value
-     * @return
      */
-    public RecordServiceClient useAuthorizationHeader(final String headerValue) {
+    public void useAuthorizationHeader(final String headerValue) {
         client.register(new ECloudBasicAuthFilter(headerValue));
-        return this;
     }
 
     /**

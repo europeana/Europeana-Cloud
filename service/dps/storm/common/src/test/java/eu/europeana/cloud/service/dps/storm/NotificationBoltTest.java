@@ -16,7 +16,6 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -54,15 +53,14 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date startTime = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, startTime, null);
+        taskInfoDAO.insert(taskId, topologyName, containsElements, taskState.toString(), taskInfo, null, startTime, null);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, startTime));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchById(taskId);
+        TaskInfo result = taskInfoDAO.searchById(taskId);
         assertThat(result, notNullValue());
-        assertThat(result.size(), is(equalTo(1)));
-        TaskInfo info = result.get(0);
-        assertThat(info, is(expectedTaskInfo));
+        assertThat(result, is(expectedTaskInfo));
     }
 
     @Test
@@ -75,15 +73,14 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date finishDate = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, finishDate);
+        taskInfoDAO.insert(taskId, topologyName, containsElements, taskState.toString(), taskInfo, null, null, finishDate);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareEndTask(taskId, taskInfo, taskState, finishDate));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchById(taskId);
+        TaskInfo result = taskInfoDAO.searchById(taskId);
         assertThat(result, notNullValue());
-        assertThat(result.size(), is(equalTo(1)));
-        TaskInfo info = result.get(0);
-        assertThat(info, is(expectedTaskInfo));
+        assertThat(result, is(expectedTaskInfo));
     }
 
     @Test
@@ -94,25 +91,26 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, null);
+        TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, TaskState.PROCESSED, taskInfo, null, null, null);
+        taskInfoDAO.insert(taskId, topologyName, containsElements, taskState.toString(), taskInfo, null, null, null);
         String resource = "resource";
         States state = States.SUCCESS;
         String text = "text";
         String additionalInformation = "additionalInformations";
         String resultResource = "";
-        expectedTaskInfo.addSubtask(new SubTaskInfo(resource, state, text, additionalInformation, resultResource));
+        expectedTaskInfo.addSubtask(new SubTaskInfo(1,resource, state, text, additionalInformation, resultResource));
+
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
+
         final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformation, resultResource));
         //when
         testedBolt.execute(tuple);
         //then
-        List<TaskInfo> result = taskInfoDAO.searchByIdWithSubtasks(taskId);
+        TaskInfo result = taskInfoDAO.searchByIdWithSubtasks(taskId);
         assertThat(result, notNullValue());
-        assertThat(result.size(), is(equalTo(1)));
-        TaskInfo info = result.get(0);
-        info.setContainsElements(info.getSubtasks().size());
-        assertThat(info, is(expectedTaskInfo));
+        result.setContainsElements(result.getSubtasks().size());
+        assertThat(result, is(expectedTaskInfo));
     }
 
     private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {

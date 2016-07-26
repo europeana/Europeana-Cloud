@@ -16,14 +16,15 @@ import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+
 import org.apache.tika.mime.MimeTypeException;
 import org.json.JSONException;
 import org.junit.Before;
@@ -48,18 +49,14 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadDatasetBolt.class, ReadRepresentationBolt.class,
+        IcBolt.class, WriteRecordBolt.class, NotificationBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
-public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
+public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestConstantsHelper {
 
     private final String datasetStream = "DATASET_URLS";
     private final String fileStream = "FILE_URLS";
     Map<String, String> routingRules;
-
-
-    public ICTopologyTest() {
-
-    }
 
 
     @Before
@@ -77,48 +74,10 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     @Test
-    public void testBasicTopology() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
-        //given
-        configureMocks();
-        final String input = "{\"inputData\":" +
-                "{\"FILE_URLS\":" +
-                "[\"" + SOURCE_VERSION_URL + "\"]}," +
-                "\"parameters\":" +
-                "{\"MIME_TYPE\":\"image/tiff\"," +
-                "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
-                "\"taskId\":1," +
-                "\"taskName\":\"taskName\"}";
-        MkClusterParam mkClusterParam = prepareMKClusterParm();
-        Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
-            @Override
-            public void run(ILocalCluster cluster) throws JSONException {
-                StormTopology topology = buildTopology();
-                // prepare the mock data
-                MockedSources mockedSources = new MockedSources();
-                mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
-                CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
-
-                assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuple);
-            }
-        });
-    }
-
-
-    @Test
     public void testTopologyWithDataSetsAsDataEntry() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
         //given
         configureMocks();
-        final String input = "{\"inputData\":" +
-                "{\"DATASET_URLS\":" +
-                "[\"" + SOURCE_DATASET_URL + "\"]}," +
-                "\"parameters\":" +
-                "{\"MIME_TYPE\":\"image/tiff\"," +
-                "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
-                "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
-                "\"taskId\":1," +
-                "\"taskName\":\"taskName\"}";
+
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
@@ -127,14 +86,11 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 StormTopology topology = buildTopology();
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
-                mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
+                mockedSources.addMockData(TopologyHelper.SPOUT, new Values(inputTuple));
 
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
 
-                String expectedTuple = "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]";
-
-                assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuple);
-
+                assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
     }
@@ -146,37 +102,39 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         }
     }
 
-    private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
 
-        String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
+    private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
         doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
-        when(fileServiceClient.getFile(anyString())).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+
+        String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
+        when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+        when(fileServiceClient.getFile("http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName")).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+
 
         List<File> files = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
-
-
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
+
+
         List<File> files2 = new ArrayList<>();
         files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, false, new Date());
         List<Representation> representationList2 = new ArrayList<>();
         representationList2.add(representation2);
 
+        doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet2")).thenReturn(representationList2);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
-        doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(representation2);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
-        when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
 
     }
 
@@ -186,12 +144,11 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         ReadDatasetsBolt readDatasetsBolt = new ReadDatasetsBolt();
         ReadDatasetBolt readDataSetBolt = new ReadDatasetBolt("");
         ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt("");
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt("");
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt("");
         TestInspectionBolt endTest = new TestInspectionBolt();
 
         TopologyBuilder builder = new TopologyBuilder();
-
         builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
         builder.setBolt(TopologyHelper.PARSE_TASK_BOLT, new ParseTaskBolt(routingRules)).shuffleGrouping(TopologyHelper.SPOUT);
         builder.setBolt(TopologyHelper.READ_DATASETS_BOLT, readDatasetsBolt).shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, datasetStream);
@@ -202,6 +159,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         builder.setBolt(TopologyHelper.IC_BOLT, new IcBolt()).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.IC_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
                 .fieldsGrouping(TopologyHelper.PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
@@ -226,15 +184,81 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
     }
 
-    private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, String expectedTuple) throws JSONException {
-
-        //when
+    private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, List<String> expectedTuples) throws JSONException {
         Map result = Testing.completeTopology(cluster, topology,
                 completeTopologyParam);
         //then
         printDefaultStreamTuples(result);
 
-        String actual = parse(Testing.readTuples(result, TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME));
-        assertEquals(expectedTuple, actual, true);
+        List actualTuples = Testing.readTuples(result, TopologyHelper.IC_BOLT);
+        for (int i = 0; i < expectedTuples.size(); i++) {
+            String actual = parse(selectSingle(actualTuples, i));
+            String expected = expectedTuples.get(i);
+            assertEquals(expected, actual, false);
+        }
     }
+
+    private List selectSingle(List actualTuples, int index) {
+        return Arrays.asList(actualTuples.get(index));
+    }
+
+    final String inputTuple = "{\"inputData\":" +
+            "{\"DATASET_URLS\":" +
+            "[\"" + SOURCE_DATASET_URL + "\",\"" + SOURCE_DATASET_URL2 + "\"]}," +
+            "\"parameters\":" +
+            "{\"MIME_TYPE\":\"image/tiff\"," +
+            "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
+            "\"taskId\":1," +
+            "\"taskName\":\"taskName\"}";
+
+    final List<String> expectedTuples = Arrays.asList("[\n" +
+                    "  [\n" +
+                    "    1,\n" +
+                    "    \"taskName\",\n" +
+                    "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\n" +
+                    "    [\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      115,\n" +
+                    "      116,\n" +
+                    "      67,\n" +
+                    "      111,\n" +
+                    "      110,\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      110,\n" +
+                    "      116\n" +
+                    "    ],\n" +
+                    "    {\n" +
+                    "      \"MIME_TYPE\": \"image/tiff\",\n" +
+                    "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
+                    "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "]",
+            " [ [\n" +
+                    "    1,\n" +
+                    "    \"taskName\",\n" +
+                    "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName\",\n" +
+                    "    [\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      115,\n" +
+                    "      116,\n" +
+                    "      67,\n" +
+                    "      111,\n" +
+                    "      110,\n" +
+                    "      116,\n" +
+                    "      101,\n" +
+                    "      110,\n" +
+                    "      116\n" +
+                    "    ],\n" +
+                    "    {\n" +
+                    "      \"MIME_TYPE\": \"image/tiff\",\n" +
+                    "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
+                    "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "]");
 }
