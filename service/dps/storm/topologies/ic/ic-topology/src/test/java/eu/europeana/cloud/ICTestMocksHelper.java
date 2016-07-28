@@ -5,7 +5,6 @@ import backtype.storm.testing.MkClusterParam;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -16,9 +15,7 @@ import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-
 import java.util.List;
-
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -33,8 +30,9 @@ public class ICTestMocksHelper {
     protected RecordServiceClient recordServiceClient;
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
-    protected Representation representation;
+
     protected RepresentationIterator representationIterator;
+
     private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
     private static Gson gson = new GsonBuilder().create();
 
@@ -87,15 +85,12 @@ public class ICTestMocksHelper {
         PowerMockito.whenNew(ImageConverterServiceImpl.class).withAnyArguments().thenReturn(imageConverterService);
     }
 
-    protected void mockRepresentation() throws Exception {
-        representation = Mockito.mock(Representation.class);
-        PowerMockito.whenNew(Representation.class).withAnyArguments().thenReturn(representation);
-    }
 
     protected void mockRepresentationIterator() throws Exception {
         representationIterator = Mockito.mock(RepresentationIterator.class);
         PowerMockito.whenNew(RepresentationIterator.class).withAnyArguments().thenReturn(representationIterator);
     }
+
 
     protected void mockDPSDAO() throws Exception {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
