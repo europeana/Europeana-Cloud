@@ -241,16 +241,16 @@ public class TopologyTasksResource {
     @Path("{taskId}/notification")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public String getTaskNotificationChunck(@PathParam("taskId") String taskId, @QueryParam("from") String from, @QueryParam("to") String to) {
-        int startingResourcesNum = 0;
-        int endingResourcesNum = NOTIFICATION_PER_PAGE;
+        int startingResourceNum = 0;
+        int endingResourceNum = NOTIFICATION_PER_PAGE;
         if (from != null) {
-            startingResourcesNum = Integer.parseInt(from);
+            startingResourceNum = Integer.parseInt(from);
         }
         if (to != null) {
-            endingResourcesNum = Integer.parseInt(to);
+            endingResourceNum = Integer.parseInt(to);
         }
 
-        String progress = reportService.getTaskNotificationChuncks(taskId, startingResourcesNum, endingResourcesNum);
+        String progress = reportService.getTaskNotificationChuncks(taskId, startingResourceNum, endingResourceNum);
         return progress;
     }
 

@@ -30,7 +30,6 @@ public class ICTestMocksHelper {
     protected RecordServiceClient recordServiceClient;
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
-
     protected RepresentationIterator representationIterator;
 
     private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();

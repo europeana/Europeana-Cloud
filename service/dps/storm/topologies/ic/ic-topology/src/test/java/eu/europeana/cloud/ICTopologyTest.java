@@ -264,7 +264,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     public void prepareForMultipleDatasets() throws URISyntaxException, IOException, MCSException {
-
         String fileUrl1 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         String fileUrl2 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName";
         List<File> firstFilesList = new ArrayList<>();
@@ -279,7 +278,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         when(fileServiceClient.getFile(fileUrl1)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         when(fileServiceClient.getFile(fileUrl2)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + "2")).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(secondRepresentation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
     }
@@ -290,27 +289,14 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         List<File> files = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
-
         when(dataSetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-
-
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
-
-        /*
-        List<Representation> representationList = new ArrayList<>();
-        representationList.add(representation);
-        when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-        >>>>>>>8f 9039868 a3a75266a7c1e4b934b89b2ce8d0d96
-        */
     }
 
 
