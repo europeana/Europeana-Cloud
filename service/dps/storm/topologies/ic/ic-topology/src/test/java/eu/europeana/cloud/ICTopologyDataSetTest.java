@@ -67,6 +67,7 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
         mockImageCS();
         mockDPSDAO();
         mockDatSetClient();
+        mockRepresentationIterator();
         routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
         routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
@@ -116,19 +117,14 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
         List<File> files = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
-        List<Representation> representationList = new ArrayList<>();
-        representationList.add(representation);
-
 
         List<File> files2 = new ArrayList<>();
         files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
         Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, false, new Date());
-        List<Representation> representationList2 = new ArrayList<>();
-        representationList2.add(representation2);
-
+        when(dataSetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
+        when(representationIterator.hasNext()).thenReturn(true, true, false);
+        when(representationIterator.next()).thenReturn(representation).thenReturn(representation2);
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet2")).thenReturn(representationList2);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);

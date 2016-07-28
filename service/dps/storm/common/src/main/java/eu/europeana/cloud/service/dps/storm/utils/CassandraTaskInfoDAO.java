@@ -26,6 +26,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
     private PreparedStatement updateTask;
     private PreparedStatement endTask;
+    private PreparedStatement updateProcessedFiles;
 
 
     /**
@@ -43,18 +44,21 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         updateTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.START_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         updateTask.setConsistencyLevel(dbService.getConsistencyLevel());
-        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateProcessedFiles = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        updateProcessedFiles.setConsistencyLevel(dbService.getConsistencyLevel());
+        endTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + " = ? , " + CassandraTablesAndColumnsNames.STATE + " = ? , " + CassandraTablesAndColumnsNames.FINISH_TIME + " = ? , " + CassandraTablesAndColumnsNames.INFO + " =? WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
         endTask.setConsistencyLevel(dbService.getConsistencyLevel());
         taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.BASIC_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME + ","
                 + CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE + ","
+                + CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT + ","
                 + CassandraTablesAndColumnsNames.STATE + ","
                 + CassandraTablesAndColumnsNames.INFO + ","
                 + CassandraTablesAndColumnsNames.SENT_TIME + ","
                 + CassandraTablesAndColumnsNames.START_TIME + ","
                 + CassandraTablesAndColumnsNames.FINISH_TIME +
-                ") VALUES (?,?,?,?,?,?,?,?)");
+                ") VALUES (?,?,?,?,?,?,?,?,?)");
         taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -71,9 +75,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
 
-    public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime, Date startTime, Date finishTime)
+    public void insert(long taskId, String topologyName, int expectedSize, int processedFilesCount, String state, String info, Date sentTime, Date startTime, Date finishTime)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, state, info, sentTime, startTime, finishTime));
+        dbService.getSession().execute(taskInsertStatement.bind(taskId, topologyName, expectedSize, processedFilesCount, state, info, sentTime, startTime, finishTime));
     }
 
     public void updateTask(long taskId, String info, String state, Date startDate)
@@ -81,14 +85,20 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateTask.bind(state, startDate, info, taskId));
     }
 
-    public void endTask(long taskId, String info, String state, Date finishDate)
+    public void endTask(long taskId,int processeFilesCount, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(endTask.bind(state, finishDate, info, taskId));
+        dbService.getSession().execute(endTask.bind(processeFilesCount,state, finishDate, info, taskId));
     }
 
     public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime)
             throws NoHostAvailableException, QueryExecutionException {
-        insert(taskId, topologyName, expectedSize, state, info, sentTime, null, null);
+        insert(taskId, topologyName, expectedSize, 0, state, info, sentTime, null, null);
+    }
+
+    public void setUpdateProcessedFiles(long taskId, int processedFilesCount)
+            throws NoHostAvailableException, QueryExecutionException {
+        dbService.getSession().execute(taskInsertStatement.bind(processedFilesCount, taskId));
+
     }
 
     public TaskInfo searchByIdWithSubtasks(long taskId)

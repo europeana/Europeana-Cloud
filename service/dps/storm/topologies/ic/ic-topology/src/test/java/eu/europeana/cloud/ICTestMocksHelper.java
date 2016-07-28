@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -33,6 +34,7 @@ public class ICTestMocksHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected Representation representation;
+    protected RepresentationIterator representationIterator;
     private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
     private static Gson gson = new GsonBuilder().create();
 
@@ -88,6 +90,11 @@ public class ICTestMocksHelper {
     protected void mockRepresentation() throws Exception {
         representation = Mockito.mock(Representation.class);
         PowerMockito.whenNew(Representation.class).withAnyArguments().thenReturn(representation);
+    }
+
+    protected void mockRepresentationIterator() throws Exception {
+        representationIterator = Mockito.mock(RepresentationIterator.class);
+        PowerMockito.whenNew(RepresentationIterator.class).withAnyArguments().thenReturn(representationIterator);
     }
 
     protected void mockDPSDAO() throws Exception {

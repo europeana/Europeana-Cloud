@@ -9,21 +9,23 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 public interface TaskExecutionReportService {
 
     /**
-     * @return Amount of records that have been processed 
+     * @return Amount of records that have been processed
      * by the last bolt of a topology.
-     * 
-     * @throws AccessDeniedOrObjectDoesNotExistException 
+     * @throws AccessDeniedOrObjectDoesNotExistException
      */
     String getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
-     * @return Info messages for the specified task
+     * @return Info messages for the specified task between chuncks
      */
-    String getTaskNotification(String taskId);
-    
+    String getTaskNotificationChuncks(String taskId, int from, int to);
+
+
     /**
-     * Increases the amount of records that have been processed 
+     * Increases the amount of records that have been processed
      * by the last bolt of a topology by 1.
      */
     void incrTaskProgress(String taskId);
 }
+
+
