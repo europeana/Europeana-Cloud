@@ -3,25 +3,27 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.util.Set;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -122,31 +124,35 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 	// now - when everything is validated - add assignment
-	dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
-		version);
-	DataProvider dataProvider = uis.getProvider(providerId);
-	representationIndexer.addAssignment(rep.getVersion(),
-		new CompoundDataSetId(providerId, dataSetId),
-		dataProvider.getPartitionKey());
-    }
+		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
+				version);
+		DataProvider dataProvider = uis.getProvider(providerId);
+		dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+		representationIndexer.addAssignment(rep.getVersion(),
+				new CompoundDataSetId(providerId, dataSetId),
+				dataProvider.getPartitionKey());
+	}
 
     /**
      * @inheritDoc
      */
-    @Override
-    public void removeAssignment(String providerId, String dataSetId,
-	    String recordId, String schema) throws DataSetNotExistsException {
-	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-	if (ds == null) {
-	    throw new DataSetNotExistsException();
-	}
+	@Override
+	public void removeAssignment(String providerId, String dataSetId,
+								 String recordId, String schema) throws DataSetNotExistsException {
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
 
-	dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
-	DataProvider dataProvider = uis.getProvider(providerId);
-	representationIndexer.removeAssignment(recordId, schema,
-		new CompoundDataSetId(providerId, dataSetId),
-		dataProvider.getPartitionKey());
-    }
+		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+		DataProvider dataProvider = uis.getProvider(providerId);
+		if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
+			dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
+		}
+		representationIndexer.removeAssignment(recordId, schema,
+				new CompoundDataSetId(providerId, dataSetId),
+				dataProvider.getPartitionKey());
+	}
 
     /**
      * @inheritDoc
@@ -209,22 +215,28 @@ public class CassandraDataSetService implements DataSetService {
     /**
      * @inheritDoc
      */
-    @Override
-    public void deleteDataSet(String providerId, String dataSetId)
-	    throws DataSetNotExistsException {
-	DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+	@Override
+	public void deleteDataSet(String providerId, String dataSetId)
+			throws DataSetNotExistsException {
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 
-	if (ds == null) {
-	    throw new DataSetNotExistsException();
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
+		dataSetDAO.deleteDataSet(providerId, dataSetId);
+		DataProvider dataProvider = uis.getProvider(providerId);
+		dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
+		representationIndexer.removeAssignmentsFromDataSet(
+				new CompoundDataSetId(providerId, dataSetId),
+				dataProvider.getPartitionKey());
 	}
-	dataSetDAO.deleteDataSet(providerId, dataSetId);
-	DataProvider dataProvider = uis.getProvider(providerId);
-	representationIndexer.removeAssignmentsFromDataSet(
-		new CompoundDataSetId(providerId, dataSetId),
-		dataProvider.getPartitionKey());
-    }
 
-    private String encodeParams(String... parts) {
+	@Override
+	public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) {
+		return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId,dataSetId);
+	}
+
+	private String encodeParams(String... parts) {
 	byte[] paramsJoined = Joiner.on('\n').join(parts)
 		.getBytes(Charset.forName("UTF-8"));
 	return BaseEncoding.base32().encode(paramsJoined);

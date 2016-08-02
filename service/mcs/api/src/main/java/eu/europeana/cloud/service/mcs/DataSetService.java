@@ -8,6 +8,9 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * Service for data sets and representation assignments to data sets.
  */
@@ -139,4 +142,13 @@ public interface DataSetService {
      */
     void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException;
+
+    /**
+     * Lists all representations names that are included in given dataSet
+     * 
+     * @param providerId dataset ovner id (provider id)
+     * @param dataSetId dataSet id
+     * @return list of all representations names that are stored in given dataSet
+     */
+    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId);
 }
