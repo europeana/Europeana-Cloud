@@ -19,9 +19,15 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.number.OrderingComparisons.greaterThan;
@@ -909,4 +915,12 @@ public class RecordServiceClientTest {
         RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
         client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
     }
+
+    @Test
+    @Betamax(tape = "records_shouldCreateNewRepresentationAndUploadFile")
+    public void shouldCreateNewRepresentationAndUploadAFile() throws FileNotFoundException, MCSException {
+        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs","admin","admin");
+        InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
+        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "fileName", "mediaType");
+    };
 }
