@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -232,8 +233,26 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 	@Override
-	public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) {
-		return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId,dataSetId);
+	public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException {
+		if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
+			return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
+		}
+		return Collections.emptySet();
+	}
+
+	private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
+		if (!uis.existsProvider(providerId))
+			throw new ProviderNotExistsException();
+		return true;
+	}
+
+	private boolean isDataSetExists(String providerId, String dataSetId) throws DataSetNotExistsException {
+		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+
+		if (ds == null) {
+			throw new DataSetNotExistsException();
+		}
+		return true;
 	}
 
 	private String encodeParams(String... parts) {

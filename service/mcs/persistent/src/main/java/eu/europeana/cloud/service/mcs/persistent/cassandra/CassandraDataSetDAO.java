@@ -151,25 +151,25 @@ public class CassandraDataSetDAO {
 
 		getDataSetsRepresentationsNamesList = connectionProvider.getSession()
 				.prepare(
-						"SELECT representations_names FROM data_sets_representations_names where provider_id = ? and dataset_id = ?;");
+						"SELECT representation_names FROM data_set_representation_names where provider_id = ? and dataset_id = ?;");
 		getDataSetsRepresentationsNamesList
 				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
 		addDataSetsRepresentationName = connectionProvider.getSession()
 				.prepare(
-						"UPDATE data_sets_representations_names SET representations_names = representations_names + ? WHERE provider_id = ? and dataset_id = ?");
+						"UPDATE data_set_representation_names SET representation_names = representation_names + ? WHERE provider_id = ? and dataset_id = ?");
 		addDataSetsRepresentationName
 				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
 		removeDataSetsRepresentationName = connectionProvider.getSession()
 				.prepare(
-						"UPDATE data_sets_representations_names SET representations_names = representations_names - ? WHERE provider_id = ? and dataset_id = ?;");
+						"UPDATE data_set_representation_names SET representation_names = representation_names - ? WHERE provider_id = ? and dataset_id = ?;");
 		removeDataSetsRepresentationName
 				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
 		removeDataSetsAllRepresentationsNames = connectionProvider.getSession()
 				.prepare(
-						"DELETE FROM data_sets_representations_names where provider_id = ? and dataset_id = ?;");
+						"DELETE FROM data_set_representation_names where provider_id = ? and dataset_id = ?;");
 		removeDataSetsAllRepresentationsNames
 				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -429,7 +429,7 @@ public class CassandraDataSetDAO {
 		if (row == null) {
 			return Collections.emptySet();
 		} else {
-			return row.getSet("representations_names", String.class);
+			return row.getSet("representation_names", String.class);
 		}
 	}
 

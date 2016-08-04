@@ -3,11 +3,13 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -120,11 +122,14 @@ public class DataSetResource {
     }
 
     @Path("/representationsNames")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @GET
-    public String getRepresentationsNames(
+    public RepresentationNames getRepresentationsNames(
             @PathParam(P_DATASET) String dataSetId,
-            @PathParam(P_PROVIDER) String providerId) {
-        Set<String> repsNames =  dataSetService.getAllDataSetRepresentationsNames(providerId,dataSetId);
-        return repsNames.toString();
+            @PathParam(P_PROVIDER) String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
+                
+        RepresentationNames representationNames = new RepresentationNames();
+        representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
+        return representationNames;
     }
 }

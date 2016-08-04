@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -150,5 +152,5 @@ public interface DataSetService {
      * @param dataSetId dataSet id
      * @return list of all representations names that are stored in given dataSet
      */
-    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId);
+    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException;
 }
