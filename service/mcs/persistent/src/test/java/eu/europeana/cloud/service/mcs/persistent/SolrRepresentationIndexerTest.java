@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.kafka.ProducerWrapper;
 import eu.europeana.cloud.service.mcs.messages.AddAssignmentMessage;
@@ -107,10 +108,11 @@ public class SolrRepresentationIndexerTest {
                 = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
         int partitionKey = 32151;
         ArrayList<File> files = new ArrayList<>();
+        ArrayList<Revision> revisions = new ArrayList<>();
         boolean persistent = true;
         Date creationDate = Calendar.getInstance().getTime();
         Representation representation = new Representation(cloudId, representationName,
-                versionId, null, null, providerId, files, null, persistent, creationDate);
+                versionId, null, null, providerId, files, revisions, persistent, creationDate);
 
         String dataSetId1 = "dataSet1";
         String dataSetId2 = "dataSet2";

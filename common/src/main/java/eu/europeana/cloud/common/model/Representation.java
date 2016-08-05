@@ -134,8 +134,8 @@ public class Representation {
 
     private static List<Revision> cloneRevisions(Representation representation) {
         List<Revision> revisions = representation.getRevisions();
-        if (revisions == null)
-            return null;
+        if (revisions == null || revisions.isEmpty())
+            return new ArrayList<>();
         List<Revision> ClonedRevisions = new ArrayList<>(revisions.size());
         for (Revision revision : revisions) {
             ClonedRevisions.add(new Revision(revision));
@@ -297,7 +297,7 @@ public class Representation {
     @Override
     public String toString() {
         return "Representation{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", revisions="+revisions+ ", creationDate=" + creationDate
+                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", revisions=" + revisions + ", creationDate=" + creationDate
                 + ", persistent=" + persistent + '}';
     }
 }
