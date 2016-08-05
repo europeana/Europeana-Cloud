@@ -26,6 +26,7 @@ CREATE TABLE representation_versions (
        provider_id varchar,
        persistent boolean,
        files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
+       revisions map<varchar, text>,
        creation_date timestamp,
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );

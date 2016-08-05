@@ -64,7 +64,7 @@ public class RecordsResourceTest extends JerseyTest {
         Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, "DC", "1", null, null,
                 "FBC", Lists.newArrayList(new File("dc.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
                         "2013-10-21", 12345L, URI.create("http://localhost:9998/records/" + globalId
-                                + "/representations/DC/versions/1/files/dc.xml"))), false, new Date())));
+                                + "/representations/DC/versions/1/files/dc.xml"))),null, false, new Date())));
         Record expected = new Record(record);
         Representation expectedRepresentation = expected.getRepresentations().get(0);
         // prepare expected representation: 

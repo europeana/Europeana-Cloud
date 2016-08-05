@@ -40,9 +40,9 @@ public interface ParamConstants {
     static final String P_FILENAME = "FILENAME";
 
     static final String P_LOCALID = "LOCALID";
-    
+
     static final String P_USERNAME = "USERNAME";
-    
+
     static final String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
     // form parameters' names (also used as query parameters' names)
@@ -77,6 +77,10 @@ public interface ParamConstants {
     static final String F_REPRESENTATION = "representation";
 
     static final String F_DATASETS = "dataSets";
+
+    static final String REVISION_NAME = "revisionName";
+    static final String TAG = "tag";
+    static final String REVISION_PROVIDER_ID = "revisionProviderId";
 
     //header paramiters' names
     static final String H_RANGE = "Range";
