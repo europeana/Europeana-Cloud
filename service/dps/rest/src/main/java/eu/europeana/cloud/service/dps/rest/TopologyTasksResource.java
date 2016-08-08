@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -86,18 +85,17 @@ public class TopologyTasksResource {
     public final static String TASK_PREFIX = "DPS_Task";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
-    private final static int  NOTIFICATION_PER_PAGE = 100;
 
     /**
      * Retrieves a task with the given taskId from the specified topology.
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
-        * </ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
+         * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -127,10 +125,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-            * <li>Read permissions for selected task</li>
-        * </ul>
+         * <strong>Required permissions:</strong>
+             * <ul>
+                 * <li>Read permissions for selected task</li>
+             * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -220,37 +218,29 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves notifications for the specified task.
+     * Retrieves notifications for the specified task.It will return notifications about
+     * the first 100 resources unless you specified the needed chunk by using from&to parameters
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
-        * </ul>
+            * <strong>Required permissions:</strong>
+            * <ul>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
+            * </ul>
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     *               from : startingResourcesNum
-     *               to :   endingResourcesNum
+     * @param from   The starting resource number should be bigger than 0
+     * @param to     The ending resource number should be bigger than 0
      * @return Notification messages for the specified task.
      * @summary Retrieve task notifications
      */
     @GET
     @Path("{taskId}/notification")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public String getTaskNotificationChunck(@PathParam("taskId") String taskId, @QueryParam("from") String from, @QueryParam("to") String to) {
-        int startingResourceNum = 0;
-        int endingResourceNum = NOTIFICATION_PER_PAGE;
-        if (from != null) {
-            startingResourceNum = Integer.parseInt(from);
-        }
-        if (to != null) {
-            endingResourceNum = Integer.parseInt(to);
-        }
-
-        String progress = reportService.getTaskNotificationChuncks(taskId, startingResourceNum, endingResourceNum);
+    public String getTaskNotificationChunck(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("0") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
+        String progress = reportService.getTaskNotificationChuncks(taskId, from, to);
         return progress;
     }
 
@@ -262,7 +252,7 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
         * <strong>Required permissions:</strong>
         * <ul>
-            * <li>Admin permissions</li>
+          * <li>Admin permissions</li>
         * </ul>
      * </div>
      *
@@ -297,11 +287,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-            * <li>Authenticated user</li>
-            * <li>Write permission for selected task</li>
-        * </ul>
+         * <strong>Required permissions:</strong>
+         * <ul>
+           * <li>Authenticated user</li>
+           * <li>Write permission for selected task</li>
+         * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -331,10 +321,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
+         * <strong>Required permissions:</strong>
          * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
          * </ul>
      * </div>
      *
@@ -359,11 +349,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-            * <li>Authenticated user</li>
-            * <li>Write permission for selected task</li>
-        * </ul>
+         * <strong>Required permissions:</strong>
+            * <ul>
+                * <li>Authenticated user</li>
+                * <li>Write permission for selected task</li>
+             * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
