@@ -19,8 +19,11 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -54,6 +57,16 @@ public class CassandraDataSetDAO {
     private PreparedStatement getDataSetStatement;
 
     private PreparedStatement getDataSetsForRepresentationStatement;
+
+	private PreparedStatement getDataSetsRepresentationsNamesList;
+
+	private PreparedStatement addDataSetsRepresentationName;
+
+	private PreparedStatement removeDataSetsRepresentationName;
+
+	private PreparedStatement removeDataSetsAllRepresentationsNames;
+
+	private PreparedStatement hasProvidedRepresentationName;
 
     @PostConstruct
     private void prepareStatements() {
@@ -135,6 +148,39 @@ public class CassandraDataSetDAO {
 				+ "WHERE cloud_id = ? AND schema_id = ?;");
 	getDataSetsForRepresentationStatement
 		.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		getDataSetsRepresentationsNamesList = connectionProvider.getSession()
+				.prepare(
+						"SELECT representation_names FROM data_set_representation_names where provider_id = ? and dataset_id = ?;");
+		getDataSetsRepresentationsNamesList
+				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		addDataSetsRepresentationName = connectionProvider.getSession()
+				.prepare(
+						"UPDATE data_set_representation_names SET representation_names = representation_names + ? WHERE provider_id = ? and dataset_id = ?");
+		addDataSetsRepresentationName
+				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		removeDataSetsRepresentationName = connectionProvider.getSession()
+				.prepare(
+						"UPDATE data_set_representation_names SET representation_names = representation_names - ? WHERE provider_id = ? and dataset_id = ?;");
+		removeDataSetsRepresentationName
+				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		removeDataSetsAllRepresentationsNames = connectionProvider.getSession()
+				.prepare(
+						"DELETE FROM data_set_representation_names where provider_id = ? and dataset_id = ?;");
+		removeDataSetsAllRepresentationsNames
+				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		hasProvidedRepresentationName = connectionProvider.getSession()
+				.prepare(
+						"SELECT " //
+								+ "cloud_id, schema_id " //
+								+ "FROM data_set_assignments " //
+								+ "WHERE provider_dataset_id = ? AND schema_id = ? LIMIT 1;");
+		hasProvidedRepresentationName
+				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
     /**
@@ -375,6 +421,52 @@ public class CassandraDataSetDAO {
 	connectionProvider.getSession().execute(boundStatement);
     }
 
+	public Set<String> getAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
+		BoundStatement boundStatement = getDataSetsRepresentationsNamesList.bind(providerId, dataSetId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+		Row row = rs.one();
+		if (row == null) {
+			return Collections.emptySet();
+		} else {
+			return row.getSet("representation_names", String.class);
+		}
+	}
+
+	public void addDataSetsRepresentationName(String providerId, String dataSetId, String representationName){
+		Set<String> sample = new HashSet<>();
+		sample.add(representationName);
+		BoundStatement boundStatement = addDataSetsRepresentationName.bind(sample, providerId, dataSetId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+	}
+
+	public void removeRepresentationNameForDataSet(String representationName, String providerId, String dataSetId){
+		Set<String> sample = new HashSet<String>();
+		sample.add(representationName);
+		BoundStatement boundStatement = removeDataSetsRepresentationName.bind(sample, providerId, dataSetId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+	}
+
+	public void removeAllRepresentationsNamesForDataSet(String providerId, String dataSetId){
+		BoundStatement boundStatement = removeDataSetsAllRepresentationsNames.bind(providerId, dataSetId);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+	}
+
+	public boolean hasMoreRepresentations(String providerId, String datasetId, String representationName){
+		String providerDatasetId = providerId + CDSID_SEPARATOR + datasetId;
+		BoundStatement boundStatement = hasProvidedRepresentationName.bind(providerDatasetId, representationName);
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+		if(rs.one()!= null){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
     private String createProviderDataSetId(String providerId, String dataSetId) {
 	return providerId + CDSID_SEPARATOR + dataSetId;
     }
