@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dls.solr;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dls.solr.exception.SystemException;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -377,7 +378,7 @@ public class SolrDAO {
      */
     private Representation map(RepresentationSolrDocument document) {
         return new Representation(document.getCloudId(), document.getSchema(), document.getVersion(), null, null,
-                document.getProviderId(), new ArrayList<File>(), document.isPersistent(), document.getCreationDate());
+                document.getProviderId(), new ArrayList<File>(),new ArrayList<Revision>(), document.isPersistent(), document.getCreationDate());
     }
 
 

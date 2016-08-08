@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 
@@ -517,11 +518,6 @@ public class CassandraRecordDAO {
         return gson.toJson(revision);
     }
 
-    private String getRevisionKey(String providerId, String revisionName) {
-        return providerId + "_" + revisionName;
-    }
-
-
     private static UUID getTimeUUID() {
         return UUID.fromString(new com.eaio.uuid.UUID().toString());
     }
@@ -540,7 +536,7 @@ public class CassandraRecordDAO {
                                                      String version, Revision revision) throws NoHostAvailableException,
             QueryExecutionException, RevisionIsNotValidException {
         validateRevision(revision);
-        BoundStatement boundStatement = insertRevisionStatement.bind(getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName())
+        BoundStatement boundStatement = insertRevisionStatement.bind(RevisionUtils.getRevisionKey(revision)
                 , serializeRevision(revision), cloudId, schema,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);

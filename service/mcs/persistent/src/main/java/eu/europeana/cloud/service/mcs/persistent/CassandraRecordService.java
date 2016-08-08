@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.FileUtils;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -438,15 +439,14 @@ public class CassandraRecordService implements RecordService {
             throws RevisionNotExistsException, RepresentationNotExistsException {
         Representation rep = getRepresentation(globalId, schema, version);
         for (Revision revision : rep.getRevisions()) {
-            if (formulateRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName()).equals(revisionKey)) {
-                return revision;
+            if (revision != null) {
+                if (RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
+                    return revision;
+                }
             }
         }
         throw new RevisionNotExistsException();
     }
 
-    private String formulateRevisionKey(String providerId, String revisionName) {
-        return providerId + "_" + revisionName;
-    }
 
 }

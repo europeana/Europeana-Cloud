@@ -57,7 +57,7 @@ public class Revision {
         this.published = published;
     }
 
-
+    //it will be used in the copy constructor
     public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, Date updateTimeStamp, boolean accepted, boolean published, boolean deleted) {
         this.revisionName = revisionName;
         this.revisionProviderId = revisionProviderId;
@@ -69,9 +69,15 @@ public class Revision {
 
     }
 
+    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, boolean accepted, boolean published, boolean deleted) {
+        this(revisionName, revisionProviderId, creationTimeStamp, creationTimeStamp, accepted, published, deleted);
+
+
+    }
+
 
     public Revision(String revisionName, String providerId) {
-        this(revisionName, providerId, new Date(), new Date(), false, false, false);
+        this(revisionName, providerId, new Date(), false, false, false);
     }
 
 

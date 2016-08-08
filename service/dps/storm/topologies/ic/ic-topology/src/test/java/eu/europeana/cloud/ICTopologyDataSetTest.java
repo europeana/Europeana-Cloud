@@ -16,6 +16,7 @@ import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.*;
@@ -114,15 +115,16 @@ public class ICTopologyDataSetTest extends ICTestMocksHelper implements TestCons
 
 
         List<File> files = new ArrayList<>();
+        List<Revision> revisions = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files,revisions, false, new Date());
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
 
 
         List<File> files2 = new ArrayList<>();
         files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
-        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, false, new Date());
+        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2,revisions, false, new Date());
         List<Representation> representationList2 = new ArrayList<>();
         representationList2.add(representation2);
 

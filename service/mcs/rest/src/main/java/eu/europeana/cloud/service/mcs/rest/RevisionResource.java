@@ -116,7 +116,7 @@ public class RevisionResource {
         else if (Tags.PUBLISHED.getTag().equals(tag))
             published = true;
         else deleted = true;
-        Revision revision = new Revision(revisionName, revisionProviderId, new Date(), new Date(), accepted, published, deleted);
+        Revision revision = new Revision(revisionName, revisionProviderId, new Date(), accepted, published, deleted);
         return revision;
     }
 

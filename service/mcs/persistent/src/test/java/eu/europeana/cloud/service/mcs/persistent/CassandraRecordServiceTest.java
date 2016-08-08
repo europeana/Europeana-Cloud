@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
@@ -581,7 +582,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
     @Test(expected = RevisionIsNotValidException.class)
-    public void addRevisionIthNullRevisionCreationDate() throws Exception {
+    public void addRevisionWithNullRevisionCreationDate() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
@@ -594,7 +595,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
     @Test(expected = RevisionIsNotValidException.class)
-    public void addRevisionIthNullRevisionUpdatesDate() throws Exception {
+    public void addRevisionWithNullRevisionUpdatesDate() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
@@ -614,11 +615,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         // given
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
-        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), new Date(), true, false, true);
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), true, false, true);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
         // then
-        String revisionKey = getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
         Revision storedRevision = cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey);
         assertNotNull(storedRevision);
         assertThat(storedRevision, is(revision));
@@ -634,7 +635,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
         // then
-        String revisionKey = getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
         cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey);
     }
 
@@ -642,12 +643,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void getRevisionFromNonExistedRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
-        String revisionKey = getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
         cassandraRecordService.getRevision("globalId", "not_existing_schema", "5573dbf0-5979-11e6-9061-1c6f653f9042", revisionKey);
-    }
-
-    private String getRevisionKey(String revisionProviderId, String revisionName) {
-        return revisionProviderId + "_" + revisionName;
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId,

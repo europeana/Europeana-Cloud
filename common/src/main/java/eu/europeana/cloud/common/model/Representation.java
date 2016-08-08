@@ -136,11 +136,11 @@ public class Representation {
         List<Revision> revisions = representation.getRevisions();
         if (revisions == null || revisions.isEmpty())
             return new ArrayList<>();
-        List<Revision> ClonedRevisions = new ArrayList<>(revisions.size());
+        List<Revision> clonedRevisions = new ArrayList<>(revisions.size());
         for (Revision revision : revisions) {
-            ClonedRevisions.add(new Revision(revision));
+            clonedRevisions.add(new Revision(revision));
         }
-        return ClonedRevisions;
+        return clonedRevisions;
     }
 
 
