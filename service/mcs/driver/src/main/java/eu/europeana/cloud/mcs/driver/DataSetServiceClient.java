@@ -28,8 +28,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
-
 /**
  * Client for managing datasets in MCS.
  */
@@ -460,13 +458,14 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException              on unexpected situations
      */
     public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId,
-                                                  String representationName)
+                                                  String representationName,String representationVersion)
             throws DataSetNotExistsException, MCSException {
 
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
                 .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId).queryParam(ParamConstants.F_CLOUDID, cloudId)
-                .queryParam(ParamConstants.F_REPRESENTATIONNAME, representationName);
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, representationName)
+                .queryParam(ParamConstants.F_VER, representationVersion);
 
         Response response = null;
 

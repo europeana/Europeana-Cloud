@@ -155,7 +155,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 	// when one of the representation is removed from data set
 	cassandraDataSetService.removeAssignment(ds.getProviderId(),
-		ds.getId(), r1.getCloudId(), r1.getRepresentationName());
+		ds.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
 
 	// then only one representation should remain assigned in data set
 	List<Representation> assignedRepresentations = cassandraDataSetService

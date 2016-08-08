@@ -100,14 +100,14 @@ public class CassandraDataSetDAO {
 		.prepare( //
 			"DELETE FROM " //
 				+ "data_set_assignments " //
-				+ "WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ?;");
+				+ "WHERE provider_dataset_id = ? AND cloud_id = ? AND schema_id = ? AND version_id = ?;");
 	removeAssignmentStatement.setConsistencyLevel(connectionProvider
 		.getConsistencyLevel());
 
 	listDataSetAssignmentsNoPaging = connectionProvider.getSession()
 		.prepare( //
 			"SELECT " //
-				+ "cloud_id, schema_id " //
+				+ "cloud_id, schema_id, version_id " //
 				+ "FROM data_set_assignments " //
 				+ "WHERE provider_dataset_id = ?;");
 	listDataSetAssignmentsNoPaging.setConsistencyLevel(connectionProvider
@@ -322,12 +322,12 @@ public class CassandraDataSetDAO {
      *            representation's schema
      */
     public void removeAssignment(String providerId, String dataSetId,
-	    String recordId, String schema) throws NoHostAvailableException,
+	    String recordId, String schema,String versionId) throws NoHostAvailableException,
 	    QueryExecutionException {
 	String providerDataSetId = createProviderDataSetId(providerId,
 		dataSetId);
 	BoundStatement boundStatement = removeAssignmentStatement.bind(
-		providerDataSetId, recordId, schema);
+		providerDataSetId, recordId, schema, UUID.fromString(versionId));
 	ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 	QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
@@ -411,9 +411,10 @@ public class CassandraDataSetDAO {
 	for (Row row : rs) {
 	    String cloudId = row.getString("cloud_id");
 	    String schemaId = row.getString("schema_id");
+		UUID versionId = row.getUUID("version_id");
 	    connectionProvider.getSession().execute(
 		    removeAssignmentStatement.bind(providerDataSetId, cloudId,
-			    schemaId));
+			    schemaId, versionId));
 	}
 
 	// remove dataset itself

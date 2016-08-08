@@ -78,7 +78,7 @@ public interface DataSetService {
      * @throws DataSetNotExistsException
      *             if such data set not exists
      */
-    void removeAssignment(String providerId, String dataSetId, String recordId, String schema)
+    void removeAssignment(String providerId, String dataSetId, String recordId, String schema, String versionId)
             throws DataSetNotExistsException;
 
 

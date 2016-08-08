@@ -126,7 +126,7 @@ public class CassandraDataSetService implements DataSetService {
 
 	// now - when everything is validated - add assignment
 		dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
-				version);
+				rep.getVersion());
 		DataProvider dataProvider = uis.getProvider(providerId);
 		dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
 		representationIndexer.addAssignment(rep.getVersion(),
@@ -139,13 +139,13 @@ public class CassandraDataSetService implements DataSetService {
      */
 	@Override
 	public void removeAssignment(String providerId, String dataSetId,
-								 String recordId, String schema) throws DataSetNotExistsException {
+								 String recordId, String schema, String versionId) throws DataSetNotExistsException {
 		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 		if (ds == null) {
 			throw new DataSetNotExistsException();
 		}
 
-		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema);
+		dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
 		DataProvider dataProvider = uis.getProvider(providerId);
 		if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
 			dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
