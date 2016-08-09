@@ -5,34 +5,32 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
 import org.glassfish.jersey.test.JerseyTest;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.util.List;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * DataSetAssignmentResourceTest
@@ -116,49 +114,6 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldAddAssignmentForLatestVersion() throws Exception {
-	// given representation and data set in data service
-	recordService.putContent(rep.getCloudId(), rep.getRepresentationName(),
-		rep.getVersion(), new File("terefere", "xml", null, null, -1,
-			null), new ByteArrayInputStream("buf".getBytes()));
-	rep = recordService.persistRepresentation(rep.getCloudId(),
-		rep.getRepresentationName(), rep.getVersion());
-
-	// when representation is assigned to data set without specifying the
-	// version
-	dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
-		.resolveTemplate(P_PROVIDER, dataProvider.getId())
-		.resolveTemplate(P_DATASET, dataSet.getId());
-	Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep
-		.getCloudId()).param(F_REPRESENTATIONNAME,
-		rep.getRepresentationName()));
-	Response addAssignmentResponse = dataSetAssignmentWebTarget.request()
-		.post(assinmentForm);
-	assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
-		addAssignmentResponse.getStatus());
-
-	// then we get representation in latest version
-	Representation latestRepresentation = recordService
-		.createRepresentation("globalId", dataSet.getId(),
-			dataProvider.getId());
-	recordService.putContent(latestRepresentation.getCloudId(),
-		latestRepresentation.getRepresentationName(),
-		latestRepresentation.getVersion(), new File("terefere", "xml",
-			null, null, -1, null),
-		new ByteArrayInputStream("buf".getBytes()));
-	latestRepresentation = recordService.persistRepresentation(
-		latestRepresentation.getCloudId(),
-		latestRepresentation.getRepresentationName(),
-		latestRepresentation.getVersion());
-
-	List<Representation> representations = dataSetService.listDataSet(
-		dataProvider.getId(), dataSet.getId(), null, 10000)
-		.getResults();
-	assertEquals(1, representations.size());
-	assertEquals(latestRepresentation, representations.get(0));
-    }
-
-    @Test
     public void shouldAddAssignmentForSpecificVersion() throws Exception {
 	// given representation and data set in data service
 	Representation latestRepresentation = recordService
@@ -205,6 +160,7 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 	Response deleteAssignmentResponse = dataSetAssignmentWebTarget
 		.queryParam(F_CLOUDID, rep.getCloudId())
 		.queryParam(F_REPRESENTATIONNAME, rep.getRepresentationName())
+		.queryParam(F_VER, rep.getVersion())
 		.request().delete();
 	assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
 		deleteAssignmentResponse.getStatus());
