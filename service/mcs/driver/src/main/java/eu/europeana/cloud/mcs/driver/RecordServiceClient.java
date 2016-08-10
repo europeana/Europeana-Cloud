@@ -14,6 +14,8 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,10 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -35,7 +41,7 @@ import java.util.List;
  */
 public class RecordServiceClient extends MCSClient {
 
-    private final Client client = ClientBuilder.newClient();
+    private final Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
     private static final Logger logger = LoggerFactory.getLogger(DataSetServiceClient.class);
 
     //records/{CLOUDID}
@@ -274,6 +280,52 @@ public class RecordServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                URI uri = response.getLocation();
+                return uri;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    /**
+     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     *
+     * @param cloudId            id of the record in which to create the representation
+     *                           (required)
+     * @param representationName name of the representation to be created
+     *                           (required)
+     * @param providerId         provider of this representation version (required)
+     * @param data               file that should be uploaded (required)
+     * @param mediaType          mimeType of uploaded file
+     * @return
+     */
+    public URI createRepresentation(String cloudId,
+                                    String representationName,
+                                    String providerId,
+                                    InputStream data,
+                                    String fileName,
+                                    String mediaType) throws MCSException {
+        WebTarget target = client.target(baseUrl).path(represtationNamePath+"/files")
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
+        Builder request = target.request();
+        //
+        FormDataMultiPart multipart = new FormDataMultiPart()
+                .field(ParamConstants.F_PROVIDER, providerId)
+                .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                .field(ParamConstants.F_FILE_NAME, fileName)
+                .field(ParamConstants.F_FILE_MIME, mediaType);
+        //
+
+        Response response = null;
+        request.header("Content-Type","multipart/form-data");
+        try {
+            response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 URI uri = response.getLocation();
                 return uri;
