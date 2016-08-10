@@ -29,8 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * DataSetAssignmentResourceTest
@@ -112,6 +111,50 @@ public class DataSetAssignmentResourceTest extends JerseyTest {
 	assertEquals(McsErrorCode.REPRESENTATION_ALREADY_IN_SET.toString(),
 		errorInfo.getErrorCode());
     }
+
+	@Test
+	public void shouldAddAssignmentForLatestVersion() throws Exception {
+		// given representation and data set in data service
+		recordService.putContent(rep.getCloudId(), rep.getRepresentationName(),
+				rep.getVersion(), new File("terefere", "xml", null, null, -1,
+						null), new ByteArrayInputStream("buf".getBytes()));
+		rep = recordService.persistRepresentation(rep.getCloudId(),
+				rep.getRepresentationName(), rep.getVersion());
+
+		// when representation is assigned to data set without specifying the
+		// version
+		dataSetAssignmentWebTarget = dataSetAssignmentWebTarget
+				.resolveTemplate(P_PROVIDER, dataProvider.getId())
+				.resolveTemplate(P_DATASET, dataSet.getId());
+		Entity<Form> assinmentForm = Entity.form(new Form(F_CLOUDID, rep
+				.getCloudId()).param(F_REPRESENTATIONNAME,
+				rep.getRepresentationName()));
+		Response addAssignmentResponse = dataSetAssignmentWebTarget.request()
+				.post(assinmentForm);
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+				addAssignmentResponse.getStatus());
+
+		// then we get representation in latest version
+		Representation latestRepresentation = recordService
+				.createRepresentation("globalId", dataSet.getId(),
+						dataProvider.getId());
+		recordService.putContent(latestRepresentation.getCloudId(),
+				latestRepresentation.getRepresentationName(),
+				latestRepresentation.getVersion(), new File("terefere", "xml",
+						null, null, -1, null),
+				new ByteArrayInputStream("buf".getBytes()));
+		latestRepresentation = recordService.persistRepresentation(
+				latestRepresentation.getCloudId(),
+				latestRepresentation.getRepresentationName(),
+				latestRepresentation.getVersion());
+
+		List<Representation> representations = dataSetService.listDataSet(
+				dataProvider.getId(), dataSet.getId(), null, 10000)
+				.getResults();
+		assertEquals(1, representations.size());
+		assertNotEquals(latestRepresentation, representations.get(0));
+		assertEquals(rep, representations.get(0));
+	}
 
     @Test
     public void shouldAddAssignmentForSpecificVersion() throws Exception {
