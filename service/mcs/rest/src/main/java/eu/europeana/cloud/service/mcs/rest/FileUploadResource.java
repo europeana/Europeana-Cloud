@@ -144,8 +144,6 @@ public class FileUploadResource {
 
         if (fileName != null) {
             try {
-                representation.getCloudId();
-                representation.getRepresentationName();
                 File temp = recordService.getFile(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                         fileName);
                 if (temp != null) {
