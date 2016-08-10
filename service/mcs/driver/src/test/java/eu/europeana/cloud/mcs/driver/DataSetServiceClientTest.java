@@ -523,9 +523,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
     }
@@ -539,10 +540,11 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000002";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -554,9 +556,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000023";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema66";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
         assertEquals(TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null), 0);
 
     }
@@ -570,9 +573,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000007";
         String cloudId = "1DZ6HTS415W";
         String representationName = "noSuchSchema";
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -584,9 +588,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "dataset000058";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
-
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
+        
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 
@@ -598,9 +603,10 @@ public class DataSetServiceClientTest {
         String dataSetId = "noSuchDataSet";
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
-
+        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
+        
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName);
+        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
     }
 

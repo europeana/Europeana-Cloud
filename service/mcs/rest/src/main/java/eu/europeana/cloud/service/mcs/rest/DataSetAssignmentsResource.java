@@ -76,10 +76,11 @@ public class DataSetAssignmentsResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void removeAssignment(@PathParam(P_PROVIDER) String providerId,
     		@PathParam(P_DATASET) String dataSetId,
-    		@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema)
+    		@QueryParam(F_CLOUDID) String recordId, @QueryParam(F_REPRESENTATIONNAME) String schema, @QueryParam(F_VER) String versionId)
             throws DataSetNotExistsException {
         ParamUtil.require(F_CLOUDID, recordId);
         ParamUtil.require(F_REPRESENTATIONNAME, schema);
-        dataSetService.removeAssignment(providerId, dataSetId, recordId, schema);
+        ParamUtil.require(F_VER, versionId);
+        dataSetService.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
     }
 }

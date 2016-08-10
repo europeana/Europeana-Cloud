@@ -207,7 +207,7 @@ public class ServiceIngestionTool {
         for (Representation representation : dataset.getResults()) {
             recordService.deleteRepresentation(representation.getCloudId(), representation.getRepresentationName());
             dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
-                    representation.getRepresentationName());
+                    representation.getRepresentationName(), representation.getVersion());
         }
         dataSetService.deleteDataSet(providerId, dataSetId);
     }
