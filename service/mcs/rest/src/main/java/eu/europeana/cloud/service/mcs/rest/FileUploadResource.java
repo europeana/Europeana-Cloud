@@ -90,7 +90,7 @@ public class FileUploadResource {
     public Response sendFile(@Context UriInfo uriInfo,
                              @PathParam(P_CLOUDID) String globalId,
                              @PathParam(P_REPRESENTATIONNAME) String schema,
-                             @FormDataParam(P_FILENAME) String fileName,
+                             @FormDataParam(F_FILE_NAME) String fileName,
                              @FormDataParam(F_PROVIDER) String providerId,
                              @FormDataParam(F_FILE_MIME) String mimeType,
                              @FormDataParam(F_FILE_DATA) InputStream data)
@@ -98,13 +98,8 @@ public class FileUploadResource {
             FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, CannotPersistEmptyRepresentationException {
 
         Representation representation = null;
-        try {
-            representation = recordService.getRepresentation(globalId, schema);
-            throw new CannotModifyPersistentRepresentationException();
-        } catch (RepresentationNotExistsException e) {
-            representation = recordService.createRepresentation(globalId, schema, providerId);
-            addPrivilegesToRepresentation(representation);
-        }
+        representation = recordService.createRepresentation(globalId, schema, providerId);
+        addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, data, mimeType, fileName);
         persistRepresentation(representation);

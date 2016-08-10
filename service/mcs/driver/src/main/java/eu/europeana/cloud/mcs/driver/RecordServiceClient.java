@@ -318,7 +318,7 @@ public class RecordServiceClient extends MCSClient {
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_PROVIDER, providerId)
                 .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .field(ParamConstants.P_FILENAME, fileName)
+                .field(ParamConstants.F_FILE_NAME, fileName)
                 .field(ParamConstants.F_FILE_MIME, mediaType);
         //
 

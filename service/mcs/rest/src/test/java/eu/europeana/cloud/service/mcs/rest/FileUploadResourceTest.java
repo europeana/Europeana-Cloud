@@ -83,10 +83,5 @@ public class FileUploadResourceTest {
         fileUploadResource.sendFile(URI_INFO, CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME, "fileName", "providerId", "mimeType", null);
     }
     
-    @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldThrowExceptionForExistingPersistentRepresentation() throws FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, FileNotExistsException, RecordNotExistsException, CannotPersistEmptyRepresentationException, ProviderNotExistsException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-        fileUploadResource.sendFile(URI_INFO, CLOUD_ID, EXISTING_PERSISTED_REPRESENTATION_NAME, "fileName", "providerId", "mimeType", null);
-    }
-
 }
 
