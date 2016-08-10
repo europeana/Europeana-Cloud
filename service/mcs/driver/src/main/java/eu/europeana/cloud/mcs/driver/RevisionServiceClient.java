@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -31,10 +33,13 @@ public class RevisionServiceClient extends MCSClient {
     private final Client client;
     private static final Logger logger = LoggerFactory.getLogger(RevisionServiceClient.class);
     private static final String revisionPathWithTag = "records/{" + P_CLOUDID + "}/representations/{"
-            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/tags/{" + TAG + "}";
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/tag/{" + TAG + "}";
 
     private static final String revisionPath = "records/{" + P_CLOUDID + "}/representations/{"
             + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions";
+
+    private static final String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
 
     /**
      * Constructs a RevisionServiceClient
@@ -69,8 +74,8 @@ public class RevisionServiceClient extends MCSClient {
      * @param revisionProviderId revision provider id
      * @param tag                flag tag
      * @return URI to specific revision with specific tag inside a version.
-     * @throws DriverException                  call to service has not succeeded because of server side error.
-     * @throws MCSException                     on unexpected situations.
+     * @throws DriverException call to service has not succeeded because of server side error.
+     * @throws MCSException    on unexpected situations.
      */
     public URI addRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, String tag)
             throws
@@ -119,6 +124,46 @@ public class RevisionServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
+            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return response.getLocation();
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+
+    /**
+     * add a revision
+     *
+     * @param cloudId            cloud id of the record (required).
+     * @param representationName schema of representation (required).
+     * @param version            a specific version of the representation(required).
+     * @param revisionName       the name of revision (required).
+     * @param revisionProviderId revision provider id (required).
+     * @param tags               set of tags (acceptance,published,deleted)
+     * @return URI to a revision tags inside a version.
+     * @throws RepresentationNotExistsException when representation does not exist in specified version.
+     * @throws DriverException                  call to service has not succeeded because of server side error.
+     * @throws MCSException                     on unexpected situations.
+     */
+    public URI addRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Set<Tags> tags)
+            throws
+            DriverException, MCSException {
+        WebTarget target = client.target(baseUrl).path(revisionPathWithMultipleTags).resolveTemplate(P_CLOUDID, cloudId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.REVISION_NAME, revisionName).resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId);
+        Form tagsForm = new Form();
+        for (Tags tag : tags) {
+            tagsForm.param(TAGS, tag.getTag());
+        }
+        Invocation.Builder request = target.request();
+        Response response = null;
+        try {
+            response = request.post(Entity.form(tagsForm));
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {

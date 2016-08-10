@@ -14,7 +14,7 @@ public class Revision {
     private Date creationTimeStamp;
     private Date updateTimeStamp;
     boolean published;
-    boolean accepted;
+    boolean acceptance;
     boolean deleted;
 
     public Date getUpdateTimeStamp() {
@@ -33,12 +33,12 @@ public class Revision {
         this.creationTimeStamp = creationTimeStamp;
     }
 
-    public boolean isAccepted() {
-        return accepted;
+    public boolean isAcceptance() {
+        return acceptance;
     }
 
-    public void setAccepted(boolean accepted) {
-        this.accepted = accepted;
+    public void setAcceptance(boolean acceptance) {
+        this.acceptance = acceptance;
     }
 
     public boolean isDeleted() {
@@ -58,19 +58,19 @@ public class Revision {
     }
 
     //it will be used in the copy constructor
-    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, Date updateTimeStamp, boolean accepted, boolean published, boolean deleted) {
+    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, Date updateTimeStamp, boolean acceptance, boolean published, boolean deleted) {
         this.revisionName = revisionName;
         this.revisionProviderId = revisionProviderId;
         this.creationTimeStamp = creationTimeStamp;
         this.updateTimeStamp = updateTimeStamp;
         this.published = published;
         this.deleted = deleted;
-        this.accepted = accepted;
+        this.acceptance = acceptance;
 
     }
 
-    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, boolean accepted, boolean published, boolean deleted) {
-        this(revisionName, revisionProviderId, creationTimeStamp, creationTimeStamp, accepted, published, deleted);
+    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, boolean acceptance, boolean published, boolean deleted) {
+        this(revisionName, revisionProviderId, creationTimeStamp, creationTimeStamp, acceptance, published, deleted);
 
 
     }
@@ -82,7 +82,7 @@ public class Revision {
 
 
     public Revision(final Revision revision) {
-        this(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), revision.getUpdateTimeStamp(), revision.isAccepted(), revision.isPublished(), revision.isDeleted());
+        this(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), revision.getUpdateTimeStamp(), revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
     }
 
 
@@ -113,7 +113,7 @@ public class Revision {
         Revision revision = (Revision) o;
         if (!revisionName.equals(revision.getRevisionName())) return false;
         if (!revisionProviderId.equals(revision.getRevisionProviderId())) return false;
-        if (accepted != revision.accepted) return false;
+        if (acceptance != revision.acceptance) return false;
         if (published != revision.published) return false;
         if (deleted != revision.deleted) return false;
         if (creationTimeStamp == null)
@@ -128,7 +128,7 @@ public class Revision {
         result = 31 * result + (revisionName != null ? revisionName.hashCode() : 0);
         result = 31 * result + (revisionProviderId != null ? revisionProviderId.hashCode() : 0);
         result = 31 * result + (creationTimeStamp != null ? creationTimeStamp.hashCode() : 0);
-        result = 31 * result + (accepted ? 1 : 0);
+        result = 31 * result + (acceptance ? 1 : 0);
         result = 31 * result + (published ? 1 : 0);
         result = 31 * result + (deleted ? 1 : 0);
         return result;
@@ -138,8 +138,8 @@ public class Revision {
     @Override
     public String toString() {
         return "Revision [revisionNme=" + revisionName + ", revisionProvider=" + revisionProviderId
-                + ", creationTimeStamp=" + creationTimeStamp + ", updateTimeStamp=" + updateTimeStamp + ", accepted="
-                + accepted + ", published=" + published + ", deleted=" + deleted + "]";
+                + ", creationTimeStamp=" + creationTimeStamp + ", updateTimeStamp=" + updateTimeStamp + ", acceptance="
+                + acceptance + ", published=" + published + ", deleted=" + deleted + "]";
     }
 
 

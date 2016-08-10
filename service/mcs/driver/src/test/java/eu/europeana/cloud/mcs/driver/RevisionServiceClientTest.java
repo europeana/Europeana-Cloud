@@ -9,6 +9,8 @@ import org.junit.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -26,10 +28,10 @@ public class RevisionServiceClientTest {
     private static final String VERSION = "de084210-a393-11e3-8614-50e549e85271";
 
     private static final String EXPECTED_REVISIONS_LOCATION = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions";
-    private static final String EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tags/accepted";
-    private static final String EXPECTED_REVISION_PATH_WITH_PUBLISHED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tags/published";
-    private static final String EXPECTED_REVISION_PATH_WITH_DELETED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tags/deleted";
-
+    private static final String EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/acceptance";
+    private static final String EXPECTED_REVISION_PATH_WITH_PUBLISHED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/published";
+    private static final String EXPECTED_REVISION_PATH_WITH_DELETED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/deleted";
+    private static final String EXPECTED_REVISION_PATH_MULTIPLE_TAGS = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tags";
     private RevisionServiceClient instance;
 
     @Before
@@ -47,11 +49,11 @@ public class RevisionServiceClientTest {
         assertEquals(EXPECTED_REVISIONS_LOCATION, uri.toString());
     }
 
-    @Betamax(tape = "revisions/shouldAddRevisionWithAcceptedTag")
+    @Betamax(tape = "revisions/shouldAddRevisionWithAcceptanceTag")
     @org.junit.Test
     public void shouldAddRevisionWithAcceptedTag()
             throws MCSException, IOException {
-        URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, Tags.ACCEPTED.getTag());
+        URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, Tags.ACCEPTANCE.getTag());
         assertNotNull(uri);
         assertEquals(uri.toString(), EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG);
 
@@ -78,4 +80,28 @@ public class RevisionServiceClientTest {
     }
 
 
+    @Betamax(tape = "revisions/shouldAddRevisionWithMultipleTags")
+    @org.junit.Test
+    public void shouldAddRevisionWithMultipleTags()
+            throws MCSException, IOException {
+        Set<Tags> tags = new HashSet<>();
+        tags.add(Tags.ACCEPTANCE);
+        tags.add(Tags.DELETED);
+        URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, tags);
+        assertNotNull(uri);
+        assertEquals(uri.toString(), EXPECTED_REVISION_PATH_MULTIPLE_TAGS);
+
+    }
+
+
+    @Betamax(tape = "revisions/shouldAddRevisionWithMultipleTags")
+    @org.junit.Test
+    public void shouldAddRevisionWithEmptyTagsSet()
+            throws MCSException, IOException {
+        Set<Tags> tags = new HashSet<>();
+        URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, tags);
+        assertNotNull(uri);
+        assertEquals(uri.toString(), EXPECTED_REVISION_PATH_MULTIPLE_TAGS);
+
+    }
 }

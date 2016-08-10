@@ -80,6 +80,7 @@ public interface ParamConstants {
 
     static final String REVISION_NAME = "revisionName";
     static final String TAG = "tag";
+    static final String TAGS = "tags";
     static final String REVISION_PROVIDER_ID = "revisionProviderId";
 
     //header paramiters' names
