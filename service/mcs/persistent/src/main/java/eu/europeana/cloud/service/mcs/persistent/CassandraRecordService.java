@@ -1,24 +1,16 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.FileUtils;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,7 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -85,7 +77,7 @@ public class CassandraRecordService implements RecordService {
             List<Representation> allRecordRepresentationsInAllVersions = recordDAO.listRepresentationVersions(cloudId);
             if (allRecordRepresentationsInAllVersions.isEmpty()) {
                 throw new RepresentationNotExistsException(String.format(
-                    "No representation found for given cloudId %s", cloudId));
+                        "No representation found for given cloudId %s", cloudId));
             }
 
             sortByProviderId(allRecordRepresentationsInAllVersions);
@@ -103,8 +95,8 @@ public class CassandraRecordService implements RecordService {
                                 repVersion.getVersion(), f.getFileName()));
                     } catch (FileNotExistsException ex) {
                         LOGGER.warn(
-                            "File {} was found in representation {}-{}-{} but no content of such file was found",
-                            f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
+                                "File {} was found in representation {}-{}-{} but no content of such file was found",
+                                f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
                     }
                 }
             }
@@ -138,7 +130,7 @@ public class CassandraRecordService implements RecordService {
                     contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, rep.getVersion(), f.getFileName()));
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                        f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
+                            f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
                 }
             }
         }
@@ -221,7 +213,7 @@ public class CassandraRecordService implements RecordService {
                 contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, f.getFileName()));
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                    f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
+                        f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
             }
         }
         recordDAO.deleteRepresentation(globalId, schema, version);
@@ -313,7 +305,7 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public void getContent(String globalId, String schema, String version, String fileName, long rangeStart,
-            long rangeEnd, OutputStream os)
+                           long rangeEnd, OutputStream os)
             throws FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException {
         File file = getFile(globalId, schema, version, fileName);
         if (rangeStart > file.getContentLength() - 1) {
@@ -387,13 +379,13 @@ public class CassandraRecordService implements RecordService {
             File copiedFile = new File(srcFile);
             try {
                 contentDAO.copyContent(FileUtils.generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
-                    FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
+                        FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()));
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                    srcFile.getFileName(), globalId, schema, version);
+                        srcFile.getFileName(), globalId, schema, version);
             } catch (FileAlreadyExistsException ex) {
                 LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
-                    schema, copiedRep.getVersion());
+                        schema, copiedRep.getVersion());
             }
             recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
         }
@@ -428,5 +420,33 @@ public class CassandraRecordService implements RecordService {
             }
         });
     }
+
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException {
+        recordDAO.addOrReplaceRevisionInRepresentation(globalId, schema, version, revision);
+
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Revision getRevision(String globalId, String schema, String version, String revisionKey)
+            throws RevisionNotExistsException, RepresentationNotExistsException {
+        Representation rep = getRepresentation(globalId, schema, version);
+        for (Revision revision : rep.getRevisions()) {
+            if (revision != null) {
+                if (RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
+                    return revision;
+                }
+            }
+        }
+        throw new RevisionNotExistsException();
+    }
+
 
 }

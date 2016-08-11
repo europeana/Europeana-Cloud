@@ -212,6 +212,19 @@ public class UnitedExceptionMapper {
     }
 
 
+    /**
+     * Maps {@link RevisionIsNotValidException} to {@link Response}. Returns a response with HTTP status code 405 -
+     * "Method not Allowed" and a {@link ErrorInfo} with exception details as a message body.
+     *
+     * @param exception the exception to map to a response
+     * @return a response mapped from the supplied exception
+     */
+    public Response toResponse(RevisionIsNotValidException exception) {
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, McsErrorCode.REVISION_IS_NOT_VALID, exception);
+    }
+
+
+
     private static Response buildResponse(Response.Status httpStatus, McsErrorCode errorCode, Exception e) {
         return buildResponse(httpStatus.getStatusCode(), errorCode, e);
     }

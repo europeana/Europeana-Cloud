@@ -60,6 +60,20 @@ public class Representation {
     private boolean persistent;
 
 
+    public List<Revision> getRevisions() {
+        return revisions;
+    }
+
+    public void setRevisions(List<Revision> revisions) {
+        this.revisions = revisions;
+    }
+
+    /**
+     * A list of revisions which constitute this representation.
+     */
+    private List<Revision> revisions = new ArrayList<Revision>(0);
+
+
     /**
      * Creates a new instance of this class.
      */
@@ -78,11 +92,12 @@ public class Representation {
      * @param uri
      * @param dataProvider
      * @param files
+     * @param revisions
      * @param persistent
      * @param creationDate
      */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, boolean persistent, Date creationDate) {
+                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -91,6 +106,7 @@ public class Representation {
         this.uri = uri;
         this.dataProvider = dataProvider;
         this.files = files;
+        this.revisions = revisions;
         this.persistent = persistent;
         this.creationDate = creationDate != null ? creationDate : null;
     }
@@ -104,7 +120,7 @@ public class Representation {
     public Representation(final Representation representation) {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
-                cloneFiles(representation), representation.isPersistent(), representation.getCreationDate());
+                cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(), representation.getCreationDate());
     }
 
 
@@ -114,6 +130,17 @@ public class Representation {
             files.add(new File(file));
         }
         return files;
+    }
+
+    private static List<Revision> cloneRevisions(Representation representation) {
+        List<Revision> revisions = representation.getRevisions();
+        if (revisions == null || revisions.isEmpty())
+            return new ArrayList<>();
+        List<Revision> clonedRevisions = new ArrayList<>(revisions.size());
+        for (Revision revision : revisions) {
+            clonedRevisions.add(new Revision(revision));
+        }
+        return clonedRevisions;
     }
 
 
@@ -225,6 +252,7 @@ public class Representation {
         hash = 37 * hash + Objects.hashCode(this.version);
         hash = 37 * hash + Objects.hashCode(this.dataProvider);
         hash = 37 * hash + Objects.hashCode(this.files);
+        hash = 37 * hash + Objects.hashCode(this.revisions);
         hash = 37 * hash + Objects.hashCode(this.creationDate);
         hash = 37 * hash + (this.persistent ? 1 : 0);
         return hash;
@@ -254,6 +282,9 @@ public class Representation {
         if (!Objects.equals(this.files, other.files)) {
             return false;
         }
+        if (!Objects.equals(this.revisions, other.revisions)) {
+            return false;
+        }
         if (!Objects.equals(this.creationDate.toString(), other.creationDate.toString())) {
             return false;
         }
@@ -266,7 +297,7 @@ public class Representation {
     @Override
     public String toString() {
         return "Representation{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", creationDate=" + creationDate
+                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", revisions=" + revisions + ", creationDate=" + creationDate
                 + ", persistent=" + persistent + '}';
     }
 }

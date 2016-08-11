@@ -105,7 +105,7 @@ public class SimplifiedRepresentationResourceTest {
     }
 
     private void setupRecordService() throws RepresentationNotExistsException {
-        Representation rep = new Representation(CLOUD_ID, EXISTING_REPRESENTATION_NAME, "sampleVersion", null, null, PROVIDER_ID, null, true, null);
+        Representation rep = new Representation(CLOUD_ID, EXISTING_REPRESENTATION_NAME, "sampleVersion", null, null, PROVIDER_ID, null,null, true, null);
 
         Mockito.when(recordService.getRepresentation(CLOUD_ID, EXISTING_REPRESENTATION_NAME)).thenReturn(rep);
         Mockito.when(recordService.getRepresentation(CLOUD_ID, RANDOM_REPRESENTATION_NAME)).thenThrow(RepresentationNotExistsException.class);

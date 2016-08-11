@@ -52,7 +52,7 @@ public class SimplifiedRecordsResourceTest {
 
 
     @Before
-    public void init() throws CloudException, RecordNotExistsException  {
+    public void init() throws CloudException, RecordNotExistsException {
         if (setUpIsDone) {
             return;
         }
@@ -112,7 +112,7 @@ public class SimplifiedRecordsResourceTest {
     }
 
     private void setupRecordService() throws RecordNotExistsException {
-        Record record = new Record(CLOUD_ID, Arrays.asList(new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, false, null)));
+        Record record = new Record(CLOUD_ID, Arrays.asList(new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, null, false, null)));
         //
         Mockito.when(recordService.getRecord(CLOUD_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)).thenThrow(RecordNotExistsException.class);
         Mockito.when(recordService.getRecord(CLOUD_ID)).thenReturn(record);

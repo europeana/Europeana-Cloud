@@ -48,7 +48,7 @@ public class RepresentationResourceTest extends JerseyTest {
     static final private String providerID = "DLF";
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-                            null)), true, new Date());
+                            null)),null, true, new Date());
     static final private Form form = new Form(ParamConstants.F_PROVIDER, providerID);
     
     @Override

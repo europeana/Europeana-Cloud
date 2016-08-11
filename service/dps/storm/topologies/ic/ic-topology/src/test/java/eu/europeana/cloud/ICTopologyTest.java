@@ -16,6 +16,7 @@ import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
@@ -270,13 +271,14 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         String fileUrl1 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         String fileUrl2 = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName";
         List<File> firstFilesList = new ArrayList<>();
+        List<Revision> revisions = new ArrayList<>();
         firstFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl1)));
-        Representation firstRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, firstFilesList, false, new Date());
+        Representation firstRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, firstFilesList, revisions, false, new Date());
         List<Representation> firstRepresentationList = new ArrayList<>();
         firstRepresentationList.add(firstRepresentation);
         List<File> secondFilesList = new ArrayList<>();
         secondFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl2)));
-        Representation secondRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, secondFilesList, false, new Date());
+        Representation secondRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, secondFilesList, revisions, false, new Date());
         List<Representation> seconRepresentationList = new ArrayList<>();
         seconRepresentationList.add(secondRepresentation);
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(firstRepresentationList);
@@ -293,11 +295,19 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     public void prepareForSingleDataset() throws URISyntaxException, IOException, MCSException {
         String fileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
         List<File> files = new ArrayList<>();
+        List<Revision> revisions = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, false, new Date());
+
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
         List<Representation> representationList = new ArrayList<>();
         representationList.add(representation);
         when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+
+        List<File> files2 = new ArrayList<>();
+        files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
+        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, revisions, false, new Date());
+        List<Representation> representationList2 = new ArrayList<>();
+        representationList2.add(representation2);
         when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));

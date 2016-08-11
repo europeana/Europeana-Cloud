@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
 import java.util.ArrayList;
@@ -48,10 +49,11 @@ public class RepresentationVersionAddedMessageProcessorTest {
         String representationName = "representation01";
         String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
         ArrayList<File> files = new ArrayList<>();
+        ArrayList<Revision> revisions = new ArrayList<>();
         boolean persistent = false;
         Date creationDate = Calendar.getInstance().getTime();
 
-        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files, persistent, creationDate);
+        Representation representation = new Representation(cloudId, representationName, versionId, null, null, providerId, files,revisions, persistent, creationDate);
         InsertRepresentationMessage message = new InsertRepresentationMessage(prepareInsertRepresentationMessage(representation));
         //when
         listener.processMessage(message);
