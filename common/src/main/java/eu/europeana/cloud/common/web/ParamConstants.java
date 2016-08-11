@@ -31,6 +31,8 @@ public interface ParamConstants {
 
     static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
 
+    static final String P_REVISIONID = "P_REVISIONID";
+
     static final String P_VER = "VERSION";
 
     static final String P_PROVIDER = "DATAPROVIDER";

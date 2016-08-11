@@ -240,6 +240,36 @@ public class CassandraDataSetService implements DataSetService {
 		return Collections.emptySet();
 	}
 
+	/**
+	 * @inheritDoc
+	 */
+	@Override
+	public ResultSlice<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage){
+		List<String> cloudIds = dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName,
+				startFrom, numberOfElementsOnPage + 1);
+		String nextCloudId = null;
+		if (cloudIds.size() == numberOfElementsOnPage + 1) {
+			 nextCloudId = cloudIds.get(numberOfElementsOnPage);
+			cloudIds.remove(numberOfElementsOnPage);
+		}
+		return new ResultSlice<>(nextCloudId, cloudIds);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	@Override
+	public void addDataSetsRevisions(String providerId, String dataSetId
+			, String revisionId, String representationName, String cloudId)
+
+			throws ProviderNotExistsException,
+			DataSetAlreadyExistsException {
+		if (uis.getProvider(providerId) == null) {
+			throw new ProviderNotExistsException();
+		}
+		dataSetDAO.addDataSetsRevision(providerId, dataSetId, revisionId, representationName, cloudId);
+	}
+
 	private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
 		if (!uis.existsProvider(providerId))
 			throw new ProviderNotExistsException();
