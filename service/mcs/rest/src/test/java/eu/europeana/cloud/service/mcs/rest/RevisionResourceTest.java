@@ -49,7 +49,6 @@ public class RevisionResourceTest extends JerseyTest {
     private static final String PROVIDER_ID = "providerId";
     private static final String TEST_REVESION_NAME = "revisionName";
     private UISClientHandler uisHandler;
-    private Form form;
 
     @Before
     public void mockUp() throws Exception {
@@ -80,24 +79,14 @@ public class RevisionResourceTest extends JerseyTest {
                         rep.getCloudId(), P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_VER,
                         rep.getVersion(), REVISION_NAME,
-                        TEST_REVESION_NAME);
-        String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/tag/{" + TAG + "}";
-        revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
-        form = new Form();
-        form.param(REVISION_PROVIDER_ID, PROVIDER_ID);
-
-
-        Map<String, Object> revisionPathParamsWithMultipleTags = ImmutableMap
-                .<String, Object>of(P_CLOUDID,
-                        rep.getCloudId(), P_REPRESENTATIONNAME,
-                        rep.getRepresentationName(), P_VER,
-                        rep.getVersion(), REVISION_NAME,
                         TEST_REVESION_NAME, REVISION_PROVIDER_ID,
                         REVISION_PROVIDER_ID);
+        String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
+        revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
                 + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
-        revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithMultipleTags);
+        revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
 
 
     }
@@ -162,35 +151,28 @@ public class RevisionResourceTest extends JerseyTest {
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(Entity.form(form));
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(Entity.form(form));
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(Entity.form(form));
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(Entity.form(form));
-        assertEquals(response.getStatus(), 400);
-    }
-
-    @Test
-    public void ShouldReturnBadRequestWhenAddingRevisionWithMissingVersionProvider() throws Exception {
-        form = new Form();
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(Entity.form(form));
+        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(null);
         assertEquals(response.getStatus(), 400);
     }
 

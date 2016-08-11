@@ -33,7 +33,7 @@ public class RevisionServiceClient extends MCSClient {
     private final Client client;
     private static final Logger logger = LoggerFactory.getLogger(RevisionServiceClient.class);
     private static final String revisionPathWithTag = "records/{" + P_CLOUDID + "}/representations/{"
-            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/tag/{" + TAG + "}";
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
 
     private static final String revisionPath = "records/{" + P_CLOUDID + "}/representations/{"
             + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions";
@@ -82,15 +82,12 @@ public class RevisionServiceClient extends MCSClient {
             DriverException, MCSException {
         WebTarget target = client.target(baseUrl).path(revisionPathWithTag).resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_VER, version).resolveTemplate(REVISION_NAME, revisionName).resolveTemplate(TAG, tag);
+                .resolveTemplate(P_VER, version).resolveTemplate(REVISION_NAME, revisionName).resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).resolveTemplate(TAG, tag);
 
-        Form form = new Form();
-        form.param(REVISION_PROVIDER_ID, revisionProviderId);
         Invocation.Builder request = target.request();
-
         Response response = null;
         try {
-            response = request.post(Entity.form(form));
+            response = request.post(null);
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 return response.getLocation();
             } else {

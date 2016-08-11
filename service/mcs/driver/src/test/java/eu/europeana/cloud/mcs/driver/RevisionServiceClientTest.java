@@ -28,9 +28,9 @@ public class RevisionServiceClientTest {
     private static final String VERSION = "de084210-a393-11e3-8614-50e549e85271";
 
     private static final String EXPECTED_REVISIONS_LOCATION = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions";
-    private static final String EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/acceptance";
-    private static final String EXPECTED_REVISION_PATH_WITH_PUBLISHED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/published";
-    private static final String EXPECTED_REVISION_PATH_WITH_DELETED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/tag/deleted";
+    private static final String EXPECTED_REVISION_PATH_WITH_ACCEPTED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/acceptance";
+    private static final String EXPECTED_REVISION_PATH_WITH_PUBLISHED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/published";
+    private static final String EXPECTED_REVISION_PATH_WITH_DELETED_TAG = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/deleted";
     private static final String EXPECTED_REVISION_PATH_MULTIPLE_TAGS = "http://localhost:8080/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tags";
     private RevisionServiceClient instance;
 
@@ -51,7 +51,7 @@ public class RevisionServiceClientTest {
 
     @Betamax(tape = "revisions/shouldAddRevisionWithAcceptanceTag")
     @org.junit.Test
-    public void shouldAddRevisionWithAcceptedTag()
+    public void shouldAddRevisionWithAcceptanceTag()
             throws MCSException, IOException {
         URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, Tags.ACCEPTANCE.getTag());
         assertNotNull(uri);

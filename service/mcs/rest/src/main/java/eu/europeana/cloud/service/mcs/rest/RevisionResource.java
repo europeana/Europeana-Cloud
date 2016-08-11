@@ -52,7 +52,7 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @POST
-    @Path("/{" + REVISION_NAME + "}/tag/{" + TAG + "}")
+    @Path("/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response addRevision(@Context UriInfo uriInfo,
@@ -61,11 +61,10 @@ public class RevisionResource {
                                 @PathParam(P_VER) final String version,
                                 @PathParam(REVISION_NAME) String revisionName,
                                 @PathParam(TAG) String tag,
-                                @FormParam(REVISION_PROVIDER_ID) String revisionProviderId
+                                @PathParam(REVISION_PROVIDER_ID) String revisionProviderId
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException {
-        ParamUtil.require(REVISION_PROVIDER_ID, revisionProviderId);
-        ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+                ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Revision revision = null;
         try {

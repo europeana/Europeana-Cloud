@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
+import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
@@ -41,6 +42,8 @@ public class CassandraRecordDAO {
 
     // json serializer/deserializer
     private final Gson gson = new Gson();
+    private final Gson revisionGson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
 
     @Autowired
     @Qualifier("dbService")
@@ -393,6 +396,7 @@ public class CassandraRecordDAO {
         for (Row row : rs) {
             Representation representation = mapToRepresentation(row);
             representation.setFiles(deserializeFiles(row.getMap("files", String.class, String.class)));
+            representation.setRevisions(deserializeRevisions(row.getMap("revisions", String.class, String.class)));
             result.add(representation);
         }
         return result;
@@ -504,7 +508,7 @@ public class CassandraRecordDAO {
         }
         List<Revision> revisions = new ArrayList<>(revisionNametoRevision.size());
         for (String revisionJSON : revisionNametoRevision.values()) {
-            revisions.add(gson.fromJson(revisionJSON, Revision.class));
+            revisions.add(revisionGson.fromJson(revisionJSON, Revision.class));
         }
         return revisions;
     }
@@ -515,7 +519,7 @@ public class CassandraRecordDAO {
     }
 
     private String serializeRevision(Revision revision) {
-        return gson.toJson(revision);
+        return revisionGson.toJson(revision);
     }
 
     private static UUID getTimeUUID() {
