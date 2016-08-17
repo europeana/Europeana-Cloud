@@ -362,7 +362,7 @@ public class RecordServiceClient extends MCSClient {
                     .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
                     .field(ParamConstants.F_FILE_MIME, mediaType);
 
-        if (fileName != null && "".equals(fileName.trim())) {
+        if (fileName != null && !"".equals(fileName.trim())) {
             requestBody.field(ParamConstants.F_FILE_NAME, fileName);
         }
         
