@@ -17,14 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -68,6 +61,9 @@ public class CassandraDataSetDAO{
 
     private PreparedStatement hasProvidedRepresentationName;
     private PreparedStatement addDataSetsRevision;
+
+    private PreparedStatement getDataSetsRevisionWithPagination;
+
     private PreparedStatement getDataSetsRevision;
 
     @PostConstruct
@@ -197,8 +193,16 @@ public class CassandraDataSetDAO{
                 "SELECT "//
                         + "cloud_id "//
                         + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_id = ? AND representation_id = ?;");
+                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_id = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
+                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getDataSetsRevisionWithPagination = connectionProvider.getSession().prepare(//
+                "SELECT "//
+                        + "cloud_id "//
+                        + "FROM data_set_assignments_by_revision_id "//
+                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_id = ? AND representation_id = ? AND cloud_id >= ? LIMIT ?; ");
+        getDataSetsRevisionWithPagination
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
@@ -491,8 +495,20 @@ public class CassandraDataSetDAO{
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    public List<String> getDataSetsRevision(String providerId, String datasetId, String revisionId, String representationName, String startFromCloudId, int numberOfElementsOnPage){
-        BoundStatement boundStatement = getDataSetsRevision.bind(providerId, datasetId,revisionId,representationName);
+    public List<String> getDataSetsRevisionWithPagination(String providerId, String datasetId, String revisionId, String representationName, String startFromCloudId, int limit){
+        BoundStatement boundStatement = getDataSetsRevisionWithPagination.bind(providerId, datasetId,revisionId,representationName,startFromCloudId,limit);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        List<String> cloudIds = new ArrayList<>();
+        for (Row r : rs){
+            String cloudId = r.getString("cloud_Id");
+            cloudIds.add(cloudId);
+        }
+        return cloudIds;
+    }
+
+    public List<String> getDataSetsRevision(String providerId, String datasetId, String revisionId, String representationName, int limit){
+        BoundStatement boundStatement = getDataSetsRevision.bind(providerId, datasetId,revisionId,representationName, limit);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         List<String> cloudIds = new ArrayList<>();

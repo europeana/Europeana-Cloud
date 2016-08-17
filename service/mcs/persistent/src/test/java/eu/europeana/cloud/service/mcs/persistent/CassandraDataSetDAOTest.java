@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -90,10 +91,58 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
 
         //when
-        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, null, 2);
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 2);
 
         //then
-        Assert.assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID,SAMPLE_CLOUD_ID2));
-        Assert.assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID3)));
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID,SAMPLE_CLOUD_ID2));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID3)));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetWithLimit(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 1);
+
+        //then
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID2,SAMPLE_CLOUD_ID3)));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetWithPagination(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        List<String> cloudIds = dataSetDAO.getDataSetsRevisionWithPagination(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2, 1);
+
+        //then
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID2));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID,SAMPLE_CLOUD_ID3)));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionForSecondRevision(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1, 1);
+
+        //then
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID3));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID,SAMPLE_CLOUD_ID2)));
     }
 }

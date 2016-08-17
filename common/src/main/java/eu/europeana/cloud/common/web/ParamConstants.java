@@ -76,6 +76,8 @@ public interface ParamConstants {
 
     static final String F_START_FROM = "startFrom";
 
+    static final String F_LIMIT = "limit";
+
     static final String F_REPRESENTATION = "representation";
 
     static final String F_DATASETS = "dataSets";

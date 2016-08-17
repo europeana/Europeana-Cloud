@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -18,13 +19,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISIONID;
-import static org.junit.Assert.assertEquals;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertThat;
 
 /**
  * DataSetResourceTest
@@ -62,7 +63,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
     }
 
     @Test
-    public void shouldCreateDataset() throws Exception{
+    public void shouldRetrieveCloudIdBelongToRevision() throws Exception{
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
@@ -74,14 +75,105 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId);
 
         // when
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER,
-                providerId).resolveTemplate(P_CLOUDID, cloudId).resolveTemplate(P_DATASET, datasetId)
-                .resolveTemplate(P_REVISIONID, revisionId).resolveTemplate(P_REPRESENTATIONNAME, representationName);
-        Response createResponse = dataSetWebTarget.request().get();
+        dataSetWebTarget = dataSetWebTarget.
+                resolveTemplate(P_DATASET, datasetId).
+                resolveTemplate(P_PROVIDER, providerId).
+                resolveTemplate(P_CLOUDID, cloudId).
+                resolveTemplate(P_REVISIONID, revisionId).
+                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                queryParam(F_START_FROM,cloudId);
+        Response response = dataSetWebTarget.request().get();
 
         //then
-        assertEquals(Response.Status.FOUND.getStatusCode(),
-                createResponse.getStatus());
+        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
+        List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
+        assertThat(acltualCloudIds,hasItem(cloudId));
+    }
 
+    @Test
+    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision() throws Exception{
+        // given
+        String datasetId = "dataset";
+        String providerId = "providerId";
+        String revisionId = "revisionId";
+        String representationName = "representationName";
+        String cloudId = "cloudId";
+        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
+
+        // when
+        dataSetWebTarget = dataSetWebTarget.
+                resolveTemplate(P_DATASET, datasetId).
+                resolveTemplate(P_PROVIDER, providerId).
+                resolveTemplate(P_CLOUDID, cloudId).
+                resolveTemplate(P_REVISIONID, revisionId).
+                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                queryParam(F_START_FROM,cloudId);
+        Response response = dataSetWebTarget.request().get();
+
+        //then
+        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
+        List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
+        assertThat(acltualCloudIds,not(hasItem(cloudId)));
+    }
+
+    @Test
+    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception{
+        // given
+        String datasetId = "dataset";
+        String providerId = "providerId";
+        String revisionId = "revisionId";
+        String revisionId2 = "revisionId2";
+        String representationName = "representationName";
+        String cloudId = "cloudId";
+        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
+
+        // when
+        dataSetWebTarget = dataSetWebTarget.
+                resolveTemplate(P_DATASET, datasetId).
+                resolveTemplate(P_PROVIDER, providerId).
+                resolveTemplate(P_CLOUDID, cloudId).
+                resolveTemplate(P_REVISIONID, revisionId2).
+                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+                queryParam(F_START_FROM,cloudId);
+        Response response = dataSetWebTarget.request().get();
+
+        //then
+        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
+        List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
+        assertThat(acltualCloudIds,not(hasItem(cloudId)));
+    }
+
+    @Test
+    public void shouldResultWithNotDefinedStart() throws Exception{
+        // given
+        String datasetId = "dataset";
+        String providerId = "providerId";
+        String revisionId = "revisionId";
+        String representationName = "representationName";
+        String cloudId = "cloudId";
+        String cloudId2 = "cloudId2";
+        String cloudId3 = "cloudId3";
+        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
+
+        dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId);
+        dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId2);
+        dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId3);
+
+        // when
+        dataSetWebTarget = dataSetWebTarget.
+                resolveTemplate(P_DATASET, datasetId).
+                resolveTemplate(P_PROVIDER, providerId).
+                resolveTemplate(P_CLOUDID, cloudId).
+                resolveTemplate(P_REVISIONID, revisionId).
+                resolveTemplate(P_REPRESENTATIONNAME, representationName).
+        queryParam(F_LIMIT,1);
+        Response response = dataSetWebTarget.request().get();
+
+        //then
+        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
+        List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
+        assertThat(acltualCloudIds,hasItem(cloudId));
+        assertThat(acltualCloudIds,not(hasItem(cloudId2)));
+        assertThat(acltualCloudIds,not(hasItem(cloudId3)));
     }
 }

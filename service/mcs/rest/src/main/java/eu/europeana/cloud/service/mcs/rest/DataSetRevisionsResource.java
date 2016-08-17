@@ -14,18 +14,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISIONID;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to manage data sets.
@@ -33,7 +29,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_REVISIONID;
 @Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representationNames/{" + P_REPRESENTATIONNAME + "}/revisons/{" + P_REVISIONID + "}")
 @Component
 @Scope("request")
-public class DataSetRevisionsResource{
+public class DataSetRevisionsResource {
 
     @Autowired
     private DataSetService dataSetService;
@@ -47,24 +43,38 @@ public class DataSetRevisionsResource{
     /**
      * Lists cloudIds from data set. Result is returned in
      * slices.
-     * @summary get representation versions from a data set
      *
-     * @param providerId  identifier of the dataset's provider (required).
-     * @param dataSetId  identifier of a data set (required).
-     * @param startFrom reference to next slice of result. If not provided,
-     * first slice of result will be returned.
+     * @param providerId   identifier of the dataset's provider (required).
+     * @param dataSetId    identifier of a data set (required).
+     * @param startCloudId reference to next slice of result. If not provided,
+     *                     first slice of result will be returned.
      * @return slice of representation version list.
      * @throws DataSetNotExistsException no such data set exists.
+     * @summary get representation versions from a data set
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<String>")
-    public ResultSlice<String> getDataSetContents(@PathParam(P_DATASET) String dataSetId,
-                                                          @PathParam(P_PROVIDER) String providerId, @PathParam(P_REPRESENTATIONNAME) String representationName,
+    public Response getDataSetContents(@PathParam(P_PROVIDER) String providerId,
+                                                  @PathParam(P_DATASET) String dataSetId,
+                                                  @PathParam(P_REPRESENTATIONNAME) String representationName,
                                                   @PathParam(P_REVISIONID) String revisionId,
-                                                          @QueryParam(F_START_FROM) String startFrom)
+                                                  @QueryParam(F_START_FROM) String startCloudId,
+                                                  @QueryParam(F_LIMIT) @Min(1) @Max(10000) int limitParm)
             throws DataSetNotExistsException {
-        return dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionId, representationName, startFrom, numberOfElementsOnPage);
+        final int limitWithNextSlice = (limitParm >= 1) ? limitParm + 1 : numberOfElementsOnPage + 1;
+        ResultSlice<String> slice = new ResultSlice<>();
+        final List<String> cloudIds = dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionId, representationName, startCloudId, limitWithNextSlice);
+        if (cloudIds.size() == limitWithNextSlice) {
+            setNextSliceAndRemoveLastElement(slice, limitWithNextSlice, cloudIds);
+        }
+        slice.setResults(cloudIds);
+        return Response.ok(slice).build();
+    }
+
+    private void setNextSliceAndRemoveLastElement(ResultSlice<String> slice, int limitWithNextSlice, List<String> cloudIds) {
+        String nextSlice = cloudIds.remove(limitWithNextSlice - 1);
+        slice.setNextSlice(nextSlice);
     }
 
 }

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -163,12 +164,8 @@ public interface DataSetService {
      * @param numberOfElementsOnPage max number of results in one slice.
      * @return list of cloudIds in given dataSet for given revisionId and representationName.
      */
-    ResultSlice<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage);
+    List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage);
 
 
-    void addDataSetsRevisions(String providerId, String dataSetId
-            , String revisionId, String representationName, String cloudId)
-
-            throws ProviderNotExistsException,
-            DataSetAlreadyExistsException;
+    void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException, DataSetAlreadyExistsException;
 }

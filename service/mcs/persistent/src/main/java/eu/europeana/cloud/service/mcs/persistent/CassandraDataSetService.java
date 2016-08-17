@@ -20,11 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -244,15 +240,12 @@ public class CassandraDataSetService implements DataSetService {
 	 * @inheritDoc
 	 */
 	@Override
-	public ResultSlice<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage){
-		List<String> cloudIds = dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName,
-				startFrom, numberOfElementsOnPage + 1);
-		String nextCloudId = null;
-		if (cloudIds.size() == numberOfElementsOnPage + 1) {
-			 nextCloudId = cloudIds.get(numberOfElementsOnPage);
-			cloudIds.remove(numberOfElementsOnPage);
+	public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit){
+		if(startFrom == null){
+			return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
+		}else{
+			return dataSetDAO.getDataSetsRevisionWithPagination(providerId,dataSetId,revisionId,representationName,startFrom,limit);
 		}
-		return new ResultSlice<>(nextCloudId, cloudIds);
 	}
 
 	/**

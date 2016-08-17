@@ -56,5 +56,5 @@ CREATE TABLE data_set_assignments_by_revision_id (
        revision_id varchar,
        representation_id varchar,
        cloud_id varchar,
-       PRIMARY KEY ((provider_id, dataset_id, revision_id), representation_id, cloud_id)
+       PRIMARY KEY ((provider_id, dataset_id, representation_id), revision_id, cloud_id)
 )WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';
