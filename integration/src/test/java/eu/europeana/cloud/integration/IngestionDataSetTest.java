@@ -124,7 +124,7 @@ public abstract class IngestionDataSetTest {
             }
             Assert.assertEquals(true, notExists);
             dataSetService.removeAssignment(providerId, dataSetId, representation.getCloudId(),
-                    representation.getRepresentationName(),representation.getVersion());
+                    representation.getRepresentationName(), representation.getVersion());
         }
         dataset = dataSetService.listDataSet(providerId, dataSetId, null, 1);
         Assert.assertEquals(0, dataset.getResults().size());

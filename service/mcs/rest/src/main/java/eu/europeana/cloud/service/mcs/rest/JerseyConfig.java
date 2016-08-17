@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.commons.logging.LoggingFilter;
+import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.*;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -8,7 +9,6 @@ import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 
 /**
  * Jersey Configuration for Exception Mappers and Resources
- * 
  */
 public class JerseyConfig extends ResourceConfig {
 
@@ -39,6 +39,7 @@ public class JerseyConfig extends ResourceConfig {
         register(ProviderNotExistsExceptionMapper.class);
         register(WebApplicationExceptionMapper.class);
         register(RuntimeExceptionMapper.class);
+        registerClasses(RevisionIsNotValidExceptionMapper.class);
 
         // resources
         register(RecordsResource.class);
@@ -57,5 +58,6 @@ public class JerseyConfig extends ResourceConfig {
         register(SimplifiedFileAccessResource.class);
         register(SimplifiedRecordsResource.class);
         register(SimplifiedRepresentationResource.class);
+        registerClasses(RevisionResource.class);
     }
 }

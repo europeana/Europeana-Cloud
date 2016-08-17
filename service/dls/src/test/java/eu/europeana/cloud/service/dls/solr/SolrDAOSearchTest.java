@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.util.*;
 
+import eu.europeana.cloud.common.model.Revision;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.junit.After;
 import org.junit.Test;
@@ -181,7 +182,7 @@ public class SolrDAOSearchTest {
             boolean persistent, Date date)
             throws IOException, SolrServerException {
         Representation rep = new Representation(cloudId, schema, version, null, null, dataProvider,
-                new ArrayList<File>(), persistent, date);
+                new ArrayList<File>(), new ArrayList<Revision>(), persistent, date);
         solrDAO.insertRepresentation(rep, null);
         return rep;
     }
