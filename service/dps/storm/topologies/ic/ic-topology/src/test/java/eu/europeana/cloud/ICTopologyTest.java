@@ -261,7 +261,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
     }
 
 
