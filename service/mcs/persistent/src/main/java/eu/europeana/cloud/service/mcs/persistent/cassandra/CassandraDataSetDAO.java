@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
+
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -60,11 +62,14 @@ public class CassandraDataSetDAO{
     private PreparedStatement removeDataSetsAllRepresentationsNames;
 
     private PreparedStatement hasProvidedRepresentationName;
+
     private PreparedStatement addDataSetsRevision;
 
     private PreparedStatement getDataSetsRevisionWithPagination;
 
     private PreparedStatement getDataSetsRevision;
+
+    private PreparedStatement getDataSetsForVersionStatement;
 
     @PostConstruct
     private void prepareStatements(){
@@ -204,6 +209,16 @@ public class CassandraDataSetDAO{
                         + "WHERE provider_id = ? AND dataset_id = ? AND revision_id = ? AND representation_id = ? AND cloud_id >= ? LIMIT ?; ");
         getDataSetsRevisionWithPagination
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getDataSetsForVersionStatement = connectionProvider.getSession().prepare(//
+                "SELECT "//
+                        + "provider_dataset_id "//
+                        + "FROM data_set_assignments "//
+                        + "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
+        getDataSetsForVersionStatement
+                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
     }
 
     /**
@@ -385,6 +400,24 @@ public class CassandraDataSetDAO{
             result.add(ds);
         }
 
+        return result;
+    }
+
+    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version){
+        BoundStatement boundStatement = getDataSetsForVersionStatement.bind(
+                cloudId,
+                representationName,
+                UUID.fromString(version));
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement,rs);
+        Set<String> result = new LinkedHashSet<>();
+        for(Row row : rs){
+            String provider_dataset_id = row.getString("provider_dataset_id");
+            String prefix = providerId + "\n";
+            if(provider_dataset_id.startsWith(prefix)) {
+                result.add(provider_dataset_id.replace(prefix,""));
+            }
+        }
         return result;
     }
 

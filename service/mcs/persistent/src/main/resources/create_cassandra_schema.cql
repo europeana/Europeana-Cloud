@@ -26,7 +26,7 @@ CREATE TABLE data_set_assignments (
 	schema_id varchar,
 	version_id timeuuid,
 	creation_date timestamp,	
-	PRIMARY KEY (cloud_id, schema_id, provider_dataset_id, version_id)
+	PRIMARY KEY (cloud_id, schema_id, version_id, provider_dataset_id)
 );
 CREATE INDEX data_set_assignments_provider_dataset_id ON data_set_assignments (provider_dataset_id);
 

@@ -209,7 +209,12 @@ public class CassandraDataSetService implements DataSetService {
 	return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
 
-    /**
+	@Override
+	public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
+		return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
+	}
+
+	/**
      * @inheritDoc
      */
 	@Override
@@ -252,11 +257,9 @@ public class CassandraDataSetService implements DataSetService {
 	 * @inheritDoc
 	 */
 	@Override
-	public void addDataSetsRevisions(String providerId, String dataSetId
-			, String revisionId, String representationName, String cloudId)
-
-			throws ProviderNotExistsException,
-			DataSetAlreadyExistsException {
+	public void addDataSetsRevisions(String providerId, String dataSetId, String revisionId,
+									 String representationName, String cloudId)
+			throws ProviderNotExistsException{
 		if (uis.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}

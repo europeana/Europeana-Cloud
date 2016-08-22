@@ -131,6 +131,16 @@ public interface DataSetService {
 
 
     /**
+     * Returns all data sets for particular version.
+     * @param providerId provider id
+     * @param cloudId  cloud Id
+     * @param representationName representation name
+     * @param version version
+     * @return Set of data sets.
+     */
+    Set<String> getDataSets(String providerId, String cloudId, String representationName, String version);
+
+    /**
      * Deletes data set.
      * 
      * @param providerId
@@ -167,5 +177,5 @@ public interface DataSetService {
     List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage);
 
 
-    void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException, DataSetAlreadyExistsException;
+    void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException;
 }

@@ -46,6 +46,18 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     }
 
     @Test
+    public void should() {
+        //given
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_1);
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_2);
+        dataSetDAO.removeRepresentationNameForDataSet(SAMPLE_REP_NAME_1, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        //then
+        dataSetDAO.hasMoreRepresentations(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID,
+                SAMPLE_REP_NAME_1);
+    }
+
+    @Test
     public void representationNameShouldBeRemovedFromDB() {
         dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_1);
         dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_2);

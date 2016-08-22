@@ -5,28 +5,23 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import static org.hamcrest.Matchers.is;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.After;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.ByteArrayInputStream;
+import java.util.*;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * 
@@ -296,6 +291,28 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	cassandraDataSetService.createDataSet(providerId, dsName,
 		"description of another");
     }
+
+	@Test
+	public void shouldProperlyGetListOfDataSetsForGivenVersion() throws Exception {
+		//given
+		makeUISProviderSuccess();
+		String dsName = "ds";
+		DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+				"description of this set");
+		Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+				"schema", providerId);
+		insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+		cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
+				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+
+		//when
+		Set<String> dataSets = cassandraDataSetService.getDataSets(ds.getProviderId(), r1.getCloudId(), r1.getRepresentationName
+				(), r1.getVersion());
+		//then
+		assertThat(dataSets.size(),is(1));
+		assertThat(dataSets,hasItem(dsName));
+	}
+
 
     private Representation insertDummyPersistentRepresentation(String cloudId,
 	    String schema, String providerId) throws Exception {
