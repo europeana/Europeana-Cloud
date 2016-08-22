@@ -5,7 +5,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.common;
  */
 public enum Extension {
     Tiff(new String[]{"tiff", "tif"}),
-    Jp2(new String[]{"jp2"});
+    Jp2(new String[]{"jp2"}),
+    JPEG(new String[]{"jpg", "jpeg"});
 
     private String[] values;
 

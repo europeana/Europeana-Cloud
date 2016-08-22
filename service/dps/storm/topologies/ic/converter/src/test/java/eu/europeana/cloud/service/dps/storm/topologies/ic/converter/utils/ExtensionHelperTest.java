@@ -12,11 +12,13 @@ import static org.junit.Assert.*;
  */
 public class ExtensionHelperTest {
     private static final String TIFF_MIME_TYPE = "image/tiff";
-    private static final String TIFF_EXTENSION = "tiff";
+    private static final String JPEG_MIME_TYPE = "image/jpeg";
+    private static final String JP2_MIME_TYPE = "image/jp2";
     private ExtensionHelper extensionHelper;
     private static final String FILE_NAME_WITH_PATH = "/.../.../test.tiff";
     private static final String[] TIFF_EXTENSIONS = {"tiff", "tif"};
     private static final String[] JP2_EXTENSIONS = {"jp2"};
+
 
     /**
      * Prepare the unit tests
@@ -41,9 +43,21 @@ public class ExtensionHelperTest {
     }
 
     @Test
-    public void testRecognizedMimeType() throws MimeTypeException {
+    public void testTiffMimeTypeExtension() throws MimeTypeException {
         String tiffExtension = ExtensionHelper.getExtension(TIFF_MIME_TYPE);
         assertEquals(".tiff", tiffExtension);
+    }
+
+    @Test
+    public void testJp2MimeTypeExtension() throws MimeTypeException {
+        String jp2Extension = ExtensionHelper.getExtension(JP2_MIME_TYPE);
+        assertEquals(".jp2", jp2Extension);
+    }
+
+    @Test
+    public void testJpegMimeTypeExtension() throws MimeTypeException {
+        String jpegExtension = ExtensionHelper.getExtension(JPEG_MIME_TYPE);
+        assertEquals(".jpg", jpegExtension);
     }
 
     @Test(expected = MimeTypeException.class)
