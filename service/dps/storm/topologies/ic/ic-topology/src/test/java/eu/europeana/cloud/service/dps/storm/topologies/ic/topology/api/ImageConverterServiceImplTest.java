@@ -60,7 +60,6 @@ public class ImageConverterServiceImplTest implements TestConstantsHelper {
 
     }
 
-
     @Test
     public void testConvertJpegToJp2() throws Exception {
         doNothing().when(converterContext).setConverter(new KakaduConverterTiffToJP2());
@@ -70,6 +69,7 @@ public class ImageConverterServiceImplTest implements TestConstantsHelper {
         imageConverterService.convertFile(stormTaskTuple);
         assertResultedStormTaskTuple(stormTaskTuple);
     }
+
 
     private StormTaskTuple prepareStormTaskTuple(String mimeType) throws Exception {
         StormTaskTuple stormTaskTuple = new StormTaskTuple();

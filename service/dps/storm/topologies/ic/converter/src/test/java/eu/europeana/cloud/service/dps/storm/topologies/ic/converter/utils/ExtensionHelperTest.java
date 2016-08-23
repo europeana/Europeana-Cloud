@@ -14,30 +14,20 @@ public class ExtensionHelperTest {
     private static final String TIFF_MIME_TYPE = "image/tiff";
     private static final String JPEG_MIME_TYPE = "image/jpeg";
     private static final String JP2_MIME_TYPE = "image/jp2";
-    private ExtensionHelper extensionHelper;
     private static final String FILE_NAME_WITH_PATH = "/.../.../test.tiff";
     private static final String[] TIFF_EXTENSIONS = {"tiff", "tif"};
     private static final String[] JP2_EXTENSIONS = {"jp2"};
 
-
-    /**
-     * Prepare the unit tests
-     */
-    @Before
-    public void prepare() {
-        extensionHelper = new ExtensionHelper();
-    }
-
     @Test
     public void testGoodExtension() {
-        boolean isgoodExtension = extensionHelper.isGoodExtension(FILE_NAME_WITH_PATH, TIFF_EXTENSIONS);
+        boolean isgoodExtension = ExtensionHelper.isGoodExtension(FILE_NAME_WITH_PATH, TIFF_EXTENSIONS);
         assertTrue(isgoodExtension);
 
     }
 
     @Test
     public void testbadExtension() {
-        boolean isbadExtension = extensionHelper.isGoodExtension(FILE_NAME_WITH_PATH, JP2_EXTENSIONS);
+        boolean isbadExtension = ExtensionHelper.isGoodExtension(FILE_NAME_WITH_PATH, JP2_EXTENSIONS);
         assertFalse(isbadExtension);
 
     }

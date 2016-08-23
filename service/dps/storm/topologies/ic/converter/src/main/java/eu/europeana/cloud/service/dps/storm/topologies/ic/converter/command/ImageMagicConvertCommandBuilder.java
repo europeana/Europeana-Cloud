@@ -11,11 +11,11 @@ public class ImageMagicConvertCommandBuilder implements CommandBuilder {
     private static final String IMAGE_MAGIC_CONVERT_COMMAND = "magick";
 
     /**
-     * Build  kakadu compress shell command based on input parameters
+     * Build  image magic compress shell command based on input parameters
      *
      * @param inputFilePath  The input file full path
      * @param outputFilePath The output file full path
-     * @param properties     List of properties attached to the kakadu command
+     * @param properties     List of properties attached to the image magic command
      * @return image magic convert shell command .
      */
     public String constructCommand(String inputFilePath,
