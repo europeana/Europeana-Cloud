@@ -9,4 +9,5 @@ sudo cp ./kdu/kdu* /bin/
 sudo cp ./kdu/libkdu_v77R.so /usr/local/lib/
 LD_LIBRARY_PATH=/usr/local/lib/
 export LD_LIBRARY_PATH
+
 rm -fr ./kdu

@@ -4,13 +4,15 @@ CREATE TABLE basic_info (
 task_id bigint,
 topology_name varchar,
 expected_size int,
+processed_files_count int,
 state varchar,
 info varchar,
-sent_time timestamp,
 start_time timestamp,
 finish_time timestamp,
+sent_time timestamp,
 PRIMARY KEY(task_id)
 );
+
 
 CREATE TABLE notifications (
     resource_num int,

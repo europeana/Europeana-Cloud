@@ -8,6 +8,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -29,6 +30,8 @@ public class ICTestMocksHelper {
     protected RecordServiceClient recordServiceClient;
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
+    protected RepresentationIterator representationIterator;
+
     private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
     private static Gson gson = new GsonBuilder().create();
 
@@ -80,6 +83,13 @@ public class ICTestMocksHelper {
         imageConverterService = Mockito.mock(ImageConverterServiceImpl.class);
         PowerMockito.whenNew(ImageConverterServiceImpl.class).withAnyArguments().thenReturn(imageConverterService);
     }
+
+
+    protected void mockRepresentationIterator() throws Exception {
+        representationIterator = Mockito.mock(RepresentationIterator.class);
+        PowerMockito.whenNew(RepresentationIterator.class).withAnyArguments().thenReturn(representationIterator);
+    }
+
 
     protected void mockDPSDAO() throws Exception {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
