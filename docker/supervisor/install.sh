@@ -12,13 +12,24 @@ make
 make install
 cd ..
 
-wget http://www.imagemagick.org/download/ImageMagick-7.0.2-9.tar.gz
-tar xvfz ImageMagick-7.0.2-9.tar.gz
-rm ImageMagick-7.0.2-9.tar.gz
-cd ImageMagick-7.0.2-9
+wget http://download.osgeo.org/libtiff/tiff-4.0.6.tar.gz
+tar xvfz tiff-4.0.6.tar.gz
+rm  xvfz tiff-4.0.6.tar.gz
+cd tiff-4.0.6
+./configure --disable-static
+make
+make install
+cd ..
+
+wget http://www.imagemagick.org/download/releases/ImageMagick-7.0.1-10.tar.xz
+tar xf ImageMagick-7.0.1-10.tar.xz
+rm ImageMagick-7.0.1-10.tar.xz
+cd ImageMagick-7.0.1-10
 ./configure  --disable-static --with-modules --without-perl  --disable-shared --with-jpeg --with-png --with-tiff --without-magick-plus-plus --with-quantum-depth=8 --disable-openmp
 make
 make install
+
+cd  ..
 
 wget http://kakadusoftware.com/wp-content/uploads/2014/06/KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
 unzip KDU77_Demo_Apps_for_Linux-x86-64_150710.zip
