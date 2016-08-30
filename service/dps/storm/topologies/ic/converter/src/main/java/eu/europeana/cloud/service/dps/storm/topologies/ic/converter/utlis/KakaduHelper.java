@@ -9,7 +9,6 @@ import java.util.List;
  * Utility for kakadu.
  */
 public class KakaduHelper {
-    private final static Logger LOGGER = Logger.getLogger(KakaduHelper.class);
 
     /**
      * Build full kakadu shell command based on input parameters

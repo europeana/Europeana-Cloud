@@ -9,7 +9,6 @@ import java.util.List;
  * Utility for image magic.
  */
 public class ImageMagicHelper {
-    private final static Logger LOGGER = Logger.getLogger(ImageMagicHelper.class);
 
     /**
      * Build full image magic shell command based on input parameters
@@ -17,7 +16,7 @@ public class ImageMagicHelper {
      * @param imageMagicConsoleCommand image magic shell command
      * @param inputFilePath            The input file full path
      * @param outputFilePath           The output file full path
-     * @param properties               List of properties attached to the kakadu command
+     * @param properties               List of properties attached to the image magic command
      * @return the full-fledged image magic command .
      */
     public static String constructCommand(String imageMagicConsoleCommand, String inputFilePath,

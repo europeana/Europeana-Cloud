@@ -5,7 +5,9 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ImageMagicJPGToTiff;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.KakaduConverterTiffToJP2;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ConversionException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.UnexpectedExtensionsException;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.ExtensionHelper;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.util.ImageConverterUtil;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
@@ -67,7 +69,8 @@ public class ImageConverterServiceImpl implements ImageConverterService {
             ByteArrayInputStream inputStream = stormTaskTuple.getFileByteDataAsStream();
             if (inputStream != null) {
                 String inputMimeType = TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.MIME_TYPE);
-                assert (TIFF_MIME_TYPE.equals(inputMimeType) || JPEG_MIME_TYPE.equals(inputMimeType));
+                if (!(TIFF_MIME_TYPE.equals(inputMimeType) || JPEG_MIME_TYPE.equals(inputMimeType)))
+                    throw new AssertionError();
                 String inputExtension = ExtensionHelper.getExtension(inputMimeType);
                 String tempFileName = UUID.randomUUID().toString();
                 folderPath = ImageConverterUtil.persistStreamToTemporaryStorage(inputStream, tempFileName, inputExtension);
@@ -77,9 +80,7 @@ public class ImageConverterServiceImpl implements ImageConverterService {
 
 
                 if (JPEG_EXTENSION.equals(inputExtension)) {
-                    String tempOutputFilePath = ImageConverterUtil.buildFilePath(folderPath, tempFileName, TIFF_EXTENSION);
-                    converterContext.convert(inputFilePath, tempOutputFilePath, null);
-                    inputFilePath = tempOutputFilePath;
+                    inputFilePath = convertJpgToTiff(folderPath, inputFilePath, tempFileName);
                 }
 
                 converterContext.setConverter(new KakaduConverterTiffToJP2());
@@ -92,9 +93,15 @@ public class ImageConverterServiceImpl implements ImageConverterService {
             }
         } finally {
             if (folderPath != null)
-                FileUtils.deleteDirectory(new java.io.File(folderPath));
+                FileUtils.deleteDirectory(new File(folderPath));
 
         }
+    }
+
+    private String convertJpgToTiff(String folderPath, String inputFilePath, String outputFileName) throws UnexpectedExtensionsException, ConversionException, IOException {
+        String outputFilePath = ImageConverterUtil.buildFilePath(folderPath, outputFileName, TIFF_EXTENSION);
+        converterContext.convert(inputFilePath, outputFilePath, null);
+        return outputFilePath;
     }
 
 }
