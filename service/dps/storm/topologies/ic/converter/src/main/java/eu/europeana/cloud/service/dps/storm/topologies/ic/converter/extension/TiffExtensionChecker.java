@@ -15,9 +15,7 @@ public class TiffExtensionChecker implements ExtensionChecker {
      * @return boolean value checking the Tiff extension  .
      */
     public boolean isGoodExtension(String filePath) {
-
-        ExtensionHelper extensionHelper = new ExtensionHelper();
-        return extensionHelper.isGoodExtension(filePath, Extension.Tiff.getValues());
+        return ExtensionHelper.isGoodExtension(filePath, Extension.Tiff.getValues());
     }
 
 }
