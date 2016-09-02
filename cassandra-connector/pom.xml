@@ -14,8 +14,7 @@
          <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <!--<version>${version.cassandra-driver}</version>-->
-            <version>2.1.10.3</version>
+            <version>${version.cassandra-driver}</version>
         </dependency>
         
         <!--logging -->
