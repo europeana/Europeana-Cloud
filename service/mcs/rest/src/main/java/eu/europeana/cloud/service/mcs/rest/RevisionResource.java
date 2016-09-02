@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
 import jersey.repackaged.com.google.common.collect.Sets;
@@ -35,6 +36,9 @@ public class RevisionResource {
 
     @Autowired
     private RecordService recordService;
+
+    @Autowired
+    private DataSetService dataSetService;
 
     /**
      * Adds a new revision to representation version.If a revision already existed it will update it.
@@ -79,6 +83,7 @@ public class RevisionResource {
             revision = createNewRevision(revisionName, revisionProviderId, tag);
         }
         recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 

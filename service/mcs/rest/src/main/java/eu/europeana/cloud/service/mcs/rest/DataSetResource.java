@@ -1,15 +1,17 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.RepresentationNames;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -28,10 +30,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static org.apache.commons.lang3.time.DateUtils.parseDate;
 
 /**
  * Resource to manage data sets.
@@ -43,15 +50,15 @@ public class DataSetResource {
 
     @Autowired
     private DataSetService dataSetService;
-    
+
     @Autowired
     private MutableAclService mutableAclService;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
-    
+
     private final String DATASET_CLASS_NAME = DataSet.class.getName();
-    
+
     /**
      * Deletes data set.
      * <strong>Delete permissions required.</strong>
@@ -65,9 +72,9 @@ public class DataSetResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(@PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId)
             throws DataSetNotExistsException {
-    	
+
         dataSetService.deleteDataSet(providerId, dataSetId);
-        
+
         // let's delete the permissions as well
         String ownersName = SpringUserUtils.getUsername();
         if (ownersName != null) {
@@ -127,9 +134,25 @@ public class DataSetResource {
     public RepresentationNames getRepresentationsNames(
             @PathParam(P_DATASET) String dataSetId,
             @PathParam(P_PROVIDER) String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
-                
+
         RepresentationNames representationNames = new RepresentationNames();
         representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
         return representationNames;
+    }
+
+    @Path("/representations/{" + P_REPRESENTATIONNAME + "}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<String>")
+    @GET
+    public ResultSlice<String> getDataSetCloudIdsByRepresentation(
+            @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
+            @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(TAG) String tag, @QueryParam(F_START_FROM) String startFrom)
+            throws ProviderNotExistsException, DataSetNotExistsException {
+        Tags tags = Tags.valueOf(tag.toUpperCase());
+        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
+
+        if (Tags.PUBLISHED.equals(tags))
+            return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
+        throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
 }

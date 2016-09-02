@@ -3,28 +3,20 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -132,6 +124,10 @@ public class CassandraDataSetService implements DataSetService {
 		representationIndexer.addAssignment(rep.getVersion(),
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
+		for (Revision revision : rep.getRevisions())
+			dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema,
+					RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+					revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
 	}
 
     /**
@@ -153,6 +149,12 @@ public class CassandraDataSetService implements DataSetService {
 		representationIndexer.removeAssignment(recordId, schema,
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
+
+		Representation rep = recordDAO.getRepresentation(recordId, schema, versionId);
+		if (rep != null) {
+			for (Revision revision : rep.getRevisions())
+				dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp());
+		}
 	}
 
     /**
@@ -238,6 +240,51 @@ public class CassandraDataSetService implements DataSetService {
 			return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
 		}
 		return Collections.emptySet();
+	}
+
+	@Override
+	public ResultSlice<String> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+			throws ProviderNotExistsException, DataSetNotExistsException {
+		// check whether provider exists
+		if (!uis.existsProvider(providerId))
+			throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+
+		// check whether data set exists
+		if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+			throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+
+		// run the query requesting one more element than items per page to determine the starting cloud id for the next slice
+		List<String> list = dataSetDAO.getDataSetCloudIdsByRepresentationPublished(providerId, dataSetId, representationName, dateFrom, startFrom, numberOfElementsPerPage);
+
+		String nextToken = null;
+
+		// when the list size is one element bigger than requested it means there is going to be next slice
+		if (list.size() == numberOfElementsPerPage + 1) {
+			// set token to the last from list
+			nextToken = list.get(numberOfElementsPerPage);
+			// remove last element of the list
+			list.remove(numberOfElementsPerPage);
+		}
+		return new ResultSlice<>(nextToken, list);
+	}
+
+	@Override
+	public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
+			throws RepresentationNotExistsException {
+		// check whether representation exists
+		Representation rep = recordDAO.getRepresentation(globalId, schema, version);
+		if (rep == null)
+			throw new RepresentationNotExistsException(schema);
+
+		// collect data sets the version is assigned to
+		Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
+
+		// now we have to insert rows for each data set
+		for (CompoundDataSetId dsID : dataSets) {
+			dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
+					globalId, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+					revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+		}
 	}
 
 	private boolean isProviderExists(String providerId) throws ProviderNotExistsException {

@@ -1,13 +1,13 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
@@ -15,16 +15,11 @@ import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -67,6 +62,12 @@ public class CassandraDataSetDAO {
 	private PreparedStatement removeDataSetsAllRepresentationsNames;
 
 	private PreparedStatement hasProvidedRepresentationName;
+
+	private PreparedStatement getDataSetCloudIdsByRepresentationPublished;
+
+	private PreparedStatement insertProviderDatasetRepresentationInfo;
+
+	private PreparedStatement deleteProviderDatasetRepresentationInfo;
 
     @PostConstruct
     private void prepareStatements() {
@@ -181,6 +182,24 @@ public class CassandraDataSetDAO {
 								+ "WHERE provider_dataset_id = ? AND schema_id = ? LIMIT 1;");
 		hasProvidedRepresentationName
 				.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		getDataSetCloudIdsByRepresentationPublished = connectionProvider.getSession().prepare("SELECT " //
+				+ "cloud_id " //
+				+ "FROM provider_dataset_representation " //
+				+ "WHERE provider_id = ? AND dataset_id = ? AND representation_id = ? AND revision_timestamp > ? AND published = true LIMIT ?;");
+		getDataSetCloudIdsByRepresentationPublished.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		insertProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("INSERT INTO " //
+						+ "provider_dataset_representation (provider_id, dataset_id, cloud_id, representation_id," //
+						+ "revision_id, revision_timestamp, acceptance, published, mark_deleted) " //
+						+ "VALUES (?,?,?,?,?,?,?,?,?);");
+		insertProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+		deleteProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare(//
+				"DELETE FROM " //
+						+ "provider_dataset_representation " //
+						+ "WHERE provider_id = ? AND dataset_id = ? AND representation_id = ? AND revision_timestamp = ? AND revision_id = ? AND cloud_id = ?;");
+		deleteProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
     /**
@@ -494,4 +513,91 @@ public class CassandraDataSetDAO {
 	return representation;
     }
 
+
+	/**
+	 * Lists cloud identifiers of provider's data set having given representation name and revision published after a specific time.
+	 *
+	 * @param providerId data set provider id
+	 * @param dataSetId identifier of a data set
+	 * @param representationName representation name
+     * @param dateFrom date of last revision
+	 * @param nextToken cloud identifier combined with timestamp from which to start the result list, used in pagination, may be null
+	 * @param limit max size of returned cloud identifiers list.
+	 * @return list of cloud identifiers from provider's data set that have given representation name and revision was published later than the given date.
+	 */
+	public List<String> getDataSetCloudIdsByRepresentationPublished(String providerId, String dataSetId, String representationName, Date dateFrom, String nextToken, int limit)
+			throws NoHostAvailableException, QueryExecutionException {
+		List<String> result = new ArrayList<>(limit);
+
+		// bind parameters, set limit to max int value
+		BoundStatement boundStatement = getDataSetCloudIdsByRepresentationPublished.bind(providerId, dataSetId, representationName, dateFrom, Integer.MAX_VALUE);
+		// limit page to "limit" number of results
+		boundStatement.setFetchSize(limit);
+		// when this is not a first page call set paging state in the statement
+		if (nextToken != null)
+			boundStatement.setPagingState(PagingState.fromString(nextToken));
+		// execute query
+		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+		QueryTracer.logConsistencyLevel(boundStatement, rs);
+
+		// get available results
+		int available = rs.getAvailableWithoutFetching();
+		for (int i = 0; i < available; i++) {
+			Row row = rs.one();
+			result.add(row.getString("cloud_id"));
+		}
+
+		if (result.size() == limit) {
+			PagingState pagingState = rs.getExecutionInfo().getPagingState();
+			// whole page has been retrieved so add paging state for the next call at the end of the results list
+			if (pagingState != null)
+				result.add(pagingState.toString());
+		}
+
+		return result;
+	}
+
+
+	/**
+	 * Insert row to provider_dataset_representation table.
+	 *
+	 * @param dataSetId data set identifier
+	 * @param dataSetProviderId provider identifier
+	 * @param globalId cloud identifier
+	 * @param schema representation name
+	 * @param revisionId revision identifier
+	 * @param updateTimeStamp timestamp of revision update
+	 * @param acceptance acceptance tag
+     * @param published published tag
+     * @param deleted mark deleted tag
+     */
+	public void insertProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
+														String schema, String revisionId, Date updateTimeStamp,
+														boolean acceptance, boolean published, boolean deleted)
+			throws NoHostAvailableException, QueryExecutionException {
+		BoundStatement bs = insertProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, globalId, schema,
+				revisionId, updateTimeStamp, acceptance, published, deleted);
+		ResultSet rs = connectionProvider.getSession().execute(bs);
+		QueryTracer.logConsistencyLevel(bs, rs);
+	}
+
+
+	/**
+	 * Insert row to provider_dataset_representation table.
+	 *
+	 * @param dataSetId data set identifier
+	 * @param dataSetProviderId provider identifier
+	 * @param globalId cloud identifier
+	 * @param schema representation name
+	 * @param revisionId revision identifier
+	 * @param updateTimeStamp timestamp of revision update
++	 */
+	public void deleteProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
+														String schema, String revisionId, Date updateTimeStamp)
+			throws NoHostAvailableException, QueryExecutionException {
+		BoundStatement bs = deleteProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, schema,
+				updateTimeStamp, revisionId, globalId);
+		ResultSet rs = connectionProvider.getSession().execute(bs);
+		QueryTracer.logConsistencyLevel(bs, rs);
+	}
 }

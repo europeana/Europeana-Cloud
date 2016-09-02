@@ -171,6 +171,10 @@ public class UnitedExceptionMapper {
                     exception);
         }
 
+        if (exception instanceof IllegalArgumentException) {
+            return buildResponse(Response.Status.BAD_REQUEST, McsErrorCode.BAD_PARAMETER_VALUE, exception);
+        }
+
         LOGGER.error("Unexpected error occured.", exception);
         return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, McsErrorCode.OTHER, exception);
     }
