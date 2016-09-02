@@ -511,11 +511,6 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${version.cassandra-driver}</version>
-        </dependency>
 
         <!-- Authentication + Authorization -->
         <dependency>
@@ -614,6 +609,10 @@
                 <exclusion>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.datastax.cassandra</groupId>
+                    <artifactId>cassandra-driver-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
