@@ -1,6 +1,6 @@
 package migrator;
 
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 /**
@@ -21,18 +21,9 @@ public class CliOptions {
      */
     public void addCliSetRequiredOption(final String commandString, final String description)
             throws IllegalArgumentException {
-        options.addOption(OptionBuilder.withArgName(commandString).hasArgs(1).isRequired(true)
-                .withDescription("set " + description).create(commandString));
+        options.addOption(Option.builder(commandString).argName(commandString).hasArg().required().desc("set " + description)
+                .build());
     }
-
-    public void addCliSetRequiredOption(final String commandString, final String description, final boolean isRequired)
-            throws IllegalArgumentException {
-        options.addOption(OptionBuilder.withArgName(commandString).hasArgs(1).isRequired(isRequired)
-                .withDescription("set " + description).create(commandString));
-    }
-
-
-
 
     /**
      * Gets {@link Options}.

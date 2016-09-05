@@ -1,14 +1,14 @@
 package migrations.service.mcs;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.Session;
 
 /**
  * @author krystian.
  */
 public class V2_3__changeSchmaTable___data_set_assignments_MCS implements JavaMigration {
     @Override
-    public void migrate(Session session) throws Exception {
+    public void migrate(Session session) {
         session.execute(
                 "DROP TABLE data_set_assignments;\n");
         session.execute(

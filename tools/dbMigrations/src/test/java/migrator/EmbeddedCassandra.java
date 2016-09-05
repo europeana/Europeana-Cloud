@@ -1,17 +1,18 @@
+package migrator;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
-public abstract class CassandraBaseTest {
+public class EmbeddedCassandra extends ExternalResource {
 
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(CassandraBaseTest.class);
+            .getLogger(EmbeddedCassandra.class);
 
     private static boolean serverRunning = false;
 
@@ -37,19 +38,20 @@ public abstract class CassandraBaseTest {
      * CassandraTestBase CASSANDRA_CONFIG_FILE
      */
     public static final String CASSANDRA_CONFIG_FILE = "cassandra_config.yaml";
+    private static final long TIME_FOR_BOOT_UP_CASSANDRA = 10000l;
 
     /**
      * Creates a new instance of this class.
      */
-    public CassandraBaseTest() {
-        synchronized (CassandraBaseTest.class) {
+    public EmbeddedCassandra() {
+        synchronized (EmbeddedCassandra.class) {
             if (!serverRunning) {
                 try {
                     LOGGER.info("Starting embedded Cassandra...");
                     EmbeddedCassandraServerHelper
                             .startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
                     try {
-                        Thread.sleep(10000l);
+                        Thread.sleep(TIME_FOR_BOOT_UP_CASSANDRA);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(
                                 "Caused by InterruptedException", e);
@@ -66,31 +68,28 @@ public abstract class CassandraBaseTest {
         }
     }
 
-    /**
-     * @return The session to connect
-     */
+    @Override
+    protected void before() throws Throwable {
+        crateKeyspace();
+    }
+
+    @Override
+    protected void after() {
+        dropAllKeyspaces();
+    }
+
     protected Session getSession() {
         return cluster.connect(KEYSPACE);
     }
 
-    public void createKeyspaces() {
-        try {
-            LOGGER.info("Initializing keyspaces...");
-            initKeyspace();
-        } catch (IOException e) {
-            LOGGER.error("Cannot Initialize keyspaces!", e);
-            EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
-            throw new RuntimeException("Cannot Initialize keyspaces!", e);
-        }
-    }
-
-    public void dropAllKeyspaces() {
+    private void dropAllKeyspaces() {
         LOGGER.info("Drop all keyspaces...");
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
-    private void initKeyspace() throws IOException {
+    private void crateKeyspace() {
         CQLDataLoader dataLoader = new CQLDataLoader(cluster.newSession());
         dataLoader.load(new ClassPathCQLDataSet(KEYSPACE_SCHEMA_CQL, KEYSPACE));
     }
+
 }

@@ -8,7 +8,7 @@ import com.contrastsecurity.cassandra.migration.config.Keyspace;
  */
 public class MigrationExecutor {
     private final String[] scriptsLocations;
-    private Keyspace keyspace;
+    private final Keyspace keyspace;
 
     public MigrationExecutor(String cassandraKeyspace, String cassandraContactPoint, int cassandraPort, String cassandraUsername, String cassandraPassword, String[] scriptsLocations) {
         this.scriptsLocations = scriptsLocations;

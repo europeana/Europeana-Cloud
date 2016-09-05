@@ -8,7 +8,7 @@ import com.datastax.driver.core.Session;
  */
 public class V1__Initial_MCS implements JavaMigration {
     @Override
-    public void migrate(Session session) throws Exception {
+    public void migrate(Session session) {
         session.execute(
                 "CREATE TABLE data_sets (\n" +
                     "provider_id varchar,\n" +

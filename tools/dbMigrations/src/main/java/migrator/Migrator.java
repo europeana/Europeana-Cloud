@@ -1,16 +1,17 @@
 package migrator;
 
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author krystian.
  */
 public class Migrator {
+    public static final Logger log = LoggerFactory.getLogger(Migrator.class);
 
     private final static String HOST = "host";
     private final static String PORT = "port";
@@ -32,7 +33,7 @@ public class Migrator {
         try {
             cmd = parser.parse(options.getOptions(), args);
         } catch (ParseException exp) {
-            System.out.println("Reason: " + exp.getMessage());
+            log.error("Reason: " + exp.getMessage());
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Migrator ", options.getOptions());
             System.exit(1);
@@ -45,14 +46,14 @@ public class Migrator {
         String password = cmd.getOptionValue(PASSWORD);
         String service = cmd.getOptionValue(SERVICE);
         String chosenMigrationDir = "";
-        if (!SERVICES.contains(service)) {
-            System.out.println("Reason: " + " not valid service");
-            System.exit(1);
-        } else {
+        if (SERVICES.contains(service)) {
             chosenMigrationDir = MIGRATIONS_DIR_PREFIX + service.toLowerCase();
+        } else {
+            log.error("Reason: " + service + " not valid service");
+            System.exit(1);
         }
 
-        MigrationExecutor executor = new MigrationExecutor(keySpace, host, Integer.valueOf(port), user, password, new
+        MigrationExecutor executor = new MigrationExecutor(keySpace, host, Integer.parseInt(port), user, password, new
                 String[]{chosenMigrationDir});
         executor.migrate();
     }
@@ -68,6 +69,4 @@ public class Migrator {
         options.addCliSetRequiredOption(SERVICE, "migrate service eg. (UIS, MCS, DLS, DPS, AAS)");
         return options;
     }
-
-
 }
