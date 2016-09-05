@@ -8,7 +8,7 @@ import com.datastax.driver.core.Session;
  */
 public class V2_1__addTemporaryTable_data_set_assignments_MCS implements JavaMigration {
     @Override
-    public void migrate(Session session) throws Exception {
+    public void migrate(Session session){
         session.execute(
                 "CREATE TABLE data_set_assignments_copy (\n" +
                         "provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */\n" +

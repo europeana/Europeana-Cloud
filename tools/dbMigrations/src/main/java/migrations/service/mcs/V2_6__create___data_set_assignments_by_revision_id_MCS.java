@@ -8,7 +8,7 @@ import com.datastax.driver.core.Session;
  */
 public class V2_6__create___data_set_assignments_by_revision_id_MCS implements JavaMigration {
     @Override
-    public void migrate(Session session) throws Exception {
+    public void migrate(Session session) {
         session.execute("CREATE TABLE data_set_assignments_by_revision_id (\n" +
                 "provider_id varchar,\n" +
                 "dataset_id varchar,\n" +
