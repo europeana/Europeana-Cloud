@@ -26,7 +26,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 /**
  * Resource to manage data sets.
  */
-@Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representationNames/{" + P_REPRESENTATIONNAME + "}/revisons/{" + P_REVISIONID + "}")
+@Path("/data-providers/{" + P_PROVIDER + "}/data-sets/{" + P_DATASET + "}/representations/{" +
+        P_REPRESENTATIONNAME + "}/revisions/{" + P_REVISIONID + "}")
 @Component
 @Scope("request")
 public class DataSetRevisionsResource {

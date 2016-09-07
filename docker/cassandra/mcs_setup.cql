@@ -33,14 +33,16 @@ CREATE TABLE representation_versions (
  
 CREATE INDEX representations_provider_id ON representation_versions (provider_id);
 
+
 CREATE TABLE data_set_assignments_by_revision_id (
-       provider_id varchar,
-       dataset_id varchar,
+	   provider_dataset_id varchar, /* concatenation: provider_id | dataset_id - due to create index on it */
        revision_id varchar,
        representation_id varchar,
        cloud_id varchar,
-       PRIMARY KEY ((provider_id, dataset_id, representation_id), revision_id, cloud_id)
+       PRIMARY KEY ((provider_dataset_id , revision_id, representation_id),  cloud_id)
 )WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';
+
+CREATE INDEX data_set_assignments_by_revision_id_provider_dataset_id ON data_set_assignments_by_revision_id (provider_dataset_id);
 
 CREATE TABLE data_set_representation_names(
        provider_id varchar,

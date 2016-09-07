@@ -3,11 +3,9 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -125,12 +123,24 @@ public class CassandraDataSetService implements DataSetService {
 				rep.getVersion());
 		DataProvider dataProvider = uis.getProvider(providerId);
 		dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+
+		addDataSetAssignmentForAllRevisions(providerId, dataSetId, schema, rep);
+
 		representationIndexer.addAssignment(rep.getVersion(),
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
 	}
 
-    /**
+	private void addDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String schema, Representation rep) {
+		for (Revision revision : rep.getRevisions()) {
+			if (revision != null) {
+				dataSetDAO.addDataSetsRevision( providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
+						schema, rep.getCloudId());
+			}
+		}
+	}
+
+	/**
      * @inheritDoc
      */
 	@Override
@@ -146,12 +156,23 @@ public class CassandraDataSetService implements DataSetService {
 		if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
 			dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
 		}
+
+		Representation representation = recordDAO.getRepresentation(recordId, schema, versionId);
+		removeDataSetAssignmentForAllRevisions(providerId, dataSetId, recordId, schema, representation);
 		representationIndexer.removeAssignment(recordId, schema,
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
 	}
 
-    /**
+	private void removeDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String recordId, String schema, Representation representation) {
+		if (representation != null) {
+			for (Revision revision : representation.getRevisions())
+				if (revision != null)
+					dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
+		}
+	}
+
+	/**
      * @inheritDoc
      */
     @Override

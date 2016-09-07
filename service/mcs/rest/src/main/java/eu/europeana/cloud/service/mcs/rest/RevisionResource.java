@@ -98,6 +98,15 @@ public class RevisionResource {
         recordService.addRevision(globalId, schema, version, revision);
     }
 
+    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
+                                                      String version, String revisionProviderId, String revisionKey)
+            throws ProviderNotExistsException {
+        Set<String> dataSets = dataSetService.getDataSets(revisionProviderId, globalId, schema, version);
+        for (String dataSet : dataSets) {
+            dataSetService.addDataSetsRevisions(revisionProviderId, dataSet, revisionKey, schema, globalId);
+        }
+    }
+
     /**
      * Adds a new revision to representation version.If a revision already existed it will override it .
      * <strong>Read permissions required.</strong>
@@ -168,14 +177,7 @@ public class RevisionResource {
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
-    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
-                                                      String version, String revisionProviderId, String revisionKey)
-            throws ProviderNotExistsException {
-        Set<String> dataSets = dataSetService.getDataSets(revisionProviderId, globalId, schema, version);
-        for (String dataSet : dataSets) {
-            dataSetService.addDataSetsRevisions(revisionProviderId, dataSet, revisionKey, schema, globalId);
-        }
-    }
+
 
     private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {
         boolean acceptance = false;

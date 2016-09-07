@@ -45,17 +45,6 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         Assert.assertTrue(repNames.contains(SAMPLE_REP_NAME_1));
     }
 
-    @Test
-    public void should() {
-        //given
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_1);
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REP_NAME_2);
-        dataSetDAO.removeRepresentationNameForDataSet(SAMPLE_REP_NAME_1, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        //then
-        dataSetDAO.hasMoreRepresentations(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID,
-                SAMPLE_REP_NAME_1);
-    }
 
     @Test
     public void representationNameShouldBeRemovedFromDB() {
@@ -151,10 +140,60 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
 
         //when
-        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1, 1);
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID,
+                SAMPLE_REVISION_ID2, SAMPLE_REP_NAME_1, 3);
 
         //then
         assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID3));
         assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID,SAMPLE_CLOUD_ID2)));
+    }
+
+    @Test
+    public void shouldRemoveRevisionFromDataSet(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        dataSetDAO.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID,SAMPLE_REVISION_ID,
+                SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+
+        //then
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID,
+                SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 3);
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID2));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID)));
+    }
+
+    @Test
+    public void shouldRemoveRevisionFromDataSetSecondRevision(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        dataSetDAO.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID,SAMPLE_REVISION_ID,
+                SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //then
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID,
+                SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 3);
+        assertThat(cloudIds,hasItems(SAMPLE_CLOUD_ID));
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID2)));
+    }
+
+    @Test
+    public void shouldRemoveAssigmentsOnRemoveWholeDataSet(){
+        //given
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        dataSetDAO.deleteDataSet(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        //then
+        List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID,
+                SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 3);
+        assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID, SAMPLE_CLOUD_ID2)));
     }
 }
