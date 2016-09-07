@@ -3,6 +3,7 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.RepresentationRevision;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
@@ -36,6 +37,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+
 /**
  * Exposes API related to records.
  */
@@ -62,6 +65,8 @@ public class RecordServiceClient extends MCSClient {
     private static final String grantingPermissionsToVesionPath;
     //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permit
     private static final String permitPath;
+    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}
+    private static final String representationsRevisionsPath;
 
     static {
         StringBuilder builder = new StringBuilder();
@@ -98,7 +103,7 @@ public class RecordServiceClient extends MCSClient {
         permitPath = versionPath + "/" + ParamConstants.PERMIT;
 
         grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
-
+        representationsRevisionsPath = represtationNamePath + "/revisions/{" + REVISION_NAME + "}";
     }
 
     /**
@@ -691,5 +696,52 @@ public class RecordServiceClient extends MCSClient {
     @Override
     protected void finalize() throws Throwable {
         client.close();
+    }
+
+
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param revisionId         revision name (required)
+     * @param revisionProviderId revision provider identifier, together with revisionId it is used to determine the correct revision (required)
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public RepresentationRevision getRepresentationRevision(String cloudId, String representationName, String revisionId, String revisionProviderId)
+            throws RepresentationNotExistsException, MCSException {
+        WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
+                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .resolveTemplate(ParamConstants.REVISION_NAME, revisionId);
+
+        if (revisionProviderId != null) {
+            webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId);
+        }
+        Builder request = webtarget.request();
+
+        Response response = null;
+        try {
+            response = request.get();
+            System.out.println(response);
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                RepresentationRevision representationRevision = response.readEntity(RepresentationRevision.class);
+                return representationRevision;
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            String out = webtarget.getUri().toString();
+            throw new MCSException(out, e);
+        } finally {
+            closeResponse(response);
+        }
     }
 }

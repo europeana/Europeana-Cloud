@@ -50,3 +50,13 @@ CREATE TABLE data_set_representation_names(
        representation_names set<text>,
        PRIMARY KEY ((provider_id, dataset_id))
 )WITH comment='Retrieve information about the representations supported in a provider’s dataset';
+
+CREATE TABLE representation_revisions (
+       cloud_id varchar,
+       representation_id varchar,
+       version_id timeuuid,
+       revision_id varchar,
+       provider_id varchar,
+       files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
+       PRIMARY KEY ((cloud_id, representation_id), revision_id, version_id)
+)WITH comment='Retrieve version_id based on the rest known fields of the primary key';

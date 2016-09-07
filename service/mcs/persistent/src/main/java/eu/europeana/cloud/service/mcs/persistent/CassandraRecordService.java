@@ -296,6 +296,12 @@ public class CassandraRecordService implements RecordService {
         file.setDate(fmt.print(now));
         file.setContentLength(result.getContentLength());
         recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
+
+        for (Revision revision : representation.getRevisions()) {
+            // update information in extra table
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(revision), file);
+        }
+
         return isCreate;
     }
 
@@ -428,7 +434,24 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException {
         recordDAO.addOrReplaceRevisionInRepresentation(globalId, schema, version, revision);
+    }
 
+    @Override
+    public RepresentationRevision getRepresentationRevision(String globalId, String schema, String revisionId)
+            throws RepresentationNotExistsException {
+        RepresentationRevision representationRevision = recordDAO.getRepresentationRevision(globalId, schema, revisionId);
+        if (representationRevision == null)
+            throw new RepresentationNotExistsException();
+        return representationRevision;
+    }
+
+    @Override
+    public void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId) {
+        // add additional association between representation version and revision
+        Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
+        recordDAO.addRepresentationRevision(globalId, schema, representation.getDataProvider(), versionId, revisionId);
+        for (File file : representation.getFiles())
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionId, file);
     }
 
     /**

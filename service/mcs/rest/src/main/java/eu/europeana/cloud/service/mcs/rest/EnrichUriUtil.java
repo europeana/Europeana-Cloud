@@ -47,6 +47,13 @@ final class EnrichUriUtil {
         }
     }
 
+    static void enrich(UriInfo uriInfo, RepresentationRevision representationRevision) {
+        if (representationRevision.getFiles() != null) {
+            for (File f : representationRevision.getFiles()) {
+                enrich(uriInfo, representationRevision.getCloudId(), representationRevision.getRepresentationName(), representationRevision.getVersion(), f);
+            }
+        }
+    }
 
     static void enrich(UriInfo uriInfo, Representation rep, File file) {
         enrich(uriInfo, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);

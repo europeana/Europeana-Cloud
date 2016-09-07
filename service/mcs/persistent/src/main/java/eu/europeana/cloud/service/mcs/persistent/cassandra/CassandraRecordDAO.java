@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
 import com.google.gson.GsonBuilder;
-import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
@@ -27,9 +27,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -69,6 +66,7 @@ public class CassandraRecordDAO {
 
     private PreparedStatement insertRevisionStatement;
 
+    private PreparedStatement getRepresentationRevisionStatement;
 
     private PreparedStatement removeFileStatement;
 
@@ -77,6 +75,10 @@ public class CassandraRecordDAO {
     private PreparedStatement getAllRepresentationsForRecordStatement;
 
     private PreparedStatement singleRecordIdForProviderStatement;
+
+    private PreparedStatement insertRepresentationRevisionStatement;
+
+    private PreparedStatement insertRepresentationRevisionFileStatement;
 
     @PostConstruct
     private void prepareStatements() {
@@ -160,6 +162,21 @@ public class CassandraRecordDAO {
                 .prepare("SELECT cloud_id FROM representation_versions WHERE provider_id = ? LIMIT 1;");
         singleRecordIdForProviderStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getRepresentationRevisionStatement = s
+                .prepare("SELECT version_id, provider_id, files FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ?;");
+        getRepresentationRevisionStatement
+                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        insertRepresentationRevisionStatement = s
+                .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, provider_id, revision_id) VALUES (?,?,?,?,?);");
+        insertRepresentationRevisionStatement.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
+
+        insertRepresentationRevisionFileStatement = s
+                .prepare("UPDATE representation_revisions SET files[?] = ? WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND version_id = ?;");
+        insertRepresentationRevisionFileStatement.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
     }
 
     /**
@@ -560,5 +577,83 @@ public class CassandraRecordDAO {
             else if (revision.getUpdateTimeStamp() == null)
                 throw new RevisionIsNotValidException("Revision should include updateTimestamp");
         }
+    }
+
+    public RepresentationRevision getRepresentationRevision(String cloudId, String schema, String revisionId) {
+
+        // check parameters, none can be null
+        if (cloudId == null || schema == null || revisionId == null) {
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+
+        // bind parameters to statement
+        BoundStatement boundStatement = getRepresentationRevisionStatement.bind(
+                cloudId, schema, revisionId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+
+        // retrieve one row, there should be only one
+        Row row = rs.one();
+        if (row == null) {
+            return null;
+        } else {
+            // prepare representation revision object from the fields in a row
+            RepresentationRevision representationRevision = new RepresentationRevision(cloudId, schema,
+                    row.getUUID("version_id").toString(), row.getString("provider_id"), revisionId);
+            // retrieve files information from the map
+            representationRevision.setFiles(deserializeFiles(row.getMap("files", String.class,
+                    String.class)));
+            return representationRevision;
+        }
+    }
+
+
+    /**
+     * Adds or modifies given file to list of files of representation revision.
+     *
+     * @param cloudId record if
+     * @param schema  schema id
+     * @param version version id
+     * @param revisionId revision identifier
+     * @param file    file
+     * @throws QueryExecutionException  if error occured while executing a query.
+     * @throws NoHostAvailableException if no Cassandra host are available.
+     */
+    public void addOrReplaceFileInRepresentationRevision(String cloudId, String schema,
+                                                 String version, String revisionId, File file) throws NoHostAvailableException,
+            QueryExecutionException {
+        BoundStatement boundStatement = insertRepresentationRevisionFileStatement.bind(
+                file.getFileName(), serializeFile(file), cloudId, schema, revisionId,
+                UUID.fromString(version));
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+    }
+
+
+    /**
+     * Creates new temporary version for a specific record's representation.
+     *
+     * @param cloudId      identifier of record
+     * @param schema       schema of representation
+     * @param providerId   representation version provider
+     * @param version      version identifier
+     * @param revisionId   revision identifier
+     * @return
+     */
+    public RepresentationRevision addRepresentationRevision(String cloudId, String schema,
+                                               String providerId, String version, String revisionId)
+            throws NoHostAvailableException, QueryExecutionException {
+
+        // none of the parameters can be null
+        if (cloudId == null || schema == null || providerId == null || version == null || revisionId == null) {
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+
+        // insert representation revision into representation revision table.
+        BoundStatement boundStatement = insertRepresentationRevisionStatement.bind(
+                cloudId, schema, UUID.fromString(version), providerId, revisionId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        return new RepresentationRevision(cloudId, schema, version, providerId, new ArrayList<File>(0), revisionId);
     }
 }

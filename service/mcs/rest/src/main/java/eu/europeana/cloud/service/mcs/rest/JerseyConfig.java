@@ -58,5 +58,6 @@ public class JerseyConfig extends ResourceConfig {
         register(SimplifiedRecordsResource.class);
         register(SimplifiedRepresentationResource.class);
         registerClasses(RevisionResource.class);
+        registerClasses(RepresentationRevisionsResource.class);
     }
 }
