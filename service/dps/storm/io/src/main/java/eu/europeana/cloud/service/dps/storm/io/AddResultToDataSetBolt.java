@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import backtype.storm.task.OutputCollector;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.States;
@@ -23,63 +24,22 @@ import java.util.List;
  */
 public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
-    private String mcsLocation;
-    private transient DataSetServiceClient dataSetClient;
-
+    private String ecloudMcsAddress;
     private static final Logger LOGGER = LoggerFactory.getLogger(AddResultToDataSetBolt.class);
 
-    public AddResultToDataSetBolt(String mcsLocation) {
-        this.mcsLocation = mcsLocation;
+    public AddResultToDataSetBolt(String ecloudMcsAddress) {
+        this.ecloudMcsAddress = ecloudMcsAddress;
+
     }
 
-    @Override
-    public void execute(StormTaskTuple t) {
-        LOGGER.info("AddResultToDataSetBolt execution started");
-        initDataSetClient(t);
-        addRepresentationToDataSets(t);
-        emitSuccess(t);
-    }
 
-    private void initDataSetClient(StormTaskTuple t) {
-        LOGGER.debug("Initializing dataSet client");
-        if (dataSetClient == null) {
-            dataSetClient = new DataSetServiceClient(mcsLocation);
-            dataSetClient.useAuthorizationHeader(t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-        }
-    }
-
-    public void addRepresentationToDataSets(StormTaskTuple t) {
-
-        String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
-
-        LOGGER.info("Resulting resource to insert: " + resultUrl);
-        
-        try {
-            List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            LOGGER.info("Data-sets that will be affected: " + datasets);
-            
-            for (String datasetLocation : datasets) {
-                Representation resultRepresentation = parseResultUrl(resultUrl);
-                DataSet dataSet = parseDataSetURl(datasetLocation);
-                dataSetClient.assignRepresentationToDataSet(
-                        dataSet.getProviderId(),
-                        dataSet.getId(),
-                        resultRepresentation.getCloudId(),
-                        resultRepresentation.getRepresentationName(),
-                        resultRepresentation.getVersion());
-            }
-            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl.toString());
-
-        } catch (MCSException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
-            e.printStackTrace();
-        }
+    /**
+     * Should be used only on tests.
+     */
+    public static AddResultToDataSetBolt getTestInstance(OutputCollector outputCollector, String ecloudMcsAddress) {
+        AddResultToDataSetBolt instance = new AddResultToDataSetBolt(ecloudMcsAddress);
+        instance.outputCollector = outputCollector;
+        return instance;
     }
 
     @Override
@@ -87,7 +47,43 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
 
     }
 
+    @Override
+    public void execute(StormTaskTuple t) {
+        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress);
+        final String authorizationHeader = t.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
+        addRepresentationToDataSets(t, dataSetServiceClient);
+    }
+
+    public final void addRepresentationToDataSets(StormTaskTuple t, DataSetServiceClient datasetClient) {
+        String resultUrl = t.getParameter(PluginParameterKeys.OUTPUT_URL);
+        try {
+            List<String> datasets = readDataSetsList(t.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            if (datasets != null) {
+                LOGGER.info("Data-sets that will be affected: " + datasets);
+                for (String datasetLocation : datasets) {
+                    Representation resultRepresentation = parseResultUrl(resultUrl);
+                    DataSet dataSet = parseDataSetURl(datasetLocation);
+                    datasetClient.assignRepresentationToDataSet(
+                            dataSet.getProviderId(),
+                            dataSet.getId(),
+                            resultRepresentation.getCloudId(),
+                            resultRepresentation.getRepresentationName(),
+                            resultRepresentation.getVersion());
+                }
+            }
+            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", resultUrl);
+        } catch (MCSException e) {
+            LOGGER.warn("Error while communicating with MCS", e.getMessage());
+            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
+        } catch (MalformedURLException e) {
+            emitErrorNotification(t.getTaskId(), resultUrl, e.getMessage(), t.getParameters().toString());
+        }
+    }
+
     private List<String> readDataSetsList(String listParameter) {
+        if (listParameter == null)
+            return null;
         return Arrays.asList(listParameter.split(","));
     }
 

@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import backtype.storm.task.OutputCollector;
-import backtype.storm.tuple.Tuple;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -10,132 +9,110 @@ import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URISyntaxException;
 
-import static org.mockito.Matchers.anyString;
+import static eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt.getTestInstance;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
-/**
- * 
- */
-@RunWith(PowerMockRunner.class)
-public class AddResultToDataSetBoltTest implements TestConstantsHelper{
 
+public class AddResultToDataSetBoltTest implements TestConstantsHelper {
+
+    private AddResultToDataSetBolt addResultToDataSetBolt;
+    private DataSetServiceClient dataSetServiceClient;
     private OutputCollector oc;
-    private final int TASK_ID = 1;
-    private final String TASK_NAME = "TASK_NAME";
-    private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
-    private final byte[] FILE_DATA = "Data".getBytes();
     private StormTaskTuple stormTaskTuple;
+    private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s1";
+    private static final String DATASET_URL2 = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2";
+    private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";
 
-    @Mock(name = "dataSetClient")
-    private DataSetServiceClient datasetClient;
+    public final void verifyMethodExecustionNumber(int expectedAssignRepresentationToDataCallTimes, int expectedEmitCallTimes) throws MCSException {
+        when(oc.emit(anyString(), anyList())).thenReturn(null);
+        addResultToDataSetBolt.addRepresentationToDataSets(stormTaskTuple, dataSetServiceClient);
+        verify(dataSetServiceClient, times(expectedAssignRepresentationToDataCallTimes)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(oc, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
 
-    @Mock(name = "outputCollector")
-    private OutputCollector outputCollector;
-    
-    @InjectMocks
-    private AddResultToDataSetBolt bolt;
+    }
+
 
     @Before
-    public void init() throws IllegalAccessException, MCSException, URISyntaxException {
-        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+    public void init() {
+        oc = mock(OutputCollector.class);
+        addResultToDataSetBolt = getTestInstance(oc, MCS_URL);
+        dataSetServiceClient = mock(DataSetServiceClient.class);
     }
 
     @Test
-    public void shouldEmmitPropperNotificationWhenOutputUrlIsEmpty(){
-        stormTaskTuple = prepareTupleWithEmptyOutputUrl();
-        bolt.execute(stormTaskTuple);
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
-        verify(outputCollector, times(1)).emit(any(Tuple.class), anyListOf(Object.class));
-    }
-
-    @Test
-    public void shouldEmitProperInfoWhenDataSetListIsEmpty() {
-        stormTaskTuple = prepareTupleWithEmptyDataSetList();
-        bolt.execute(stormTaskTuple);
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
-        verify(outputCollector, times(1)).emit(any(Tuple.class), anyListOf(Object.class));
-    }
-
-    @Test
-    public void shouldEmmitPropperInfoWhenDataSetListHasOneElement() throws MCSException {
+    public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException, URISyntaxException {
+        //given
         stormTaskTuple = prepareTupleWithSingleDataSet();
-        bolt.execute(stormTaskTuple);
-        verify(datasetClient,times(1)).assignRepresentationToDataSet(anyString(),anyString(),anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(any(Tuple.class), anyListOf(Object.class));
+        verifyMethodExecustionNumber(1, 1);
+
+
     }
 
     @Test
-    public void shouldEmmitPropperInfoWhenDataSetListHasMoreThanOneElement() throws MCSException {
-        stormTaskTuple = prepareTupleWithMoreDataSets();
-        bolt.execute(stormTaskTuple);
-        verify(datasetClient,atLeast(2)).assignRepresentationToDataSet(anyString(),anyString(),anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(any(Tuple.class), anyListOf(Object.class));
+    public void shouldEmitInfoWhenDataSetListIsEmpty() throws MCSException {
+        stormTaskTuple = prepareTupleWithEmptyDataSetList();
+        verifyMethodExecustionNumber(0, 1);
+
+
     }
-    
+
+
     @Test
-    public void shouldEmmitPropperInfoWhenDataSetListIsNotParseable() throws MCSException {
+    public void shouldEmmitInfoWhenDataSetListHasMoreThanOneElement() throws MCSException {
+        stormTaskTuple = prepareTupleWithMultipleDataSets();
+        verifyMethodExecustionNumber(2, 1);
+    }
+
+    @Test
+    public void shouldEmmitNotificationWhenOutputUrlIsEmpty() throws MCSException {
+        stormTaskTuple = prepareTupleWithEmptyOutputUrl();
+        verifyMethodExecustionNumber(0, 1);
+
+    }
+
+    @Test
+    public void shouldEmmitNotificationWrongDatasetUrl() throws MCSException {
         stormTaskTuple = prepareTupleWithWrongDatasetUrl();
-        bolt.execute(stormTaskTuple);
-        verify(datasetClient,times(0)).assignRepresentationToDataSet(anyString(),anyString(),anyString(),anyString(),anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
+        verifyMethodExecustionNumber(0, 1);
+
     }
 
-    @Test
-    public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
 
-        stormTaskTuple = prepareTupleWithMoreDataSets();
-        bolt.execute(stormTaskTuple);
-        verify(datasetClient, times(2)).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
-        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), anyListOf(Object.class));
-        verify(outputCollector, times(1)).emit(any(Tuple.class), anyListOf(Object.class));
-    }
-    
-    
-    private StormTaskTuple prepareTupleWithEmptyOutputUrl(){
+    private StormTaskTuple prepareTupleWithEmptyOutputUrl() {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2");
+        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
         return tuple;
     }
-    
-    private StormTaskTuple prepareTupleWithEmptyDataSetList(){
+
+    private StormTaskTuple prepareTupleWithEmptyDataSetList() {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2");
+        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         return tuple;
     }
-    
-    private StormTaskTuple prepareTupleWithSingleDataSet(){
+
+    private StormTaskTuple prepareTupleWithSingleDataSet() {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2");
-        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2");
+        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
+        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
         return tuple;
     }
-    
-    private StormTaskTuple prepareTupleWithMoreDataSets(){
+
+    private StormTaskTuple prepareTupleWithMultipleDataSets() {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2");
-        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2,http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s3");
+        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
+        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL + "," + DATASET_URL2);
         return tuple;
     }
-    
-    private StormTaskTuple prepareTupleWithWrongDatasetUrl(){
+
+    private StormTaskTuple prepareTupleWithWrongDatasetUrl() {
         StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2");
+        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, FILE_URL);
         tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "sample_sample_sample");
         return tuple;
     }
-    
 
-    private StormTaskTuple prepareBasicTaskTuple(){
-        StormTaskTuple tuple = new StormTaskTuple();
-        tuple.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/s2");
-        return tuple;
-    }
 }

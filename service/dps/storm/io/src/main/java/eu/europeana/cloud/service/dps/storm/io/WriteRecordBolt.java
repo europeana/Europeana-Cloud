@@ -2,14 +2,12 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -48,7 +46,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: persisting...");
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", uri.toString());
+            t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
 
         } catch (Exception e) {
@@ -97,13 +95,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         } else {
             throw new MCSException("Unable to find representation version in representation URL");
         }
-    }
-
-    private void emitSuccessNotification(long taskId, String resource,
-                                         String message, String additionalInformations, String resultResource) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
 }

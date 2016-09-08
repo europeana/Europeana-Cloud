@@ -121,7 +121,7 @@ public class DataSetServiceClient extends MCSClient {
         }
 
         Response response = null;
-        try{
+        try {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class);
@@ -259,7 +259,7 @@ public class DataSetServiceClient extends MCSClient {
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
-        
+
         Response response = null;
         try {
             response = target.request().get();
@@ -341,9 +341,9 @@ public class DataSetServiceClient extends MCSClient {
 
         Form form = new Form();
         form.param(ParamConstants.F_DESCRIPTION, description);
-        
+
         Response response = null;
-                
+
         try {
             response = target.request().put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
@@ -374,7 +374,7 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
 
         Response response = null;
-        
+
         try {
             response = target.request().delete();
 
@@ -388,7 +388,7 @@ public class DataSetServiceClient extends MCSClient {
                 response.close();
             }
         }
-        
+
 
     }
 
@@ -417,7 +417,6 @@ public class DataSetServiceClient extends MCSClient {
     public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
                                               String representationName, String versionId)
             throws DataSetNotExistsException, RepresentationNotExistsException, MCSException {
-
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
                 .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId);
@@ -428,7 +427,7 @@ public class DataSetServiceClient extends MCSClient {
         form.param(ParamConstants.F_VER, versionId);
 
         Response response = null;
-        
+
         try {
             response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
@@ -458,7 +457,7 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException              on unexpected situations
      */
     public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId,
-                                                  String representationName,String representationVersion)
+                                                  String representationName, String representationVersion)
             throws DataSetNotExistsException, MCSException {
 
         WebTarget target = client.target(this.baseUrl).path(assignmentsPath)
@@ -469,14 +468,14 @@ public class DataSetServiceClient extends MCSClient {
 
         Response response = null;
 
-        try{
+        try {
             response = target.request().delete();
 
             if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
-        }finally{
+        } finally {
             closeResponse(response);
         }
 
@@ -489,11 +488,11 @@ public class DataSetServiceClient extends MCSClient {
     }
 
     public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter("Basic " + headerValue));
+        client.register(new ECloudBasicAuthFilter(headerValue));
 
     }
 
-    
+
     @Override
     protected void finalize() throws Throwable {
         client.close();
