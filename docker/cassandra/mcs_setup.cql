@@ -32,3 +32,22 @@ CREATE TABLE representation_versions (
 );
  
 CREATE INDEX representations_provider_id ON representation_versions (provider_id);
+
+CREATE TABLE provider_dataset_representation (
+    provider_id varchar,
+    dataset_id varchar,
+    cloud_id varchar,
+    representation_id varchar,
+    revision_id varchar,
+    revision_timestamp timestamp,
+    acceptance boolean,
+    published boolean,
+    mark_deleted boolean,
+    PRIMARY KEY ((provider_id, dataset_id), representation_id, revision_timestamp, revision_id, cloud_id)
+)WITH comment='Retrieve cloud Ids based on the revision_timestamp that is greater from a specific value. Used for full and incremental updates';
+
+CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_representation (acceptance);
+
+CREATE INDEX dataset_representation_published ON provider_dataset_representation (published);
+
+CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
