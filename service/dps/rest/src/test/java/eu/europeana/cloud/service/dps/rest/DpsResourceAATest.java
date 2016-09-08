@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.rest;
 
-import com.google.common.collect.ImmutableMap;
-import eu.europeana.cloud.common.model.Permission;
+
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -14,12 +13,9 @@ import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.utils.files.counter.DatasetFilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -38,7 +34,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
@@ -83,8 +78,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     /**
      * Pre-defined users
      */
-    private final static String RANDOM_PERSON = "Cristiano";
-    private final static String RANDOM_PASSWORD = "Ronaldo";
 
     private final static String VAN_PERSIE = "Robin_Van_Persie";
     private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
@@ -221,6 +214,26 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         login(user, VAN_PERSIE_PASSWORD);
         //then
         topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+    }
+
+    @Test
+    public void shouldNotBeAbleToSubmitTaskToIcTopologyWithUnacceptedOutputMimeType() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
+        //when
+        DpsTask task = new DpsTask("icTask");
+        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "undefined");
+        String topologyName = "ic_topology";
+        String user = VAN_PERSIE;
+        grantUserToTopology(topologyName, user);
+        login(user, VAN_PERSIE_PASSWORD);
+        //then
+        try {
+            topologyTasksResource.submitTask(asyncResponse, task, topologyName, URI_INFO, AUTH_HEADER_VALUE);
+            fail();
+        } catch (DpsTaskValidationException e) {
+            assertThat(e.getMessage(), is("Parameter does not meet constraints. Parameter name: OUTPUT_MIME_TYPE"));
+        }
     }
 
     @Test

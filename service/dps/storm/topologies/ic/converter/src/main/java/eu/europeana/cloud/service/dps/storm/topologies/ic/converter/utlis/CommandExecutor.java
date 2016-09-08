@@ -25,12 +25,12 @@ public class CommandExecutor {
         if (command != null) {
             Process p;
             p = Runtime.getRuntime().exec(command);
-            output = readOutPut(p.getInputStream());
-            if (!"".equals(output))
-                LOGGER.info("The command was executed successfully with the following output message: " + output);
-            else {
-                output = readOutPut(p.getErrorStream());
+            output = readOutPut(p.getErrorStream());
+            if (!"".equals(output)) {
                 throw new ConversionException(output);
+            } else {
+                output = readOutPut(p.getInputStream());
+                LOGGER.info("The command was executed successfully with the following output message: " + output);
             }
             p.destroy();
         }

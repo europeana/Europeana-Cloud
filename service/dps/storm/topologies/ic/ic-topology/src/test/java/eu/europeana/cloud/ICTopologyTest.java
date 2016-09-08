@@ -93,7 +93,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
 
 
     @BeforeClass
-    public static final void buildToplogy() {
+    public static void buildToplogy() {
         routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, DATASET_STREAM);
         routingRules.put(PluginParameterKeys.DATASET_URLS, FILE_STREAM);
@@ -110,11 +110,10 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         mockDPSDAO();
         mockDatSetClient();
         configureMocks();
-
-
+        mockRepresentationIterator();
     }
 
-    final void assertTopology(final String input) {
+    private void assertTopology(final String input) {
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
@@ -184,7 +183,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 // prepare the mock data
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(inputTuple));
-
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
 
@@ -218,15 +216,11 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     }
 
     private void configureMocks() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
-
         doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
         doNothing().when(imageConverterService).convertFile(any(StormTaskTuple.class));
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
-        when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
-        when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
-
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
     }
 
 
@@ -236,20 +230,18 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         List<File> firstFilesList = new ArrayList<>();
         List<Revision> revisions = new ArrayList<>();
         firstFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl1)));
+
         Representation firstRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, firstFilesList, revisions, false, new Date());
-        List<Representation> firstRepresentationList = new ArrayList<>();
-        firstRepresentationList.add(firstRepresentation);
         List<File> secondFilesList = new ArrayList<>();
         secondFilesList.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl2)));
         Representation secondRepresentation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, secondFilesList, revisions, false, new Date());
-        List<Representation> seconRepresentationList = new ArrayList<>();
-        seconRepresentationList.add(secondRepresentation);
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(firstRepresentationList);
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet2")).thenReturn(seconRepresentationList);
+        when(dataSetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
+        when(representationIterator.hasNext()).thenReturn(true, true, false);
+        when(representationIterator.next()).thenReturn(firstRepresentation).thenReturn(secondRepresentation);
         when(fileServiceClient.getFile(fileUrl1)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         when(fileServiceClient.getFile(fileUrl2)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + "2")).thenReturn(secondRepresentation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(secondRepresentation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
     }
@@ -262,19 +254,20 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
 
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
-        List<Representation> representationList = new ArrayList<>();
-        representationList.add(representation);
-        when(fileServiceClient.getFile(fileUrl)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
 
-        List<File> files2 = new ArrayList<>();
-        files2.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
-        Representation representation2 = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, new URI(SOURCE_VERSION_URL2), new URI(SOURCE_VERSION_URL2), DATA_PROVIDER, files2, revisions, false, new Date());
-        List<Representation> representationList2 = new ArrayList<>();
-        representationList2.add(representation2);
+        when(dataSetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
+        when(representationIterator.hasNext()).thenReturn(true, false);
+        when(representationIterator.next()).thenReturn(representation);
 
-        when(dataSetClient.getDataSetRepresentations("testDataProvider", "dataSet")).thenReturn(representationList);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
+
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
+
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+
+        when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
+
+        when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
     }
 
 

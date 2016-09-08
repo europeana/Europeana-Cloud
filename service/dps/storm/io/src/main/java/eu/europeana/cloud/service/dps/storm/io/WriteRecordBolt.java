@@ -18,8 +18,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Stores a Record on the cloud.
@@ -71,30 +69,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             mcsClient.useAuthorizationHeader(authorizationHeader);
             recordServiceClient.useAuthorizationHeader(authorizationHeader);
             Representation rep = recordServiceClient.getRepresentation(urlParser.getPart(UrlPart.RECORDS), urlParser.getPart(UrlPart.REPRESENTATIONS), urlParser.getPart(UrlPart.VERSIONS));
-            URI newRepresentation = recordServiceClient.createRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, rep.getDataProvider());
-
-            final String newRepresentationVersion = findRepresentationVersion(newRepresentation);
             final String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
-            if (fileName != null) {
-                newFileUri = mcsClient.uploadFile(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-            } else
-                newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-
-            recordServiceClient.persistRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, newRepresentationVersion);
-
+            newFileUri = recordServiceClient.createRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, rep.getDataProvider(), stormTaskTuple.getFileByteDataAsStream(), fileName, outputMimeType);
         }
         return newFileUri;
     }
 
-    private String findRepresentationVersion(URI uri) throws MCSException {
-        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
-        Matcher m = p.matcher(uri.toString());
-
-        if (m.find()) {
-            return m.group(3);
-        } else {
-            throw new MCSException("Unable to find representation version in representation URL");
-        }
-    }
 
 }
