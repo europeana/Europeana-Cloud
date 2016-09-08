@@ -141,7 +141,7 @@ public class DataSetResource {
     }
 
     @Path("/representations/{" + P_REPRESENTATIONNAME + "}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<String>")
     @GET
     public ResultSlice<String> getDataSetCloudIdsByRepresentation(
