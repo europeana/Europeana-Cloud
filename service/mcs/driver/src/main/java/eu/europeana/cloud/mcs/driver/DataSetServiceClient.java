@@ -554,7 +554,6 @@ public class DataSetServiceClient extends MCSClient {
             }
         }
         catch (Exception e) {
-            logger.info("dupa");
             return null;
         }
         finally {
