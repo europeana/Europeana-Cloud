@@ -14,7 +14,7 @@ import java.io.InputStream;
  * Utility for extension-related services
  */
 public class MimeTypeHelper {
-    final static TikaConfig config = TikaConfig.getDefaultConfig();
+    private static final TikaConfig CONFIG = TikaConfig.getDefaultConfig();
 
     /**
      * Gets the extension based on a media type
@@ -24,9 +24,8 @@ public class MimeTypeHelper {
      * @throws MimeTypeException thrown if MimeType wasn't detected
      */
     public static String getExtension(MediaType mediaType) throws MimeTypeException {
-        MimeType mimeType = config.getMimeRepository().forName(mediaType.toString());
-        String extension = mimeType.getExtension();
-        return extension;
+        MimeType mimeType = CONFIG.getMimeRepository().forName(mediaType.toString());
+        return mimeType.getExtension();
 
     }
 
@@ -39,8 +38,8 @@ public class MimeTypeHelper {
      * @throws IOException
      */
     public static MediaType getMediaTypeFromStream(InputStream stream) throws MimeTypeException, IOException {
-        MediaType mediaType = config.getMimeRepository().detect(stream, new Metadata());
-        return mediaType;
+        return CONFIG.getMimeRepository().detect(stream, new Metadata());
+
     }
 
 }

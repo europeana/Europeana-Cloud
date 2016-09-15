@@ -1,27 +1,28 @@
 package eu.europeana.cloud.downloader;
 
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.exception.RepresentationNotFoundException;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.util.FileUtil;
-import eu.europeana.cloud.util.MimeTypeHelper;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.mime.MimeTypeException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.*;
 
 
 /**
  * Created by Tarek on 9/1/2016.
  */
 public class RecordDownloader {
-    DataSetServiceClient dataSetServiceClient;
-    FileServiceClient fileServiceClient;
+    private DataSetServiceClient dataSetServiceClient;
+    private FileServiceClient fileServiceClient;
 
 
     public RecordDownloader(DataSetServiceClient dataSetServiceClient, FileServiceClient fileServiceClient) {
@@ -36,31 +37,42 @@ public class RecordDownloader {
      * @param datasetName        The name of the dataSet
      * @param representationName representation name
      */
-    public String downloadFilesFromDataSet(String providerId, String datasetName, String representationName) throws MimeTypeException, IOException, DriverException, RepresentationNotFoundException, MCSException {
-        String folderPath = FileUtil.createFolder();
-        RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(providerId, datasetName);
-        boolean representationIsFound = false;
-        while (iterator.hasNext()) {
-            Representation representation = iterator.next();
-            if (representation.getRepresentationName().equals(representationName)) {
-                representationIsFound = true;
-                for (File file : representation.getFiles()) {
-                    final String fileUrl = fileServiceClient.getFileUri(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), file.getFileName()).toString();
-                    InputStream inputStream = fileServiceClient.getFile(fileUrl);
-                    String extension = getExtension(inputStream);
-                    FileUtil.persistStreamToFile(inputStream, folderPath, file.getFileName(), extension);
+    public final String downloadFilesFromDataSet(String providerId, String datasetName, String representationName, int threadsCount) throws InterruptedException, ExecutionException, IOException, DriverException, RepresentationNotFoundException {
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsCount);
+        final String folderPath = FileUtil.createFolder();
+        boolean isSuccess = false;
+        try {
+            RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(providerId, datasetName);
+            boolean representationIsFound = false;
+            while (iterator.hasNext()) {
+                final Representation representation = iterator.next();
+                if (representation.getRepresentationName().equals(representationName)) {
+                    representationIsFound = true;
+                    downloadFilesInsideRepresentation(executorService, representation, folderPath);
                 }
             }
+            if (!representationIsFound)
+                throw new RepresentationNotFoundException("The representation " + representationName + " was not found inside the dataset: " + datasetName);
+            isSuccess = true;
+            return folderPath;
+        } finally {
+            executorService.shutdown();
+            if (!isSuccess)
+                FileUtils.deleteDirectory(new java.io.File(folderPath));
+
+
         }
-        if (!representationIsFound)
-            throw new RepresentationNotFoundException("The representation " + representationName + " was not found inside the dataset");
-        return folderPath;
     }
 
-    private String getExtension(InputStream inputStream) throws MimeTypeException, IOException {
-        MediaType mimeType = MimeTypeHelper.getMediaTypeFromStream(inputStream);
-        String extension = MimeTypeHelper.getExtension(mimeType);
-        return extension;
+    private void downloadFilesInsideRepresentation(ExecutorService executorService, Representation representation, String folderPath) throws InterruptedException, ExecutionException, DriverException {
+        final Set<Callable<Void>> fileDownloaderJobs = new HashSet<>();
+        for (final File file : representation.getFiles()) {
+            fileDownloaderJobs.add(new FileDownloaderJob(fileServiceClient, file.getFileName(), representation, folderPath));
+        }
+        List<Future<Void>> results = executorService.invokeAll(fileDownloaderJobs);
+        for (Future<Void> future : results) {
+            future.get();
+        }
     }
 
 

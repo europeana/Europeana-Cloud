@@ -56,7 +56,7 @@ public class RecordDownloaderTest implements TestConstantsHelper {
         when(fileServiceClient.getFileUri(CLOUD_ID, REPRESENTATION_NAME, VERSION, FILE + "2")).thenReturn(new URI(FILE_URL2));
         when(fileServiceClient.getFile(FILE_URL)).thenReturn(inputStream);
         when(fileServiceClient.getFile(FILE_URL2)).thenReturn(inputStream2);
-        String folderPtah = recordDownloader.downloadFilesFromDataSet(DATA_PROVIDER, DATASET_NAME, REPRESENTATION_NAME);
+        String folderPtah = recordDownloader.downloadFilesFromDataSet(DATA_PROVIDER, DATASET_NAME, REPRESENTATION_NAME,1);
         assertNotNull(folderPtah);
         java.io.File folder = new java.io.File(folderPtah);
         assert (folder.isDirectory());
@@ -69,7 +69,7 @@ public class RecordDownloaderTest implements TestConstantsHelper {
     public void shouldThrowRepresentationNotFoundException() throws Exception {
         when(dataSetServiceClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(false, false);
-        recordDownloader.downloadFilesFromDataSet(DATA_PROVIDER, DATASET_NAME, EMPTY_REPRESENTATION);
+        recordDownloader.downloadFilesFromDataSet(DATA_PROVIDER, DATASET_NAME, EMPTY_REPRESENTATION,1);
 
     }
 

@@ -20,15 +20,13 @@ public class CommandLineHelper {
      *
      * @param optionName  Name of the  required option
      * @param description description of the option
-     * @throws IllegalArgumentException
      */
-    public void addRequiredOption(final String optionName, final String description)
-            throws IllegalArgumentException {
-        Option option = Option.builder().longOpt(optionName).required().desc(description).hasArg().build();
+    public final void addOption(final String optionName, final String description,boolean isRequired) {
+        Option option = Option.builder().longOpt(optionName).required(isRequired).desc(description).hasArg().build();
         options.addOption(option);
     }
 
-    public Options getOptions() {
+    public final Options getOptions() {
         return options;
     }
 }
