@@ -10,6 +10,7 @@ import eu.europeana.cloud.util.FileUtil;
 import eu.europeana.cloud.util.FolderCompressor;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.mime.MimeTypeException;
 import org.zeroturnaround.zip.ZipException;
 
 import java.io.File;
@@ -48,6 +49,8 @@ public class EuropeanaRecordsDownloaderTool {
             formatter.printHelp("Records downloader ", options);
         } catch (RepresentationNotFoundException ex) {
             System.out.println(ex.getMessage());
+        } catch (MimeTypeException e) {
+            System.out.println("The downloaded records have unrecognised mimeType");
         } catch (ZipException e) {
             System.out.println("Exception happened during zipping the folder " + e.getMessage());
             try {
@@ -80,7 +83,7 @@ public class EuropeanaRecordsDownloaderTool {
         return commandLineHelper.getOptions();
     }
 
-    private static String executeDownloader(CommandLine cmd) throws InterruptedException, ExecutionException, RepresentationNotFoundException, IOException {
+    private static String executeDownloader(CommandLine cmd) throws InterruptedException, ExecutionException, MimeTypeException, RepresentationNotFoundException, IOException {
         String mcsUrl = cmd.getOptionValue(MCS_URL);
         String userName = cmd.getOptionValue(USER);
         String password = cmd.getOptionValue(PASSWORD);

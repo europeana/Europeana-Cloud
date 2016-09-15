@@ -9,6 +9,7 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.util.FileUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.mime.MimeTypeException;
 
 import java.io.*;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class RecordDownloader {
      * @param datasetName        The name of the dataSet
      * @param representationName representation name
      */
-    public final String downloadFilesFromDataSet(String providerId, String datasetName, String representationName, int threadsCount) throws InterruptedException, ExecutionException, IOException, DriverException, RepresentationNotFoundException {
+    public final String downloadFilesFromDataSet(String providerId, String datasetName, String representationName, int threadsCount) throws InterruptedException, ExecutionException, IOException, DriverException,MimeTypeException, RepresentationNotFoundException {
         ExecutorService executorService = Executors.newFixedThreadPool(threadsCount);
         final String folderPath = FileUtil.createFolder();
         boolean isSuccess = false;
@@ -64,7 +65,7 @@ public class RecordDownloader {
         }
     }
 
-    private void downloadFilesInsideRepresentation(ExecutorService executorService, Representation representation, String folderPath) throws InterruptedException, ExecutionException, DriverException {
+    private void downloadFilesInsideRepresentation(ExecutorService executorService, Representation representation, String folderPath) throws InterruptedException, ExecutionException,MimeTypeException, DriverException {
         final Set<Callable<Void>> fileDownloaderJobs = new HashSet<>();
         for (final File file : representation.getFiles()) {
             fileDownloaderJobs.add(new FileDownloaderJob(fileServiceClient, file.getFileName(), representation, folderPath));
