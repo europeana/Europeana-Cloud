@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.task.OutputCollector;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.States;
@@ -30,16 +29,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     public AddResultToDataSetBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
 
-    }
-
-
-    /**
-     * Should be used only on tests.
-     */
-    public static AddResultToDataSetBolt getTestInstance(OutputCollector outputCollector, String ecloudMcsAddress) {
-        AddResultToDataSetBolt instance = new AddResultToDataSetBolt(ecloudMcsAddress);
-        instance.outputCollector = outputCollector;
-        return instance;
     }
 
     @Override
@@ -94,7 +83,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
             rep.setCloudId(parser.getPart(UrlPart.RECORDS));
             rep.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
             rep.setVersion(parser.getPart(UrlPart.VERSIONS));
-            parser.getPart(UrlPart.FILES);
             return rep;
         }
         return null;
