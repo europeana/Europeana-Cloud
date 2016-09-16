@@ -37,5 +37,7 @@ public final class TopologyPropertyKeys {
     public static final String NUMBER_OF_TASKS = "NUMBER_OF_TASKS";
     public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
 
+    public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
+
 
 }

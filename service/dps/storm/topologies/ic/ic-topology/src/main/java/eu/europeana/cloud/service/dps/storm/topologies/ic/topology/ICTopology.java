@@ -39,9 +39,9 @@ public class ICTopology {
 
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
-    private final static String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
-    private final String datasetStream = DpsTask.DATASET_URLS;
-    private final String fileStream = DpsTask.FILE_URLS;
+    private static final String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
+    private static final String DATASET_STREAM = DpsTask.DATASET_URLS;
+    private static final String FILE_STREAM = DpsTask.FILE_URLS;
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -49,10 +49,10 @@ public class ICTopology {
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public StormTopology buildTopology(String icTopic, String ecloudMcsAddress) {
+    public final StormTopology buildTopology(String icTopic, String ecloudMcsAddress) {
         Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(PluginParameterKeys.FILE_URLS, datasetStream);
-        routingRules.put(PluginParameterKeys.DATASET_URLS, fileStream);
+        routingRules.put(PluginParameterKeys.FILE_URLS, DATASET_STREAM);
+        routingRules.put(PluginParameterKeys.DATASET_URLS, FILE_STREAM);
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, icTopic, "", "storm");
@@ -80,7 +80,7 @@ public class ICTopology {
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.READ_DATASETS_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, datasetStream);
+                .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, DATASET_STREAM);
 
         builder.setBolt(TopologyHelper.READ_DATASET_BOLT, new ReadDatasetBolt(ecloudMcsAddress),
                 ((int) Integer
@@ -103,7 +103,7 @@ public class ICTopology {
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
-                .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, fileStream).shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
+                .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
 
         builder.setBolt(TopologyHelper.IC_BOLT, new IcBolt(),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IC_BOLT_PARALLEL))))
@@ -115,6 +115,14 @@ public class ICTopology {
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.IC_BOLT);
+
+
+        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
+        builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
+                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.ADD_TO_DATASET_BOLT_PARALLEL))))
+                .setNumTasks(
+                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NUMBER_OF_TASKS))))
+                .shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
 
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
@@ -138,6 +146,8 @@ public class ICTopology {
                 .fieldsGrouping(TopologyHelper.IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));
 
 

@@ -45,7 +45,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-        LOGGER.debug("Received tuple :" + tuple.toString());
+        LOGGER.info("Received tuple :" + tuple.toString());
         inputTuple = tuple;
 
         StormTaskTuple t = null;
@@ -56,10 +56,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                 emitKillNotification(t.getTaskId(), t.getFileUrl(), "", "");
                 return;
             }
-            LOGGER.debug("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
+            LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
         } catch (Exception e) {
-            LOGGER.error("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
+            LOGGER.info("AbstractDpsBolt error: {} \nStackTrace: \n{}", e.getMessage(), e.getStackTrace());
             if (t != null) {
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
