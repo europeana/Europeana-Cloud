@@ -84,6 +84,7 @@
         <module>tools</module>
         <module>integration</module>
         <module>service/ips</module>
+        <module>usecases-integration</module>
     </modules>
     <repositories>
         <repository>
