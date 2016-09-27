@@ -1,4 +1,4 @@
-package migrations.service.mcs;
+package migrations.service.mcs.V3;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 /**
  * @author krystian.
  */
-public class V2_5__dropTemporaryTable___data_set_assignments_MCS implements JavaMigration {
+public class V3_5__dropTemporaryTable___data_set_assignments_MCS implements JavaMigration {
     @Override
     public void migrate(Session session) {
         session.execute(

@@ -1,4 +1,4 @@
-package migrations.service.mcs;
+package migrations.service.mcs.V4;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 /**
  * @author krystian.
  */
-public class V2_6__create___data_set_assignments_by_revision_id_MCS implements JavaMigration {
+public class V4_1__create___data_set_assignments_by_revision_id_MCS implements JavaMigration {
     @Override
     public void migrate(Session session) {
         session.execute("CREATE TABLE data_set_assignments_by_revision_id (\n" +
@@ -16,7 +16,7 @@ public class V2_6__create___data_set_assignments_by_revision_id_MCS implements J
                 "representation_id varchar,\n" +
                 "cloud_id varchar,\n" +
                 "PRIMARY KEY ((provider_id, dataset_id, representation_id), revision_id, cloud_id)\n" +
-                ")WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';\n");
+                ");\n");
     }
 }
 

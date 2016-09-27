@@ -5,7 +5,7 @@ import com.datastax.driver.core.*;
 /**
  * @author krystian.
  */
-public abstract class CopyTable {
+public abstract class TableCopier {
 
     public void copyTable(Session session, PreparedStatement selectStatement, PreparedStatement insertStatement) {
         insertStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);

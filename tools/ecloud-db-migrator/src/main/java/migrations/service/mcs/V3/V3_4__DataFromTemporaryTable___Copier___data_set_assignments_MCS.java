@@ -1,15 +1,15 @@
-package migrations.service.mcs;
+package migrations.service.mcs.V3;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import migrations.common.CopyTable;
+import migrations.common.TableCopier;
 
 /**
  * @author krystian.
  */
-public class V2_4__copyDataFromTemporaryTable___data_set_assignments_MCS extends CopyTable implements JavaMigration {
+public class V3_4__DataFromTemporaryTable___Copier___data_set_assignments_MCS extends TableCopier implements JavaMigration {
 
     private static final String sourceTable = "data_set_assignments_copy";
     private static final String targetTable = "data_set_assignments";
