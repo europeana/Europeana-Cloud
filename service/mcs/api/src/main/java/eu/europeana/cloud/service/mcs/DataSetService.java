@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs;
 
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -166,7 +167,7 @@ public interface DataSetService {
      * @throws DataSetNotExistsException
      * @throws RepresentationNotExistsException
      */
-    ResultSlice<String> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+    ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
     /**

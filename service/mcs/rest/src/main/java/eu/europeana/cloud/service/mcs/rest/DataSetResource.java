@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -142,9 +143,9 @@ public class DataSetResource {
 
     @Path("/representations/{" + P_REPRESENTATIONNAME + "}")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<String>")
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudVersionRevisionResponse>")
     @GET
-    public ResultSlice<String> getDataSetCloudIdsByRepresentation(
+    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
             @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(TAG) String tag, @QueryParam(F_START_FROM) String startFrom)
             throws ProviderNotExistsException, DataSetNotExistsException {

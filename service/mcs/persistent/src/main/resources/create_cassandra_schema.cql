@@ -56,6 +56,7 @@ CREATE TABLE provider_dataset_representation (
     dataset_id varchar,
     cloud_id varchar,
     representation_id varchar,
+    version_id timeuuid,
     revision_id varchar,
     revision_timestamp timestamp,
     acceptance boolean,
