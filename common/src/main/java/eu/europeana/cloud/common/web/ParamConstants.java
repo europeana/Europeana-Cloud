@@ -20,6 +20,8 @@ public interface ParamConstants {
 
     static final String ASSIGNMENTS = "assignments";
 
+    String REVISIONS = "revisions";
+
     static final String COPY = "copy";
 
     static final String PERSIST = "persist";
