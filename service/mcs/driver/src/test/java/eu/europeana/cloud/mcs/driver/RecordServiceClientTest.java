@@ -2,10 +2,9 @@ package eu.europeana.cloud.mcs.driver;
 
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
-import co.freeside.betamax.TapeMode;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.RevisionUtils;
-import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -19,14 +18,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -940,11 +935,11 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs/");
 
         // retrieve representation revision
-        RepresentationRevision representationRevision = instance.getRepresentationRevision("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", "presentation", "revision-1", "revision-provider-1");
-        assertNotNull(representationRevision);
-        assertEquals("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", representationRevision.getCloudId());
+        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", "presentation", "revision-1", "revision-provider-1");
+        assertNotNull(representationRevisionResponse);
+        assertEquals("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", representationRevisionResponse.getCloudId());
         assertEquals("presentation",
-                representationRevision.getRepresentationName());
-        assertEquals(RevisionUtils.getRevisionKey("revision-provider-1", "revision-1"), representationRevision.getRevisionId());
+                representationRevisionResponse.getRepresentationName());
+        assertEquals(RevisionUtils.getRevisionKey("revision-provider-1", "revision-1"), representationRevisionResponse.getRevisionId());
     }
 }

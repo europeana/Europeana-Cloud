@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -10,6 +11,13 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,14 +26,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -133,6 +133,9 @@ public class CassandraRecordService implements RecordService {
                             f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
                 }
             }
+            for (Revision r : rep.getRevisions()) {
+                recordDAO.deleteRepresentationRevision(globalId, schema, rep.getVersion(), RevisionUtils.getRevisionKey(r.getRevisionProviderId(), r.getRevisionName()));
+            }
         }
         recordDAO.deleteRepresentation(globalId, schema);
     }
@@ -216,6 +219,11 @@ public class CassandraRecordService implements RecordService {
                         f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
             }
         }
+
+        for (Revision r : rep.getRevisions()) {
+            recordDAO.deleteRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(r.getRevisionProviderId(), r.getRevisionName()));;
+        }
+
         recordDAO.deleteRepresentation(globalId, schema, version);
     }
 
@@ -437,19 +445,16 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public RepresentationRevision getRepresentationRevision(String globalId, String schema, String revisionId)
-            throws RepresentationNotExistsException {
-        RepresentationRevision representationRevision = recordDAO.getRepresentationRevision(globalId, schema, revisionId);
-        if (representationRevision == null)
-            throw new RepresentationNotExistsException();
-        return representationRevision;
+    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId)
+            throws RevisionNotExistsException {
+        return recordDAO.getRepresentationRevision(globalId, schema, revisionId);
     }
 
     @Override
     public void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId) {
         // add additional association between representation version and revision
         Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
-        recordDAO.addRepresentationRevision(globalId, schema, representation.getDataProvider(), versionId, revisionId);
+        recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionId);
         for (File file : representation.getFiles())
             recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionId, file);
     }

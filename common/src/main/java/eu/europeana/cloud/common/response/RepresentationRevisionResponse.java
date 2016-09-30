@@ -1,4 +1,6 @@
-package eu.europeana.cloud.common.model;
+package eu.europeana.cloud.common.response;
+
+import eu.europeana.cloud.common.model.File;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.Objects;
  * Representation of a record in specific version.
  */
 @XmlRootElement
-public class RepresentationRevision {
+public class RepresentationRevisionResponse {
 
     /**
      * Identifier (cloud id) of a record this object is representation of.
@@ -26,10 +28,6 @@ public class RepresentationRevision {
      */
     private String version;
 
-    /**
-     * Data provider of this version of representation.
-     */
-    private String dataProvider;
 
     /**
      * A list of files which constitute this representation.
@@ -42,7 +40,7 @@ public class RepresentationRevision {
      */
     private String revisionId;
 
-    public RepresentationRevision() {
+    public RepresentationRevisionResponse() {
         super();
     }
 
@@ -52,15 +50,12 @@ public class RepresentationRevision {
      * @param cloudId
      * @param representationName
      * @param version
-     * @param dataProvider
      * @param revisionId
      */
-    public RepresentationRevision(String cloudId, String representationName, String version, String dataProvider,
-                                  String revisionId) {
+    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionId) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
-        this.dataProvider = dataProvider;
         this.revisionId = revisionId;
     }
 
@@ -70,16 +65,14 @@ public class RepresentationRevision {
      * @param cloudId
      * @param representationName
      * @param version
-     * @param dataProvider
      * @param files
      * @param revisionId
      */
-    public RepresentationRevision(String cloudId, String representationName, String version, String dataProvider,
-                                  List<File> files, String revisionId) {
+    public RepresentationRevisionResponse(String cloudId, String representationName, String version,
+                                          List<File> files, String revisionId) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
-        this.dataProvider = dataProvider;
         this.files = files;
         this.revisionId = revisionId;
     }
@@ -90,14 +83,13 @@ public class RepresentationRevision {
      *
      * @param representation
      */
-    public RepresentationRevision(final RepresentationRevision representation) {
+    public RepresentationRevisionResponse(final RepresentationRevisionResponse representation) {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
-                representation.getDataProvider(),
                 cloneFiles(representation), representation.getRevisionId());
     }
 
 
-    private static List<File> cloneFiles(RepresentationRevision representation) {
+    private static List<File> cloneFiles(RepresentationRevisionResponse representation) {
         List<File> files = new ArrayList<>(representation.getFiles().size());
         for (File file : representation.getFiles()) {
             files.add(new File(file));
@@ -133,16 +125,6 @@ public class RepresentationRevision {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-
-    public String getDataProvider() {
-        return dataProvider;
-    }
-
-
-    public void setDataProvider(String dataProvider) {
-        this.dataProvider = dataProvider;
     }
 
 
@@ -182,7 +164,6 @@ public class RepresentationRevision {
         hash = 37 * hash + Objects.hashCode(this.cloudId);
         hash = 37 * hash + Objects.hashCode(this.representationName);
         hash = 37 * hash + Objects.hashCode(this.version);
-        hash = 37 * hash + Objects.hashCode(this.dataProvider);
         hash = 37 * hash + Objects.hashCode(this.files);
         hash = 37 * hash + Objects.hashCode(this.revisionId);
         return hash;
@@ -196,7 +177,7 @@ public class RepresentationRevision {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final RepresentationRevision other = (RepresentationRevision) obj;
+        final RepresentationRevisionResponse other = (RepresentationRevisionResponse) obj;
         if (!Objects.equals(this.cloudId, other.cloudId)) {
             return false;
         }
@@ -204,9 +185,6 @@ public class RepresentationRevision {
             return false;
         }
         if (!Objects.equals(this.version, other.version)) {
-            return false;
-        }
-        if (!Objects.equals(this.dataProvider, other.dataProvider)) {
             return false;
         }
         if (!Objects.equals(this.files, other.files)) {
@@ -220,7 +198,7 @@ public class RepresentationRevision {
 
     @Override
     public String toString() {
-        return "RepresentationRevision{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", revisionId=" + revisionId + '}';
+        return "RepresentationRevisionResponse{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
+                + version + ", files=" + files + ", revisionId=" + revisionId + '}';
     }
 }

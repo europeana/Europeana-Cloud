@@ -1,11 +1,15 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
+import eu.europeana.cloud.service.mcs.exception.*;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-
-import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.service.mcs.exception.*;
 
 /**
  * Service for manipulating representations and their content.
@@ -261,18 +265,18 @@ public interface RecordService {
 
 
     /**
-     * Get RepresentationRevision object basing on cloud identifier, schema identifier and revision identifier.
+     * Get RepresentationRevisionResponse object basing on cloud identifier, schema identifier and revision identifier.
      *
      * @param globalId cloud identifier associated with the resulting representation revision
      * @param schema representation name of the resulting representation revision
      * @param revisionId revision identifier of the resulting representation revision
-     * @return RepresentationRevision object that associates cloud identifier, representation name, revision identifier, version identifier and files map
+     * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
      */
-    RepresentationRevision getRepresentationRevision(String globalId, String schema, String revisionId)
-            throws RepresentationNotExistsException;
+    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId)
+            throws RevisionNotExistsException;
 
     /**
-     * Inesrt information about representation revision association.
+     * Insert information about representation revision association.
      *
      * @param globalId cloud identifier
      * @param schema representation name
