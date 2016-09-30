@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -21,7 +22,14 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.hasItem;
@@ -67,9 +75,11 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
-        String revisionId = "revisionId";
+        String revisionName = "revisionName";
+        String revisionProviderId = "revisionProviderId";
         String representationName = "representationName";
         String cloudId = "cloudId";
+        String revisionId = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
 
         dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId);
@@ -79,7 +89,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_DATASET, datasetId).
                 resolveTemplate(P_PROVIDER, providerId).
                 resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISIONID, revisionId).
+                resolveTemplate(P_REVISION_NAME, revisionName).
+                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
                 queryParam(F_START_FROM,cloudId);
         Response response = dataSetWebTarget.request().get();
@@ -95,7 +106,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
-        String revisionId = "revisionId";
+        String revisionName = "revisionName";
+        String revisionProviderId = "revisionProviderId";
         String representationName = "representationName";
         String cloudId = "cloudId";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
@@ -105,7 +117,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_DATASET, datasetId).
                 resolveTemplate(P_PROVIDER, providerId).
                 resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISIONID, revisionId).
+                resolveTemplate(P_REVISION_NAME, revisionName).
+                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
                 queryParam(F_START_FROM,cloudId);
         Response response = dataSetWebTarget.request().get();
@@ -121,8 +134,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
-        String revisionId = "revisionId";
-        String revisionId2 = "revisionId2";
+        String revisionName = "revisionName";
+        String revisionProviderId = "revisionProviderId";
         String representationName = "representationName";
         String cloudId = "cloudId";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
@@ -132,7 +145,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_DATASET, datasetId).
                 resolveTemplate(P_PROVIDER, providerId).
                 resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISIONID, revisionId2).
+                resolveTemplate(P_REVISION_NAME, revisionName).
+                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
                 queryParam(F_START_FROM,cloudId);
         Response response = dataSetWebTarget.request().get();
@@ -148,13 +162,14 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         // given
         String datasetId = "dataset";
         String providerId = "providerId";
-        String revisionId = "revisionId";
         String representationName = "representationName";
+        String revisionName = "revisionName";
+        String revisionProviderId = "revisionProviderId";
+        String revisionId = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         String cloudId = "cloudId";
         String cloudId2 = "cloudId2";
         String cloudId3 = "cloudId3";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
-
         dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId2);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revisionId, representationName, cloudId3);
@@ -164,9 +179,10 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_DATASET, datasetId).
                 resolveTemplate(P_PROVIDER, providerId).
                 resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISIONID, revisionId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
-        queryParam(F_LIMIT,1);
+                resolveTemplate(P_REVISION_NAME, revisionName).
+                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
+                queryParam(F_LIMIT, 1);
         Response response = dataSetWebTarget.request().get();
 
         //then

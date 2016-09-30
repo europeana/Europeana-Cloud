@@ -6,7 +6,11 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -14,8 +18,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 public class DataSetServiceClientTest {
 
@@ -772,19 +782,19 @@ public class DataSetServiceClientTest {
     public void shouldRetrieveCloudIdsForSpecificRevision()
             throws MCSException {
         //given
-        String providerId = "providerName5497036193490";
-        String dataSetId = "providerName5497036193490d";
+        String providerId = "providerName1848455952406";
+        String dataSetId = providerId + "d";
         String representationName = "representationName";
-        String revisionId = "providerName5497036193490_revisionName";
+        String revisionName = "revisionName";
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
         List<String> cloudIds= instance.getDataSetRevisions(providerId, dataSetId, representationName,
-                revisionId);
+                revisionName,providerId);
         //then
-        assertThat(cloudIds.size(),is(2));
-        assertThat(cloudIds,hasItems(
-                "4CW36TOW47VRNQ6SXMF6JJEZNUGZJA3W5267VINTTNOYCSKC66LA",
-                "Z6MCAEJBDFWDIBNJQADYCVFU2TRYOTHCCAKZXJATB2SUWCB4ZFJA"));
+        assertThat(cloudIds.size(), is(2));
+        assertThat(cloudIds, hasItems(
+                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
+                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
     }
 
     @Betamax(tape = "dataSets_shouldRetrievCloudIdsChunkForSpecificRevision")
@@ -792,18 +802,19 @@ public class DataSetServiceClientTest {
     public void shouldRetrievCloudIdsChunkForSpecificRevision()
             throws MCSException {
         //given
-        String providerId = "providerName5497036193490";
-        String dataSetId = "providerName5497036193490d";
+        String providerId = "providerName1848455952406";
+        String dataSetId = providerId + "d";
         String representationName = "representationName";
-        String revisionId = "providerName5497036193490_revisionName";
+        String revisionName = "revisionName";
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
         ResultSlice<String> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                revisionId, null);
+                revisionName,providerId, null);
         //then
         assertThat(cloudIds.getNextSlice(),nullValue());
-        assertThat(cloudIds.getResults(),hasItems(
-                "4CW36TOW47VRNQ6SXMF6JJEZNUGZJA3W5267VINTTNOYCSKC66LA",
-                "Z6MCAEJBDFWDIBNJQADYCVFU2TRYOTHCCAKZXJATB2SUWCB4ZFJA"));
+        assertThat(cloudIds.getResults().size(), is(2));
+        assertThat(cloudIds.getResults(), hasItems(
+                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
+                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
     }
 }
