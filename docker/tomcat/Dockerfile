@@ -6,6 +6,6 @@ RUN sed -i -e '$i \  <role rolename="manager-jmx"/><role rolename="manager-statu
 ADD server.xml /usr/local/tomcat/conf/server.xml
 
 WORKDIR /usr/local/tomcat/
-CMD ["bin/catalina.sh" , "run"]
+CMD ["bin/catalina.sh", "jpda" , "run"]
 
 EXPOSE 8080

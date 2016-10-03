@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-17T16:07:03.008Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/notFoundProviderId/data-sets
+    uri: http://localhost:8080/mcs/data-providers/notFoundProviderId/data-sets
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '43'

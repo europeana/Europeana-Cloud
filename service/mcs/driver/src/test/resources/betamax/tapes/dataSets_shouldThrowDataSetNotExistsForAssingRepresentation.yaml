@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-20T14:23:10.526Z
   request:
     method: POST
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider001/data-sets/noSuchDataSet/assignments
+    uri: http://localhost:8080/mcs/data-providers/Provider001/data-sets/noSuchDataSet/assignments
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '36'

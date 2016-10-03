@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -133,6 +131,16 @@ public interface DataSetService {
 
 
     /**
+     * Returns all data sets for particular version.
+     * @param providerId provider id
+     * @param cloudId  cloud Id
+     * @param representationName representation name
+     * @param version version
+     * @return Set of data sets.
+     */
+    Set<String> getDataSets(String providerId, String cloudId, String representationName, String version);
+
+    /**
      * Deletes data set.
      * 
      * @param providerId
@@ -153,4 +161,21 @@ public interface DataSetService {
      * @return list of all representations names that are stored in given dataSet
      */
     Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException;
+
+    /**
+     * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
+     *
+     * @param providerId             dataSet owner
+     * @param dataSetId              dataSet id
+     * @param revisionId             revision id
+     * @param representationName     representation name
+     * @param startFrom              if null - will return first result slice. Result slices contain token for next pages, which should be
+     *                               provided in this parameter.
+     * @param numberOfElementsOnPage max number of results in one slice.
+     * @return list of cloudIds in given dataSet for given revisionId and representationName.
+     */
+    List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage);
+
+
+    void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException;
 }

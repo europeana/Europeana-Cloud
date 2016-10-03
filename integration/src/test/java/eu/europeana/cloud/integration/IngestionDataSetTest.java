@@ -1,15 +1,6 @@
 /* IngestionDataSetTest.java - created on Jan 7, 2014, Copyright (c) 2011 The European Library, all rights reserved */
 package eu.europeana.cloud.integration;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
-import junit.framework.Assert;
-
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.DataSet;
@@ -21,6 +12,12 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import junit.framework.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  * This class test integration concerning operation on dataset basis. It tests the whole workflow
