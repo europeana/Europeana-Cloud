@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
@@ -528,7 +529,7 @@ public class DataSetServiceClient extends MCSClient {
      * and published revision created after the specified date
      * @throws MCSException on unexpected situations
      */
-    public ResultSlice<String> getDataSetCloudIdsByRepresentationChunk(String dataSetId, String providerId, String representationName, String dateFrom, String tag, String startFrom)
+    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationChunk(String dataSetId, String providerId, String representationName, String dateFrom, String tag, String startFrom)
             throws MCSException {
 
 
@@ -576,10 +577,10 @@ public class DataSetServiceClient extends MCSClient {
      * does not exist)
      * @throws MCSException on unexpected situations
      */
-    public List<String> getDataSetCloudIdsByRepresentation(String dataSetId, String providerId, String representationName, String dateFrom, String tag)
+    public List<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(String dataSetId, String providerId, String representationName, String dateFrom, String tag)
             throws MCSException {
 
-        List<String> resultList = new ArrayList<>();
+        List<CloudVersionRevisionResponse> resultList = new ArrayList<>();
         ResultSlice resultSlice;
         String startFrom = null;
 

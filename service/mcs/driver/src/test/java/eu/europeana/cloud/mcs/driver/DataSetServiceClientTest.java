@@ -4,6 +4,7 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -784,7 +785,7 @@ public class DataSetServiceClientTest {
         String startFrom = "005a00100015000870726f76696465720000076461746173657400003d000e726570726573656e746174696f6e00000800000156b1580d280000087265766973696f6e000007636c6f75645f350000097075626c6973686564007ffffffa76a6db9eb099834f7db2bad6a99690e10003";
 
         DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
-        ResultSlice<String> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", null);
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", null);
 
         assertNotNull(result.getResults());
         assertEquals(result.getResults().size(), resultSize);
@@ -805,7 +806,7 @@ public class DataSetServiceClientTest {
         String startFrom = null;
 
         DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
-        ResultSlice<String> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
 
         while (result.getNextSlice() != null) {
             assertNotNull(result.getResults());
