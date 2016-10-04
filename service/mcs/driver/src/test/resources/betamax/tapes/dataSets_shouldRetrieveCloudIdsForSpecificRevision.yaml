@@ -1,0 +1,25 @@
+!tape
+name: dataSets_shouldRetrieveCloudIdsForSpecificRevision
+interactions:
+- recorded: 2016-09-29T07:33:22.766Z
+  request:
+    method: GET
+    uri: http://localhost:8080/mcs/data-providers/providerName5497036193490/data-sets/providerName5497036193490d/representations/representationName/revisions/providerName5497036193490_revisionName
+    headers:
+      Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.7.0_60)
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Thu, 29 Sep 2016 07:33:22 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><resultSlice><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:type="xs:string">4CW36TOW47VRNQ6SXMF6JJEZNUGZJA3W5267VINTTNOYCSKC66LA</results><results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:type="xs:string">Z6MCAEJBDFWDIBNJQADYCVFU2TRYOTHCCAKZXJATB2SUWCB4ZFJA</results></resultSlice>

@@ -3,11 +3,9 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -20,11 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -129,12 +123,24 @@ public class CassandraDataSetService implements DataSetService {
 				rep.getVersion());
 		DataProvider dataProvider = uis.getProvider(providerId);
 		dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+
+		addDataSetAssignmentForAllRevisions(providerId, dataSetId, schema, rep);
+
 		representationIndexer.addAssignment(rep.getVersion(),
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
 	}
 
-    /**
+	private void addDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String schema, Representation rep) {
+		for (Revision revision : rep.getRevisions()) {
+			if (revision != null) {
+				dataSetDAO.addDataSetsRevision( providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
+						schema, rep.getCloudId());
+			}
+		}
+	}
+
+	/**
      * @inheritDoc
      */
 	@Override
@@ -150,12 +156,23 @@ public class CassandraDataSetService implements DataSetService {
 		if (!dataSetDAO.hasMoreRepresentations(providerId, dataSetId, schema)) {
 			dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
 		}
+
+		Representation representation = recordDAO.getRepresentation(recordId, schema, versionId);
+		removeDataSetAssignmentForAllRevisions(providerId, dataSetId, recordId, schema, representation);
 		representationIndexer.removeAssignment(recordId, schema,
 				new CompoundDataSetId(providerId, dataSetId),
 				dataProvider.getPartitionKey());
 	}
 
-    /**
+	private void removeDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String recordId, String schema, Representation representation) {
+		if (representation != null) {
+			for (Revision revision : representation.getRevisions())
+				if (revision != null)
+					dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
+		}
+	}
+
+	/**
      * @inheritDoc
      */
     @Override
@@ -213,7 +230,12 @@ public class CassandraDataSetService implements DataSetService {
 	return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
 
-    /**
+	@Override
+	public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
+		return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
+	}
+
+	/**
      * @inheritDoc
      */
 	@Override
@@ -238,6 +260,31 @@ public class CassandraDataSetService implements DataSetService {
 			return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
 		}
 		return Collections.emptySet();
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	@Override
+	public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit){
+		if(startFrom == null){
+			return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
+		}else{
+			return dataSetDAO.getDataSetsRevisionWithPagination(providerId,dataSetId,revisionId,representationName,startFrom,limit);
+		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	@Override
+	public void addDataSetsRevisions(String providerId, String dataSetId, String revisionId,
+									 String representationName, String cloudId)
+			throws ProviderNotExistsException{
+		if (uis.getProvider(providerId) == null) {
+			throw new ProviderNotExistsException();
+		}
+		dataSetDAO.addDataSetsRevision(providerId, dataSetId, revisionId, representationName, cloudId);
 	}
 
 	private boolean isProviderExists(String providerId) throws ProviderNotExistsException {

@@ -6,21 +6,16 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.net.URI;
-import java.util.List;
-import java.util.NoSuchElementException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.net.URI;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 public class DataSetServiceClientTest {
 
@@ -29,7 +24,7 @@ public class DataSetServiceClientTest {
 
     //TODO clean
     //this is only needed for recording tests
-    private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    private final String baseUrl = "http://localhost:8080/mcs";
 
     @Betamax(tape = "dataSets_shouldRetrieveDataSetsFirstChunk")
     @Test
@@ -772,4 +767,43 @@ public class DataSetServiceClientTest {
     }
 
 
+    @Betamax(tape = "dataSets_shouldRetrieveCloudIdsForSpecificRevision")
+    @Test
+    public void shouldRetrieveCloudIdsForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "providerName5497036193490";
+        String dataSetId = "providerName5497036193490d";
+        String representationName = "representationName";
+        String revisionId = "providerName5497036193490_revisionName";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        List<String> cloudIds= instance.getDataSetRevisions(providerId, dataSetId, representationName,
+                revisionId);
+        //then
+        assertThat(cloudIds.size(),is(2));
+        assertThat(cloudIds,hasItems(
+                "4CW36TOW47VRNQ6SXMF6JJEZNUGZJA3W5267VINTTNOYCSKC66LA",
+                "Z6MCAEJBDFWDIBNJQADYCVFU2TRYOTHCCAKZXJATB2SUWCB4ZFJA"));
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrievCloudIdsChunkForSpecificRevision")
+    @Test
+    public void shouldRetrievCloudIdsChunkForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "providerName5497036193490";
+        String dataSetId = "providerName5497036193490d";
+        String representationName = "representationName";
+        String revisionId = "providerName5497036193490_revisionName";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        ResultSlice<String> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
+                revisionId, null);
+        //then
+        assertThat(cloudIds.getNextSlice(),nullValue());
+        assertThat(cloudIds.getResults(),hasItems(
+                "4CW36TOW47VRNQ6SXMF6JJEZNUGZJA3W5267VINTTNOYCSKC66LA",
+                "Z6MCAEJBDFWDIBNJQADYCVFU2TRYOTHCCAKZXJATB2SUWCB4ZFJA"));
+    }
 }

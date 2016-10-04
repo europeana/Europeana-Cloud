@@ -29,6 +29,7 @@ public class DatasetHelper {
     private UISClient uisClient;
     private CloudId cloudId;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetHelper.class);
+    private static List<String> cloudIds = new ArrayList<>();
 
     public DatasetHelper(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, RevisionServiceClient revisionServiceClient, UISClient uisClient) {
         this.dataSetServiceClient = dataSetServiceClient;
@@ -41,7 +42,7 @@ public class DatasetHelper {
 
         createProviderIdIfNotExists(uisClient, providerId);
         URI uri = dataSetServiceClient.createDataSet(providerId, datasetName, "");
-        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName,tagName);
+        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName, tagName);
         return uri;
 
 
@@ -73,8 +74,8 @@ public class DatasetHelper {
         dataSetServiceClient.deleteDataSet(providerId, datasetName);
     }
 
-    public final String getCloudId() {
-        return cloudId.getId();
+    public final List<String> getCloudIds() {
+        return cloudIds;
     }
 
     public final void grantPermissionToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
@@ -84,21 +85,18 @@ public class DatasetHelper {
 
     private void addRecordsToDataset(int numberOfRecords, String datasetName, String providerId, String representationName, String revisionName, String tagName) throws CloudException, MCSException, MalformedURLException {
         for (int i = 0; i < numberOfRecords; i++) {
-            assignNewRecordToDataset(datasetName, providerId, representationName, revisionName, tagName);
+            String cloudId = prepareCloudId(providerId);
+            String version = getVersionFromFileUri(representationName, providerId);
+            revisionServiceClient.addRevision(cloudId, representationName, version, revisionName, providerId, tagName);
+            dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, cloudId, representationName, version);
+
         }
-    }
-
-    private void assignNewRecordToDataset(String datasetName, String providerId, String representationName, String revisionName, String tagName) throws CloudException, MCSException, MalformedURLException {
-        String cloudId = prepareCloudId(providerId);
-        String version = getVersionFromFileUri(representationName, providerId);
-        revisionServiceClient.addRevision(cloudId, representationName, version, revisionName, providerId, tagName);
-        dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, cloudId, representationName, version);
-
     }
 
 
     private String prepareCloudId(String providerId) throws CloudException, MCSException {
         cloudId = uisClient.createCloudId(providerId);
+        cloudIds.add(cloudId.getId());
         return cloudId.getId();
     }
 

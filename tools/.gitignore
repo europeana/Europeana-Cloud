@@ -7,5 +7,6 @@ performanceTest/p*
 *.csv
 *.log
 *.parms
+records-downloader-tool/target
 
 

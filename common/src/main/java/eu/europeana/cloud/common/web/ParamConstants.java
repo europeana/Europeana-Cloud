@@ -20,6 +20,8 @@ public interface ParamConstants {
 
     static final String ASSIGNMENTS = "assignments";
 
+    String REVISIONS = "revisions";
+
     static final String COPY = "copy";
 
     static final String PERSIST = "persist";
@@ -30,6 +32,8 @@ public interface ParamConstants {
     static final String P_CLOUDID = "CLOUDID";
 
     static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
+
+    static final String P_REVISIONID = "P_REVISIONID";
 
     static final String P_VER = "VERSION";
 
@@ -73,6 +77,8 @@ public interface ParamConstants {
     static final String F_DATE_UNTIL = "creationDateUntil";
 
     static final String F_START_FROM = "startFrom";
+
+    static final String F_LIMIT = "limit";
 
     static final String F_REPRESENTATION = "representation";
 
