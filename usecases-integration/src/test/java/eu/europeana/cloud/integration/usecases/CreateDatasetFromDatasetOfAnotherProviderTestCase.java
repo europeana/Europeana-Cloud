@@ -3,9 +3,11 @@ package eu.europeana.cloud.integration.usecases;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.integration.helper.IntegrationConstants;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,24 +46,35 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
 
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
-        URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, 3);
-        LOGGER.info("The source dataSet {} has been created! It is url is {}", SOURCE_DATASET_NAME, uri);
-        destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        LOGGER.info("The destination dataSet {} has been created! It is url is {} ", DESTINATION_DATASET_NAME, uri);
-        List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
-        for (Representation representation : representations) {
-            destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-            sourceDatasetHelper.grantPermissionToVersion(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), appProperties.getProperty("destinationUserName"), Permission.READ);
-            revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), "IMPORT-1", DESTINATION_PROVIDER_ID, "published");
+        try {
+            URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, "RevisionName", Tags.PUBLISHED.getTag(), 3);
+            LOGGER.info("The source dataSet {} has been created! It is url is {}", SOURCE_DATASET_NAME, uri);
+            destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
+            LOGGER.info("The destination dataSet {} has been created! It is url is {} ", DESTINATION_DATASET_NAME, uri);
+            List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
+            for (Representation representation : representations) {
+                destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+                sourceDatasetHelper.grantPermissionToVersion(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), appProperties.getProperty("destinationUserName"), Permission.READ);
+                revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), "IMPORT-1", DESTINATION_PROVIDER_ID, "published");
+            }
+        } finally {
+           // cleanUp();
         }
-        cleanUp();
 
 
     }
 
     public void cleanUp() throws CloudException, MCSException {
-        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
-        destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
+        try {
+            sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
+        } catch (DataSetNotExistsException e) {
+
+        }
+        try {
+            destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
+        } catch (DataSetNotExistsException e) {
+
+        }
         String cloudId = sourceDatasetHelper.getCloudId();
         if (cloudId != null) {
             adminRecordServiceClient.deleteRecord(cloudId);

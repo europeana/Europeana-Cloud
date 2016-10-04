@@ -110,10 +110,23 @@
     </bean>
 
 
+    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+    </bean>
+
+    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+    </bean>
+
     <bean id="sourceDatasetHelper"
           class="eu.europeana.cloud.integration.usecases.DatasetHelper">
         <constructor-arg name="dataSetServiceClient" ref="sourceDataSetServiceClient"/>
         <constructor-arg name="recordServiceClient" ref="sourceRecordServiceClient"/>
+        <constructor-arg name="revisionServiceClient" ref="sourceRevisionServiceClient"/>
         <constructor-arg name="uisClient" ref="sourceUisClient"/>
 
     </bean>
@@ -123,6 +136,7 @@
           class="eu.europeana.cloud.integration.usecases.DatasetHelper">
         <constructor-arg name="dataSetServiceClient" ref="destinationDataSetServiceClient"/>
         <constructor-arg name="recordServiceClient" ref="destinationRecordServiceClient"/>
+        <constructor-arg name="revisionServiceClient" ref="destinationRevisionServiceClient"/>
         <constructor-arg name="uisClient" ref="destinationUisClient"/>
 
     </bean>

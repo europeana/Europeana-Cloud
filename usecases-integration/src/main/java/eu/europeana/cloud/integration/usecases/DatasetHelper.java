@@ -5,6 +5,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -24,21 +25,23 @@ import java.util.List;
 public class DatasetHelper {
     private DataSetServiceClient dataSetServiceClient;
     private RecordServiceClient recordServiceClient;
+    private RevisionServiceClient revisionServiceClient;
     private UISClient uisClient;
     private CloudId cloudId;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetHelper.class);
 
-    public DatasetHelper(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, UISClient uisClient) {
+    public DatasetHelper(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, RevisionServiceClient revisionServiceClient, UISClient uisClient) {
         this.dataSetServiceClient = dataSetServiceClient;
+        this.revisionServiceClient = revisionServiceClient;
         this.recordServiceClient = recordServiceClient;
         this.uisClient = uisClient;
     }
 
-    public final URI prepareDatasetWithRecordsInside(String providerId, String datasetName, String representationName, int numberOfRecords) throws MCSException, MalformedURLException, CloudException {
+    public final URI prepareDatasetWithRecordsInside(String providerId, String datasetName, String representationName, String revisionName, String tagName, int numberOfRecords) throws MCSException, MalformedURLException, CloudException {
 
         createProviderIdIfNotExists(uisClient, providerId);
         URI uri = dataSetServiceClient.createDataSet(providerId, datasetName, "");
-        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName);
+        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName,tagName);
         return uri;
 
 
@@ -79,15 +82,16 @@ public class DatasetHelper {
     }
 
 
-    private void addRecordsToDataset(int numberOfRecords, String datasetName, String providerId, String representationName) throws CloudException, MCSException, MalformedURLException {
+    private void addRecordsToDataset(int numberOfRecords, String datasetName, String providerId, String representationName, String revisionName, String tagName) throws CloudException, MCSException, MalformedURLException {
         for (int i = 0; i < numberOfRecords; i++) {
-            assignNewRecordToDataset(datasetName, providerId, representationName);
+            assignNewRecordToDataset(datasetName, providerId, representationName, revisionName, tagName);
         }
     }
 
-    private void assignNewRecordToDataset(String datasetName, String providerId, String representationName) throws CloudException, MCSException, MalformedURLException {
+    private void assignNewRecordToDataset(String datasetName, String providerId, String representationName, String revisionName, String tagName) throws CloudException, MCSException, MalformedURLException {
         String cloudId = prepareCloudId(providerId);
         String version = getVersionFromFileUri(representationName, providerId);
+        revisionServiceClient.addRevision(cloudId, representationName, version, revisionName, providerId, tagName);
         dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, cloudId, representationName, version);
 
     }
