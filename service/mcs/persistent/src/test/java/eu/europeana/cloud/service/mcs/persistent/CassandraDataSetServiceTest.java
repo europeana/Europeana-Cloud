@@ -1,12 +1,24 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
+import com.datastax.driver.core.*;
+import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
+import java.io.ByteArrayInputStream;
+import java.util.*;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasItem;
+
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,11 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.ByteArrayInputStream;
-import java.util.*;
-
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -349,4 +356,179 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	Mockito.doReturn(false).when(uisHandler)
 		.existsCloudId(Mockito.anyString());
     }
+
+	private void makeUISProviderExistsSuccess() {
+		Mockito.doReturn(true).when(uisHandler).existsProvider(Mockito.anyString());
+	}
+
+	private void makeUISProviderExistsFailure() {
+		Mockito.doReturn(false).when(uisHandler).existsProvider(Mockito.anyString());
+	}
+
+	@Test(expected = DataSetNotExistsException.class)
+	public void shouldThrowExceptionWhenRequestingCloudIdsForNonExistingDataSet()
+			throws Exception {
+		makeUISProviderExistsSuccess();
+		cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished("non-existent-ds", "provider", "representation", new Date(), null, 1);
+	}
+
+	@Test(expected = ProviderNotExistsException.class)
+	public void shouldThrowExceptionWhenRequestingCloudIdsForNonExistingProvider()
+		throws Exception {
+		makeUISProviderExistsFailure();
+		cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished("ds", "non-existent-provider", "representation", new Date(), null, 1);
+	}
+
+
+	@Test
+	public void shouldAddNewEntriesWhenUpdateInvoked()
+			throws Exception {
+		makeUISProviderSuccess();
+		makeUISProviderExistsSuccess();
+
+		// create dataset 1
+		DataSet ds1 = cassandraDataSetService.createDataSet(providerId, "ds-1",
+				"description of this set");
+		// create dataset 2
+		DataSet ds2 = cassandraDataSetService.createDataSet(providerId, "ds-2",
+				"description of this set");
+		// create dummy representation
+		Representation r1 = insertDummyPersistentRepresentation("cloud-1",
+				"schema", providerId);
+		// assign version to dataset 1
+		cassandraDataSetService.addAssignment(ds1.getProviderId(), ds1.getId(),
+				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+		// assign version to dataset 2
+		cassandraDataSetService.addAssignment(ds2.getProviderId(), ds2.getId(),
+				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+
+		// create new revision (simulate normal API behaviour when creating a revision invokes update on the table)
+		Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		cassandraDataSetService.updateProviderDatasetRepresentation(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+
+		// get date 1 day before
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DAY_OF_MONTH, -1);
+
+		// check whether update inserted row for dataset 1
+		ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), providerId, r1.getRepresentationName(), c.getTime(), null, 10);
+		assertThat(cloudIds.getResults().size(), is(1));
+		CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey(r)));
+
+		// check whether update inserted row for dataset 2
+		cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds2.getId(), providerId, r1.getRepresentationName(), c.getTime(), null, 10);
+		assertThat(cloudIds.getResults().size(), is(1));
+		resp = cloudIds.getResults().get(0);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey(r)));
+	}
+
+
+	@Test
+	public void shouldAddRemoveEntriesWhenAssignToDataset()
+			throws Exception {
+		makeUISProviderSuccess();
+		makeUISProviderExistsSuccess();
+
+		// create dataset 1
+		DataSet ds1 = cassandraDataSetService.createDataSet(providerId, "ds-1",
+				"description of this set");
+		// create dummy representation
+		Representation r1 = insertDummyPersistentRepresentation("cloud-1",
+				"schema", providerId);
+
+		// create revisions on the dummy version
+		Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		r = new Revision("revision2", "rev_provider_2", new Date(), false, true, true);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+
+		// assign version to dataset 1
+		cassandraDataSetService.addAssignment(ds1.getProviderId(), ds1.getId(),
+				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+
+		// get date 1 day before
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DAY_OF_MONTH, -1);
+
+		// check whether assignment created new entries in the table
+		ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
+		// there should be one unique cloud id in the result list
+     	assertThat(new HashSet<>(cloudIds.getResults()).size(), is(1));
+		CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey(r)));
+
+		// remove assignment
+		cassandraDataSetService.removeAssignment(ds1.getProviderId(), ds1.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+
+		// check whether all assignments for the revisions associated with unassigned version were removed
+		cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
+		assertTrue(cloudIds.getResults().isEmpty());
+	}
+
+
+	@Test
+	public void shouldReturnPagedCloudIds()
+			throws Exception {
+		// ensure that provider exists
+		makeUISProviderSuccess();
+		makeUISProviderExistsSuccess();
+		// add data set
+		cassandraDataSetService.createDataSet("provider1", "dataset1", "description");
+		// create 1000 entries in the table
+		int size = 1000;
+		List<CloudVersionRevisionResponse> inserted = createDummyData(size);
+
+		// get date 1 day before
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DAY_OF_MONTH, -1);
+
+		// get cloud ids in 50 element slices
+		int sliceSize = 50;
+		String token = null;
+		List<CloudVersionRevisionResponse> retrieved = new ArrayList<>();
+		do {
+			ResultSlice<CloudVersionRevisionResponse> slice = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished("dataset1", "provider1", "representation", c.getTime(), token, sliceSize);
+			token = slice.getNextSlice();
+			// check whether token is null or the returned size is sliceSize
+			assertTrue(slice.getResults().size() == sliceSize || token == null);
+			retrieved.addAll(slice.getResults());
+		} while (token != null);
+
+		// check that the same cloud ids are on both list (inserted and retrieved)
+		Collections.sort(inserted);
+		Collections.sort(retrieved);
+		assertThat(inserted, is(retrieved));
+	}
+
+	private List<CloudVersionRevisionResponse> createDummyData(int size) {
+		Session session = getSession();
+
+		// create prepared statement for entry in a table
+		String table = KEYSPACE + ".provider_dataset_representation";
+		PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
+				"(?,?,?,?,?,?,?,?,?,?)");
+		ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
+
+		// init size of table
+		BoundStatement bs;
+		List<CloudVersionRevisionResponse> cloudIds = new ArrayList<>();
+
+		// add new entries, each with different cloud id and revision timestamp
+		for (int i = 0; i < size; i++) {
+			CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
+				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"));
+			bs = ps.bind("provider1", "dataset1", obj.getCloudId(), UUID.fromString(obj.getVersion()), "representation", obj.getRevisionId(), new Date(), false, true, false);
+			session.execute(bs);
+			cloudIds.add(obj);
+		}
+		return cloudIds;
+	}
 }

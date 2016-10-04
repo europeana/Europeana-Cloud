@@ -92,10 +92,11 @@ public class RevisionResource {
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
-    private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException {
+    private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
         final String revisionKey = RevisionUtils.getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName());
         createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revisionKey);
         recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
@@ -126,7 +127,7 @@ public class RevisionResource {
                                 @PathParam(P_VER) final String version,
                                 Revision revision
     )
-            throws RevisionIsNotValidException, ProviderNotExistsException {
+            throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
 
         addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
