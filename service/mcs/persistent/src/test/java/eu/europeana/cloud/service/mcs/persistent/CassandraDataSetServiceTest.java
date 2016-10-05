@@ -536,4 +536,52 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		}
 		return cloudIds;
 	}
+
+
+	@Test
+	public void shouldDeleteDataSetCloudIdsByRepresentationWhenDeleteSet()
+			throws Exception {
+		makeUISProviderSuccess();
+		makeUISProviderExistsSuccess();
+
+		// create dataset 1
+		DataSet ds1 = cassandraDataSetService.createDataSet(providerId, "ds-1",
+				"description of this set");
+		// create dummy representation
+		Representation r1 = insertDummyPersistentRepresentation("cloud-1",
+				"schema", providerId);
+
+		// create revision on the dummy version
+		Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+
+		// assign version to dataset 1
+		cassandraDataSetService.addAssignment(ds1.getProviderId(), ds1.getId(),
+				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+
+		// get date 1 day before
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DAY_OF_MONTH, -1);
+
+		// check whether assignment created new entries in the table
+		ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
+		// there should be one element in the list
+		assertThat(new HashSet<>(cloudIds.getResults()).size(), is(1));
+
+		// data set is removed
+		cassandraDataSetService.deleteDataSet(ds1.getProviderId(), ds1.getId());
+		// retrieve all datasets
+		List<DataSet> dataSets = cassandraDataSetService.getDataSets(
+				providerId, null, 10000).getResults();
+		// none should exist
+		assertTrue(dataSets.isEmpty());
+
+		// create data set again to avoid throwing DataSetNotExistsException
+		ds1 = cassandraDataSetService.createDataSet(providerId, "ds-1",
+				"description of this set");
+
+		// retrieve info again
+		cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
+		assertTrue(cloudIds.getResults().isEmpty());
+	}
 }
