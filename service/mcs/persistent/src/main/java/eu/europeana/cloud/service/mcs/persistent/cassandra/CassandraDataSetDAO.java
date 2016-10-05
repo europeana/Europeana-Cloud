@@ -77,6 +77,8 @@ public class CassandraDataSetDAO{
 
 	private PreparedStatement deleteProviderDatasetRepresentationInfo;
 
+    private PreparedStatement listDataSetCloudIdsByRepresentationNoPaging;
+
     @PostConstruct
     private void prepareStatements(){
         createDataSetStatement = connectionProvider
@@ -241,6 +243,15 @@ public class CassandraDataSetDAO{
                         + "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
         getDataSetsForVersionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        listDataSetCloudIdsByRepresentationNoPaging = connectionProvider.getSession()
+                .prepare( //
+                        "SELECT " //
+                                + "representation_id, revision_timestamp, revision_id, cloud_id " //
+                                + "FROM provider_dataset_representation " //
+                                + "WHERE provider_id = ? AND dataset_id = ?;");
+        listDataSetCloudIdsByRepresentationNoPaging.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
 
         getDataSetCloudIdsByRepresentationPublished = connectionProvider.getSession().prepare("SELECT " //
                 + "cloud_id, version_id, revision_id " //
@@ -475,9 +486,26 @@ public class CassandraDataSetDAO{
 
         removeAllDataSetAssignments(providerDataSetId);
         removeAllDataSetRevisonAssignments(providerDataSetId);
+        removeAllDataSetCloudIdsByRepresentation(providerId, dataSetId);
+
         // remove dataset itself
         BoundStatement boundStatement = deleteDataSetStatement.bind(providerId, dataSetId);
         connectionProvider.getSession().execute(boundStatement);
+    }
+
+    private void removeAllDataSetCloudIdsByRepresentation(String providerId, String dataSetId) {
+        BoundStatement boundStatement = listDataSetCloudIdsByRepresentationNoPaging
+                .bind(providerId, dataSetId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        for (Row row : rs){
+            String cloudId = row.getString("cloud_id");
+            String schemaId = row.getString("representation_id");
+            String revisionId = row.getString("revision_id");
+            Date revisionTimestamp = row.getDate("revision_timestamp");
+            connectionProvider.getSession().execute(
+                    deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, schemaId, revisionTimestamp, revisionId, cloudId));
+        }
     }
 
     private void removeAllDataSetAssignments(String providerDataSetId) {

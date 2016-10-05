@@ -25,12 +25,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * Created by Tarek on 9/19/2016.
  */
 
 public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends IntegrationConstants implements TestCase {
+
     @Resource
     private DatasetHelper sourceDatasetHelper;
     @Resource
@@ -60,13 +62,13 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
             String now = getNow();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
-            assertExpectedValues(cloudVersionRevisionResponseList, now);
+            assertCloudVersionRevisionResponseListWithExpectedValues(cloudVersionRevisionResponseList);
         } finally {
             cleanUp();
         }
     }
 
-    private void assertExpectedValues(List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList, String now) throws MCSException {
+    private void assertCloudVersionRevisionResponseListWithExpectedValues(List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList) throws MCSException {
         assertNotNull(cloudVersionRevisionResponseList);
         assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS * 2);
         int sourceVersionsCount = 0;
@@ -118,7 +120,8 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
     //2016-10-05 10:05:05+0200
     private String getNow() {
         Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(date);
     }
 
