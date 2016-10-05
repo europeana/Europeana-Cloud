@@ -3,6 +3,8 @@ package eu.europeana.cloud.integration.usecases;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.integration.helper.IntegrationConstants;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -13,10 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.Assert.*;
+
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -51,10 +57,30 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
         try {
+            String now = getNow();
             prepareTestCase();
+            List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
+            assertExpectedValues(cloudVersionRevisionResponseList, now);
         } finally {
             cleanUp();
         }
+    }
+
+    private void assertExpectedValues(List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList, String now) throws MCSException {
+        assertNotNull(cloudVersionRevisionResponseList);
+        assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS * 2);
+        int sourceVersionsCount = 0;
+        int destinationVersionCount = 0;
+        String sourceRevisionId = RevisionUtils.getRevisionKey(SOURCE_PROVIDER_ID, SOURCE_REVISION_NAME);
+        String destinationRevisionId = RevisionUtils.getRevisionKey(DESTINATION_PROVIDER_ID, DESTINATION_REVISION_NAME);
+        for (CloudVersionRevisionResponse cloudVersionRevisionResponse : cloudVersionRevisionResponseList) {
+            if (sourceRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
+                sourceVersionsCount++;
+            if (destinationRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
+                destinationVersionCount++;
+        }
+        assertEquals(sourceVersionsCount, 3);
+        assertEquals(destinationVersionCount, 3);
     }
 
     private void prepareTestCase() throws MCSException, MalformedURLException, CloudException {
@@ -88,4 +114,12 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         }
 
     }
+
+    //2016-10-05 10:05:05+0200
+    private String getNow() {
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(date);
+    }
+
 }

@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -43,6 +45,8 @@ public class DataSetServiceClient extends MCSClient {
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}"
     private static final String dataSetRevisionsPath;
 
+    //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
+    private static final String representationsPath; // = dataSetPath + "/representations/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
 
     static {
         final StringBuilder builder = new StringBuilder();
@@ -77,6 +81,7 @@ public class DataSetServiceClient extends MCSClient {
                 .append(ParamConstants.P_REVISIONID)
                 .append("}");
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
+        representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
     }
 
     /**
@@ -576,5 +581,98 @@ public class DataSetServiceClient extends MCSClient {
     @Override
     protected void finalize() throws Throwable {
         client.close();
+    }
+
+
+    /**
+     * Returns chunk of cloud identifiers list of specified provider in specified data set having specific representation name
+     * and published revision created after the specified date.
+     * <p/>
+     * This method returns the chunk specified by <code>startFrom</code>
+     * parameter. If parameter is <code>null</code>, the first chunk is
+     * returned. You can use {@link ResultSlice#getNextSlice()} of returned
+     * result to obtain <code>startFrom</code> value to get the next chunk, etc;
+     * if
+     * {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code>
+     * in returned result it means it is the last slice.
+     * <p/>
+     *
+     * @param dataSetId data set identifier (required)
+     * @param providerId provider identifier (required)
+     * @param representationName name of the representation (required)
+     * @param dateFrom starting date (required)
+     * @param tag tag of revision, must be published, other are not supported yet (required)
+     * @param startFrom  code pointing to the requested result slice (if equal to
+     *                   null, first slice is returned)
+     * @return chunk of cloud identifiers list of specified provider in specified data set having specific representation name
+     * and published revision created after the specified date
+     * @throws MCSException on unexpected situations
+     */
+    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationChunk(String dataSetId, String providerId, String representationName, String dateFrom, String tag, String startFrom)
+            throws MCSException {
+
+
+        WebTarget target = client.target(this.baseUrl).path(representationsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
+                .queryParam(ParamConstants.F_DATE_FROM, dateFrom)
+                .queryParam(ParamConstants.TAG, tag);
+
+        if (startFrom != null) {
+            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
+        }
+
+        Response response = null;
+        try{
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(ResultSlice.class);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        }
+        catch (Exception e) {
+            return null;
+        }
+        finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    /**
+     * Lists all cloud identifiers from data provider's data set having representation name and published revision added after specified date.
+     * <p/>
+     *
+     * @param dataSetId data set identifier (required)
+     * @param providerId provider identifier (required)
+     * @param representationName name of the representation (required)
+     * @param dateFrom starting date (required)
+     * @param tag tag of revision, must be published, other are not supported yet (required)
+     * @return list of all data sets of specified provider (empty if provider
+     * does not exist)
+     * @throws MCSException on unexpected situations
+     */
+    public List<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(String dataSetId, String providerId, String representationName, String dateFrom, String tag)
+            throws MCSException {
+
+        List<CloudVersionRevisionResponse> resultList = new ArrayList<>();
+        ResultSlice resultSlice;
+        String startFrom = null;
+
+        do {
+            resultSlice = getDataSetCloudIdsByRepresentationChunk(dataSetId, providerId, representationName, dateFrom, tag, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
+            }
+            resultList.addAll(resultSlice.getResults());
+            startFrom = resultSlice.getNextSlice();
+
+        } while (resultSlice.getNextSlice() != null);
+
+        return resultList;
     }
 }

@@ -3,6 +3,7 @@ package eu.europeana.cloud.integration.usecases;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -121,6 +122,10 @@ public class DatasetHelper {
         String url = addFileToNewRepresentation(representationName, providerId);
         UrlParser parser = new UrlParser(url);
         return parser.getPart(UrlPart.VERSIONS);
+    }
+
+    public final List<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(String datasetName, String providerId, String representationName, String dateFrom, String tagName) throws MCSException {
+        return dataSetServiceClient.getDataSetCloudIdsByRepresentation(datasetName, providerId, representationName, dateFrom, tagName);
     }
 
 
