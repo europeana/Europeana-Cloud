@@ -49,7 +49,7 @@ CREATE TABLE data_set_representation_names(
     dataset_id varchar,
     representation_names set<text>,
     PRIMARY KEY ((provider_id, dataset_id))
-)WITH comment='Retrieve information about the representations supported in a provider’s dataset';
+)WITH comment='Retrieve information about the representations supported in a providers dataset';
 
 CREATE TABLE data_set_assignments_by_revision_id (
 	   provider_dataset_id varchar, /* concatenation: provider_id | dataset_id - due to create index on it */
