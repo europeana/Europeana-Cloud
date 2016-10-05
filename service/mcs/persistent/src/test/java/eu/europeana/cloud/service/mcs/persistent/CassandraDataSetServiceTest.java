@@ -459,11 +459,16 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// check whether assignment created new entries in the table
 		ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
 		// there should be one unique cloud id in the result list
-     	assertThat(new HashSet<>(cloudIds.getResults()).size(), is(1));
+     	assertThat(new HashSet<>(cloudIds.getResults()).size(), is(2));
 		CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
 		assertThat(resp.getCloudId(), is(r1.getCloudId()));
 		assertThat(resp.getVersion(), is(r1.getVersion()));
-		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey(r)));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_1", "revision1")));
+
+		resp = cloudIds.getResults().get(1);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_2", "revision2")));
 
 		// remove assignment
 		cassandraDataSetService.removeAssignment(ds1.getProviderId(), ds1.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
