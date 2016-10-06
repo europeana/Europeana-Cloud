@@ -78,7 +78,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         for (CloudVersionRevisionResponse cloudVersionRevisionResponse : cloudVersionRevisionResponseList) {
             if (sourceRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
                 sourceVersionsCount++;
-            if (destinationRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
+            else if (destinationRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
                 destinationVersionCount++;
         }
         assertEquals(sourceVersionsCount, 3);
@@ -87,9 +87,9 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
 
     private void prepareTestCase() throws MCSException, MalformedURLException, CloudException {
         URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, Tags.PUBLISHED.getTag(), RECORDS_NUMBERS);
-        LOGGER.info("The source dataSet {} has been created! It is url is {}", SOURCE_DATASET_NAME, uri);
+        LOGGER.info("The source dataSet {} has been created! Its url is {}", SOURCE_DATASET_NAME, uri);
         destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        LOGGER.info("The destination dataSet {} has been created! It is url is {} ", DESTINATION_DATASET_NAME, uri);
+        LOGGER.info("The destination dataSet {} has been created! Its url is {} ", DESTINATION_DATASET_NAME, uri);
         List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
         for (Representation representation : representations) {
             destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
@@ -102,11 +102,13 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         try {
             sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
         } catch (DataSetNotExistsException e) {
+            LOGGER.info("The source dataSet {} can't be removed because it doesn't exist ", SOURCE_DATASET_NAME);
 
         }
         try {
             destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
         } catch (DataSetNotExistsException e) {
+            LOGGER.info("The destination dataSet {} can't be removed because it doesn't exist ", DESTINATION_DATASET_NAME);
 
         }
         List<String> cloudIds = sourceDatasetHelper.getCloudIds();

@@ -104,11 +104,9 @@ public class DatasetHelper {
     private void createProviderIdIfNotExists(UISClient uisClient, String providerId) throws CloudException {
         try {
             uisClient.getDataProvider(providerId);
-            LOGGER.info("A provider already existed " + providerId);
         } catch (Exception e) {
             DataProviderProperties dataProviderProperties = new DataProviderProperties();
             uisClient.createProvider(providerId, dataProviderProperties);
-            LOGGER.info("A new provider is created " + providerId);
         }
     }
 
