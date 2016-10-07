@@ -32,11 +32,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
+import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
+import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 
 /**
@@ -89,14 +97,14 @@ public class RevisionResourceTest extends JerseyTest {
                 .<String, Object>of(P_CLOUDID,
                         rep.getCloudId(), P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_VER,
-                        rep.getVersion(), REVISION_NAME,
-                        TEST_REVESION_NAME, REVISION_PROVIDER_ID,
-                        REVISION_PROVIDER_ID);
+                        rep.getVersion(), P_REVISION_NAME,
+                        TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
+                        P_REVISION_PROVIDER_ID);
         String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}";
         revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
 
 
@@ -164,28 +172,28 @@ public class RevisionResourceTest extends JerseyTest {
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.PUBLISHED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.DELETED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, "UNDEFINED").request().post(null);
         assertEquals(response.getStatus(), 400);
     }
 
@@ -193,8 +201,8 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
+        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -203,9 +211,9 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags2() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.PUBLISHED.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
+        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(P_TAGS, Tags.PUBLISHED.getTag());
+        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -223,9 +231,9 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
-        tagsForm.param(TAGS, "undefined");
+        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
+        tagsForm.param(P_TAGS, "undefined");
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 400);

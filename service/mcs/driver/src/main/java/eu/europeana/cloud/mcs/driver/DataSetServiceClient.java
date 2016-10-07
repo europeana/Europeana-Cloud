@@ -8,7 +8,11 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +30,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
 
 /**
  * Client for managing datasets in MCS.
@@ -78,7 +87,11 @@ public class DataSetServiceClient extends MCSClient {
                 .append("}/")
                 .append(ParamConstants.REVISIONS)
                 .append("/{")
-                .append(ParamConstants.P_REVISIONID)
+                .append(ParamConstants.P_REVISION_NAME)
+                .append("}/")
+                .append(ParamConstants.REVISION_PROVIDER)
+                .append("/{")
+                .append(ParamConstants.P_REVISION_PROVIDER_ID)
                 .append("}");
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
@@ -496,7 +509,6 @@ public class DataSetServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
         }
-
     }
 
     /**
@@ -505,34 +517,36 @@ public class DataSetServiceClient extends MCSClient {
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (requred)
      * @param representationName name of the representation (required)
-     * @param revisionId         revision identifier (required)
+     * @param revisionName       revision naem (required)
+     * @param revisionProviderId revision provider id (required)
      * @param startFrom          code pointing to the requested result slice (if equal to
      *                           null, first slice is returned)
      * @return chunk of representation cloud identifier list from data set
      * @throws MCSException on unexpected situations
      */
     public ResultSlice<String> getDataSetRevisionsChunk(String providerId, String dataSetId,
-                                                        String representationName, String revisionId,
-                                                        String startFrom)
-            throws MCSException {
+                                                        String representationName, String revisionName,
+                                                        String revisionProviderId, String startFrom)
+            throws MCSException{
 
         WebTarget target = client.target(baseUrl)
                 .path(dataSetRevisionsPath)
                 .resolveTemplate(P_PROVIDER, providerId)
                 .resolveTemplate(P_DATASET, dataSetId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_REVISIONID, revisionId)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId)
                 .queryParam(F_START_FROM, startFrom);
 
         Response response = null;
-        try {
+        try{
             response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
+            if (response.getStatus() == Status.OK.getStatusCode()){
                 return response.readEntity(ResultSlice.class);
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
-        } finally {
+        }finally{
             closeResponse(response);
         }
     }
@@ -543,26 +557,28 @@ public class DataSetServiceClient extends MCSClient {
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (requred)
      * @param representationName name of the representation (required)
-     * @param revisionId         revision identifier (required)
+     * @param revisionName       revision naem (required)
+     * @param revisionProviderId revision provider id (required)
      * @return chunk of representation cloud identifier list from data set
      * @throws MCSException on unexpected situations
      */
-    public List<String> getDataSetRevisions(String providerId, String dataSetId, String
-                                            representationName, String revisionId)
-            throws MCSException {
+    public List<String> getDataSetRevisions(String providerId, String dataSetId,
+                                            String representationName, String revisionName,
+                                            String revisionProviderId)
+            throws MCSException{
 
         List<String> resultList = new ArrayList<>();
         ResultSlice<String> resultSlice;
         String startFrom = null;
-        do {
+        do{
             resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                    revisionId, startFrom);
-            if (resultSlice == null || resultSlice.getResults() == null) {
+                    revisionName, revisionProviderId, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null){
                 throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
             startFrom = resultSlice.getNextSlice();
-        } while (resultSlice.getNextSlice() != null);
+        }while (resultSlice.getNextSlice() != null);
         return resultList;
     }
 

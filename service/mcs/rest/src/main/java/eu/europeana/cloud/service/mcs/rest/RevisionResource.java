@@ -17,7 +17,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -27,7 +31,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
+import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
+import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 
 /**
  * Created by Tarek on 8/2/2016.
@@ -62,19 +72,19 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @POST
-    @Path("/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}")
+    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response addRevision(@Context UriInfo uriInfo,
                                 @PathParam(P_CLOUDID) final String globalId,
                                 @PathParam(P_REPRESENTATIONNAME) final String schema,
                                 @PathParam(P_VER) final String version,
-                                @PathParam(REVISION_NAME) String revisionName,
-                                @PathParam(TAG) String tag,
-                                @PathParam(REVISION_PROVIDER_ID) String revisionProviderId
+                                @PathParam(P_REVISION_NAME) String revisionName,
+                                @PathParam(P_TAG) String tag,
+                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-                ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+                ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Revision revision = null;
         try {
@@ -151,16 +161,16 @@ public class RevisionResource {
      */
 
     @POST
-    @Path("/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags")
+    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response addRevision(@Context UriInfo uriInfo,
                                 @PathParam(P_CLOUDID) final String globalId,
                                 @PathParam(P_REPRESENTATIONNAME) final String schema,
                                 @PathParam(P_VER) final String version,
-                                @PathParam(REVISION_NAME) String revisionName,
-                                @PathParam(REVISION_PROVIDER_ID) String revisionProviderId,
-                                @FormParam(TAGS) Set<String> tags
+                                @PathParam(P_REVISION_NAME) String revisionName,
+                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
+                                @FormParam(P_TAGS) Set<String> tags
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
 
