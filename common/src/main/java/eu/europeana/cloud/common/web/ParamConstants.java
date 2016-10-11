@@ -82,6 +82,7 @@ public interface ParamConstants {
     static final String TAG = "tag";
     static final String TAGS = "tags";
     static final String REVISION_PROVIDER_ID = "revisionProviderId";
+    static final String REVISION_TIMESTAMP = "revisionTimestamp";
 
     //header paramiters' names
     static final String H_RANGE = "Range";

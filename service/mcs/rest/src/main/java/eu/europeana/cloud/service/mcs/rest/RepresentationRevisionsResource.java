@@ -6,6 +6,8 @@ import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -16,6 +18,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+
+import java.util.Date;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -37,10 +41,13 @@ public class RepresentationRevisionsResource {
 	 * Returns the representation revision object which associates cloud identifier, representation name and version identifier with its revision identifier.
 	 * <strong>Read permissions required.</strong>
 	 *
-	 * @summary get a representation
+	 * @summary get a representation revision response object
 	 * @param globalId cloud id of the record which contains the representation .
 	 * @param schema name of the representation .
-	 * @param revisionId identifier of the revision associated with this representation version
+	 * @param revisionName name of the revision associated with this representation version
+	 * @param revisionProviderId identifier of institution that provided the revision
+	 * @param revisionTimestamp timestamp of the specific revision, if not given the latest revision with revisionName
+	 *                          created by revisionProviderId will be considered (timestamp should be given in UTC format)
 	 *
 	 * @return requested representation revision object.
 	 * @throws RepresentationNotExistsException
@@ -57,14 +64,20 @@ public class RepresentationRevisionsResource {
 	public RepresentationRevisionResponse getRepresentationRevision(@Context UriInfo uriInfo,
 																	@PathParam(P_CLOUDID) String globalId,
 																	@PathParam(P_REPRESENTATIONNAME) String schema,
-																	@PathParam(REVISION_NAME) String revisionId,
-																	@NotNull @QueryParam(REVISION_PROVIDER_ID) String revisionProviderId)
+																	@PathParam(REVISION_NAME) String revisionName,
+																	@NotNull @QueryParam(REVISION_PROVIDER_ID) String revisionProviderId,
+																	@QueryParam(REVISION_TIMESTAMP) String revisionTimestamp)
 			throws RevisionNotExistsException {
 
 		if (revisionProviderId == null || revisionProviderId.isEmpty())
 			return null;
 
-		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId));
+		Date revisionDate = null;
+		if (revisionTimestamp != null) {
+			DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
+			revisionDate = utc.toDate();
+		}
+		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionName), revisionDate);
 		EnrichUriUtil.enrich(uriInfo, info);
 		return info;
 	}

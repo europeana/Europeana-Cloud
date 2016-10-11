@@ -56,6 +56,7 @@ CREATE TABLE representation_revisions (
        representation_id varchar,
        version_id timeuuid,
        revision_id varchar,
+       revision_timestamp timestamp,
        files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
-       PRIMARY KEY ((cloud_id, representation_id), revision_id, version_id)
+       PRIMARY KEY ((cloud_id, representation_id), revision_id, revision_timestamp, version_id)
 )WITH comment='Retrieve version_id based on the rest known fields of the primary key';

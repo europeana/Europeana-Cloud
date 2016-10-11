@@ -134,7 +134,8 @@ public class CassandraRecordService implements RecordService {
                 }
             }
             for (Revision r : rep.getRevisions()) {
-                recordDAO.deleteRepresentationRevision(globalId, schema, rep.getVersion(), RevisionUtils.getRevisionKey(r.getRevisionProviderId(), r.getRevisionName()));
+                recordDAO.deleteRepresentationRevision(globalId, schema, rep.getVersion(), RevisionUtils.getRevisionKey(r.getRevisionProviderId(),
+                        r.getRevisionName()), r.getCreationTimeStamp());
             }
         }
         recordDAO.deleteRepresentation(globalId, schema);
@@ -221,7 +222,7 @@ public class CassandraRecordService implements RecordService {
         }
 
         for (Revision r : rep.getRevisions()) {
-            recordDAO.deleteRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(r.getRevisionProviderId(), r.getRevisionName()));;
+            recordDAO.deleteRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(r.getRevisionProviderId(), r.getRevisionName()), r.getCreationTimeStamp());
         }
 
         recordDAO.deleteRepresentation(globalId, schema, version);
@@ -307,7 +308,7 @@ public class CassandraRecordService implements RecordService {
 
         for (Revision revision : representation.getRevisions()) {
             // update information in extra table
-            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(revision), file);
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(), file);
         }
 
         return isCreate;
@@ -445,18 +446,18 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId)
+    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId, Date revisionTimestamp)
             throws RevisionNotExistsException {
-        return recordDAO.getRepresentationRevision(globalId, schema, revisionId);
+        return recordDAO.getRepresentationRevision(globalId, schema, revisionId, revisionTimestamp);
     }
 
     @Override
-    public void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId) {
+    public void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId, Date revisionTimestamp) {
         // add additional association between representation version and revision
         Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
-        recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionId);
+        recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionId, revisionTimestamp);
         for (File file : representation.getFiles())
-            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionId, file);
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionId, revisionTimestamp, file);
     }
 
     /**

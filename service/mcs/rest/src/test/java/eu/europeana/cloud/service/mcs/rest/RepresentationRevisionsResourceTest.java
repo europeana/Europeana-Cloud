@@ -27,6 +27,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
@@ -43,8 +44,9 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     static final private String revisionProviderId = "ABC";
     static final private String revisionId = "rev1";
     static final private String version = "1.0";
+    static final private Date revisionTimestamp = new Date();
     static final private RepresentationRevisionResponse representationResponse = new RepresentationRevisionResponse(globalId, schema, version, Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-                            null)),"ABC_rev1");
+                            null)),"ABC_rev1", revisionTimestamp);
 
     @Override
     public Application configure() {
@@ -77,7 +79,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         expected.setFiles(files);
 
         when(recordService.getRepresentationRevision(globalId,
-                schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId))).thenReturn(new RepresentationRevisionResponse(representationResponse));
+                schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), revisionTimestamp)).thenReturn(new RepresentationRevisionResponse(representationResponse));
         
         Response response = target(URITools.getRepresentationRevisionsPath(globalId, schema, revisionId).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId).request(mediaType)
                 .get();
@@ -86,7 +88,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         assertThat(response.getMediaType(), is(mediaType));
         RepresentationRevisionResponse entity = response.readEntity(RepresentationRevisionResponse.class);
         assertThat(entity, is(expected));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId));
+        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), revisionTimestamp);
         verifyNoMoreInteractions(recordService);
     }
     
@@ -108,7 +110,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     @Parameters(method = "representationRevisionErrors")
     public void getRepresentationRevisionsReturns404IfRevisionDoesNotExists(Throwable exception, String errorCode)
             throws Exception {
-        when(recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId))).thenThrow(exception);
+        when(recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), revisionTimestamp)).thenThrow(exception);
         
         Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionId).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_XML).get();
@@ -116,7 +118,7 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         assertThat(response.getStatus(), is(404));
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId));
+        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), revisionTimestamp);
         verifyNoMoreInteractions(recordService);
     }
 }

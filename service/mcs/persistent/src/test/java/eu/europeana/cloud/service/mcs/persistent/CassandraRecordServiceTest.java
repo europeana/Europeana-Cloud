@@ -706,7 +706,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
     @Test (expected = RevisionNotExistsException.class)
-    public void shouldThrowExceptionWhenNoRepresentationExists()
+    public void shouldThrowExceptionWhenNoRevisionExists()
             throws Exception
     {
         makeUISSuccess();
@@ -715,7 +715,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
-        cassandraRecordService.getRepresentationRevision("cloud-1", "non-existent-representation", RevisionUtils.getRevisionKey(revision));
+        cassandraRecordService.getRepresentationRevision("cloud-1", "non-existent-representation", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
     }
 
 
@@ -736,10 +736,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 r.getRepresentationName(), r.getVersion(), revision);
 
         // insert info to extra table
-        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion());
+        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion(), revision.getCreationTimeStamp());
 
         // retrieve info from extra table
-        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision));
+        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
 
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));
@@ -757,7 +757,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         r = cassandraRecordService.getRepresentation("cloud-1", "representation-1", r.getVersion());
 
         // retrieve info from extra table again
-        representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision));
+        representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));
         assertThat(representationRevision.getRevisionId(), is(RevisionUtils.getRevisionKey(revision)));
@@ -790,10 +790,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         r = cassandraRecordService.getRepresentation("cloud-1", "representation-1", r.getVersion());
 
         // insert info to extra table
-        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion());
+        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion(), revision.getCreationTimeStamp());
 
         // retrieve info from extra table
-        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision));
+        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
 
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));
@@ -803,7 +803,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRepresentation("cloud-1", "representation-1");
 
         // retrieve info from extra table again
-        cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision));
+        cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
         fail("Representation revision extra info not deleted");
     }
 
@@ -818,8 +818,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
-        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion());
-        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision));
+        cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion(), revision.getCreationTimeStamp());
+        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
 
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));

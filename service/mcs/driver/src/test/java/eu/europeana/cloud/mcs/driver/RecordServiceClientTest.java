@@ -935,11 +935,12 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs/");
 
         // retrieve representation revision
-        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", "presentation", "revision-1", "revision-provider-1");
+        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA", "test_rep", "revision-1", "revision-provider-1", "2016-10-11T08:58:29.558+0200");
         assertNotNull(representationRevisionResponse);
-        assertEquals("CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA", representationRevisionResponse.getCloudId());
-        assertEquals("presentation",
+        assertEquals("QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA", representationRevisionResponse.getCloudId());
+        assertEquals("test_rep",
                 representationRevisionResponse.getRepresentationName());
+        assertEquals("5ead19c0-8f7f-11e6-9149-50e5493601c6", representationRevisionResponse.getVersion());
         assertEquals(RevisionUtils.getRevisionKey("revision-provider-1", "revision-1"), representationRevisionResponse.getRevisionId());
     }
 }

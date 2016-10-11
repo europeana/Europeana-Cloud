@@ -1,13 +1,12 @@
 !tape
 name: records_shouldRetrieveRepresentationRevision
 interactions:
-- recorded: 2016-09-07T10:42:30.334Z
+- recorded: 2016-10-11T07:43:10.559Z
   request:
     method: GET
-    uri: http://localhost:8080/mcs/records/CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA/representations/presentation/revisions/revision-1?revisionProviderId=revision-provider-1
+    uri: http://localhost:8080/mcs/records/QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA/representations/test_rep/revisions/revision-1?revisionProviderId=revision-provider-1&revisionTimestamp=2016-10-11T08%3A58%3A29.558%2B0200
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
-      Authorization: Basic aGVsaW46aGVsaW4=
       Host: localhost:8080
       Proxy-Connection: keep-alive
       User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.7.0_80)
@@ -16,11 +15,11 @@ interactions:
     headers:
       Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Wed, 07 Sep 2016 10:42:30 GMT
+      Date: Tue, 11 Oct 2016 07:43:10 GMT
       Expires: '0'
       Pragma: no-cache
       Server: Apache-Coyote/1.1
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representationRevisionResponse><cloudId>CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA</cloudId><dataProvider>test4</dataProvider><files><contentLength>95644</contentLength><contentUri>http://localhost:8080/mcs/records/CO67X67HFVBBN4E334QPD335R7SEO5HL2XWXTH34OJH5DSDHKSOA/representations/presentation/versions/b7087a60-f0d3-11e5-900e-50e5493601c6/files/test4%2F1%2FEO.1971.19.22_PRO_01.jpg</contentUri><date>2016-03-23T09:46:20.456+01:00</date><fileName>test4/1/EO.1971.19.22_PRO_01.jpg</fileName><md5>b01ca1f973375e7e986087d78f7780e7</md5><mimeType>image/jpeg</mimeType></files><representationName>presentation</representationName><revisionId>revision-provider-1_revision-1</revisionId><version>b7087a60-f0d3-11e5-900e-50e5493601c6</version></representationRevisionResponse>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representationRevisionResponse><cloudId>QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA</cloudId><files><contentLength>694128</contentLength><contentUri>http://localhost:8080/mcs/records/QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA/representations/test_rep/versions/5ead19c0-8f7f-11e6-9149-50e5493601c6/files/AZ_19260302_0001.jp2</contentUri><date>2016-10-11T08:59:56.772+02:00</date><fileName>AZ_19260302_0001.jp2</fileName><md5>4990f81783a4dfc3bf6db34aefaeea98</md5><mimeType>image/jp2</mimeType></files><representationName>test_rep</representationName><revisionId>revision-provider-1_revision-1</revisionId><revisionTimestamp>2016-10-11T08:58:29.558+02:00</revisionTimestamp><version>5ead19c0-8f7f-11e6-9149-50e5493601c6</version></representationRevisionResponse>

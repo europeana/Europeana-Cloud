@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.File;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,23 +41,30 @@ public class RepresentationRevisionResponse {
      */
     private String revisionId;
 
+
+    /**
+     * Revision timestamp
+     */
+    private Date revisionTimestamp;
+
     public RepresentationRevisionResponse() {
         super();
     }
 
     /**
      * Creates a new instance of this class.
-     *
-     * @param cloudId
+     *  @param cloudId
      * @param representationName
      * @param version
      * @param revisionId
+     * @param revisionTimestamp
      */
-    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionId) {
+    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionId, Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
         this.revisionId = revisionId;
+        this.revisionTimestamp = revisionTimestamp;
     }
 
     /**
@@ -69,23 +77,24 @@ public class RepresentationRevisionResponse {
      * @param revisionId
      */
     public RepresentationRevisionResponse(String cloudId, String representationName, String version,
-                                          List<File> files, String revisionId) {
+                                          List<File> files, String revisionId, Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
         this.files = files;
         this.revisionId = revisionId;
+        this.revisionTimestamp = revisionTimestamp;
     }
 
 
     /**
      * Creates a new instance of this class.
      *
-     * @param representation
+     * @param response
      */
-    public RepresentationRevisionResponse(final RepresentationRevisionResponse representation) {
-        this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
-                cloneFiles(representation), representation.getRevisionId());
+    public RepresentationRevisionResponse(final RepresentationRevisionResponse response) {
+        this(response.getCloudId(), response.getRepresentationName(), response.getVersion(),
+                cloneFiles(response), response.getRevisionId(), response.getRevisionTimestamp());
     }
 
 
@@ -147,6 +156,15 @@ public class RepresentationRevisionResponse {
         this.revisionId = revisionId;
     }
 
+
+    public Date getRevisionTimestamp() {
+        return revisionTimestamp;
+    }
+
+    public void setRevisionTimestamp(Date revisionTimestamp) {
+        this.revisionTimestamp = revisionTimestamp;
+    }
+
     /**
      * This method is required for @PostFilter (Spring ACL) at RepresentationsResource.getRepresentations()
      */
@@ -166,6 +184,7 @@ public class RepresentationRevisionResponse {
         hash = 37 * hash + Objects.hashCode(this.version);
         hash = 37 * hash + Objects.hashCode(this.files);
         hash = 37 * hash + Objects.hashCode(this.revisionId);
+        hash = 37 * hash + Objects.hashCode(this.revisionTimestamp);
         return hash;
     }
 
@@ -193,12 +212,15 @@ public class RepresentationRevisionResponse {
         if (!Objects.equals(this.revisionId, other.revisionId)) {
             return false;
         }
+        if (!Objects.equals(this.revisionTimestamp, other.revisionTimestamp)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
         return "RepresentationRevisionResponse{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", files=" + files + ", revisionId=" + revisionId + '}';
+                + version + ", files=" + files + ", revisionId=" + revisionId + ", revisionTimestamp=" + revisionTimestamp + '}';
     }
 }

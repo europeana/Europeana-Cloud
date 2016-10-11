@@ -706,7 +706,7 @@ public class RecordServiceClient extends MCSClient {
      *                                          not exist
      * @throws MCSException                     on unexpected situations
      */
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionId, String revisionProviderId)
+    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionId, String revisionProviderId, String revisionTimestamp)
             throws RevisionNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
@@ -716,6 +716,12 @@ public class RecordServiceClient extends MCSClient {
         if (revisionProviderId != null) {
             webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId);
         }
+        else
+            throw new MCSException("RevisionProviderId is required");
+        // revision timestamp is optional
+        if (revisionTimestamp != null)
+            webtarget = webtarget.queryParam(ParamConstants.REVISION_TIMESTAMP, revisionTimestamp);
+
         Builder request = webtarget.request();
 
         Response response = null;

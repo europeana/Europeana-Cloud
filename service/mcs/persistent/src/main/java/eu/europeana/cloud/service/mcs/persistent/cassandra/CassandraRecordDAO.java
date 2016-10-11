@@ -61,6 +61,8 @@ public class CassandraRecordDAO {
 
     private PreparedStatement getRepresentationRevisionStatement;
 
+    private PreparedStatement getLatestRepresentationRevisionStatement;
+
     private PreparedStatement removeFileStatement;
 
     private PreparedStatement getFilesStatement;
@@ -159,22 +161,27 @@ public class CassandraRecordDAO {
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getRepresentationRevisionStatement = s
-                .prepare("SELECT version_id, files FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ?;");
+                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ?;");
         getRepresentationRevisionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
+        getLatestRepresentationRevisionStatement = s
+                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? LIMIT 1;");
+        getLatestRepresentationRevisionStatement
+                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         insertRepresentationRevisionStatement = s
-                .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, revision_id) VALUES (?,?,?,?);");
+                .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, revision_id, revision_timestamp) VALUES (?,?,?,?,?);");
         insertRepresentationRevisionStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         insertRepresentationRevisionFileStatement = s
-                .prepare("UPDATE representation_revisions SET files[?] = ? WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND version_id = ?;");
+                .prepare("UPDATE representation_revisions SET files[?] = ? WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ? AND version_id = ?;");
         insertRepresentationRevisionFileStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         deleteRepresentationRevisionStatement = s
-                .prepare("DELETE FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND version_id = ?");
+                .prepare("DELETE FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ? AND version_id = ?");
         deleteRepresentationRevisionStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
     }
@@ -579,17 +586,22 @@ public class CassandraRecordDAO {
         }
     }
 
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionId)
+    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionId, Date revisionTimestamp)
         throws RevisionNotExistsException {
 
         // check parameters, none can be null
         if (cloudId == null || schema == null || revisionId == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
+        BoundStatement boundStatement;
 
         // bind parameters to statement
-        BoundStatement boundStatement = getRepresentationRevisionStatement.bind(
-                cloudId, schema, revisionId);
+        if (revisionTimestamp != null)
+            boundStatement = getRepresentationRevisionStatement.bind(
+                    cloudId, schema, revisionId, revisionTimestamp);
+        else
+            boundStatement = getLatestRepresentationRevisionStatement.bind(cloudId, schema, revisionId);
+
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
 
@@ -600,7 +612,7 @@ public class CassandraRecordDAO {
         } else {
             // prepare representation revision object from the fields in a row
             RepresentationRevisionResponse representationRevision = new RepresentationRevisionResponse(cloudId, schema,
-                    row.getUUID("version_id").toString(), revisionId);
+                    row.getUUID("version_id").toString(), revisionId, row.getDate("revision_timestamp"));
             // retrieve files information from the map
             representationRevision.setFiles(deserializeFiles(row.getMap("files", String.class,
                     String.class)));
@@ -621,10 +633,10 @@ public class CassandraRecordDAO {
      * @throws NoHostAvailableException if no Cassandra host are available.
      */
     public void addOrReplaceFileInRepresentationRevision(String cloudId, String schema,
-                                                 String version, String revisionId, File file) throws NoHostAvailableException,
+                                                 String version, String revisionId, Date revisionTimestamp, File file) throws NoHostAvailableException,
             QueryExecutionException {
         BoundStatement boundStatement = insertRepresentationRevisionFileStatement.bind(
-                file.getFileName(), serializeFile(file), cloudId, schema, revisionId,
+                file.getFileName(), serializeFile(file), cloudId, schema, revisionId, revisionTimestamp,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -641,18 +653,18 @@ public class CassandraRecordDAO {
      * @return
      */
     public RepresentationRevisionResponse addRepresentationRevision(String cloudId, String schema,
-                                                                    String version, String revisionId)
+                                                                    String version, String revisionId, Date revisionTimestamp)
             throws NoHostAvailableException, QueryExecutionException {
 
         // none of the parameters can be null
-        validateParameters(cloudId, schema, version, revisionId);
+        validateParameters(cloudId, schema, version, revisionId, revisionTimestamp);
 
         // insert representation revision into representation revision table.
         BoundStatement boundStatement = insertRepresentationRevisionStatement.bind(
-                cloudId, schema, UUID.fromString(version), revisionId);
+                cloudId, schema, UUID.fromString(version), revisionId, revisionTimestamp);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        return new RepresentationRevisionResponse(cloudId, schema, version, new ArrayList<File>(0), revisionId);
+        return new RepresentationRevisionResponse(cloudId, schema, version, new ArrayList<File>(0), revisionId, revisionTimestamp);
     }
 
 
@@ -666,21 +678,21 @@ public class CassandraRecordDAO {
      * @return
      */
     public void deleteRepresentationRevision(String cloudId, String schema,
-                                                                    String version, String revisionId)
+                                                                    String version, String revisionId, Date revisionTimestamp)
             throws NoHostAvailableException, QueryExecutionException {
 
-        validateParameters(cloudId, schema, version, revisionId);
+        validateParameters(cloudId, schema, version, revisionId, revisionTimestamp);
 
         // delete representation revision into representation revision table.
         BoundStatement boundStatement = deleteRepresentationRevisionStatement.bind(
-                cloudId, schema, revisionId, UUID.fromString(version));
+                cloudId, schema, revisionId, revisionTimestamp, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    private void validateParameters(String cloudId, String schema, String version, String revisionId) {
+    private void validateParameters(String cloudId, String schema, String version, String revisionId, Date revisionTimestamp) {
         // none of the parameters can be null
-        if (cloudId == null || schema == null || version == null || revisionId == null) {
+        if (cloudId == null || schema == null || version == null || revisionId == null || revisionTimestamp == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
     }

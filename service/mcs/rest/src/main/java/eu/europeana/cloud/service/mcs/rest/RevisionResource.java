@@ -81,7 +81,7 @@ public class RevisionResource {
         recordService.addRevision(globalId, schema, version, revision);
 
         // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revisionKey, version);
+        recordService.insertRepresentationRevision(globalId, schema, revisionKey, version, revision.getCreationTimeStamp());
 
         return Response.created(uriInfo.getAbsolutePath()).build();
     }

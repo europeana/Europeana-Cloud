@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -272,7 +273,7 @@ public interface RecordService {
      * @param revisionId revision identifier of the resulting representation revision
      * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
      */
-    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId)
+    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId, Date revisionTimestamp)
             throws RevisionNotExistsException;
 
     /**
@@ -283,5 +284,5 @@ public interface RecordService {
      * @param revisionId revision identifier
      * @param versionId version identifier
      */
-    void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId);
+    void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId, Date revisionTimestamp);
 }
