@@ -633,7 +633,7 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .queryParam(ParamConstants.F_DATE_FROM, dateFrom)
-                .queryParam(ParamConstants.TAG, tag);
+                .queryParam(ParamConstants.F_TAG, tag);
 
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);

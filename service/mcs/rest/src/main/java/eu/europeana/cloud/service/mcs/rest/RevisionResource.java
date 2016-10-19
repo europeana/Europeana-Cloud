@@ -31,13 +31,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
@@ -170,7 +164,7 @@ public class RevisionResource {
                                 @PathParam(P_VER) final String version,
                                 @PathParam(P_REVISION_NAME) String revisionName,
                                 @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
-                                @FormParam(P_TAGS) Set<String> tags
+                                @FormParam(F_TAGS) Set<String> tags
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
 

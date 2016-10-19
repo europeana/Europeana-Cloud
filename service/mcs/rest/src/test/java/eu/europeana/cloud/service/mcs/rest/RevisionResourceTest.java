@@ -32,13 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyString;
@@ -201,8 +195,8 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -211,9 +205,9 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags2() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(P_TAGS, Tags.PUBLISHED.getTag());
-        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.PUBLISHED.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -231,9 +225,9 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(P_TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(P_TAGS, Tags.DELETED.getTag());
-        tagsForm.param(P_TAGS, "undefined");
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, "undefined");
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 400);

@@ -51,6 +51,10 @@ public interface ParamConstants {
 
     static final String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
+    static final String P_TAG = "TAG";
+
+    static final String P_TAGS = "TAGS";
+
     // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";
 
@@ -86,9 +90,11 @@ public interface ParamConstants {
 
     static final String F_DATASETS = "dataSets";
 
+    static final String F_TAG = "tag";
+    static final String F_TAGS = "tags";
+
     static final String P_REVISION_NAME = "REVISION_NAME";
-    static final String P_TAG = "TAG";
-    static final String P_TAGS = "TAGS";
+
     static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
 
     //header paramiters' names

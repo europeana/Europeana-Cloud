@@ -147,7 +147,7 @@ public class DataSetResource {
     @GET
     public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
-            @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(TAG) String tag, @QueryParam(F_START_FROM) String startFrom)
+            @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(P_TAG) String tag, @QueryParam(F_START_FROM) String startFrom)
             throws ProviderNotExistsException, DataSetNotExistsException {
         Tags tags = Tags.valueOf(tag.toUpperCase());
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
