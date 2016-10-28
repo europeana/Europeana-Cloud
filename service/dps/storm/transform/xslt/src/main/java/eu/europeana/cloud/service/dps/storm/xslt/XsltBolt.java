@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.xslt;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
@@ -31,7 +32,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
     @Override
     public void execute(StormTaskTuple t) {
-
+        InputStream stream = null;
         try {
             String fileUrl = t.getFileUrl();
             byte[] fileContent = t.getFileData();
@@ -46,7 +47,7 @@ public class XsltBolt extends AbstractDpsBolt {
                 transformer = tFactory.newTransformer(xslDoc);
                 cache.put(xsltUrl, transformer);
             }
-            InputStream stream = new ByteArrayInputStream(fileContent);
+            stream = new ByteArrayInputStream(fileContent);
             Source xmlDoc = new StreamSource(stream);
             StringWriter writer = new StringWriter();
             transformer.transform(xmlDoc, new StreamResult(writer));
@@ -65,6 +66,14 @@ public class XsltBolt extends AbstractDpsBolt {
             LOGGER.error("XsltBolt error:" + e.getMessage());
             emitDropNotification(t.getTaskId(), "", e.getMessage(), t
                     .getParameters().toString());
+        } finally {
+            if (stream != null)
+                try {
+                    stream.close();
+
+                } catch (IOException e) {
+                    LOGGER.error("error: during closing the stream" + e.getMessage());
+                }
         }
     }
 
