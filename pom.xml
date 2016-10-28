@@ -82,7 +82,6 @@
         <module>service/aas</module>
         <module>service/commons</module>
         <module>tools</module>
-        <module>integration</module>
         <module>service/ips</module>
     </modules>
     <repositories>
