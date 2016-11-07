@@ -19,12 +19,12 @@
           </elementProp>
           <elementProp name="containerName" elementType="Argument">
             <stringProp name="Argument.name">containerName</stringProp>
-            <stringProp name="Argument.value">${__P(containerName,ecloud_test)}</stringProp>
+            <stringProp name="Argument.value">${__P(containerName,containetTestName)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="serverUrl" elementType="Argument">
             <stringProp name="Argument.name">serverUrl</stringProp>
-            <stringProp name="Argument.value">${__P(serverUrl,swift.man.poznan.pl)}</stringProp>
+            <stringProp name="Argument.value">${__P(serverUrl,swiftUrll)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="port" elementType="Argument">
@@ -54,17 +54,17 @@
           </elementProp>
           <elementProp name="username" elementType="Argument">
             <stringProp name="Argument.name">username</stringProp>
-            <stringProp name="Argument.value">${__P(username,europeana_user_test)}</stringProp>
+            <stringProp name="Argument.value">${__P(username,username)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="password" elementType="Argument">
             <stringProp name="Argument.name">password</stringProp>
-            <stringProp name="Argument.value">${__P(password,ov6YD2WN_E)}</stringProp>
+            <stringProp name="Argument.value">${__P(password,password)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="tenant" elementType="Argument">
             <stringProp name="Argument.name">tenant</stringProp>
-            <stringProp name="Argument.value">${__P(tenant,europeana_project_test)}</stringProp>
+            <stringProp name="Argument.value">${__P(tenant,tenantName)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="location" elementType="Argument">
