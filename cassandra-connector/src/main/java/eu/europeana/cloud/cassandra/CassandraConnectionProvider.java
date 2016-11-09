@@ -14,11 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+
 /**
  * Connector to Cassandra cluster.
  */
 @Component
-public class CassandraConnectionProvider {
+public class CassandraConnectionProvider   {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
@@ -33,6 +34,17 @@ public class CassandraConnectionProvider {
     private String port;
 
     private String keyspaceName;
+
+
+    private static CassandraConnectionProvider instance = null;
+
+    public static CassandraConnectionProvider getInstance(String hosts, int port, String keyspaceName, String userName, String password) {
+        if (instance == null) {
+            instance = new CassandraConnectionProvider(hosts,port,keyspaceName,userName,password);
+        }
+        return instance;
+    }
+
 
 
     /**

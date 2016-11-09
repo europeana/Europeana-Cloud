@@ -40,7 +40,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
         boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
-        taskInfoDAO = new CassandraTaskInfoDAO(new CassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
+        taskInfoDAO =  CassandraTaskInfoDAO.getInstance(new CassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
     }
 
     @Test
