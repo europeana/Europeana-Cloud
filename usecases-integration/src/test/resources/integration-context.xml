@@ -49,7 +49,8 @@
     </bean>
 
 
-    <bean id="destinationRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
+    <bean id="destinationRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${destinationUserName}"/>
         <constructor-arg name="password" value="${destinationPassword}"/>
@@ -110,13 +111,15 @@
     </bean>
 
 
-    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${username}"/>
         <constructor-arg name="password" value="${password}"/>
     </bean>
 
-    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${destinationUserName}"/>
         <constructor-arg name="password" value="${destinationPassword}"/>
@@ -142,7 +145,14 @@
     </bean>
 
 
-    <bean id="createDatasetFromDatasetOfAnotherProviderTestCase" class="eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase" scope="prototype">
+    <bean id="createDatasetFromDatasetOfAnotherProviderTestCase"
+          class="eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase"
+          scope="prototype">
+    </bean>
+
+    <bean id="updateDatasetTestCase" class="eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase"
+          scope="prototype">
+
     </bean>
 
 

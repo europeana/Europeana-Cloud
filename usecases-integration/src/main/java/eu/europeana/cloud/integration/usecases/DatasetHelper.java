@@ -39,11 +39,11 @@ public class DatasetHelper {
         this.uisClient = uisClient;
     }
 
-    public final URI prepareDatasetWithRecordsInside(String providerId, String datasetName, String representationName, String revisionName, String tagName, int numberOfRecords) throws MCSException, MalformedURLException, CloudException {
+    public final URI prepareDatasetWithRecordsInside(String providerId, String datasetName, String representationName, String revisionName, List<String> tagNames, int numberOfRecords) throws MCSException, MalformedURLException, CloudException {
 
         createProviderIdIfNotExists(uisClient, providerId);
         URI uri = dataSetServiceClient.createDataSet(providerId, datasetName, "");
-        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName, tagName);
+        addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName, tagNames);
         return uri;
 
 
@@ -84,11 +84,13 @@ public class DatasetHelper {
     }
 
 
-    private void addRecordsToDataset(int numberOfRecords, String datasetName, String providerId, String representationName, String revisionName, String tagName) throws CloudException, MCSException, MalformedURLException {
+    private void addRecordsToDataset(int numberOfRecords, String datasetName, String providerId, String representationName, String revisionName, List<String> tagNames) throws CloudException, MCSException, MalformedURLException {
         for (int i = 0; i < numberOfRecords; i++) {
             String cloudId = prepareCloudId(providerId);
             String version = getVersionFromFileUri(representationName, providerId);
-            revisionServiceClient.addRevision(cloudId, representationName, version, revisionName, providerId, tagName);
+            for (String tagName : tagNames) {
+                revisionServiceClient.addRevision(cloudId, representationName, version, revisionName, providerId, tagName);
+            }
             dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, cloudId, representationName, version);
 
         }
@@ -125,6 +127,5 @@ public class DatasetHelper {
     public final List<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentation(String datasetName, String providerId, String representationName, String dateFrom, String tagName) throws MCSException {
         return dataSetServiceClient.getDataSetCloudIdsByRepresentation(datasetName, providerId, representationName, dateFrom, tagName);
     }
-
 
 }

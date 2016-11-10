@@ -24,7 +24,7 @@
 # --mcsRepresentationsTest or --3 		Runs mcsRepresentationsTest case.
 # --mcsUploadFileTest or --4                    Runs mcsUploadFileTest case.
 # --dpsTest or --5 		Runs dpsTest case.
-					
+# --mcsUploadSmallFileTest or --6 Runs mcsUploadSmallFileTest case.
 #
 #
 # Eg. performanceTestScript.sh --host localhost --loops 1 --threads 1 --allTests
@@ -43,6 +43,7 @@ mcsDatasetTest=false
 mcsRepresentationsTest=false
 dpsTest=false
 mcsUploadFileTest=false
+mcsUploadSmallFileTest=false
 fileSize=100 #size in KiB
 user=""
 password=""
@@ -63,13 +64,14 @@ function setAllTestsOn() {
 uisTest=true
 mcsDatasetTest=true
 mcsRepresentationsTest=true
-dpsTest=true
+dpsTest=false
+mcsUploadSmallFileTest=false
 
 # mcsUploadFileTest is intentionaly excluded
 }
 
 function showHelp() {
-for i in {2..28}
+for i in {2..30}
 	do
        		echo `sed "$i!d" $0`
 	done
@@ -108,6 +110,7 @@ case $1 in
 --3) shift 1 ;  mcsRepresentationsTest=true; continue ;;
 --4) shift 1; mcsUploadFileTest=true; continue ;;
 --5) shift 1; dpsTest=true; continue ;;
+--6) shift 1; mcsUploadSmallFileTest=true; continue ;;
 --HTTP) shift 1 ; protocolType="HTTP"; continue ;;
 --HTTPS) shift 1 ; protocolType="HTTPS"; continue ;;
 --Auth) shift 1; user=${1} ; shift 1 ; password=${1} ; shift 1 ;;
@@ -115,7 +118,7 @@ case $1 in
 *) echo "Unsuppored paramiter ${1}"; shift 1 ;;
 esac
 done
-if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ] &&  [ "$dpsTest" = false ]      
+if [ "$uisTest" = false ] &&  [ "$mcsDatasetTest" = false ]  &&  [ "$mcsRepresentationsTest" = false ] &&  [ "$mcsUploadFileTest" = false ] &&  [ "$dpsTest" = false ] &&  [ "$mcsUploadSmallFileTest" = false ]
 then 
 setAllTestsOn; 
 fi
@@ -312,6 +315,42 @@ sleep $interTestDelay
 
 }
 
+function mcsUploadSmallFileTest() {
+
+echo "############################### MCS REPRESENTATION FOR SMALL XML FILES TESTS ############################### ";
+
+jmeter $testMode \
+-Jhost=$host \
+-Jport=$port \
+-JuisName=$uisPath \
+-JmcsName=$mcsPath \
+-Jthreads=$threads \
+-JrampUpPeriod=$rampUpPeriod \
+-JrecordsPerProvider=$recordsPerProvider \
+-JrepresentationNamePerCloudId=$representationNamePerCloudId \
+-Jloops=$loops \
+-JmimeTypeFile=$mimeTypeFile \
+-JuloadedFileName=$uloadedFileName \
+-JmimeTypeLargeFile=$mimeTypeLargeFile \
+-JuloadedLargeFileName=../${resultDir}/$uloadedLargeFileName \
+-JconnectTimeOut=$connectTimeOut \
+-JresponseTimeOut=$responseMCSRepresentationTimeOut \
+-JinterTreadQueueTimeOut=$interTreadQueueTimeOut \
+-JinterThreadGroupTimeGap=$interThreadGroupTimeGap \
+-JoutputFilessuffix=${fileSize}_$outputFilessuffix \
+-JlargeFileSize=$fileSize \
+-JoutputFilespreffix=${resultDir}/ \
+-JprotocolType=$protocolType \
+-Juser=$user \
+-Jpassword=$password \
+-t ./testCases/MCS_UploadSmallFileTest.jmx -l ${resultDir}/MCS_UploadSmileFileTest_${fileSize}_${outputFilessuffix}.log
+
+cat ${resultDir}/MCS_mcsUploadSmallFileTest_${fileSize}_${outputFilessuffix}.log >> ${resultDir}/$cummulatedCsvFileName
+
+sleep $interTestDelay
+
+}
+
 #MCS Representation test
 function dpsTest() {
 echo "--- DPS Tests ---";
@@ -377,6 +416,12 @@ fi
 if [ "$mcsUploadFileTest" = true ] 
 then 
 mcsUploadFileTest;
+sleep $interTestDelay;
+fi
+
+if [ "$mcsUploadSmallFileTest" = true ]
+then
+mcsUploadSmallFileTest;
 sleep $interTestDelay;
 fi
 

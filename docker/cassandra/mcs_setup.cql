@@ -7,7 +7,6 @@ CREATE TABLE data_sets (
        creation_date timestamp,
        PRIMARY KEY (provider_id, dataset_id)
 );
- 
 
 CREATE TABLE data_set_assignments (
 	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
