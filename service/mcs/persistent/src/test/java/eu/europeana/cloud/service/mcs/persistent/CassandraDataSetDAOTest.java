@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.junit.Assert;
@@ -195,5 +198,73 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         List<String> cloudIds = dataSetDAO.getDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID,
                 SAMPLE_REVISION_ID, SAMPLE_REP_NAME_1, 3);
         assertThat(cloudIds, not(hasItems(SAMPLE_CLOUD_ID, SAMPLE_CLOUD_ID2)));
+    }
+
+    @Test
+    public void shouldAddLatestRevisionForRepresentation(){
+        //given
+        DataSet dataSet = new DataSet();
+        dataSet.setId("sampleDataSetID");
+        dataSet.setProviderId("sampleProvider");
+        Representation representation = new Representation();
+        representation.setCloudId("sampleCloudID");
+        representation.setRepresentationName("sampleRepresentationName");
+        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
+
+        Revision revision = new Revision();
+        revision.setRevisionProviderId("sampleProvider");
+        revision.setRevisionName("sampleRevision");
+        //when
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        //then
+        String versionId = dataSetDAO.getVersionOfLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        Assert.assertNotNull(versionId);
+        Assert.assertTrue(versionId.equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
+    }
+
+
+    @Test
+    public void shouldRemoveLatestRevisionForRepresentation(){
+        //given
+        DataSet dataSet = new DataSet();
+        dataSet.setId("sampleDataSetID");
+        dataSet.setProviderId("sampleProvider");
+        Representation representation = new Representation();
+        representation.setCloudId("sampleCloudID");
+        representation.setRepresentationName("sampleRepresentationName");
+        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
+
+        Revision revision = new Revision();
+        revision.setRevisionProviderId("sampleProvider");
+        revision.setRevisionName("sampleRevision");
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        //when
+        dataSetDAO.removeLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        //then
+        String versionId = dataSetDAO.getVersionOfLatestRevisionForDatasetAssignment(dataSet,representation,revision);
+        Assert.assertNull(versionId);
+    }
+
+    @Test
+    public void shouldUpdateLatestRevisionForRepresentation(){
+        //given
+        DataSet dataSet = new DataSet();
+        dataSet.setId("sampleDataSetID");
+        dataSet.setProviderId("sampleProvider");
+        Representation representation = new Representation();
+        representation.setCloudId("sampleCloudID");
+        representation.setRepresentationName("sampleRepresentationName");
+        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
+
+        Revision revision = new Revision();
+        revision.setRevisionProviderId("sampleProvider");
+        revision.setRevisionName("sampleRevision");
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        //when
+        representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae4");
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        //then
+        String versionId = dataSetDAO.getVersionOfLatestRevisionForDatasetAssignment(dataSet, representation, revision);
+        Assert.assertTrue(versionId.equals("123ef902-fdd1-11e5-993a-fa163e8d4ae4"));
     }
 }

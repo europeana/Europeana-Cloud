@@ -77,3 +77,13 @@ CREATE TABLE provider_dataset_representation (
 CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_representation (acceptance);
 CREATE INDEX dataset_representation_published ON provider_dataset_representation (published);
 CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
+
+CREATE TABLE latest_revisions_for_dataset_assignment (
+       provider_id varchar,
+       dataset_id varchar,
+       representation_id varchar,
+       revision_id varchar,
+       cloud_id varchar,
+       version_id timeuuid,
+       PRIMARY KEY ((provider_id, dataset_id, representation_id), cloud_id, revision_id)
+)WITH comment='Retrieve assignment information based on a known cloud_id and known clustering keys.';
