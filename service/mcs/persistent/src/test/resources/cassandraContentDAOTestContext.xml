@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+    <context:annotation-config/>
+
+    <!--connection provider - with options the same as in embedded cassandra-->
+    <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="localhost" />
+        <constructor-arg name="port" value="19142" />
+        <constructor-arg name="keyspaceName" value="ecloud_test" />
+        <constructor-arg name="userName" value="" />
+        <constructor-arg name="password" value="" />
+    </bean>
+
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+    
+    <!--spy on everything-->
+    <mockito:spy beanName="dbService"/>
+    <mockito:spy beanName="cassandraContentDAO"/>
+
+</beans>

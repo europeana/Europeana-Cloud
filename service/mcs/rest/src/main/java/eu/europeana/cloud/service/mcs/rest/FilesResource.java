@@ -1,12 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_DATA;
-import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_MIME;
-import static eu.europeana.cloud.common.web.ParamConstants.F_FILE_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
-
 import java.io.InputStream;
 import java.util.UUID;
 
@@ -34,6 +27,8 @@ import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresenta
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * FilesResource
@@ -106,7 +101,7 @@ public class FilesResource {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-
+		f.setDbStored(mimeType.equals("application/xml") || mimeType.equals("text/xml") ? true : false);
 		if (fileName != null) {
 			try {
 				File temp = recordService.getFile(globalId, schema, version,

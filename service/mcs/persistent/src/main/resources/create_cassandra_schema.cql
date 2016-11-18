@@ -77,3 +77,9 @@ CREATE TABLE provider_dataset_representation (
 CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_representation (acceptance);
 CREATE INDEX dataset_representation_published ON provider_dataset_representation (published);
 CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
+
+CREATE TABLE files_content (
+    fileName varchar,
+    data blob,
+    PRIMARY KEY (fileName)
+);
