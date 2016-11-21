@@ -27,6 +27,8 @@ public class CassandraDataSetDAO{
     // dataset id
     protected static final String CDSID_SEPARATOR = "\n";
 
+    private static final int MAX_PROVIDER_DATASET_BUCKET_COUNT = 210000;
+
     @Autowired
     @Qualifier("dbService")
     private CassandraConnectionProvider connectionProvider;
@@ -292,9 +294,9 @@ public class CassandraDataSetDAO{
                 + "SET rows_count = rows_count + ? WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
         updateProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        getProviderDatasetBucketCount = connectionProvider.getSession().prepare("SELECT rows_count " //
+        getProviderDatasetBucketCount = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
                 + "FROM datasets_buckets " //
-                + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
+                + "WHERE provider_id = ? AND dataset_id = ?;");
         getProviderDatasetBucketCount.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getNextProviderDatasetBucket = connectionProvider.getSession().prepare("SELECT bucket_id " //
@@ -907,15 +909,49 @@ public class CassandraDataSetDAO{
 														String versionId, String schema, String revisionId, Date updateTimeStamp,
 														boolean acceptance, boolean published, boolean deleted)
 			throws NoHostAvailableException, QueryExecutionException {
+        String bucketId = null;
         synchronized (updateProviderDatasetBuckets) {
-            BoundStatement rowsStatement = getProviderDatasetBucketCount.bind(dataSetProviderId, dataSetId)
+            Properties bucketCount = getCurrentProviderDatasetBucket(dataSetProviderId, dataSetId);
+            // when there is no bucket or bucket rows count is max we should add another bucket
+            if (bucketCount.isEmpty() || Integer.valueOf(bucketCount.getProperty("rows_count")) == MAX_PROVIDER_DATASET_BUCKET_COUNT) {
+                bucketId = createBucket();
+                increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
+            }
+            else
+                bucketId = bucketCount.getProperty("bucket_id");
         }
-		BoundStatement bs = insertProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, globalId, UUID.fromString(versionId), schema,
+		BoundStatement bs = insertProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), globalId, UUID.fromString(versionId), schema,
 				revisionId, updateTimeStamp, acceptance, published, deleted);
 		ResultSet rs = connectionProvider.getSession().execute(bs);
 		QueryTracer.logConsistencyLevel(bs, rs);
 	}
 
+
+    private void increaseBucketCount(String dataSetProviderId, String dataSetId, String bucketId) {
+        BoundStatement statement = updateProviderDatasetBuckets.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId));
+        ResultSet rs = connectionProvider.getSession().execute(statement);
+        QueryTracer.logConsistencyLevel(statement, rs);
+    }
+
+
+    private String createBucket() {
+        return new com.eaio.uuid.UUID().toString();
+    }
+
+
+    public Properties getCurrentProviderDatasetBucket(String providerId, String datasetId) {
+        Properties result = new Properties();
+        BoundStatement rowsStatement = getProviderDatasetBucketCount.bind(providerId, datasetId);
+        ResultSet rs = connectionProvider.getSession().execute(rowsStatement);
+        // get last element on the list
+        List<Row> rows = rs.all();
+        Row row = rows.isEmpty() ? null : rows.get(rows.size() - 1);
+        if (row != null) {
+            result.setProperty("bucket_id", row.getUUID("bucket_id").toString());
+            result.setProperty("rows_count", String.valueOf(row.getInt("rows_count")));
+        }
+        return result;
+    }
 
 	/**
 	 * Insert row to provider_dataset_representation table.
