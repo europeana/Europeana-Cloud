@@ -1,7 +1,6 @@
 package eu.europeana.cloud;
 
-import backtype.storm.Config;
-import backtype.storm.testing.MkClusterParam;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -13,6 +12,8 @@ import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import org.apache.storm.Config;
+import org.apache.storm.testing.MkClusterParam;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.List;
