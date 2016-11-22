@@ -6,10 +6,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.google.common.base.Objects;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -281,8 +278,8 @@ public class CassandraDataSetDAO{
 
 
         addLatestRevisionForDatasetAssignment = connectionProvider.getSession().prepare(
-                "INSERT INTO latest_revisions_for_dataset_assignment(provider_id, dataset_id, representation_id, revision_name, revision_provider_id, cloud_id, version_id)\n" +
-                        "VALUES(?, ?, ?, ?, ?, ?, ?);"
+                "INSERT INTO latest_revisions_for_dataset_assignment(provider_id, dataset_id, representation_id, revision_name, revision_provider_id, revision_timestamp, cloud_id, version_id)\n" +
+                        "VALUES(?, ?, ?, ?, ?, ?, ?, ?);"
         );
         addLatestRevisionForDatasetAssignment.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -782,6 +779,7 @@ public class CassandraDataSetDAO{
                 representation.getRepresentationName(),
                 revision.getRevisionName(),
                 revision.getRevisionProviderId(),
+                revision.getCreationTimeStamp(),
                 representation.getCloudId(),
                 UUID.fromString(representation.getVersion())
         );
@@ -803,7 +801,7 @@ public class CassandraDataSetDAO{
 
     }
 
-    public String getVersionOfLatestRevisionForDatasetAssignment(DataSet dataSet, Representation representation, Revision revision){
+    public DataSetRepresentationForLatestRevision getRepresentationForLatestRevisionFromDataset(DataSet dataSet, Representation representation, Revision revision){
 
         BoundStatement bs = getLatestRevisionForDatasetAssignment.bind(
                 dataSet.getProviderId(),
@@ -818,8 +816,23 @@ public class CassandraDataSetDAO{
         QueryTracer.logConsistencyLevel(bs, rs);
         Row row = rs.one();
 
-        if(row != null)
-            return row.getUUID("version_id").toString();
+        if(row != null){
+			DataSetRepresentationForLatestRevision result = new DataSetRepresentationForLatestRevision();
+			result.setDataset(dataSet);
+            //
+            Revision rev = new Revision();
+            rev.setRevisionName(row.getString("revision_name"));
+            rev.setRevisionProviderId(row.getString("revision_provider_id"));
+            rev.setCreationTimeStamp(row.getDate("revision_timestamp"));
+            result.setRevision(rev);
+            //
+            Representation rep = new Representation();
+            rep.setRepresentationName(row.getString("representation_id"));
+            rep.setCloudId(row.getString("cloud_id"));
+            rep.setVersion(row.getUUID("version_id").toString());
+            result.setRepresentation(rep);
+			return result;
+		}
         else
             return null;
     }
