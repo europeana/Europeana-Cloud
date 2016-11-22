@@ -50,8 +50,14 @@ public class CassandraContentDAO implements ContentDAO {
     private void prepareStatements() {
         Session s = connectionProvider.getSession();
         insert = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
+        insert.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
         select = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
+        select.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
         delete = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
+        delete.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
     }
 
     /**
