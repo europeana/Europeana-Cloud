@@ -530,9 +530,11 @@ public class CassandraDataSetDAO{
     }
 
     private void removeAllDataSetBuckets(String providerId, String dataSetId) {
-        for (String bucket_id : getAllDatasetBuckets(providerId, dataSetId)) {
-            connectionProvider.getSession().execute(
-                    deleteProviderDatasetBuckets.bind(providerId, dataSetId, bucket_id));
+        synchronized (updateProviderDatasetBuckets) {
+            for (String bucket_id : getAllDatasetBuckets(providerId, dataSetId)) {
+                connectionProvider.getSession().execute(
+                        deleteProviderDatasetBuckets.bind(providerId, dataSetId, UUID.fromString(bucket_id)));
+            }
         }
     }
 
@@ -548,8 +550,10 @@ public class CassandraDataSetDAO{
     }
 
     private void removeAllDataSetCloudIdsByRepresentation(String providerId, String dataSetId) {
-        for (String bucket_id : getAllDatasetBuckets(providerId, dataSetId)) {
-            removeAllDataSetCloudIdsByRepresentationBucket(providerId, dataSetId, bucket_id);
+        synchronized (updateProviderDatasetBuckets) {
+            for (String bucket_id : getAllDatasetBuckets(providerId, dataSetId)) {
+                removeAllDataSetCloudIdsByRepresentationBucket(providerId, dataSetId, bucket_id);
+            }
         }
     }
 
@@ -564,7 +568,7 @@ public class CassandraDataSetDAO{
             String revisionId = row.getString("revision_id");
             Date revisionTimestamp = row.getDate("revision_timestamp");
             connectionProvider.getSession().execute(
-                    deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, schemaId, revisionTimestamp, revisionId, cloudId));
+                    deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, UUID.fromString(bucket_id), schemaId, revisionTimestamp, revisionId, cloudId));
         }
     }
 
@@ -941,7 +945,7 @@ public class CassandraDataSetDAO{
         Row row = rows.isEmpty() ? null : rows.get(rows.size() - 1);
         if (row != null) {
             result.setProperty("bucket_id", row.getUUID("bucket_id").toString());
-            result.setProperty("rows_count", String.valueOf(row.getInt("rows_count")));
+            result.setProperty("rows_count", String.valueOf(row.getLong("rows_count")));
         }
         return result;
     }
@@ -959,9 +963,15 @@ public class CassandraDataSetDAO{
 	public void deleteProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
 														String schema, String revisionId, Date updateTimeStamp)
 			throws NoHostAvailableException, QueryExecutionException {
-		BoundStatement bs = deleteProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, schema,
-				updateTimeStamp, revisionId, globalId);
-		ResultSet rs = connectionProvider.getSession().execute(bs);
-		QueryTracer.logConsistencyLevel(bs, rs);
+        synchronized (updateProviderDatasetBuckets) {
+            String bucketId = getNextBucket(dataSetProviderId, dataSetId, null);
+            while (bucketId != null) {
+                BoundStatement bs = deleteProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), schema,
+                        updateTimeStamp, revisionId, globalId);
+                ResultSet rs = connectionProvider.getSession().execute(bs);
+                QueryTracer.logConsistencyLevel(bs, rs);
+                bucketId = getNextBucket(dataSetProviderId, dataSetId, bucketId);
+            }
+        }
 	}
 }
