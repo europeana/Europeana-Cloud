@@ -67,7 +67,7 @@ CREATE TABLE datasets_buckets (
     bucket_id timeuuid,
     rows_count counter,
     PRIMARY KEY (provider_id, dataset_id, bucket_id)
-) WITH comment='Keep track of number of rows in a bucket for provider and dataset.';
+) WITH comment='Keep track of number of rows in a bucket for provider and dataset';
 
 CREATE TABLE provider_dataset_representation (
     provider_id varchar,

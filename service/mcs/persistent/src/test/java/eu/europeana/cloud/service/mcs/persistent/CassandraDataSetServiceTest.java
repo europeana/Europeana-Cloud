@@ -518,19 +518,27 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 		// create prepared statement for entry in a table
 		String table = KEYSPACE + ".provider_dataset_representation";
-		PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
-				"(?,?,?,?,?,?,?,?,?,?)");
+		PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,bucket_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
+				"(?,?,?,?,?,?,?,?,?,?,?)");
 		ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
+
+		String bucketsTable = KEYSPACE + ".datasets_buckets";
+		PreparedStatement psBuckets = session.prepare("UPDATE " + bucketsTable + " set rows_count = rows_count + 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
+		psBuckets.setConsistencyLevel(ConsistencyLevel.QUORUM);
 
 		// init size of table
 		BoundStatement bs;
+		BoundStatement bsBuckets;
 		List<CloudVersionRevisionResponse> cloudIds = new ArrayList<>();
 
+		String bucketId = new com.eaio.uuid.UUID().toString();
 		// add new entries, each with different cloud id and revision timestamp
 		for (int i = 0; i < size; i++) {
 			CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
 				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"));
-			bs = ps.bind("provider1", "dataset1", obj.getCloudId(), UUID.fromString(obj.getVersion()), "representation", obj.getRevisionId(), new Date(), false, true, false);
+			bsBuckets = psBuckets.bind("provider1", "dataset1", UUID.fromString(bucketId));
+			session.execute(bsBuckets);
+			bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()), "representation", obj.getRevisionId(), new Date(), false, true, false);
 			session.execute(bs);
 			cloudIds.add(obj);
 		}

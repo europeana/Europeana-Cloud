@@ -81,8 +81,6 @@ public class CassandraDataSetDAO{
 
     private PreparedStatement listDataSetCloudIdsByRepresentationNoPaging;
 
-    private PreparedStatement getProviderDatasetBuckets;
-
     private PreparedStatement getNextProviderDatasetBucket;
 
     private PreparedStatement getFirstProviderDatasetBucket;
@@ -285,13 +283,8 @@ public class CassandraDataSetDAO{
                         + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp = ? AND revision_id = ? AND cloud_id = ?;");
         deleteProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        getProviderDatasetBuckets = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
-                + "FROM datasets_buckets " //
-                + "WHERE provider_id = ? AND dataset_id = ?;");
-        getProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
         updateProviderDatasetBuckets = connectionProvider.getSession().prepare("UPDATE datasets_buckets " //
-                + "SET rows_count = rows_count + ? WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
+                + "SET rows_count = rows_count + 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
         updateProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getProviderDatasetBucketCount = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
@@ -310,7 +303,7 @@ public class CassandraDataSetDAO{
         getFirstProviderDatasetBucket.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteProviderDatasetBuckets = connectionProvider.getSession().prepare("DELETE FROM " //
-                + "dataset_buckets "
+                + "datasets_buckets "
                 + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
         deleteProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
@@ -545,7 +538,7 @@ public class CassandraDataSetDAO{
 
     private List<String> getAllDatasetBuckets(String providerId, String dataSetId) {
         List<String> result = new ArrayList<>();
-        BoundStatement boundStatement = getProviderDatasetBuckets.bind(providerId, dataSetId);
+        BoundStatement boundStatement = getProviderDatasetBucketCount.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 
         for (Row row : rs) {
