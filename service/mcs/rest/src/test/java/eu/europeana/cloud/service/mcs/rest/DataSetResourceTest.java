@@ -200,7 +200,7 @@ public class DataSetResourceTest extends JerseyTest {
         String dataSetId = "dataset";
 
         dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyTaggedVersions").queryParam(P_CLOUDID,"sampleCloudID").queryParam(P_REPRESENTATIONNAME,"sampleRepName").queryParam(P_REVISION_NAME,"sampleRevisionName").queryParam(P_REVISION_PROVIDER_ID,"samplerevProvider");
+                P_DATASET, dataSetId).path("/latelyTaggedVersion").queryParam(P_CLOUDID,"sampleCloudID").queryParam(P_REPRESENTATIONNAME,"sampleRepName").queryParam(P_REVISION_NAME,"sampleRevisionName").queryParam(P_REVISION_PROVIDER_ID,"samplerevProvider");
         Response response = dataSetWebTarget.request().get();
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     }
