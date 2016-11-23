@@ -367,7 +367,7 @@ public class CassandraDataSetService implements DataSetService {
 	}
 
 	@Override
-	public String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String representationName, String revisionName) throws DataSetNotExistsException {
+	public String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException {
 		if (isDataSetExists(providerId, dataSetId)) {
 			DataSet dataset = new DataSet();
 			dataset.setProviderId(providerId);
@@ -379,11 +379,14 @@ public class CassandraDataSetService implements DataSetService {
 			//
 			Revision revision = new Revision();
 			revision.setRevisionName(revisionName);
+			revision.setRevisionProviderId(revisionProviderId);
 
-			DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset,rep,revision);
-			result.getRepresentation().getVersion();
+			DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset, rep, revision);
+			if (result != null){
+				return result.getRepresentation().getVersion();
+			}
 		}
-		return "";
+		return null;
 	}
 
 	@Override

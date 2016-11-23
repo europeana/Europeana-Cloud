@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
@@ -97,19 +99,38 @@ public class RevisionResource {
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
-        final String revisionKey = RevisionUtils.getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName());
-        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revisionKey);
+        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revision.getRevisionName(), revision.getCreationTimeStamp());
         recordService.addRevision(globalId, schema, version, revision);
         dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
-                                                      String version, String revisionProviderId, String revisionKey)
+                                                      String version, String revisionProviderId, String revisionName, Date revisionTimestamp)
             throws ProviderNotExistsException {
+        final String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Set<String> dataSets = dataSetService.getDataSets(revisionProviderId, globalId, schema, version);
         for (String dataSet : dataSets) {
             dataSetService.addDataSetsRevisions(revisionProviderId, dataSet, revisionKey, schema, globalId);
+            addLatestRevision(dataSet, revisionProviderId, globalId, schema, version, revisionName, revisionTimestamp);
         }
+
+    }
+
+    private void addLatestRevision(String datasetName, String providerId, String cloudId, String representationName, String representationVersion, String revisionName, Date revisionTimestamp) {
+        DataSet dataset = new DataSet();
+        dataset.setProviderId(providerId);
+        dataset.setId(datasetName);
+        //
+        Representation representation = new Representation();
+        representation.setCloudId(cloudId);
+        representation.setRepresentationName(representationName);
+        representation.setVersion(representationVersion);
+        //
+        Revision revision = new Revision();
+        revision.setRevisionName(revisionName);
+        revision.setRevisionProviderId(providerId);
+        revision.setCreationTimeStamp(revisionTimestamp);
+        dataSetService.addLatestRevisionForGivenVersionInDataset(dataset,representation, revision);
     }
 
     /**

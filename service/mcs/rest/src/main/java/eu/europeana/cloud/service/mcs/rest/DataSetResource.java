@@ -156,4 +156,42 @@ public class DataSetResource {
             return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
         throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
+
+    /**
+     *
+     * Gives the versionId of specified representation that has the newest revision (by revision timestamp) with given name.
+     *
+     * @param dataSetId dataset identifier
+     * @param providerId dataset owner
+     * @param cloudId   representation cloud identifier
+     * @param representationName representation name
+     * @param revisionName revision name
+     * @param revisionProviderId revision owner
+     * @return version identifier of representation
+     * @throws DataSetNotExistsException
+     */
+    @Path("/latelyTaggedVersion")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GET
+    public Response getLatelyTaggedRecords(
+            @PathParam(P_DATASET) String dataSetId,
+            @PathParam(P_PROVIDER) String providerId,
+            @QueryParam(P_CLOUDID) String cloudId,
+            @QueryParam(P_REPRESENTATIONNAME) String representationName,
+            @QueryParam(P_REVISION_NAME) String revisionName,
+            @QueryParam(P_REVISION_PROVIDER_ID) String revisionProviderId) throws DataSetNotExistsException {
+
+        ParamUtil.require(P_CLOUDID, cloudId);
+        ParamUtil.require(P_REPRESENTATIONNAME, representationName);
+        ParamUtil.require(P_REVISION_NAME, revisionName);
+        ParamUtil.require(P_REVISION_PROVIDER_ID, revisionProviderId);
+
+
+        String versionId = dataSetService.getLatestVersionForGivenRevision(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+        if (versionId != null) {
+            return Response.ok().entity(versionId).build();
+        } else {
+            return Response.noContent().build();
+        }
+    }
 }
