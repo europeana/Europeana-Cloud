@@ -98,6 +98,7 @@ public class FilesResource {
 			CannotModifyPersistentRepresentationException,
 			FileAlreadyExistsException {
 		ParamUtil.require(F_FILE_DATA, data);
+        ParamUtil.require(F_FILE_MIME, mimeType);
 
 		File f = new File();
 		f.setMimeType(mimeType);
