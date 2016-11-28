@@ -170,7 +170,7 @@ public class DataSetResource {
      * @return version identifier of representation
      * @throws DataSetNotExistsException
      */
-    @Path("/latelyTaggedVersion")
+    @Path("/latelyRevisionedVersion")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @GET
     public Response getLatelyTaggedRecords(

@@ -220,7 +220,13 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         //then
         DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
         Assert.assertNotNull(result);
+        Assert.assertTrue(result.getDataset().getId().equals("sampleDataSetID"));
+        Assert.assertTrue(result.getDataset().getProviderId().equals("sampleProvider"));
+        Assert.assertTrue(result.getRepresentation().getCloudId().equals("sampleCloudID"));
+        Assert.assertTrue(result.getRepresentation().getRepresentationName().equals("sampleRepresentationName"));
         Assert.assertTrue(result.getRepresentation().getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
+        Assert.assertTrue(result.getRevision().getRevisionProviderId().equals("sampleProvider"));
+        Assert.assertTrue(result.getRevision().getRevisionName().equals("sampleRevision"));
     }
 
 

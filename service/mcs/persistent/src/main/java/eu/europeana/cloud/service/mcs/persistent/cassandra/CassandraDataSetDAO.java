@@ -289,7 +289,7 @@ public class CassandraDataSetDAO{
         removeLatestRevisionForDatasetAssignment.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getLatestRevisionForDatasetAssignment = connectionProvider.getSession().prepare(
-                "SELECT * FROM latest_revisions_for_dataset_assignment WHERE provider_id =? AND dataset_id =? AND representation_id = ? AND cloud_id = ? AND revision_name = ? AND revision_provider_id = ?;"
+                "SELECT revision_timestamp, version_id FROM latest_revisions_for_dataset_assignment WHERE provider_id =? AND dataset_id =? AND representation_id = ? AND cloud_id = ? AND revision_name = ? AND revision_provider_id = ?;"
         );
         getLatestRevisionForDatasetAssignment.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
@@ -797,8 +797,8 @@ public class CassandraDataSetDAO{
                 revision.getRevisionName(),
                 revision.getRevisionProviderId()
         );
-        connectionProvider.getSession().execute(bs);
-
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
     }
 
     public DataSetRepresentationForLatestRevision getRepresentationForLatestRevisionFromDataset(DataSet dataSet, Representation representation, Revision revision){
@@ -820,15 +820,11 @@ public class CassandraDataSetDAO{
 			DataSetRepresentationForLatestRevision result = new DataSetRepresentationForLatestRevision();
 			result.setDataset(dataSet);
             //
-            Revision rev = new Revision();
-            rev.setRevisionName(row.getString("revision_name"));
-            rev.setRevisionProviderId(row.getString("revision_provider_id"));
+            Revision rev = new Revision(revision);
             rev.setCreationTimeStamp(row.getDate("revision_timestamp"));
             result.setRevision(rev);
             //
-            Representation rep = new Representation();
-            rep.setRepresentationName(row.getString("representation_id"));
-            rep.setCloudId(row.getString("cloud_id"));
+            Representation rep = new Representation(representation);
             rep.setVersion(row.getUUID("version_id").toString());
             result.setRepresentation(rep);
 			return result;
