@@ -29,6 +29,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.FileStorageSelector.selectStorage;
 
 /**
  * FilesResource
@@ -102,7 +103,7 @@ public class FilesResource {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-		f.setDbStored(mimeType.equals("application/xml") || mimeType.equals("text/xml") ? true : false);
+		f.setDbStored(selectStorage(mimeType));
 		if (fileName != null) {
 			try {
 				File temp = recordService.getFile(globalId, schema, version,
@@ -127,4 +128,5 @@ public class FilesResource {
 
 		return Response.created(f.getContentUri()).tag(f.getMd5()).build();
 	}
+
 }
