@@ -40,3 +40,31 @@ kafka:
    - "9092:9092"
   volumes:
    - /var/run/docker.sock:/var/run/docker.sock
+
+nimbus:
+  build: nimbus
+  ports:
+    - "3773"
+    - "3772"
+    - "6627"
+  links:
+    - zookeeper:zk
+
+supervisor:
+  build: supervisor
+  ports:
+    - "8000"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zk
+    - cassandra:cassandra
+    - tomcat:tomcat
+    - kafka:kafka
+
+ui:
+  build: ui
+  ports:
+    - "49080:8080"
+  links:
+    - nimbus:nimbus
+    - zookeeper:zk
