@@ -1624,12 +1624,12 @@
             <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[setUp] add file Representation Request" enabled="true">
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Zmienne zdefiniowane przez użytkownika" enabled="true">
                 <collectionProp name="Arguments.arguments">
-                  <elementProp name="${mimeTypeFile}" elementType="HTTPArgument">
+                  <elementProp name="mimeType" elementType="HTTPArgument">
                     <boolProp name="HTTPArgument.always_encode">false</boolProp>
                     <stringProp name="Argument.value">application/xml</stringProp>
                     <stringProp name="Argument.metadata">=</stringProp>
                     <boolProp name="HTTPArgument.use_equals">true</boolProp>
-                    <stringProp name="Argument.name">${mimeTypeFile}</stringProp>
+                    <stringProp name="Argument.name">mimeType</stringProp>
                   </elementProp>
                 </collectionProp>
               </elementProp>

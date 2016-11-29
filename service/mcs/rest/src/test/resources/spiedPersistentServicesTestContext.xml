@@ -32,6 +32,10 @@
     <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
     <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+
+    <bean id="dynamicContentDAO" class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO"/>
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+
     <bean id="swiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" type="java.lang.String" value="transient"/>
         <constructor-arg name="container" type="java.lang.String" value="test_container"/>

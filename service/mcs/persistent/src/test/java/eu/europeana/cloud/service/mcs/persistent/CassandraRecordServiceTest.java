@@ -368,15 +368,15 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
     @Test(expected = CannotModifyPersistentRepresentationException.class)
     public void shouldNotAddFileToPersistentRepresentation() throws Exception {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        Representation r = insertDummyPersistentRepresentation("globalId",
-                "dc", PROVIDER_1_ID);
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
+	makeUISSuccess();
+	mockUISProvider1Success();
+	Representation r = insertDummyPersistentRepresentation("globalId",
+		"dc", PROVIDER_1_ID);
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	cassandraRecordService.putContent(r.getCloudId(),
+		r.getRepresentationName(), r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
     }
 
     @Test(expected = CannotModifyPersistentRepresentationException.class)
@@ -409,11 +409,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
 
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	cassandraRecordService.putContent(r.getCloudId(),
+		r.getRepresentationName(), r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
 
         r = cassandraRecordService.getRepresentation(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion());
@@ -427,6 +427,31 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertThat(fetchedFile.getMd5(), is(contentMd5));
     }
 
+	@Test
+	public void shouldPutAndGetFileStoredInDb() throws Exception {
+		makeUISSuccess();
+		mockUISProvider1Success();
+		Representation r = cassandraRecordService.createRepresentation(
+				"globalId", "edm", PROVIDER_1_ID);
+
+		byte[] dummyContent = { 1, 2, 3 };
+		File f = new File("content.xml", "application/xml", null, null, 0, null,true);
+		cassandraRecordService.putContent(r.getCloudId(),
+				r.getRepresentationName(), r.getVersion(), f,
+				new ByteArrayInputStream(dummyContent));
+
+		r = cassandraRecordService.getRepresentation(r.getCloudId(),
+				r.getRepresentationName(), r.getVersion());
+		assertThat(r.getFiles().size(), is(1));
+		File fetchedFile = r.getFiles().get(0);
+		assertThat(fetchedFile.getFileName(), is(f.getFileName()));
+		assertThat(fetchedFile.getMimeType(), is(f.getMimeType()));
+		assertThat(fetchedFile.getContentLength(),
+				is((long) dummyContent.length));
+		String contentMd5 = Hashing.md5().hashBytes(dummyContent).toString();
+		assertThat(fetchedFile.getMd5(), is(contentMd5));
+	}
+
     @Test
     public void shouldGetContent() throws Exception {
         makeUISSuccess();
@@ -434,17 +459,16 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
 
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(
-                dummyContent.length);
-        cassandraRecordService.getContent(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), f.getFileName(),
-                baos);
-
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	cassandraRecordService.putContent(r.getCloudId(),
+		r.getRepresentationName(), r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
+	ByteArrayOutputStream baos = new ByteArrayOutputStream(
+		dummyContent.length);
+	cassandraRecordService.getContent(r.getCloudId(),
+		r.getRepresentationName(), r.getVersion(), f.getFileName(),
+		baos);
         assertThat(baos.toByteArray(), is(dummyContent));
     }
 
@@ -456,11 +480,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
 
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null, false);
+	cassandraRecordService.putContent(r.getCloudId(),
+		r.getRepresentationName(), r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
 
         // when
         cassandraRecordService.deleteContent(r.getCloudId(),
@@ -648,13 +672,13 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId,
-                                                               String schema, String providerId) throws Exception {
-        Representation r = cassandraRecordService.createRepresentation(cloudId,
-                schema, providerId);
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
+	    String schema, String providerId) throws Exception {
+	Representation r = cassandraRecordService.createRepresentation(cloudId,
+		schema, providerId);
+	byte[] dummyContent = { 1, 2, 3 };
+	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
+		new ByteArrayInputStream(dummyContent));
 
         return cassandraRecordService.persistRepresentation(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion());

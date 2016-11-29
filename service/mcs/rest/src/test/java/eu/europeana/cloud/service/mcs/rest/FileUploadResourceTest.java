@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import org.apache.commons.io.input.NullInputStream;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -79,8 +80,10 @@ public class FileUploadResourceTest {
     }
     
     @Test
-    public void shouldUploadFileForNonExistingRepresentation() throws FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, FileNotExistsException, RecordNotExistsException, CannotPersistEmptyRepresentationException, ProviderNotExistsException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-        fileUploadResource.sendFile(URI_INFO, CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME, "fileName", "providerId", "mimeType", null);
+    public void shouldUeploadFileForNonExistingRepresentation() throws FileAlreadyExistsException,
+            AccessDeniedOrObjectDoesNotExistException, FileNotExistsException, RecordNotExistsException, CannotPersistEmptyRepresentationException, ProviderNotExistsException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+        fileUploadResource.sendFile(URI_INFO, CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME, "fileName", "providerId",
+                "mimeType", new NullInputStream(0));
     }
     
 }
