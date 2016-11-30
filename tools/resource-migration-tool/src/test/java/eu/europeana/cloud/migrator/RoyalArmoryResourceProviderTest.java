@@ -1,6 +1,8 @@
 package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.migrator.provider.DefaultResourceProvider;
+import eu.europeana.cloud.migrator.provider.RoyalArmoryResourceProvider;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +17,7 @@ public class RoyalArmoryResourceProviderTest {
 
     private static final String LOCATION = "file:///$1/test4/DIG";
 
+//    private static final String LOCAL_ID = "DIG18000-18999/DIG18400-18499/hm_dig18485.jpg";
     private static final String LOCAL_ID = "DIG18000-18999/DIG18400-18499/hm_dig18485.jpg";
 
     private static final String FILE = "DIG18000-18999/DIG18400-18499/hm_dig18485.jpg";

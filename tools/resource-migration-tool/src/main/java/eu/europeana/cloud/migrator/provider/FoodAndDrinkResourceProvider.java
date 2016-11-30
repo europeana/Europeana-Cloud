@@ -1,11 +1,10 @@
-package eu.europeana.cloud.migrator;
+package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.migrator.ResourceMigrator;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FoodAndDrinkResourceProvider
         extends DefaultResourceProvider {

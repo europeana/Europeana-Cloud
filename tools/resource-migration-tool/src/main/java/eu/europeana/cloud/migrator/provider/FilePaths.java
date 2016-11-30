@@ -1,4 +1,6 @@
-package eu.europeana.cloud.migrator;
+package eu.europeana.cloud.migrator.provider;
+
+import eu.europeana.cloud.migrator.ResourceMigrator;
 
 import java.io.BufferedReader;
 import java.io.IOException;

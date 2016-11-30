@@ -1,8 +1,9 @@
-package eu.europeana.cloud.migrator;
+package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.migrator.ResourceMigrator;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import org.apache.log4j.Logger;
