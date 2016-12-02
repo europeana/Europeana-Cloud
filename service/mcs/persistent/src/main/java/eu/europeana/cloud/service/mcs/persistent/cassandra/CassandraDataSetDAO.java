@@ -266,7 +266,7 @@ public class CassandraDataSetDAO{
                 .getConsistencyLevel());
 
         getDataSetCloudIdsByRepresentationPublished = connectionProvider.getSession().prepare("SELECT " //
-                + "cloud_id, version_id, revision_id " //
+                + "cloud_id, version_id, revision_id, published, mark_deleted, acceptance " //
                 + "FROM provider_dataset_representation " //
                 + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp > ? AND published = true LIMIT ?;");
         getDataSetCloudIdsByRepresentationPublished.setConsistencyLevel(connectionProvider.getConsistencyLevel());
@@ -280,7 +280,7 @@ public class CassandraDataSetDAO{
         deleteProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare(//
                 "DELETE FROM " //
                         + "provider_dataset_representation " //
-                        + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp = ? AND revision_id = ? AND cloud_id = ?;");
+                        + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp = ? AND cloud_id = ?;");
         deleteProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         updateProviderDatasetBuckets = connectionProvider.getSession().prepare("UPDATE datasets_buckets " //
@@ -565,10 +565,9 @@ public class CassandraDataSetDAO{
         for (Row row : rs){
             String cloudId = row.getString("cloud_id");
             String schemaId = row.getString("representation_id");
-            String revisionId = row.getString("revision_id");
             Date revisionTimestamp = row.getDate("revision_timestamp");
             connectionProvider.getSession().execute(
-                    deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, UUID.fromString(bucket_id), schemaId, revisionTimestamp, revisionId, cloudId));
+                    deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, UUID.fromString(bucket_id), schemaId, revisionTimestamp, cloudId));
         }
     }
 
@@ -717,57 +716,6 @@ public class CassandraDataSetDAO{
         return cloudIds;
     }
 
-//	/**
-//	 * Lists cloud identifiers of provider's data set having given representation name and revision published after a specific time. Together with cloud identifier also
-//	 * version identifier and revision identifier are returned. All these values are packed in Properties object where keys are: cloudId, versionId, revisionId. The last element
-//	 * of the list may contain Properties object with just one property (key is nextSlice) indicating token that may be used for next page of results.
-//	 *
-//	 * @param providerId data set provider id
-//	 * @param dataSetId identifier of a data set
-//	 * @param representationName representation name
-//     * @param dateFrom date of last revision
-//	 * @param nextToken cloud identifier combined with timestamp from which to start the result list, used in pagination, may be null
-//	 * @param limit max size of returned cloud identifiers list.
-//	 * @return list of Properties object where each such object contains cloud identifier, version identifier and revision identifier
-//	 */
-//	public List<Properties> getDataSetCloudIdsByRepresentationPublishedd(String providerId, String dataSetId, String representationName, Date dateFrom, String nextToken, int limit)
-//			throws NoHostAvailableException, QueryExecutionException {
-//		List<Properties> result = new ArrayList<>(limit);
-//
-//		// bind parameters, set limit to max int value
-//		BoundStatement boundStatement = getDataSetCloudIdsByRepresentationPublished.bind(providerId, dataSetId, representationName, dateFrom, Integer.MAX_VALUE);
-//		// limit page to "limit" number of results
-//		boundStatement.setFetchSize(limit);
-//		// when this is not a first page call set paging state in the statement
-//		if (nextToken != null)
-//			boundStatement.setPagingState(PagingState.fromString(nextToken));
-//		// execute query
-//		ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-//		QueryTracer.logConsistencyLevel(boundStatement, rs);
-//
-//		// get available results
-//		int available = rs.getAvailableWithoutFetching();
-//		for (int i = 0; i < available; i++) {
-//			Row row = rs.one();
-//			Properties properties = new Properties();
-//			properties.put("cloudId", row.getString("cloud_id"));
-//			properties.put("versionId", row.getUUID("version_id").toString());
-//			properties.put("revisionId", row.getString("revision_id"));
-//			result.add(properties);
-//		}
-//
-//		if (result.size() == limit) {
-//			PagingState pagingState = rs.getExecutionInfo().getPagingState();
-//			// whole page has been retrieved so add paging state for the next call at the end of the results list
-//			if (pagingState != null) {
-//				Properties properties = new Properties();
-//				properties.put("nextSlice", pagingState.toString());
-//				result.add(properties);
-//			}
-//		}
-//
-//		return result;
-//	}
 
     /**
      * Lists cloud identifiers of provider's data set having given representation name and revision published after a specific time. Together with cloud identifier also
@@ -800,23 +748,9 @@ public class CassandraDataSetDAO{
                 throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
 
             // first element is the paging state
-            if (parts[0] == null || parts[0].isEmpty())
-                state = null;
-            else
-                state = PagingState.fromString(parts[0]);
-
+            state = getPagingState(parts[0]);
             // second element is bucket id
-            if (parts[1] == null || parts[1].isEmpty())
-                bucketId = null;
-            else {
-                // when the state passed in the next token is not null we have to use the same bucket id as the paging state is associated with the query having certain parameter values
-                if (state != null)
-                    bucketId = parts[1];
-                else {
-                    // the state part is empty which means we reached the end of the bucket passed in the next token, therefore we need to get the next bucket
-                    bucketId = getNextBucket(providerId, dataSetId, parts[1]);
-                }
-            }
+            bucketId = getBucketId(parts[1], state, providerId, dataSetId);
         }
 
         // if the bucket is null it means we reached the end of data
@@ -843,21 +777,15 @@ public class CassandraDataSetDAO{
             properties.put("cloudId", row.getString("cloud_id"));
             properties.put("versionId", row.getUUID("version_id").toString());
             properties.put("revisionId", row.getString("revision_id"));
+            properties.put("published", row.getBool("published"));
+            properties.put("deleted", row.getBool("mark_deleted"));
+            properties.put("acceptance", row.getBool("acceptance"));
             result.add(properties);
         }
 
         if (result.size() == limit) {
-            PagingState pagingState = rs.getExecutionInfo().getPagingState();
-            String nextSlice = null;
-
-            if (pagingState == null) {
-                // we possibly reached the end of a bucket, if there are more buckets we should prepare next slice otherwise not
-                if (getNextBucket(providerId, dataSetId, bucketId) != null)
-                    nextSlice = "_" + bucketId;
-            }
-            else {
-                nextSlice = pagingState.toString() + "_" + bucketId;
-            }
+            // we reached the page limit, prepare the next slice string to be used for the next page
+            String nextSlice = getNextSlice(rs.getExecutionInfo().getPagingState(), bucketId, providerId, dataSetId);
 
             if (nextSlice != null) {
                 Properties properties = new Properties();
@@ -874,6 +802,60 @@ public class CassandraDataSetDAO{
         }
 
         return result;
+    }
+
+    /**
+     * Get next slice string basing on paging state of the current query and bucket id.
+     *
+     * @param pagingState paging state of the current query
+     * @param bucketId current bucket identifier
+     * @param providerId provider id needed to retrieve next bucket id
+     * @param dataSetId dataset id needed to retrieve next bucket id
+     * @return next slice as the concatenation of paging state and bucket id (paging state may be empty_ or null when there are no more buckets available
+     */
+    private String getNextSlice(PagingState pagingState, String bucketId, String providerId, String dataSetId) {
+        if (pagingState == null) {
+            // we possibly reached the end of a bucket, if there are more buckets we should prepare next slice otherwise not
+            if (getNextBucket(providerId, dataSetId, bucketId) != null)
+                return "_" + bucketId;
+        }
+        else
+            return pagingState.toString() + "_" + bucketId;
+        return null;
+    }
+
+    /**
+     * Get bucket id from part of token considering paging state which was retrieved from the same token
+     *
+     * @param tokenPart part of token containing bucket id
+     * @param state paging state from the same token as the bucket id
+     * @param providerId provider id to retrieve next bucket id
+     * @param dataSetId dataset id to retrieve next bucket id
+     * @return bucket id to be used for the query
+     */
+    private String getBucketId(String tokenPart, PagingState state, String providerId, String dataSetId) {
+        if (tokenPart != null && !tokenPart.isEmpty()) {
+            // when the state passed in the next token is not null we have to use the same bucket id as the paging state is associated with the query having certain parameter values
+            if (state != null)
+                return tokenPart;
+            else {
+                // the state part is empty which means we reached the end of the bucket passed in the next token, therefore we need to get the next bucket
+                return getNextBucket(providerId, dataSetId, tokenPart);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get paging state from part of token. When the token is null or empty paging state is null. Otherwise we can create paging state from that string.
+     *
+     * @param tokenPart  part of token containing string representation of paging state from previous query
+     * @return null when token part is empty or null paging state otherwise
+     */
+    private PagingState getPagingState(String tokenPart) {
+        if (tokenPart != null && !tokenPart.isEmpty())
+            return PagingState.fromString(tokenPart);
+        return null;
     }
 
     private String getNextBucket(String providerId, String dataSetId, String bucketId) {
@@ -957,17 +939,16 @@ public class CassandraDataSetDAO{
 	 * @param dataSetProviderId provider identifier
 	 * @param globalId cloud identifier
 	 * @param schema representation name
-	 * @param revisionId revision identifier
 	 * @param updateTimeStamp timestamp of revision update
 +	 */
 	public void deleteProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
-														String schema, String revisionId, Date updateTimeStamp)
+														String schema, Date updateTimeStamp)
 			throws NoHostAvailableException, QueryExecutionException {
         synchronized (updateProviderDatasetBuckets) {
             String bucketId = getNextBucket(dataSetProviderId, dataSetId, null);
             while (bucketId != null) {
                 BoundStatement bs = deleteProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), schema,
-                        updateTimeStamp, revisionId, globalId);
+                        updateTimeStamp, globalId);
                 ResultSet rs = connectionProvider.getSession().execute(bs);
                 QueryTracer.logConsistencyLevel(bs, rs);
                 bucketId = getNextBucket(dataSetProviderId, dataSetId, bucketId);

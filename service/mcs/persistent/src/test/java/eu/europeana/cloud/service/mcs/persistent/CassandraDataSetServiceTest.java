@@ -535,10 +535,11 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// add new entries, each with different cloud id and revision timestamp
 		for (int i = 0; i < size; i++) {
 			CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
-				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"));
+				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"), true, false, false);
 			bsBuckets = psBuckets.bind("provider1", "dataset1", UUID.fromString(bucketId));
 			session.execute(bsBuckets);
-			bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()), "representation", obj.getRevisionId(), new Date(), false, true, false);
+			bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()),
+					"representation", obj.getRevisionId(), new Date(), obj.isAcceptance(), obj.isPublished(), obj.isDeleted());
 			session.execute(bs);
 			cloudIds.add(obj);
 		}
