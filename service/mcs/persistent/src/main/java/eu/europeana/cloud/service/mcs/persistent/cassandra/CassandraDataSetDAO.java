@@ -91,6 +91,8 @@ public class CassandraDataSetDAO{
 
     private PreparedStatement updateProviderDatasetBuckets;
 
+    private PreparedStatement decreaseProviderDatasetBuckets;
+
     @PostConstruct
     private void prepareStatements(){
         createDataSetStatement = connectionProvider
@@ -286,6 +288,10 @@ public class CassandraDataSetDAO{
         updateProviderDatasetBuckets = connectionProvider.getSession().prepare("UPDATE datasets_buckets " //
                 + "SET rows_count = rows_count + 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
         updateProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        decreaseProviderDatasetBuckets = connectionProvider.getSession().prepare("UPDATE datasets_buckets " //
+                + "SET rows_count = rows_count - 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
+        decreaseProviderDatasetBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getProviderDatasetBucketCount = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
                 + "FROM datasets_buckets " //
@@ -568,6 +574,7 @@ public class CassandraDataSetDAO{
             Date revisionTimestamp = row.getDate("revision_timestamp");
             connectionProvider.getSession().execute(
                     deleteProviderDatasetRepresentationInfo.bind(providerId, dataSetId, UUID.fromString(bucket_id), schemaId, revisionTimestamp, cloudId));
+            decreaseProviderDatasetBuckets(providerId, dataSetId, bucket_id);
         }
     }
 
@@ -892,12 +899,11 @@ public class CassandraDataSetDAO{
         synchronized (updateProviderDatasetBuckets) {
             Properties bucketCount = getCurrentProviderDatasetBucket(dataSetProviderId, dataSetId);
             // when there is no bucket or bucket rows count is max we should add another bucket
-            if (bucketCount.isEmpty() || Integer.valueOf(bucketCount.getProperty("rows_count")) == MAX_PROVIDER_DATASET_BUCKET_COUNT) {
+            if (bucketCount.isEmpty() || Integer.valueOf(bucketCount.getProperty("rows_count")) == MAX_PROVIDER_DATASET_BUCKET_COUNT)
                 bucketId = createBucket();
-                increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
-            }
             else
                 bucketId = bucketCount.getProperty("bucket_id");
+            increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
         }
 		BoundStatement bs = insertProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), globalId, UUID.fromString(versionId), schema,
 				revisionId, updateTimeStamp, acceptance, published, deleted);
@@ -933,7 +939,7 @@ public class CassandraDataSetDAO{
     }
 
 	/**
-	 * Insert row to provider_dataset_representation table.
+	 * Remove row from provider_dataset_representation table.
 	 *
 	 * @param dataSetId data set identifier
 	 * @param dataSetProviderId provider identifier
@@ -951,8 +957,15 @@ public class CassandraDataSetDAO{
                         updateTimeStamp, globalId);
                 ResultSet rs = connectionProvider.getSession().execute(bs);
                 QueryTracer.logConsistencyLevel(bs, rs);
+                decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
                 bucketId = getNextBucket(dataSetProviderId, dataSetId, bucketId);
             }
         }
 	}
+
+    private void decreaseProviderDatasetBuckets(String dataSetProviderId, String dataSetId, String bucketId) {
+        BoundStatement bs = decreaseProviderDatasetBuckets.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId));
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+    }
 }
