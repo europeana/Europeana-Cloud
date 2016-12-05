@@ -171,7 +171,7 @@ public class CassandraDataSetService implements DataSetService {
 		Representation rep = recordDAO.getRepresentation(recordId, schema, versionId);
 		if (rep != null) {
 			for (Revision revision : rep.getRevisions())
-				dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp());
+				dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
 		}
 	}
 
@@ -327,10 +327,14 @@ public class CassandraDataSetService implements DataSetService {
 	private List<CloudVersionRevisionResponse> prepareResponseList(List<Properties> list) {
 		List<CloudVersionRevisionResponse> result = new ArrayList<>(list.size());
 
-		for (Properties properties : list)
+		for (Properties properties : list) {
 			result.add(new CloudVersionRevisionResponse(properties.getProperty("cloudId"),
 					properties.getProperty("versionId"),
-					properties.getProperty("revisionId")));
+					properties.getProperty("revisionId"),
+					(Boolean) properties.get("published"),
+					(Boolean) properties.get("deleted"),
+					(Boolean) properties.get("acceptance")));
+		}
 
 		return result;
 	}

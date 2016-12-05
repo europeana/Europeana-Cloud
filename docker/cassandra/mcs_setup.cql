@@ -51,9 +51,18 @@ CREATE TABLE data_set_representation_names(
        PRIMARY KEY ((provider_id, dataset_id))
 )WITH comment='Retrieve information about the representations supported in a providers dataset';
 
+CREATE TABLE datasets_buckets (
+    provider_id varchar,
+    dataset_id varchar,
+    bucket_id timeuuid,
+    rows_count counter,
+    PRIMARY KEY (provider_id, dataset_id, bucket_id)
+) WITH comment='Keep track of number of rows in a bucket for provider and dataset.';
+
 CREATE TABLE provider_dataset_representation (
     provider_id varchar,
     dataset_id varchar,
+    bucket_id timeuuid,
     cloud_id varchar,
     representation_id varchar,
     version_id timeuuid,
@@ -62,7 +71,7 @@ CREATE TABLE provider_dataset_representation (
     acceptance boolean,
     published boolean,
     mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id), representation_id, revision_timestamp, revision_id, cloud_id)
+    PRIMARY KEY ((provider_id, dataset_id, bucket_id), representation_id, revision_timestamp, cloud_id)
 )WITH comment='Retrieve cloud Ids based on the revision_timestamp that is greater from a specific value. Used for full and incremental updates';
 
 CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_representation (acceptance);
@@ -70,3 +79,5 @@ CREATE INDEX provider_dataset_representation_acceptance ON provider_dataset_repr
 CREATE INDEX dataset_representation_published ON provider_dataset_representation (published);
 
 CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
+
+CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
