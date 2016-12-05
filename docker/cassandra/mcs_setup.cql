@@ -41,4 +41,4 @@ CREATE TABLE representation_revisions (
        revision_timestamp timestamp,
        files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
        PRIMARY KEY ((cloud_id, representation_id), revision_id, revision_timestamp, version_id)
-)WITH comment='Retrieve version_id based on the rest known fields of the primary key';
+)WITH CLUSTERING ORDER BY (revision_id ASC, revision_timestamp DESC, version_id ASC) AND comment='Retrieve version_id based on the rest known fields of the primary key';
