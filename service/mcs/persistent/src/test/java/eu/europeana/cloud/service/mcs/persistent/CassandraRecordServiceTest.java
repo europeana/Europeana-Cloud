@@ -736,36 +736,27 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 r.getRepresentationName(), r.getVersion(), revision);
         Revision revisionLatest = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), revision);
+                r.getRepresentationName(), r.getVersion(), revisionLatest);
 
         // insert info to extra table
         cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), r.getVersion(), revision.getCreationTimeStamp());
         cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revisionLatest), r.getVersion(), revisionLatest.getCreationTimeStamp());
 
         // retrieve info from extra table
-        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
+        RepresentationRevisionResponse representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), null);
 
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));
-        assertThat(representationRevision.getRevisionId(), is(RevisionUtils.getRevisionKey(revision)));
-        assertThat(representationRevision.getFiles(), is(r.getFiles()));
-        assertThat(representationRevision.getFiles().size(), is(0));
+        assertThat(representationRevision.getRevisionId(), is(RevisionUtils.getRevisionKey(revisionLatest)));
+        assertThat(representationRevision.getRevisionTimestamp(), is(revisionLatest.getCreationTimeStamp()));
 
-        // add files to representation version
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent("cloud-1", "representation-1", r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
-
-        // retrieve representation again
-        r = cassandraRecordService.getRepresentation("cloud-1", "representation-1", r.getVersion());
-
-        // retrieve info from extra table again
+        // get the other revision
         representationRevision = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp());
+
         assertThat(representationRevision.getCloudId(), is(r.getCloudId()));
         assertThat(representationRevision.getRepresentationName(), is(r.getRepresentationName()));
         assertThat(representationRevision.getRevisionId(), is(RevisionUtils.getRevisionKey(revision)));
-        assertThat(representationRevision.getFiles(), is(r.getFiles()));
+        assertThat(representationRevision.getRevisionTimestamp(), is(revision.getCreationTimeStamp()));
     }
 
     @Test

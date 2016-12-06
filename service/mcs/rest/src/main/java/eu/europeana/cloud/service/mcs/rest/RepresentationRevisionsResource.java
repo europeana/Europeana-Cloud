@@ -68,10 +68,6 @@ public class RepresentationRevisionsResource {
 																	@NotNull @QueryParam(REVISION_PROVIDER_ID) String revisionProviderId,
 																	@QueryParam(REVISION_TIMESTAMP) String revisionTimestamp)
 			throws RevisionNotExistsException {
-
-		if (revisionProviderId == null || revisionProviderId.isEmpty())
-			return null;
-
 		Date revisionDate = null;
 		if (revisionTimestamp != null) {
 			DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
