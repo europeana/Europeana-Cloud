@@ -21,7 +21,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -56,7 +55,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
         try {
-            String now = getNow();
+            String now = TestHelper.getTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
 
@@ -119,14 +118,6 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         }
         sourceDatasetHelper.cleanCloudIds();
 
-    }
-
-    //2016-10-05 10:05:05+0200
-    private String getNow() {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(date);
     }
 
 }

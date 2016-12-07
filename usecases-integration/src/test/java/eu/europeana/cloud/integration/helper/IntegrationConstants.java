@@ -14,6 +14,6 @@ public class IntegrationConstants {
     protected final static String SOURCE_REPRESENTATION_NAME = "EDM-External";
     protected final static String DESTINATION_REVISION_NAME = "IMPORT-11";
     protected static final String SOURCE_REVISION_NAME = "SOURCE_IMPORT-11";
-    protected static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
 }
 

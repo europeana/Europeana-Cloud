@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -55,12 +53,12 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
 
         try {
 
-            String now = getNow();
+            String now = TestHelper.getTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = sourceDatasetHelper.getDataSetCloudIdsByRepresentation(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
             assertNotNull(cloudVersionRevisionResponseList);
             assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS);
-            String newDate = getNow();
+            String newDate = TestHelper.getTime();
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -111,14 +109,6 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
         }
 
 
-    }
-
-    //2016-10-05 10:05:05+0200
-    private String getNow() {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(date);
     }
 
 }
