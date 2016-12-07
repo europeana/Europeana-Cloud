@@ -1,6 +1,8 @@
 package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.migrator.provider.DefaultResourceProvider;
+import eu.europeana.cloud.migrator.provider.FoodAndDrinkResourceProvider;
 import org.junit.Before;
 import org.junit.Test;
 

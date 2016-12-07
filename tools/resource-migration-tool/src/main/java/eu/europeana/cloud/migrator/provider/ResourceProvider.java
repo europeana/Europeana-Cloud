@@ -1,4 +1,4 @@
-package eu.europeana.cloud.migrator;
+package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 
