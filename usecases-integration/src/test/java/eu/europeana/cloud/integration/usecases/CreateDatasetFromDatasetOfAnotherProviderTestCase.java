@@ -117,6 +117,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
             adminRecordServiceClient.deleteRecord(cloudId);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.cleanCloudIds();
 
     }
 

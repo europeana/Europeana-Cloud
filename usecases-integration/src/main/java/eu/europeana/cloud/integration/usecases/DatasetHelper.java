@@ -11,8 +11,6 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,7 +27,6 @@ public class DatasetHelper {
     private RevisionServiceClient revisionServiceClient;
     private UISClient uisClient;
     private CloudId cloudId;
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetHelper.class);
     private static List<String> cloudIds = new ArrayList<>();
 
     public DatasetHelper(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, RevisionServiceClient revisionServiceClient, UISClient uisClient) {
@@ -52,7 +49,6 @@ public class DatasetHelper {
     public final URI prepareEmptyDataset(String providerId, String datasetName) throws CloudException, MCSException {
         createProviderIdIfNotExists(uisClient, providerId);
         return dataSetServiceClient.createDataSet(providerId, datasetName, "");
-
     }
 
     public final List<Representation> getRepresentationsInsideDataSetByName(String providerId, String datasetName, String representationName) throws MCSException {
@@ -77,6 +73,10 @@ public class DatasetHelper {
 
     public final List<String> getCloudIds() {
         return cloudIds;
+    }
+
+    public final void cleanCloudIds() {
+        cloudIds.clear();
     }
 
     public final void grantPermissionToVersion(String cloudId, String representationName, String version, String userName, Permission permission) throws MCSException {
