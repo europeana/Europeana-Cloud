@@ -126,9 +126,7 @@
         <version.commonscodec>1.10</version.commonscodec>
         <version.commonio>2.4</version.commonio>
         <version.uuid>3.4</version.uuid>
-        <version.blobstore>1.6.0</version.blobstore>
-        <version.swift>1.6.0</version.swift>
-        <version.keystone>1.6.3</version.keystone>
+        <version.swift>1.9.2</version.swift>
         <version.gson>2.3.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>0.8.1.1</version.kafka>
