@@ -699,19 +699,19 @@ public class RecordServiceClient extends MCSClient {
      *
      * @param cloudId            id of the record to get representation from (required)
      * @param representationName name of the representation (required)
-     * @param revisionId         revision name (required)
+     * @param revisionName         revision name (required)
      * @param revisionProviderId revision provider identifier, together with revisionId it is used to determine the correct revision (required)
      * @return requested representation version
      * @throws RepresentationNotExistsException if specified representation does
      *                                          not exist
      * @throws MCSException                     on unexpected situations
      */
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionId, String revisionProviderId, String revisionTimestamp)
+    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
             throws RevisionNotExistsException, MCSException {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.REVISION_NAME, revisionId);
+                .resolveTemplate(ParamConstants.REVISION_NAME, revisionName);
 
         if (revisionProviderId != null) {
             webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId);

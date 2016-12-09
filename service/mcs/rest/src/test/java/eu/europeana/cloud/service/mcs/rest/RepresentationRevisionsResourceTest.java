@@ -42,11 +42,11 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     static final private String globalId = "1";
     static final private String schema = "DC";
     static final private String revisionProviderId = "ABC";
-    static final private String revisionId = "rev1";
+    static final private String revisionName = "rev1";
     static final private String version = "1.0";
     static final private Date revisionTimestamp = new Date();
     static final private RepresentationRevisionResponse representationResponse = new RepresentationRevisionResponse(globalId, schema, version, Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-                            null)),"ABC_rev1", revisionTimestamp);
+                            null)), revisionProviderId, revisionName, revisionTimestamp);
 
     @Override
     public Application configure() {
@@ -79,20 +79,20 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
         expected.setFiles(files);
 
         when(recordService.getRepresentationRevision(globalId,
-                schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), null)).thenReturn(new RepresentationRevisionResponse(representationResponse));
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionId).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId).request(mediaType)
+                schema, revisionProviderId, revisionName, null)).thenReturn(new RepresentationRevisionResponse(representationResponse));
+        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId).request(mediaType)
                 .get();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getMediaType(), is(mediaType));
         RepresentationRevisionResponse entity = response.readEntity(RepresentationRevisionResponse.class);
         assertThat(entity, is(expected));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), null);
+        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
         verifyNoMoreInteractions(recordService);
     }
     
     @Test
     public void getRepresentationReturns406ForUnsupportedFormat() {
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionId).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
+        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_SVG_XML_TYPE).get();
         
         assertThat(response.getStatus(), is(406));
@@ -108,14 +108,14 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     @Parameters(method = "representationRevisionErrors")
     public void getRepresentationRevisionsReturns404IfRevisionDoesNotExists(Throwable exception, String errorCode)
             throws Exception {
-        when(recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), null)).thenThrow(exception);
-        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionId).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
+        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenThrow(exception);
+        Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_XML).get();
         
         assertThat(response.getStatus(), is(404));
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionId), null);
+        verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
         verifyNoMoreInteractions(recordService);
     }
 }

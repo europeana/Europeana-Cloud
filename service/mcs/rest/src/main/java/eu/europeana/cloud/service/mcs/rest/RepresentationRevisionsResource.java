@@ -73,7 +73,7 @@ public class RepresentationRevisionsResource {
 			DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 			revisionDate = utc.toDate();
 		}
-		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionName), revisionDate);
+		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
 		EnrichUriUtil.enrich(uriInfo, info);
 		return info;
 	}

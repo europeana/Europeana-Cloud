@@ -37,7 +37,7 @@ public class RevisionResource {
     private RecordService recordService;
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will update it.
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param globalId           cloud id of the record (required).
@@ -65,29 +65,18 @@ public class RevisionResource {
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException {
                 ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
-        String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
-        Revision revision = null;
-        try {
-            revision = recordService.getRevision(globalId, schema, version, revisionKey);
-            if (Tags.ACCEPTANCE.getTag().equals(tag))
-                revision.setAcceptance(true);
-            else if (Tags.PUBLISHED.getTag().equals(tag))
-                revision.setPublished(true);
-            else revision.setDeleted(true);
-            revision.setUpdateTimeStamp(new Date());
-        } catch (RevisionNotExistsException e) {
-            revision = createNewRevision(revisionName, revisionProviderId, tag);
-        }
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
         recordService.addRevision(globalId, schema, version, revision);
 
         // insert information in extra table
-        recordService.insertRepresentationRevision(globalId, schema, revisionKey, version, revision.getCreationTimeStamp());
+        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
 
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will override it .
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param revision Revision (required).
@@ -108,12 +97,16 @@ public class RevisionResource {
             throws RevisionIsNotValidException {
 
         recordService.addRevision(globalId, schema, version, revision);
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
+
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will update it.
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param globalId           cloud id of the record (required).
@@ -143,30 +136,14 @@ public class RevisionResource {
             throws RepresentationNotExistsException, RevisionIsNotValidException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
-        String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
-        Revision revision = null;
-        try {
-            revision = recordService.getRevision(globalId, schema, version, revisionKey);
-            revision.setUpdateTimeStamp(new Date());
-        } catch (RevisionNotExistsException e) {
-            revision = new Revision(revisionName, revisionProviderId);
-        }
+        Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, tags);
         recordService.addRevision(globalId, schema, version, revision);
-        return Response.created(uriInfo.getAbsolutePath()).build();
-    }
 
-    private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {
-        boolean acceptance = false;
-        boolean published = false;
-        boolean deleted = false;
-        if (Tags.ACCEPTANCE.getTag().equals(tag))
-            acceptance = true;
-        else if (Tags.PUBLISHED.getTag().equals(tag))
-            published = true;
-        else deleted = true;
-        Revision revision = new Revision(revisionName, revisionProviderId, new Date(), acceptance, published, deleted);
-        return revision;
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
+
+        return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
 

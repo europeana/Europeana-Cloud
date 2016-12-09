@@ -161,27 +161,27 @@ public class CassandraRecordDAO {
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getRepresentationRevisionStatement = s
-                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ?;");
+                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ?;");
         getRepresentationRevisionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getLatestRepresentationRevisionStatement = s
-                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? LIMIT 1;");
+                .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? LIMIT 1;");
         getLatestRepresentationRevisionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         insertRepresentationRevisionStatement = s
-                .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, revision_id, revision_timestamp) VALUES (?,?,?,?,?);");
+                .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, revision_provider_id, revision_name, revision_timestamp) VALUES (?,?,?,?,?,?);");
         insertRepresentationRevisionStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         insertRepresentationRevisionFileStatement = s
-                .prepare("UPDATE representation_revisions SET files[?] = ? WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ? AND version_id = ?;");
+                .prepare("UPDATE representation_revisions SET files[?] = ? WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND version_id = ?;");
         insertRepresentationRevisionFileStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         deleteRepresentationRevisionStatement = s
-                .prepare("DELETE FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_id = ? AND revision_timestamp = ? AND version_id = ?");
+                .prepare("DELETE FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND version_id = ?");
         deleteRepresentationRevisionStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
     }
@@ -586,11 +586,11 @@ public class CassandraRecordDAO {
         }
     }
 
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionId, Date revisionTimestamp)
+    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp)
         throws RevisionNotExistsException {
 
         // check parameters, none can be null
-        if (cloudId == null || schema == null || revisionId == null) {
+        if (cloudId == null || schema == null || revisionProviderId == null || revisionName == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
         BoundStatement boundStatement;
@@ -598,9 +598,9 @@ public class CassandraRecordDAO {
         // bind parameters to statement
         if (revisionTimestamp != null)
             boundStatement = getRepresentationRevisionStatement.bind(
-                    cloudId, schema, revisionId, revisionTimestamp);
+                    cloudId, schema, revisionProviderId, revisionName, revisionTimestamp);
         else
-            boundStatement = getLatestRepresentationRevisionStatement.bind(cloudId, schema, revisionId);
+            boundStatement = getLatestRepresentationRevisionStatement.bind(cloudId, schema, revisionProviderId, revisionName);
 
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -608,11 +608,11 @@ public class CassandraRecordDAO {
         // retrieve one row, there should be only one
         Row row = rs.one();
         if (row == null) {
-            throw new RevisionNotExistsException("Revision identified by " + revisionId + " does not exist.");
+            throw new RevisionNotExistsException("Revision identified by " + RevisionUtils.getRevisionKey(revisionProviderId, revisionName, revisionTimestamp.getTime()) + " does not exist.");
         } else {
             // prepare representation revision object from the fields in a row
             RepresentationRevisionResponse representationRevision = new RepresentationRevisionResponse(cloudId, schema,
-                    row.getUUID("version_id").toString(), revisionId, row.getDate("revision_timestamp"));
+                    row.getUUID("version_id").toString(), revisionProviderId, revisionName, row.getDate("revision_timestamp"));
             // retrieve files information from the map
             representationRevision.setFiles(deserializeFiles(row.getMap("files", String.class,
                     String.class)));
@@ -627,16 +627,18 @@ public class CassandraRecordDAO {
      * @param cloudId record if
      * @param schema  schema id
      * @param version version id
-     * @param revisionId revision identifier
+     * @param revisionProviderId   revision provider identifier
+     * @param revisionName revision name
+     * @param revisionTimestamp revision timestamp
      * @param file    file
      * @throws QueryExecutionException  if error occured while executing a query.
      * @throws NoHostAvailableException if no Cassandra host are available.
      */
     public void addOrReplaceFileInRepresentationRevision(String cloudId, String schema,
-                                                 String version, String revisionId, Date revisionTimestamp, File file) throws NoHostAvailableException,
+                                                 String version, String revisionProviderId, String revisionName, Date revisionTimestamp, File file) throws NoHostAvailableException,
             QueryExecutionException {
         BoundStatement boundStatement = insertRepresentationRevisionFileStatement.bind(
-                file.getFileName(), serializeFile(file), cloudId, schema, revisionId, revisionTimestamp,
+                file.getFileName(), serializeFile(file), cloudId, schema, revisionProviderId, revisionName, revisionTimestamp,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -649,22 +651,24 @@ public class CassandraRecordDAO {
      * @param cloudId      identifier of record
      * @param schema       schema of representation
      * @param version      version identifier
-     * @param revisionId   revision identifier
+     * @param revisionProviderId   revision provider identifier
+     * @param revisionName revision name
+     * @param revisionTimestamp revision timestamp
      * @return
      */
     public RepresentationRevisionResponse addRepresentationRevision(String cloudId, String schema,
-                                                                    String version, String revisionId, Date revisionTimestamp)
+                                                                    String version, String revisionProviderId, String revisionName, Date revisionTimestamp)
             throws NoHostAvailableException, QueryExecutionException {
 
         // none of the parameters can be null
-        validateParameters(cloudId, schema, version, revisionId, revisionTimestamp);
+        validateParameters(cloudId, schema, version, revisionProviderId, revisionName, revisionTimestamp);
 
         // insert representation revision into representation revision table.
         BoundStatement boundStatement = insertRepresentationRevisionStatement.bind(
-                cloudId, schema, UUID.fromString(version), revisionId, revisionTimestamp);
+                cloudId, schema, UUID.fromString(version), revisionProviderId, revisionName, revisionTimestamp);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        return new RepresentationRevisionResponse(cloudId, schema, version, new ArrayList<File>(0), revisionId, revisionTimestamp);
+        return new RepresentationRevisionResponse(cloudId, schema, version, new ArrayList<File>(0), revisionProviderId, revisionName, revisionTimestamp);
     }
 
 
@@ -674,25 +678,27 @@ public class CassandraRecordDAO {
      * @param cloudId      identifier of record
      * @param schema       schema of representation
      * @param version      version identifier
-     * @param revisionId   revision identifier
+     * @param revisionProviderId   revision provider identifier
+     * @param revisionName revision name
+     * @param revisionTimestamp revision timestamp
      * @return
      */
     public void deleteRepresentationRevision(String cloudId, String schema,
-                                                                    String version, String revisionId, Date revisionTimestamp)
+                                                                    String version, String revisionProviderId, String revisionName, Date revisionTimestamp)
             throws NoHostAvailableException, QueryExecutionException {
 
-        validateParameters(cloudId, schema, version, revisionId, revisionTimestamp);
+        validateParameters(cloudId, schema, version, revisionProviderId, revisionName, revisionTimestamp);
 
         // delete representation revision into representation revision table.
         BoundStatement boundStatement = deleteRepresentationRevisionStatement.bind(
-                cloudId, schema, revisionId, revisionTimestamp, UUID.fromString(version));
+                cloudId, schema, revisionProviderId, revisionName, revisionTimestamp, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    private void validateParameters(String cloudId, String schema, String version, String revisionId, Date revisionTimestamp) {
+    private void validateParameters(String cloudId, String schema, String version, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         // none of the parameters can be null
-        if (cloudId == null || schema == null || version == null || revisionId == null || revisionTimestamp == null) {
+        if (cloudId == null || schema == null || version == null || revisionProviderId == null || revisionName == null || revisionTimestamp == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
         }
     }

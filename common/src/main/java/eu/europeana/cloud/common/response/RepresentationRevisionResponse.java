@@ -37,9 +37,15 @@ public class RepresentationRevisionResponse {
 
 
     /**
-     * Revision identifier.
+     * Revision provider identifier.
      */
-    private String revisionId;
+    private String revisionProviderId;
+
+
+    /**
+     * Revision name.
+     */
+    private String revisionName;
 
 
     /**
@@ -56,14 +62,16 @@ public class RepresentationRevisionResponse {
      *  @param cloudId
      * @param representationName
      * @param version
-     * @param revisionId
+     * @param revisionProviderId
+     * @param revisionName
      * @param revisionTimestamp
      */
-    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionId, Date revisionTimestamp) {
+    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
-        this.revisionId = revisionId;
+        this.revisionProviderId = revisionProviderId;
+        this.revisionName = revisionName;
         this.revisionTimestamp = revisionTimestamp;
     }
 
@@ -74,15 +82,17 @@ public class RepresentationRevisionResponse {
      * @param representationName
      * @param version
      * @param files
-     * @param revisionId
+     * @param revisionProviderId
+     * @param revisionName
      */
     public RepresentationRevisionResponse(String cloudId, String representationName, String version,
-                                          List<File> files, String revisionId, Date revisionTimestamp) {
+                                          List<File> files, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
         this.files = files;
-        this.revisionId = revisionId;
+        this.revisionProviderId = revisionProviderId;
+        this.revisionName = revisionName;
         this.revisionTimestamp = revisionTimestamp;
     }
 
@@ -94,7 +104,7 @@ public class RepresentationRevisionResponse {
      */
     public RepresentationRevisionResponse(final RepresentationRevisionResponse response) {
         this(response.getCloudId(), response.getRepresentationName(), response.getVersion(),
-                cloneFiles(response), response.getRevisionId(), response.getRevisionTimestamp());
+                cloneFiles(response), response.getRevisionProviderId(), response.getRevisionName(), response.getRevisionTimestamp());
     }
 
 
@@ -147,15 +157,24 @@ public class RepresentationRevisionResponse {
     }
 
 
-    public String getRevisionId() {
-        return revisionId;
+    public String getRevisionProviderId() {
+        return revisionProviderId;
     }
 
 
-    public void setRevisionId(String revisionId) {
-        this.revisionId = revisionId;
+    public void setRevisionProviderId(String revisionProviderId) {
+        this.revisionProviderId = revisionProviderId;
     }
 
+
+    public String getRevisionName() {
+        return revisionName;
+    }
+
+
+    public void setRevisionName(String revisionName) {
+        this.revisionName = revisionName;
+    }
 
     public Date getRevisionTimestamp() {
         return revisionTimestamp;
@@ -183,7 +202,8 @@ public class RepresentationRevisionResponse {
         hash = 37 * hash + Objects.hashCode(this.representationName);
         hash = 37 * hash + Objects.hashCode(this.version);
         hash = 37 * hash + Objects.hashCode(this.files);
-        hash = 37 * hash + Objects.hashCode(this.revisionId);
+        hash = 37 * hash + Objects.hashCode(this.revisionProviderId);
+        hash = 37 * hash + Objects.hashCode(this.revisionName);
         hash = 37 * hash + Objects.hashCode(this.revisionTimestamp);
         return hash;
     }
@@ -209,7 +229,10 @@ public class RepresentationRevisionResponse {
         if (!Objects.equals(this.files, other.files)) {
             return false;
         }
-        if (!Objects.equals(this.revisionId, other.revisionId)) {
+        if (!Objects.equals(this.revisionProviderId, other.revisionProviderId)) {
+            return false;
+        }
+        if (!Objects.equals(this.revisionName, other.revisionName)) {
             return false;
         }
         if (!Objects.equals(this.revisionTimestamp, other.revisionTimestamp)) {
@@ -221,6 +244,6 @@ public class RepresentationRevisionResponse {
     @Override
     public String toString() {
         return "RepresentationRevisionResponse{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", files=" + files + ", revisionId=" + revisionId + ", revisionTimestamp=" + revisionTimestamp + '}';
+                + version + ", files=" + files + ", revisionProviderId=" + revisionProviderId + ", revisionName=" + revisionName + ", revisionTimestamp=" + revisionTimestamp + '}';
     }
 }

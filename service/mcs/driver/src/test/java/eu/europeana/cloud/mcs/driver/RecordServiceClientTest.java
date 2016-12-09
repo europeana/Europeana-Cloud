@@ -941,6 +941,7 @@ public class RecordServiceClientTest {
         assertEquals("test_rep",
                 representationRevisionResponse.getRepresentationName());
         assertEquals("5ead19c0-8f7f-11e6-9149-50e5493601c6", representationRevisionResponse.getVersion());
-        assertEquals(RevisionUtils.getRevisionKey("revision-provider-1", "revision-1"), representationRevisionResponse.getRevisionId());
+        assertEquals("revision-provider-1", representationRevisionResponse.getRevisionProviderId());
+        assertEquals("revision-1", representationRevisionResponse.getRevisionName());
     }
 }
