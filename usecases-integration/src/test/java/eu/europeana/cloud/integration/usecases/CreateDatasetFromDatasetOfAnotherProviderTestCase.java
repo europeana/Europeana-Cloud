@@ -21,11 +21,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Created by Tarek on 9/19/2016.
@@ -59,9 +55,10 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
         try {
-            String now = getNow();
+            String now = TestHelper.getTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
+
             assertCloudVersionRevisionResponseListWithExpectedValues(cloudVersionRevisionResponseList);
         } finally {
             cleanUp();
@@ -86,10 +83,13 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
     }
 
     private void prepareTestCase() throws MCSException, MalformedURLException, CloudException {
-        URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, Tags.PUBLISHED.getTag(), RECORDS_NUMBERS);
+        List<String> tags = new ArrayList<>();
+        tags.add(Tags.PUBLISHED.getTag());
+        tags.add(Tags.DELETED.getTag());
+        URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS);
         LOGGER.info("The source dataSet {} has been created! Its url is {}", SOURCE_DATASET_NAME, uri);
         destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        LOGGER.info("The destination dataSet {} has been created! Its url is {} ", DESTINATION_DATASET_NAME, uri);
+        System.out.println("The destination dataSet {} has been created! Its url is {} " + DESTINATION_DATASET_NAME + " " + uri);
         List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
         for (Representation representation : representations) {
             destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
@@ -116,15 +116,8 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
             adminRecordServiceClient.deleteRecord(cloudId);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.cleanCloudIds();
 
-    }
-
-    //2016-10-05 10:05:05+0200
-    private String getNow() {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(date);
     }
 
 }
