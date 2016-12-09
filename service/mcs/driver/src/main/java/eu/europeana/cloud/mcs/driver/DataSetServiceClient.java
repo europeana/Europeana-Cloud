@@ -639,9 +639,6 @@ public class DataSetServiceClient extends MCSClient {
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
         }
-        catch (Exception e) {
-            return null;
-        }
         finally {
             if (response != null) {
                 response.close();
