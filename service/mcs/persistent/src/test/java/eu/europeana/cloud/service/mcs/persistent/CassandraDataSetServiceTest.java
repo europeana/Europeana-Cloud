@@ -667,11 +667,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         bs = ps.bind(providerId, DATA_SET_NAME, UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, RevisionUtils.getRevisionKey(providerId, REVISION), utc.toDate(), true, false, false);
         session.execute(bs);
 
-
     }
 
     private PreparedStatement getPreparedStatementForInsertion(Session session) {
-        // create prepared statement for entry in a table
         String table = KEYSPACE + ".provider_dataset_representation";
         PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,bucket_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
                 "(?,?,?,?,?,?,?,?,?,?,?)");
