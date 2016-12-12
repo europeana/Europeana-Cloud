@@ -1,87 +1,94 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.client.uis.rest.CloudException;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.Hashing;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
-import org.junit.Assert;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraTestRunner;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.ApplicationContext;
 
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.net.URISyntaxException;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-        "classpath:filesAccessContext.xml"})
-public class FileUploadResourceTest {
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-    @Autowired
-    private FileUploadResource fileUploadResource;
+@RunWith(CassandraTestRunner.class)
+public class FileUploadResourceTest extends JerseyTest {
 
-    @Autowired
-    private RecordService recordService;
+    private WebTarget fileWebTarget;
 
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
+    private File file;
 
-    @Autowired
-    private MutableAclService mutableAclService;
+    @Override
+    public Application configure() {
+        return new JerseyConfig().property("contextConfigLocation", "classpath:spiedPersistentServicesTestContext.xml");
+    }
+    @Override
+    protected void configureClient(ClientConfig config) {
+        config.register(MultiPartFeature.class);
+    }
 
-    private static boolean setUpIsDone = false;
-
-    private static UriInfo URI_INFO;
-    
-    private static String CLOUD_ID = "sampleCloudId";
-    private static String NON_EXISTING_REPRESENTATION_NAME = "nonExistingRepresentationName";
-    private static String EXISTING_PERSISTED_REPRESENTATION_NAME = "existingPersistedRepresentationName";
-    
-    private Representation createdRepresentation;
-    
     @Before
-    public void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, URISyntaxException {
-        if (setUpIsDone) {
-            return;
-        }
-        createdRepresentation = new Representation();
-        createdRepresentation.setCloudId("123");
-        createdRepresentation.setRepresentationName("sampleName");
-        createdRepresentation.setVersion("1243");
-
-        UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
-        URI_INFO = Mockito.mock(UriInfo.class);
-        Mockito.when(URI_INFO.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
-        Mockito.when(URI_INFO.resolve(Mockito.any(URI.class))).thenReturn(new URI("sdfsdfd"));
-        
-        Mockito.doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME);
-        Mockito.doReturn(createdRepresentation).when(recordService).getRepresentation(CLOUD_ID, EXISTING_PERSISTED_REPRESENTATION_NAME);
-        Mockito.doReturn(createdRepresentation).when(recordService).createRepresentation(Mockito.eq(CLOUD_ID), Mockito.eq(NON_EXISTING_REPRESENTATION_NAME), Mockito.anyString());
-
-        setUpIsDone = true;
+    public void init(){
+        CassandraTestInstance.truncateAllData(false);
+        ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
+        UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);
+        Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
+        Representation rep = new Representation();
+        rep.setCloudId("cloudId");
+        rep.setRepresentationName("representationName");
+        rep.setVersion("versionId");
+        file = new File();
+        file.setFileName("fileName");
+        file.setMimeType("mime/fileSpecialMime");
+        Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(ParamConstants.P_CLOUDID,
+                rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
+                rep.getVersion());
+        fileWebTarget = target(FileUploadResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
     
     @Test
-    public void shouldUploadFileForNonExistingRepresentation() throws FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, FileNotExistsException, RecordNotExistsException, CannotPersistEmptyRepresentationException, ProviderNotExistsException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-        fileUploadResource.sendFile(URI_INFO, CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME, "fileName", "providerId", "mimeType", null);
+    public void shouldUploadFileForNonExistingRepresentation()  {
+        //given
+        String providerId = "providerId";
+        byte[] content = new byte[1000];
+        ThreadLocalRandom.current().nextBytes(content);
+        String contentMd5 = Hashing.md5().hashBytes(content).toString();
+        FormDataMultiPart multipart = new FormDataMultiPart()
+                .field(ParamConstants.F_PROVIDER,providerId)
+                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+        //when
+        Response uploadFileResponse = fileWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        //then
+        assertThat("Unexpected status code",uploadFileResponse.getStatus(),is(201));
+        assertThat("File content tag does not match",uploadFileResponse.getEntityTag().getValue(),is(contentMd5));
     }
-    
+
+
+
 }
 

@@ -1,26 +1,25 @@
 package eu.europeana.cloud.test;
 
-import org.junit.After;
+import org.junit.Before;
 
 /**
  * Test configuration for Cassandra
  */
 public abstract class CassandraAATestRunner {
 
-	private final CassandraTestInstance cassandraTestInstance;
-	public static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
-	public static final String KEYSPACE = "ecloud_aas_tests";
+	private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
+	private static final String KEYSPACE = "ecloud_aas_tests";
 
-	public CassandraAATestRunner() {
-		cassandraTestInstance = CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL,KEYSPACE);
+	CassandraAATestRunner() {
+		CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL,KEYSPACE);
 	}
 
 	/**
 	 * Truncate the tables
 	 */
-	@After
-	public void tearDown() {
-		cassandraTestInstance.truncateAllData();
+	@Before
+	public void init() {
+		CassandraTestInstance.truncateAllData(false);
 	}
 
 

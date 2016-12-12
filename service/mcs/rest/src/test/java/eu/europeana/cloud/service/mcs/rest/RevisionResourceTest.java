@@ -36,9 +36,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -65,7 +63,6 @@ public class RevisionResourceTest extends JerseyTest {
     public void mockUp() throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils
                 .getApplicationContext();
-
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -100,8 +97,6 @@ public class RevisionResourceTest extends JerseyTest {
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
                 + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
-
-
     }
 
     @After

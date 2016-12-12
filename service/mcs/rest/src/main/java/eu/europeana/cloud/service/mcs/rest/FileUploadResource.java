@@ -4,18 +4,10 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -23,13 +15,9 @@ import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,9 +40,6 @@ public class FileUploadResource {
 
     @Autowired
     private RecordService recordService;
-
-    @Autowired
-    private PermissionEvaluator permissionEvaluator;
 
     @Autowired
     private MutableAclService mutableAclService;
@@ -95,7 +80,8 @@ public class FileUploadResource {
                              @FormDataParam(F_FILE_MIME) String mimeType,
                              @FormDataParam(F_FILE_DATA) InputStream data)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-            FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, CannotPersistEmptyRepresentationException {
+            FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, FileAlreadyExistsException,
+            AccessDeniedOrObjectDoesNotExistException, CannotPersistEmptyRepresentationException {
 
         Representation representation = null;
         representation = recordService.createRepresentation(globalId, schema, providerId);

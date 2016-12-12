@@ -22,14 +22,7 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.hasItem;
@@ -60,7 +53,6 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-
         dataSetWebTarget = target(DataSetRevisionsResource.class.getAnnotation(Path.class).value());
     }
 
@@ -111,7 +103,6 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         String representationName = "representationName";
         String cloudId = "cloudId";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
-
         // when
         dataSetWebTarget = dataSetWebTarget.
                 resolveTemplate(P_DATASET, datasetId).
@@ -129,33 +120,6 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         assertThat(acltualCloudIds,not(hasItem(cloudId)));
     }
 
-    @Test
-    public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception{
-        // given
-        String datasetId = "dataset";
-        String providerId = "providerId";
-        String revisionName = "revisionName";
-        String revisionProviderId = "revisionProviderId";
-        String representationName = "representationName";
-        String cloudId = "cloudId";
-        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
-
-        // when
-        dataSetWebTarget = dataSetWebTarget.
-                resolveTemplate(P_DATASET, datasetId).
-                resolveTemplate(P_PROVIDER, providerId).
-                resolveTemplate(P_CLOUDID, cloudId).
-                resolveTemplate(P_REVISION_NAME, revisionName).
-                resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_START_FROM,cloudId);
-        Response response = dataSetWebTarget.request().get();
-
-        //then
-        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
-        List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
-        assertThat(acltualCloudIds,not(hasItem(cloudId)));
-    }
 
     @Test
     public void shouldResultWithNotDefinedStart() throws Exception{
