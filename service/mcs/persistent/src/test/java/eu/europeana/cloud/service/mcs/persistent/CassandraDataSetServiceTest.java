@@ -627,10 +627,22 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(1000);
         String dateFrom = "4000-5-3";
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision("dataset1", providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
+        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
         assertTrue(cloudIdAndTimestampResponse.isEmpty());
 
     }
+
+    @Test(expected=DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistedException()
+            throws Exception {
+        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(1000);
+        String dateFrom = "2016-5-3";
+        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
+        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision("Non-Existed-Dataset", providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
+        assertTrue(cloudIdAndTimestampResponse.isEmpty());
+
+    }
+
 
     private void prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(int rowNum) throws ProviderNotExistsException, DataSetAlreadyExistsException {
         makeUISProviderSuccess();
