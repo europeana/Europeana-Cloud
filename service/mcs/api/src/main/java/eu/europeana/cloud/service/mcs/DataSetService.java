@@ -195,7 +195,6 @@ public interface DataSetService {
      * @return get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
-     * @throws RepresentationNotExistsException
      */
     CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionId, String representationName, Date dateFrom)
             throws ProviderNotExistsException, DataSetNotExistsException;

@@ -835,7 +835,6 @@ public class CassandraDataSetDAO {
      */
     public CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String providerId, String dataSetId, String revisionId, String representationName, Date dateFrom, String nextToken, CloudIdAndTimestampResponse cloudIdAndTimestampResponse)
             throws NoHostAvailableException, QueryExecutionException {
-
         String bucketId = getNextBucket(providerId, dataSetId, nextToken);
         if (bucketId == null)
             return cloudIdAndTimestampResponse;

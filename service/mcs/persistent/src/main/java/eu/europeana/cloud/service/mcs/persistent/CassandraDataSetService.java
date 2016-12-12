@@ -340,8 +340,8 @@ public class CassandraDataSetService implements DataSetService {
     public CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionId, String representationName, Date dateFrom)
             throws ProviderNotExistsException, DataSetNotExistsException {
         validateRequest(dataSetId, providerId);
-        CloudIdAndTimestampResponse list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, null, new CloudIdAndTimestampResponse());
-        return list;
+        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, null, new CloudIdAndTimestampResponse());
+        return cloudIdAndTimestampResponse;
     }
 
     private void validateRequest(String dataSetId, String providerId) throws ProviderNotExistsException, DataSetNotExistsException {

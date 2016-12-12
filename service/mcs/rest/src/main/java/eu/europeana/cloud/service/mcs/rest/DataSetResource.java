@@ -164,7 +164,6 @@ public class DataSetResource {
      * @return Lists all cloud identifiers,timestamps that belong to data set from the specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
-     * @throws RepresentationNotExistsException
      */
 
     @Path("/revision/{" + P_REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER + "}/representations/{" + P_REPRESENTATIONNAME + "}")
@@ -180,7 +179,6 @@ public class DataSetResource {
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
         String revisionId = RevisionUtils.getRevisionKey(providerId, revisionName);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate());
-        System.out.println("The final Results is ==" + cloudIdAndTimestampResponse);
         return cloudIdAndTimestampResponse;
     }
 }

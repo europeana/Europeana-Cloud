@@ -95,7 +95,7 @@ public class CloudIdAndTimestampResponse {
 
     @Override
     public String toString() {
-        return "CloudVersionRevision{" + "cloudId=" + cloudId + ", revisionTimestamp = "
+        return "CloudIdAndTimestamp{" + "cloudId=" + cloudId + ", revisionTimestamp = "
                 + revisionTimestamp + '}';
     }
 
