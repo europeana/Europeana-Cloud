@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -21,6 +22,7 @@ import static org.junit.Assert.*;
 
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -605,6 +607,66 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		//
 		String versionId = cassandraDataSetService.getLatestVersionForGivenRevision(sampleDataSet.getId(), sampleDataSet.getProviderId(), sampleRep.getCloudId(), sampleRep.getRepresentationName(), revision.getRevisionName(), revision.getRevisionProviderId());
 		assertEquals(versionId,sampleRep.getVersion());
+	}
+
+	@Test
+	public void shouldGetAllLatestVersionsForGivenRevision() throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetNotExistsException {
+		makeUISProviderSuccess();
+		DataSet sampleDataSet = new DataSet();
+		sampleDataSet.setId("sampleId");
+		sampleDataSet.setProviderId("sampleProviderId");
+		cassandraDataSetService.createDataSet(sampleDataSet.getProviderId(),sampleDataSet.getId(),sampleDataSet.getDescription());
+		//
+		Representation sampleRep = new Representation();
+		sampleRep.setCloudId("sampleCloudId");
+		sampleRep.setRepresentationName("sampleName");
+		sampleRep.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+		//
+		Representation sampleRep_1 = new Representation();
+		sampleRep_1.setCloudId("sampleCloudId_1");
+		sampleRep_1.setRepresentationName("sampleName");
+		sampleRep_1.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+		//
+		Revision revision = new Revision();
+		revision.setCreationTimeStamp(new Date());
+		revision.setRevisionName("sampleRevName");
+		revision.setRevisionProviderId("revProvider");
+		revision.setAcceptance(true);
+		revision.setDeleted(true);
+		revision.setPublished(false);
+		cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep, revision);
+		cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep_1, revision);
+		//
+		Tags tag = Tags.PUBLISHED;
+		tag.setValue(false);
+		//
+		DataSetRepresentationsForLatestRevision result = cassandraDataSetService.getLatestRepresentationsForGivenRevision(
+				sampleDataSet.getId(),
+				sampleDataSet.getProviderId(),
+				sampleRep.getRepresentationName(),
+				revision.getRevisionName(),
+				revision.getRevisionProviderId(),
+				tag);
+		Assert.assertTrue(result.getRepresentations().size() == 2);
+		Assert.assertTrue(result.getDataset().getProviderId().equals("sampleProviderId"));
+		Assert.assertTrue(result.getDataset().getId().equals("sampleId"));
+		Assert.assertTrue(result.getRepresentations().get(0).getCloudId().equals("sampleCloudId"));
+		Assert.assertTrue(result.getRepresentations().get(0).getRepresentationName().equals("sampleName"));
+		Assert.assertTrue(result.getRepresentations().get(0).getVersion().equals("44de5470-aa6c-11e6-8102-525400ab1fbf"));
+
+		Assert.assertTrue(result.getRepresentations().get(1).getCloudId().equals("sampleCloudId_1"));
+		Assert.assertTrue(result.getRepresentations().get(1).getRepresentationName().equals("sampleName"));
+		Assert.assertTrue(result.getRepresentations().get(1).getVersion().equals("44de5470-aa6c-11e6-8102-525400ab1fbf"));
+		//
+		tag.setValue(true);
+		result = cassandraDataSetService.getLatestRepresentationsForGivenRevision(
+				sampleDataSet.getId(),
+				sampleDataSet.getProviderId(),
+				sampleRep.getRepresentationName(),
+				revision.getRevisionName(),
+				revision.getRevisionProviderId(),
+				tag);
+		Assert.assertTrue(result == null);
 	}
 
 	@Test(expected = DataSetNotExistsException.class)

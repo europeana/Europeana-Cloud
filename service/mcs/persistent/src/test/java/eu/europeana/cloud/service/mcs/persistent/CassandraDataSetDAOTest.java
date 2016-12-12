@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.DataSetRepresentationForLatestRevision;
+import eu.europeana.cloud.common.model.DataSetRepresentationsForLatestRevision;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.junit.Assert;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -215,18 +217,25 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         Revision revision = new Revision();
         revision.setRevisionProviderId("sampleProvider");
         revision.setRevisionName("sampleRevision");
+        revision.setDeleted(true);
+        revision.setAcceptance(true);
+        revision.setPublished(false);
         //when
         dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
         //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
+        DataSetRepresentationsForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
         Assert.assertNotNull(result);
         Assert.assertTrue(result.getDataset().getId().equals("sampleDataSetID"));
         Assert.assertTrue(result.getDataset().getProviderId().equals("sampleProvider"));
-        Assert.assertTrue(result.getRepresentation().getCloudId().equals("sampleCloudID"));
-        Assert.assertTrue(result.getRepresentation().getRepresentationName().equals("sampleRepresentationName"));
-        Assert.assertTrue(result.getRepresentation().getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
+        Assert.assertTrue(result.getRepresentations().size() == 1);
+        Assert.assertTrue(result.getRepresentations().get(0).getCloudId().equals("sampleCloudID"));
+        Assert.assertTrue(result.getRepresentations().get(0).getRepresentationName().equals("sampleRepresentationName"));
+        Assert.assertTrue(result.getRepresentations().get(0).getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
         Assert.assertTrue(result.getRevision().getRevisionProviderId().equals("sampleProvider"));
         Assert.assertTrue(result.getRevision().getRevisionName().equals("sampleRevision"));
+        Assert.assertTrue(result.getRevision().isAcceptance() == true);
+        Assert.assertTrue(result.getRevision().isDeleted() == true);
+        Assert.assertTrue(result.getRevision().isPublished() == false);
     }
 
 
@@ -248,7 +257,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         //when
         dataSetDAO.removeLatestRevisionForDatasetAssignment(dataSet, representation, revision);
         //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet,representation,revision);
+        DataSetRepresentationsForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet,representation,revision);
         Assert.assertNull(result);
     }
 
@@ -271,7 +280,57 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         representation.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae4");
         dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
         //then
-        DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
-        Assert.assertTrue(result.getRepresentation().getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae4"));
+        DataSetRepresentationsForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataSet, representation, revision);
+        Assert.assertTrue(result.getRepresentations().size() == 1);
+        Assert.assertTrue(result.getRepresentations().get(0).getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae4"));
+    }
+
+    @Test
+    public void shouldAddLatestRevisionsForRepresentations(){
+        //given
+        DataSet dataSet = new DataSet();
+        dataSet.setId("sampleDataSetID");
+        dataSet.setProviderId("sampleProvider");
+        //
+        Representation representation1 = new Representation();
+        representation1.setCloudId("sampleCloudID");
+        representation1.setRepresentationName("sampleRepresentationName");
+        representation1.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae3");
+        //
+        Representation representation2 = new Representation();
+        representation2.setCloudId("sampleCloudID_1");
+        representation2.setRepresentationName("sampleRepresentationName");
+        representation2.setVersion("123ef902-fdd1-11e5-993a-fa163e8d4ae4");
+        //
+        Revision revision = new Revision();
+        revision.setRevisionProviderId("sampleProvider");
+        revision.setRevisionName("sampleRevision");
+        revision.setPublished(true);
+        revision.setDeleted(true);
+        revision.setAcceptance(false);
+
+        //
+        Tags tag = Tags.PUBLISHED;
+        tag.setValue(true);
+        //when
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation1, revision);
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation2, revision);
+        //then
+        DataSetRepresentationsForLatestRevision result = dataSetDAO.getAllRepresentationsForLatestRevisionFromDataset(dataSet, representation1, revision, tag);
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.getDataset().getId().equals("sampleDataSetID"));
+        Assert.assertTrue(result.getDataset().getProviderId().equals("sampleProvider"));
+        Assert.assertTrue(result.getRepresentations().size() == 2);
+        Assert.assertTrue(result.getRepresentations().get(0).getCloudId().equals("sampleCloudID"));
+        Assert.assertTrue(result.getRepresentations().get(0).getRepresentationName().equals("sampleRepresentationName"));
+        Assert.assertTrue(result.getRepresentations().get(0).getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae3"));
+        Assert.assertTrue(result.getRepresentations().get(1).getCloudId().equals("sampleCloudID_1"));
+        Assert.assertTrue(result.getRepresentations().get(1).getRepresentationName().equals("sampleRepresentationName"));
+        Assert.assertTrue(result.getRepresentations().get(1).getVersion().equals("123ef902-fdd1-11e5-993a-fa163e8d4ae4"));
+        Assert.assertTrue(result.getRevision().getRevisionProviderId().equals("sampleProvider"));
+        Assert.assertTrue(result.getRevision().getRevisionName().equals("sampleRevision"));
+        Assert.assertTrue(result.getRevision().isPublished());
+        Assert.assertFalse(result.getRevision().isAcceptance());
+        Assert.assertTrue(result.getRevision().isDeleted());
     }
 }

@@ -87,5 +87,12 @@ CREATE TABLE latest_revisions_for_dataset_assignment (
        revision_timestamp timestamp,
        cloud_id varchar,
        version_id timeuuid,
-       PRIMARY KEY ((provider_id, dataset_id, representation_id), cloud_id, revision_name, revision_provider_id)
+       acceptance boolean,
+       published boolean,
+       deleted boolean,
+       PRIMARY KEY ((provider_id, dataset_id, representation_id, revision_name, revision_provider_id), cloud_id)
 )WITH comment='Retrieve assignment information based on a known cloud_id and known clustering keys.';
+
+CREATE INDEX latest_revisions_for_dataset_assignment_acceptance ON latest_revisions_for_dataset_assignment (acceptance);
+CREATE INDEX latest_revisions_for_dataset_assignment_published ON latest_revisions_for_dataset_assignment (published);
+CREATE INDEX latest_revisions_for_dataset_assignment_deleted ON latest_revisions_for_dataset_assignment (deleted);

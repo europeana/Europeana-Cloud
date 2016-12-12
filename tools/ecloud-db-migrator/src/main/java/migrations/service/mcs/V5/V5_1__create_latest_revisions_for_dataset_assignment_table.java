@@ -15,7 +15,14 @@ public class V5_1__create_latest_revisions_for_dataset_assignment_table implemen
 				"revision_timestamp timestamp,\n" +
 				"cloud_id varchar,\n" +
 				"version_id timeuuid,\n" +
-				"PRIMARY KEY ((provider_id, dataset_id, representation_id), cloud_id, revision_name, revision_provider_id)\n" +
+				"acceptance boolean,\n"
+				"published boolean,\n"
+				"mark_deleted boolean,\n"
+				"PRIMARY KEY ((provider_id, dataset_id, representation_id, revision_name, revision_provider_id), cloud_id)\n" +
 				")WITH comment='Retrieve assignment information based on a known cloud_id and known clustering keys.';\n");
+
+		session.execute("CREATE INDEX latest_revisions_for_dataset_assignment_acceptance ON latest_revisions_for_dataset_assignment (acceptance);\n");
+		session.execute("CREATE INDEX latest_revisions_for_dataset_assignment_published ON latest_revisions_for_dataset_assignment (published);\n");
+		session.execute("CREATE INDEX latest_revisions_for_dataset_assignment_deleted ON latest_revisions_for_dataset_assignment (deleted);\n");
 	}
 }

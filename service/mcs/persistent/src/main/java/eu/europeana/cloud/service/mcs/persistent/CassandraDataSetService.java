@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -135,7 +136,7 @@ public class CassandraDataSetService implements DataSetService {
 					RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
 					revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
 
-			DataSetRepresentationForLatestRevision latest = dataSetDAO.getRepresentationForLatestRevisionFromDataset(ds, rep, revision);
+			DataSetRepresentationsForLatestRevision latest = dataSetDAO.getRepresentationForLatestRevisionFromDataset(ds, rep, revision);
 			if (latest != null) {
 				if (latest.getRevision().getCreationTimeStamp().before(revision.getCreationTimeStamp())) {
 					dataSetDAO.addLatestRevisionForDatasetAssignment(ds, rep, revision);
@@ -381,10 +382,38 @@ public class CassandraDataSetService implements DataSetService {
 			revision.setRevisionName(revisionName);
 			revision.setRevisionProviderId(revisionProviderId);
 
-			DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset, rep, revision);
+			DataSetRepresentationsForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset, rep, revision);
 			if (result != null){
-				return result.getRepresentation().getVersion();
+				if(result.getRepresentations().size() == 1){
+					return result.getRepresentations().get(0).getVersion();
+				}
 			}
+		}
+		return null;
+	}
+
+	@Override
+	public DataSetRepresentationsForLatestRevision getLatestRepresentationsForGivenRevision(
+			String dataSetId,
+			String providerId,
+			String representationName,
+			String revisionName,
+			String revisionProviderId,
+			Tags withRevisionTag) throws DataSetNotExistsException {
+
+		if (isDataSetExists(providerId, dataSetId)) {
+			DataSet dataset = new DataSet();
+			dataset.setProviderId(providerId);
+			dataset.setId(dataSetId);
+			//
+			Representation rep = new Representation();
+			rep.setRepresentationName(representationName);
+			//
+			Revision revision = new Revision();
+			revision.setRevisionName(revisionName);
+			revision.setRevisionProviderId(revisionProviderId);
+
+			return dataSetDAO.getAllRepresentationsForLatestRevisionFromDataset(dataset, rep, revision, withRevisionTag);
 		}
 		return null;
 	}
