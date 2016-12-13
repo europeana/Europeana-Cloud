@@ -1,14 +1,11 @@
 package eu.europeana.cloud.service.aas.authentication;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.collect.ImmutableSet;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.User;
+import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.After;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -17,10 +14,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
-
 import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:/default-context.xml"})
@@ -43,7 +41,6 @@ public class CassandraUserDAOTest extends CassandraTestBase {
      */
     @Before
     public void prepare() {
-        createKeyspaces();
         @SuppressWarnings("resource")
         ApplicationContext context = new ClassPathXmlApplicationContext(
                 "default-context.xml");
@@ -53,10 +50,6 @@ public class CassandraUserDAOTest extends CassandraTestBase {
 
     }
 
-    @After
-    public void clean() {
-        dropAllKeyspaces();
-    }
 
     @Test
     public void testUserWithRoles() throws Exception {

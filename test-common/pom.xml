@@ -40,5 +40,10 @@
             <artifactId>slf4j-api</artifactId>
             <version>${version.slf4j}</version>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+            <artifactId>concurrentlinkedhashmap-lru</artifactId>
+            <version>1.4.2</version>
+        </dependency>
     </dependencies>
 </project>

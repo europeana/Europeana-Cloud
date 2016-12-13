@@ -86,6 +86,10 @@ public final class CassandraTestInstance {
         }
     }
 
+    public static Session getSession(String keyspace){
+        return keyspaceSessions.get(keyspace);
+    }
+
     private static void truncateAllKeyspaceTables(String keyspaceName) {
         Session session = keyspaceSessions.get(keyspaceName);
         final ResultSet rs = session

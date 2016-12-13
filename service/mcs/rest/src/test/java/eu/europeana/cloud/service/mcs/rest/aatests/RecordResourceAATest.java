@@ -6,6 +6,8 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.RecordsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import eu.europeana.cloud.test.CassandraTestInstance;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +56,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	
 	@Before
 	public void mockUp() throws Exception {
-		
+
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
 		
@@ -69,7 +71,11 @@ public class RecordResourceAATest extends AbstractSecurityTest {
         
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
-	
+
+	@After
+	public void tearDown(){
+		CassandraTestInstance.print();
+	}
 
 	/**
 	 * Makes sure these methods can run even if noone is logged in.
@@ -79,6 +85,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
     public void testMethodsThatDontNeedAnyAuthentication() throws RecordNotExistsException  {
 
 		recordsResource.getRecord(URI_INFO, GLOBAL_ID);
+
     }
 	
 	/**

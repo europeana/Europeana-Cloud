@@ -207,16 +207,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit-spring</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>net.jpountz.lz4</groupId>
