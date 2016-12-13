@@ -175,7 +175,7 @@ public class ICTopology {
                     Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
             config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
                     topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{"localhost"}));
+            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{TopologyPropertyKeys.NIMBUS_SEEDS}));
             config.put(Config.STORM_ZOOKEEPER_SERVERS,
                     Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
 

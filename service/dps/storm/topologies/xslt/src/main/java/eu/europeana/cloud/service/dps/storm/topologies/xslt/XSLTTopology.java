@@ -27,9 +27,6 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 
 
-
-
-
 /**
  * This is the XSLT transformation topology for Apache Storm. The topology reads
  * from the cloud, download an XSLT sheet from a remote server, apply it to each
@@ -62,7 +59,7 @@ public class XSLTTopology {
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-       // kafkaConfig. forceFromStart = true;
+        // kafkaConfig. forceFromStart = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
@@ -192,7 +189,7 @@ public class XSLTTopology {
                     Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.THRIFT_PORT)));
             config.put(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS),
                     topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{"storm-supervisor1.novalocal.localdomain"}));
+            config.put(Config.NIMBUS_SEEDS, Arrays.asList(new String[]{TopologyPropertyKeys.NIMBUS_SEEDS}));
             config.put(Config.STORM_ZOOKEEPER_SERVERS,
                     Arrays.asList(topologyProperties.getProperty(TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS)));
             StormSubmitter.submitTopology(topologyName, config, stormTopology);
