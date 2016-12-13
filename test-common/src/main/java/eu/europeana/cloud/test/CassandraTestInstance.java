@@ -14,7 +14,7 @@ import java.util.Map;
 public final class CassandraTestInstance {
     private static final int PORT = 19142;
     private static final String CASSANDRA_CONFIG_FILE = EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE;
-    private static final long CASSANDRA_STARTUP_TIMEOUT = 20000L;
+    private static final long CASSANDRA_STARTUP_TIMEOUT = 60000L;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
