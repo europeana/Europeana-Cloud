@@ -177,7 +177,7 @@ public class DataSetResource {
 
     {
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        String revisionId = RevisionUtils.getRevisionKey(providerId, revisionName);
+        String revisionId = RevisionUtils.getRevisionKey(revisionProvider, revisionName);
         CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate());
         return cloudIdAndTimestampResponse;
     }

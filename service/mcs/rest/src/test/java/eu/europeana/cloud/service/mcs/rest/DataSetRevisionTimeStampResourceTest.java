@@ -49,6 +49,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     private final static String TEST_REVISION_NAME = "revisionNameTest";
     private final static String DATE_SET_NAME = "dataSetId";
+    private final static String REVISION_PROVIDER_ID = "revisionProviderId";
     private UISClientHandler uisHandler;
     private DataSetService dataSetService;
     private DataProvider dataProvider;
@@ -74,7 +75,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                 .existsCloudId(Mockito.anyString());
 
         rep = recordService.createRepresentation("1", "1", "1");
-        revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
+        revisionForDataProvider = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID);
 
         String dataSetPath = DataSetResource.class.getAnnotation(Path.class).value();
 
@@ -86,7 +87,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                         DATE_SET_NAME, P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_REVISION_NAME,
                         TEST_REVISION_NAME, P_REVISION_PROVIDER_ID,
-                        dataProvider.getId());
+                        REVISION_PROVIDER_ID);
 
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentation);
