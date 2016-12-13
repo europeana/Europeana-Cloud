@@ -641,8 +641,6 @@ public class DataSetServiceClient extends MCSClient {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
             }
-        } catch (Exception e) {
-            return null;
         } finally {
             if (response != null) {
                 response.close();
