@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * Association between cloud identifier, version identifier and revision identifier.
+ * Association between cloud identifier, revision Timestamps
  */
 @XmlRootElement
 public class CloudIdAndTimestampResponse {
@@ -16,18 +16,9 @@ public class CloudIdAndTimestampResponse {
 
     private String cloudId;
 
-    public Date getRevisionTimestamp() {
-        return revisionTimestamp;
-    }
-
-    public void setRevisionTimestamp(Date revisionTimestamp) {
-        this.revisionTimestamp = revisionTimestamp;
-    }
-
     /**
      * revisionTimestamp.
      */
-
     private Date revisionTimestamp;
 
     /**
@@ -49,6 +40,14 @@ public class CloudIdAndTimestampResponse {
         this.revisionTimestamp = revisionTimestamp;
     }
 
+
+    public Date getRevisionTimestamp() {
+        return revisionTimestamp;
+    }
+
+    public void setRevisionTimestamp(Date revisionTimestamp) {
+        this.revisionTimestamp = revisionTimestamp;
+    }
 
     public String getCloudId() {
         return cloudId;

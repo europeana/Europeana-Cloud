@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -48,13 +47,13 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     private WebTarget revisionAndRepresenttaionWebTargetInsideDataSet;
 
-    private final static String TEST_REVESION_NAME = "revisionNameTest";
+    private final static String TEST_REVISION_NAME = "revisionNameTest";
     private final static String DATE_SET_NAME = "dataSetId";
     private UISClientHandler uisHandler;
     private DataSetService dataSetService;
     private DataProvider dataProvider;
     private Revision revisionForDataProvider;
-    static String revisionAndRepresenttaionPath;
+    private String revisionAndRepresentationPath;
 
 
     @Before
@@ -75,22 +74,22 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                 .existsCloudId(Mockito.anyString());
 
         rep = recordService.createRepresentation("1", "1", "1");
-        revisionForDataProvider = new Revision(TEST_REVESION_NAME, dataProvider.getId());
+        revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
 
         String dataSetPath = DataSetResource.class.getAnnotation(Path.class).value();
 
-        revisionAndRepresenttaionPath = dataSetPath + "/revision" + "/{" + ParamConstants.P_REVISION_NAME + "}/" + ParamConstants.REVISION_PROVIDER + "/{" + REVISION_PROVIDER + "}/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
+        revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
 
-        Map<String, Object> revisionAndRepresenttaion = ImmutableMap
+        Map<String, Object> revisionAndRepresentation = ImmutableMap
                 .<String, Object>of(P_PROVIDER,
                         dataProvider.getId(), P_DATASET,
                         DATE_SET_NAME, P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_REVISION_NAME,
-                        TEST_REVESION_NAME, REVISION_PROVIDER,
+                        TEST_REVISION_NAME, P_REVISION_PROVIDER_ID,
                         dataProvider.getId());
 
 
-        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresenttaionPath).resolveTemplates(revisionAndRepresenttaion);
+        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentation);
 
 
     }
@@ -127,7 +126,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dateFrom = "2016-5-05";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(ParamConstants.F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
@@ -158,7 +157,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dateFrom = "3000-12-12";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(ParamConstants.F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
@@ -176,7 +175,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                 .existsProvider("1");
 
         String dateFrom = "2016-5-05";
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(ParamConstants.F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
@@ -192,16 +191,16 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         String dateFrom = "2016-5-05";
         //when
 
-        Map<String, Object> revisionAndRepresenttaionNoneExistedProviderId = ImmutableMap
+        Map<String, Object> revisionAndRepresentationNoneExistedProviderId = ImmutableMap
                 .<String, Object>of(P_PROVIDER,
                         dataProvider.getId(), P_DATASET,
                         DATE_SET_NAME, P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_REVISION_NAME,
-                        TEST_REVESION_NAME, REVISION_PROVIDER,
+                        TEST_REVISION_NAME, P_REVISION_PROVIDER_ID,
                         dataProvider.getId());
 
-        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresenttaionPath).resolveTemplates(revisionAndRepresenttaionNoneExistedProviderId);
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(ParamConstants.F_DATE_FROM, dateFrom).request().get();
+        revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
@@ -222,7 +221,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dateFrom = "None-Valid-Date";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(ParamConstants.F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 400);

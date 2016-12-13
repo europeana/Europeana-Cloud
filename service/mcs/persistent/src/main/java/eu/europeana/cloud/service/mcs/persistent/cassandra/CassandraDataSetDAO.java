@@ -839,29 +839,32 @@ public class CassandraDataSetDAO {
         if (bucketId == null)
             return cloudIdAndTimestampResponse;
         ResultSet rs = getQueryResults(providerId, dataSetId, revisionId, representationName, dateFrom, bucketId);
-        CloudIdAndTimestampResponse latest = getTheLatestCloudId(rs, cloudIdAndTimestampResponse);
+        int available = rs.getAvailableWithoutFetching();
+        CloudIdAndTimestampResponse latest = getTheLatestCloudId(rs, cloudIdAndTimestampResponse, available);
 
         return getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, bucketId, latest);
 
     }
 
-    private CloudIdAndTimestampResponse getTheLatestCloudId(ResultSet rs, CloudIdAndTimestampResponse latest) {
-        int available = rs.getAvailableWithoutFetching();
-        if (available > 0 && latest.isEmpty()) {
-            Row row = rs.one();
-            latest.setCloudId(row.getString("cloud_id"));
-            latest.setRevisionTimestamp(row.getDate("revision_timestamp"));
-        }
-        available = rs.getAvailableWithoutFetching();
-        for (int i = 0; i < available; i++) {
-            Row row = rs.one();
-            Date timestamp = row.getDate("revision_timestamp");
-            if (timestamp.getTime() > latest.getRevisionTimestamp().getTime()) {
-                latest.setRevisionTimestamp(timestamp);
+    private CloudIdAndTimestampResponse getTheLatestCloudId(ResultSet rs, CloudIdAndTimestampResponse latest, int available) {
+        if (available > 0) {
+            if (latest.isEmpty()) {
+                Row row = rs.one();
                 latest.setCloudId(row.getString("cloud_id"));
+                latest.setRevisionTimestamp(row.getDate("revision_timestamp"));
+                available--;
+            }
+            for (int i = 0; i < available; i++) {
+                Row row = rs.one();
+                Date timestamp = row.getDate("revision_timestamp");
+                if (timestamp.getTime() > latest.getRevisionTimestamp().getTime()) {
+                    latest.setRevisionTimestamp(timestamp);
+                    latest.setCloudId(row.getString("cloud_id"));
+                }
             }
         }
         return latest;
+
     }
 
     private ResultSet getQueryResults(String providerId, String dataSetId, String revisionId, String representationName, Date dateFrom, String bucketId) {
