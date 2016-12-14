@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.RecordsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,8 +70,8 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
 
-	@After
-	public void tearDown(){
+	@Before
+	public void init(){
 		logoutEveryone();
 	}
 

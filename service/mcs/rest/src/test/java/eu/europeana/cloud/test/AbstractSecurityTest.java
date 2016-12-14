@@ -35,8 +35,8 @@ import org.springframework.test.context.ContextConfiguration;
     }
 
     protected synchronized void logoutEveryone() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null)
-            authentication.setAuthenticated(false);
+        SecurityContextHolder.getContext().setAuthentication(null);
     }
+
+
 }
