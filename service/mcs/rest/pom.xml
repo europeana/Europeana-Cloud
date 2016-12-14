@@ -238,13 +238,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>-Xmx3096m</argLine>
-                </configuration>
-            </plugin>
             <!-- copies spring config file from path defined in profile to resources
                 dir -->
             <plugin>
