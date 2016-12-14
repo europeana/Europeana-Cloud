@@ -2,8 +2,10 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -31,15 +33,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static org.apache.commons.lang3.time.DateUtils.parseDate;
 
 /**
  * Resource to manage data sets.
@@ -66,7 +61,6 @@ public class DataSetResource {
      *
      * @param providerId identifier of the dataset's provider(required).
      * @param dataSetId  identifier of the deleted data set(required).
-     *
      * @throws DataSetNotExistsException data set not exists.
      */
     @DELETE
@@ -80,7 +74,7 @@ public class DataSetResource {
         String ownersName = SpringUserUtils.getUsername();
         if (ownersName != null) {
             ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
-            		dataSetId + "/" + providerId);
+                    dataSetId + "/" + providerId);
             mutableAclService.deleteAcl(dataSetIdentity, false);
         }
     }
@@ -88,43 +82,43 @@ public class DataSetResource {
     /**
      * Lists representation versions from data set. Result is returned in
      * slices.
-     * @summary get representation versions from a data set
      *
-     * @param providerId  identifier of the dataset's provider (required).
+     * @param providerId identifier of the dataset's provider (required).
      * @param dataSetId  identifier of a data set (required).
-     * @param startFrom reference to next slice of result. If not provided,
-     * first slice of result will be returned.
+     * @param startFrom  reference to next slice of result. If not provided,
+     *                   first slice of result will be returned.
      * @return slice of representation version list.
      * @throws DataSetNotExistsException no such data set exists.
+     * @summary get representation versions from a data set
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.Representation>")
     public ResultSlice<Representation> getDataSetContents(@PathParam(P_DATASET) String dataSetId,
-    		@PathParam(P_PROVIDER) String providerId,
-    		@QueryParam(F_START_FROM) String startFrom)
+                                                          @PathParam(P_PROVIDER) String providerId,
+                                                          @QueryParam(F_START_FROM) String startFrom)
             throws DataSetNotExistsException {
         return dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
     }
 
     /**
      * Updates description of a data set.
-     *
+     * <p>
      * <strong>Write permissions required.</strong>
      *
      * @param providerId  identifier of the dataset's provider (required).
-     * @param dataSetId  identifier of a data set (required).
+     * @param dataSetId   identifier of a data set (required).
      * @param description description of data set
-     * @throws DataSetNotExistsException no such data set exists.
+     * @throws DataSetNotExistsException                 no such data set exists.
      * @throws AccessDeniedOrObjectDoesNotExistException there is an attempt to access a resource without the proper permissions.
-     * or the resource does not exist at all
+     *                                                   or the resource does not exist at all
      * @statuscode 204 object has been updated.
      */
     @PUT
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(@PathParam(P_DATASET) String dataSetId,
-    		@PathParam(P_PROVIDER) String providerId,
-    		@FormParam(F_DESCRIPTION) String description)
+                              @PathParam(P_PROVIDER) String providerId,
+                              @FormParam(F_DESCRIPTION) String description)
             throws AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException {
         dataSetService.updateDataSet(providerId, dataSetId, description);
     }
@@ -156,4 +150,36 @@ public class DataSetResource {
             return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
         throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
+
+
+    /**
+     * get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     *
+     * @param dataSetId          data set identifier
+     * @param providerId         provider identifier
+     * @param revisionName       revision name
+     * @param revisionProvider   revision provider
+     * @param representationName representation name
+     * @param dateFrom           date of latest revision
+     * @return Lists all cloud identifiers,timestamps that belong to data set from the specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * @throws ProviderNotExistsException
+     * @throws DataSetNotExistsException
+     */
+
+    @Path("/revision/{" + P_REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER + "}/representations/{" + P_REPRESENTATIONNAME + "}")
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ReturnType("eu.europeana.cloud.common.model.CloudIdAndTimestampResponse")
+    @GET
+    public CloudIdAndTimestampResponse getDataSetCloudIdsByRepresentationAndRevision(
+            @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
+            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom)
+            throws ProviderNotExistsException, DataSetNotExistsException
+
+    {
+        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
+        String revisionId = RevisionUtils.getRevisionKey(revisionProvider, revisionName);
+        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate());
+        return cloudIdAndTimestampResponse;
+    }
 }
+
