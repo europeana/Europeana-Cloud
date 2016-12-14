@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.rest.RecordsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
-import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +73,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 
 	@After
 	public void tearDown(){
-		CassandraTestInstance.print();
+		logoutEveryone();
 	}
 
 	/**
@@ -83,9 +82,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	 */
 	@Test
     public void testMethodsThatDontNeedAnyAuthentication() throws RecordNotExistsException  {
-
 		recordsResource.getRecord(URI_INFO, GLOBAL_ID);
-
     }
 	
 	/**
@@ -95,7 +92,6 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	@Test
     public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn() 
     		throws RecordNotExistsException  {
-
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		recordsResource.getRecord(URI_INFO, GLOBAL_ID);
     }
@@ -103,21 +99,18 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteRecord() 
 			throws RecordNotExistsException, RepresentationNotExistsException  {
-
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteRecord() 
 			throws RecordNotExistsException, RepresentationNotExistsException {
-
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}
 	
 	public void shouldBeAbleToDeleteRecordWhenAdmin() 
 			throws RecordNotExistsException, RepresentationNotExistsException {
-
 		login(ADMIN, ADMIN_PASSWORD);
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}

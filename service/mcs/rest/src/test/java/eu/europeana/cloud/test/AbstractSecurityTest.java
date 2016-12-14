@@ -25,16 +25,18 @@ import org.springframework.test.context.ContextConfiguration;
     private AuthenticationManager authenticationManager;
 
     @After
-    public void clear() {
+    public synchronized void clear() {
         SecurityContextHolder.clearContext();
     }
 
-    protected void login(String name, String password) {
+    protected synchronized void login(String name, String password) {
         Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
         SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
     }
-    
-    protected void logoutEveryone() {
-        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false); 
+
+    protected synchronized void logoutEveryone() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null)
+            authentication.setAuthenticated(false);
     }
 }
