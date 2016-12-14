@@ -1,13 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import backtype.storm.Config;
-import backtype.storm.task.GeneralTopologyContext;
-import backtype.storm.task.OutputCollector;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.TupleImpl;
-import backtype.storm.tuple.Values;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
@@ -15,6 +8,14 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import org.apache.storm.Config;
+import org.apache.storm.task.GeneralTopologyContext;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

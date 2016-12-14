@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.task.OutputCollector;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

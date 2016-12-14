@@ -54,6 +54,9 @@ public final class TopologyPropertyKeys {
 
 
 
+    public static final String NIMBUS_SEEDS="NIMBUS_SEEDS";
+
+
 
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
 

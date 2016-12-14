@@ -39,7 +39,7 @@ public interface TestConstantsHelper {
     static final String SOURCE_DATASET_URL2 = SOURCE_DATASET_URL + 2;
     static final String MCS_URL = "http://localhost:8080/mcs";
 
-    static final int NUM_WORKERS = 2;
+    static final int NUM_WORKERS = 1;
 
 
     static final String TEST_END_BOLT = "testEndBolt";
