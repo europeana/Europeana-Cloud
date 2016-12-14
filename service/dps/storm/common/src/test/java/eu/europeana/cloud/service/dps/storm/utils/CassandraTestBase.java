@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.After;
+import org.junit.Before;
 
 public abstract class CassandraTestBase {
     protected static final String KEYSPACE = "ecloud_test";
@@ -17,7 +17,7 @@ public abstract class CassandraTestBase {
         return CassandraTestInstance.getSession(KEYSPACE);
     }
 
-    @After
+    @Before
     public void truncateAll() {
         CassandraTestInstance.truncateAllData(false);
     }

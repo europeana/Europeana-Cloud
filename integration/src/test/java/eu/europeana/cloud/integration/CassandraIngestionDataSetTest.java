@@ -3,7 +3,7 @@ package eu.europeana.cloud.integration;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -40,7 +40,7 @@ public class CassandraIngestionDataSetTest extends IngestionDataSetTest {
     /**
      * Truncates all tables.
      */
-    @After
+    @Before
     public void truncateAll() {
         CassandraTestInstance.truncateAllData(false);
     }

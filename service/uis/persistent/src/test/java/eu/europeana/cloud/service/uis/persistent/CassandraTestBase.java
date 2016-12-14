@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.uis.persistent;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.After;
+import org.junit.Before;
 
 /**
  * Test configuration for Cassandra
@@ -31,7 +31,7 @@ public abstract class CassandraTestBase {
     /**
      * Truncate the tables
      */
-    @After
+    @Before
     public void truncateAll() {
         CassandraTestInstance.truncateAllData(false);
     }

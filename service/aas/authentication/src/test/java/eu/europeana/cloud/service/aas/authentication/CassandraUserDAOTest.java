@@ -47,7 +47,16 @@ public class CassandraUserDAOTest extends CassandraTestBase {
 
         provider = (CassandraConnectionProvider) context.getBean("provider");
         dao = (CassandraUserDAO) context.getBean("dao");
+        initUsers();
+    }
 
+    private void initUsers() {
+        getSession().execute("INSERT INTO users (username, password, roles) VALUES('Robin_Van_Persie', 'Feyenoord', " +
+                "{'ROLE_USER'});\n");
+        getSession().execute("INSERT INTO users (username, password, roles) VALUES('Cristiano', 'Ronaldo', " +
+                "{'ROLE_USER'});\n");
+        getSession().execute("INSERT INTO users (username, password, roles) VALUES('admin', 'admin', {'ROLE_ADMIN'});" +
+                "\n");
     }
 
 

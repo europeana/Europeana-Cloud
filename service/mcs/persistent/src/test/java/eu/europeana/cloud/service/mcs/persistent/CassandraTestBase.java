@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.After;
+import org.junit.Before;
 
 public abstract class CassandraTestBase {
     private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
@@ -11,7 +11,7 @@ public abstract class CassandraTestBase {
         CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL,KEYSPACE);
     }
 
-    @After
+    @Before
     public void truncateAll() {
         CassandraTestInstance.truncateAllData(false);
     }

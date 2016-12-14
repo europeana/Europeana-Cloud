@@ -194,7 +194,6 @@ public class CassandraDataSetService implements DataSetService {
 		if (uis.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
-
 		// check if dataset exists
 		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 		if (ds != null) {
