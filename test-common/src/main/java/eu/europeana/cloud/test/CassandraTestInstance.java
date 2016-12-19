@@ -1,6 +1,7 @@
 package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.LoggingRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
@@ -49,7 +50,7 @@ public final class CassandraTestInstance {
                 .withProtocolVersion(ProtocolVersion.V3)
                 .withQueryOptions(queryOptions)
                 .withSocketOptions(socketOptions)
-                .withRetryPolicy(new TestRetryPolicy(3,3,3))
+                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(3,3,3)))
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
     }
 
@@ -191,24 +192,14 @@ public final class CassandraTestInstance {
             this.maxUnavailableNbRetry = maxUnavailableNbRetry;
         }
 
-        private static String getLogWarnMessage(int nbRetry, double maxNbRetry) {
-            return "Operation is retrying " + (nbRetry + 1) +  " / " +  maxNbRetry + " times!";
-        }
-
-        private static String getLogErrorMessage(int nbRetry, double maxNbRetry) {
-            return "Operation was retried " + nbRetry +  " / " +  maxNbRetry + " times without success!";
-        }
-
         @Override
         public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
                                            int receivedResponses, boolean dataRetrieved, int nbRetry) {
-            if(dataRetrieved){
+            if(dataRetrieved && receivedResponses >= requiredResponses){
                 return RetryDecision.ignore();
             }else if(nbRetry < maxReadNbRetry){
-                log.warn(getLogWarnMessage(nbRetry, maxReadNbRetry));
                 return RetryDecision.retry(cl);
             }else {
-                log.error(getLogErrorMessage(nbRetry,maxReadNbRetry));
                 return RetryDecision.rethrow();
             }
         }
@@ -216,23 +207,21 @@ public final class CassandraTestInstance {
         @Override
         public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType,
                                             int requiredAcks, int receivedAcks, int nbRetry) {
-            return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry);
+            return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry, maxWriteNbRetry);
         }
 
         @Override
         public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica,
                                            int aliveReplica, int nbRetry) {
-            return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry);
+            return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry, maxUnavailableNbRetry);
         }
 
-        private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry) {
+        private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry, double maxNbRetry) {
             if(actual >= required){
                 return RetryDecision.ignore();
-            } else if (nbRetry < maxUnavailableNbRetry){
-                log.warn(getLogErrorMessage(nbRetry,maxWriteNbRetry));
+            } else if (nbRetry < maxNbRetry){
                 return RetryDecision.retry(cl);
             } else {
-                log.error(getLogErrorMessage(nbRetry,maxWriteNbRetry));
                 return RetryDecision.rethrow();
             }
         }
