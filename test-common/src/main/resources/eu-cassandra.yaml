@@ -453,20 +453,20 @@ compaction_throughput_mb_per_sec: 16
 # stream_throughput_outbound_megabits_per_sec: 200
 
 # How long the coordinator should wait for read operations to complete
-read_request_timeout_in_ms: 100000
+read_request_timeout_in_ms: 200000
 # How long the coordinator should wait for seq or index scans to complete
-range_request_timeout_in_ms: 100000
+range_request_timeout_in_ms: 200000
 # How long the coordinator should wait for writes to complete
-write_request_timeout_in_ms: 20000
+write_request_timeout_in_ms: 40000
 # How long a coordinator should continue to retry a CAS operation
 # that contends with other proposals for the same row
-cas_contention_timeout_in_ms: 10000
+cas_contention_timeout_in_ms: 20000
 # How long the coordinator should wait for truncates to complete
 # (This can be much longer, because unless auto_snapshot is disabled
 # we need to flush first so we can snapshot before removing the data.)
-truncate_request_timeout_in_ms: 600000
+truncate_request_timeout_in_ms: 1200000
 # The default timeout for other, miscellaneous operations
-request_timeout_in_ms: 100000
+request_timeout_in_ms: 200000
 
 # Enable operation timeout information exchange between nodes to accurately
 # measure request timeouts.  If disabled, replicas will assume that requests
@@ -542,10 +542,10 @@ endpoint_snitch: SimpleSnitch
 
 # controls how often to perform the more expensive part of host score
 # calculation
-dynamic_snitch_update_interval_in_ms: 1000
+dynamic_snitch_update_interval_in_ms: 2000
 # controls how often to reset all host scores, allowing a bad host to
 # possibly recover
-dynamic_snitch_reset_interval_in_ms: 6000000
+dynamic_snitch_reset_interval_in_ms: 12000000
 # if set greater than zero and read_repair_chance is < 1.0, this will allow
 # 'pinning' of replicas to hosts in order to increase cache capacity.
 # The badness threshold will control how much worse the pinned host has to be

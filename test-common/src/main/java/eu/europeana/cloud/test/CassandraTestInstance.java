@@ -1,6 +1,7 @@
 package eu.europeana.cloud.test;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.RetryPolicy;
 import org.cassandraunit.CQLDataLoader;
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
@@ -15,6 +16,7 @@ public final class CassandraTestInstance {
     private static final int PORT = 19142;
     private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
     private static final long CASSANDRA_STARTUP_TIMEOUT = 3*60*1000L; //3 minutes
+    private static final int CONNECT_TIMEOUT_MILLIS = 100000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
@@ -41,10 +43,13 @@ public final class CassandraTestInstance {
     }
 
     private Cluster buildClusterWithConsistencyLevel(ConsistencyLevel level) {
-        QueryOptions options = new QueryOptions().setConsistencyLevel(level);
+        QueryOptions queryOptions = new QueryOptions().setConsistencyLevel(level);
+        SocketOptions socketOptions = new SocketOptions().setConnectTimeoutMillis(CONNECT_TIMEOUT_MILLIS);
         return Cluster.builder().addContactPoints("localhost").withPort(CassandraTestInstance.PORT)
                 .withProtocolVersion(ProtocolVersion.V3)
-                .withQueryOptions(options)
+                .withQueryOptions(queryOptions)
+                .withSocketOptions(socketOptions)
+                .withRetryPolicy(new TestRetryPolicy(3,3,3))
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
     }
 
@@ -171,5 +176,65 @@ public final class CassandraTestInstance {
         CQLDataLoader dataLoader = new CQLDataLoader(tempSession);
         dataLoader.load(new ClassPathCQLDataSet(keyspaceSchemaCql, keyspace));
         tempSession.close();
+    }
+
+
+    private static final class TestRetryPolicy implements RetryPolicy{
+        public static final Logger log = LoggerFactory.getLogger(TestRetryPolicy.class);
+        private final double maxReadNbRetry;
+        private final double maxWriteNbRetry;
+        private final double maxUnavailableNbRetry;
+
+        TestRetryPolicy(double maxReadNbRetry, double maxWriteNbRetry, double maxUnavailableNbRetry) {
+            this.maxReadNbRetry = maxReadNbRetry;
+            this.maxWriteNbRetry = maxWriteNbRetry;
+            this.maxUnavailableNbRetry = maxUnavailableNbRetry;
+        }
+
+        private static String getLogWarnMessage(int nbRetry, double maxNbRetry) {
+            return "Operation is retrying " + (nbRetry + 1) +  " / " +  maxNbRetry + " times!";
+        }
+
+        private static String getLogErrorMessage(int nbRetry, double maxNbRetry) {
+            return "Operation was retried " + nbRetry +  " / " +  maxNbRetry + " times without success!";
+        }
+
+        @Override
+        public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
+                                           int receivedResponses, boolean dataRetrieved, int nbRetry) {
+            if(dataRetrieved){
+                return RetryDecision.ignore();
+            }else if(nbRetry < maxReadNbRetry){
+                log.warn(getLogWarnMessage(nbRetry, maxReadNbRetry));
+                return RetryDecision.retry(cl);
+            }else {
+                log.error(getLogErrorMessage(nbRetry,maxReadNbRetry));
+                return RetryDecision.rethrow();
+            }
+        }
+
+        @Override
+        public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType,
+                                            int requiredAcks, int receivedAcks, int nbRetry) {
+            return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry);
+        }
+
+        @Override
+        public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica,
+                                           int aliveReplica, int nbRetry) {
+            return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry);
+        }
+
+        private RetryDecision getRetryDecision(ConsistencyLevel cl, int required, int actual, int nbRetry) {
+            if(actual >= required){
+                return RetryDecision.ignore();
+            } else if (nbRetry < maxUnavailableNbRetry){
+                log.warn(getLogErrorMessage(nbRetry,maxWriteNbRetry));
+                return RetryDecision.retry(cl);
+            } else {
+                log.error(getLogErrorMessage(nbRetry,maxWriteNbRetry));
+                return RetryDecision.rethrow();
+            }
+        }
     }
 }
