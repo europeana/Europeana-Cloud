@@ -68,16 +68,12 @@ public class RepresentationRevisionsResource {
 																	@NotNull @QueryParam(REVISION_PROVIDER_ID) String revisionProviderId,
 																	@QueryParam(REVISION_TIMESTAMP) String revisionTimestamp)
 			throws RevisionNotExistsException {
-
-		if (revisionProviderId == null || revisionProviderId.isEmpty())
-			return null;
-
 		Date revisionDate = null;
 		if (revisionTimestamp != null) {
 			DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 			revisionDate = utc.toDate();
 		}
-		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, RevisionUtils.getRevisionKey(revisionProviderId, revisionName), revisionDate);
+		RepresentationRevisionResponse info = recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionDate);
 		EnrichUriUtil.enrich(uriInfo, info);
 		return info;
 	}

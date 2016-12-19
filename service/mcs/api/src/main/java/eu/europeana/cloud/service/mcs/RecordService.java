@@ -270,10 +270,12 @@ public interface RecordService {
      *
      * @param globalId cloud identifier associated with the resulting representation revision
      * @param schema representation name of the resulting representation revision
-     * @param revisionId revision identifier of the resulting representation revision
+     * @param revisionProviderId revision provider identifier of the resulting representation revision
+     * @param revisionName revision name
+     * @param revisionTimestamp revision timestamp
      * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
      */
-    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionId, Date revisionTimestamp)
+    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp)
             throws RevisionNotExistsException;
 
     /**
@@ -281,8 +283,10 @@ public interface RecordService {
      *
      * @param globalId cloud identifier
      * @param schema representation name
-     * @param revisionId revision identifier
+     * @param revisionProviderId revision provider identifier of the resulting representation revision
+     * @param revisionName revision name
+     * @param revisionTimestamp revision timestamp
      * @param versionId version identifier
      */
-    void insertRepresentationRevision(String globalId, String schema, String revisionId, String versionId, Date revisionTimestamp);
+    void insertRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, String versionId, Date revisionTimestamp);
 }
