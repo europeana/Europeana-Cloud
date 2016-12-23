@@ -1,23 +1,20 @@
 package eu.europeana.cloud.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by pwozniak on 11/21/16.
  */
-public class DataSetRepresentationsForLatestRevision {
+public class DataSetRepresentationForLatestRevision {
 
 	private DataSet dataset;
-	private List<Representation> representations = new ArrayList<Representation>();
+	private Representation representation;
 	private Revision revision;
 
-	public List<Representation> getRepresentations() {
-		return representations;
+	public Representation getRepresentation() {
+		return representation;
 	}
 
-	public void addRepresentation(Representation representation) {
-		representations.add(representation);
+	public void setRepresentation(Representation representation) {
+		this.representation = representation;
 	}
 
 	public Revision getRevision() {

@@ -1,11 +1,8 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
@@ -13,7 +10,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +22,24 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlRootElement;
 
-import java.util.*;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static org.apache.commons.lang3.time.DateUtils.parseDate;
 
 /**
  * Resource to manage data sets.
@@ -173,90 +179,19 @@ public class DataSetResource {
             @QueryParam(P_CLOUDID) String cloudId,
             @QueryParam(P_REPRESENTATIONNAME) String representationName,
             @QueryParam(P_REVISION_NAME) String revisionName,
-            @QueryParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
-            @QueryParam("withTag") String taggedBy,
-            @QueryParam("withoutTag") String notTaggedBy
-            ) throws DataSetNotExistsException {
+            @QueryParam(P_REVISION_PROVIDER_ID) String revisionProviderId) throws DataSetNotExistsException {
 
+        ParamUtil.require(P_CLOUDID, cloudId);
         ParamUtil.require(P_REPRESENTATIONNAME, representationName);
         ParamUtil.require(P_REVISION_NAME, revisionName);
         ParamUtil.require(P_REVISION_PROVIDER_ID, revisionProviderId);
-        validateTagParams(taggedBy, notTaggedBy);
-        Tags tag = createTagFromParameters(taggedBy, notTaggedBy);
 
-        if (isCloudIdProvided(cloudId)) {
-            String versionId = dataSetService.getLatestVersionForGivenRevision(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
-            if (versionId != null) {
-                return Response.ok().entity(versionId).build();
-            } else {
-                return Response.noContent().build();
-            }
+
+        String versionId = dataSetService.getLatestVersionForGivenRevision(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+        if (versionId != null) {
+            return Response.ok().entity(versionId).build();
         } else {
-            DataSetRepresentationsForLatestRevision revisionedRepresentations = dataSetService.getLatestRepresentationsForGivenRevision(dataSetId, providerId, representationName, revisionName, revisionProviderId, tag);
-            GenericEntity<List<CloudIdWithVersionId>> entity = new GenericEntity<List<CloudIdWithVersionId>>(buildResponse(revisionedRepresentations)) {};
-
-            return Response.ok().entity(entity).build();
+            return Response.noContent().build();
         }
-    }
-
-    private boolean isCloudIdProvided(String cloudId) {
-        return cloudId != null;
-    }
-
-    private void validateTagParams(String taggedBy, String notTaggedBy) {
-        if (taggedBy != null && notTaggedBy != null) {
-            ErrorInfo errorInfo = new ErrorInfo(McsErrorCode.OTHER.name(), "Only one tag parameter can be non empty");
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).entity(errorInfo).build());
-        }
-    }
-
-    private Tags createTagFromParameters(String taggedBy, String notTaggedBy){
-        if(taggedBy != null){
-            Tags tag = Tags.valueOf(taggedBy);
-            tag.setValue(true);
-            return tag;
-        }
-        if(notTaggedBy != null){
-            Tags tag = Tags.valueOf(notTaggedBy);
-            tag.setValue(false);
-            return tag;
-        }
-        return null;
-    }
-
-    private List<CloudIdWithVersionId> buildResponse(DataSetRepresentationsForLatestRevision representations){
-        List<CloudIdWithVersionId> entity = new ArrayList<>();
-        if(representations == null)
-            return entity;
-        for(Representation rep : representations.getRepresentations()){
-            CloudIdWithVersionId CloudIdWithVersionId = new CloudIdWithVersionId();
-            CloudIdWithVersionId.setCloudId(rep.getCloudId());
-            CloudIdWithVersionId.setVersionId(rep.getVersion());
-            entity.add(CloudIdWithVersionId);
-        }
-        return entity;
-
-    }
-}
-
-@XmlRootElement
-class CloudIdWithVersionId {
-    private String cloudId;
-    private String versionId;
-
-    public String getCloudId() {
-        return cloudId;
-    }
-
-    public void setCloudId(String cloudId) {
-        this.cloudId = cloudId;
-    }
-
-    public String getVersionId() {
-        return versionId;
-    }
-
-    public void setVersionId(String versionId) {
-        this.versionId = versionId;
     }
 }

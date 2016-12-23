@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -225,19 +226,6 @@ public interface DataSetService {
      */
     String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException;
 
-    /**
-     * Gives all representations (cloudId and versionId) from specified dataset that has latest revision
-     *
-     * @param dataSetId dataset identifier
-     * @param providerId dataset owner
-     * @param representationName representation name
-     * @param revisionName revision name
-     * @param revisionProviderId revision owner
-     * @param withRevisionTag tag that will be taken into account while retrieving representations
-     * @return
-     * @throws DataSetNotExistsException
-     */
-    DataSetRepresentationsForLatestRevision getLatestRepresentationsForGivenRevision(String dataSetId, String providerId, String representationName, String revisionName, String revisionProviderId, Tags withRevisionTag) throws DataSetNotExistsException;
 
     /**
      * Adds revision as a latest revision for given representation and dataset

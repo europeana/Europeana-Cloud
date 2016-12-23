@@ -205,22 +205,6 @@ public class DataSetResourceTest extends JerseyTest {
         assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     }
 
-    @Test
-    public void shouldReturnExceptionForRequestWithBothTagParametersSpecified(){
-        String dataSetId = "dataset";
-
-        dataSetWebTarget = dataSetWebTarget.resolveTemplate(P_PROVIDER, dataProvider.getId()).resolveTemplate(
-                P_DATASET, dataSetId).path("/latelyRevisionedVersion").
-                queryParam(P_CLOUDID,"sampleCloudID").
-                queryParam(P_REPRESENTATIONNAME,"sampleRepName").
-                queryParam(P_REVISION_NAME,"sampleRevisionName").
-                queryParam(P_REVISION_PROVIDER_ID,"samplerevProvider").
-                queryParam("withTag", "abc").
-                queryParam("withoutTag", "abc");
-        Response response = dataSetWebTarget.request().get();
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-    }
-
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
             throws Exception {
         Representation r = recordService.createRepresentation(cloudId, schema, providerId);

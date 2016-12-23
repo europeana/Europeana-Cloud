@@ -5,21 +5,14 @@ package eu.europeana.cloud.common.utils;
  */
 public enum Tags {
     ACCEPTANCE("acceptance"), PUBLISHED("published"), DELETED("deleted");
-    private String name;
-    private boolean value;
+    private String value;
 
-    Tags(String name) {
-        this.name = name;
+    Tags(String value) {
+        this.value = value;
     }
 
     public String getTag() {
-        return this.name;
-    }
-
-    public void setValue(boolean value){
-        this.value = value;
-    }
-    public boolean getValue(){
         return this.value;
     }
+
 }
