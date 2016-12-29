@@ -1,4 +1,6 @@
 #!/bin/bash
+set -s
+set -e
 
 IP=`hostname --ip-address`
 CONFIG=/opt/apache-cassandra-2.1.8/conf

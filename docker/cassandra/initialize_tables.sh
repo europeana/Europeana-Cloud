@@ -1,4 +1,6 @@
 #!/bin/bash
+set -s
+set -e
 
 /opt/apache-cassandra-2.1.8/bin/cassandra
 sleep 20s
