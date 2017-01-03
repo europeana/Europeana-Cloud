@@ -4,7 +4,7 @@ interactions:
 - recorded: 2014-02-18T13:02:14.560Z
   request:
     method: PUT
-    uri: http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/data-providers/Provider002/data-sets/noSuchDataset
+    uri: http://localhost:8080/mcs/data-providers/Provider002/data-sets/noSuchDataset
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Content-Length: '17'

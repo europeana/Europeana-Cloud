@@ -1,5 +1,7 @@
 package eu.europeana.cloud.migrator;
 
+import eu.europeana.cloud.migrator.provider.EuropeanaNewspapersResourceProvider;
+import eu.europeana.cloud.migrator.provider.FilePaths;
 import org.junit.Before;
 import org.junit.Test;
 

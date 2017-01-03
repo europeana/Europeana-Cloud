@@ -54,6 +54,7 @@ public class JerseyConfig extends ResourceConfig {
         register(DataSetResource.class);
         register(DataSetsResource.class);
         register(DataSetAssignmentsResource.class);
+        register(DataSetRevisionsResource.class);
         register(SimplifiedFileAccessResource.class);
         register(SimplifiedRecordsResource.class);
         register(SimplifiedRepresentationResource.class);

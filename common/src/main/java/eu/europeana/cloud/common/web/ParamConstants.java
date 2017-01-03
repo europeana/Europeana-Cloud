@@ -20,6 +20,9 @@ public interface ParamConstants {
 
     static final String ASSIGNMENTS = "assignments";
 
+    String REVISIONS = "revisions";
+
+
     static final String COPY = "copy";
 
     static final String PERSIST = "persist";
@@ -30,6 +33,8 @@ public interface ParamConstants {
     static final String P_CLOUDID = "CLOUDID";
 
     static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
+
+    static final String P_REVISIONID = "P_REVISIONID";
 
     static final String P_VER = "VERSION";
 
@@ -44,6 +49,10 @@ public interface ParamConstants {
     static final String P_USERNAME = "USERNAME";
 
     static final String P_PERMISSION_TYPE = "PERMISSION_TYPE";
+
+    static final String P_TAG = "TAG";
+
+    static final String P_TAGS = "TAGS";
 
     // form parameters' names (also used as query parameters' names)
     static final String F_DATASET = "dataSetId";
@@ -74,14 +83,19 @@ public interface ParamConstants {
 
     static final String F_START_FROM = "startFrom";
 
+    static final String F_LIMIT = "limit";
+
     static final String F_REPRESENTATION = "representation";
 
     static final String F_DATASETS = "dataSets";
 
-    static final String REVISION_NAME = "revisionName";
-    static final String TAG = "tag";
-    static final String TAGS = "tags";
-    static final String REVISION_PROVIDER_ID = "revisionProviderId";
+    static final String F_TAG = "tag";
+    static final String F_TAGS = "tags";
+
+    static final String P_REVISION_NAME = "REVISION_NAME";
+    static final String REVISION_PROVIDER = "revisionProvider";
+
+    static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
 
     //header paramiters' names
     static final String H_RANGE = "Range";

@@ -315,9 +315,9 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        
+
         FormDataMultiPart multipart = prepareRequestBody(providerId, data, fileName, mediaType);
-        
+
         Response response = null;
         request.header("Content-Type","multipart/form-data");
         try {
@@ -352,7 +352,7 @@ public class RecordServiceClient extends MCSClient {
                                     String providerId,
                                     InputStream data,
                                     String mediaType) throws MCSException {
-        
+
         return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
     }
 
@@ -365,7 +365,7 @@ public class RecordServiceClient extends MCSClient {
         if (fileName != null && !"".equals(fileName.trim())) {
             requestBody.field(ParamConstants.F_FILE_NAME, fileName);
         }
-        
+
         return requestBody;
     }
 

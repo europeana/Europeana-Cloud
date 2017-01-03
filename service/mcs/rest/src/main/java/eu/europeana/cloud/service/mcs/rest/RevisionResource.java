@@ -3,8 +3,12 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
+import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import jersey.repackaged.com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +17,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -36,6 +47,9 @@ public class RevisionResource {
     @Autowired
     private RecordService recordService;
 
+    @Autowired
+    private DataSetService dataSetService;
+
     /**
      * Adds a new revision to representation version.If a revision already existed it will update it.
      * <strong>Read permissions required.</strong>
@@ -52,19 +66,19 @@ public class RevisionResource {
      * @statuscode 201 object has been created.
      */
     @POST
-    @Path("/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}")
+    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response addRevision(@Context UriInfo uriInfo,
                                 @PathParam(P_CLOUDID) final String globalId,
                                 @PathParam(P_REPRESENTATIONNAME) final String schema,
                                 @PathParam(P_VER) final String version,
-                                @PathParam(REVISION_NAME) String revisionName,
-                                @PathParam(TAG) String tag,
-                                @PathParam(REVISION_PROVIDER_ID) String revisionProviderId
+                                @PathParam(P_REVISION_NAME) String revisionName,
+                                @PathParam(P_TAG) String tag,
+                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
     )
-            throws RepresentationNotExistsException, RevisionIsNotValidException {
-                ParamUtil.validate(TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+            throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
+                ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Revision revision = null;
         try {
@@ -78,8 +92,24 @@ public class RevisionResource {
         } catch (RevisionNotExistsException e) {
             revision = createNewRevision(revisionName, revisionProviderId, tag);
         }
-        recordService.addRevision(globalId, schema, version, revision);
+        addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
+    }
+
+    private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+        final String revisionKey = RevisionUtils.getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName());
+        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revisionKey);
+        recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
+    }
+
+    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
+                                                      String version, String revisionProviderId, String revisionKey)
+            throws ProviderNotExistsException {
+        Set<String> dataSets = dataSetService.getDataSets(revisionProviderId, globalId, schema, version);
+        for (String dataSet : dataSets) {
+            dataSetService.addDataSetsRevisions(revisionProviderId, dataSet, revisionKey, schema, globalId);
+        }
     }
 
     /**
@@ -101,9 +131,9 @@ public class RevisionResource {
                                 @PathParam(P_VER) final String version,
                                 Revision revision
     )
-            throws RevisionIsNotValidException {
+            throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
 
-        recordService.addRevision(globalId, schema, version, revision);
+        addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
@@ -125,18 +155,18 @@ public class RevisionResource {
      */
 
     @POST
-    @Path("/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags")
+    @Path("/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags")
     @PreAuthorize("hasPermission(#globalId.concat('/').concat(#schema).concat('/').concat(#version),"
             + " 'eu.europeana.cloud.common.model.Representation', read)")
     public Response addRevision(@Context UriInfo uriInfo,
                                 @PathParam(P_CLOUDID) final String globalId,
                                 @PathParam(P_REPRESENTATIONNAME) final String schema,
                                 @PathParam(P_VER) final String version,
-                                @PathParam(REVISION_NAME) String revisionName,
-                                @PathParam(REVISION_PROVIDER_ID) String revisionProviderId,
-                                @FormParam(TAGS) Set<String> tags
+                                @PathParam(P_REVISION_NAME) String revisionName,
+                                @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
+                                @FormParam(F_TAGS) Set<String> tags
     )
-            throws RepresentationNotExistsException, RevisionIsNotValidException {
+            throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
@@ -148,9 +178,11 @@ public class RevisionResource {
             revision = new Revision(revisionName, revisionProviderId);
         }
         setRevisionTags(revision, tags);
-        recordService.addRevision(globalId, schema, version, revision);
+        addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
+
+
 
     private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {
         boolean acceptance = false;

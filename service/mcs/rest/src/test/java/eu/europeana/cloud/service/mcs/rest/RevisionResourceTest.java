@@ -2,10 +2,13 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.RevisionIsNotValidExceptionMapper;
@@ -30,8 +33,12 @@ import javax.ws.rs.core.Response;
 import java.util.Map;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.common.web.ParamConstants.TAG;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 
 /**
@@ -49,6 +56,10 @@ public class RevisionResourceTest extends JerseyTest {
     private static final String PROVIDER_ID = "providerId";
     private static final String TEST_REVESION_NAME = "revisionName";
     private UISClientHandler uisHandler;
+    private DataSetService dataSetService;
+    private DataProvider dataProvider;
+    private Revision revisionForDataProvider;
+
 
     @Before
     public void mockUp() throws Exception {
@@ -56,8 +67,9 @@ public class RevisionResourceTest extends JerseyTest {
                 .getApplicationContext();
 
         recordService = applicationContext.getBean(RecordService.class);
+        dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
-        DataProvider dataProvider = new DataProvider();
+        dataProvider = new DataProvider();
         dataProvider.setId("1");
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider("1");
@@ -65,6 +77,7 @@ public class RevisionResourceTest extends JerseyTest {
                 .existsCloudId(Mockito.anyString());
         rep = recordService.createRepresentation("1", "1", "1");
         revision = new Revision(TEST_REVESION_NAME, PROVIDER_ID);
+        revisionForDataProvider = new Revision(TEST_REVESION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap
                 .<String, Object>of(P_CLOUDID,
                         rep.getCloudId(), P_REPRESENTATIONNAME,
@@ -78,14 +91,14 @@ public class RevisionResourceTest extends JerseyTest {
                 .<String, Object>of(P_CLOUDID,
                         rep.getCloudId(), P_REPRESENTATIONNAME,
                         rep.getRepresentationName(), P_VER,
-                        rep.getVersion(), REVISION_NAME,
-                        TEST_REVESION_NAME, REVISION_PROVIDER_ID,
-                        REVISION_PROVIDER_ID);
+                        rep.getVersion(), P_REVISION_NAME,
+                        TEST_REVESION_NAME, P_REVISION_PROVIDER_ID,
+                        P_REVISION_PROVIDER_ID);
         String revisionWithTagPath = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}";
         revisionWebTargetWithTag = target(revisionWithTagPath).resolveTemplates(revisionPathParamsWithTag);
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
-                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
+                + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
 
 
@@ -95,6 +108,8 @@ public class RevisionResourceTest extends JerseyTest {
     public void cleanUp() throws Exception {
         recordService.deleteRepresentation(rep.getCloudId(),
                 rep.getRepresentationName());
+        reset(recordService);
+        reset(dataSetService);
     }
 
     @Override
@@ -151,28 +166,28 @@ public class RevisionResourceTest extends JerseyTest {
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.PUBLISHED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.PUBLISHED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, Tags.DELETED.getTag()).request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.DELETED.getTag()).request().post(null);
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
     }
 
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
-        Response response = revisionWebTargetWithTag.resolveTemplate(TAG, "UNDEFINED").request().post(null);
+        Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, "UNDEFINED").request().post(null);
         assertEquals(response.getStatus(), 400);
     }
 
@@ -180,8 +195,8 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -190,9 +205,9 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void shouldAddRevisionWithMultipleTags2() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.PUBLISHED.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.PUBLISHED.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
@@ -210,13 +225,51 @@ public class RevisionResourceTest extends JerseyTest {
     @Test
     public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
         Form tagsForm = new Form();
-        tagsForm.param(TAGS, Tags.ACCEPTANCE.getTag());
-        tagsForm.param(TAGS, Tags.DELETED.getTag());
-        tagsForm.param(TAGS, "undefined");
+        tagsForm.param(F_TAGS, Tags.ACCEPTANCE.getTag());
+        tagsForm.param(F_TAGS, Tags.DELETED.getTag());
+        tagsForm.param(F_TAGS, "undefined");
         Response response = revisionWebTargetWithMultipleTags.request().post(Entity.form(tagsForm));
         assertNotNull(response);
         assertEquals(response.getStatus(), 400);
     }
 
+    @Test
+    public void shouldProperlyAddRevisionToDataSets() throws Exception {
+        //given
+        DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
+        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
+                (),rep.getVersion());
 
+        //when
+        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
+
+        //then
+        assertNotNull(response);
+        assertEquals(response.getStatus(), 201);
+        String revisionId = RevisionUtils.getRevisionKey(revisionForDataProvider
+                .getRevisionProviderId(), revisionForDataProvider.getRevisionName());
+        verify(dataSetService,times(1)).addDataSetsRevisions(
+                dataProvider.getId(),
+                dataSet.getId(),
+                revisionId,
+                rep.getRepresentationName(),
+                rep.getCloudId());
+    }
+
+    @Test
+    public void shouldNotAssignDataSetOfDifferentProvider() throws Exception {
+        //given
+        DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
+        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
+                (),rep.getVersion());
+
+        //when
+        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
+
+        //then
+        assertNotNull(response);
+        assertEquals(response.getStatus(), 201);
+        verify(dataSetService,times(0)).addDataSetsRevisions(anyString(),anyString(),
+                anyString(),anyString(),anyString());
+    }
 }

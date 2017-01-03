@@ -42,3 +42,8 @@ LD_LIBRARY_PATH=/usr/local/lib/
 export LD_LIBRARY_PATH
 
 rm -fr ./kdu
+
+
+sudo ranlib /usr/local/lib/libjpeg.a
+sudo ldconfig /usr/local/lib
+

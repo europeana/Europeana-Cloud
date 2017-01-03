@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -171,48 +173,53 @@ public class TopologyTasksResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @ManagedAsync
     @Path("/")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
-                               DpsTask task,
-                               @PathParam("topologyName") String topologyName,
-                               @Context UriInfo uriInfo,
-                               @HeaderParam("Authorization") String authorizationHeader
+                               final DpsTask task,
+                               @PathParam("topologyName")final String topologyName,
+                               @Context final UriInfo uriInfo,
+                               @HeaderParam("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         if (task != null) {
             LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
-            Date sentTime = new Date();
-            try {
-                String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
-                Response response = Response.created(new URI(createdTaskUrl)).build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
-                asyncResponse.resume(response);
-                LOGGER.info("The task is in a pending mode");
-                int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
-                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                submitService.submitTask(task, topologyName);
-                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-                LOGGER.info("Task submitted successfully");
-                taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
-            } catch (URISyntaxException e) {
-                LOGGER.error("Task submission failed");
-                e.printStackTrace();
-                Response response = Response.serverError().build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                asyncResponse.resume(response);
-            } catch (TaskSubmissionException e) {
-                LOGGER.error("Task submission failed" + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                e.printStackTrace();
-            } catch (Exception e) {
-                LOGGER.error("Task submission failed." + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                e.printStackTrace();
-                Response response = Response.serverError().build();
-                asyncResponse.resume(response);
-            }
+            final Date sentTime = new Date();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+                        Response response = Response.created(new URI(createdTaskUrl)).build();
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
+                        asyncResponse.resume(response);
+                        LOGGER.info("The task is in a pending mode");
+                        int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
+                        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                        submitService.submitTask(task, topologyName);
+                        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+                        LOGGER.info("Task submitted successfully");
+                        taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
+                    } catch (URISyntaxException e) {
+                        LOGGER.error("Task submission failed");
+                        e.printStackTrace();
+                        Response response = Response.serverError().build();
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        asyncResponse.resume(response);
+                    } catch (TaskSubmissionException e) {
+                        LOGGER.error("Task submission failed" + e.getMessage());
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        LOGGER.error("Task submission failed." + e.getMessage());
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        e.printStackTrace();
+                        Response response = Response.serverError().build();
+                        asyncResponse.resume(response);
+                    }
+                }
+            }).start();
+
         }
         return Response.notModified().build();
     }

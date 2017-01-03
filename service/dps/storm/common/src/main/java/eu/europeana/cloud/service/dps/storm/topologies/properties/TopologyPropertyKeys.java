@@ -37,6 +37,27 @@ public final class TopologyPropertyKeys {
     public static final String NUMBER_OF_TASKS = "NUMBER_OF_TASKS";
     public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
 
+
+    public static final String KAFKA_SPOUT_NUMBER_OF_TASKS="KAFKA_SPOUT_NUMBER_OF_TASKS";
+    public static final String  PARSE_TASKS_BOLT_NUMBER_OF_TASKS="PARSE_TASKS_BOLT_NUMBER_OF_TASKS";
+    public static final String  RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS="RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
+    public static final String XSLT_BOLT_NUMBER_OF_TASKS="XSLT_BOLT_NUMBER_OF_TASKS";
+    public static final String  WRITE_BOLT_NUMBER_OF_TASKS="WRITE_BOLT_NUMBER_OF_TASKS";
+    public static final String  READ_DATASETS_BOLT_NUMBER_OF_TASKS="READ_DATASETS_BOLT_NUMBER_OF_TASKS";
+    public static final String READ_DATASET_BOLT_NUMBER_OF_TASKS="READ_DATASET_BOLT_NUMBER_OF_TASKS";
+    public static final String READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS="READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS";
+    public static final String NOTIFICATION_BOLT_NUMBER_OF_TASKS="NOTIFICATION_BOLT_NUMBER_OF_TASKS";
+    public static final String ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS="ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS";
+    public static final String IC_BOLT_NUMBER_OF_TASKS="IC_BOLT_NUMBER_OF_TASKS";
+
+
+
+
+
+    public static final String NIMBUS_SEEDS="NIMBUS_SEEDS";
+
+
+
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
 
 

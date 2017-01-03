@@ -33,13 +33,13 @@ public class RevisionServiceClient extends MCSClient {
     private final Client client;
     private static final Logger logger = LoggerFactory.getLogger(RevisionServiceClient.class);
     private static final String revisionPathWithTag = "records/{" + P_CLOUDID + "}/representations/{"
-            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tag/{" + TAG + "}";
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tag/{" + P_TAG + "}";
 
     private static final String revisionPath = "records/{" + P_CLOUDID + "}/representations/{"
             + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions";
 
     private static final String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
-            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}/tags";
+            + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
 
     /**
      * Constructs a RevisionServiceClient
@@ -82,7 +82,7 @@ public class RevisionServiceClient extends MCSClient {
             DriverException, MCSException {
         WebTarget target = client.target(baseUrl).path(revisionPathWithTag).resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(P_VER, version).resolveTemplate(REVISION_NAME, revisionName).resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId).resolveTemplate(TAG, tag);
+                .resolveTemplate(P_VER, version).resolveTemplate(P_REVISION_NAME, revisionName).resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).resolveTemplate(P_TAG, tag);
 
         Invocation.Builder request = target.request();
         Response response = null;
@@ -152,10 +152,10 @@ public class RevisionServiceClient extends MCSClient {
             DriverException, MCSException {
         WebTarget target = client.target(baseUrl).path(revisionPathWithMultipleTags).resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.REVISION_NAME, revisionName).resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId);
+                .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_REVISION_NAME, revisionName).resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId);
         Form tagsForm = new Form();
         for (Tags tag : tags) {
-            tagsForm.param(TAGS, tag.getTag());
+            tagsForm.param(F_TAGS, tag.getTag());
         }
         Invocation.Builder request = target.request();
         Response response = null;

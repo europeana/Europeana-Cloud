@@ -73,7 +73,7 @@ public class ResourceMigratorApp {
         System.exit(0);
     }
 
-    private static Properties loadPropertiesFile(File dpFile) {
+    public static Properties loadPropertiesFile(File dpFile) {
         Properties props = new Properties();
         InputStream is = null;
         try {

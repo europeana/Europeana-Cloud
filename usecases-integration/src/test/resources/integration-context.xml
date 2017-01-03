@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/jee  http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+                        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+    <context:annotation-config/>
+
+    <context:component-scan
+            base-package="eu.europeana.cloud.integration.usecases"/>
+
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="test.properties"/>
+    </bean>
+
+
+    <bean id="appProperties"
+          class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="singleton" value="true"/>
+
+        <property name="properties">
+            <props>
+                <prop key="mcsLocation">${mcsLocation}</prop>
+                <prop key="uisLocation">${uisLocation}</prop>
+                <prop key="username">${username}</prop>
+                <prop key="password">${password}</prop>
+                <prop key="destinationUserName">${destinationUserName}</prop>
+                <prop key="destinationPassword">${destinationPassword}</prop>
+                <prop key="adminUsername">${adminUsername}</prop>
+                <prop key="adminPassword">${adminPassword}</prop>
+            </props>
+        </property>
+    </bean>
+
+
+    <bean id="sourceRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+    </bean>
+
+
+    <bean id="destinationRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"
+          scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+    </bean>
+
+
+    <bean id="adminRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"
+          scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${adminUsername}"/>
+        <constructor-arg name="password" value="${adminPassword}"/>
+    </bean>
+
+
+    <bean id="sourceDataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+    </bean>
+
+    <bean id="destinationDataSetServiceClient" class="eu.europeana.cloud.mcs.driver.DataSetServiceClient"
+          scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+    </bean>
+
+
+    <bean id="sourceUisClient"
+          class="eu.europeana.cloud.client.uis.rest.UISClient">
+        <constructor-arg name="uisUrl" value="${uisLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+
+    </bean>
+
+    <bean id="adminUisClient"
+          class="eu.europeana.cloud.client.uis.rest.UISClient">
+        <constructor-arg name="uisUrl" value="${uisLocation}"/>
+        <constructor-arg name="username" value="${adminUsername}"/>
+        <constructor-arg name="password" value="${adminPassword}"/>
+
+    </bean>
+
+    <bean id="destinationUisClient"
+          class="eu.europeana.cloud.client.uis.rest.UISClient">
+        <constructor-arg name="uisUrl" value="${uisLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+
+    </bean>
+
+
+    <bean id="revisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+    </bean>
+
+
+    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+    </bean>
+
+    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${destinationUserName}"/>
+        <constructor-arg name="password" value="${destinationPassword}"/>
+    </bean>
+
+    <bean id="sourceDatasetHelper"
+          class="eu.europeana.cloud.integration.usecases.DatasetHelper">
+        <constructor-arg name="dataSetServiceClient" ref="sourceDataSetServiceClient"/>
+        <constructor-arg name="recordServiceClient" ref="sourceRecordServiceClient"/>
+        <constructor-arg name="revisionServiceClient" ref="sourceRevisionServiceClient"/>
+        <constructor-arg name="uisClient" ref="sourceUisClient"/>
+
+    </bean>
+
+
+    <bean id="destinationDatasetHelper"
+          class="eu.europeana.cloud.integration.usecases.DatasetHelper">
+        <constructor-arg name="dataSetServiceClient" ref="destinationDataSetServiceClient"/>
+        <constructor-arg name="recordServiceClient" ref="destinationRecordServiceClient"/>
+        <constructor-arg name="revisionServiceClient" ref="destinationRevisionServiceClient"/>
+        <constructor-arg name="uisClient" ref="destinationUisClient"/>
+
+    </bean>
+
+
+    <bean id="createDatasetFromDatasetOfAnotherProviderTestCase"
+          class="eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase"
+          scope="prototype">
+    </bean>
+
+    <bean id="updateDatasetTestCase" class="eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase"
+          scope="prototype">
+
+    </bean>
+
+
+</beans>

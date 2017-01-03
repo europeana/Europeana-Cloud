@@ -4,6 +4,7 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -11,16 +12,23 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.net.URI;
-import java.util.List;
-import java.util.NoSuchElementException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.net.URI;
+import java.util.Calendar;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class DataSetServiceClientTest {
 
@@ -29,7 +37,7 @@ public class DataSetServiceClientTest {
 
     //TODO clean
     //this is only needed for recording tests
-    private final String baseUrl = "http://localhost:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT";
+    private final String baseUrl = "http://localhost:8080/mcs";
 
     @Betamax(tape = "dataSets_shouldRetrieveDataSetsFirstChunk")
     @Test
@@ -771,5 +779,93 @@ public class DataSetServiceClientTest {
         iterator.next();
     }
 
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk")
+    @Test
+    public void shouldRetrieveDataSetCloudIdsByRepresentationFirstChunk()
+            throws MCSException {
+        String providerId = "provider";
+        String dataSet = "dataset";
+        String representationName = "representation";
+        String dateFrom = "2016-08-21T11:08:28.059";
 
+        //the tape was recorded when the result chunk was 100
+        int resultSize = 5;
+        String startFrom = "005a00100015000870726f76696465720000076461746173657400003d000e726570726573656e746174696f6e00000800000156b1580d280000087265766973696f6e000007636c6f75645f350000097075626c6973686564007ffffffa76a6db9eb099834f7db2bad6a99690e10003";
+
+        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", null);
+
+        assertNotNull(result.getResults());
+        assertEquals(result.getResults().size(), resultSize);
+        assertEquals(result.getNextSlice(), startFrom);
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrieveDataSetCloudIdsByRepresentationAllChunks")
+    @Test
+    public void shouldRetrieveDataSetCloudIdsByRepresentationAllChunks()
+            throws MCSException {
+        String providerId = "provider";
+        String dataSet = "dataset";
+        String representationName = "representation";
+        String dateFrom = "2016-08-21T11:08:28.059";
+
+        //the tape was recorded when the result chunk was 100
+        int resultSize = 5;
+        String startFrom = null;
+
+        DataSetServiceClient instance = new DataSetServiceClient("http://localhost:8080/mcs", "helin", "helin");
+        ResultSlice<CloudVersionRevisionResponse> result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
+
+        while (result.getNextSlice() != null) {
+            assertNotNull(result.getResults());
+            assertEquals(result.getResults().size(), resultSize);
+            startFrom = result.getNextSlice();
+            result = instance.getDataSetCloudIdsByRepresentationChunk(dataSet, providerId, representationName, dateFrom, "published", startFrom);
+        }
+
+        // this is the last chunk
+        assertNotNull(result.getResults());
+       // assertTrue(result.getResults().size() <= resultSize);
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrieveCloudIdsForSpecificRevision")
+    @Test
+    public void shouldRetrieveCloudIdsForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "providerName1848455952406";
+        String dataSetId = providerId + "d";
+        String representationName = "representationName";
+        String revisionName = "revisionName";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        List<String> cloudIds= instance.getDataSetRevisions(providerId, dataSetId, representationName,
+                revisionName,providerId);
+        //then
+        assertThat(cloudIds.size(), is(2));
+        assertThat(cloudIds, hasItems(
+                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
+                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
+    }
+
+    @Betamax(tape = "dataSets_shouldRetrievCloudIdsChunkForSpecificRevision")
+    @Test
+    public void shouldRetrievCloudIdsChunkForSpecificRevision()
+            throws MCSException {
+        //given
+        String providerId = "providerName1848455952406";
+        String dataSetId = providerId + "d";
+        String representationName = "representationName";
+        String revisionName = "revisionName";
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        ResultSlice<String> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
+                revisionName,providerId, null);
+        //then
+        assertThat(cloudIds.getNextSlice(),nullValue());
+        assertThat(cloudIds.getResults().size(), is(2));
+        assertThat(cloudIds.getResults(), hasItems(
+                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
+                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
+    }
 }
