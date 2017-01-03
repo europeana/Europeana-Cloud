@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * Connector to Cassandra cluster.
  */
 @Component
-public class CassandraConnectionProvider   {
+public class CassandraConnectionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
@@ -34,18 +34,6 @@ public class CassandraConnectionProvider   {
     private String port;
 
     private String keyspaceName;
-
-
-    private static CassandraConnectionProvider instance = null;
-
-    public static CassandraConnectionProvider getInstance(String hosts, int port, String keyspaceName, String userName, String password) {
-        if (instance == null) {
-            instance = new CassandraConnectionProvider(hosts,port,keyspaceName,userName,password);
-        }
-        return instance;
-    }
-
-
 
     /**
      * Constructor. Use it when your Cassandra cluster does not support
@@ -104,7 +92,7 @@ public class CassandraConnectionProvider   {
     /**
      * Obtain common cassandra Cluster Builder.
      *
-     * @param port port of endpoints
+     * @param port          port of endpoints
      * @param contactPoints list of cassandra ip addresses
      * @return {@link com.datastax.driver.core.Cluster.Builder}
      */

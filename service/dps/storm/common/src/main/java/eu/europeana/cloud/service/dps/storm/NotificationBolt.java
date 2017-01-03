@@ -9,6 +9,7 @@ import backtype.storm.tuple.Tuple;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
@@ -121,7 +122,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map stormConf, TopologyContext tc, OutputCollector oc) {
-        cassandraConnectionProvider = CassandraConnectionProvider.getInstance(hosts, port, keyspaceName,
+        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
@@ -194,8 +195,13 @@ public class NotificationBolt extends BaseRichBolt {
         public int getProcessed() {
             return processed;
         }
+
+
     }
 
+    public static void clearCache() {
+        cache.clear();
+    }
 
     private int getExpectedSize(long taskId) throws TaskInfoDoesNotExistException {
         TaskInfo task = taskInfoDAO.searchById(taskId);

@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
@@ -34,7 +35,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @param password     Cassandra password
      */
     public CassandraReportService(String hosts, int port, String keyspaceName, String userName, String password) {
-        cassandra = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+        cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
     }
 
     @Override

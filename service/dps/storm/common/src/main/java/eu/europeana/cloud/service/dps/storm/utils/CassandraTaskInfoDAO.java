@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @author akrystian
  */
-public class CassandraTaskInfoDAO extends CassandraDAO{
+public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement taskSearchStatement;
     private PreparedStatement taskInsertStatement;
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
@@ -33,7 +33,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO{
 
     public static CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
-            instance = new CassandraTaskInfoDAO(cassandra);
+            synchronized (CassandraTaskInfoDAO.class) {
+                if (instance == null) {
+                    instance = new CassandraTaskInfoDAO(cassandra);
+                }
+            }
         }
         return instance;
     }
