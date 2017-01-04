@@ -143,7 +143,7 @@ public class RevisionResource {
         // insert information in extra table
         recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
 
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return Response.created(uriInfo.getAbsolutePath()).entity(revision).build();
     }
 
 

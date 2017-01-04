@@ -586,9 +586,7 @@ public class CassandraRecordDAO {
         }
     }
 
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp)
-        throws RevisionNotExistsException {
-
+    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         // check parameters, none can be null
         if (cloudId == null || schema == null || revisionProviderId == null || revisionName == null) {
             throw new IllegalArgumentException("Parameters cannot be null");
@@ -607,9 +605,7 @@ public class CassandraRecordDAO {
 
         // retrieve one row, there should be only one
         Row row = rs.one();
-        if (row == null) {
-            throw new RevisionNotExistsException("Revision identified by " + RevisionUtils.getRevisionKey(revisionProviderId, revisionName, revisionTimestamp.getTime()) + " does not exist.");
-        } else {
+        if (row != null) {
             // prepare representation revision object from the fields in a row
             RepresentationRevisionResponse representationRevision = new RepresentationRevisionResponse(cloudId, schema,
                     row.getUUID("version_id").toString(), revisionProviderId, revisionName, row.getDate("revision_timestamp"));
@@ -618,6 +614,7 @@ public class CassandraRecordDAO {
                     String.class)));
             return representationRevision;
         }
+        return null;
     }
 
 

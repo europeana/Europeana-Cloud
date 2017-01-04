@@ -54,7 +54,6 @@ public class RepresentationRevisionResponse {
     private Date revisionTimestamp;
 
     public RepresentationRevisionResponse() {
-        super();
     }
 
     /**

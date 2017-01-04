@@ -445,8 +445,7 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp)
-            throws RevisionNotExistsException {
+    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
         return recordDAO.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
     }
 
