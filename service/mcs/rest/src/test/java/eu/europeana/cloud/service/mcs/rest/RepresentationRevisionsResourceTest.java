@@ -99,22 +99,18 @@ public class RepresentationRevisionsResourceTest extends JerseyTest {
     }
     
 
-    @SuppressWarnings("unused")
-    private Object[] representationRevisionErrors() {
-        return $($(new RevisionNotExistsException(), McsErrorCode.REVISION_NOT_EXISTS.toString()));
-    }
-    
     @Test
-    @Parameters(method = "representationRevisionErrors")
-    public void getRepresentationRevisionsReturns404IfRevisionDoesNotExists(Throwable exception, String errorCode)
+    public void getRepresentationRevisionsReturnsEmptyObjectIfRevisionDoesNotExists()
             throws Exception {
-        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenThrow(exception);
+        when(recordService.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null)).thenReturn(new RepresentationRevisionResponse());
         Response response = target().path(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName).toString()).queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId)
                 .request(MediaType.APPLICATION_XML).get();
-        
-        assertThat(response.getStatus(), is(404));
-        ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-        assertThat(errorInfo.getErrorCode(), is(errorCode));
+
+        RepresentationRevisionResponse expected = new RepresentationRevisionResponse();
+
+        assertThat(response.getStatus(), is(200));
+        RepresentationRevisionResponse entity = response.readEntity(RepresentationRevisionResponse.class);
+        assertThat(entity, is(expected));
         verify(recordService, times(1)).getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, null);
         verifyNoMoreInteractions(recordService);
     }
