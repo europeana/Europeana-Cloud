@@ -2,13 +2,16 @@
 set -s
 set -e
 
-/opt/apache-cassandra-2.1.8/bin/cassandra
+MAIN_DIR=$1
+BIN=$MAIN_DIR/bin
+
+$BIN/cassandra
 sleep 20s
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/users.cql
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/uis_setup.cql
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/mcs_setup.cql
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_setup.cql
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/dps_setup.cql
-/opt/apache-cassandra-2.1.8/bin/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_dml.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/db_users.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/uis_setup.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/mcs_setup.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_setup.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/dps_setup.cql
+$BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_users.cql
 sleep 20s
 pkill -f CassandraDaemon
