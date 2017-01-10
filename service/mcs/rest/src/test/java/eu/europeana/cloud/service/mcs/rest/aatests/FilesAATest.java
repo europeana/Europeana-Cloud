@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FilesAATest extends AbstractSecurityTest {
 	
@@ -45,7 +47,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	private static final String FILE_NAME = "FILE_NAME";
 	private static final String FILE_NAME_2 = "FILE_NAME_2";
-	private static final String MIME_TYPE = "CLOWN";
+	private static final String MIME_TYPE = APPLICATION_OCTET_STREAM_TYPE.toString();
 	
 	private static final String GLOBAL_ID = "GLOBAL_ID";
 	private static final String SCHEMA = "CIRCLE";
@@ -87,10 +89,11 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		file = new File();
 		file.setFileName(FILE_NAME);
-		
+		file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
+
 		file2 = new File();
 		file2.setFileName(FILE_NAME_2);
-		
+		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 		URI_INFO = Mockito.mock(UriInfo.class);
 		UriBuilder uriBuilder = Mockito.mock(UriBuilder.class);
 		

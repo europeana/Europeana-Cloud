@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.*;
 
 /**
@@ -73,7 +74,7 @@ public class FileResourceTest extends JerseyTest {
 	rep = recordService.createRepresentation("1", "1", "1");
 	file = new File();
 	file.setFileName("fileName");
-	file.setMimeType("mime/fileSpecialMime");
+	file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
 	Map<String, Object> allPathParams = ImmutableMap
 		.<String, Object> of(ParamConstants.P_CLOUDID,

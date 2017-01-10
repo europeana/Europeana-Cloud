@@ -103,6 +103,7 @@ public class FilesResource {
 			CannotModifyPersistentRepresentationException,
 			FileAlreadyExistsException {
 		ParamUtil.require(F_FILE_DATA, data);
+		ParamUtil.require(F_FILE_MIME,mimeType);
 
 		File f = new File();
 		f.setMimeType(mimeType);
@@ -123,6 +124,7 @@ public class FilesResource {
 			fileName = UUID.randomUUID().toString();
 		}
 		f.setFileName(fileName);
+
 		recordService.putContent(globalId, schema, version, f, data);
 
 		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
@@ -131,4 +133,5 @@ public class FilesResource {
 
 		return Response.created(f.getContentUri()).tag(f.getMd5()).build();
 	}
+
 }
