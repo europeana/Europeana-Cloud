@@ -13,5 +13,5 @@ $BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/mcs_setup.cql
 $BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_setup.cql
 $BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/dps_setup.cql
 $BIN/cqlsh -u cassandra -p cassandra -f /etc/cassandra/aas_users.cql
-sleep 20s
+sleep 5s
 pkill -f CassandraDaemon

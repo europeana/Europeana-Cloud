@@ -1,17 +1,24 @@
 FROM ubuntu:14.04
 MAINTAINER kadamski
 
-RUN apt-get update && apt-get install -y wget openjdk-7-jdk python && \
-    rm -rf /var/lib/apt/lists/*
-RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz' | tar -C /opt -xz
+RUN apt-get update \
+    && apt-get install -y \
+        openjdk-7-jdk \
+        python \
+        wget  \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz' \
+    | tar -C /opt -xz
 
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
 
-ADD *.cql /etc/cassandra/
-ADD change_host.sh /etc/cassandra/
-ADD initialize_tables.sh /etc/cassandra/
+COPY ./cqls/*.cql /etc/cassandra/
+COPY configure.sh /etc/cassandra/
+COPY initialize_tables.sh /etc/cassandra/
 
-RUN sh /etc/cassandra/change_host.sh /opt/apache-cassandra-2.1.8
+# custom configuration
+RUN sh /etc/cassandra/configure.sh /opt/apache-cassandra-2.1.8
 
 # initialize keyspaces and tables
 RUN sh /etc/cassandra/initialize_tables.sh /opt/apache-cassandra-2.1.8

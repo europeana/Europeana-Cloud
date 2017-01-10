@@ -17,7 +17,7 @@ sed -i 's/\/var\/lib\/cassandra\/commitlog/\/data\/cassandra\/commitlog/' $CONFI
 sed -i 's/\/var\/lib\/cassandra\/saved_caches/\/data\/cassandra\/caches/' $CONFIG/cassandra.yaml
 
 # set authenticator
-sed -i 's/authenticator: AllowAllAuthenticator/authenticator: PasswordAuthenticator/' $CONFIG/cassandra.yaml 
+sed -i 's/authenticator: AllowAllAuthenticator/authenticator: PasswordAuthenticator/' $CONFIG/cassandra.yaml
 sed -i 's/authorizer: AllowAllAuthorizer/authorizer: CassandraAuthorizer/' $CONFIG/cassandra.yaml
 
 #change ports
