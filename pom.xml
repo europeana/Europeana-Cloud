@@ -84,6 +84,7 @@
         <module>tools</module>
         <module>service/ips</module>
         <module>usecases-integration</module>
+        <module>test-common</module>
     </modules>
     <repositories>
         <repository>
@@ -159,6 +160,7 @@
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>1.9.13</version.jackson>
+        <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
     </properties>
 
     <profiles>
@@ -339,6 +341,13 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>-Xmx2048m</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <dependencyManagement>
@@ -429,11 +438,6 @@
                 <artifactId>log4j</artifactId>
                 <version>1.2.17</version>
             </dependency>
-            <!--            <dependency>
-                            <groupId>com.datastax.cassandra</groupId>
-                            <artifactId>cassandra-driver-core</artifactId>
-                            <version>2.0.7</version>
-                        </dependency>-->
             <dependency>
                 <!-- forked kafka with fixed appender, KAFKA-847 -->
                 <!-- TODO ECL-317 -->

@@ -85,4 +85,15 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>-XX:MaxPermSize=128M</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

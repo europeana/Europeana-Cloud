@@ -1,12 +1,11 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.mcs.rest.aatests;
 
-import java.io.InputStream;
-import java.net.URI;
-
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.rest.RecordsResource;
+import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,11 +15,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.test.AbstractSecurityTest;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RecordResourceAATest extends AbstractSecurityTest {
@@ -56,7 +54,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	
 	@Before
 	public void mockUp() throws Exception {
-		
+
 		record = new Record();
 		record.setCloudId(GLOBAL_ID);
 		
@@ -71,7 +69,11 @@ public class RecordResourceAATest extends AbstractSecurityTest {
         
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 	}
-	
+
+	@Before
+	public void init(){
+		logoutEveryone();
+	}
 
 	/**
 	 * Makes sure these methods can run even if noone is logged in.
@@ -79,7 +81,6 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	 */
 	@Test
     public void testMethodsThatDontNeedAnyAuthentication() throws RecordNotExistsException  {
-
 		recordsResource.getRecord(URI_INFO, GLOBAL_ID);
     }
 	
@@ -90,7 +91,6 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	@Test
     public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn() 
     		throws RecordNotExistsException  {
-
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		recordsResource.getRecord(URI_INFO, GLOBAL_ID);
     }
@@ -98,21 +98,18 @@ public class RecordResourceAATest extends AbstractSecurityTest {
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteRecord() 
 			throws RecordNotExistsException, RepresentationNotExistsException  {
-
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteRecord() 
 			throws RecordNotExistsException, RepresentationNotExistsException {
-
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}
 	
 	public void shouldBeAbleToDeleteRecordWhenAdmin() 
 			throws RecordNotExistsException, RepresentationNotExistsException {
-
 		login(ADMIN, ADMIN_PASSWORD);
 		recordsResource.deleteRecord(GLOBAL_ID);
 	}

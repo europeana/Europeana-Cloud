@@ -7,18 +7,14 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.URI;
-import java.util.Calendar;
 import java.util.List;
 import java.util.NoSuchElementException;
+
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
@@ -825,7 +821,7 @@ public class DataSetServiceClientTest {
 
         // this is the last chunk
         assertNotNull(result.getResults());
-       // assertTrue(result.getResults().size() <= resultSize);
+        assertTrue(result.getResults().size() <= resultSize);
     }
 
     @Betamax(tape = "dataSets_shouldRetrieveCloudIdsForSpecificRevision")

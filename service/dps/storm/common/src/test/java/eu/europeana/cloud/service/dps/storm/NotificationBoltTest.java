@@ -20,10 +20,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class NotificationBoltTest extends CassandraTestBase {
 
@@ -35,13 +39,15 @@ public class NotificationBoltTest extends CassandraTestBase {
     @Before
     public void setUp() throws Exception {
         collector = Mockito.mock(OutputCollector.class);
-        testedBolt = new NotificationBolt(HOST, PORT, KEYSPACE, "", "");
+        final String host = "localhost";
+        final int port = 19142;
+        testedBolt = new NotificationBolt(host, port, KEYSPACE, "", "");
         Map<String, Object> boltConfig = new HashMap<>();
         boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
         boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
         boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
-        taskInfoDAO = new CassandraTaskInfoDAO(new CassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
+        taskInfoDAO = new CassandraTaskInfoDAO(new CassandraConnectionProvider(host,port, KEYSPACE, "", ""));
     }
 
     @Test

@@ -1,12 +1,16 @@
-package eu.europeana.cloud.service.mcs.rest;
+package eu.europeana.cloud.service.mcs.rest.aatests;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
+import eu.europeana.cloud.service.mcs.rest.DataSetResource;
+import eu.europeana.cloud.service.mcs.rest.DataSetsResource;
+import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,21 +21,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
-import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
-import eu.europeana.cloud.test.AbstractSecurityTest;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DataSetsAATest extends AbstractSecurityTest {
