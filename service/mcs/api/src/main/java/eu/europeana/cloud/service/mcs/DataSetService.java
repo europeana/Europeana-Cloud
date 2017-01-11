@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -171,10 +172,11 @@ public interface DataSetService {
      * @param representationName     representation name
      * @param startFrom              if null - will return first result slice. Result slices contain token for next pages, which should be
      *                               provided in this parameter.
-     * @param numberOfElementsOnPage max number of results in one slice.
-     * @return list of cloudIds in given dataSet for given revisionId and representationName.
+     * @param limit max number of results in one slice.
+     * @return list of cloudIds and tags in given dataSet for given revisionId and representationName.
      */
-    List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int numberOfElementsOnPage);
+    ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit)
+            throws ProviderNotExistsException, DataSetNotExistsException;
 
 
     void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException;

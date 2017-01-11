@@ -208,7 +208,7 @@ public class CassandraDataSetDAO{
 
         getDataSetsRevision = connectionProvider.getSession().prepare(//
                 "SELECT "//
-                        + "cloud_id "//
+                        + "cloud_id, published, acceptance, mark_deleted "//
                         + "FROM data_set_assignments_by_revision_id "//
                         + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
@@ -216,7 +216,7 @@ public class CassandraDataSetDAO{
 
         getDataSetsRevisionWithPagination = connectionProvider.getSession().prepare(//
                 "SELECT "//
-                        + "cloud_id "//
+                        + "cloud_id, published, acceptance, mark_deleted "//
                         + "FROM data_set_assignments_by_revision_id "//
                         + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? AND cloud_id >= ? LIMIT ?; ");
         getDataSetsRevisionWithPagination

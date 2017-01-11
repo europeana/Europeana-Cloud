@@ -70,8 +70,8 @@ public class DataSetRevisionsResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<String>")
-    public Response getDataSetContents(@PathParam(P_PROVIDER) String providerId,
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudTagsResponse>")
+    public ResultSlice<CloudTagsResponse> getDataSetContents(@PathParam(P_PROVIDER) String providerId,
                                        @PathParam(P_DATASET) String dataSetId,
                                        @PathParam(P_REPRESENTATIONNAME) String representationName,
                                        @PathParam(P_REVISION_NAME) String revisionName,

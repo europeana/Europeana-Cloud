@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -265,13 +266,39 @@ public class CassandraDataSetService implements DataSetService {
 	/**
 	 * @inheritDoc
 	 */
+//	@Override
+//	public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit){
+//		if(startFrom == null){
+//			return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
+//		}else{
+//			return dataSetDAO.getDataSetsRevisionWithPagination(providerId,dataSetId,revisionId,representationName,startFrom,limit);
+//		}
+//	}
+
 	@Override
-	public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit){
-		if(startFrom == null){
-			return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
-		}else{
-			return dataSetDAO.getDataSetsRevisionWithPagination(providerId,dataSetId,revisionId,representationName,startFrom,limit);
+	public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit)
+			throws ProviderNotExistsException, DataSetNotExistsException {
+		// check whether provider exists
+		if (!uis.existsProvider(providerId))
+			throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+
+		// check whether data set exists
+		if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+			throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+
+		// run the query requesting one more element than items per page to determine the starting cloud id for the next slice
+		List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionId, representationName, startFrom, limit);
+
+		String nextToken = null;
+
+		// when the list size is one element bigger than requested it means there is going to be next slice
+		if (list.size() == limit + 1) {
+			// set token to the last from list
+			nextToken = list.get(limit).getProperty("nextSlice");
+			// remove last element of the list
+			list.remove(limit);
 		}
+		return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
 	}
 
 	/**
