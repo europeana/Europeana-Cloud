@@ -83,7 +83,6 @@
         <module>service/commons</module>
         <module>tools</module>
         <module>service/ips</module>
-        <module>usecases-integration</module>
         <module>test-common</module>
     </modules>
     <repositories>
