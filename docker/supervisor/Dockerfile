@@ -1,14 +1,15 @@
 FROM openjdk:8-jre
+
 MAINTAINER kadamski
 # source https://github.com/31z4/storm-docker/tree/master/1.0.2
-#Install required packages
+
 RUN apt-get update && apt-get --yes install \
     bash \
-    python \
     build-essential \
     gnupg \
-    tar
-
+    python \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV STORM_USER=storm \
     STORM_CONF_DIR=/conf \
@@ -16,8 +17,7 @@ ENV STORM_USER=storm \
     STORM_LOG_DIR=/logs
 
 # Add a user and make dirs
-RUN set -x \
-    && adduser "$STORM_USER" \
+RUN adduser "$STORM_USER" \
     && mkdir -p "$STORM_CONF_DIR" "$STORM_DATA_DIR" "$STORM_LOG_DIR" \
     && chown -R "$STORM_USER:$STORM_USER" "$STORM_CONF_DIR" "$STORM_DATA_DIR" "$STORM_LOG_DIR"
 
@@ -25,8 +25,7 @@ ARG GPG_KEY=ACEFE18DD2322E1E84587A148DE03962E80B8FFD
 ARG DISTRO_NAME=apache-storm-1.0.2
 
 # Download Apache Storm, verify its PGP signature, untar and clean up
-RUN set -x \
-    && wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
+RUN wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
     && wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver ha.pool.sks-keyservers.net --recv-key "$GPG_KEY" \
@@ -35,7 +34,6 @@ RUN set -x \
     && chown -R "$STORM_USER:$STORM_USER" "$DISTRO_NAME" \
     && rm -r "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc"
 
-
 WORKDIR $DISTRO_NAME
 
 ENV PATH $PATH:/$DISTRO_NAME/bin
@@ -43,9 +41,7 @@ ENV PATH $PATH:/$DISTRO_NAME/bin
 COPY install.sh /
 COPY storm.yaml /conf/storm.yaml
 COPY docker-entrypoint.sh /
-RUN  set -x \
-     && chmod 333 /install.sh
+RUN  chmod 555 /docker-entrypoint.sh /install.sh
 RUN  /install.sh
-
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
