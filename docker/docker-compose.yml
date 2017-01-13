@@ -20,6 +20,7 @@ swift:
   build: docker-swift-onlyone
   ports:
     - "8888:8888"
+    - "5000:5000"
   volumes:
     - /srv
 #

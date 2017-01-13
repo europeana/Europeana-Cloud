@@ -3,10 +3,11 @@
 #
 # Make the rings if they don't exist already
 #
+service memcached start && \
+    service rsyslog start && \
+    service keystone start
 
-echo -e "nameserver 8.8.8.8\nsearch 8.8.8.8" > /etc/resolv.conf 
-
-
+echo -e "nameserver 8.8.8.8\nsearch 8.8.8.8" > /etc/resolv.conf
 
 # These can be set with docker run -e VARIABLE=X at runtime
 SWIFT_PART_POWER=${SWIFT_PART_POWER:-7}
@@ -24,12 +25,9 @@ fi
 chown -R swift:swift /srv
 
 if [ ! -e /etc/swift/account.builder ]; then
-
 	cd /etc/swift
-
 	# 2^& = 128 we are assuming just one drive
 	# 1 replica only
-
 	echo "No existing ring files, creating them..."
 
 	swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
@@ -46,32 +44,14 @@ if [ ! -e /etc/swift/account.builder ]; then
 	echo "Copying ring files to /srv to save them if it's a docker volume..."
 	cp *.gz /srv
 	cp *.builder /srv
-
-fi
-
-# If you are going to put an ssl terminator in front of the proxy, then I believe
-# the storage_url_scheme should be set to https. So if this var isn't empty, set
-# the default storage url to https.
-if [ ! -z "${SWIFT_STORAGE_URL_SCHEME}" ]; then
-	echo "Setting default_storage_scheme to https in proxy-server.conf..."
-	sed -i -e "s/storage_url_scheme = default/storage_url_scheme = https/g" /etc/swift/proxy-server.conf
-	grep "storage_url_scheme" /etc/swift/proxy-server.conf
-fi
-
-if [ ! -z "${SWIFT_SET_PASSWORDS}" ]; then
-	echo "Setting passwords in /etc/swift/proxy-server.conf"
-	PASS=`pwgen 12 1`
-	sed -i -e "s/user_admin_admin = admin .admin .reseller_admin/user_admin_admin = $PASS .admin .reseller_admin/g" /etc/swift/proxy-server.conf
-	sed -i -e "s/user_test_tester = testing .admin/user_test_tester = $PASS .admin/g" /etc/swift/proxy-server.conf
-	sed -i -e "s/user_test2_tester2 = testing2 .admin/user_test2_tester2 = $PASS .admin/g" /etc/swift/proxy-server.conf
-	sed -i -e "s/user_test_tester3 = testing3/user_test_tester3 = $PASS/g" /etc/swift/proxy-server.conf
-	grep "user_test" /etc/swift/proxy-server.conf
 fi
 
 # Start supervisord
 echo "Starting supervisord..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+#/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 
+#/bin/bash -c "source /etc/default/rsyslog && /usr/sbin/rsyslogd -n -c3"
+swift-init start object account container proxy;
 #
 # Tail the log file for "docker log $CONTAINER_ID"
 #
@@ -79,9 +59,10 @@ echo "Starting supervisord..."
 # sleep waiting for rsyslog to come up under supervisord
 sleep 3
 
-echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
-service keystone start
 
-#tail -f /keystoneconfigure.sh
-#tail -n 0 -f /var/log/syslog
-tail -f /var/log/*.log
+# configure
+
+
+echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
+tail -f /var/log/syslog
+
