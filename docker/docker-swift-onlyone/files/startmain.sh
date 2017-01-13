@@ -80,5 +80,8 @@ echo "Starting supervisord..."
 sleep 3
 
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
+service keystone start
 
-tail -n 0 -f /var/log/syslog
+#tail -f /keystoneconfigure.sh
+#tail -n 0 -f /var/log/syslog
+tail -f /var/log/*.log

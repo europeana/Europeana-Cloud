@@ -1,8 +1,35 @@
-FROM ubuntu:14.04
-MAINTAINER curtis <curtis@serverascode.com>
+FROM ubuntu:16.04
+MAINTAINER kadamski
 
-ADD files/update.sh /tmp/
-RUN sh /tmp/update.sh
+RUN apt-get update && apt-get install -y \
+    keystone \
+    memcached \
+    pwgen \
+    python-keystoneclient \
+    python-memcache \
+    python-netifaces \
+    python-swiftclient \
+    python-swiftclient \
+    python-xattr \
+    rsync \
+    supervisor \
+    swift-account \
+    swift-container \
+    swift-object \
+    swift-object \
+    swift-plugin-s3 \
+    swift-proxy \
+    swift
+#Only for development
+RUN apt-get update && apt-get install -y \
+    vim \
+    net-tools \
+    curl
+
+
+ADD files/keystoneconfigure.sh /keystoneconfigure.sh
+RUN chmod 555 /keystoneconfigure.sh
+RUN set -x && /keystoneconfigure.sh
 
 RUN mkdir -p /var/log/supervisor
 ADD files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

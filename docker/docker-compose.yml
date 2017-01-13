@@ -1,20 +1,20 @@
-tomcat:
-  build: tomcat
-  ports:
-    - "8080:8080"
-  links:
-    - cassandra:cassandra
-    - swift:swift
-    - zookeeper:zookeeper
-    - kafka:kafka
-  volumes:
-    - ./tomcat/webapps/:/usr/local/tomcat/webapps/
-
-cassandra:
-  build: cassandra
-  ports:
-    - "9042:9042"
-    - "9160:9160"
+#tomcat:
+#  build: tomcat
+#  ports:
+#    - "8080:8080"
+#  links:
+#    - cassandra:cassandra
+#    - swift:swift
+#    - zookeeper:zookeeper
+#    - kafka:kafka
+#  volumes:
+#    - ./tomcat/webapps/:/usr/local/tomcat/webapps/
+#
+#cassandra:
+#  build: cassandra
+#  ports:
+#    - "9042:9042"
+#    - "9160:9160"
 
 swift:
   build: docker-swift-onlyone
@@ -22,49 +22,49 @@ swift:
     - "8888:8888"
   volumes:
     - /srv
-
-zookeeper:
-  image: wurstmeister/zookeeper:3.4.6
-  ports:
-    - "2182:2181"
-
-kafka:
-  image: akrystian/kafka-docker
-  links:
-   - zookeeper:zookeeper
-  environment:
-    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1"
-    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
-  ports:
-   - "9092:9092"
-  volumes:
-   - /var/run/docker.sock:/var/run/docker.sock
-
-nimbus:
-  build: nimbus
-  ports:
-    - "3773"
-    - "3772"
-    - "6627"
-  links:
-    - zookeeper:zk
-
-supervisor:
-  build: supervisor
-  ports:
-    - "8000"
-  links:
-    - nimbus:nimbus
-    - zookeeper:zk
-    - cassandra:cassandra
-    - tomcat:tomcat
-    - kafka:kafka
-
-ui:
-  build: ui
-  ports:
-    - "49080:8080"
-  links:
-    - nimbus:nimbus
-    - zookeeper:zk
+#
+#zookeeper:
+#  image: wurstmeister/zookeeper:3.4.6
+#  ports:
+#    - "2182:2181"
+#
+#kafka:
+#  image: akrystian/kafka-docker
+#  links:
+#   - zookeeper:zookeeper
+#  environment:
+#    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1"
+#    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#    HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
+#  ports:
+#   - "9092:9092"
+#  volumes:
+#   - /var/run/docker.sock:/var/run/docker.sock
+#
+#nimbus:
+#  build: nimbus
+#  ports:
+#    - "3773"
+#    - "3772"
+#    - "6627"
+#  links:
+#    - zookeeper:zk
+#
+#supervisor:
+#  build: supervisor
+#  ports:
+#    - "8000"
+#  links:
+#    - nimbus:nimbus
+#    - zookeeper:zk
+#    - cassandra:cassandra
+#    - tomcat:tomcat
+#    - kafka:kafka
+#
+#ui:
+#  build: ui
+#  ports:
+#    - "49080:8080"
+#  links:
+#    - nimbus:nimbus
+#    - zookeeper:zk
