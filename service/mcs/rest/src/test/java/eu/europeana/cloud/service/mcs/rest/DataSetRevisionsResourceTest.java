@@ -21,6 +21,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -167,10 +168,13 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         String cloudId2 = "cloudId2";
         String cloudId3 = "cloudId3";
         Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
+        Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
+        dataSetService.createDataSet(providerId, datasetId,"");
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId2);
         dataSetService.addDataSetsRevisions(providerId, datasetId, revision, representationName, cloudId3);
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         // when
         dataSetWebTarget = dataSetWebTarget.
                 resolveTemplate(P_DATASET, datasetId).
@@ -179,12 +183,12 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
                 resolveTemplate(P_REVISION_NAME, revisionName).
                 resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
-                queryParam(F_REVISION_TIMESTAMP, revision.getCreationTimeStamp().toString()).
+                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 1);
         Response response = dataSetWebTarget.request().get();
 
         //then
-        assertThat(Response.Status.OK.getStatusCode(),is(response.getStatus()));
+        assertThat(response.getStatus(),is(Response.Status.OK.getStatusCode()));
         List<String> acltualCloudIds = response.readEntity(ResultSlice.class).getResults();
         assertThat(acltualCloudIds,hasItem(cloudId));
         assertThat(acltualCloudIds,not(hasItem(cloudId2)));
