@@ -1,21 +1,47 @@
-FROM wurstmeister/storm:0.9.4
-MAINTAINER Wurstmeister
+FROM openjdk:8-jre
 
+MAINTAINER kadamski
+# source https://github.com/31z4/storm-docker/tree/master/1.0.2
 
-ADD install.sh /
+RUN apt-get update && apt-get --yes install \
+    bash \
+    build-essential \
+    gnupg \
+    python \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN chmod 777 /install.sh
+ENV STORM_USER=storm \
+    STORM_CONF_DIR=/conf \
+    STORM_DATA_DIR=/data \
+    STORM_LOG_DIR=/logs
 
-RUN /install.sh
+# Add a user and make dirs
+RUN adduser "$STORM_USER" \
+    && mkdir -p "$STORM_CONF_DIR" "$STORM_DATA_DIR" "$STORM_LOG_DIR" \
+    && chown -R "$STORM_USER:$STORM_USER" "$STORM_CONF_DIR" "$STORM_DATA_DIR" "$STORM_LOG_DIR"
 
-EXPOSE 6700
-EXPOSE 6701
-EXPOSE 6702
-EXPOSE 6703
-EXPOSE 8000
+ARG GPG_KEY=ACEFE18DD2322E1E84587A148DE03962E80B8FFD
+ARG DISTRO_NAME=apache-storm-1.0.2
 
-RUN /usr/bin/config-supervisord.sh supervisor
-RUN /usr/bin/config-supervisord.sh logviewer
-ADD start-supervisor.sh /usr/bin/start-supervisor.sh
-RUN chmod 777 /usr/bin/start-supervisor.sh
-CMD /usr/bin/start-supervisor.sh
+# Download Apache Storm, verify its PGP signature, untar and clean up
+RUN wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz" \
+    && wget -q "http://www.apache.org/dist/storm/$DISTRO_NAME/$DISTRO_NAME.tar.gz.asc" \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-key "$GPG_KEY" \
+    && gpg --batch --verify "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz" \
+    && tar -xzf "$DISTRO_NAME.tar.gz" \
+    && chown -R "$STORM_USER:$STORM_USER" "$DISTRO_NAME" \
+    && rm -r "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc"
+
+WORKDIR $DISTRO_NAME
+
+ENV PATH $PATH:/$DISTRO_NAME/bin
+
+COPY install.sh /
+COPY storm.yaml /conf/storm.yaml
+COPY docker-entrypoint.sh /
+RUN  chmod 555 /docker-entrypoint.sh /install.sh
+RUN  /install.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
