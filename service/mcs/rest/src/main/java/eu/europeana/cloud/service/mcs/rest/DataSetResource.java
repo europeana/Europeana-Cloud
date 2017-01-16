@@ -176,15 +176,15 @@ public class DataSetResource {
     public Response getLatelyTaggedRecords(
             @PathParam(P_DATASET) String dataSetId,
             @PathParam(P_PROVIDER) String providerId,
-            @QueryParam(P_CLOUDID) String cloudId,
-            @QueryParam(P_REPRESENTATIONNAME) String representationName,
-            @QueryParam(P_REVISION_NAME) String revisionName,
-            @QueryParam(P_REVISION_PROVIDER_ID) String revisionProviderId) throws DataSetNotExistsException {
+            @QueryParam(F_CLOUDID) String cloudId,
+            @QueryParam(F_REPRESENTATIONNAME) String representationName,
+            @QueryParam(F_REVISION_NAME) String revisionName,
+            @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId) throws DataSetNotExistsException {
 
-        ParamUtil.require(P_CLOUDID, cloudId);
-        ParamUtil.require(P_REPRESENTATIONNAME, representationName);
-        ParamUtil.require(P_REVISION_NAME, revisionName);
-        ParamUtil.require(P_REVISION_PROVIDER_ID, revisionProviderId);
+        ParamUtil.require(F_CLOUDID, cloudId);
+        ParamUtil.require(F_REPRESENTATIONNAME, representationName);
+        ParamUtil.require(F_REVISION_NAME, revisionName);
+        ParamUtil.require(F_REVISION_PROVIDER_ID, revisionProviderId);
 
 
         String versionId = dataSetService.getLatestVersionForGivenRevision(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
