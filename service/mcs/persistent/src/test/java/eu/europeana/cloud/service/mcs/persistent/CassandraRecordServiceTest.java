@@ -619,7 +619,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
         // then
-        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(revision);
         Revision storedRevision = cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey);
         assertNotNull(storedRevision);
         assertThat(storedRevision, is(revision));
@@ -635,7 +635,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         Representation r = cassandraRecordService.createRepresentation(
                 "globalId", "edm", PROVIDER_1_ID);
         // then
-        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME, new Date().getTime());
         cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey);
     }
 
@@ -643,7 +643,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void getRevisionFromNonExistedRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
-        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME);
+        String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME, new Date().getTime());
         cassandraRecordService.getRevision("globalId", "not_existing_schema", "5573dbf0-5979-11e6-9061-1c6f653f9042", revisionKey);
     }
 

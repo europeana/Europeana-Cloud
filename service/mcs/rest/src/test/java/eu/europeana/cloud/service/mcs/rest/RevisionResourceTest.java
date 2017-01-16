@@ -41,6 +41,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
 import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -252,12 +253,10 @@ public class RevisionResourceTest extends JerseyTest {
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        String revisionId = RevisionUtils.getRevisionKey(revisionForDataProvider
-                .getRevisionProviderId(), revisionForDataProvider.getRevisionName());
         verify(dataSetService,times(1)).addDataSetsRevisions(
                 dataProvider.getId(),
                 dataSet.getId(),
-                revisionId,
+                revisionForDataProvider,
                 rep.getRepresentationName(),
                 rep.getCloudId());
     }
@@ -276,6 +275,6 @@ public class RevisionResourceTest extends JerseyTest {
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
         verify(dataSetService,times(0)).addDataSetsRevisions(anyString(),anyString(),
-                anyString(),anyString(),anyString());
+                (Revision) anyObject(),anyString(),anyString());
     }
 }

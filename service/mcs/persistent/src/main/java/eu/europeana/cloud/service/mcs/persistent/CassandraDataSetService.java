@@ -135,7 +135,7 @@ public class CassandraDataSetService implements DataSetService {
 	private void addDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String schema, Representation rep) {
 		for (Revision revision : rep.getRevisions()) {
 			if (revision != null) {
-				dataSetDAO.addDataSetsRevision( providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
+				dataSetDAO.addDataSetsRevision( providerId, dataSetId, revision,
 						schema, rep.getCloudId());
 			}
 		}
@@ -169,7 +169,7 @@ public class CassandraDataSetService implements DataSetService {
 		if (representation != null) {
 			for (Revision revision : representation.getRevisions())
 				if (revision != null)
-					dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
+					dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
 		}
 	}
 
@@ -276,7 +276,7 @@ public class CassandraDataSetService implements DataSetService {
 //	}
 
 	@Override
-	public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit)
+	public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
 			throws ProviderNotExistsException, DataSetNotExistsException {
 		// check whether provider exists
 		if (!uis.existsProvider(providerId))
@@ -287,7 +287,7 @@ public class CassandraDataSetService implements DataSetService {
 			throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
 
 		// run the query requesting one more element than items per page to determine the starting cloud id for the next slice
-		List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionId, representationName, startFrom, limit);
+		List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
 
 		String nextToken = null;
 
@@ -301,17 +301,28 @@ public class CassandraDataSetService implements DataSetService {
 		return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
 	}
 
+	private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {
+		List<CloudTagsResponse> result = new ArrayList<>(list.size());
+
+		for (Properties properties : list) {
+			result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
+					Boolean.valueOf(properties.getProperty("acceptance")), Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted"))));
+		}
+
+		return result;
+	}
+
 	/**
 	 * @inheritDoc
 	 */
 	@Override
-	public void addDataSetsRevisions(String providerId, String dataSetId, String revisionId,
+	public void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
 									 String representationName, String cloudId)
 			throws ProviderNotExistsException{
 		if (uis.getProvider(providerId) == null) {
 			throw new ProviderNotExistsException();
 		}
-		dataSetDAO.addDataSetsRevision(providerId, dataSetId, revisionId, representationName, cloudId);
+		dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision, representationName, cloudId);
 	}
 
 	private boolean isProviderExists(String providerId) throws ProviderNotExistsException {

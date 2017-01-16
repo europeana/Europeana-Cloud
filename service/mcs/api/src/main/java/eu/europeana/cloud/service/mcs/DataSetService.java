@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -9,6 +10,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -168,16 +170,28 @@ public interface DataSetService {
      *
      * @param providerId             dataSet owner
      * @param dataSetId              dataSet id
-     * @param revisionId             revision id
+     * @param revisionProviderId     revision provider id
+     * @param revisionName           revision name
+     * @param revisionTimestamp      revision timestamp
      * @param representationName     representation name
      * @param startFrom              if null - will return first result slice. Result slices contain token for next pages, which should be
      *                               provided in this parameter.
      * @param limit max number of results in one slice.
      * @return list of cloudIds and tags in given dataSet for given revisionId and representationName.
      */
-    ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit)
+    ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
 
-    void addDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String cloudId) throws ProviderNotExistsException;
+    /**
+     * Add information in additional table containing data sets cloud ids and revisions
+     *
+     * @param providerId data provider id
+     * @param dataSetId dataset id
+     * @param revision revision object
+     * @param representationName representation name
+     * @param cloudId cloud id
+     * @throws ProviderNotExistsException
+     */
+    void addDataSetsRevisions(String providerId, String dataSetId, Revision revision, String representationName, String cloudId) throws ProviderNotExistsException;
 }
