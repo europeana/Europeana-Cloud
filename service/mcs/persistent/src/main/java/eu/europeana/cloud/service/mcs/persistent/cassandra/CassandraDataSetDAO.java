@@ -623,7 +623,7 @@ public class CassandraDataSetDAO{
         if (result.size() == limit) {
             PagingState pagingState = rs.getExecutionInfo().getPagingState();
             // whole page has been retrieved so add paging state for the next call at the end of the results list
-            if (pagingState != null) {
+            if (pagingState != null && !rs.isExhausted()) {
                 Properties properties = new Properties();
                 properties.put("nextSlice", pagingState.toString());
                 result.add(properties);

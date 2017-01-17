@@ -67,7 +67,7 @@ public class DataSetRevisionsResource {
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudTagsResponse>")
-    public ResultSlice<CloudTagsResponse> getDataSetContents(@PathParam(P_PROVIDER) String providerId,
+    public Response getDataSetContents(@PathParam(P_PROVIDER) String providerId,
                                                              @PathParam(P_DATASET) String dataSetId,
                                                              @PathParam(P_REPRESENTATIONNAME) String representationName,
                                                              @PathParam(P_REVISION_NAME) String revisionName,
@@ -77,12 +77,14 @@ public class DataSetRevisionsResource {
                                                              @QueryParam(F_LIMIT) @Min(1) @Max(10000) int limitParam)
             throws DataSetNotExistsException, ProviderNotExistsException {
         // when limitParam is specified we can retrieve more results than configured number of elements per page
-        final int limitWithNextSlice = (limitParam >= 1) ? limitParam + 1 : numberOfElementsOnPage + 1;
+        final int limitWithNextSlice = (limitParam >= 1) ? limitParam : numberOfElementsOnPage;
         // validate parameters
         if (revisionTimestamp == null)
             throw new WebApplicationException("Revision timestamp parameter cannot be null");
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 
-        return dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
+        ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
+        Response r = Response.ok(result).build();
+        return r;
     }
 }
