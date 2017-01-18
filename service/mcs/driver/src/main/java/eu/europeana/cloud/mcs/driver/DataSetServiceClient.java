@@ -2,16 +2,13 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +25,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Client for managing datasets in MCS.
@@ -508,21 +500,22 @@ public class DataSetServiceClient extends MCSClient {
     }
 
     /**
-     * Retrieve chunk of cloudIds from data set for specific revision.
+     * Retrieve chunk of cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (requred)
      * @param representationName name of the representation (required)
      * @param revisionName       revision naem (required)
      * @param revisionProviderId revision provider id (required)
+     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
      * @param startFrom          code pointing to the requested result slice (if equal to
      *                           null, first slice is returned)
-     * @return chunk of representation cloud identifier list from data set
+     * @return chunk of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
-    public ResultSlice<String> getDataSetRevisionsChunk(String providerId, String dataSetId,
-                                                        String representationName, String revisionName,
-                                                        String revisionProviderId, String startFrom)
+    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String providerId, String dataSetId,
+                                                                   String representationName, String revisionName,
+                                                                   String revisionProviderId, String revisionTimestamp, String startFrom)
             throws MCSException{
 
         WebTarget target = client.target(baseUrl)
@@ -532,6 +525,7 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName)
                 .resolveTemplate(P_REVISION_NAME, revisionName)
                 .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId)
+                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
                 .queryParam(F_START_FROM, startFrom);
 
         Response response = null;
@@ -548,29 +542,30 @@ public class DataSetServiceClient extends MCSClient {
     }
 
     /**
-     * Lists cloudIds from data set for specific revision.
+     * Lists cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (requred)
      * @param representationName name of the representation (required)
      * @param revisionName       revision naem (required)
      * @param revisionProviderId revision provider id (required)
-     * @return chunk of representation cloud identifier list from data set
+     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @return chunk of representation cloud identifier list from data set together with revision tags
      * @throws MCSException on unexpected situations
      */
-    public List<String> getDataSetRevisions(String providerId, String dataSetId,
+    public List<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId,
                                             String representationName, String revisionName,
-                                            String revisionProviderId)
+                                            String revisionProviderId, String revisionTimestamp)
             throws MCSException{
 
-        List<String> resultList = new ArrayList<>();
-        ResultSlice<String> resultSlice;
+        List<CloudTagsResponse> resultList = new ArrayList<>();
+        ResultSlice<CloudTagsResponse> resultSlice;
         String startFrom = null;
         do{
             resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                    revisionName, revisionProviderId, startFrom);
+                    revisionName, revisionProviderId, revisionTimestamp, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null){
-                throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
+                throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
             startFrom = resultSlice.getNextSlice();

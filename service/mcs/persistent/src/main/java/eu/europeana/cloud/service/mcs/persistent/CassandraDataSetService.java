@@ -306,7 +306,7 @@ public class CassandraDataSetService implements DataSetService {
 
 		for (Properties properties : list) {
 			result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
-					Boolean.valueOf(properties.getProperty("acceptance")), Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted"))));
+					Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted")), Boolean.valueOf(properties.getProperty("acceptance"))));
 		}
 
 		return result;

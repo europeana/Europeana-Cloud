@@ -4,6 +4,7 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
@@ -21,11 +22,7 @@ import java.util.NoSuchElementException;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class DataSetServiceClientTest {
 
@@ -782,19 +779,29 @@ public class DataSetServiceClientTest {
     public void shouldRetrieveCloudIdsForSpecificRevision()
             throws MCSException {
         //given
-        String providerId = "providerName1848455952406";
-        String dataSetId = providerId + "d";
-        String representationName = "representationName";
-        String revisionName = "revisionName";
+        String providerId = "LFT";
+        String dataSetId = "set1";
+        String representationName = "t1";
+        String revisionName = "IMPORT";
+        String revisionProviderId = "EU";
+        String revisionTimestamp = "2017-01-09T08:16:47.824";
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
-        List<String> cloudIds= instance.getDataSetRevisions(providerId, dataSetId, representationName,
-                revisionName,providerId);
+        List<CloudTagsResponse> cloudIds = instance.getDataSetRevisions(providerId, dataSetId, representationName,
+                revisionName, revisionProviderId, revisionTimestamp);
         //then
         assertThat(cloudIds.size(), is(2));
-        assertThat(cloudIds, hasItems(
-                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
-                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
+        CloudTagsResponse cid = cloudIds.get(0);
+        assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
+        assertTrue(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertFalse(cid.isPublished());
+
+        cid = cloudIds.get(1);
+        assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
+        assertFalse(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertTrue(cid.isPublished());
     }
 
     @Betamax(tape = "dataSets_shouldRetrievCloudIdsChunkForSpecificRevision")
@@ -802,19 +809,29 @@ public class DataSetServiceClientTest {
     public void shouldRetrievCloudIdsChunkForSpecificRevision()
             throws MCSException {
         //given
-        String providerId = "providerName1848455952406";
-        String dataSetId = providerId + "d";
-        String representationName = "representationName";
-        String revisionName = "revisionName";
+        String providerId = "LFT";
+        String dataSetId = "set1";
+        String representationName = "t1";
+        String revisionName = "IMPORT";
+        String revisionProviderId = "EU";
+        String revisionTimestamp = "2017-01-09T08:16:47.824";
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
-        ResultSlice<String> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                revisionName,providerId, null);
+        ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
+                revisionName, revisionProviderId, revisionTimestamp, null);
         //then
         assertThat(cloudIds.getNextSlice(),nullValue());
         assertThat(cloudIds.getResults().size(), is(2));
-        assertThat(cloudIds.getResults(), hasItems(
-                "M7JLI7WZU4BC7NNLECYHMCWNPQIYOFBJMZ7QTMJH2ABTTHOMQLWA",
-                "SRIJOXLOZ7XUNAY24VAV3SAT4HPDLW6GFX5DC33SXNLRHEDQHOYQ"));
+        CloudTagsResponse cid = cloudIds.getResults().get(0);
+        assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
+        assertTrue(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertFalse(cid.isPublished());
+
+        cid = cloudIds.getResults().get(1);
+        assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
+        assertFalse(cid.isAcceptance());
+        assertFalse(cid.isDeleted());
+        assertTrue(cid.isPublished());
     }
 }

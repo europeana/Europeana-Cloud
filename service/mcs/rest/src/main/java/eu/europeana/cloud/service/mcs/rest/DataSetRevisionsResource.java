@@ -84,7 +84,6 @@ public class DataSetRevisionsResource {
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 
         ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);
-        Response r = Response.ok(result).build();
-        return r;
+        return Response.ok(result).build();
     }
 }
