@@ -10,6 +10,8 @@ import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -78,7 +80,13 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation;
 
+    private PreparedStatement getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation;
+
+
     private PreparedStatement insertProviderDatasetRepresentationInfo;
+    private PreparedStatement insertLatestProviderDatasetRepresentationInfo;
+    private PreparedStatement deleteLatestProviderDatasetRepresentationInfo;
+    private PreparedStatement selectVersionFromLatestProviderDatasetRepresentationInfo;
 
     private PreparedStatement deleteProviderDatasetRepresentationInfo;
 
@@ -283,11 +291,33 @@ public class CassandraDataSetDAO {
         getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
 
+        getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation = connectionProvider.getSession().prepare("SELECT cloud_id, revision_timestamp " //
+                + "FROM latest_provider_dataset_representation_revision " //
+                + "WHERE provider_id = ? AND dataset_id = ? AND revision_id = ? And representation_id = ? AND revision_timestamp > ? AND cloud_id > ? LIMIT ?  ALLOW FILTERING;");
+        getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
         insertProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("INSERT INTO " //
                 + "provider_dataset_representation (provider_id, dataset_id, bucket_id, cloud_id, version_id, representation_id," //
                 + "revision_id, revision_timestamp, acceptance, published, mark_deleted) " //
                 + "VALUES (?,?,?,?,?,?,?,?,?,?,?);");
         insertProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
+        insertLatestProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("INSERT INTO " //
+                + "latest_provider_dataset_representation_revision (provider_id, dataset_id,cloud_id,representation_id," //
+                + "revision_id, revision_timestamp,version_id, acceptance, published, mark_deleted) " //
+                + "VALUES (?,?,?,?,?,?,?,?,?,?);");
+        insertLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
+        deleteLatestProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("DELETE FROM " //
+                + "latest_provider_dataset_representation_revision WHERE provider_id = ? AND dataset_id = ?  AND representation_id =? AND cloud_id = ? ");
+        deleteLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        selectVersionFromLatestProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("select version_id FROM " //
+                + "latest_provider_dataset_representation_revision WHERE provider_id = ? AND dataset_id = ?  AND representation_id =? AND cloud_id = ? ");
+        selectVersionFromLatestProviderDatasetRepresentationInfo.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare(//
                 "DELETE FROM " //
@@ -822,58 +852,41 @@ public class CassandraDataSetDAO {
 
 
     /**
-     * get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * get a list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * This list will contain one row per revision per cloudId;
      *
-     * @param providerId                  data set provider id
-     * @param dataSetId                   identifier of a data set
-     * @param revisionId                  revisionId
-     * @param representationName          representation name
-     * @param dateFrom                    date of last revision
-     * @param nextToken                   it will be used to iterate over the bucket it
-     * @param cloudIdAndTimestampResponse hold the latest cloud identifier,revision timestamp
-     * @return get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * @param dataSetId               data set identifier
+     * @param providerId              provider identifier
+     * @param revisionId              revision identifier
+     * @param representationName      representation name
+     * @param dateFrom                date of latest revision
+     * @param startFrom               cloudId to start from
+     * @param numberOfElementsPerPage number of elements in a slice
+     * @return list  of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * This list will contain one row per revision per cloudId ;
+     * @throws ProviderNotExistsException
+     * @throws DataSetNotExistsException
      */
-    public CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String providerId, String dataSetId, String revisionId, String representationName, Date dateFrom, String nextToken, CloudIdAndTimestampResponse cloudIdAndTimestampResponse)
+
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String providerId, String dataSetId, String revisionId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
             throws NoHostAvailableException, QueryExecutionException {
-        String bucketId = getNextBucket(providerId, dataSetId, nextToken);
-        if (bucketId == null)
-            return cloudIdAndTimestampResponse;
-        ResultSet rs = getQueryResults(providerId, dataSetId, revisionId, representationName, dateFrom, bucketId);
-        int available = rs.getAvailableWithoutFetching();
-        CloudIdAndTimestampResponse latest = getTheLatestCloudId(rs, cloudIdAndTimestampResponse, available);
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
+        if (startFrom == null)
+            startFrom = "";
 
-        return getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, bucketId, latest);
-
-    }
-
-    private CloudIdAndTimestampResponse getTheLatestCloudId(ResultSet rs, CloudIdAndTimestampResponse latest, int available) {
-        if (available > 0) {
-            if (latest.isEmpty()) {
-                Row row = rs.one();
-                latest.setCloudId(row.getString("cloud_id"));
-                latest.setRevisionTimestamp(row.getDate("revision_timestamp"));
-                available--;
-            }
-            for (int i = 0; i < available; i++) {
-                Row row = rs.one();
-                Date timestamp = row.getDate("revision_timestamp");
-                if (timestamp.getTime() > latest.getRevisionTimestamp().getTime()) {
-                    latest.setRevisionTimestamp(timestamp);
-                    latest.setCloudId(row.getString("cloud_id"));
-                }
-            }
-        }
-        return latest;
-
-    }
-
-    private ResultSet getQueryResults(String providerId, String dataSetId, String revisionId, String representationName, Date dateFrom, String bucketId) {
-        BoundStatement boundStatement = getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.bind(providerId, dataSetId, UUID.fromString(bucketId), revisionId, representationName, dateFrom, Integer.MAX_VALUE);
+        BoundStatement boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.bind(providerId, dataSetId, revisionId, representationName, dateFrom, startFrom, numberOfElementsPerPage);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        return rs;
-    }
+        Iterator<Row> iterator = rs.iterator();
 
+        while (iterator.hasNext()) {
+            Row row = iterator.next();
+            CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(row.getString("cloud_id"), row.getDate("revision_timestamp"));
+            cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
+        }
+        return cloudIdAndTimestampResponseList;
+
+    }
 
     /**
      * Get next slice string basing on paging state of the current query and bucket id.
@@ -1032,4 +1045,72 @@ public class CassandraDataSetDAO {
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
     }
+
+
+    /**
+     * Insert row to provider_dataset_representation table.
+     *
+     * @param dataSetId         data set identifier
+     * @param dataSetProviderId provider identifier
+     * @param cloudId           cloud identifier
+     * @param schema            representation name
+     * @param timeStamp         timestamp of revision update
+     * @param versionId         version identifier
+     * @param acceptance        acceptance tag
+     * @param published         published tag
+     * @param deleted           mark deleted tag
+     */
+    public void insertLatestProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String cloudId,
+                                                              String schema, String revisionId, Date timeStamp, String versionId,
+                                                              boolean acceptance, boolean published, boolean deleted)
+            throws NoHostAvailableException, QueryExecutionException {
+
+        BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, cloudId, schema, revisionId, timeStamp, UUID.fromString(versionId), acceptance, published, deleted);
+        connectionProvider.getSession().execute(insertStatement);
+    }
+
+
+    /**
+     * Remove row from latest_provider_dataset_representation_revision table.
+     *
+     * @param dataSetId         data set identifier
+     * @param dataSetProviderId provider identifier
+     * @param globalId          cloud identifier
+     * @param schema            representation name
+     *                          +
+     */
+    public void deleteLatestProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
+                                                              String schema)
+            throws NoHostAvailableException, QueryExecutionException {
+        BoundStatement bs = deleteLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, schema,
+                globalId);
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+    }
+
+
+    /**
+     * get Version from latest_provider_dataset_representation_revision table.
+     *
+     * @param dataSetId         data set identifier
+     * @param dataSetProviderId provider identifier
+     * @param globalId          cloud identifier
+     * @param schema            representation name
+     *                          +
+     */
+    public String getVersionFromLatestProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
+                                                                        String schema)
+            throws NoHostAvailableException, QueryExecutionException {
+        BoundStatement bs = selectVersionFromLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, schema,
+                globalId);
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+        if (rs.getAvailableWithoutFetching() == 0)
+            return null;
+        String version = rs.one().getUUID(0).toString();
+        return version;
+
+    }
+
+
 }

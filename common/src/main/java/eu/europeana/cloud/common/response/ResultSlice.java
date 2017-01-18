@@ -1,10 +1,6 @@
 package eu.europeana.cloud.common.response;
 
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +17,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  * @param <T> Class of returned objects.
  */
 @XmlRootElement
-@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class}) // references to all classes that might be used as generics parameters
+@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudIdAndTimestampResponse.class}) // references to all classes that might be used as generics parameters
 public class ResultSlice<T> {
 
 	/**

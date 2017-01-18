@@ -153,7 +153,8 @@ public class DataSetResource {
 
 
     /**
-     * get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * This list will contain one row per revision per cloudId;
      *
      * @param dataSetId          data set identifier
      * @param providerId         provider identifier
@@ -161,25 +162,27 @@ public class DataSetResource {
      * @param revisionProvider   revision provider
      * @param representationName representation name
      * @param dateFrom           date of latest revision
-     * @return Lists all cloud identifiers,timestamps that belong to data set from the specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * @param startFrom          cloudId to start from
+     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
 
     @Path("/revision/{" + P_REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER + "}/representations/{" + P_REPRESENTATIONNAME + "}")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ReturnType("eu.europeana.cloud.common.model.CloudIdAndTimestampResponse")
+    @ReturnType("eu.europeana.cloud.common.response.ResultSlice<CloudIdAndTimestampResponse>")
     @GET
-    public CloudIdAndTimestampResponse getDataSetCloudIdsByRepresentationAndRevision(
+    public ResultSlice<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevision(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
-            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom)
+            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(F_START_FROM) String startFrom)
             throws ProviderNotExistsException, DataSetNotExistsException
 
     {
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
         String revisionId = RevisionUtils.getRevisionKey(revisionProvider, revisionName);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate());
-        return cloudIdAndTimestampResponse;
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
+        return cloudIdAndTimestampResponses;
     }
 }
 

@@ -78,7 +78,7 @@ public class RevisionResource {
                                 @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-                ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Revision revision = null;
         try {
@@ -98,9 +98,10 @@ public class RevisionResource {
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
         final String revisionKey = RevisionUtils.getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName());
-        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revisionKey);
+        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId(), revisionKey);
         recordService.addRevision(globalId, schema, version, revision);
         dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
+        dataSetService.updateLatestProviderDatasetRepresentation(globalId, schema, version, revision);
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
@@ -181,7 +182,6 @@ public class RevisionResource {
         addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
-
 
 
     private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {

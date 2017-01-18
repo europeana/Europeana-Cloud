@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -27,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -127,14 +129,15 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dateFrom = "2016-5-05";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = response.readEntity(CloudIdAndTimestampResponse.class);
-        assertEquals(cloudIdAndTimestampResponse.getCloudId(), rep.getCloudId());
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
+        List<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponse = cloudIdAndTimestampResponseResultSlice.getResults();
+        assertEquals(cloudIdsAndTimestampResponse.get(0).getCloudId(), rep.getCloudId());
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        assertTrue(cloudIdAndTimestampResponse.getRevisionTimestamp().getTime() > utc.getMillis());
+        assertTrue(cloudIdsAndTimestampResponse.get(0).getRevisionTimestamp().getTime() > utc.getMillis());
 
 
     }
@@ -158,13 +161,12 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
         String dateFrom = "3000-12-12";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = response.readEntity(CloudIdAndTimestampResponse.class);
-        assertTrue(cloudIdAndTimestampResponse.isEmpty());
-
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
+        assertTrue(cloudIdAndTimestampResponseResultSlice.getResults().isEmpty());
 
     }
 
@@ -176,7 +178,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                 .existsProvider("1");
 
         String dateFrom = "2016-5-05";
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
@@ -201,7 +203,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                         dataProvider.getId());
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);

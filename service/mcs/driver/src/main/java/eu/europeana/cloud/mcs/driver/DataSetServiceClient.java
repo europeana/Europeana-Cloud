@@ -144,20 +144,7 @@ public class DataSetServiceClient extends MCSClient {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        return prepareResultSliceResponse(target);
     }
 
     /**
@@ -632,22 +619,7 @@ public class DataSetServiceClient extends MCSClient {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
-        }
-        finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        return prepareResultSliceResponse(target);
     }
 
     /**
@@ -684,19 +656,20 @@ public class DataSetServiceClient extends MCSClient {
     }
 
     /**
-     * get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * Returns chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
      *
      * @param dataSetId          data set identifier
      * @param providerId         provider identifier
      * @param revisionProvider   revision provider
      * @param revisionName       revision name
      * @param representationName representation name
-     * @param dateFrom           date of latest revision
-     * @return get the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * @param dateFrom           identifier to the requested result slice (cloudId) (if equal to
+     *                           null, first slice is returned)
+     * @return chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
      * @throws MCSException on  unexpected situations
      */
 
-    public CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String dateFrom)
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String dateFrom, String startFrom)
             throws MCSException {
 
 
@@ -708,11 +681,19 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
                 .queryParam(ParamConstants.F_DATE_FROM, dateFrom);
 
+        if (startFrom != null) {
+            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
+        }
+
+        return prepareResultSliceResponse(target);
+    }
+
+    private ResultSlice prepareResultSliceResponse(WebTarget target) throws MCSException {
         Response response = null;
         try {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(CloudIdAndTimestampResponse.class);
+                return response.readEntity(ResultSlice.class);
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
@@ -722,6 +703,42 @@ public class DataSetServiceClient extends MCSClient {
                 response.close();
             }
         }
+
+    }
+
+
+    /**
+     * Returns list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * <p>
+     * <p/>
+     *
+     * @param dataSetId          data set identifier
+     * @param providerId         provider identifier
+     * @param revisionProvider   revision provider
+     * @param revisionName       revision name
+     * @param representationName representation name
+     * @param dateFrom           date of latest revision
+     *                           does not exist)
+     * @throws MCSException on unexpected situations
+     */
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String dateFrom)
+            throws MCSException {
+
+        List<CloudIdAndTimestampResponse> resultList = new ArrayList<>();
+        ResultSlice resultSlice;
+        String startFrom = null;
+
+        do {
+            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, dateFrom, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
+            }
+            resultList.addAll(resultSlice.getResults());
+            startFrom = resultSlice.getNextSlice();
+
+        } while (resultSlice.getNextSlice() != null);
+
+        return resultList;
     }
 
 }

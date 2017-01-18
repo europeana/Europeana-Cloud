@@ -30,11 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.ByteArrayInputStream;
-import java.util.*;
-
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -56,14 +51,12 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     private static final String providerId = "provider";
 
-    private static final String LAST_DATE = "3000-10-10";
 
     private static final String DATA_SET_NAME = "dataset1";
 
     private static final String REPRESENTATION = "representation";
 
     private static final String REVISION = "revision";
-    private static String lastCloudId;
 
     @After
     public void cleanUp() {
@@ -529,8 +522,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(inserted, is(retrieved));
     }
 
-	private List<CloudVersionRevisionResponse> createDummyData(int size) {
-		Session session = CassandraTestInstance.getSession(KEYSPACE);
+    private List<CloudVersionRevisionResponse> createDummyData(int size) {
+        Session session = CassandraTestInstance.getSession(KEYSPACE);
 
         // create prepared statement for entry in a table
         PreparedStatement ps = getPreparedStatementForInsertion(session);
@@ -614,40 +607,54 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
     @Test
-    public void shouldReturnTheLatestCloudIdAndTimeStampInsideRevisionDataSet()
+    public void shouldReturnTheLatestCloudIdsAndTimeStampInsideRevisionDataSet()
             throws Exception {
-        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(1000);
+        int size = 10;
+        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(size);
         String dateFrom = "2016-5-3";
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision("dataset1", providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
-        assertFalse(cloudIdAndTimestampResponse.isEmpty());
-        System.out.println(cloudIdAndTimestampResponse);
-        assertTrue(cloudIdAndTimestampResponse.getRevisionTimestamp().getTime() > utc.toDate().getTime());
-        assertEquals(cloudIdAndTimestampResponse.getCloudId(), lastCloudId);
-        utc = new DateTime(LAST_DATE, DateTimeZone.UTC);
-        assertEquals(cloudIdAndTimestampResponse.getRevisionTimestamp(), utc.toDate());
+
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate(), null, 100);
+        List<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponse = cloudIdsAndTimestampResponseResultSlice.getResults();
+        assertFalse(cloudIdsAndTimestampResponse.isEmpty());
+        assertEquals(cloudIdsAndTimestampResponse.size(), size);
     }
 
     @Test
-    public void shouldReturnEmptyResponseForBigDateInsideRevisionDataSet()
+    public void shouldReturnTheLatestCloudIdsAndTimeStampInsideRevisionDataSetBatchByBatch()
             throws Exception {
-        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(1000);
-        String dateFrom = "4000-5-3";
-        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
-        assertTrue(cloudIdAndTimestampResponse.isEmpty());
-
-    }
-
-    @Test(expected=DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistedException()
-            throws Exception {
-        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(1000);
+        int size = 10;
+        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(size);
         String dateFrom = "2016-5-3";
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision("Non-Existed-Dataset", providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate());
-        assertTrue(cloudIdAndTimestampResponse.isEmpty());
 
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate(), null, 1);
+        List<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponse = cloudIdsAndTimestampResponseResultSlice.getResults();
+        assertFalse(cloudIdsAndTimestampResponse.isEmpty());
+        assertEquals(cloudIdsAndTimestampResponse.size(), 1);
+        String cloudId = cloudIdsAndTimestampResponse.get(0).getCloudId();
+
+        cloudIdsAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate(), cloudId, 1);
+        cloudIdsAndTimestampResponse = cloudIdsAndTimestampResponseResultSlice.getResults();
+        int batchCounter = 1;
+        while (!cloudIdsAndTimestampResponse.isEmpty()) {
+            batchCounter++;
+            cloudId = cloudIdsAndTimestampResponse.get(0).getCloudId();
+            cloudIdsAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(DATA_SET_NAME, providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate(), cloudId, 1);
+            cloudIdsAndTimestampResponse = cloudIdsAndTimestampResponseResultSlice.getResults();
+        }
+        assertEquals(batchCounter, size);
+    }
+
+
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowDataSetNotExistedException()
+            throws Exception {
+        int size = 10;
+        prepareTestForTheLatestCloudIdAndTimeStampInsideDataSet(size);
+        String dateFrom = "2016-5-3";
+        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
+        cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision("Non_Existed_Dataset", providerId, RevisionUtils.getRevisionKey(providerId, REVISION), REPRESENTATION, utc.toDate(), null, 1);
     }
 
 
@@ -655,38 +662,23 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         makeUISProviderSuccess();
         makeUISProviderExistsSuccess();
         cassandraDataSetService.createDataSet(providerId, DATA_SET_NAME, "description");
-        createDummyDataForCloudIdAndTimestampResponse(rowNum);
+        createDummyDataForLatestCloudIdsAndTimestampResponse(rowNum);
     }
 
 
-    private void createDummyDataForCloudIdAndTimestampResponse(int size) {
+    private void createDummyDataForLatestCloudIdsAndTimestampResponse(int size) {
         Session session = CassandraTestInstance.getSession(KEYSPACE);
-        PreparedStatement ps = getPreparedStatementForInsertion(session);
-        PreparedStatement psBuckets = getPreparedStatementForIBucketIdInsertion(session);
-
+        PreparedStatement ps = getPreparedStatementForInsertionToLatestCloudIdsAndTimestampTable(session);
         BoundStatement bs;
-        BoundStatement bsBuckets;
-
-        String bucketId = new com.eaio.uuid.UUID().toString();
-
-
-        for (int i = 0; i < size - 1; i++) {
-            bsBuckets = psBuckets.bind(providerId, DATA_SET_NAME, UUID.fromString(bucketId));
-            session.execute(bsBuckets);
+        for (int i = 0; i < size; i++) {
             Date date = new Date();
             CloudIdAndTimestampResponse obj = new CloudIdAndTimestampResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
                     date);
-            bs = ps.bind(providerId, DATA_SET_NAME, UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, RevisionUtils.getRevisionKey(providerId, REVISION), date, true, false, false);
+            bs = ps.bind(providerId, DATA_SET_NAME, obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, RevisionUtils.getRevisionKey(providerId, REVISION), date, true, false, false);
             session.execute(bs);
         }
-        DateTime utc = new DateTime(LAST_DATE, DateTimeZone.UTC);
-        lastCloudId = IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + size);
-        CloudIdAndTimestampResponse obj = new CloudIdAndTimestampResponse(lastCloudId,
-                utc.toDate());
-        bs = ps.bind(providerId, DATA_SET_NAME, UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(new com.eaio.uuid.UUID().toString()), REPRESENTATION, RevisionUtils.getRevisionKey(providerId, REVISION), utc.toDate(), true, false, false);
-        session.execute(bs);
-
     }
+
 
     private PreparedStatement getPreparedStatementForInsertion(Session session) {
         String table = KEYSPACE + ".provider_dataset_representation";
@@ -694,5 +686,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
                 "(?,?,?,?,?,?,?,?,?,?,?)");
         ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
         return ps;
+    }
+
+
+    private PreparedStatement getPreparedStatementForInsertionToLatestCloudIdsAndTimestampTable(Session session) {
+        String table = KEYSPACE + ".latest_provider_dataset_representation_revision";
+        PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
+                "(?,?,?,?,?,?,?,?,?,?)");
+        ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
+        return ps;
+
     }
 }
