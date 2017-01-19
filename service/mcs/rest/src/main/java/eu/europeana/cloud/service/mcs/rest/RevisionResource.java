@@ -1,14 +1,12 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import jersey.repackaged.com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,27 +15,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
@@ -94,6 +81,7 @@ public class RevisionResource {
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
         createAssignmentToRevisionOnDataSets(globalId, schema, version, revision);
         recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
@@ -158,7 +146,7 @@ public class RevisionResource {
                                 @PathParam(P_VER) final String version,
                                 @PathParam(P_REVISION_NAME) String revisionName,
                                 @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
-                                @FormParam(P_TAGS) Set<String> tags
+                                @FormParam(F_TAGS) Set<String> tags
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
 

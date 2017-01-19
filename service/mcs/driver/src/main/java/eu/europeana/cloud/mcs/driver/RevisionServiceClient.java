@@ -23,13 +23,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.P_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.P_VER;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Created by Tarek on 8/2/2016.
@@ -161,7 +155,7 @@ public class RevisionServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_VER, version).resolveTemplate(ParamConstants.P_REVISION_NAME, revisionName).resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId);
         Form tagsForm = new Form();
         for (Tags tag : tags) {
-            tagsForm.param(P_TAGS, tag.getTag());
+            tagsForm.param(F_TAGS, tag.getTag());
         }
         Invocation.Builder request = target.request();
         Response response = null;

@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -56,16 +57,15 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
     public void emitSingleRepresentationFromDataSet(StormTaskTuple t, DataSetServiceClient dataSetServiceClient) {
         final String dataSetUrl = t.getParameter(PluginParameterKeys.DATASET_URL);
         final String representationName = t.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        t.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
         t.getParameters().remove(PluginParameterKeys.DATASET_URL);
-
         if (dataSetUrl != null) {
             try {
                 final UrlParser urlParser = new UrlParser(dataSetUrl);
                 if (urlParser.isUrlToDataset()) {
-                    List<Representation> representations = dataSetServiceClient.getDataSetRepresentations(urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                            urlParser.getPart(UrlPart.DATA_SETS));
-                    t.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
-                    for (Representation representation : representations) {
+                    RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                    while (iterator.hasNext()) {
+                        Representation representation = iterator.next();
                         if (representationName == null || representation.getRepresentationName().equals(representationName)) {
                             StormTaskTuple next = buildStormTaskTuple(t, representation);
                             outputCollector.emit(inputTuple, next.toStormTuple());
@@ -75,10 +75,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     LOGGER.warn("dataset url is not formulated correctly {}", dataSetUrl);
                     emitDropNotification(t.getTaskId(), dataSetUrl, "dataset url is not formulated correctly", "");
                 }
-            } catch (DataSetNotExistsException ex) {
-                LOGGER.warn("Provided dataset is not existed {}", dataSetUrl);
-                emitDropNotification(t.getTaskId(), dataSetUrl, "Can not retrieve a dataset", "");
-            } catch (MalformedURLException | MCSException ex) {
+            } catch (MalformedURLException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             }

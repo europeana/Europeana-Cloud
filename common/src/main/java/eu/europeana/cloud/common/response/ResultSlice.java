@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  * @param <T> Class of returned objects.
  */
 @XmlRootElement
-@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, CloudTagsResponse.class}) // references to all classes that might be used as generics parameters
+@XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class, LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudTagsResponse.class}) // references to all classes that might be used as generics parameterspublic class ResultSlice<T> {
 public class ResultSlice<T> {
 
 	/**

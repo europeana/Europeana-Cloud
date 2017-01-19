@@ -166,7 +166,8 @@ public class CassandraLocalIdDAO {
         return keyspaceName;
     }
 
-    private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
+    private List<CloudId>
+    createCloudIdsFromRs(ResultSet rs) {
         List<CloudId> cloudIds = new LinkedList<>();
         if (rs != null) {
             for (Row row : rs.all()) {

@@ -37,7 +37,7 @@ public abstract class CassandraTestBase {
             if (!serverRunning) {
                 try {
                     LOGGER.info("Starting embedded Cassandra...");
-                    EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE);
+                    EmbeddedCassandraServerHelper.startEmbeddedCassandra(CASSANDRA_CONFIG_FILE, 500000l);
                     try {
     					Thread.sleep(10000l);
     				} catch (InterruptedException e) {

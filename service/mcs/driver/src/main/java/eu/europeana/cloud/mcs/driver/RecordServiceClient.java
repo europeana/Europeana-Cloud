@@ -301,8 +301,9 @@ public class RecordServiceClient extends MCSClient {
      *                           (required)
      * @param providerId         provider of this representation version (required)
      * @param data               file that should be uploaded (required)
+     * @param fileName           name for created file
      * @param mediaType          mimeType of uploaded file
-     * @return
+     * @return URI to created file
      */
     public URI createRepresentation(String cloudId,
                                     String representationName,
@@ -314,13 +315,8 @@ public class RecordServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
-        //
-        FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_PROVIDER, providerId)
-                .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .field(ParamConstants.F_FILE_NAME, fileName)
-                .field(ParamConstants.F_FILE_MIME, mediaType);
-        //
+
+        FormDataMultiPart multipart = prepareRequestBody(providerId, data, fileName, mediaType);
 
         Response response = null;
         request.header("Content-Type","multipart/form-data");
@@ -336,6 +332,41 @@ public class RecordServiceClient extends MCSClient {
         } finally {
             closeResponse(response);
         }
+    }
+
+    /**
+     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     *
+     * @param cloudId            id of the record in which to create the representation
+     *                           (required)
+     * @param representationName name of the representation to be created
+     *                           (required)
+     * @param providerId         provider of this representation version (required)
+     * @param data               file that should be uploaded (required)
+     * @param mediaType          mimeType of uploaded file
+     * @return URI to created file
+     * @throws MCSException
+     */
+    public URI createRepresentation(String cloudId,
+                                    String representationName,
+                                    String providerId,
+                                    InputStream data,
+                                    String mediaType) throws MCSException {
+
+        return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
+    }
+
+    private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
+        FormDataMultiPart requestBody =  new FormDataMultiPart()
+                    .field(ParamConstants.F_PROVIDER, providerId)
+                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .field(ParamConstants.F_FILE_MIME, mediaType);
+
+        if (fileName != null && !"".equals(fileName.trim())) {
+            requestBody.field(ParamConstants.F_FILE_NAME, fileName);
+        }
+
+        return requestBody;
     }
 
     /**

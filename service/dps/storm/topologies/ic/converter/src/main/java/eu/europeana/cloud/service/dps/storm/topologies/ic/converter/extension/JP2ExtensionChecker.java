@@ -15,9 +15,7 @@ public class JP2ExtensionChecker implements ExtensionChecker {
      * @return boolean value checking the jp2 extension  .
      */
     public boolean isGoodExtension(String filePath) {
-
-        ExtensionHelper extensionHelper = new ExtensionHelper();
-        return extensionHelper.isGoodExtension(filePath, Extension.Jp2.getValues());
+        return ExtensionHelper.isGoodExtension(filePath, Extension.Jp2.getValues());
     }
 
 }

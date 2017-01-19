@@ -2,14 +2,12 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -20,8 +18,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Stores a Record on the cloud.
@@ -48,7 +44,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: persisting...");
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-            emitSuccessNotification(t.getTaskId(), t.getFileUrl(), "", "", uri.toString());
+            t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
 
         } catch (Exception e) {
@@ -73,37 +69,11 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             mcsClient.useAuthorizationHeader(authorizationHeader);
             recordServiceClient.useAuthorizationHeader(authorizationHeader);
             Representation rep = recordServiceClient.getRepresentation(urlParser.getPart(UrlPart.RECORDS), urlParser.getPart(UrlPart.REPRESENTATIONS), urlParser.getPart(UrlPart.VERSIONS));
-            URI newRepresentation = recordServiceClient.createRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, rep.getDataProvider());
-
-            final String newRepresentationVersion = findRepresentationVersion(newRepresentation);
             final String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
-            if (fileName != null) {
-                newFileUri = mcsClient.uploadFile(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, newRepresentationVersion, fileName, stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-            } else
-                newFileUri = mcsClient.uploadFile(newRepresentation.toString(), stormTaskTuple.getFileByteDataAsStream(), outputMimeType);
-
-            recordServiceClient.persistRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, newRepresentationVersion);
-
+            newFileUri = recordServiceClient.createRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, rep.getDataProvider(), stormTaskTuple.getFileByteDataAsStream(), fileName, outputMimeType);
         }
         return newFileUri;
     }
 
-    private String findRepresentationVersion(URI uri) throws MCSException {
-        Pattern p = Pattern.compile(".*/records/([^/]+)/representations/([^/]+)/versions/([^/]+)");
-        Matcher m = p.matcher(uri.toString());
-
-        if (m.find()) {
-            return m.group(3);
-        } else {
-            throw new MCSException("Unable to find representation version in representation URL");
-        }
-    }
-
-    private void emitSuccessNotification(long taskId, String resource,
-                                         String message, String additionalInformations, String resultResource) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
 
 }

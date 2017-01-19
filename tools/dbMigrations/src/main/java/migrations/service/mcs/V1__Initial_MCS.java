@@ -53,7 +53,7 @@ public class V1__Initial_MCS implements JavaMigration {
                     "dataset_id varchar,\n" +
                     "representation_names set<text>,\n" +
                     "PRIMARY KEY ((provider_id, dataset_id))\n" +
-                    ")WITH comment='Retrieve information about the representations supported in a provider’s " +
+                    ")WITH comment='Retrieve information about the representations supported in a providers " +
                         "dataset';\n");
     }
 }

@@ -50,43 +50,21 @@ public class CassandraReportService implements TaskExecutionReportService {
                 .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.BASIC_TASK_ID, taskId_));
 
         Row basicInfo = cassandra.getSession().execute(selectFromBasicInfo).one();
-        long processed = 0;
         //basicInfo == null means: task has been dropped or task is still running and calcutalion of expected size is in progress
         if (basicInfo != null) {
             int expectedSize = basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE);
-            if (expectedSize > 0) {
-
-                //read number of processed tasks from Cassandra
-                Statement selectFromNotification = QueryBuilder.select().countAll()
-                        .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
-                        .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, taskId_))
-                        .limit(expectedSize);
-
-                ResultSet notifications = cassandra.getSession().execute(selectFromNotification);
-
-                processed = notifications.one().getLong("count");
-            }
             res.addProperty("topologyName", basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME));
             res.addProperty("totalSize", expectedSize);
-            res.addProperty("processed", processed);
+            res.addProperty("processed", basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
             res.addProperty("state", basicInfo.getString(CassandraTablesAndColumnsNames.STATE));
             res.addProperty("info", basicInfo.getString(CassandraTablesAndColumnsNames.INFO));
             res.addProperty("sent_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.SENT_TIME)));
             res.addProperty("start_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME)));
             res.addProperty("finish_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)));
         } else {
-            //read number of processed tasks from Cassandra
-            Statement selectFromNotification = QueryBuilder.select().countAll()
-                    .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
-                    .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, taskId_));
-
-            ResultSet notifications = cassandra.getSession().execute(selectFromNotification);
-
-            processed = notifications.one().getLong("count");
-
             res.addProperty("topologyName", "");
             res.addProperty("totalSize", "?");
-            res.addProperty("processed", processed);
+            res.addProperty("processed", "0");
             res.addProperty("state", "");
             res.addProperty("info", "");
             res.addProperty("sent_time", "");
@@ -106,15 +84,16 @@ public class CassandraReportService implements TaskExecutionReportService {
     }
 
     @Override
-    public String getTaskNotification(String taskId) {
-        Statement selectFromNotification = QueryBuilder.select().all()
+    public String getTaskNotificationChuncks(String taskId, int from, int to) {
+        Statement selectFromNotification = QueryBuilder.select()
                 .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
-                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.valueOf(taskId)));
+                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.valueOf(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
 
         ResultSet notifications = cassandra.getSession().execute(selectFromNotification);
 
         return new Gson().toJson(notificationResultsetToJsonObject(notifications));
     }
+
 
     @Override
     public void incrTaskProgress(String taskId) {

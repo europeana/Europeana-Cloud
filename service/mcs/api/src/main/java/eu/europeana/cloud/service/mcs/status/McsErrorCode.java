@@ -24,6 +24,7 @@ public enum McsErrorCode {
     WRONG_CONTENT_RANGE,
     REVISION_IS_NOT_VALID,
     REVISION_NOT_EXISTS,
+    BAD_PARAMETER_VALUE,
     OTHER
 
 }

@@ -23,17 +23,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.constraints.Min;
+import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -101,8 +95,8 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
          * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
          * </ul>
      * </div>
      *
@@ -133,10 +127,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-             * <li>Read permissions for selected task</li>
-        * </ul>
+         * <strong>Required permissions:</strong>
+             * <ul>
+                 * <li>Read permissions for selected task</li>
+             * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -179,87 +173,94 @@ public class TopologyTasksResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @ManagedAsync
     @Path("/")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
-                               DpsTask task,
-                               @PathParam("topologyName") String topologyName,
-                               @Context UriInfo uriInfo,
-                               @HeaderParam("Authorization") String authorizationHeader
+                               final DpsTask task,
+                               @PathParam("topologyName")final String topologyName,
+                               @Context final UriInfo uriInfo,
+                               @HeaderParam("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
         if (task != null) {
             LOGGER.info("Submitting task");
             assertContainTopology(topologyName);
             validateTask(task, topologyName);
-            Date sentTime = new Date();
-            try {
-                String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
-                Response response = Response.created(new URI(createdTaskUrl)).build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
-                asyncResponse.resume(response);
-                LOGGER.info("The task is in a pending mode");
-                int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
-                task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                submitService.submitTask(task, topologyName);
-                permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-                LOGGER.info("Task submitted successfully");
-                taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
-            } catch (URISyntaxException e) {
-                LOGGER.error("Task submission failed");
-                e.printStackTrace();
-                Response response = Response.serverError().build();
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                asyncResponse.resume(response);
-            } catch (TaskSubmissionException e) {
-                LOGGER.error("Task submission failed" + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                e.printStackTrace();
-            } catch (Exception e) {
-                LOGGER.error("Task submission failed." + e.getMessage());
-                taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
-                e.printStackTrace();
-                Response response = Response.serverError().build();
-                asyncResponse.resume(response);
-            }
+            final Date sentTime = new Date();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
+                        Response response = Response.created(new URI(createdTaskUrl)).build();
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
+                        asyncResponse.resume(response);
+                        LOGGER.info("The task is in a pending mode");
+                        int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
+                        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                        submitService.submitTask(task, topologyName);
+                        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
+                        LOGGER.info("Task submitted successfully");
+                        taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
+                    } catch (URISyntaxException e) {
+                        LOGGER.error("Task submission failed");
+                        e.printStackTrace();
+                        Response response = Response.serverError().build();
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        asyncResponse.resume(response);
+                    } catch (TaskSubmissionException e) {
+                        LOGGER.error("Task submission failed" + e.getMessage());
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        LOGGER.error("Task submission failed." + e.getMessage());
+                        taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), e.getMessage(), sentTime);
+                        e.printStackTrace();
+                        Response response = Response.serverError().build();
+                        asyncResponse.resume(response);
+                    }
+                }
+            }).start();
+
         }
         return Response.notModified().build();
     }
 
-
     /**
-     * Retrieves notifications for the specified task.
+     * Retrieves notifications for the specified task.It will return notifications about
+     * the first 100 resources unless you specified the needed chunk by using from&to parameters
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-         * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
-         * </ul>
+            * <strong>Required permissions:</strong>
+            * <ul>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
+            * </ul>
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param from   The starting resource number should be bigger than 0
+     * @param to     The ending resource number should be bigger than 0
      * @return Notification messages for the specified task.
      * @summary Retrieve task notifications
      */
     @GET
     @Path("{taskId}/notification")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public String getTaskNotification(@PathParam("taskId") String taskId) {
-
-        String progress = reportService.getTaskNotification(taskId);
+    public String getTaskNotificationChunck(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
+        String progress = reportService.getTaskNotificationChuncks(taskId, from, to);
         return progress;
     }
+
 
     /**
      * Grants read / write permissions for a task to the specified user.
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-         * <ul>
-             * <li>Admin permissions</li>
-         * </ul>
+        * <strong>Required permissions:</strong>
+        * <ul>
+          * <li>Admin permissions</li>
+        * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -295,8 +296,8 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
          * <ul>
-             * <li>Authenticated user</li>
-             * <li>Write permission for selected task</li>
+           * <li>Authenticated user</li>
+           * <li>Write permission for selected task</li>
          * </ul>
      * </div>
      *
@@ -329,8 +330,8 @@ public class TopologyTasksResource {
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
          * <ul>
-            * <li>Authenticated user</li>
-            * <li>Read permission for selected task</li>
+             * <li>Authenticated user</li>
+             * <li>Read permission for selected task</li>
          * </ul>
      * </div>
      *
@@ -356,10 +357,10 @@ public class TopologyTasksResource {
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
          * <strong>Required permissions:</strong>
-         * <ul>
-            * <li>Authenticated user</li>
-            * <li>Write permission for selected task</li>
-         * </ul>
+            * <ul>
+                * <li>Authenticated user</li>
+                * <li>Write permission for selected task</li>
+             * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.

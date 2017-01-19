@@ -16,7 +16,7 @@ public class ExtensionHelper {
      * @param extensions an array of accepted extensions
      * @return boolean value based on the checking process  .
      */
-    public boolean isGoodExtension(String filePath, String[] extensions) {
+    public static boolean isGoodExtension(String filePath, String[] extensions) {
         if (filePath != null) {
             for (final String ext : extensions)
                 if (filePath.toLowerCase().endsWith("." + ext))

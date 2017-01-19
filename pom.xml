@@ -84,6 +84,7 @@
         <module>tools</module>
         <module>integration</module>
         <module>service/ips</module>
+        <module>usecases-integration</module>
     </modules>
     <repositories>
         <repository>
@@ -149,7 +150,6 @@
 
         <commons-logging.version>1.2</commons-logging.version>
         <version.cassandra-driver>2.1.10.3</version.cassandra-driver>
-
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
@@ -331,7 +331,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.16</version>
+                <version>2.19.1</version>
                 <executions>
                     <execution>
                         <goals>

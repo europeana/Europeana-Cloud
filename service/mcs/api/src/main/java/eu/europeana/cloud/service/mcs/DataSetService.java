@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
@@ -11,7 +12,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -194,4 +194,35 @@ public interface DataSetService {
      * @throws ProviderNotExistsException
      */
     void addDataSetsRevisions(String providerId, String dataSetId, Revision revision, String representationName, String cloudId) throws ProviderNotExistsException;
+
+
+    /**
+     * Lists all cloud identifiers that belong to data set from the specified provider and have revision timestamp bigger than the specified date and tag as specified.
+     *
+     * @param dataSetId data set identifier
+     * @param providerId provider identifier
+     * @param representationName representation name
+     * @param dateFrom date of latest revision
+     * @param startFrom cloudId to start from
+     * @param numberOfElementsPerPage number of elements in a slice
+     * @return list of cloud identifiers in the provider's data set having revision date bigger than the specified and specified tag
+     * @throws ProviderNotExistsException
+     * @throws DataSetNotExistsException
+     * @throws RepresentationNotExistsException
+     */
+    ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+            throws ProviderNotExistsException, DataSetNotExistsException;
+
+    /**
+     * Inserts information to the table used to search for cloud ids assigned to a dataset having specific representation, revisions with published tag and update timestamp bigger that specified.
+     * Data sets identifiers and their providers which are needed for every inserted row are determined from assignment between versions and data sets.
+     *
+     * @param globalId cloud identifier
+     * @param schema representation name
+     * @param version version identifier
+     * @param revision revision object containing necessary info (name, timestamp, tags)
+     * @throws RepresentationNotExistsException
+     */
+    void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
+            throws RepresentationNotExistsException;
 }

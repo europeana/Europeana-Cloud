@@ -923,4 +923,12 @@ public class RecordServiceClientTest {
         InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "fileName", "mediaType");
     };
+
+    @Test
+    @Betamax(tape = "records_shouldCreateNewRepresentationAndUploadFile")
+    public void shouldCreateNewRepresentationAndUploadAFile_1() throws FileNotFoundException, MCSException {
+        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs","admin","admin");
+        InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
+        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
+    };
 }

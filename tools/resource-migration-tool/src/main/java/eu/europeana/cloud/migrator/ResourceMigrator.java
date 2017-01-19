@@ -7,6 +7,12 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.migrator.processing.FileProcessor;
+import eu.europeana.cloud.migrator.processing.FileProcessorFactory;
+import eu.europeana.cloud.migrator.provider.Cleaner;
+import eu.europeana.cloud.migrator.provider.DefaultResourceProvider;
+import eu.europeana.cloud.migrator.provider.FilePaths;
+import eu.europeana.cloud.migrator.provider.ResourceProvider;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
@@ -84,6 +90,12 @@ public class ResourceMigrator {
      */
     private ResourceProvider resourceProvider;
 
+
+    /**
+     * FileProcessor is an interface that supplies functions for some processing on the original files before they are uploaded to ECloud.
+     */
+    private FileProcessor fileProcessor;
+
     /**
      * Key is directory name, value is identifier that should be used in ECloud
      */
@@ -91,7 +103,7 @@ public class ResourceMigrator {
 
     protected int threadsCount = DEFAULT_PROVIDER_POOL_SIZE;
 
-    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile, String threadsCount) throws IOException {
+    public ResourceMigrator(ResourceProvider resProvider, String dataProvidersMappingFile, String threadsCount, FileProcessorFactory fileProcessorFactory) throws IOException {
         this.resourceProvider = resProvider;
         this.dataProvidersMapping = readDataProvidersMapping(dataProvidersMappingFile);
         if (threadsCount != null && !threadsCount.isEmpty()) {
@@ -103,6 +115,7 @@ public class ResourceMigrator {
                 // leave the default value
             }
         }
+        this.fileProcessor = fileProcessorFactory.create();
     }
 
     private Map<String, String> readDataProvidersMapping(String dataProvidersMappingFile) throws IOException {
@@ -492,9 +505,26 @@ public class ResourceMigrator {
         int retries = DEFAULT_RETRIES;
         while (retries-- > 0) {
             try {
-                is = fullURI.toURL().openStream();
-
                 String fileName = resourceProvider.getFilename(location, resourceProvider.isLocal() ? path : fullURI.toString());
+
+                // when there is a file processor specified run processing
+                if (fileProcessor != null) {
+                    File processed = fileProcessor.process(fullURI);
+                    if (processed != null) {
+                        processed.deleteOnExit();
+                        is = new FileInputStream(processed);
+                        // change filename extension to the one that processed file has
+                        fileName = changeExtension(fileName, processed.getName());
+                        mimeType = mimeFromExtension(fileName);
+                    }
+                    else {
+                        logger.error("Problem with processing file: " + path);
+                        return null;
+                    }
+                }
+                else
+                    is = fullURI.toURL().openStream();
+
                 if (logger.isDebugEnabled())
                     logger.debug("Trying to upload file with name: " + fileName);
 
@@ -537,6 +567,19 @@ public class ResourceMigrator {
         }
         logger.warn("All attempts to upload file failed. Location: " + location + " Path: " + path + " Version: " + version + " RecordId: " + recordId);
         return null;
+    }
+
+    private String changeExtension(String fileName, String newFileName) {
+        if (fileName == null || newFileName == null)
+            return null;
+
+        int i = fileName.lastIndexOf('.');
+        int j = newFileName.lastIndexOf('.');
+        if (i > 0 && j > 0)
+            return fileName.substring(0, i) +  newFileName.substring(j, newFileName.length());
+
+        // when any of the extension does not exist return unchanged original fileName
+        return fileName;
     }
 
 

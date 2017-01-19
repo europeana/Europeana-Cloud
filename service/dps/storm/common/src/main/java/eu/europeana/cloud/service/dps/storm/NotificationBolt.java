@@ -19,6 +19,7 @@ import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 /**
@@ -44,6 +45,7 @@ public class NotificationBolt extends BaseRichBolt {
     private String topologyName;
     private CassandraTaskInfoDAO taskInfoDAO;
     private CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private static final int PROCESSED_INTERVAL = 100;
 
     /**
      * Constructor of notification bolt.
@@ -97,18 +99,18 @@ public class NotificationBolt extends BaseRichBolt {
                         notificationTuple.getParameters());
                 break;
             case END_TASK:
-                endTask(taskId,
+                endTask(taskId, nCache.getProcessed(),
                         notificationTuple.getParameters());
                 break;
             case NOTIFICATION:
-                if (nCache != null) {
-                    nCache.inc();
-                    storeNotification(nCache.getProcessed(), taskId,
-                            notificationTuple.getParameters());
-                    if (nCache.isComplete()) {
-                        storeFinishState(taskId);
-                    }
-                }
+                nCache.inc();
+                int processesFilesCount = nCache.getProcessed();
+                storeNotification(processesFilesCount, taskId,
+                        notificationTuple.getParameters());
+                if (nCache.isComplete()) {
+                    storeFinishState(taskId, processesFilesCount);
+                } else if (processesFilesCount % PROCESSED_INTERVAL == 0)
+                    taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
                 break;
         }
     }
@@ -139,12 +141,12 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
 
-    private void endTask(long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void endTask(long taskId, int processeFilesCount, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
         String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
         Date finishDate = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
         String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        taskInfoDAO.endTask(taskId, info, state, finishDate);
+        taskInfoDAO.endTask(taskId, processeFilesCount, info, state, finishDate);
     }
 
 
@@ -155,8 +157,8 @@ public class NotificationBolt extends BaseRichBolt {
         return date;
     }
 
-    private void storeFinishState(long taskId) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
-        taskInfoDAO.endTask(taskId, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+    private void storeFinishState(long taskId, int processeFilesCount) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+        taskInfoDAO.endTask(taskId, processeFilesCount, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
