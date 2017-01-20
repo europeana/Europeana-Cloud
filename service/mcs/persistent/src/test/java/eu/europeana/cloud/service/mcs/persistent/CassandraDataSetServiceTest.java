@@ -445,8 +445,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// create revisions on the dummy version
 		Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
 		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		long time1 = r.getCreationTimeStamp().getTime();
 		r = new Revision("revision2", "rev_provider_2", new Date(), false, true, true);
 		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		long time2 = r.getCreationTimeStamp().getTime();
 
 		// assign version to dataset 1
 		cassandraDataSetService.addAssignment(ds1.getProviderId(), ds1.getId(),
@@ -463,12 +465,12 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
 		assertThat(resp.getCloudId(), is(r1.getCloudId()));
 		assertThat(resp.getVersion(), is(r1.getVersion()));
-		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_1", "revision1")));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_1", "revision1", time1)));
 
 		resp = cloudIds.getResults().get(1);
 		assertThat(resp.getCloudId(), is(r1.getCloudId()));
 		assertThat(resp.getVersion(), is(r1.getVersion()));
-		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_2", "revision2")));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_2", "revision2", time2)));
 
 		// remove assignment
 		cassandraDataSetService.removeAssignment(ds1.getProviderId(), ds1.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
@@ -535,7 +537,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		// add new entries, each with different cloud id and revision timestamp
 		for (int i = 0; i < size; i++) {
 			CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
-				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"), true, false, false);
+				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider", new Date().getTime()), true, false, false);
 			bsBuckets = psBuckets.bind("provider1", "dataset1", UUID.fromString(bucketId));
 			session.execute(bsBuckets);
 			bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()),

@@ -520,7 +520,7 @@ public class CassandraDataSetDAO{
                 dataSetId);
 
         removeAllDataSetAssignments(providerDataSetId);
-        removeAllDataSetRevisonAssignments(providerDataSetId);
+        removeAllDataSetRevisonAssignments(providerId, dataSetId);
         removeAllDataSetCloudIdsByRepresentation(providerId, dataSetId);
         removeAllDataSetBuckets(providerId, dataSetId);
 
@@ -587,18 +587,20 @@ public class CassandraDataSetDAO{
         }
     }
 
-    private void removeAllDataSetRevisonAssignments(String providerDataSetId) {
+    private void removeAllDataSetRevisonAssignments(String providerId, String dataSetId) {
         BoundStatement boundStatement = listDataSetRevisionAssignmentsNoPaging
-                .bind(providerDataSetId);
+                .bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         for (Row row : rs){
-            String revisionId = row.getString("revision_id");
+            String revisionProviderId = row.getString("revision_provider_id");
+            String revisionName = row.getString("revision_name");
+            Date revisionTimestamp = row.getDate("revision_timestamp");
             String representationId = row.getString("representation_id");
             String cloudId = row.getString("cloud_id");
             connectionProvider.getSession().execute(
-                    removeDataSetsRevision.bind(providerDataSetId, revisionId,
-                            representationId,cloudId));
+                    removeDataSetsRevision.bind(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
+                            representationId, cloudId));
         }
     }
 

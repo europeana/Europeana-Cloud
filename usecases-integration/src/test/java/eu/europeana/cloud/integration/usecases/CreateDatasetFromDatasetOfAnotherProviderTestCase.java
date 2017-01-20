@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Created by Tarek on 9/19/2016.
@@ -73,12 +70,23 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS * 2);
         int sourceVersionsCount = 0;
         int destinationVersionCount = 0;
-        String sourceRevisionId = RevisionUtils.getRevisionKey(SOURCE_PROVIDER_ID, SOURCE_REVISION_NAME);
-        String destinationRevisionId = RevisionUtils.getRevisionKey(DESTINATION_PROVIDER_ID, DESTINATION_REVISION_NAME);
+
+        List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
+        List<String> sourceRevisionIds = new ArrayList<>();
+        List<String> destinationRevisionIds = new ArrayList<>();
+
+        for (Representation representation : representations) {
+            for (Revision revision : representation.getRevisions()) {
+                if (SOURCE_PROVIDER_ID.equals(revision.getRevisionProviderId()) && SOURCE_REVISION_NAME.equals(revision.getRevisionName()))
+                    sourceRevisionIds.add(RevisionUtils.getRevisionKey(revision));
+                else if (DESTINATION_PROVIDER_ID.equals(revision.getRevisionProviderId()) && DESTINATION_REVISION_NAME.equals(revision.getRevisionName()))
+                    destinationRevisionIds.add(RevisionUtils.getRevisionKey(revision));
+            }
+        }
         for (CloudVersionRevisionResponse cloudVersionRevisionResponse : cloudVersionRevisionResponseList) {
-            if (sourceRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
+            if (sourceRevisionIds.contains(cloudVersionRevisionResponse.getRevisionId()))
                 sourceVersionsCount++;
-            else if (destinationRevisionId.equals(cloudVersionRevisionResponse.getRevisionId()))
+            else if (destinationRevisionIds.contains(cloudVersionRevisionResponse.getRevisionId()))
                 destinationVersionCount++;
         }
         assertEquals(sourceVersionsCount, 3);
