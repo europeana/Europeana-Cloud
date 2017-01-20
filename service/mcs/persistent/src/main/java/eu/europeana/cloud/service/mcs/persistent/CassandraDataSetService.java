@@ -374,9 +374,9 @@ public class CassandraDataSetService implements DataSetService {
 
 
     @Override
-    public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
-            throws RepresentationNotExistsException {
-        // check whether representation exists
+    public void updateAllProviderDatasetRepresentationEntries(String globalId, String schema, String version, Revision revision)
+            throws RepresentationNotExistsException
+    {
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
         if (rep == null)
             throw new RepresentationNotExistsException(schema);
@@ -388,6 +388,9 @@ public class CassandraDataSetService implements DataSetService {
         for (CompoundDataSetId dsID : dataSets) {
             dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
                     globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
+                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
         }
     }
@@ -418,26 +421,6 @@ public class CassandraDataSetService implements DataSetService {
         String paramsDecodedString = new String(paramsDecoded,
                 Charset.forName("UTF-8"));
         return Splitter.on('\n').splitToList(paramsDecodedString);
-    }
-
-
-    @Override
-    public void updateLatestProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
-            throws RepresentationNotExistsException {
-        // check whether representation exists
-        Representation rep = recordDAO.getRepresentation(globalId, schema, version);
-        if (rep == null)
-            throw new RepresentationNotExistsException(schema);
-
-        // collect data sets the version is assigned to
-        Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
-
-        // now we have to insert rows for each data set
-        for (CompoundDataSetId dsID : dataSets) {
-            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
-                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
-                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-        }
     }
 
 

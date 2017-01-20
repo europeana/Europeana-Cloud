@@ -170,18 +170,6 @@ public interface DataSetService {
     ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
-    /**
-     * Inserts information to the table used to search for cloud ids assigned to a dataset having specific representation, revisions with published tag and update timestamp bigger that specified.
-     * Data sets identifiers and their providers which are needed for every inserted row are determined from assignment between versions and data sets.
-     *
-     * @param globalId cloud identifier
-     * @param schema   representation name
-     * @param version  version identifier
-     * @param revision revision object containing necessary info (name, timestamp, tags)
-     * @throws RepresentationNotExistsException
-     */
-    void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
-            throws RepresentationNotExistsException;
 
 
     /**
@@ -191,8 +179,8 @@ public interface DataSetService {
      * @param dataSetId               data set identifier
      * @param providerId              provider identifier
      * @param representationName      representation name
-     * @param revisionName       revision name
-     * @param revisionProvider   revision provider
+     * @param revisionName            revision name
+     * @param revisionProvider        revision provider
      * @param startFrom               cloudId to start from
      * @param numberOfElementsPerPage number of elements in a slice
      * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
@@ -205,13 +193,15 @@ public interface DataSetService {
 
 
     /**
+     * Inserts information to the all the tables used to search for cloud ids assigned to a dataset having specific representation and revisions.
+     *
      * @param globalId cloud identifier
      * @param schema   representation name
      * @param version  version identifier
      * @param revision revision object containing necessary info (name, timestamp, tags)
      * @throws RepresentationNotExistsException
      */
-    void updateLatestProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
+    void updateAllProviderDatasetRepresentationEntries(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
 
 }

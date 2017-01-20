@@ -414,7 +414,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         // create new revision (simulate normal API behaviour when creating a revision invokes update on the table)
         Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
         cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
-        cassandraDataSetService.updateProviderDatasetRepresentation(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+        cassandraDataSetService.updateAllProviderDatasetRepresentationEntries(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
 
         // get date 1 day before
         Calendar c = Calendar.getInstance();

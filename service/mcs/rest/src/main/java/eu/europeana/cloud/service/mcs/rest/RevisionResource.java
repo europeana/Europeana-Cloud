@@ -100,10 +100,8 @@ public class RevisionResource {
         final String revisionKey = RevisionUtils.getRevisionKey(revision.getRevisionProviderId(), revision.getRevisionName());
         createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId(), revisionKey);
         recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateAllProviderDatasetRepresentationEntries(globalId, schema, version, revision);
 
-        //Those may combined together !
-        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
-        dataSetService.updateLatestProviderDatasetRepresentation(globalId, schema, version, revision);
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
