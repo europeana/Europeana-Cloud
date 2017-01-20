@@ -126,19 +126,14 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         Mockito.doReturn(true).when(uisHandler)
                 .existsProvider("1");
 
-
-        String dateFrom = "2016-5-05";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
         ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
         List<CloudIdAndTimestampResponse> cloudIdsAndTimestampResponse = cloudIdAndTimestampResponseResultSlice.getResults();
         assertEquals(cloudIdsAndTimestampResponse.get(0).getCloudId(), rep.getCloudId());
-        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        assertTrue(cloudIdsAndTimestampResponse.get(0).getRevisionTimestamp().getTime() > utc.getMillis());
-
 
     }
 
@@ -151,34 +146,13 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldReturnEmptyCloudIdAndTimestampWithBigDate() throws Exception {
-        //given
-        PrepareTest(dataProvider.getId(), DATE_SET_NAME);
-
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
-
-
-        String dateFrom = "3000-12-12";
-        //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
-        //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 200);
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
-        assertTrue(cloudIdAndTimestampResponseResultSlice.getResults().isEmpty());
-
-    }
-
-    @Test
     public void shouldReturnDataSetNotExistError() throws Exception {
 
         PrepareTest(dataProvider.getId(), "None_Existed_Dataset");
         Mockito.doReturn(true).when(uisHandler)
                 .existsProvider("1");
 
-        String dateFrom = "2016-5-05";
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).request().get();
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
@@ -191,7 +165,6 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         //given
         PrepareTest("1", DATE_SET_NAME);
 
-        String dateFrom = "2016-5-05";
         //when
 
         Map<String, Object> revisionAndRepresentationNoneExistedProviderId = ImmutableMap
@@ -203,7 +176,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                         dataProvider.getId());
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).queryParam(F_START_FROM, null).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
@@ -212,22 +185,4 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
 
     }
-
-    @Test
-    public void shouldReturnBadRequestWhenDateisNotValid() throws Exception {
-        //given
-        PrepareTest(dataProvider.getId(), DATE_SET_NAME);
-
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
-
-
-        String dateFrom = "None-Valid-Date";
-        //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
-        //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 400);
-    }
-
 }

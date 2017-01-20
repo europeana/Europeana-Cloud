@@ -656,20 +656,20 @@ public class DataSetServiceClient extends MCSClient {
     }
 
     /**
-     * Returns chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * Returns chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      *
      * @param dataSetId          data set identifier
      * @param providerId         provider identifier
      * @param revisionProvider   revision provider
      * @param revisionName       revision name
      * @param representationName representation name
-     * @param dateFrom           identifier to the requested result slice (cloudId) (if equal to
+     * @param startFrom          identifier to the requested result slice (cloudId) (if equal to
      *                           null, first slice is returned)
-     * @return chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * @return chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * @throws MCSException on  unexpected situations
      */
 
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String dateFrom, String startFrom)
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String startFrom)
             throws MCSException {
 
 
@@ -678,8 +678,8 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(ParamConstants.P_REVISION_NAME, revisionName)
                 .resolveTemplate(ParamConstants.P_REVISION_PROVIDER_ID, revisionProvider)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .queryParam(ParamConstants.F_DATE_FROM, dateFrom);
+                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
+
 
         if (startFrom != null) {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
@@ -708,7 +708,7 @@ public class DataSetServiceClient extends MCSClient {
 
 
     /**
-     * Returns list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date ;
+     * Returns list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision
      * <p>
      * <p/>
      *
@@ -717,11 +717,9 @@ public class DataSetServiceClient extends MCSClient {
      * @param revisionProvider   revision provider
      * @param revisionName       revision name
      * @param representationName representation name
-     * @param dateFrom           date of latest revision
-     *                           does not exist)
      * @throws MCSException on unexpected situations
      */
-    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String dateFrom)
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName)
             throws MCSException {
 
         List<CloudIdAndTimestampResponse> resultList = new ArrayList<>();
@@ -729,7 +727,7 @@ public class DataSetServiceClient extends MCSClient {
         String startFrom = null;
 
         do {
-            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, dateFrom, startFrom);
+            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
             }

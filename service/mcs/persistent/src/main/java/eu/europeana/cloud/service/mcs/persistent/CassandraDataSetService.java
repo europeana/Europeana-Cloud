@@ -148,9 +148,12 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         if (latestRevision != null) {
-            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
-                    recordId, schema, RevisionUtils.getRevisionKey(latestRevision), latestRevision.getUpdateTimeStamp(), version,
-                    latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
+            Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), recordId);
+            if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getUpdateTimeStamp().getTime()) {
+                dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
+                        recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getUpdateTimeStamp(), version,
+                        latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
+            }
         }
     }
 
@@ -186,16 +189,27 @@ public class CassandraDataSetService implements DataSetService {
                 new CompoundDataSetId(providerId, dataSetId),
                 dataProvider.getPartitionKey());
 
+        DateTime utc = new DateTime("1000-01-01", DateTimeZone.UTC);
+        Date latestRevisionDate = utc.toDate();
+        Revision latestRevision = null;
+
         Representation rep = recordDAO.getRepresentation(recordId, schema, versionId);
         if (rep != null) {
-            for (Revision revision : rep.getRevisions())
+            for (Revision revision : rep.getRevisions()) {
+                if (revision.getUpdateTimeStamp().getTime() > latestRevisionDate.getTime()) {
+                    latestRevision = new Revision(revision);
+                    latestRevisionDate = revision.getUpdateTimeStamp();
+                }
                 dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
+            }
         }
 
-        String version = dataSetDAO.getVersionFromLatestProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema);
-        if (version != null && version.equals(versionId)) {
-            dataSetDAO.deleteLatestProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema);
-            //insert the latest revisionId per cloud id per  .....provider_dataset_representation
+        if (latestRevision != null) {
+            String latestVersion = dataSetDAO.getVersionFromLatestProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId());
+            if (latestVersion != null && latestVersion.equals(versionId)) {
+                dataSetDAO.deleteLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
+                        recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId());
+            }
         }
     }
 
@@ -421,35 +435,35 @@ public class CassandraDataSetService implements DataSetService {
         // now we have to insert rows for each data set
         for (CompoundDataSetId dsID : dataSets) {
             dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
-                    globalId, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(), version,
+                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
         }
     }
 
 
     /**
-     * get a list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * get a list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
      *
      * @param dataSetId               data set identifier
      * @param providerId              provider identifier
-     * @param revisionId              revision identifier
+     * @param revisionName            revision name
+     * @param revisionProvider        revision provider
      * @param representationName      representation name
-     * @param dateFrom                date of latest revision
      * @param startFrom               cloudId to start from
      * @param numberOfElementsPerPage number of elements in a slice
-     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
 
     @Override
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException {
 
         validateRequest(dataSetId, providerId);
-        List<CloudIdAndTimestampResponse> list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, startFrom, numberOfElementsPerPage);
+        List<CloudIdAndTimestampResponse> list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsPerPage);
         String nextToken = null;
         if (list.size() == numberOfElementsPerPage + 1) {
             nextToken = list.get(numberOfElementsPerPage).getCloudId();

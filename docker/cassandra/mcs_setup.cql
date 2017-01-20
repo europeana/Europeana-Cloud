@@ -90,20 +90,18 @@ CREATE TABLE latest_provider_dataset_representation_revision (
     cloud_id varchar,
     representation_id varchar,
     revision_timestamp timestamp,
-    revision_id varchar,
+    revision_name varchar,
+    revision_provider varchar,
     version_id timeuuid,
     acceptance boolean,
     published boolean,
     mark_deleted boolean,
-    PRIMARY KEY ((provider_id, dataset_id), representation_id,cloud_id)
+    PRIMARY KEY ((provider_id, dataset_id),representation_id,revision_name,revision_provider,cloud_id)
 );
 
-CREATE INDEX latest_provider_dataset_representation_revision_acceptanc ON latest_provider_dataset_representation_revision (acceptance);
+CREATE INDEX latest_provider_dataset_representation_revision_acceptance ON latest_provider_dataset_representation_revision (acceptance);
 
 CREATE INDEX latest_provider_dataset_representation_revision_publishe ON latest_provider_dataset_representation_revision (published);
 
 CREATE INDEX latest_provider_dataset_representation_revision_delete ON latest_provider_dataset_representation_revision (mark_deleted);
 
-CREATE INDEX latest_provider_dataset_representation_revision_revision_id ON latest_provider_dataset_representation_revision (revision_id);
-
-CREATE INDEX latest_provider_dataset_representation_revision_cloud_id ON latest_provider_dataset_representation_revision (revision_timestamp);

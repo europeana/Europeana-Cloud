@@ -185,22 +185,22 @@ public interface DataSetService {
 
 
     /**
-     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
      *
      * @param dataSetId               data set identifier
      * @param providerId              provider identifier
-     * @param revisionId              revision identifier
      * @param representationName      representation name
-     * @param dateFrom                date of latest revision
+     * @param revisionName       revision name
+     * @param revisionProvider   revision provider
      * @param startFrom               cloudId to start from
      * @param numberOfElementsPerPage number of elements in a slice
-     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
-    ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+    ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
 

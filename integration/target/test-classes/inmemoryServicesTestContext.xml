@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mockito="http://www.mockito.org/spring/mockito"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.mockito.org/spring/mockito classpath:spring/mockito.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+	<context:annotation-config />
+
+	<task:annotation-driven />
+
+	<bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.dao.InMemoryCloudIdDao" />
+	<bean id="localIdDao" class="eu.europeana.cloud.service.uis.dao.InMemoryLocalIdDao" />
+	<bean id="dataProviderDAO"
+		class="eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO" />
+	<bean id="dataSetDAO"
+		class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetDAO" />
+	<bean id="contentDAO"
+		class="eu.europeana.cloud.service.mcs.inmemory.InMemoryContentDAO" />
+	<bean id="recordDAO"
+		class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordDAO" />
+	<bean id="uisHandler"
+		class="eu.europeana.cloud.integration.ServiceUISClientHandler" />
+
+	<bean id="uniqueIdentifierService"
+		class="eu.europeana.cloud.service.uis.InMemoryUniqueIdentifierService" />
+	<bean id="dataProviderService"
+		class="eu.europeana.cloud.service.uis.InMemoryDataProviderService" />
+	<bean id="dataSetService"
+		class="eu.europeana.cloud.service.mcs.inmemory.InMemoryDataSetService" />
+	<bean id="recordService"
+		class="eu.europeana.cloud.service.mcs.inmemory.InMemoryRecordService" />
+
+</beans>

@@ -153,7 +153,7 @@ public class DataSetResource {
 
 
     /**
-     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
      *
      * @param dataSetId          data set identifier
@@ -161,9 +161,8 @@ public class DataSetResource {
      * @param revisionName       revision name
      * @param revisionProvider   revision provider
      * @param representationName representation name
-     * @param dateFrom           date of latest revision
      * @param startFrom          cloudId to start from
-     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision and where revision timestamp is bigger than a specified date
+     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision
      * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
@@ -175,13 +174,11 @@ public class DataSetResource {
     @GET
     public ResultSlice<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevision(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
-            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_DATE_FROM) String dateFrom, @QueryParam(F_START_FROM) String startFrom)
+            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_START_FROM) String startFrom)
             throws ProviderNotExistsException, DataSetNotExistsException
 
     {
-        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        String revisionId = RevisionUtils.getRevisionKey(revisionProvider, revisionName);
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsOnPage);
         return cloudIdAndTimestampResponses;
     }
 }
