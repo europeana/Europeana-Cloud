@@ -80,3 +80,14 @@ CREATE INDEX dataset_representation_published ON provider_dataset_representation
 CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
 
 CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
+
+CREATE TABLE representation_revisions (
+       cloud_id varchar,
+       representation_id varchar,
+       version_id timeuuid,
+       revision_name varchar,
+       revision_provider_id varchar,
+       revision_timestamp timestamp,
+       files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
+       PRIMARY KEY ((cloud_id, representation_id), revision_provider_id, revision_name, revision_timestamp, version_id)
+)WITH CLUSTERING ORDER BY (revision_provider_id ASC, revision_name ASC, revision_timestamp DESC, version_id ASC) AND comment='Retrieve version_id based on the rest known fields of the primary key';

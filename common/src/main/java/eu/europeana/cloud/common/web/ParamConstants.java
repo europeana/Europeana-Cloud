@@ -90,9 +90,13 @@ public interface ParamConstants {
     static final String F_DATASETS = "dataSets";
 
     static final String F_TAG = "tag";
+
     static final String F_TAGS = "tags";
 
+    static final String REVISION_TIMESTAMP = "revisionTimestamp";
+
     static final String P_REVISION_NAME = "REVISION_NAME";
+
     static final String REVISION_PROVIDER = "revisionProvider";
 
     static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
