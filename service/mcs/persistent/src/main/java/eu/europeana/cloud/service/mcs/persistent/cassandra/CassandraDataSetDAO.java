@@ -818,7 +818,6 @@ public class CassandraDataSetDAO{
 
         if(row != null){
 			DataSetRepresentationForLatestRevision result = new DataSetRepresentationForLatestRevision();
-			result.setDataset(dataSet);
             //
             Revision rev = new Revision(revision);
             rev.setCreationTimeStamp(row.getDate("revision_timestamp"));

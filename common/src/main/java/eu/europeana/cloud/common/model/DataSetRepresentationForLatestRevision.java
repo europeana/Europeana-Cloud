@@ -5,7 +5,6 @@ package eu.europeana.cloud.common.model;
  */
 public class DataSetRepresentationForLatestRevision {
 
-	private DataSet dataset;
 	private Representation representation;
 	private Revision revision;
 
@@ -25,11 +24,4 @@ public class DataSetRepresentationForLatestRevision {
 		this.revision = revision;
 	}
 
-	public DataSet getDataset() {
-		return dataset;
-	}
-
-	public void setDataset(DataSet dataset) {
-		this.dataset = dataset;
-	}
 }
