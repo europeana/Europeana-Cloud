@@ -94,11 +94,13 @@ public interface ParamConstants {
 
     static final String P_REVISION_NAME = "REVISION_NAME";
 
+    static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
+
     static final String P_TAG = "TAG";
 
     static final String P_TAGS = "TAGS";
 
-    static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
+    static final String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
     //header paramiters' names
     static final String H_RANGE = "Range";

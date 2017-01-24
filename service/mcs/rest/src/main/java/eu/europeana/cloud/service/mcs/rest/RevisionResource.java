@@ -71,7 +71,7 @@ public class RevisionResource {
                                 @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-                ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
         addRevision(globalId, schema, version, revision);
@@ -82,6 +82,8 @@ public class RevisionResource {
         createAssignmentToRevisionOnDataSets(globalId, schema, version, revision);
         recordService.addRevision(globalId, schema, version, revision);
         dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
     }
 
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
@@ -95,7 +97,7 @@ public class RevisionResource {
     }
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will override it .
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param revision Revision (required).
@@ -121,7 +123,7 @@ public class RevisionResource {
 
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will update it.
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param globalId           cloud id of the record (required).
@@ -154,7 +156,7 @@ public class RevisionResource {
         Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, tags);
         addRevision(globalId, schema, version, revision);
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return Response.created(uriInfo.getAbsolutePath()).entity(revision).build();
     }
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
