@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
 
 /**
  * Exposes API related to records.
@@ -95,7 +95,7 @@ public class RecordServiceClient extends MCSClient {
         permitPath = versionPath + "/" + ParamConstants.PERMIT;
 
         grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
-        representationsRevisionsPath = represtationNamePath + "/revisions/{" + P_REVISION_NAME + "}";
+        representationsRevisionsPath = represtationNamePath + "/revisions/{" + REVISION_NAME + "}";
     }
 
     /**
@@ -711,10 +711,10 @@ public class RecordServiceClient extends MCSClient {
         WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
                 .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
                 .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.P_REVISION_NAME, revisionName);
+                .resolveTemplate(ParamConstants.REVISION_NAME, revisionName);
 
         if (revisionProviderId != null) {
-            webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER, revisionProviderId);
+            webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId);
         }
         else
             throw new MCSException("RevisionProviderId is required");
