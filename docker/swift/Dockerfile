@@ -32,8 +32,7 @@ COPY files/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY files/keystoneconfigure.sh /keystoneconfigure.sh
 COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor && chmod 555 /keystoneconfigure.sh /usr/local/bin/*.sh
-#Confiugre keystone
-RUN /keystoneconfigure.sh localhost:8888
+
 
 EXPOSE 8888 5000
 

@@ -42,12 +42,17 @@ if [ ! -e /etc/swift/account.builder ]; then
 fi
 
 
-echo "Starting supervisord..."
-
+echo "Starting services..."
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
+#init keystone
+if [ ! -e /etc/swift/keystone.pid ]; then
+    /keystoneconfigure.sh `hostname --ip-address`:8888
+    touch /etc/swift/keystone.pid
+fi
+
 # sleep waiting for rsyslog to come up under supervisord
 sleep 5s
-
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
 tail -f /var/log/syslog
 
