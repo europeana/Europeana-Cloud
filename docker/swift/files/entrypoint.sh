@@ -1,11 +1,5 @@
 #!/bin/bash
-
-#
-# Make the rings if they don't exist already
-#
-service memcached start && \
-    service rsyslog start && \
-    service keystone start
+set -e;
 
 echo -e "nameserver 8.8.8.8\nsearch 8.8.8.8" > /etc/resolv.conf
 
@@ -44,24 +38,15 @@ if [ ! -e /etc/swift/account.builder ]; then
 	echo "Copying ring files to /srv to save them if it's a docker volume..."
 	cp *.gz /srv
 	cp *.builder /srv
+	chmod 777 /srv/*
 fi
 
-# Start supervisord
+
 echo "Starting supervisord..."
-#/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 
-#/bin/bash -c "source /etc/default/rsyslog && /usr/sbin/rsyslogd -n -c3"
-swift-init start object account container proxy;
-#
-# Tail the log file for "docker log $CONTAINER_ID"
-#
-
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 # sleep waiting for rsyslog to come up under supervisord
-sleep 3
-
-
-# configure
-
+sleep 5s
 
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
 tail -f /var/log/syslog

@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 set -e;
-set -x;
 
-SWIFT_ENDPOINT=localhost:8888
+SWIFT_ENDPOINT=$1
 CONFIG_ADMIN_PORT=35357
 CONFIG_PUBLIC_PORT=5000
 CONFIG=/etc/keystone/keystone.conf
 ADMIN_ROLE=admin
-SWIFT_USER_NAME=swift
-SWIFT_PASSWORD=swirt1
+SWIFT_USERNAME=swift
+SWIFT_PASSWORD=swift
 
 export SERVICE_TOKEN=ADMIN
 export SERVICE_ENDPOINT=http://localhost:$CONFIG_ADMIN_PORT/v2.0
@@ -45,14 +44,13 @@ keystone endpoint-create \
 SERVICE_TENANT=$(get_id keystone tenant-create --name=service \
                                                --description "Swift" --enabled true)
 
-SWIFT_USER=$(get_id keystone user-create --name=${SWIFT_USER_NAME} \
-                                         --pass=swirt1 \
+SWIFT_USER=$(get_id keystone user-create --name=${SWIFT_USERNAME} \
+                                         --pass=${SWIFT_PASSWORD} \
                                          --tenant-id $SERVICE_TENANT --enabled true)
 
 keystone user-role-add --user-id $SWIFT_USER \
                        --role-id $ADMIN_ROLE \
                        --tenant-id $SERVICE_TENANT
-
 
 service keystone stop
 
