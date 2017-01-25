@@ -17,6 +17,7 @@ import java.util.*;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.*;
 
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -27,9 +28,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -594,4 +592,51 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 		cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
 		assertTrue(cloudIds.getResults().isEmpty());
 	}
+
+	@Test
+	public void shouldAddLatestVersionForGivenRevision()
+			throws Exception {
+		makeUISProviderSuccess();
+		DataSet sampleDataSet = new DataSet();
+		sampleDataSet.setId("sampleId");
+		sampleDataSet.setProviderId("sampleProviderId");
+		cassandraDataSetService.createDataSet(sampleDataSet.getProviderId(),sampleDataSet.getId(),sampleDataSet.getDescription());
+		//
+		Representation sampleRep = new Representation();
+		sampleRep.setCloudId("sampleCloudId");
+		sampleRep.setRepresentationName("sampleName");
+		sampleRep.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+		//
+		Revision revision = new Revision();
+		revision.setCreationTimeStamp(new Date());
+		revision.setRevisionName("sampleRevName");
+		revision.setRevisionProviderId("revProvider");
+		cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep, revision);
+		//
+		String versionId = cassandraDataSetService.getLatestVersionForGivenRevision(sampleDataSet.getId(), sampleDataSet.getProviderId(), sampleRep.getCloudId(), sampleRep.getRepresentationName(), revision.getRevisionName(), revision.getRevisionProviderId());
+		assertEquals(versionId,sampleRep.getVersion());
+	}
+
+	@Test(expected = DataSetNotExistsException.class)
+	public void shouldThrowExceptionForNonExistingDataSet()
+			throws Exception {
+		makeUISProviderSuccess();
+		DataSet sampleDataSet = new DataSet();
+		sampleDataSet.setId("sampleId");
+		sampleDataSet.setProviderId("sampleProviderId");
+		//
+		Representation sampleRep = new Representation();
+		sampleRep.setCloudId("sampleCloudId");
+		sampleRep.setRepresentationName("sampleName");
+		sampleRep.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+		//
+		Revision revision = new Revision();
+		revision.setCreationTimeStamp(new Date());
+		revision.setRevisionName("sampleRevName");
+		revision.setRevisionProviderId("revProvider");
+		cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep, revision);
+		//
+		String versionId = cassandraDataSetService.getLatestVersionForGivenRevision(sampleDataSet.getId(), sampleDataSet.getProviderId(), sampleRep.getCloudId(), sampleRep.getRepresentationName(), revision.getRevisionName(), revision.getRevisionProviderId());
+	}
+
 }

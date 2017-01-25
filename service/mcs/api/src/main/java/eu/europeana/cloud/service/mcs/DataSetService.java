@@ -211,4 +211,28 @@ public interface DataSetService {
      */
     void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
+
+    /**
+     * Gives versionId of specified record (cloudId with representation name) that has latest revision
+     *
+     * @param dataSetId dataset identifier
+     * @param providerId dataset owner
+     * @param cloudId representation cloud identifier
+     * @param representationName representation name
+     * @param revisionName revision name
+     * @param revisionProviderId revision owner
+     * @return
+     * @throws DataSetNotExistsException
+     */
+    String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException;
+
+
+    /**
+     * Adds revision as a latest revision for given representation and dataset
+     *
+     * @param dataSet
+     * @param representation
+     * @param revision
+     */
+    void addLatestRevisionForGivenVersionInDataset(DataSet dataSet, Representation representation,Revision revision);
 }
