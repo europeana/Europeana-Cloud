@@ -800,7 +800,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     }
 
 
-    @Test (expected = RevisionNotExistsException.class)
+    @Test
     public void shouldDeleteRepresentationRevisionObjectWhenRepresentationIsDeleted()
             throws Exception
     {
