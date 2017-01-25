@@ -935,13 +935,13 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs/");
 
         // retrieve representation revision
-        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA", "test_rep", "revision-1", "revision-provider-1", "2016-10-11T08:58:29.558+0200");
+        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", "t1", "DEREFERENCE", "EF", "2017-01-04T08:11:27.336");
         assertNotNull(representationRevisionResponse);
-        assertEquals("QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA", representationRevisionResponse.getCloudId());
-        assertEquals("test_rep",
+        assertEquals("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", representationRevisionResponse.getCloudId());
+        assertEquals("t1",
                 representationRevisionResponse.getRepresentationName());
-        assertEquals("5ead19c0-8f7f-11e6-9149-50e5493601c6", representationRevisionResponse.getVersion());
-        assertEquals("revision-provider-1", representationRevisionResponse.getRevisionProviderId());
-        assertEquals("revision-1", representationRevisionResponse.getRevisionName());
+        assertEquals("f25011f0-d188-11e6-91ce-50e5493601c6", representationRevisionResponse.getVersion());
+        assertEquals("EF", representationRevisionResponse.getRevisionProviderId());
+        assertEquals("DEREFERENCE", representationRevisionResponse.getRevisionName());
     }
 }

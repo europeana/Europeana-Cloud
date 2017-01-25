@@ -1,10 +1,10 @@
 !tape
 name: records_shouldRetrieveRepresentationRevision
 interactions:
-- recorded: 2016-10-11T07:43:10.559Z
+- recorded: 2017-01-25T12:26:02.599Z
   request:
     method: GET
-    uri: http://localhost:8080/mcs/records/QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA/representations/test_rep/revisions/revision-1?revisionProviderId=revision-provider-1&revisionTimestamp=2016-10-11T08%3A58%3A29.558%2B0200
+    uri: http://localhost:8080/mcs/records/V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ/representations/t1/revisions/DEREFERENCE?revisionProviderId=EF&revisionTimestamp=2017-01-04T08%3A11%3A27.336
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Host: localhost:8080
@@ -15,11 +15,11 @@ interactions:
     headers:
       Cache-Control: no-cache, no-store, max-age=0, must-revalidate
       Content-Type: application/xml
-      Date: Tue, 11 Oct 2016 07:43:10 GMT
+      Date: Wed, 25 Jan 2017 12:26:02 GMT
       Expires: '0'
       Pragma: no-cache
       Server: Apache-Coyote/1.1
       X-Content-Type-Options: nosniff
       X-Frame-Options: DENY
       X-XSS-Protection: 1; mode=block
-    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representationRevisionResponse><cloudId>QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA</cloudId><files><contentLength>694128</contentLength><contentUri>http://localhost:8080/mcs/records/QF76LVQLZORRRGICPLYEKJUNSBNJVUIJ3WUCIPV2MLFRTWBSC2NA/representations/test_rep/versions/5ead19c0-8f7f-11e6-9149-50e5493601c6/files/AZ_19260302_0001.jp2</contentUri><date>2016-10-11T08:59:56.772+02:00</date><fileName>AZ_19260302_0001.jp2</fileName><md5>4990f81783a4dfc3bf6db34aefaeea98</md5><mimeType>image/jp2</mimeType></files><representationName>test_rep</representationName><revisionId>revision-provider-1_revision-1</revisionId><revisionTimestamp>2016-10-11T08:58:29.558+02:00</revisionTimestamp><version>5ead19c0-8f7f-11e6-9149-50e5493601c6</version></representationRevisionResponse>
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><representationRevisionResponse><cloudId>V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ</cloudId><files><contentLength>694128</contentLength><contentUri>http://localhost:8080/mcs/records/V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ/representations/t1/versions/f25011f0-d188-11e6-91ce-50e5493601c6/files/4cdbf1a2-5faa-49ab-ad77-e56116be2992</contentUri><date>2017-01-03T08:49:18.731+01:00</date><fileName>4cdbf1a2-5faa-49ab-ad77-e56116be2992</fileName><md5>4990f81783a4dfc3bf6db34aefaeea98</md5><mimeType>image/jp2</mimeType></files><representationName>t1</representationName><revisionName>DEREFERENCE</revisionName><revisionProviderId>EF</revisionProviderId><revisionTimestamp>2017-01-04T09:11:27.336+01:00</revisionTimestamp><version>f25011f0-d188-11e6-91ce-50e5493601c6</version></representationRevisionResponse>
