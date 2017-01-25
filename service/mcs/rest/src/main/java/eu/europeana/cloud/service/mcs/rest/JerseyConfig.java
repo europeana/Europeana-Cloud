@@ -40,7 +40,6 @@ public class JerseyConfig extends ResourceConfig {
         register(WebApplicationExceptionMapper.class);
         register(RuntimeExceptionMapper.class);
         registerClasses(RevisionIsNotValidExceptionMapper.class);
-        register(RevisionNotExistsExceptionMapper.class);
 
         // resources
         register(RecordsResource.class);
@@ -60,6 +59,5 @@ public class JerseyConfig extends ResourceConfig {
         register(SimplifiedRecordsResource.class);
         register(SimplifiedRepresentationResource.class);
         registerClasses(RevisionResource.class);
-        registerClasses(RepresentationRevisionsResource.class);
     }
 }

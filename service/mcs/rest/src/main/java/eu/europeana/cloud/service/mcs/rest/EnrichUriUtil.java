@@ -9,7 +9,6 @@ import javax.ws.rs.core.UriInfo;
 import com.google.common.collect.ImmutableMap;
 
 import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as REST responses.
@@ -48,13 +47,6 @@ final class EnrichUriUtil {
         }
     }
 
-    static void enrich(UriInfo uriInfo, RepresentationRevisionResponse representationRevision) {
-        if (representationRevision.getFiles() != null) {
-            for (File f : representationRevision.getFiles()) {
-                enrich(uriInfo, representationRevision.getCloudId(), representationRevision.getRepresentationName(), representationRevision.getVersion(), f);
-            }
-        }
-    }
 
     static void enrich(UriInfo uriInfo, Representation rep, File file) {
         enrich(uriInfo, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);

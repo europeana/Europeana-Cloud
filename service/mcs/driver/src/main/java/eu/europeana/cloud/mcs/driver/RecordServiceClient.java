@@ -3,11 +3,15 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -25,11 +29,12 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
-
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
 
 /**
  * Exposes API related to records.
@@ -57,8 +62,6 @@ public class RecordServiceClient extends MCSClient {
     private static final String grantingPermissionsToVesionPath;
     //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/versions/{VERSION}/permit
     private static final String permitPath;
-    //records/{CLOUDID}/representations/{REPRESENTATIONNAME}/revisions/{REVISIONID}
-    private static final String representationsRevisionsPath;
 
     static {
         StringBuilder builder = new StringBuilder();
@@ -95,7 +98,7 @@ public class RecordServiceClient extends MCSClient {
         permitPath = versionPath + "/" + ParamConstants.PERMIT;
 
         grantingPermissionsToVesionPath = versionPath + "/permissions/{" + ParamConstants.P_PERMISSION_TYPE + "}/users/{" + ParamConstants.P_USERNAME + "}";
-        representationsRevisionsPath = represtationNamePath + "/revisions/{" + REVISION_NAME + "}";
+
     }
 
     /**
@@ -688,58 +691,5 @@ public class RecordServiceClient extends MCSClient {
     @Override
     protected void finalize() throws Throwable {
         client.close();
-    }
-
-
-    /**
-     * Returns representation in specified version.
-     * <p/>
-     * If Version = LATEST, will redirect to actual latest persistent version at
-     * the moment of invoking this method.
-     *
-     * @param cloudId            id of the record to get representation from (required)
-     * @param representationName name of the representation (required)
-     * @param revisionName         revision name (required)
-     * @param revisionProviderId revision provider identifier, together with revisionId it is used to determine the correct revision (required)
-     * @return requested representation version
-     * @throws RepresentationNotExistsException if specified representation does
-     *                                          not exist
-     * @throws MCSException                     on unexpected situations
-     */
-    public RepresentationRevisionResponse getRepresentationRevision(String cloudId, String representationName, String revisionName, String revisionProviderId, String revisionTimestamp)
-            throws RevisionNotExistsException, MCSException {
-        WebTarget webtarget = client.target(baseUrl).path(representationsRevisionsPath)
-                .resolveTemplate(ParamConstants.P_CLOUDID, cloudId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName)
-                .resolveTemplate(ParamConstants.REVISION_NAME, revisionName);
-
-        if (revisionProviderId != null) {
-            webtarget = webtarget.queryParam(ParamConstants.REVISION_PROVIDER_ID, revisionProviderId);
-        }
-        else
-            throw new MCSException("RevisionProviderId is required");
-        // revision timestamp is optional
-        if (revisionTimestamp != null)
-            webtarget = webtarget.queryParam(ParamConstants.REVISION_TIMESTAMP, revisionTimestamp);
-
-        Builder request = webtarget.request();
-
-        Response response = null;
-        try {
-            response = request.get();
-            System.out.println(response);
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                RepresentationRevisionResponse representationRevisionResponse = response.readEntity(RepresentationRevisionResponse.class);
-                return representationRevisionResponse;
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } catch (MessageBodyProviderNotFoundException e) {
-            String out = webtarget.getUri().toString();
-            throw new MCSException(out, e);
-        } finally {
-            closeResponse(response);
-        }
     }
 }

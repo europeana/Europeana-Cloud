@@ -1,16 +1,14 @@
 package eu.europeana.cloud.service.mcs;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.exception.*;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Service for manipulating representations and their content.
@@ -265,27 +263,4 @@ public interface RecordService {
     void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException;
 
 
-    /**
-     * Get RepresentationRevisionResponse object basing on cloud identifier, schema identifier and revision identifier.
-     *
-     * @param globalId cloud identifier associated with the resulting representation revision
-     * @param schema representation name of the resulting representation revision
-     * @param revisionProviderId revision provider identifier of the resulting representation revision
-     * @param revisionName revision name
-     * @param revisionTimestamp revision timestamp
-     * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
-     */
-    RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp);
-
-    /**
-     * Insert information about representation revision association.
-     *
-     * @param globalId cloud identifier
-     * @param schema representation name
-     * @param revisionProviderId revision provider identifier of the resulting representation revision
-     * @param revisionName revision name
-     * @param revisionTimestamp revision timestamp
-     * @param versionId version identifier
-     */
-    void insertRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, String versionId, Date revisionTimestamp);
 }
