@@ -705,19 +705,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 .existsCloudId(Mockito.anyString());
     }
 
-    @Test (expected = RevisionNotExistsException.class)
-    public void shouldThrowExceptionWhenNoRevisionExists()
-            throws Exception
-    {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        Representation r = insertDummyPersistentRepresentation("cloud-1", "representation-1", PROVIDER_1_ID);
-        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-        cassandraRecordService.addRevision(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), revision);
-        cassandraRecordService.getRepresentationRevision("cloud-1", "non-existent-representation", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-    }
-
 
     @Test
     public void shouldReturnRepresentationRevisionObjectRevisionLatest()
@@ -853,8 +840,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         cassandraRecordService.deleteRepresentation("cloud-1", "representation-1");
 
         // retrieve info from extra table again
-        cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-        fail("Representation revision extra info not deleted");
+        RepresentationRevisionResponse response = cassandraRecordService.getRepresentationRevision("cloud-1", "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
+        assertNull(response);
     }
 
 

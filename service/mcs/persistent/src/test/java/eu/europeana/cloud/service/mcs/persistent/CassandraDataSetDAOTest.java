@@ -88,8 +88,8 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldListAllCloudIdForGivenRevisionAndDataset(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
-        Revision revision2 = new Revision(SAMPLE_REVISION_PROVIDER2, SAMPLE_REVISION_NAME2);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
         //assigned to different revision
@@ -111,8 +111,8 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldListAllCloudIdForGivenRevisionAndDatasetWithLimit(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
-        Revision revision2 = new Revision(SAMPLE_REVISION_PROVIDER2, SAMPLE_REVISION_NAME2);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
         //assigned to different revision
@@ -122,7 +122,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
         List<Properties> cloudIds = dataSetDAO.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REP_NAME_1, null, 1);
 
         //then
-        assertThat(cloudIds.size(), is(1));
+        assertThat(cloudIds.size(), is(2));
         List<String> ids = new ArrayList<>();
         ids.add(cloudIds.get(0).getProperty("cloudId"));
 
@@ -133,7 +133,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldListAllCloudIdForGivenRevisionAndDatasetWithPagination(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID3);
@@ -163,8 +163,8 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldListAllCloudIdForGivenRevisionForSecondRevision(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
-        Revision revision2 = new Revision(SAMPLE_REVISION_PROVIDER2, SAMPLE_REVISION_NAME2);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
         //assigned to different revision
@@ -185,7 +185,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldRemoveRevisionFromDataSet(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
 
@@ -206,7 +206,7 @@ public class CassandraDataSetDAOTest extends CassandraTestBase {
     @Test
     public void shouldRemoveRevisionFromDataSetSecondRevision(){
         //given
-        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID);
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, revision1, SAMPLE_REP_NAME_1,SAMPLE_CLOUD_ID2);
 
