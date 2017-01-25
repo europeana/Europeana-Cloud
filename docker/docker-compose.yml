@@ -41,31 +41,40 @@ kafka:
    - "9092:9092"
   volumes:
    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
 
 nimbus:
-  build: nimbus
+  build: storm
+  command: storm nimbus
+  hostname: nimbus
+  links:
+    - zookeeper:zookeeper
   ports:
     - "3773"
     - "3772"
     - "6627"
-  links:
-    - zookeeper:zk
+  restart: always
 
 supervisor:
   build: supervisor
+  command: storm supervisor
+  hostname: supervisor
   ports:
     - "8000"
   links:
     - nimbus:nimbus
-    - zookeeper:zk
+    - zookeeper:zookeeper
     - cassandra:cassandra
     - tomcat:tomcat
     - kafka:kafka
+  restart: always
 
 ui:
-  build: ui
+  build: storm
+  command: storm ui
   ports:
     - "49080:8080"
   links:
     - nimbus:nimbus
-    - zookeeper:zk
+    - zookeeper:zookeeper
+  restart: always
