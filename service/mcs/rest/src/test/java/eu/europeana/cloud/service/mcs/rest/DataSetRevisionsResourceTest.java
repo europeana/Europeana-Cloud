@@ -95,7 +95,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_REVISION_NAME, revisionName).
                 resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, revision.getCreationTimeStamp().toString());
+                queryParam(F_REVISION_TIMESTAMP, revision.getCreationTimeStamp().toString()).
+                queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
 
         //then
@@ -160,7 +161,8 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_REVISION_NAME, revisionName).
                 resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+                queryParam(F_REVISION_TIMESTAMP, revisionTimestamp).
+                queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
 
         //then
