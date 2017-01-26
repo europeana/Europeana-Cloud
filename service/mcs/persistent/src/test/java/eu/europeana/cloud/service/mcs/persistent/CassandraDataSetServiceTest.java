@@ -58,6 +58,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     private static final String REVISION = "revision";
 
+    private static final String REVISION_PROVIDER = "REVISION_PROVIDER";
+
     @After
     public void cleanUp() {
         Mockito.reset(uisHandler);
@@ -147,16 +149,87 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(new HashSet<>(assignedRepresentations), is(new HashSet<>(Arrays.asList(r1, r2))));
     }
 
+
+    @Test
+    public void shouldAddTheLatestRevisionsPerCloudIdWhenAssignRepresentationVersionToDataSet()
+            throws Exception {
+        makeUISProviderSuccess();
+        String dsName = "ds";
+        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
+        Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+        int revisionCount = 10;
+
+        //when adding multiple revuision with the same revisionName and revision Provider ID
+        for (int i = 0; i < revisionCount; i++) {
+            Revision r = new Revision(REVISION, REVISION_PROVIDER, new Date(), false, true, false);
+            cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+        }
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dsName, providerId, REVISION, REVISION_PROVIDER, r1.getRepresentationName(), null, 100);
+        // Before assignment
+        assertTrue(cloudIdAndTimestampResponseResultSlice.getResults().isEmpty());
+
+        // After assignment
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
+                r1.getRepresentationName(), r1.getVersion());
+        cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dsName, providerId, REVISION, REVISION_PROVIDER, r1.getRepresentationName(), null, 100);
+        assertEquals(cloudIdAndTimestampResponseResultSlice.getResults().size(), 1);
+
+        Representation r2 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+        //when adding 10 multiple different revisionName
+        for (int i = 0; i < revisionCount; i++) {
+            Revision r = new Revision(REVISION + i, REVISION_PROVIDER, new Date(), false, true, false);
+            cassandraRecordService.addRevision(r2.getCloudId(), r2.getRepresentationName(), r2.getVersion(), r);
+        }
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+                r2.getRepresentationName(), r2.getVersion());
+        for (int i = 0; i < revisionCount; i++) {
+            cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dsName, providerId, REVISION + i, REVISION_PROVIDER, r2.getRepresentationName(), null, 100);
+            assertEquals(cloudIdAndTimestampResponseResultSlice.getResults().size(), 1);
+        }
+    }
+
+
+    @Test
+    public void shouldRemoveAllLatestRevisionsPerCloudIdPerVersionWhenUnAssignRepresentationsVersionFromDataSet()
+            throws Exception {
+        makeUISProviderSuccess();
+        String dsName = "ds";
+        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName, "description of this set");
+        int revisionCount = 10;
+
+        Representation r2 = insertDummyPersistentRepresentation("cloud-id", "schema", providerId);
+        //when adding 10 multiple different revisionName
+        for (int i = 0; i < revisionCount; i++) {
+            Revision r = new Revision(REVISION + i, REVISION_PROVIDER, new Date(), false, true, false);
+            cassandraRecordService.addRevision(r2.getCloudId(), r2.getRepresentationName(), r2.getVersion(), r);
+        }
+        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+                r2.getRepresentationName(), r2.getVersion());
+
+        for (int i = 0; i < revisionCount; i++) {
+            ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dsName, providerId, REVISION + i, REVISION_PROVIDER, r2.getRepresentationName(), null, 100);
+            assertEquals(cloudIdAndTimestampResponseResultSlice.getResults().size(), 1);
+        }
+
+        cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
+                r2.getRepresentationName(), r2.getVersion());
+        for (int i = 0; i < revisionCount; i++) {
+            ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = cassandraDataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dsName, providerId, REVISION + i, REVISION_PROVIDER, r2.getRepresentationName(), null, 100);
+            assertTrue(cloudIdAndTimestampResponseResultSlice.getResults().isEmpty());
+        }
+    }
+
+
     @Test
     public void shouldRemoveAssignmentsFromDataSet() throws Exception {
         makeUISProviderSuccess();
-        // given some representations in data set
         String dsName = "ds";
         DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
                 "description of this set");
         Representation r1 = insertDummyPersistentRepresentation("cloud-id",
                 "schema", providerId);
         Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
+                // given some representations in data set
                 "schema", providerId);
 
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
@@ -349,6 +422,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     private void makeUISProviderSuccess() {
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider(Mockito.anyString());
+        Mockito.when(uisHandler.existsProvider(Mockito.anyString())).thenReturn(true);
     }
 
     private void makeUISProviderFailure() {
