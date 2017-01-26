@@ -243,8 +243,8 @@ public class CassandraDataSetService implements DataSetService {
     }
 
 	@Override
-	public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
-		return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
+	public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
+		return dataSetDAO.getDataSets(cloudId, representationName, version);
 	}
 
 	/**

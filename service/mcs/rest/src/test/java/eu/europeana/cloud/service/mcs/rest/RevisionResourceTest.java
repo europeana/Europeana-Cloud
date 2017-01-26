@@ -254,21 +254,4 @@ public class RevisionResourceTest extends JerseyTest {
                 rep.getRepresentationName(),
                 rep.getCloudId());
     }
-
-    @Test
-    public void shouldNotAssignDataSetOfDifferentProvider() throws Exception {
-        //given
-        DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
-                (),rep.getVersion());
-
-        //when
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-
-        //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 201);
-        verify(dataSetService,times(0)).addDataSetsRevisions(anyString(),anyString(),
-                (Revision) anyObject(),anyString(),anyString());
-    }
 }

@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -89,10 +90,11 @@ public class RevisionResource {
     private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
                                                       String version, Revision revision)
             throws ProviderNotExistsException, RepresentationNotExistsException {
-        String providerId = recordService.getRepresentation(globalId, schema, version).getDataProvider();
-        Set<String> dataSets = dataSetService.getDataSets(providerId, globalId, schema, version);
-        for (String dataSet : dataSets) {
-            dataSetService.addDataSetsRevisions(providerId, dataSet, revision, schema, globalId);
+        Map<String, Set<String>> dataSets = dataSetService.getDataSets(globalId, schema, version);
+        for (Map.Entry<String, Set<String>> entry : dataSets.entrySet()) {
+            for (String dataset : entry.getValue()) {
+                dataSetService.addDataSetsRevisions(entry.getKey(), dataset, revision, schema, globalId);
+            }
         }
     }
 

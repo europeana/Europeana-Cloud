@@ -490,20 +490,28 @@ public class CassandraDataSetDAO{
         return result;
     }
 
-    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version){
+    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version){
         BoundStatement boundStatement = getDataSetsForVersionStatement.bind(
                 cloudId,
                 representationName,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement,rs);
-        Set<String> result = new LinkedHashSet<>();
+        Set<String> providerDataSets = new LinkedHashSet<>();
+        Map<String, Set<String>> result = new HashMap<>();
         for(Row row : rs){
             String provider_dataset_id = row.getString("provider_dataset_id");
-            String prefix = providerId + "\n";
-            if(provider_dataset_id.startsWith(prefix)) {
-                result.add(provider_dataset_id.replace(prefix,""));
+            String[] parts = provider_dataset_id.split("\n");
+            if (parts.length != 2)
+                continue;
+
+            // parts[0] should contain provider id, parts[1] should contain dataset id
+            providerDataSets = result.get(parts[0]);
+            if (providerDataSets == null) {
+                providerDataSets = new LinkedHashSet<>();
+                result.put(parts[0], providerDataSets);
             }
+            providerDataSets.add(parts[1]);
         }
         return result;
     }

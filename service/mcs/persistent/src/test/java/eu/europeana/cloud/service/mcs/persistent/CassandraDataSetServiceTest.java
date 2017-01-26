@@ -313,11 +313,11 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 				r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
 
 		//when
-		Set<String> dataSets = cassandraDataSetService.getDataSets(ds.getProviderId(), r1.getCloudId(), r1.getRepresentationName
+		Map<String, Set<String>> dataSets = cassandraDataSetService.getDataSets(r1.getCloudId(), r1.getRepresentationName
 				(), r1.getVersion());
 		//then
 		assertThat(dataSets.size(),is(1));
-		assertThat(dataSets,hasItem(dsName));
+		assertThat(dataSets.get(r1.getDataProvider()),hasItem(dsName));
 	}
 
 
