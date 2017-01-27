@@ -1,17 +1,6 @@
 package eu.europeana.cloud;
 
 
-import backtype.storm.Config;
-import backtype.storm.ILocalCluster;
-import backtype.storm.Testing;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.testing.CompleteTopologyParam;
-import backtype.storm.testing.MkClusterParam;
-import backtype.storm.testing.MockedSources;
-import backtype.storm.testing.TestJob;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
 import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
 import eu.europeana.cloud.common.model.File;
@@ -25,6 +14,14 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.I
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.Config;
+import org.apache.storm.ILocalCluster;
+import org.apache.storm.Testing;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.testing.*;
+import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
 import org.apache.tika.mime.MimeTypeException;
 import org.json.JSONException;
 import org.junit.Before;
@@ -299,9 +296,9 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
                 .fieldsGrouping(TopologyHelper.IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
-
-
         topology = builder.createTopology();
+
+
     }
 
     private CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
@@ -316,7 +313,6 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     }
 
     private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, String expectedTuple) throws JSONException {
-
         //when
         Map result = Testing.completeTopology(cluster, topology,
                 completeTopologyParam);

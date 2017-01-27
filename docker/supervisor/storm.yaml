@@ -1,0 +1,10 @@
+storm.zookeeper.servers: [zookeeper]
+nimbus.seeds: [nimbus]
+storm.log.dir: "/logs"
+storm.local.dir: "/data"
+drpc.childopts: "-Xmx256m"
+ui.childopts: "-Xmx256m"
+nimbus.childopts: "-Xmx256m"
+supervisor.childopts: "-Xmx256m"
+worker.childopts: "-Xmx256m -XX:+PrintGCDetails -Xloggc:artifacts/gc.log -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps
+-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=1M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump"

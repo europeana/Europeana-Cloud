@@ -106,12 +106,11 @@
             <artifactId>ecloud-service-dps-cassandra</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>test-common</artifactId>
             <scope>test</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

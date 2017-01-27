@@ -1,10 +1,11 @@
 
 package eu.europeana.cloud.service.dps.storm.metrics;
 
+import org.apache.storm.metric.api.IMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.metric.api.IMetric;
+
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperReportService;
 

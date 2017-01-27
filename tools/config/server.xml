@@ -47,7 +47,7 @@
         <Environment name="mcs/cassandra/password" type="java.lang.String" value="cassandra"/>
 
         <!-- MCS Swift specific configuration -->
-        <Environment name="mcs/swift/provider" type="java.lang.String" value="swift"/>
+        <Environment name="mcs/swift/provider" type="java.lang.String" value="openstack-swift"/>
         <!-- please note that that should be "swift" if you are not using keystone-->
         <Environment name="mcs/swift/container" type="java.lang.String" value="ecloudA"/>
         <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>

@@ -10,7 +10,7 @@
 
     <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts" type="java.lang.String" value="localhost" />
-        <constructor-arg name="port" type="int" value="29142" />
+        <constructor-arg name="port" type="int" value="19142" />
         <constructor-arg name="keyspaceName" type="java.lang.String" value="uis_test4" />
         <constructor-arg name="userName" type="java.lang.String" value="" />
         <constructor-arg name="password" type="java.lang.String" value="" />

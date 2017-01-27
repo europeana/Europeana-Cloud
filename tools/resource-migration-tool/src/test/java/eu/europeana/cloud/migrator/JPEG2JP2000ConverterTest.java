@@ -2,6 +2,7 @@ package eu.europeana.cloud.migrator;
 
 import eu.europeana.cloud.migrator.processing.JPEG2JP2000Converter;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class JPEG2JP2000ConverterTest {
         converter = new JPEG2JP2000Converter(Paths.get(new URI(CONFIG_FILE.replace("$1", resDir))).toAbsolutePath().toString().replace(ResourceMigrator.WINDOWS_SEPARATOR, ResourceMigrator.LINUX_SEPARATOR));
     }
 
+    @Ignore // test require ImageMagic and Kakadu (kdu_compress).
     @Test
     public void shouldConvertFile() throws Exception {
         URI toConvert = new URI(LOCATION.replace("$1", resDir) + "/" + FILE);

@@ -1,13 +1,14 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import backtype.storm.tuple.Fields;
 
 import java.io.*;
 import java.util.HashMap;
 
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 
 import java.util.Map;
 

@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasItem;
 
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
- * 
+ *
  * @author sielski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -516,7 +517,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 	}
 
 	private List<CloudVersionRevisionResponse> createDummyData(int size) {
-		Session session = getSession();
+		Session session = CassandraTestInstance.getSession(KEYSPACE);
 
 		// create prepared statement for entry in a table
 		String table = KEYSPACE + ".provider_dataset_representation";

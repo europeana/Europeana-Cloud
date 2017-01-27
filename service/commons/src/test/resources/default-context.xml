@@ -26,7 +26,7 @@
 
     <bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
         <constructor-arg name="hosts" value="localhost" />
-        <constructor-arg name="port" value="29142" />
+        <constructor-arg name="port" value="19142" />
         <constructor-arg name="keyspaceName" value="aas_test" />
         <constructor-arg name="userName" value="" />
         <constructor-arg name="password" value="" />

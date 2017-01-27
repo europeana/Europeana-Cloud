@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static junit.framework.Assert.assertNotNull;
+import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.hasItem;
@@ -62,7 +62,6 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         ApplicationContext applicationContext = ApplicationContextUtils.getApplicationContext();
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
-
         dataSetWebTarget = target(DataSetRevisionsResource.class.getAnnotation(Path.class).value());
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     }
@@ -170,6 +169,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
         List<CloudTagsResponse> cloudIds = response.readEntity(ResultSlice.class).getResults();
         assertThat(cloudIds.size(),is(0));
     }
+
 
     @Test
     public void shouldResultWithNotDefinedStart() throws Exception{
