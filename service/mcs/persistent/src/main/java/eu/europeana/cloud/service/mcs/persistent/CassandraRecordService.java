@@ -119,7 +119,6 @@ public class CassandraRecordService implements RecordService {
     public void deleteRepresentation(String globalId, String schema)
             throws RepresentationNotExistsException {
 
-        System.out.println("herere");
         List<Representation> listRepresentations = recordDAO.listRepresentationVersions(globalId, schema);
 
         sortByProviderId(listRepresentations);
