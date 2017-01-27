@@ -95,7 +95,7 @@ public class DataSetRevisionsResourceTest extends JerseyTest{
                 resolveTemplate(P_REVISION_NAME, revisionName).
                 resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId).
                 resolveTemplate(P_REPRESENTATIONNAME, representationName).
-                queryParam(F_REVISION_TIMESTAMP, revision.getCreationTimeStamp().toString()).
+                queryParam(F_REVISION_TIMESTAMP, dateFormat.format(revision.getCreationTimeStamp())).
                 queryParam(F_LIMIT, 10);
         Response response = dataSetWebTarget.request().get();
 
