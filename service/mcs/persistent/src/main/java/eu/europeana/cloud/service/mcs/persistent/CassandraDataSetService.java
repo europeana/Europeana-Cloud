@@ -15,8 +15,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

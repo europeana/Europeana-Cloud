@@ -12,6 +12,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,6 +54,7 @@ public class CassandraDataSetDAO {
     private PreparedStatement getDataSetStatement;
 
     private PreparedStatement getDataSetsForRepresentationStatement;
+    private PreparedStatement getDataSetsForRepresentationVersionStatement;
 
     private PreparedStatement getDataSetsRepresentationsNamesList;
 
@@ -185,6 +187,17 @@ public class CassandraDataSetDAO {
                                 + "WHERE cloud_id = ? AND schema_id = ?;");
         getDataSetsForRepresentationStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
+        getDataSetsForRepresentationVersionStatement = connectionProvider.getSession()
+                .prepare(//
+                        "SELECT "//
+                                + "provider_dataset_id "//
+                                + "FROM data_set_assignments "//
+                                + "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;");
+        getDataSetsForRepresentationVersionStatement
+                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
 
         getDataSetsRepresentationsNamesList = connectionProvider.getSession()
                 .prepare(
@@ -442,6 +455,32 @@ public class CassandraDataSetDAO {
         }
         return ids;
     }
+
+
+    /**
+     * Returns data sets to which representation in specific version
+     * version) is assigned to.
+     *
+     * @param cloudId  record id
+     * @param schemaId representation schema
+     * @param version  representation version
+     * @return list of data set ids
+     */
+    public Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
+            throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
+        if (version == null)
+            throw new RepresentationNotExistsException();
+        BoundStatement boundStatement = getDataSetsForRepresentationVersionStatement.bind(cloudId, schemaId, UUID.fromString(version));
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        List<CompoundDataSetId> ids = new ArrayList<>();
+        for (Row r : rs) {
+            String providerDataSetId = r.getString("provider_dataset_id");
+            ids.add(createCompoundDataSetId(providerDataSetId));
+        }
+        return ids;
+    }
+
 
     /**
      * Returns data set from specified provider with specified id. Throws
