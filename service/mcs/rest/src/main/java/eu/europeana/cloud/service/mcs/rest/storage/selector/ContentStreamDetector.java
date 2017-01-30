@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest.storage.selector;
 
-import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
@@ -26,8 +25,7 @@ public class ContentStreamDetector {
     public static MediaType detectMediaType(InputStream inputStream) throws IOException {
         if (!inputStream.markSupported())
             throw new UnsupportedOperationException("InputStream marking support is required!");
-        Detector detector = new AutoDetectParser().getDetector();
-        return detector.detect(inputStream, new Metadata());
+        return new AutoDetectParser().getDetector().detect(inputStream, new Metadata());
 
     }
 }

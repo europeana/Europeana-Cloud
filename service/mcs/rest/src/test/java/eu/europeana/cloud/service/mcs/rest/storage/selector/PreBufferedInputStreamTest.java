@@ -8,9 +8,7 @@ import org.apache.commons.io.input.NullInputStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -33,7 +31,8 @@ public class PreBufferedInputStreamTest {
             "10, 20",
             "20, 10"
     })
-    public void shouldProperlyCheckAvailable(int size, int bufferSize) throws IOException {
+    public void shouldProperlyCheckAvailableForByteArrayInputStream(int size, int bufferSize) throws
+            IOException {
         //given
         byte[] expected = Helper.generateRandom(size);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(expected);
@@ -44,34 +43,38 @@ public class PreBufferedInputStreamTest {
 
         //then
         assertThat(available, is(size));
-        byte[] actual = Helper.readFully(instance, expected.length);
-        assertThat(actual, is(expected));
+        assertUnchangedStream(expected, instance);
     }
 
     @Test
     @Parameters({
-            "1514, 10, example_metadata.xml",
-            "1514, 200, example_metadata.xml",
-            "1514, 2000, example_metadata.xml",
-            "1514, 3000, example_metadata.xml",
-            "272569, 10, example_jpg2000.jp2",
-            "272569, 2000, example_jpg2000.jp2",
-            "272569, 3000, example_jpg2000.jp2"
+            "10, example_metadata.xml",
+            "200, example_metadata.xml",
+            "2000, example_metadata.xml",
+            "3000, example_metadata.xml",
+            "10, example_jpg2000.jp2",
+            "2000, example_jpg2000.jp2",
+            "3000, example_jpg2000.jp2"
     })
-    public void shouldProperlyCheckAvailableForFile(final int size, final int bufferSize,
+    public void shouldProperlyCheckAvailableForFile(final int bufferSize,
                                                     final String fileName) throws IOException {
         //given
-        URL resource = Resources.getResource(fileName);
-        byte[] expected = Resources.toByteArray(resource);
+        URL resourceUri = Resources.getResource(fileName);
+        final byte[] expected = Resources.toByteArray(resourceUri);
         FileInputStream inputStream = new FileInputStream(
-                resource.getFile());
+                resourceUri.getFile());
         PreBufferedInputStream instance = new PreBufferedInputStream(inputStream, bufferSize);
 
         //when
         int available = instance.available();
 
         //then
-        assertThat(available, is(size));
+        assertThat(available,is((expected.length)));
+        assertThat(available,is(((int) new File(resourceUri.getFile()).length())));
+        assertUnchangedStream(expected, instance);
+    }
+
+    private void assertUnchangedStream(byte[] expected, PreBufferedInputStream instance) throws IOException {
         byte[] actual = Helper.readFully(instance, expected.length);
         assertThat(actual, is(expected));
     }
@@ -142,8 +145,7 @@ public class PreBufferedInputStreamTest {
         long expectedSkip = Math.min(skip, size);
         assertThat(skipped, is(expectedSkip));
         assertThat(instance.available(), is(size - (int) expectedSkip));
-        byte[] actual = Helper.readFully(instance, expected.length);
-        assertThat(actual, is(expected));
+        assertUnchangedStream(expected, instance);
     }
 
     @Test
@@ -171,8 +173,7 @@ public class PreBufferedInputStreamTest {
         //then
 
         assertThat(instance.available(), is(size));
-        byte[] actual = Helper.readFully(instance, expected.length);
-        assertThat(actual, is(expected));
+        assertUnchangedStream(expected, instance);
     }
 
     @Test

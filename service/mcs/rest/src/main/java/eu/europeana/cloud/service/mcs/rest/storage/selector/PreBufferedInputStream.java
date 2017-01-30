@@ -71,7 +71,6 @@ public class PreBufferedInputStream extends BufferedInputStream {
      */
     @Override
     public int read(final byte[] b, final int offset, final int length) throws IOException {
-
         ensureIsNotClosed();
         if (b == null) {
             throw new NullPointerException();
