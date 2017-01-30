@@ -669,20 +669,23 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException on  unexpected situations
      */
 
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, String startFrom)
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, Boolean isDeleted, String startFrom)
             throws MCSException {
 
 
         WebTarget target = client.target(this.baseUrl).path(revisionAndRepresentationPath)
-                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
-                .resolveTemplate(ParamConstants.P_REVISION_NAME, revisionName)
-                .resolveTemplate(ParamConstants.P_REVISION_PROVIDER_ID, revisionProvider)
-                .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
-                .resolveTemplate(ParamConstants.P_REPRESENTATIONNAME, representationName);
+                .resolveTemplate(P_PROVIDER, providerId)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider)
+                .resolveTemplate(P_DATASET, dataSetId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
 
 
         if (startFrom != null) {
-            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
+            target = target.queryParam(F_START_FROM, startFrom);
+        }
+        if (isDeleted != null) {
+            target = target.queryParam(IS_DELETED, isDeleted);
         }
 
         return prepareResultSliceResponse(target);
@@ -717,9 +720,10 @@ public class DataSetServiceClient extends MCSClient {
      * @param revisionProvider   revision provider
      * @param revisionName       revision name
      * @param representationName representation name
+     * @param isDeleted          marked deleted
      * @throws MCSException on unexpected situations
      */
-    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName)
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, Boolean isDeleted)
             throws MCSException {
 
         List<CloudIdAndTimestampResponse> resultList = new ArrayList<>();
@@ -727,7 +731,7 @@ public class DataSetServiceClient extends MCSClient {
         String startFrom = null;
 
         do {
-            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, startFrom);
+            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, isDeleted, startFrom);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
             }

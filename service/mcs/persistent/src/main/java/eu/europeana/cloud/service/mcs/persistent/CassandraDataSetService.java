@@ -364,7 +364,7 @@ public class CassandraDataSetService implements DataSetService {
 
 
     @Override
-    public void updateAllProviderDatasetRepresentationEntries(String globalId, String schema, String
+    public void updateAllRevisionDatasetsEntries(String globalId, String schema, String
             version, Revision revision)
             throws RepresentationNotExistsException {
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
@@ -376,12 +376,16 @@ public class CassandraDataSetService implements DataSetService {
 
         // now we have to insert rows for each data set
         for (CompoundDataSetId dsID : dataSets) {
-            dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
-                    globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+            String datasetName = dsID.getDataSetId();
+            String datasetProvider = dsID.getDataSetProviderId();
+            String revisionId = RevisionUtils.getRevisionKey(revision);
+            dataSetDAO.insertProviderDatasetRepresentationInfo(datasetName, datasetProvider,
+                    globalId, version, schema, revisionId, revision.getUpdateTimeStamp(),
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
+            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(datasetName, datasetProvider,
                     globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revisionId, schema, globalId);
         }
     }
 
@@ -432,11 +436,11 @@ public class CassandraDataSetService implements DataSetService {
      */
 
     @Override
-    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, int numberOfElementsPerPage)
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException {
 
         validateRequest(dataSetId, providerId);
-        List<CloudIdAndTimestampResponse> list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsPerPage);
+        List<CloudIdAndTimestampResponse> list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsPerPage);
         String nextToken = null;
         if (list.size() == numberOfElementsPerPage + 1) {
             nextToken = list.get(numberOfElementsPerPage).getCloudId();

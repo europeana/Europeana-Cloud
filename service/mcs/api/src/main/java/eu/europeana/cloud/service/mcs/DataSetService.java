@@ -171,7 +171,6 @@ public interface DataSetService {
             throws ProviderNotExistsException, DataSetNotExistsException;
 
 
-
     /**
      * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
@@ -182,18 +181,19 @@ public interface DataSetService {
      * @param revisionName            revision name
      * @param revisionProvider        revision provider
      * @param startFrom               cloudId to start from
+     * @param isDeleted               cis marked deleted
      * @param numberOfElementsPerPage number of elements in a slice
      * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
      * @throws DataSetNotExistsException
      */
-    ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, int numberOfElementsPerPage)
+    ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException;
 
 
     /**
-     * Inserts information to the all the tables used to search for cloud ids assigned to a dataset having specific representation and revisions.
+     * Inserts information to the all the tables which has dataset and revisions entries
      *
      * @param globalId cloud identifier
      * @param schema   representation name
@@ -201,7 +201,7 @@ public interface DataSetService {
      * @param revision revision object containing necessary info (name, timestamp, tags)
      * @throws RepresentationNotExistsException
      */
-    void updateAllProviderDatasetRepresentationEntries(String globalId, String schema, String version, Revision revision)
+    void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
 
 }

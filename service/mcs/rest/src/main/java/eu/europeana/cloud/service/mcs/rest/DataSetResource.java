@@ -174,11 +174,11 @@ public class DataSetResource {
     @GET
     public ResultSlice<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevision(
             @PathParam(P_DATASET) String dataSetId, @PathParam(P_PROVIDER) String providerId,
-            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_START_FROM) String startFrom)
+            @PathParam(P_REVISION_NAME) String revisionName, @PathParam(REVISION_PROVIDER) String revisionProvider, @PathParam(P_REPRESENTATIONNAME) String representationName, @QueryParam(F_START_FROM) String startFrom, @QueryParam(IS_DELETED) Boolean isDeleted)
             throws ProviderNotExistsException, DataSetNotExistsException
 
     {
-        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsOnPage);
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsOnPage);
         return cloudIdAndTimestampResponses;
     }
 }

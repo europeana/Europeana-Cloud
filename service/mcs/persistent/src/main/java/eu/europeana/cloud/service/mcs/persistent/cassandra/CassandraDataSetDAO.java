@@ -84,6 +84,8 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation;
 
+    private PreparedStatement getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted;
+
 
     private PreparedStatement insertProviderDatasetRepresentationInfo;
     private PreparedStatement insertLatestProviderDatasetRepresentationInfo;
@@ -309,6 +311,14 @@ public class CassandraDataSetDAO {
                 + "FROM latest_provider_dataset_representation_revision " //
                 + "WHERE provider_id = ? AND dataset_id = ? AND revision_name = ? And revision_provider = ? And representation_id = ?  AND cloud_id > ? LIMIT ? ;");
         getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
+        getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted = connectionProvider.getSession().prepare("SELECT cloud_id, revision_timestamp " //
+                + "FROM latest_provider_dataset_representation_revision " //
+                + "WHERE provider_id = ? AND dataset_id = ? AND revision_name = ? And revision_provider = ? And representation_id = ?  AND cloud_id > ? AND mark_deleted = ? LIMIT ? ;");
+        getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+
 
 
         insertProviderDatasetRepresentationInfo = connectionProvider.getSession().prepare("INSERT INTO " //
@@ -911,13 +921,18 @@ public class CassandraDataSetDAO {
      * @throws DataSetNotExistsException
      */
 
-    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String providerId, String dataSetId, String revisionName, String revisionProvider, String representationName, String startFrom, int numberOfElementsPerPage)
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String providerId, String dataSetId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
             throws NoHostAvailableException, QueryExecutionException {
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
+        BoundStatement boundStatement = null;
         if (startFrom == null)
             startFrom = "";
 
-        BoundStatement boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.bind(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsPerPage);
+        if (isDeleted == null)
+            boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.bind(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, numberOfElementsPerPage);
+        else
+            boundStatement = getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted.bind(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsPerPage);
+
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
         Iterator<Row> iterator = rs.iterator();
