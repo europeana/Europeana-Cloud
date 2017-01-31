@@ -1,4 +1,3 @@
-
 CREATE KEYSPACE ecloud_uis
     WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 CREATE KEYSPACE ecloud_mcs

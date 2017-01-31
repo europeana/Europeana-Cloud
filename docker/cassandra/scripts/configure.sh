@@ -1,5 +1,5 @@
 #!/bin/bash
-set -s
+set -u
 set -e
 
 IP=`hostname --ip-address`

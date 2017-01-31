@@ -1,4 +1,5 @@
 USE ecloud_aas;
+
 CREATE TABLE users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
  
 CREATE TABLE aois (
