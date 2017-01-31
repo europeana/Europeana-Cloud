@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
@@ -14,10 +15,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -37,6 +35,13 @@ public class CassandraRecordService implements RecordService {
 
     @Autowired
     private CassandraRecordDAO recordDAO;
+
+
+    @Autowired
+    private CassandraDataSetService dataSetService;
+
+    @Autowired
+    private CassandraDataSetDAO dataSetDAO;
 
     @Autowired
     private SwiftContentDAO contentDAO;
@@ -113,6 +118,7 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void deleteRepresentation(String globalId, String schema)
             throws RepresentationNotExistsException {
+
         List<Representation> listRepresentations = recordDAO.listRepresentationVersions(globalId, schema);
 
         sortByProviderId(listRepresentations);
@@ -131,6 +137,16 @@ public class CassandraRecordService implements RecordService {
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                             f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
+                }
+            }
+
+            Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, rep.getVersion());
+            if (!compoundDataSetIds.isEmpty()) {
+                for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+                    try {
+                        dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, rep.getVersion());
+                    } catch (DataSetNotExistsException e) {
+                    }
                 }
             }
         }
@@ -216,7 +232,18 @@ public class CassandraRecordService implements RecordService {
                         f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
             }
         }
+
+        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, version);
+        if (!compoundDataSetIds.isEmpty()) {
+            for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+                try {
+                    dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, version);
+                } catch (DataSetNotExistsException e) {
+                }
+            }
+        }
         recordDAO.deleteRepresentation(globalId, schema, version);
+
     }
 
 

@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -229,11 +228,11 @@ public class RevisionResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlyAddRevisionToDataSets() throws Exception {
+    public void shouldProperlyUpdateAllRevisionDatasetsEntries() throws Exception {
         //given
         DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
-                (),rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
+                (), rep.getVersion());
 
         //when
         Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
@@ -241,22 +240,19 @@ public class RevisionResourceTest extends JerseyTest {
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        String revisionId = RevisionUtils.getRevisionKey(revisionForDataProvider
-                .getRevisionProviderId(), revisionForDataProvider.getRevisionName());
-        verify(dataSetService,times(1)).addDataSetsRevisions(
-                dataProvider.getId(),
-                dataSet.getId(),
-                revisionId,
+        verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(
+                rep.getCloudId(),
                 rep.getRepresentationName(),
-                rep.getCloudId());
+                rep.getVersion(),
+                revisionForDataProvider);
     }
 
     @Test
     public void shouldNotAssignDataSetOfDifferentProvider() throws Exception {
         //given
         DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
-                (),rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
+                (), rep.getVersion());
 
         //when
         Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
@@ -264,7 +260,7 @@ public class RevisionResourceTest extends JerseyTest {
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        verify(dataSetService,times(0)).addDataSetsRevisions(anyString(),anyString(),
-                anyString(),anyString(),anyString());
+        verify(dataSetService, times(0)).addDataSetsRevisions(anyString(), anyString(),
+                anyString(), anyString(), anyString());
     }
 }

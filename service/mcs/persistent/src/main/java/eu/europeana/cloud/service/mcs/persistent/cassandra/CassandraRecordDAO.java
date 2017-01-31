@@ -141,18 +141,12 @@ public class CassandraRecordDAO {
                 .getConsistencyLevel());
 
         deleteRepresentationStatement = s
-                .prepare("BEGIN BATCH "
-                        + "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? "
-                        + "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? "
-                        + "APPLY BATCH;");
+                .prepare("DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ;");
         deleteRepresentationStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
         deleteRepresentationVersionStatement = s
-                .prepare("BEGIN BATCH "
-                        + "DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ? "
-                        + "DELETE FROM data_set_assignments WHERE cloud_id = ? AND schema_id = ? "
-                        + "APPLY BATCH;");
+                .prepare("DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ? ;");
         deleteRepresentationVersionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -212,7 +206,7 @@ public class CassandraRecordDAO {
     public void deleteRepresentation(String cloudId, String schema)
             throws NoHostAvailableException, QueryExecutionException {
         BoundStatement boundStatement = deleteRepresentationStatement.bind(
-                cloudId, schema, cloudId, schema);
+                cloudId, schema);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
@@ -230,8 +224,7 @@ public class CassandraRecordDAO {
                                      String version) throws NoHostAvailableException,
             QueryExecutionException {
         BoundStatement boundStatement = deleteRepresentationVersionStatement
-                .bind(cloudId, schema, UUID.fromString(version), cloudId,
-                        schema);
+                .bind(cloudId, schema, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }

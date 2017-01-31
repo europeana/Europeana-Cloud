@@ -1,6 +1,7 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -46,6 +47,7 @@ public class DataSetServiceClient extends MCSClient {
 
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
     private static final String representationsPath; // = dataSetPath + "/representations/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
+    private static final String revisionAndRepresentationPath;
 
     static {
         final StringBuilder builder = new StringBuilder();
@@ -85,7 +87,9 @@ public class DataSetServiceClient extends MCSClient {
                 .append("}");
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
+        revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
     }
+
 
     /**
      * Creates instance of DataSetServiceClient.
@@ -141,20 +145,7 @@ public class DataSetServiceClient extends MCSClient {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        return prepareResultSliceResponse(target);
     }
 
     /**
@@ -517,7 +508,7 @@ public class DataSetServiceClient extends MCSClient {
     public ResultSlice<String> getDataSetRevisionsChunk(String providerId, String dataSetId,
                                                         String representationName, String revisionName,
                                                         String revisionProviderId, String startFrom)
-            throws MCSException{
+            throws MCSException {
 
         WebTarget target = client.target(baseUrl)
                 .path(dataSetRevisionsPath)
@@ -529,14 +520,14 @@ public class DataSetServiceClient extends MCSClient {
                 .queryParam(F_START_FROM, startFrom);
 
         Response response = null;
-        try{
+        try {
             response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()){
+            if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(ResultSlice.class);
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
-        }finally{
+        } finally {
             closeResponse(response);
         }
     }
@@ -555,20 +546,20 @@ public class DataSetServiceClient extends MCSClient {
     public List<String> getDataSetRevisions(String providerId, String dataSetId,
                                             String representationName, String revisionName,
                                             String revisionProviderId)
-            throws MCSException{
+            throws MCSException {
 
         List<String> resultList = new ArrayList<>();
         ResultSlice<String> resultSlice;
         String startFrom = null;
-        do{
+        do {
             resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
                     revisionName, revisionProviderId, startFrom);
-            if (resultSlice == null || resultSlice.getResults() == null){
+            if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
             startFrom = resultSlice.getNextSlice();
-        }while (resultSlice.getNextSlice() != null);
+        } while (resultSlice.getNextSlice() != null);
         return resultList;
     }
 
@@ -603,13 +594,13 @@ public class DataSetServiceClient extends MCSClient {
      * in returned result it means it is the last slice.
      * <p/>
      *
-     * @param dataSetId data set identifier (required)
-     * @param providerId provider identifier (required)
+     * @param dataSetId          data set identifier (required)
+     * @param providerId         provider identifier (required)
      * @param representationName name of the representation (required)
-     * @param dateFrom starting date (required)
-     * @param tag tag of revision, must be published, other are not supported yet (required)
-     * @param startFrom  code pointing to the requested result slice (if equal to
-     *                   null, first slice is returned)
+     * @param dateFrom           starting date (required)
+     * @param tag                tag of revision, must be published, other are not supported yet (required)
+     * @param startFrom          code pointing to the requested result slice (if equal to
+     *                           null, first slice is returned)
      * @return chunk of cloud identifiers list of specified provider in specified data set having specific representation name
      * and published revision created after the specified date
      * @throws MCSException on unexpected situations
@@ -629,32 +620,19 @@ public class DataSetServiceClient extends MCSClient {
             target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
         }
 
-        Response response = null;
-        try{
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        }
-        finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        return prepareResultSliceResponse(target);
+
     }
 
     /**
      * Lists all cloud identifiers from data provider's data set having representation name and published revision added after specified date.
      * <p/>
      *
-     * @param dataSetId data set identifier (required)
-     * @param providerId provider identifier (required)
+     * @param dataSetId          data set identifier (required)
+     * @param providerId         provider identifier (required)
      * @param representationName name of the representation (required)
-     * @param dateFrom starting date (required)
-     * @param tag tag of revision, must be published, other are not supported yet (required)
+     * @param dateFrom           starting date (required)
+     * @param tag                tag of revision, must be published, other are not supported yet (required)
      * @return list of all data sets of specified provider (empty if provider
      * does not exist)
      * @throws MCSException on unexpected situations
@@ -678,4 +656,91 @@ public class DataSetServiceClient extends MCSClient {
 
         return resultList;
     }
+
+    /**
+     * Returns chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
+     *
+     * @param dataSetId          data set identifier
+     * @param providerId         provider identifier
+     * @param revisionProvider   revision provider
+     * @param revisionName       revision name
+     * @param representationName representation name
+     * @param startFrom          identifier to the requested result slice (cloudId) (if equal to
+     *                           null, first slice is returned)
+     * @return chunk of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
+     * @throws MCSException on  unexpected situations
+     */
+
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevisionChunk(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, Boolean isDeleted, String startFrom)
+            throws MCSException {
+
+
+        WebTarget target = client.target(this.baseUrl).path(revisionAndRepresentationPath)
+                .resolveTemplate(P_PROVIDER, providerId)
+                .resolveTemplate(P_REVISION_NAME, revisionName)
+                .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProvider)
+                .resolveTemplate(P_DATASET, dataSetId)
+                .resolveTemplate(P_REPRESENTATIONNAME, representationName);
+
+
+        if (startFrom != null) {
+            target = target.queryParam(F_START_FROM, startFrom);
+        }
+        if (isDeleted != null) {
+            target = target.queryParam(IS_DELETED, isDeleted);
+        }
+
+        return prepareResultSliceResponse(target);
+    }
+
+    private ResultSlice prepareResultSliceResponse(WebTarget target) throws MCSException {
+        Response response = null;
+        try {
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(ResultSlice.class);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    /**
+     * Returns list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision
+     * <p>
+     * <p/>
+     *
+     * @param dataSetId          data set identifier
+     * @param providerId         provider identifier
+     * @param revisionProvider   revision provider
+     * @param revisionName       revision name
+     * @param representationName representation name
+     * @param isDeleted          marked deleted
+     * @throws MCSException on unexpected situations
+     */
+    public List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, Boolean isDeleted)
+            throws MCSException {
+
+        List<CloudIdAndTimestampResponse> resultList = new ArrayList<>();
+        ResultSlice resultSlice;
+        String startFrom = null;
+
+        do {
+            resultSlice = getLatestDataSetCloudIdByRepresentationAndRevisionChunk(dataSetId, providerId, revisionProvider, revisionName, representationName, isDeleted, startFrom);
+            if (resultSlice == null || resultSlice.getResults() == null) {
+                throw new DriverException("Getting cloud identifiers from data set: result chunk obtained but is empty.");
+            }
+            resultList.addAll(resultSlice.getResults());
+            startFrom = resultSlice.getNextSlice();
+
+        } while (resultSlice.getNextSlice() != null);
+
+        return resultList;
+    }
+
 }

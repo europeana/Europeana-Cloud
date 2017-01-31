@@ -80,7 +80,7 @@ public class RevisionResource {
                                 @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
-                ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
         Revision revision = null;
         try {
@@ -99,39 +99,13 @@ public class RevisionResource {
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
-        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision.getRevisionProviderId() , revision.getRevisionName(), revision.getCreationTimeStamp());
+
         recordService.addRevision(globalId, schema, version, revision);
-        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
+        dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
     }
 
-    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
-                                                      String version, String revisionProviderId, String revisionName, Date revisionTimestamp)
-            throws ProviderNotExistsException {
-        final String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
-        Set<String> dataSets = dataSetService.getDataSets(revisionProviderId, globalId, schema, version);
-        for (String dataSet : dataSets) {
-            dataSetService.addDataSetsRevisions(revisionProviderId, dataSet, revisionKey, schema, globalId);
-            addLatestRevision(dataSet, revisionProviderId, globalId, schema, version, revisionName, revisionTimestamp);
-        }
 
-    }
 
-    private void addLatestRevision(String datasetName, String providerId, String cloudId, String representationName, String representationVersion, String revisionName, Date revisionTimestamp) {
-        DataSet dataset = new DataSet();
-        dataset.setProviderId(providerId);
-        dataset.setId(datasetName);
-        //
-        Representation representation = new Representation();
-        representation.setCloudId(cloudId);
-        representation.setRepresentationName(representationName);
-        representation.setVersion(representationVersion);
-        //
-        Revision revision = new Revision();
-        revision.setRevisionName(revisionName);
-        revision.setRevisionProviderId(providerId);
-        revision.setCreationTimeStamp(revisionTimestamp);
-        dataSetService.addLatestRevisionForGivenVersionInDataset(dataset,representation, revision);
-    }
 
     /**
      * Adds a new revision to representation version.If a revision already existed it will override it .
@@ -202,7 +176,6 @@ public class RevisionResource {
         addRevision(globalId, schema, version, revision);
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
-
 
 
     private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {
