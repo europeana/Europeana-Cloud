@@ -197,6 +197,8 @@ public class CassandraDataSetService implements DataSetService {
                 }
                 dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
                 dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
+                DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+                dataSetDAO.removeLatestRevisionForDatasetAssignment(ds, representation, revision);
             }
         }
 
@@ -208,6 +210,8 @@ public class CassandraDataSetService implements DataSetService {
 
 
     /**
+     * >>>>>>> develop
+     *
      * @inheritDoc
      */
     @Override
@@ -265,38 +269,6 @@ public class CassandraDataSetService implements DataSetService {
         return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
 
-    @Override
-    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
-        return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
-        dataSetDAO.deleteDataSet(providerId, dataSetId);
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        representationIndexer.removeAssignmentsFromDataSet(
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
-    }
-
-    @Override
-    public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws
-            ProviderNotExistsException, DataSetNotExistsException {
-        if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
-            return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        }
-        return Collections.emptySet();
-    }
 
     /**
      * @inheritDoc
@@ -311,9 +283,15 @@ public class CassandraDataSetService implements DataSetService {
         }
     }
 
+
+    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
+        return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
+    }
+
     /**
      * @inheritDoc
      */
+
     @Override
     public void addDataSetsRevisions(String providerId, String dataSetId, String revisionId,
                                      String representationName, String cloudId)
@@ -323,6 +301,7 @@ public class CassandraDataSetService implements DataSetService {
         }
         dataSetDAO.addDataSetsRevision(providerId, dataSetId, revisionId, representationName, cloudId);
     }
+
 
     @Override
     public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String
@@ -345,21 +324,6 @@ public class CassandraDataSetService implements DataSetService {
             list.remove(numberOfElementsPerPage);
         }
         return new ResultSlice<>(nextToken, prepareResponseList(list));
-    }
-
-    private List<CloudVersionRevisionResponse> prepareResponseList(List<Properties> list) {
-        List<CloudVersionRevisionResponse> result = new ArrayList<>(list.size());
-
-        for (Properties properties : list) {
-            result.add(new CloudVersionRevisionResponse(properties.getProperty("cloudId"),
-                    properties.getProperty("versionId"),
-                    properties.getProperty("revisionId"),
-                    (Boolean) properties.get("published"),
-                    (Boolean) properties.get("deleted"),
-                    (Boolean) properties.get("acceptance")));
-        }
-
-        return result;
     }
 
 
@@ -386,7 +350,80 @@ public class CassandraDataSetService implements DataSetService {
                     globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
             dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revisionId, schema, globalId);
+            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(datasetProvider, datasetName), rep, revision);
         }
+    }
+
+    @Override
+    public void deleteDataSet(String providerId, String dataSetId)
+            throws DataSetNotExistsException {
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+
+        if (ds == null) {
+            throw new DataSetNotExistsException();
+        }
+        dataSetDAO.deleteDataSet(providerId, dataSetId);
+        DataProvider dataProvider = uis.getProvider(providerId);
+        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
+        representationIndexer.removeAssignmentsFromDataSet(
+                new CompoundDataSetId(providerId, dataSetId),
+                dataProvider.getPartitionKey());
+    }
+
+    @Override
+    public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws
+            ProviderNotExistsException, DataSetNotExistsException {
+        if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
+            return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
+        }
+        return Collections.emptySet();
+    }
+
+
+    private List<CloudVersionRevisionResponse> prepareResponseList(List<Properties> list) {
+        List<CloudVersionRevisionResponse> result = new ArrayList<>(list.size());
+
+        for (Properties properties : list) {
+            result.add(new CloudVersionRevisionResponse(properties.getProperty("cloudId"),
+                    properties.getProperty("versionId"),
+                    properties.getProperty("revisionId"),
+                    (Boolean) properties.get("published"),
+                    (Boolean) properties.get("deleted"),
+                    (Boolean) properties.get("acceptance")));
+        }
+
+        return result;
+    }
+
+
+    @Override
+    public String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String
+            representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException {
+        if (isDataSetExists(providerId, dataSetId)) {
+            DataSet dataset = new DataSet();
+            dataset.setProviderId(providerId);
+            dataset.setId(dataSetId);
+            //
+            Representation rep = new Representation();
+            rep.setCloudId(cloudId);
+            rep.setRepresentationName(representationName);
+            //
+            Revision revision = new Revision();
+            revision.setRevisionName(revisionName);
+            revision.setRevisionProviderId(revisionProviderId);
+
+            DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset, rep, revision);
+            if (result != null) {
+                return result.getRepresentation().getVersion();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void addLatestRevisionForGivenVersionInDataset(DataSet dataSet, Representation representation, Revision
+            revision) {
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
     }
 
     private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
@@ -408,6 +445,7 @@ public class CassandraDataSetService implements DataSetService {
         byte[] paramsJoined = Joiner.on('\n').join(parts)
                 .getBytes(Charset.forName("UTF-8"));
         return BaseEncoding.base32().encode(paramsJoined);
+
     }
 
     private List<String> decodeParams(String encodedParams) {
@@ -428,6 +466,7 @@ public class CassandraDataSetService implements DataSetService {
      * @param revisionProvider        revision provider
      * @param representationName      representation name
      * @param startFrom               cloudId to start from
+     * @param isDeleted               revision marked-deleted
      * @param numberOfElementsPerPage number of elements in a slice
      * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId ;

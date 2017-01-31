@@ -1,13 +1,15 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 
@@ -18,10 +20,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.*;
 
-import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -246,6 +246,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
                 .listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
                 .getResults();
         assertThat(assignedRepresentations, is(Arrays.asList(r2)));
+
     }
 
     @Test
@@ -423,6 +424,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider(Mockito.anyString());
         Mockito.when(uisHandler.existsProvider(Mockito.anyString())).thenReturn(true);
+
     }
 
     private void makeUISProviderFailure() {
@@ -440,6 +442,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
                 .existsCloudId(Mockito.anyString());
     }
 
+
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowExceptionWhenRequestingCloudIdsForNonExistingDataSet()
+            throws Exception {
+        makeUISProviderExistsSuccess();
+        cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished("non-existent-ds", "provider", "representation", new Date(), null, 1);
+    }
+
+
     private void makeUISProviderExistsSuccess() {
         Mockito.doReturn(true).when(uisHandler).existsProvider(Mockito.anyString());
     }
@@ -448,12 +459,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Mockito.doReturn(false).when(uisHandler).existsProvider(Mockito.anyString());
     }
 
-    @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowExceptionWhenRequestingCloudIdsForNonExistingDataSet()
-            throws Exception {
-        makeUISProviderExistsSuccess();
-        cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished("non-existent-ds", "provider", "representation", new Date(), null, 1);
-    }
 
     @Test(expected = ProviderNotExistsException.class)
     public void shouldThrowExceptionWhenRequestingCloudIdsForNonExistingProvider()
@@ -600,9 +605,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Session session = CassandraTestInstance.getSession(KEYSPACE);
 
         // create prepared statement for entry in a table
-        PreparedStatement ps = getPreparedStatementForInsertion(session);
+        String table = KEYSPACE + ".provider_dataset_representation";
+        PreparedStatement ps = session.prepare("INSERT INTO " + table + "(provider_id,dataset_id,bucket_id,cloud_id,version_id,representation_id,revision_id,revision_timestamp,acceptance,published,mark_deleted) VALUES " +
+                "(?,?,?,?,?,?,?,?,?,?,?)");
+        ps.setConsistencyLevel(ConsistencyLevel.QUORUM);
 
-        PreparedStatement psBuckets = getPreparedStatementForIBucketIdInsertion(session);
+        String bucketsTable = KEYSPACE + ".datasets_buckets";
+        PreparedStatement psBuckets = session.prepare("UPDATE " + bucketsTable + " set rows_count = rows_count + 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
+        psBuckets.setConsistencyLevel(ConsistencyLevel.QUORUM);
 
         // init size of table
         BoundStatement bs;
@@ -622,13 +632,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
             cloudIds.add(obj);
         }
         return cloudIds;
-    }
-
-    private PreparedStatement getPreparedStatementForIBucketIdInsertion(Session session) {
-        String bucketsTable = KEYSPACE + ".datasets_buckets";
-        PreparedStatement psBuckets = session.prepare("UPDATE " + bucketsTable + " set rows_count = rows_count + 1 WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;");
-        psBuckets.setConsistencyLevel(ConsistencyLevel.QUORUM);
-        return psBuckets;
     }
 
 
@@ -677,6 +680,52 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         // retrieve info again
         cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
         assertTrue(cloudIds.getResults().isEmpty());
+    }
+
+    @Test
+    public void shouldAddLatestVersionForGivenRevision()
+            throws Exception {
+        makeUISProviderSuccess();
+        DataSet sampleDataSet = new DataSet();
+        sampleDataSet.setId("sampleId");
+        sampleDataSet.setProviderId("sampleProviderId");
+        cassandraDataSetService.createDataSet(sampleDataSet.getProviderId(), sampleDataSet.getId(), sampleDataSet.getDescription());
+        //
+        Representation sampleRep = new Representation();
+        sampleRep.setCloudId("sampleCloudId");
+        sampleRep.setRepresentationName("sampleName");
+        sampleRep.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+        //
+        Revision revision = new Revision();
+        revision.setCreationTimeStamp(new Date());
+        revision.setRevisionName("sampleRevName");
+        revision.setRevisionProviderId("revProvider");
+        cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep, revision);
+        //
+        String versionId = cassandraDataSetService.getLatestVersionForGivenRevision(sampleDataSet.getId(), sampleDataSet.getProviderId(), sampleRep.getCloudId(), sampleRep.getRepresentationName(), revision.getRevisionName(), revision.getRevisionProviderId());
+        assertEquals(versionId, sampleRep.getVersion());
+    }
+
+    @Test(expected = DataSetNotExistsException.class)
+    public void shouldThrowExceptionForNonExistingDataSet()
+            throws Exception {
+        makeUISProviderSuccess();
+        DataSet sampleDataSet = new DataSet();
+        sampleDataSet.setId("sampleId");
+        sampleDataSet.setProviderId("sampleProviderId");
+        //
+        Representation sampleRep = new Representation();
+        sampleRep.setCloudId("sampleCloudId");
+        sampleRep.setRepresentationName("sampleName");
+        sampleRep.setVersion("44de5470-aa6c-11e6-8102-525400ab1fbf");
+        //
+        Revision revision = new Revision();
+        revision.setCreationTimeStamp(new Date());
+        revision.setRevisionName("sampleRevName");
+        revision.setRevisionProviderId("revProvider");
+        cassandraDataSetService.addLatestRevisionForGivenVersionInDataset(sampleDataSet, sampleRep, revision);
+        //
+        String versionId = cassandraDataSetService.getLatestVersionForGivenRevision(sampleDataSet.getId(), sampleDataSet.getProviderId(), sampleRep.getCloudId(), sampleRep.getRepresentationName(), revision.getRevisionName(), revision.getRevisionProviderId());
     }
 
 
@@ -781,4 +830,5 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         return ps;
 
     }
+
 }

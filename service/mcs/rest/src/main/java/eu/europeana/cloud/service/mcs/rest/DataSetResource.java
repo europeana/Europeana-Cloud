@@ -2,10 +2,8 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
@@ -33,8 +31,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static org.apache.commons.lang3.time.DateUtils.parseDate;
 
 /**
  * Resource to manage data sets.
@@ -151,7 +156,6 @@ public class DataSetResource {
         throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
 
-
     /**
      * get a list of the latest cloud identifiers,revision timestamps that belong to data set of a specified provider for a specific representation and revision.
      * This list will contain one row per revision per cloudId;
@@ -162,6 +166,7 @@ public class DataSetResource {
      * @param revisionProvider   revision provider
      * @param representationName representation name
      * @param startFrom          cloudId to start from
+     * @param isDeleted          revision marked-deleted
      * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision
      * This list will contain one row per revision per cloudId ;
      * @throws ProviderNotExistsException
@@ -181,5 +186,43 @@ public class DataSetResource {
         ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponses = dataSetService.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsOnPage);
         return cloudIdAndTimestampResponses;
     }
+
+    /**
+     * Gives the versionId of specified representation that has the newest revision (by revision timestamp) with given name.
+     *
+     * @param dataSetId          dataset identifier
+     * @param providerId         dataset owner
+     * @param cloudId            representation cloud identifier
+     * @param representationName representation name
+     * @param revisionName       revision name
+     * @param revisionProviderId revision owner
+     * @return version identifier of representation
+     * @throws DataSetNotExistsException
+     */
+    @Path("/latelyRevisionedVersion")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @GET
+    public Response getLatelyTaggedRecords(
+            @PathParam(P_DATASET) String dataSetId,
+            @PathParam(P_PROVIDER) String providerId,
+            @QueryParam(F_CLOUDID) String cloudId,
+            @QueryParam(F_REPRESENTATIONNAME) String representationName,
+            @QueryParam(F_REVISION_NAME) String revisionName,
+            @QueryParam(F_REVISION_PROVIDER_ID) String revisionProviderId) throws DataSetNotExistsException {
+
+        ParamUtil.require(F_CLOUDID, cloudId);
+        ParamUtil.require(F_REPRESENTATIONNAME, representationName);
+        ParamUtil.require(F_REVISION_NAME, revisionName);
+        ParamUtil.require(F_REVISION_PROVIDER_ID, revisionProviderId);
+
+
+        String versionId = dataSetService.getLatestVersionForGivenRevision(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+        if (versionId != null) {
+            return Response.ok().entity(versionId).build();
+        } else {
+            return Response.noContent().build();
+        }
+    }
 }
+
 

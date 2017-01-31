@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
@@ -97,10 +99,13 @@ public class RevisionResource {
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
+
         recordService.addRevision(globalId, schema, version, revision);
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
-
     }
+
+
+
 
     /**
      * Adds a new revision to representation version.If a revision already existed it will override it .

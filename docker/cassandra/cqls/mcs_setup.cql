@@ -81,6 +81,7 @@ CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_re
 
 CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
 
+<<<<<<< HEAD:docker/cassandra/mcs_setup.cql
 
 
 
@@ -105,3 +106,15 @@ CREATE INDEX latest_provider_dataset_representation_revision_publishe ON latest_
 
 CREATE INDEX latest_provider_dataset_representation_revision_delete ON latest_provider_dataset_representation_revision (mark_deleted);
 
+
+CREATE TABLE latest_revisions_for_dataset_assignment (
+       provider_id varchar,
+       dataset_id varchar,
+       representation_id varchar,
+       revision_name varchar,
+       revision_provider_id varchar,
+       revision_timestamp timestamp,
+       cloud_id varchar,
+       version_id timeuuid,
+       PRIMARY KEY ((provider_id, dataset_id, representation_id, cloud_id, revision_name, revision_provider_id))
+)WITH comment='Stores information about representation version that has latest revision';

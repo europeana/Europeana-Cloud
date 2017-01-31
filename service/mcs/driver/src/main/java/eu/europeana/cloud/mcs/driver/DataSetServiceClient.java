@@ -1,8 +1,8 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -89,6 +89,7 @@ public class DataSetServiceClient extends MCSClient {
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
         revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
     }
+
 
     /**
      * Creates instance of DataSetServiceClient.
@@ -620,6 +621,7 @@ public class DataSetServiceClient extends MCSClient {
         }
 
         return prepareResultSliceResponse(target);
+
     }
 
     /**
@@ -706,9 +708,7 @@ public class DataSetServiceClient extends MCSClient {
                 response.close();
             }
         }
-
     }
-
 
     /**
      * Returns list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision

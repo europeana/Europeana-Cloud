@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
