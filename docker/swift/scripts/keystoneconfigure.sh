@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -e;
+set -u
+set -e
 
 SWIFT_ENDPOINT=$1
 CONFIG_ADMIN_PORT=35357

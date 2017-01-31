@@ -26,11 +26,11 @@ RUN apt-get update && apt-get install -y \
 
 #Configuraton and executable files preparation
 RUN rm /etc/rsyslog.d/*
-COPY files/rsyslog.conf /etc/rsyslog.d/50-default.conf
-COPY files/config/* /etc/swift/
-COPY files/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY files/keystoneconfigure.sh /keystoneconfigure.sh
-COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY confs/rsyslog.conf /etc/rsyslog.d/50-default.conf
+COPY confs/swift/* /etc/swift/
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/keystoneconfigure.sh /keystoneconfigure.sh
+COPY confs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor && chmod 555 /keystoneconfigure.sh /usr/local/bin/*.sh
 
 

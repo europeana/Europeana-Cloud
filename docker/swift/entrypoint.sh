@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e;
+set -u
+set -e
 
 echo -e "nameserver 8.8.8.8\nsearch 8.8.8.8" > /etc/resolv.conf
 
@@ -53,6 +54,10 @@ fi
 
 # sleep waiting for rsyslog to come up under supervisord
 sleep 5s
+
+# init ecloud container
+swift --os-auth-url http://localhost:5000/v2.0 --os-tenant-name service --os-username swift --os-password swift post ecloud
+
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
 tail -f /var/log/syslog
 
