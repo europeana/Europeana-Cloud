@@ -81,9 +81,6 @@ CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_re
 
 CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
 
-<<<<<<< HEAD:docker/cassandra/mcs_setup.cql
-
-
 
 CREATE TABLE latest_provider_dataset_representation_revision (
     provider_id varchar,
