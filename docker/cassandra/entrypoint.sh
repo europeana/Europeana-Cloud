@@ -31,4 +31,4 @@ if [ ! -e /cassandrak.pid ]; then
     touch /cassandrak.pid
 fi
 
-tail -f /var/log/supervisor/cassandra.log
+ls -l /var/log/supervisor/cassandra.log && tail -f /var/log/supervisor/cassandra.log
