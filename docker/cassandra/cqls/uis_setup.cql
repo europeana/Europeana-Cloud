@@ -1,4 +1,5 @@
 USE ecloud_uis;
+
 CREATE TABLE data_providers (
         provider_id varchar PRIMARY KEY,
         properties map<varchar, text>,

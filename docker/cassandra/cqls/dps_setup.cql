@@ -1,4 +1,4 @@
-USE ecloud_dps ;
+USE ecloud_dps;
 
 CREATE TABLE basic_info (
 task_id bigint,

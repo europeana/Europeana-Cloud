@@ -63,9 +63,10 @@
         <!-- MCS Swift specific configuration -->
         <Environment name="mcs/swift/provider" type="java.lang.String" value="openstack-swift"/>
         <Environment name="mcs/swift/container" type="java.lang.String" value="ecloud"/>
-        <Environment name="mcs/swift/user" type="java.lang.String" value="admin:admin"/>
-        <Environment name="mcs/swift/password" type="java.lang.String" value="admin"/>
-        <Environment name="mcs/swift/endpoint" type="java.lang.String" value="http://swift:8888/auth/v1.0"/>
+        <Environment name="mcs/swift/user" type="java.lang.String" value="service:swift"/>
+        <Environment name="mcs/swift/password" type="java.lang.String" value="swift"/>
+        <Environment name="mcs/swift/endpoint" type="java.lang.String"
+                     value="http://swift:5000/v2.0"/>
         <!-- MCS Solr specific configuration -->
         <Environment name="mcs/solr/url" type="java.lang.String" value="http://localhost:8080/solr/"/>
         <Environment name="mcs/uis-url" value="http://localhost:8080/uis/" type="java.lang.String" override="false"/>
