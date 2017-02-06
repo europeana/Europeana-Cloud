@@ -74,10 +74,10 @@ public class DataSetRevisionsResource {
                                                              @PathParam(P_REVISION_PROVIDER_ID) String revisionProviderId,
                                                              @QueryParam(F_REVISION_TIMESTAMP) String revisionTimestamp,
                                                              @QueryParam(F_START_FROM) String startFrom,
-                                                             @QueryParam(F_LIMIT) @Min(1) @Max(10000) int limitParam)
+                                                             @QueryParam(F_LIMIT) int limitParam)
             throws DataSetNotExistsException, ProviderNotExistsException {
         // when limitParam is specified we can retrieve more results than configured number of elements per page
-        final int limitWithNextSlice = (limitParam >= 1) ? limitParam : numberOfElementsOnPage;
+        final int limitWithNextSlice = (limitParam > 0 && limitParam <= 10000) ? limitParam : numberOfElementsOnPage;
         // validate parameters
         if (revisionTimestamp == null)
             throw new WebApplicationException("Revision timestamp parameter cannot be null");

@@ -699,32 +699,6 @@ public class CassandraDataSetDAO{
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-//    public List<String> getDataSetsRevisionWithPagination(String providerId, String datasetId, String revisionId, String representationName, String startFromCloudId, int limit){
-//        String providerDatasetId = createProviderDataSetId(providerId,datasetId);
-//        BoundStatement boundStatement = getDataSetsRevisionWithPagination.bind(providerDatasetId,revisionId,representationName,startFromCloudId,limit);
-//        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-//        QueryTracer.logConsistencyLevel(boundStatement, rs);
-//        List<String> cloudIds = new ArrayList<>();
-//        for (Row r : rs){
-//            String cloudId = r.getString("cloud_Id");
-//            cloudIds.add(cloudId);
-//        }
-//        return cloudIds;
-//    }
-
-//    public List<String> getDataSetsRevision(String providerId, String datasetId, String revisionId, String representationName, int limit){
-//        String providerDatasetId = createProviderDataSetId(providerId,datasetId);
-//        BoundStatement boundStatement = getDataSetsRevision.bind(providerDatasetId,revisionId,representationName, limit);
-//        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-//        QueryTracer.logConsistencyLevel(boundStatement, rs);
-//        List<String> cloudIds = new ArrayList<>();
-//        for (Row r : rs){
-//            String cloudId = r.getString("cloud_Id");
-//            cloudIds.add(cloudId);
-//        }
-//        return cloudIds;
-//    }
-
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
         List<Properties> result = new ArrayList<>(limit);
 

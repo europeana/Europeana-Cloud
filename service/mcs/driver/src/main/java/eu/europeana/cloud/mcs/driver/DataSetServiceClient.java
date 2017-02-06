@@ -518,7 +518,7 @@ public class DataSetServiceClient extends MCSClient {
      */
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String providerId, String dataSetId,
                                                                    String representationName, String revisionName,
-                                                                   String revisionProviderId, String revisionTimestamp, String startFrom)
+                                                                   String revisionProviderId, String revisionTimestamp, String startFrom, Integer limit)
             throws MCSException{
 
         WebTarget target = client.target(baseUrl)
@@ -530,6 +530,10 @@ public class DataSetServiceClient extends MCSClient {
                 .resolveTemplate(P_REVISION_PROVIDER_ID, revisionProviderId)
                 .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
                 .queryParam(F_START_FROM, startFrom);
+
+        if (limit != null) {
+            target.queryParam(F_LIMIT, limit);
+        }
 
         Response response = null;
         try{
@@ -566,7 +570,7 @@ public class DataSetServiceClient extends MCSClient {
         String startFrom = null;
         do{
             resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                    revisionName, revisionProviderId, revisionTimestamp, startFrom);
+                    revisionName, revisionProviderId, revisionTimestamp, startFrom, null);
             if (resultSlice == null || resultSlice.getResults() == null){
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }

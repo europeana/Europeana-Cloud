@@ -862,7 +862,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
         ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                revisionName, revisionProviderId, revisionTimestamp, null);
+                revisionName, revisionProviderId, revisionTimestamp, null, null);
         //then
         assertThat(cloudIds.getNextSlice(),nullValue());
         assertThat(cloudIds.getResults().size(), is(2));
