@@ -7,6 +7,7 @@ CREATE TABLE data_sets (
        creation_date timestamp,
        PRIMARY KEY (provider_id, dataset_id)
 );
+ 
 
 CREATE TABLE data_set_assignments (
 	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
@@ -80,3 +81,8 @@ CREATE INDEX dataset_representation_published ON provider_dataset_representation
 CREATE INDEX provider_dataset_representation_mark_deleted ON provider_dataset_representation (mark_deleted);
 
 CREATE INDEX provider_dataset_representation_revision_id ON provider_dataset_representation (revision_id);
+CREATE TABLE files_content (
+    fileName varchar,
+    data blob,
+    PRIMARY KEY (fileName)
+);

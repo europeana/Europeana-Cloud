@@ -23,7 +23,7 @@ public interface ContentDAO {
      *             if source object does not exist in the storage
      */
     void copyContent(String sourceObjectId, String trgObjectId)
-            throws FileNotExistsException, FileAlreadyExistsException;
+            throws FileNotExistsException, FileAlreadyExistsException, IOException;
 
 
     /**

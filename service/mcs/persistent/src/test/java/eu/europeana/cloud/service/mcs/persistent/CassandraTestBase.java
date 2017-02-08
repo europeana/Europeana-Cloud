@@ -7,7 +7,7 @@ public abstract class CassandraTestBase {
     private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
     static final String KEYSPACE = "ecloud_test";
 
-    CassandraTestBase() {
+    public CassandraTestBase() {
         CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL,KEYSPACE);
     }
 

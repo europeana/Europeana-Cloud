@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.FileStorageSelector.selectStorage;
 
 /**
  * Handles uploading the file when representation is not created yet.
@@ -82,6 +83,10 @@ public class FileUploadResource {
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, FileAlreadyExistsException,
             AccessDeniedOrObjectDoesNotExistException, CannotPersistEmptyRepresentationException {
+        ParamUtil.require(F_FILE_NAME,fileName);
+        ParamUtil.require(F_PROVIDER,providerId);
+        ParamUtil.require(F_FILE_DATA, data);
+        ParamUtil.require(F_FILE_MIME, mimeType);
 
         Representation representation = null;
         representation = recordService.createRepresentation(globalId, schema, providerId);
@@ -122,7 +127,7 @@ public class FileUploadResource {
     private File addFileToRepresentation(Representation representation, InputStream data, String mimeType, String fileName) throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
         File f = new File();
         f.setMimeType(mimeType);
-
+        f.setDbStored(selectStorage(mimeType));
         if (fileName != null) {
             try {
                 File temp = recordService.getFile(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),

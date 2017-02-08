@@ -39,13 +39,18 @@ public class File {
 	 */
 	private URI contentUri;
 
+    /**
+     * Indicate where file is stored
+     */
+    private boolean dbStored;
+
 
 	public File() {
 	}
 
 
 	public File(String fileName, String mimeType, String md5, String date,
-			long contentLength, URI contentUri) {
+			long contentLength, URI contentUri, boolean dbStored) {
 		super();
 		this.fileName = fileName;
 		this.mimeType = mimeType;
@@ -53,12 +58,18 @@ public class File {
 		this.date = date;
 		this.contentLength = contentLength;
 		this.contentUri = contentUri;
+        this.dbStored = dbStored;
 	}
+
+    public File(String fileName, String mimeType, String md5, String date,
+                long contentLength, URI contentUri) {
+        this(fileName,mimeType,md5,date,contentLength,contentUri,false);
+    }
 
 
 	public File(final File file) {
 		this(file.getFileName(), file.getMimeType(), file.getMd5(), file.getDate(), file.getContentLength(), file.
-				getContentUri());
+				getContentUri(), file.isDbStored());
 	}
 
 
@@ -122,83 +133,54 @@ public class File {
 	}
 
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ (int) (contentLength ^ (contentLength >>> 32));
-		result = prime * result
-				+ ((contentUri == null) ? 0 : contentUri.hashCode());
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result
-				+ ((fileName == null) ? 0 : fileName.hashCode());
-		result = prime * result + ((md5 == null) ? 0 : md5.hashCode());
-		result = prime * result
-				+ ((mimeType == null) ? 0 : mimeType.hashCode());
-		return result;
-	}
+    public boolean isDbStored() {
+        return dbStored;
+    }
 
+    public void setDbStored(boolean dbStored) {
+        this.dbStored = dbStored;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		File other = (File) obj;
-		if (contentLength != other.contentLength) {
-			return false;
-		}
-		if (contentUri == null) {
-			if (other.contentUri != null) {
-				return false;
-			}
-		} else if (!contentUri.equals(other.contentUri)) {
-			return false;
-		}
-		if (date == null) {
-			if (other.date != null) {
-				return false;
-			}
-		} else if (!date.equals(other.date)) {
-			return false;
-		}
-		if (fileName == null) {
-			if (other.fileName != null) {
-				return false;
-			}
-		} else if (!fileName.equals(other.fileName)) {
-			return false;
-		}
-		if (md5 == null) {
-			if (other.md5 != null) {
-				return false;
-			}
-		} else if (!md5.equals(other.md5)) {
-			return false;
-		}
-		if (mimeType == null) {
-			if (other.mimeType != null) {
-				return false;
-			}
-		} else if (!mimeType.equals(other.mimeType)) {
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof File)) return false;
 
+        File file = (File) o;
 
-	@Override
-	public String toString() {
-		return "File [fileName=" + fileName + ", mimeType=" + mimeType
-				+ ", md5=" + md5 + ", date=" + date + ", contentLength="
-				+ contentLength + ", contentUri=" + contentUri + "]";
-	}
+        if (contentLength != file.contentLength) return false;
+        if (dbStored != file.dbStored) return false;
+        if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) return false;
+        if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) return false;
+        if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) return false;
+        if (date != null ? !date.equals(file.date) : file.date != null) return false;
+        return contentUri != null ? contentUri.equals(file.contentUri) : file.contentUri == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = fileName != null ? fileName.hashCode() : 0;
+        result = 31 * result + (mimeType != null ? mimeType.hashCode() : 0);
+        result = 31 * result + (md5 != null ? md5.hashCode() : 0);
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        result = 31 * result + (int) (contentLength ^ (contentLength >>> 32));
+        result = 31 * result + (contentUri != null ? contentUri.hashCode() : 0);
+        result = 31 * result + (dbStored ? 1 : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "fileName='" + fileName + '\'' +
+                ", mimeType='" + mimeType + '\'' +
+                ", md5='" + md5 + '\'' +
+                ", date='" + date + '\'' +
+                ", contentLength=" + contentLength +
+                ", contentUri=" + contentUri +
+                ", dbCached=" + dbStored +
+                '}';
+    }
 
 }

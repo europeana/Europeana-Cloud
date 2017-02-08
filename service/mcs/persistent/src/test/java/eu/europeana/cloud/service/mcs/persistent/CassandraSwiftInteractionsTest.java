@@ -53,7 +53,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 		.putContent(anyString(), any(InputStream.class));
 	// given representation
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null);
+	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
 	Representation r = cassandraRecordService.createRepresentation("id",
 		"dc", providerId);
 

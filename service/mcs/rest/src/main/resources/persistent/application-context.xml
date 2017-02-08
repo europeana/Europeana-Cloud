@@ -60,7 +60,9 @@
           class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
-    <bean id="swiftContentDAO" 
+    <bean id="dynamicContentDAO" class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO"/>
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+    <bean id="swiftContentDAO"
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
     <bean id="swiftConnectionProvider" 
           class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">

@@ -187,8 +187,8 @@ public class TopologyTest {
 
     private void prepareMock() throws Exception {
         List<File> files = new ArrayList();
-        files.add(new File("file1", "", "", "", 55, new URI(validUriPdf)));
-        files.add(new File("file2", "", "", "", 55, new URI(validUriTxt)));
+        files.add(new File("file1", "", "", "", 55, new URI(validUriPdf),false));
+        files.add(new File("file2", "", "", "", 55, new URI(validUriTxt),false));
 
         List<Representation> reps = new ArrayList();
         reps.add(new Representation("cID", "pdf", "ver", null, new URI("some_uri"), "", files, true, null));
