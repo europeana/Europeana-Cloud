@@ -6,6 +6,8 @@ RUN sed -i -e '$i \  <role rolename="manager-jmx"/><role rolename="manager-statu
 ADD server.xml /usr/local/tomcat/conf/server.xml
 
 WORKDIR /usr/local/tomcat/
-CMD ["bin/catalina.sh", "jpda" , "run"]
 
-EXPOSE 8080
+EXPOSE 8080 8000
+
+#wait for dependant service to bootup
+CMD sleep 1m && bin/catalina.sh jpda run

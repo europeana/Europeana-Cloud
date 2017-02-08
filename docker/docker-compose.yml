@@ -2,6 +2,7 @@ tomcat:
   build: tomcat
   ports:
     - "8080:8080"
+    - "8000:8000"
   links:
     - cassandra:cassandra
     - swift:swift
@@ -17,9 +18,10 @@ cassandra:
     - "9160:9160"
 
 swift:
-  build: docker-swift-onlyone
+  build: swift
   ports:
     - "8888:8888"
+    - "5000:5000"
   volumes:
     - /srv
 

@@ -1,28 +1,34 @@
-FROM ubuntu:14.04
+FROM openjdk:8
 MAINTAINER kadamski
 
 RUN apt-get update \
     && apt-get install -y \
-        openjdk-7-jdk \
-        python \
+        python2.7 \
+        rsyslog \
+        supervisor \
         wget  \
     && rm -rf /var/lib/apt/lists/*
+
+ENV CASSANDRA_DIR /opt/apache-cassandra-2.1.8
 
 RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz' \
     | tar -C /opt -xz
 
-ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
-
 COPY ./cqls/*.cql /etc/cassandra/
-COPY configure.sh /etc/cassandra/
-COPY initialize_tables.sh /etc/cassandra/
+COPY scripts/configure.sh /etc/cassandra/
+COPY scripts/initialize_tables.sh /etc/cassandra/
+COPY confs/rsyslog.conf /etc/rsyslog.d/50-default.conf
+COPY confs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY entrypoint.sh /entrypoint.sh
 
-# custom configuration
-RUN sh /etc/cassandra/configure.sh /opt/apache-cassandra-2.1.8
+RUN mkdir -p /var/log/supervisor
+RUN chmod 555 /entrypoint.sh /etc/cassandra/*
 
-# initialize keyspaces and tables
-RUN sh /etc/cassandra/initialize_tables.sh /opt/apache-cassandra-2.1.8
-
+# 7000: intra-node communication
+# 7001: TLS intra-node communication
+# 7199: JMX
+# 9042: CQL
+# 9160: thrift service
 EXPOSE 7000 7001 7199 8012 9042 9160
 
-CMD ["sh", "/opt/apache-cassandra-2.1.8/bin/cassandra", "-f"]
+ENTRYPOINT /entrypoint.sh $CASSANDRA_DIR
