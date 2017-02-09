@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest.storage.selector;
 
 import com.google.common.collect.ImmutableSet;
+import eu.europeana.cloud.service.mcs.Storage;
 import org.apache.tika.mime.MediaType;
 
 import javax.ws.rs.BadRequestException;

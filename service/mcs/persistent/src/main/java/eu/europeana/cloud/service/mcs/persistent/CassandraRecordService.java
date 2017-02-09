@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 
 
 import java.io.IOException;
@@ -93,7 +92,7 @@ public class CassandraRecordService implements RecordService {
                 for (File f : repVersion.getFiles()) {
                     try {
                         contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
-                                repVersion.getVersion(), f.getFileName()),f.isDbStored());
+                                repVersion.getVersion(), f.getFileName()),f.getFileStorage());
                     } catch (FileNotExistsException ex) {
                         LOGGER.warn(
                                 "File {} was found in representation {}-{}-{} but no content of such file was found",
@@ -129,7 +128,7 @@ public class CassandraRecordService implements RecordService {
             for (File f : rep.getFiles()) {
                 try {
                     contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, rep.getVersion(), f
-                            .getFileName()),f.isDbStored());
+                            .getFileName()),f.getFileStorage());
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                             f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
@@ -212,7 +211,7 @@ public class CassandraRecordService implements RecordService {
 
         for (File f : rep.getFiles()) {
             try {
-                contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, f.getFileName()),f.isDbStored());
+                contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, f.getFileName()),f.getFileStorage());
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                         f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
@@ -287,7 +286,7 @@ public class CassandraRecordService implements RecordService {
         String keyForFile = FileUtils.generateKeyForFile(globalId, schema, version, file.getFileName());
         PutResult result;
         try {
-            result = contentDAO.putContent(keyForFile, content,file.isDbStored());
+            result = contentDAO.putContent(keyForFile, content,file.getFileStorage());
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -313,7 +312,7 @@ public class CassandraRecordService implements RecordService {
         }
         try {
             contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
-                    rangeEnd, os,file.isDbStored());
+                    rangeEnd, os, file.getFileStorage());
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -330,7 +329,7 @@ public class CassandraRecordService implements RecordService {
         File file = findFileInRepresentation(rep, fileName);
         try {
                 contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
-                        file.isDbStored());
+                        file.getFileStorage());
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -351,7 +350,7 @@ public class CassandraRecordService implements RecordService {
         }
         recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
         File file = findFileInRepresentation(representation, fileName);
-        contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName),file.isDbStored());
+        contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName),file.getFileStorage());
     }
 
 
@@ -375,7 +374,7 @@ public class CassandraRecordService implements RecordService {
             try {
                 contentDAO.copyContent(FileUtils.generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
                     FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()),
-                        srcFile.isDbStored());
+                        srcFile.getFileStorage());
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                         srcFile.getFileName(), globalId, schema, version);

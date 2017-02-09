@@ -1,7 +1,11 @@
 package eu.europeana.cloud.common.model;
 
+import eu.europeana.cloud.service.mcs.Storage;
+
 import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 
 /**
  * Metadata of a file (content) in a certain representation version of a record.
@@ -42,15 +46,16 @@ public class File {
     /**
      * Indicate where file is stored
      */
-    private boolean dbStored;
+    private Storage fileStorage;
 
 
 	public File() {
+		this.fileStorage = OBJECT_STORAGE;
 	}
 
 
 	public File(String fileName, String mimeType, String md5, String date,
-			long contentLength, URI contentUri, boolean dbStored) {
+			long contentLength, URI contentUri, Storage fileStorage) {
 		super();
 		this.fileName = fileName;
 		this.mimeType = mimeType;
@@ -58,18 +63,18 @@ public class File {
 		this.date = date;
 		this.contentLength = contentLength;
 		this.contentUri = contentUri;
-        this.dbStored = dbStored;
+        this.fileStorage = fileStorage;
 	}
 
     public File(String fileName, String mimeType, String md5, String date,
                 long contentLength, URI contentUri) {
-        this(fileName,mimeType,md5,date,contentLength,contentUri,false);
+        this(fileName,mimeType,md5,date,contentLength,contentUri, OBJECT_STORAGE);
     }
 
 
 	public File(final File file) {
 		this(file.getFileName(), file.getMimeType(), file.getMd5(), file.getDate(), file.getContentLength(), file.
-				getContentUri(), file.isDbStored());
+				getContentUri(), file.fileStorage);
 	}
 
 
@@ -133,12 +138,12 @@ public class File {
 	}
 
 
-    public boolean isDbStored() {
-        return dbStored;
+    public Storage getFileStorage() {
+        return fileStorage;
     }
 
-    public void setDbStored(boolean dbStored) {
-        this.dbStored = dbStored;
+    public void setFileStorage(Storage fileStorage) {
+        this.fileStorage = fileStorage;
     }
 
     @Override
@@ -149,7 +154,7 @@ public class File {
         File file = (File) o;
 
         if (contentLength != file.contentLength) return false;
-        if (dbStored != file.dbStored) return false;
+        if (fileStorage != file.fileStorage) return false;
         if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) return false;
         if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) return false;
         if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) return false;
@@ -166,7 +171,7 @@ public class File {
         result = 31 * result + (date != null ? date.hashCode() : 0);
         result = 31 * result + (int) (contentLength ^ (contentLength >>> 32));
         result = 31 * result + (contentUri != null ? contentUri.hashCode() : 0);
-        result = 31 * result + (dbStored ? 1 : 0);
+        result = 31 * result + (fileStorage != null ? fileStorage.hashCode() : 0);
         return result;
     }
 
@@ -179,7 +184,7 @@ public class File {
                 ", date='" + date + '\'' +
                 ", contentLength=" + contentLength +
                 ", contentUri=" + contentUri +
-                ", dbCached=" + dbStored +
+                ", fileStorage=" + fileStorage +
                 '}';
     }
 

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.utils.RevisionUtils;
+import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
@@ -11,6 +12,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+import static eu.europeana.cloud.service.mcs.Storage.DATA_BASE;
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -373,7 +376,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 	Representation r = insertDummyPersistentRepresentation("globalId",
 		"dc", PROVIDER_1_ID);
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	cassandraRecordService.putContent(r.getCloudId(),
 		r.getRepresentationName(), r.getVersion(), f,
 		new ByteArrayInputStream(dummyContent));
@@ -410,7 +413,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 "globalId", "edm", PROVIDER_1_ID);
 
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null,OBJECT_STORAGE);
 	cassandraRecordService.putContent(r.getCloudId(),
 		r.getRepresentationName(), r.getVersion(), f,
 		new ByteArrayInputStream(dummyContent));
@@ -435,7 +438,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 				"globalId", "edm", PROVIDER_1_ID);
 
 		byte[] dummyContent = { 1, 2, 3 };
-		File f = new File("content.xml", "application/xml", null, null, 0, null,true);
+		File f = new File("content.xml", "application/xml", null, null, 0, null, DATA_BASE);
 		cassandraRecordService.putContent(r.getCloudId(),
 				r.getRepresentationName(), r.getVersion(), f,
 				new ByteArrayInputStream(dummyContent));
@@ -460,7 +463,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 "globalId", "edm", PROVIDER_1_ID);
 
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	cassandraRecordService.putContent(r.getCloudId(),
 		r.getRepresentationName(), r.getVersion(), f,
 		new ByteArrayInputStream(dummyContent));
@@ -481,7 +484,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 "globalId", "edm", PROVIDER_1_ID);
 
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null, false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	cassandraRecordService.putContent(r.getCloudId(),
 		r.getRepresentationName(), r.getVersion(), f,
 		new ByteArrayInputStream(dummyContent));
@@ -676,7 +679,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 	Representation r = cassandraRecordService.createRepresentation(cloudId,
 		schema, providerId);
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
 		new ByteArrayInputStream(dummyContent));
 

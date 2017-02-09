@@ -4,7 +4,10 @@ import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -29,7 +32,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.FileStorageSelector.selectStorage;
+import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
 
 /**
  * Handles uploading the file when representation is not created yet.
@@ -38,6 +41,8 @@ import static eu.europeana.cloud.service.mcs.rest.FileStorageSelector.selectStor
 @Component
 @Scope("request")
 public class FileUploadResource {
+
+    private final int OBJECT_STORE_SIZE_TRESHOLD = 512 * 1024;
 
     @Autowired
     private RecordService recordService;
@@ -88,11 +93,14 @@ public class FileUploadResource {
         ParamUtil.require(F_FILE_DATA, data);
         ParamUtil.require(F_FILE_MIME, mimeType);
 
+        PreBufferedInputStream prebufferedInputStream = wrap(data, OBJECT_STORE_SIZE_TRESHOLD);
+        Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
+
         Representation representation = null;
         representation = recordService.createRepresentation(globalId, schema, providerId);
         addPrivilegesToRepresentation(representation);
 
-        File file = addFileToRepresentation(representation, data, mimeType, fileName);
+        File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
         persistRepresentation(representation);
 
         EnrichUriUtil.enrich(uriInfo, globalId, schema, representation.getVersion(), file);
@@ -124,13 +132,22 @@ public class FileUploadResource {
         }
     }
 
-    private File addFileToRepresentation(Representation representation, InputStream data, String mimeType, String fileName) throws RepresentationNotExistsException, FileAlreadyExistsException, CannotModifyPersistentRepresentationException {
+    private File addFileToRepresentation(Representation representation, InputStream data,
+                                         String mimeType, String fileName, Storage storage)
+            throws
+            RepresentationNotExistsException,
+            FileAlreadyExistsException,
+            CannotModifyPersistentRepresentationException {
         File f = new File();
         f.setMimeType(mimeType);
-        f.setDbStored(selectStorage(mimeType));
+
+
+        f.setFileStorage(storage);
+
         if (fileName != null) {
             try {
-                File temp = recordService.getFile(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
+                File temp = recordService.getFile(representation.getCloudId(),
+                        representation.getRepresentationName(), representation.getVersion(),
                         fileName);
                 if (temp != null) {
                     throw new FileAlreadyExistsException(fileName);
@@ -144,7 +161,8 @@ public class FileUploadResource {
             fileName = UUID.randomUUID().toString();
         }
         f.setFileName(fileName);
-        recordService.putContent(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), f, data);
+        recordService.putContent(representation.getCloudId(), representation.getRepresentationName(),
+                representation.getVersion(), f, data);
         return f;
     }
 

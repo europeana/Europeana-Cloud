@@ -16,6 +16,11 @@ public class PreBufferedInputStream extends BufferedInputStream {
     private int bufferFill;
     private int position;
 
+    public static PreBufferedInputStream wrap(final InputStream inputStream,
+                                              final int preloadChunkSize){
+        return new PreBufferedInputStream(inputStream, preloadChunkSize);
+    }
+
     /**
      * Creates {@link PreBufferedInputStream} and load data in to internal buffer.
      * @param stream input stream

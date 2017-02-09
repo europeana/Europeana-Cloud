@@ -11,6 +11,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import org.mockito.Mockito;
@@ -53,7 +55,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 		.putContent(anyString(), any(InputStream.class));
 	// given representation
 	byte[] dummyContent = { 1, 2, 3 };
-	File f = new File("content.xml", "application/xml", null, null, 0, null,false);
+	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	Representation r = cassandraRecordService.createRepresentation("id",
 		"dc", providerId);
 

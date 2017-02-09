@@ -12,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.rest.FileStorageSelector.selectStorage;
+import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
 
 /**
  * FilesResource
@@ -47,6 +49,8 @@ public class FilesResource {
 
 	@Autowired
 	private MutableAclService mutableAclService;
+
+	private int OBJECT_STORE_SIZE_TRESHOLD = 512 * 1024;
 
 	/**
 	 * Adds a new file to representation version. URI to created resource will
@@ -103,7 +107,8 @@ public class FilesResource {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-		f.setDbStored(selectStorage(mimeType));
+		PreBufferedInputStream prebufferedInputStream = wrap(data, OBJECT_STORE_SIZE_TRESHOLD);
+		f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 		if (fileName != null) {
 			try {
 				File temp = recordService.getFile(globalId, schema, version,
@@ -121,7 +126,7 @@ public class FilesResource {
 		}
 		f.setFileName(fileName);
 
-		recordService.putContent(globalId, schema, version, f, data);
+		recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
 
 		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 		LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",

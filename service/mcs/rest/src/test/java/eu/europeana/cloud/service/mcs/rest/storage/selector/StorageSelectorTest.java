@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest.storage.selector;
 
 import com.google.common.io.Resources;
+import eu.europeana.cloud.service.mcs.Storage;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;

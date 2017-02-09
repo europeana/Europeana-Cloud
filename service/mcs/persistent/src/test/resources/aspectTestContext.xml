@@ -18,7 +18,15 @@
 	
     <bean id="cassandraDataSetService" class="eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService"/>
     <bean id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
-    <bean id="dynamicContentDAO" class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO"/>
+    <bean id="dynamicContentDAO"
+          class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO">
+        <constructor-arg>
+            <map key-type="eu.europeana.cloud.service.mcs.Storage">
+                <entry key="OBJECT_STORAGE"  value-ref="swiftContentDAO"/>
+                <entry key="DATA_BASE" value-ref="cassandraContentDAO"/>
+            </map>
+        </constructor-arg>
+    </bean>
 
     <mockito:mock id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <mockito:mock id="cassandraConnectionProvider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider" />
