@@ -16,7 +16,6 @@
     <context:component-scan
             base-package="eu.europeana.cloud.integration.usecases"/>
 
-
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location" value="test.properties"/>
@@ -158,6 +157,4 @@
           scope="prototype">
     </bean>
 
-
-
-</beans>
+  </beans>

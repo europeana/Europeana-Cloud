@@ -5,13 +5,9 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.integration.helper.IntegrationConstants;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
@@ -20,12 +16,13 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static eu.europeana.cloud.integration.helper.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 9/19/2016.
  */
 
-public class UpdateDatasetTestCase extends IntegrationConstants implements TestCase {
+public class UpdateDatasetTestCase implements TestCase {
 
 
     @Resource
@@ -33,10 +30,10 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
     @Resource
     private DatasetHelper destinationDatasetHelper;
     @Resource
-    private UISClient adminUisClient;
+    private RecordServiceClient adminRecordServiceClient;
 
     @Resource
-    private RecordServiceClient adminRecordServiceClient;
+    private UISClient adminUisClient;
 
     @Resource
     private Properties appProperties;
@@ -45,8 +42,6 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
 
     @Autowired
     private RevisionServiceClient destinationRevisionServiceClient;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateDatasetTestCase.class);
 
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
@@ -90,18 +85,9 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
     }
 
     public void cleanUp() throws CloudException, MCSException {
-        try {
-            sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
-        } catch (DataSetNotExistsException e) {
-            LOGGER.info("The source dataSet {} can't be removed because it doesn't exist ", SOURCE_DATASET_NAME);
-
-        }
-        try {
-            destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        } catch (DataSetNotExistsException e) {
-            LOGGER.info("The destination dataSet {} can't be removed because it doesn't exist ", DESTINATION_DATASET_NAME);
-
-        }
+        System.out.println("UpdateDatasetTestCase cleaning up ..");
+        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
+        destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
         Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
             adminRecordServiceClient.deleteRecord(cloudId);

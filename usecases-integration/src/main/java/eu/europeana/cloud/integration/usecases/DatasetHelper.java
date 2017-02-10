@@ -75,7 +75,11 @@ public class DatasetHelper {
     }
 
     public final void deleteDataset(String providerId, String datasetName) throws MCSException {
-        dataSetServiceClient.deleteDataSet(providerId, datasetName);
+        try {
+            dataSetServiceClient.deleteDataSet(providerId, datasetName);
+        } catch (MCSException e) {
+            System.out.println("The  dataSet " + datasetName + " can't be removed because " + e.getMessage());
+        }
     }
 
     public final Set<String> getCloudIds() {

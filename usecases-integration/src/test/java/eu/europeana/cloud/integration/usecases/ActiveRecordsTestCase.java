@@ -4,12 +4,8 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.integration.helper.IntegrationConstants;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -18,11 +14,12 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static eu.europeana.cloud.integration.helper.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 2/9/2017.
  */
-public class ActiveRecordsTestCase extends IntegrationConstants implements TestCase {
+public class ActiveRecordsTestCase implements TestCase {
 
     @Resource
     private DatasetHelper sourceDatasetHelper;
@@ -35,7 +32,6 @@ public class ActiveRecordsTestCase extends IntegrationConstants implements TestC
 
     private final static int RECORDS_NUMBERS = 3;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateDatasetTestCase.class);
 
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
@@ -44,14 +40,17 @@ public class ActiveRecordsTestCase extends IntegrationConstants implements TestC
             List<String> tags = new ArrayList<>();
             tags.add(Tags.PUBLISHED.getTag());
             tags.add(Tags.DELETED.getTag());
+
             prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, DEREFERENCE_REVISION, tags, RECORDS_NUMBERS, null);
             List<CloudIdAndTimestampResponse> dereferenceCloudIdAndTimestampResponseList = sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, DEREFERENCE_REVISION, SOURCE_REPRESENTATION_NAME, null);
             assertNotNull(dereferenceCloudIdAndTimestampResponseList);
             assertEquals(dereferenceCloudIdAndTimestampResponseList.size(), RECORDS_NUMBERS);
+
             tags = new ArrayList<>();
             tags.add(Tags.PUBLISHED.getTag());
             Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
             prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, PUBLISH_REVISION, tags, RECORDS_NUMBERS, cloudIds.iterator().next());
+
             List<CloudIdAndTimestampResponse> publishedCloudIdAndTimestampResponseList = sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, PUBLISH_REVISION, SOURCE_REPRESENTATION_NAME, false);
             assertNotNull(publishedCloudIdAndTimestampResponseList);
             assertEquals(publishedCloudIdAndTimestampResponseList.size(), 1);
@@ -107,18 +106,14 @@ public class ActiveRecordsTestCase extends IntegrationConstants implements TestC
     }
 
     public void cleanUp() throws CloudException, MCSException {
+        System.out.println("ActiveRecordsTestCase cleaning up ..");
+        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
         Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
             adminRecordServiceClient.deleteRepresentation(cloudId, SOURCE_REPRESENTATION_NAME);
             adminUisClient.deleteCloudId(cloudId);
         }
-        try {
-            sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
-        } catch (DataSetNotExistsException e) {
-            LOGGER.info("The source dataSet {} can't be removed because it doesn't exist ", SOURCE_DATASET_NAME);
-
-        }
-
+        sourceDatasetHelper.cleanCloudIds();
     }
 }
 
