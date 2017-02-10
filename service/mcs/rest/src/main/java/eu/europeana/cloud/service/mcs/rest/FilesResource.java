@@ -41,16 +41,14 @@ import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedIn
 @Component
 @Scope("request")
 public class FilesResource {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger("RequestsLogger");
 
 	@Autowired
 	private RecordService recordService;
-
 	@Autowired
 	private MutableAclService mutableAclService;
-
-	private int OBJECT_STORE_SIZE_TRESHOLD = 512 * 1024;
+	@Autowired
+	private Integer objectStoreSizeThreshold;
 
 	/**
 	 * Adds a new file to representation version. URI to created resource will
@@ -107,7 +105,7 @@ public class FilesResource {
 
 		File f = new File();
 		f.setMimeType(mimeType);
-		PreBufferedInputStream prebufferedInputStream = wrap(data, OBJECT_STORE_SIZE_TRESHOLD);
+		PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
 		f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 		if (fileName != null) {
 			try {

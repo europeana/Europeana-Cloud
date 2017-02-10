@@ -12,10 +12,14 @@
     <import resource="classpath:config.xml" />
     <task:annotation-driven/>
 
+
     <bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils"/>
 
     <context:annotation-config/>
 
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
     <bean id="filesResource" class="eu.europeana.cloud.service.mcs.rest.FilesResource"/>
 
 

@@ -42,13 +42,15 @@ import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedIn
 @Scope("request")
 public class FileUploadResource {
 
-    private final int OBJECT_STORE_SIZE_TRESHOLD = 512 * 1024;
-
     @Autowired
     private RecordService recordService;
 
     @Autowired
     private MutableAclService mutableAclService;
+
+    @Autowired
+    private Integer objectStoreSizeThreshold;
+
 
     private final String REPRESENTATION_CLASS_NAME = Representation.class
             .getName();
@@ -93,7 +95,7 @@ public class FileUploadResource {
         ParamUtil.require(F_FILE_DATA, data);
         ParamUtil.require(F_FILE_MIME, mimeType);
 
-        PreBufferedInputStream prebufferedInputStream = wrap(data, OBJECT_STORE_SIZE_TRESHOLD);
+        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
 
         Representation representation = null;

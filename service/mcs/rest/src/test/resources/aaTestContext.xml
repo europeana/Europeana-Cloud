@@ -29,6 +29,9 @@
         <constructor-arg name="password" value="" />
     </bean>
 
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
 
     <bean id="cassandraDataSetDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO"/>
     <bean id="cassandraRecordDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>

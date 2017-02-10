@@ -11,7 +11,9 @@
 
     <bean id="test" class="eu.europeana.cloud.service.mcs.rest.SimplifiedFileAccessResource">
     </bean>
-    
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
     <bean id="testFileUpload" class="eu.europeana.cloud.service.mcs.rest.FileUploadResource">
     </bean>
     

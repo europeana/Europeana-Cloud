@@ -19,6 +19,10 @@
 
     <context:annotation-config/>
 
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
+
 	<!--connection provider - with options the same as in embedded cassandra-->
 	<bean id="dbService"
 		  class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">

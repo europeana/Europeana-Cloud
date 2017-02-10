@@ -19,7 +19,7 @@ import java.util.Map;
 import static org.apache.commons.lang3.Validate.notEmpty;
 
 /**
- * Proxy that switch contentDAO based on boolean value.
+ * Proxy that switch contentDAO based on {@link Storage} value.
  *
  * @author krystian.
  */
@@ -34,14 +34,14 @@ public class DynamicContentDAO {
         this.contentDAOs.putAll(contentDAOs);
     }
 
-    public void copyContent(String sourceObjectId, String trgObjectId, Storage storeInDb) throws
+    public void copyContent(String sourceObjectId, String trgObjectId, Storage stored) throws
             FileNotExistsException, FileAlreadyExistsException, IOException {
-        getContentDAO(storeInDb).copyContent(sourceObjectId,trgObjectId);
+        getContentDAO(stored).copyContent(sourceObjectId,trgObjectId);
     }
 
 
-    public void deleteContent(String fileName, Storage storedInDb) throws FileNotExistsException {
-        getContentDAO(storedInDb).deleteContent(fileName);
+    public void deleteContent(String fileName, Storage stored) throws FileNotExistsException {
+        getContentDAO(stored).deleteContent(fileName);
     }
 
     public void getContent(String fileName, long start, long end, OutputStream os, Storage stored) throws
