@@ -50,9 +50,8 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
 
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
-
+        System.out.println("UpdateDatasetTestCase started ..");
         try {
-
             String now = TestHelper.getTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = sourceDatasetHelper.getDataSetCloudIdsByRepresentation(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
@@ -74,6 +73,7 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
             }
             List<CloudVersionRevisionResponse> destinationCloudVersionRevisionResponse = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, newDate, Tags.PUBLISHED.getTag());
             assertEquals(destinationCloudVersionRevisionResponse.size(), 0);
+            System.out.println("UpdateDatasetTestCase Finished Successfully!");
         } finally {
             cleanUp();
         }
@@ -84,7 +84,7 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
         List<String> tags = new ArrayList<>();
         tags.add(Tags.PUBLISHED.getTag());
         tags.add(Tags.DELETED.getTag());
-        sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS);
+        sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS, null);
         destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
 
     }
@@ -102,11 +102,12 @@ public class UpdateDatasetTestCase extends IntegrationConstants implements TestC
             LOGGER.info("The destination dataSet {} can't be removed because it doesn't exist ", DESTINATION_DATASET_NAME);
 
         }
-        List<String> cloudIds = sourceDatasetHelper.getCloudIds();
+        Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
             adminRecordServiceClient.deleteRecord(cloudId);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.cleanCloudIds();
 
 
     }

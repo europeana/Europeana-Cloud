@@ -152,8 +152,12 @@
 
     <bean id="updateDatasetTestCase" class="eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase"
           scope="prototype">
-
     </bean>
+
+    <bean id="activeRecordsTestCase" class="eu.europeana.cloud.integration.usecases.ActiveRecordsTestCase"
+          scope="prototype">
+    </bean>
+
 
 
 </beans>

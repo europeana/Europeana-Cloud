@@ -1,5 +1,6 @@
 package eu.europeana.cloud.integration;
 
+import eu.europeana.cloud.integration.usecases.ActiveRecordsTestCase;
 import eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase;
 import eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase;
 import org.junit.Test;
@@ -21,10 +22,14 @@ public class UseCasesIT {
     private CreateDatasetFromDatasetOfAnotherProviderTestCase createDatasetFromDatasetOfAnotherProviderTestCase;
     @Autowired
     private UpdateDatasetTestCase updateDatasetTestCase;
+    @Autowired
+    private ActiveRecordsTestCase activeRecordsTestCase;
+
 
     @Test
     public void testCreateDatasetFromDatasetOfAnotherProviderTestCase() throws Exception {
         createDatasetFromDatasetOfAnotherProviderTestCase.executeTestCase();
         updateDatasetTestCase.executeTestCase();
+        activeRecordsTestCase.executeTestCase();
     }
 }
