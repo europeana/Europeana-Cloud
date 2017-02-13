@@ -52,14 +52,18 @@ CREATE TABLE data_set_representation_names(
 )WITH comment='Retrieve information about the representations supported in a providers dataset';
 
 CREATE TABLE data_set_assignments_by_revision_id (
-	   provider_dataset_id varchar, /* concatenation: provider_id | dataset_id - due to create index on it */
-       revision_id varchar,
+       provider_id varchar,
+       dataset_id varchar,
+       revision_provider_id varchar,
+       revision_name varchar,
+       revision_timestamp timestamp,
        representation_id varchar,
        cloud_id varchar,
-       PRIMARY KEY ((provider_dataset_id , revision_id, representation_id),  cloud_id)
+       published boolean,
+       acceptance boolean,
+       mark_deleted boolean,
+       PRIMARY KEY ((provider_id, dataset_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id)
 )WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';
-
-CREATE INDEX data_set_assignments_by_revision_id_provider_dataset_id ON data_set_assignments_by_revision_id (provider_dataset_id);
 
 CREATE TABLE datasets_buckets (
     provider_id varchar,

@@ -222,15 +222,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     @Test
     public void shouldRemoveAssignmentsFromDataSet() throws Exception {
-        makeUISProviderSuccess();
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
-                "description of this set");
-        Representation r1 = insertDummyPersistentRepresentation("cloud-id",
-                "schema", providerId);
-        Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
-                // given some representations in data set
-                "schema", providerId);
+	makeUISProviderSuccess();
+	// given some representations in data set
+	String dsName = "ds";
+	DataSet ds = cassandraDataSetService.createDataSet(providerId, dsName,
+		"description of this set");
+	Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+		"schema", providerId);
+	Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
+		"schema", providerId);
 
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
                 r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
@@ -395,13 +395,13 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
                 r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
 
-        //when
-        Set<String> dataSets = cassandraDataSetService.getDataSets(ds.getProviderId(), r1.getCloudId(), r1.getRepresentationName
-                (), r1.getVersion());
-        //then
-        assertThat(dataSets.size(), is(1));
-        assertThat(dataSets, hasItem(dsName));
-    }
+		//when
+		Map<String, Set<String>> dataSets = cassandraDataSetService.getDataSets(r1.getCloudId(), r1.getRepresentationName
+				(), r1.getVersion());
+		//then
+		assertThat(dataSets.size(),is(1));
+		assertThat(dataSets.get(r1.getDataProvider()),hasItem(dsName));
+	}
 
 
     private Representation insertDummyPersistentRepresentation(String cloudId,
@@ -530,11 +530,13 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Representation r1 = insertDummyPersistentRepresentation("cloud-1",
                 "schema", providerId);
 
-        // create revisions on the dummy version
-        Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
-        cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
-        r = new Revision("revision2", "rev_provider_2", new Date(), false, true, true);
-        cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		// create revisions on the dummy version
+		Revision r = new Revision("revision1", "rev_provider_1", new Date(), false, true, false);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		long time1 = r.getCreationTimeStamp().getTime();
+		r = new Revision("revision2", "rev_provider_2", new Date(), false, true, true);
+		cassandraRecordService.addRevision(r1.getCloudId(), r1.getRepresentationName(), r1.getVersion(), r);
+		long time2 = r.getCreationTimeStamp().getTime();
 
         // assign version to dataset 1
         cassandraDataSetService.addAssignment(ds1.getProviderId(), ds1.getId(),
@@ -544,19 +546,19 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, -1);
 
-        // check whether assignment created new entries in the table
-        ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
-        // there should be one unique cloud id in the result list
-        assertThat(new HashSet<>(cloudIds.getResults()).size(), is(2));
-        CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
-        assertThat(resp.getCloudId(), is(r1.getCloudId()));
-        assertThat(resp.getVersion(), is(r1.getVersion()));
-        assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_1", "revision1")));
+		// check whether assignment created new entries in the table
+		ResultSlice<CloudVersionRevisionResponse> cloudIds = cassandraDataSetService.getDataSetCloudIdsByRepresentationPublished(ds1.getId(), ds1.getProviderId(), r1.getRepresentationName(), c.getTime(), null, 10);
+		// there should be one unique cloud id in the result list
+     	assertThat(new HashSet<>(cloudIds.getResults()).size(), is(2));
+		CloudVersionRevisionResponse resp = cloudIds.getResults().get(0);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_1", "revision1", time1)));
 
-        resp = cloudIds.getResults().get(1);
-        assertThat(resp.getCloudId(), is(r1.getCloudId()));
-        assertThat(resp.getVersion(), is(r1.getVersion()));
-        assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_2", "revision2")));
+		resp = cloudIds.getResults().get(1);
+		assertThat(resp.getCloudId(), is(r1.getCloudId()));
+		assertThat(resp.getVersion(), is(r1.getVersion()));
+		assertThat(resp.getRevisionId(), is(RevisionUtils.getRevisionKey("rev_provider_2", "revision2", time2)));
 
         // remove assignment
         cassandraDataSetService.removeAssignment(ds1.getProviderId(), ds1.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
@@ -601,8 +603,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(inserted, is(retrieved));
     }
 
-    private List<CloudVersionRevisionResponse> createDummyData(int size) {
-        Session session = CassandraTestInstance.getSession(KEYSPACE);
+	private List<CloudVersionRevisionResponse> createDummyData(int size) {
+		Session session = CassandraTestInstance.getSession(KEYSPACE);
 
         // create prepared statement for entry in a table
         String table = KEYSPACE + ".provider_dataset_representation";
@@ -619,20 +621,20 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         BoundStatement bsBuckets;
         List<CloudVersionRevisionResponse> cloudIds = new ArrayList<>();
 
-        String bucketId = new com.eaio.uuid.UUID().toString();
-        // add new entries, each with different cloud id and revision timestamp
-        for (int i = 0; i < size; i++) {
-            CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
-                    new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider"), true, false, false);
-            bsBuckets = psBuckets.bind("provider1", "dataset1", UUID.fromString(bucketId));
-            session.execute(bsBuckets);
-            bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()),
-                    "representation", obj.getRevisionId(), new Date(), obj.isAcceptance(), obj.isPublished(), obj.isDeleted());
-            session.execute(bs);
-            cloudIds.add(obj);
-        }
-        return cloudIds;
-    }
+		String bucketId = new com.eaio.uuid.UUID().toString();
+		// add new entries, each with different cloud id and revision timestamp
+		for (int i = 0; i < size; i++) {
+			CloudVersionRevisionResponse obj = new CloudVersionRevisionResponse(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + "cloud_" + i),
+				new com.eaio.uuid.UUID().toString(), RevisionUtils.getRevisionKey("revision", "revProvider", new Date().getTime()), true, false, false);
+			bsBuckets = psBuckets.bind("provider1", "dataset1", UUID.fromString(bucketId));
+			session.execute(bsBuckets);
+			bs = ps.bind("provider1", "dataset1", UUID.fromString(bucketId), obj.getCloudId(), UUID.fromString(obj.getVersion()),
+					"representation", obj.getRevisionId(), new Date(), obj.isAcceptance(), obj.isPublished(), obj.isDeleted());
+			session.execute(bs);
+			cloudIds.add(obj);
+		}
+		return cloudIds;
+	}
 
 
     @Test
