@@ -14,6 +14,7 @@ import javax.ws.rs.core.UriInfo;
 
 import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +126,7 @@ public class FilesResource {
 		f.setFileName(fileName);
 
 		recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
-
+		IOUtils.closeQuietly(prebufferedInputStream);
 		EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 		LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
 				globalId, schema, version, f.getContentUri()));

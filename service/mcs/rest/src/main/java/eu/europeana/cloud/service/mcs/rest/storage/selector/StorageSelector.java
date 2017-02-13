@@ -72,7 +72,7 @@ public class StorageSelector {
             throw new BadRequestException("Unable to detect mime type.", e);
         }
         if (userMediaType == null || !userMediaType.equals(detected)) {
-            throw new BadRequestException("Media type provided does not match to content media type!");
+            throw new BadRequestException("Provided media type does not match to content media type!");
         }
         return detected;
     }

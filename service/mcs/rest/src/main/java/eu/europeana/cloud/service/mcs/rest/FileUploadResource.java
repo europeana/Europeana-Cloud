@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -165,6 +166,7 @@ public class FileUploadResource {
         f.setFileName(fileName);
         recordService.putContent(representation.getCloudId(), representation.getRepresentationName(),
                 representation.getVersion(), f, data);
+        IOUtils.closeQuietly(data);
         return f;
     }
 

@@ -60,6 +60,9 @@
           class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
     <bean id="dynamicContentDAO"
           class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO">
         <constructor-arg>
