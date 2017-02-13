@@ -271,4 +271,17 @@ public interface DataSetService {
      * @param revision
      */
     void addLatestRevisionForGivenVersionInDataset(DataSet dataSet, Representation representation,Revision revision);
+
+    /**
+     * Inserts information to the table used to search for cloud ids assigned to a dataset having specific representation, revisions with published tag and update timestamp bigger that specified.
+     * Data sets identifiers and their providers which are needed for every inserted row are determined from assignment between versions and data sets.
+     *
+     * @param globalId cloud identifier
+     * @param schema representation name
+     * @param version version identifier
+     * @param revision revision object containing necessary info (name, timestamp, tags)
+     * @throws RepresentationNotExistsException
+     */
+    void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
+            throws RepresentationNotExistsException;
 }

@@ -122,7 +122,7 @@ public class CassandraDataSetService implements DataSetService {
             if (currentRevision == null || revision.getUpdateTimeStamp().getTime() > currentRevision.getUpdateTimeStamp().getTime()) {
                 latestRevisions.put(revisionKey, revision);
             }
-            dataSetDAO.addDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
+            dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
                     schema, recordId);
 
             dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
@@ -196,7 +196,7 @@ public class CassandraDataSetService implements DataSetService {
                             recordId, schema, revisionName, revisionProvider);
                     deletedRevisions.add(revisionId);
                 }
-                dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
+                dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
                 dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
                 DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
                 dataSetDAO.removeLatestRevisionForDatasetAssignment(ds, representation, revision);
@@ -274,45 +274,6 @@ public class CassandraDataSetService implements DataSetService {
 	public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
 		return dataSetDAO.getDataSets(cloudId, representationName, version);
 	}
-
-    /**
-     * @inheritDoc
-     */
-	@Override
-	public void deleteDataSet(String providerId, String dataSetId)
-			throws DataSetNotExistsException {
-		DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-
-		if (ds == null) {
-			throw new DataSetNotExistsException();
-		}
-		dataSetDAO.deleteDataSet(providerId, dataSetId);
-		DataProvider dataProvider = uis.getProvider(providerId);
-		dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
-		representationIndexer.removeAssignmentsFromDataSet(
-				new CompoundDataSetId(providerId, dataSetId),
-				dataProvider.getPartitionKey());
-	}
-
-	@Override
-	public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException {
-		if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
-			return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
-		}
-		return Collections.emptySet();
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-//	@Override
-//	public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit){
-//		if(startFrom == null){
-//			return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
-//		}else{
-//			return dataSetDAO.getDataSetsRevisionWithPagination(providerId,dataSetId,revisionId,representationName,startFrom,limit);
-//		}
-//	}
 
 	@Override
 	public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
@@ -411,7 +372,7 @@ public class CassandraDataSetService implements DataSetService {
             dataSetDAO.insertLatestProviderDatasetRepresentationInfo(datasetName, datasetProvider,
                     globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-            dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revisionId, schema, globalId);
+            dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revision, schema, globalId);
             dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(datasetProvider, datasetName), rep, revision);
         }
     }
