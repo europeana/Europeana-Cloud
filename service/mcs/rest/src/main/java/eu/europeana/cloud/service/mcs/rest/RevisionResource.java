@@ -90,7 +90,6 @@ public class RevisionResource {
             else if (Tags.PUBLISHED.getTag().equals(tag))
                 revision.setPublished(true);
             else revision.setDeleted(true);
-            revision.setUpdateTimeStamp(new Date());
         } catch (RevisionNotExistsException e) {
             revision = createNewRevision(revisionName, revisionProviderId, tag);
         }
@@ -168,7 +167,6 @@ public class RevisionResource {
         Revision revision = null;
         try {
             revision = recordService.getRevision(globalId, schema, version, revisionKey);
-            revision.setUpdateTimeStamp(new Date());
         } catch (RevisionNotExistsException e) {
             revision = new Revision(revisionName, revisionProviderId);
         }

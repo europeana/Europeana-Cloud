@@ -12,18 +12,9 @@ public class Revision {
     private String revisionName;
     private String revisionProviderId;
     private Date creationTimeStamp;
-    private Date updateTimeStamp;
     boolean published;
     boolean acceptance;
     boolean deleted;
-
-    public Date getUpdateTimeStamp() {
-        return updateTimeStamp;
-    }
-
-    public void setUpdateTimeStamp(Date updateTimeStamp) {
-        this.updateTimeStamp = updateTimeStamp;
-    }
 
     public Date getCreationTimeStamp() {
         return creationTimeStamp;
@@ -57,20 +48,13 @@ public class Revision {
         this.published = published;
     }
 
-    //it will be used in the copy constructor
-    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, Date updateTimeStamp, boolean acceptance, boolean published, boolean deleted) {
+    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, boolean acceptance, boolean published, boolean deleted) {
         this.revisionName = revisionName;
         this.revisionProviderId = revisionProviderId;
         this.creationTimeStamp = creationTimeStamp;
-        this.updateTimeStamp = updateTimeStamp;
         this.published = published;
         this.deleted = deleted;
         this.acceptance = acceptance;
-
-    }
-
-    public Revision(String revisionName, String revisionProviderId, Date creationTimeStamp, boolean acceptance, boolean published, boolean deleted) {
-        this(revisionName, revisionProviderId, creationTimeStamp, creationTimeStamp, acceptance, published, deleted);
 
 
     }
@@ -82,7 +66,7 @@ public class Revision {
 
 
     public Revision(final Revision revision) {
-        this(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), revision.getUpdateTimeStamp(), revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+        this(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
     }
 
 
@@ -138,7 +122,7 @@ public class Revision {
     @Override
     public String toString() {
         return "Revision [revisionNme=" + revisionName + ", revisionProvider=" + revisionProviderId
-                + ", creationTimeStamp=" + creationTimeStamp + ", updateTimeStamp=" + updateTimeStamp + ", acceptance="
+                + ", creationTimeStamp=" + creationTimeStamp + ", acceptance="
                 + acceptance + ", published=" + published + ", deleted=" + deleted + "]";
     }
 

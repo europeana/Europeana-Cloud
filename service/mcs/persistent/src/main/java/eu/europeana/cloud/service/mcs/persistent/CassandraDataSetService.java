@@ -118,14 +118,14 @@ public class CassandraDataSetService implements DataSetService {
         for (Revision revision : rep.getRevisions()) {
             String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
             Revision currentRevision = latestRevisions.get(revisionKey);
-            if (currentRevision == null || revision.getUpdateTimeStamp().getTime() > currentRevision.getUpdateTimeStamp().getTime()) {
+            if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
                 latestRevisions.put(revisionKey, revision);
             }
             dataSetDAO.addDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
                     schema, recordId);
 
             dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
-                    RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+                    RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
         }
 
@@ -137,9 +137,9 @@ public class CassandraDataSetService implements DataSetService {
             for (String revisionKey : latestRevisions.keySet()) {
                 Revision latestRevision = latestRevisions.get(revisionKey);
                 Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), recordId);
-                if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getUpdateTimeStamp().getTime()) {
+                if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getCreationTimeStamp().getTime()) {
                     dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
-                            recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getUpdateTimeStamp(), version,
+                            recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getCreationTimeStamp(), version,
                             latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
                 }
             }
@@ -196,7 +196,7 @@ public class CassandraDataSetService implements DataSetService {
                     deletedRevisions.add(revisionId);
                 }
                 dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
-                dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
+                dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getCreationTimeStamp());
                 DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
                 dataSetDAO.removeLatestRevisionForDatasetAssignment(ds, representation, revision);
             }
@@ -344,10 +344,10 @@ public class CassandraDataSetService implements DataSetService {
             String datasetProvider = dsID.getDataSetProviderId();
             String revisionId = RevisionUtils.getRevisionKey(revision);
             dataSetDAO.insertProviderDatasetRepresentationInfo(datasetName, datasetProvider,
-                    globalId, version, schema, revisionId, revision.getUpdateTimeStamp(),
+                    globalId, version, schema, revisionId, revision.getCreationTimeStamp(),
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
             dataSetDAO.insertLatestProviderDatasetRepresentationInfo(datasetName, datasetProvider,
-                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getUpdateTimeStamp(), version,
+                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), version,
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
             dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revisionId, schema, globalId);
             dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(datasetProvider, datasetName), rep, revision);

@@ -550,8 +550,6 @@ public class CassandraRecordDAO {
                 throw new RevisionIsNotValidException("Revision should include revisionName");
             else if (revision.getCreationTimeStamp() == null)
                 throw new RevisionIsNotValidException("Revision should include creationTimestamp");
-            else if (revision.getUpdateTimeStamp() == null)
-                throw new RevisionIsNotValidException("Revision should include updateTimestamp");
         }
     }
 }

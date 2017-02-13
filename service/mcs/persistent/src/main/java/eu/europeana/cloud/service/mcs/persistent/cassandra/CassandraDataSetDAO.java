@@ -1041,13 +1041,13 @@ public class CassandraDataSetDAO {
      * @param globalId          cloud identifier
      * @param schema            representation name
      * @param revisionId        revision identifier
-     * @param updateTimeStamp   timestamp of revision update
+     * @param timeStamp         revision timestamp
      * @param acceptance        acceptance tag
      * @param published         published tag
      * @param deleted           mark deleted tag
      */
     public void insertProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
-                                                        String versionId, String schema, String revisionId, Date updateTimeStamp,
+                                                        String versionId, String schema, String revisionId, Date timeStamp,
                                                         boolean acceptance, boolean published, boolean deleted)
             throws NoHostAvailableException, QueryExecutionException {
         String bucketId = null;
@@ -1061,7 +1061,7 @@ public class CassandraDataSetDAO {
             increaseBucketCount(dataSetProviderId, dataSetId, bucketId);
         }
         BoundStatement bs = insertProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), globalId, UUID.fromString(versionId), schema,
-                revisionId, updateTimeStamp, acceptance, published, deleted);
+                revisionId, timeStamp, acceptance, published, deleted);
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
     }
@@ -1100,17 +1100,17 @@ public class CassandraDataSetDAO {
      * @param dataSetProviderId provider identifier
      * @param globalId          cloud identifier
      * @param schema            representation name
-     * @param updateTimeStamp   timestamp of revision update
+     * @param timeStamp         revision timestamp
      *                          +
      */
     public void deleteProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String globalId,
-                                                        String schema, Date updateTimeStamp)
+                                                        String schema, Date timeStamp)
             throws NoHostAvailableException, QueryExecutionException {
         synchronized (updateProviderDatasetBuckets) {
             String bucketId = getNextBucket(dataSetProviderId, dataSetId, null);
             while (bucketId != null) {
                 BoundStatement bs = deleteProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, UUID.fromString(bucketId), schema,
-                        updateTimeStamp, globalId);
+                        timeStamp, globalId);
                 ResultSet rs = connectionProvider.getSession().execute(bs);
                 QueryTracer.logConsistencyLevel(bs, rs);
                 decreaseProviderDatasetBuckets(dataSetProviderId, dataSetId, bucketId);
@@ -1133,18 +1133,18 @@ public class CassandraDataSetDAO {
      * @param dataSetProviderId provider identifier
      * @param cloudId           cloud identifier
      * @param schema            representation name
-     * @param timeStamp         timestamp of revision update
+     * @param timestamp         timestamp of revision update
      * @param versionId         version identifier
      * @param acceptance        acceptance tag
      * @param published         published tag
      * @param deleted           mark deleted tag
      */
     public void insertLatestProviderDatasetRepresentationInfo(String dataSetId, String dataSetProviderId, String cloudId,
-                                                              String schema, String revisionName, String reviisonProvider, Date timeStamp, String versionId,
+                                                              String schema, String revisionName, String revisonProvider, Date timestamp, String versionId,
                                                               boolean acceptance, boolean published, boolean deleted)
             throws NoHostAvailableException, QueryExecutionException {
 
-        BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, cloudId, schema, revisionName, reviisonProvider, timeStamp, UUID.fromString(versionId), acceptance, published, deleted);
+        BoundStatement insertStatement = insertLatestProviderDatasetRepresentationInfo.bind(dataSetProviderId, dataSetId, cloudId, schema, revisionName, revisonProvider, timestamp, UUID.fromString(versionId), acceptance, published, deleted);
         connectionProvider.getSession().execute(insertStatement);
     }
 

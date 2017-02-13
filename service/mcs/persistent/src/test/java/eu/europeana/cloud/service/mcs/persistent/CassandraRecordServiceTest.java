@@ -594,20 +594,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
                 r.getRepresentationName(), r.getVersion(), revision);
     }
 
-    @Test(expected = RevisionIsNotValidException.class)
-    public void addRevisionWithNullRevisionUpdatesDate() throws Exception {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        // given
-        Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
-        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-        revision.setUpdateTimeStamp(null);
-        cassandraRecordService.addRevision(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), revision);
-    }
-
-
     @Test
     public void getRevision() throws Exception {
         makeUISSuccess();
