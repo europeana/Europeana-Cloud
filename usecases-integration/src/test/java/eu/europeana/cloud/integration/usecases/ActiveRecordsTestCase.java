@@ -33,7 +33,6 @@ public class ActiveRecordsTestCase implements TestCase {
     private final static int RECORDS_NUMBERS = 3;
 
 
-
     public void executeTestCase() throws CloudException, MCSException, IOException {
         System.out.println("ActiveRecordsTestCase started ..");
         try {
@@ -60,27 +59,6 @@ public class ActiveRecordsTestCase implements TestCase {
             assertEquals(intersectedCloudIdAndTimestamps.size(), 1);
             System.out.println("ActiveRecordsTestCase Finished Successfully ..");
 
-
-          /*
-            assertNotNull(cloudVersionRevisionResponseList);
-            assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS);
-            String newDate = TestHelper.getTime();
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            for (CloudVersionRevisionResponse cloudVersionRevisionResponse : cloudVersionRevisionResponseList) {
-                destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, cloudVersionRevisionResponse.getCloudId(), SOURCE_REPRESENTATION_NAME, cloudVersionRevisionResponse.getVersion());
-                sourceDatasetHelper.grantPermissionToVersion(cloudVersionRevisionResponse.getCloudId(), SOURCE_REPRESENTATION_NAME, cloudVersionRevisionResponse.getVersion(), appProperties.getProperty("destinationUserName"), Permission.READ);
-                HashSet<Tags> tags = new HashSet<>();
-                if (cloudVersionRevisionResponse.isDeleted())
-                    tags.add(Tags.DELETED);
-                destinationRevisionServiceClient.addRevision(cloudVersionRevisionResponse.getCloudId(), SOURCE_REPRESENTATION_NAME, cloudVersionRevisionResponse.getVersion(), DESTINATION_REVISION_NAME, DESTINATION_PROVIDER_ID, tags);
-            }
-            List<CloudVersionRevisionResponse> destinationCloudVersionRevisionResponse = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, newDate, Tags.PUBLISHED.getTag());
-            assertEquals(destinationCloudVersionRevisionResponse.size(), 0);
-            */
         } finally {
             cleanUp();
         }
@@ -107,12 +85,12 @@ public class ActiveRecordsTestCase implements TestCase {
 
     public void cleanUp() throws CloudException, MCSException {
         System.out.println("ActiveRecordsTestCase cleaning up ..");
-        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
         Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
             adminRecordServiceClient.deleteRepresentation(cloudId, SOURCE_REPRESENTATION_NAME);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
         sourceDatasetHelper.cleanCloudIds();
     }
 }

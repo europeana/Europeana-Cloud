@@ -86,14 +86,15 @@ public class UpdateDatasetTestCase implements TestCase {
 
     public void cleanUp() throws CloudException, MCSException {
         System.out.println("UpdateDatasetTestCase cleaning up ..");
-        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
-        destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
         Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
-            adminRecordServiceClient.deleteRecord(cloudId);
+            adminRecordServiceClient.deleteRepresentation(cloudId, SOURCE_REPRESENTATION_NAME);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
+        destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
         sourceDatasetHelper.cleanCloudIds();
+
 
 
     }
