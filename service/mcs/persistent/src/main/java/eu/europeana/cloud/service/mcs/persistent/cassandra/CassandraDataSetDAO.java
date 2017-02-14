@@ -72,8 +72,6 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement addDataSetsRevision;
 
-    private PreparedStatement getDataSetsRevisionWithPagination;
-
     private PreparedStatement getDataSetsRevision;
 
     private PreparedStatement getDataSetsForVersionStatement;
@@ -270,14 +268,6 @@ public class CassandraDataSetDAO {
                         + "FROM data_set_assignments_by_revision_id "//
                         + "WHERE provider_id = ? AND dataset_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
-                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-        getDataSetsRevisionWithPagination = connectionProvider.getSession().prepare(//
-                "SELECT "//
-                        + "cloud_id "//
-                        + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? AND cloud_id >= ? LIMIT ?; ");
-        getDataSetsRevisionWithPagination
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetRevisionAssignmentsNoPaging = connectionProvider.getSession()

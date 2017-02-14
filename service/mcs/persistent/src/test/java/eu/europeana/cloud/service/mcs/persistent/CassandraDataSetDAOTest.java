@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.DataSetRepresentationForLatestRevision;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
