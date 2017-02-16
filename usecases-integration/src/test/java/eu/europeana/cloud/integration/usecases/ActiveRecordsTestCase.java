@@ -47,21 +47,12 @@ public class ActiveRecordsTestCase implements TestCase {
     public void executeTestCase() throws CloudException, MCSException, IOException {
         System.out.println("ActiveRecordsTestCase started ..");
         try {
-            List<String> tags = new ArrayList<>();
-            tags.add(Tags.PUBLISHED.getTag());
-            tags.add(Tags.DELETED.getTag());
+            List<CloudIdAndTimestampResponse> dereferenceCloudIdAndTimestampResponseList = getLatestCloudIdAndTimestampResponsesForDereferenceRevision();
 
-            prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, DEREFERENCE_REVISION, tags, RECORDS_NUMBERS, null);
-            List<CloudIdAndTimestampResponse> dereferenceCloudIdAndTimestampResponseList = sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, DEREFERENCE_REVISION, SOURCE_REPRESENTATION_NAME, null);
             assertNotNull(dereferenceCloudIdAndTimestampResponseList);
             assertEquals(dereferenceCloudIdAndTimestampResponseList.size(), RECORDS_NUMBERS);
 
-            tags = new ArrayList<>();
-            tags.add(Tags.PUBLISHED.getTag());
-            Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
-            prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, PUBLISH_REVISION, tags, RECORDS_NUMBERS, cloudIds.iterator().next());
-
-            List<CloudIdAndTimestampResponse> publishedCloudIdAndTimestampResponseList = sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, PUBLISH_REVISION, SOURCE_REPRESENTATION_NAME, false);
+            List<CloudIdAndTimestampResponse> publishedCloudIdAndTimestampResponseList = getLatestCloudIdAndTimestampResponsesForPublishRevision();
             assertNotNull(publishedCloudIdAndTimestampResponseList);
             assertEquals(publishedCloudIdAndTimestampResponseList.size(), 1);
 
@@ -84,11 +75,32 @@ public class ActiveRecordsTestCase implements TestCase {
             String convertedContent = lines.get(0);
             String uri = sourceDatasetHelper.addFileToNewRepresentation(SOURCE_REPRESENTATION_NAME, SOURCE_PROVIDER_ID, convertedContent);
             assertNotNull(uri);
+
             System.out.println("ActiveRecordsTestCase Finished Successfully ..");
 
         } finally {
             cleanUp();
         }
+    }
+
+    private List<CloudIdAndTimestampResponse> getLatestCloudIdAndTimestampResponsesForPublishRevision() throws MCSException, MalformedURLException, CloudException {
+        List<String> tags;
+        tags = new ArrayList<>();
+        tags.add(Tags.PUBLISHED.getTag());
+        Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
+        //prepare test case for one shared cloudId
+        prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, PUBLISH_REVISION, tags, RECORDS_NUMBERS, cloudIds.iterator().next());
+
+        return sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, PUBLISH_REVISION, SOURCE_REPRESENTATION_NAME, false);
+    }
+
+    private List<CloudIdAndTimestampResponse> getLatestCloudIdAndTimestampResponsesForDereferenceRevision() throws MCSException, MalformedURLException, CloudException {
+        List<String> tags = new ArrayList<>();
+        tags.add(Tags.PUBLISHED.getTag());
+        tags.add(Tags.DELETED.getTag());
+
+        prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, DEREFERENCE_REVISION, tags, RECORDS_NUMBERS, null);
+        return sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, DEREFERENCE_REVISION, SOURCE_REPRESENTATION_NAME, null);
     }
 
     private String getUTCDateString(List<CloudIdAndTimestampResponse> intersectedCloudIdAndTimestamps) {
