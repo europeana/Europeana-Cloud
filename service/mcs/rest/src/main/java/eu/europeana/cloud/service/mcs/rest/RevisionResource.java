@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import jersey.repackaged.com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +18,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -53,7 +48,7 @@ public class RevisionResource {
     private DataSetService dataSetService;
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will update it.
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param globalId           cloud id of the record (required).
@@ -81,34 +76,38 @@ public class RevisionResource {
     )
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
         ParamUtil.validate(P_TAG, tag, Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
-        String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
-        Revision revision = null;
-        try {
-            revision = recordService.getRevision(globalId, schema, version, revisionKey);
-            if (Tags.ACCEPTANCE.getTag().equals(tag))
-                revision.setAcceptance(true);
-            else if (Tags.PUBLISHED.getTag().equals(tag))
-                revision.setPublished(true);
-            else revision.setDeleted(true);
-            revision.setUpdateTimeStamp(new Date());
-        } catch (RevisionNotExistsException e) {
-            revision = createNewRevision(revisionName, revisionProviderId, tag);
-        }
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        setRevisionTags(revision, new HashSet<>(Arrays.asList(tag)));
         addRevision(globalId, schema, version, revision);
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
+
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
-
+        createAssignmentToRevisionOnDataSets(globalId, schema, version, revision);
         recordService.addRevision(globalId, schema, version, revision);
+        dataSetService.updateProviderDatasetRepresentation(globalId, schema, version, revision);
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
     }
 
-
-
+    private void createAssignmentToRevisionOnDataSets(String globalId, String schema,
+                                                      String version, Revision revision)
+            throws ProviderNotExistsException, RepresentationNotExistsException {
+        Map<String, Set<String>> dataSets = dataSetService.getDataSets(globalId, schema, version);
+        for (Map.Entry<String, Set<String>> entry : dataSets.entrySet()) {
+            for (String dataset : entry.getValue()) {
+                dataSetService.addDataSetsRevisions(entry.getKey(), dataset, revision, schema, globalId);
+            }
+        }
+    }
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will override it .
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param revision Revision (required).
@@ -129,12 +128,16 @@ public class RevisionResource {
             throws RevisionIsNotValidException, ProviderNotExistsException, RepresentationNotExistsException {
 
         addRevision(globalId, schema, version, revision);
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revision.getRevisionProviderId(), revision.getRevisionName(), version, revision.getCreationTimeStamp());
+
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
 
     /**
-     * Adds a new revision to representation version.If a revision already existed it will update it.
+     * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
      *
      * @param globalId           cloud id of the record (required).
@@ -164,33 +167,14 @@ public class RevisionResource {
             throws RepresentationNotExistsException, RevisionIsNotValidException, ProviderNotExistsException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
-        String revisionKey = RevisionUtils.getRevisionKey(revisionProviderId, revisionName);
-        Revision revision = null;
-        try {
-            revision = recordService.getRevision(globalId, schema, version, revisionKey);
-            revision.setUpdateTimeStamp(new Date());
-        } catch (RevisionNotExistsException e) {
-            revision = new Revision(revisionName, revisionProviderId);
-        }
+        Revision revision = new Revision(revisionName, revisionProviderId);
         setRevisionTags(revision, tags);
         addRevision(globalId, schema, version, revision);
-        return Response.created(uriInfo.getAbsolutePath()).build();
+
+        // insert information in extra table
+        recordService.insertRepresentationRevision(globalId, schema, revisionProviderId, revisionName, version, revision.getCreationTimeStamp());
+        return Response.created(uriInfo.getAbsolutePath()).entity(revision).build();
     }
-
-
-    private Revision createNewRevision(String revisionName, String revisionProviderId, String tag) {
-        boolean acceptance = false;
-        boolean published = false;
-        boolean deleted = false;
-        if (Tags.ACCEPTANCE.getTag().equals(tag))
-            acceptance = true;
-        else if (Tags.PUBLISHED.getTag().equals(tag))
-            published = true;
-        else deleted = true;
-        Revision revision = new Revision(revisionName, revisionProviderId, new Date(), acceptance, published, deleted);
-        return revision;
-    }
-
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
         if (tags == null || tags.isEmpty())

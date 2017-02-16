@@ -44,6 +44,11 @@ class URITools {
     }
 
 
+    static URI getRepresentationRevisionsPath(String globalId, String schema, String revisionId) {
+        return UriBuilder.fromResource(RepresentationRevisionsResource.class).buildFromMap(
+                getRepresentationRevisionsMap(globalId, schema, revisionId));
+    }
+
     static URI getContentUri(URI baseUri, String globalId, String schema, String version, String fileName) {
         UriBuilder uriFromResource = UriBuilder.fromResource(FileResource.class);
         setBaseUri(uriFromResource, baseUri);
@@ -77,6 +82,12 @@ class URITools {
     private static Map<String, String> getRepresentationMap(String globalId, String schema) {
         return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
             ParamConstants.P_REPRESENTATIONNAME, schema);
+    }
+
+
+    private static Map<String, String> getRepresentationRevisionsMap(String globalId, String schema, String revisionId) {
+        return ImmutableMap.<String, String> of(ParamConstants.P_CLOUDID, globalId,
+                ParamConstants.P_REPRESENTATIONNAME, schema, ParamConstants.P_REVISION_NAME, revisionId);
     }
 
 

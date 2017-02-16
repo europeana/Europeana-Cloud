@@ -14,6 +14,8 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +57,7 @@ public class CassandraDataSetDAO {
     private PreparedStatement getDataSetStatement;
 
     private PreparedStatement getDataSetsForRepresentationStatement;
+
     private PreparedStatement getDataSetsForRepresentationVersionStatement;
 
     private PreparedStatement getDataSetsRepresentationsNamesList;
@@ -68,8 +71,6 @@ public class CassandraDataSetDAO {
     private PreparedStatement hasProvidedRepresentationName;
 
     private PreparedStatement addDataSetsRevision;
-
-    private PreparedStatement getDataSetsRevisionWithPagination;
 
     private PreparedStatement getDataSetsRevision;
 
@@ -89,7 +90,9 @@ public class CassandraDataSetDAO {
     private PreparedStatement getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation;
 
     private PreparedStatement insertProviderDatasetRepresentationInfo;
+
     private PreparedStatement insertLatestProviderDatasetRepresentationInfo;
+
     private PreparedStatement deleteLatestProviderDatasetRepresentationInfo;
 
     private PreparedStatement selectFromLatestProviderDatasetRepresentationInfo;
@@ -245,8 +248,8 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "INSERT INTO " //
-                                + "data_set_assignments_by_revision_id (provider_dataset_id, revision_id, representation_id, cloud_id) " //
-                                + "VALUES (?,?,?,?);");
+                                + "data_set_assignments_by_revision_id (provider_id, dataset_id, revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, published, acceptance, mark_deleted) " //
+                                + "VALUES (?,?,?,?,?,?,?,?,?,?);");
         addDataSetsRevision.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
@@ -254,33 +257,25 @@ public class CassandraDataSetDAO {
                 = connectionProvider.getSession().prepare(//
                 "DELETE "//
                         + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? " +
+                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? " +
                         "AND cloud_id = ?;");
         removeDataSetsRevision
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetsRevision = connectionProvider.getSession().prepare(//
                 "SELECT "//
-                        + "cloud_id "//
+                        + "cloud_id, published, acceptance, mark_deleted "//
                         + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? LIMIT ?;");
+                        + "WHERE provider_id = ? AND dataset_id = ? AND revision_provider_id = ? AND revision_name = ? AND revision_timestamp = ? AND representation_id = ? LIMIT ?;");
         getDataSetsRevision
-                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-        getDataSetsRevisionWithPagination = connectionProvider.getSession().prepare(//
-                "SELECT "//
-                        + "cloud_id "//
-                        + "FROM data_set_assignments_by_revision_id "//
-                        + "WHERE provider_dataset_id = ? AND revision_id = ? AND representation_id = ? AND cloud_id >= ? LIMIT ?; ");
-        getDataSetsRevisionWithPagination
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetRevisionAssignmentsNoPaging = connectionProvider.getSession()
                 .prepare( //
                         "SELECT " //
-                                + "revision_id, representation_id, cloud_id " //
+                                + "revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id " //
                                 + "FROM data_set_assignments_by_revision_id " //
-                                + "WHERE provider_dataset_id = ?;");
+                                + "WHERE provider_id = ? AND dataset_id = ?;");
         listDataSetRevisionAssignmentsNoPaging.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
@@ -609,20 +604,28 @@ public class CassandraDataSetDAO {
         return result;
     }
 
-    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
+    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version){
         BoundStatement boundStatement = getDataSetsForVersionStatement.bind(
                 cloudId,
                 representationName,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        Set<String> result = new LinkedHashSet<>();
-        for (Row row : rs) {
+        QueryTracer.logConsistencyLevel(boundStatement,rs);
+        Set<String> providerDataSets = new LinkedHashSet<>();
+        Map<String, Set<String>> result = new HashMap<>();
+        for(Row row : rs){
             String provider_dataset_id = row.getString("provider_dataset_id");
-            String prefix = providerId + "\n";
-            if (provider_dataset_id.startsWith(prefix)) {
-                result.add(provider_dataset_id.replace(prefix, ""));
+            String[] parts = provider_dataset_id.split("\n");
+            if (parts.length != 2)
+                continue;
+
+            // parts[0] should contain provider id, parts[1] should contain dataset id
+            providerDataSets = result.get(parts[0]);
+            if (providerDataSets == null) {
+                providerDataSets = new LinkedHashSet<>();
+                result.put(parts[0], providerDataSets);
             }
+            providerDataSets.add(parts[1]);
         }
         return result;
     }
@@ -639,7 +642,7 @@ public class CassandraDataSetDAO {
                 dataSetId);
 
         removeAllDataSetAssignments(providerDataSetId);
-        removeAllDataSetRevisonAssignments(providerDataSetId);
+        removeAllDataSetRevisonAssignments(providerId, dataSetId);
         removeAllDataSetCloudIdsByRepresentation(providerId, dataSetId);
         removeAllDataSetBuckets(providerId, dataSetId);
 
@@ -706,17 +709,19 @@ public class CassandraDataSetDAO {
         }
     }
 
-    private void removeAllDataSetRevisonAssignments(String providerDataSetId) {
+    private void removeAllDataSetRevisonAssignments(String providerId, String dataSetId) {
         BoundStatement boundStatement = listDataSetRevisionAssignmentsNoPaging
-                .bind(providerDataSetId);
+                .bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        for (Row row : rs) {
-            String revisionId = row.getString("revision_id");
+        for (Row row : rs){
+            String revisionProviderId = row.getString("revision_provider_id");
+            String revisionName = row.getString("revision_name");
+            Date revisionTimestamp = row.getDate("revision_timestamp");
             String representationId = row.getString("representation_id");
             String cloudId = row.getString("cloud_id");
             connectionProvider.getSession().execute(
-                    removeDataSetsRevision.bind(providerDataSetId, revisionId,
+                    removeDataSetsRevision.bind(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
                             representationId, cloudId));
         }
     }
@@ -794,46 +799,57 @@ public class CassandraDataSetDAO {
         return representation;
     }
 
-    public void addDataSetsRevision(String providerId, String datasetId, String revisionId, String representationName, String cloudId) {
-        String providerDatasetId = createProviderDataSetId(providerId, datasetId);
-        BoundStatement boundStatement = addDataSetsRevision.bind(providerDatasetId, revisionId, representationName, cloudId);
+    public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
+        BoundStatement boundStatement = addDataSetsRevision.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    public void removeDataSetsRevision(String providerId, String datasetId, String revisionId, String
+    public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String
             representationName, String cloudId) {
-        String providerDatasetId = createProviderDataSetId(providerId, datasetId);
-        BoundStatement boundStatement = removeDataSetsRevision.bind(providerDatasetId, revisionId,
+        BoundStatement boundStatement = removeDataSetsRevision.bind(providerId, datasetId, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
                 representationName, cloudId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    public List<String> getDataSetsRevisionWithPagination(String providerId, String datasetId, String revisionId, String representationName, String startFromCloudId, int limit) {
-        String providerDatasetId = createProviderDataSetId(providerId, datasetId);
-        BoundStatement boundStatement = getDataSetsRevisionWithPagination.bind(providerDatasetId, revisionId, representationName, startFromCloudId, limit);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        List<String> cloudIds = new ArrayList<>();
-        for (Row r : rs) {
-            String cloudId = r.getString("cloud_Id");
-            cloudIds.add(cloudId);
-        }
-        return cloudIds;
-    }
+    public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String nextToken, int limit) {
+        List<Properties> result = new ArrayList<>(limit);
 
-    public List<String> getDataSetsRevision(String providerId, String datasetId, String revisionId, String representationName, int limit) {
-        String providerDatasetId = createProviderDataSetId(providerId, datasetId);
-        BoundStatement boundStatement = getDataSetsRevision.bind(providerDatasetId, revisionId, representationName, limit);
+        // bind parameters, set limit to max int value
+        BoundStatement boundStatement = getDataSetsRevision.bind(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, Integer.MAX_VALUE);
+        // limit page to "limit" number of results
+        boundStatement.setFetchSize(limit);
+        // when this is not a first page call set paging state in the statement
+        if (nextToken != null)
+            boundStatement.setPagingState(PagingState.fromString(nextToken));
+        // execute query
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-        List<String> cloudIds = new ArrayList<>();
-        for (Row r : rs) {
-            String cloudId = r.getString("cloud_Id");
-            cloudIds.add(cloudId);
+
+        // get available results
+        int available = rs.getAvailableWithoutFetching();
+        for (int i = 0; i < available; i++) {
+            Row row = rs.one();
+            Properties properties = new Properties();
+            properties.put("cloudId", row.getString("cloud_id"));
+            properties.put("acceptance", Boolean.valueOf(row.getBool("acceptance")).toString());
+            properties.put("published", Boolean.valueOf(row.getBool("published")).toString());
+            properties.put("deleted", Boolean.valueOf(row.getBool("mark_deleted")).toString());
+            result.add(properties);
         }
-        return cloudIds;
+
+        if (result.size() == limit) {
+            PagingState pagingState = rs.getExecutionInfo().getPagingState();
+            // whole page has been retrieved so add paging state for the next call at the end of the results list
+            if (pagingState != null && !rs.isExhausted()) {
+                Properties properties = new Properties();
+                properties.put("nextSlice", pagingState.toString());
+                result.add(properties);
+            }
+        }
+
+        return result;
     }
 
 
