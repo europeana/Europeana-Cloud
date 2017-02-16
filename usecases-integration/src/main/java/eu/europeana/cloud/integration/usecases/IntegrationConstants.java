@@ -1,4 +1,4 @@
-package eu.europeana.cloud.integration.helper;
+package eu.europeana.cloud.integration.usecases;
 
 /**
  * Created by Tarek on 9/19/2016.
@@ -18,6 +18,8 @@ public class IntegrationConstants {
 
     public static final String DEREFERENCE_REVISION = "DEREFERENCE";
     public static final String PUBLISH_REVISION = "PUBLISH";
+
+    public static final String FILE_CONTENT = "some test data for my input stream";
 
 }
 

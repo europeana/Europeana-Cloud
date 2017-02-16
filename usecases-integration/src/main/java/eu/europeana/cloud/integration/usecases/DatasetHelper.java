@@ -21,6 +21,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static eu.europeana.cloud.integration.usecases.IntegrationConstants.FILE_CONTENT;
+
+
 /**
  * Created by Tarek on 9/21/2016.
  */
@@ -128,14 +131,14 @@ public class DatasetHelper {
         }
     }
 
-    private String addFileToNewRepresentation(String representationName, String providerId) throws MCSException {
-        InputStream inputStream = IOUtils.toInputStream("some test data for my input stream");
+    public String addFileToNewRepresentation(String representationName, String providerId,String fileContent) throws MCSException {
+        InputStream inputStream = IOUtils.toInputStream(fileContent);
         URI uri = recordServiceClient.createRepresentation(cloudId.getId(), representationName, providerId, inputStream, "text/plain");
         return uri.toString();
     }
 
     private String getVersionFromFileUri(String representationName, String providerId) throws MalformedURLException, MCSException {
-        String url = addFileToNewRepresentation(representationName, providerId);
+        String url = addFileToNewRepresentation(representationName, providerId,FILE_CONTENT);
         UrlParser parser = new UrlParser(url);
         return parser.getPart(UrlPart.VERSIONS);
     }

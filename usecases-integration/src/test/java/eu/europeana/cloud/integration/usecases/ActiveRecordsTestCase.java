@@ -3,18 +3,23 @@ package eu.europeana.cloud.integration.usecases;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.Tags;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static eu.europeana.cloud.integration.helper.IntegrationConstants.*;
+import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 2/9/2017.
@@ -29,6 +34,12 @@ public class ActiveRecordsTestCase implements TestCase {
 
     @Resource
     private RecordServiceClient adminRecordServiceClient;
+
+    @Resource
+    private RecordServiceClient sourceRecordServiceClient;
+
+    @Resource
+    private FileServiceClient sourceFileServiceClient;
 
     private final static int RECORDS_NUMBERS = 3;
 
@@ -57,11 +68,33 @@ public class ActiveRecordsTestCase implements TestCase {
             List<CloudIdAndTimestampResponse> intersectedCloudIdAndTimestamps = intersectCloudIdAndTimestampResponsesBasedOnCloudId(dereferenceCloudIdAndTimestampResponseList, publishedCloudIdAndTimestampResponseList);
             assertNotNull(intersectedCloudIdAndTimestamps);
             assertEquals(intersectedCloudIdAndTimestamps.size(), 1);
+
+            String utcFormateDateString = getUTCDateString(intersectedCloudIdAndTimestamps);
+            RepresentationRevisionResponse representationRevisionResponse = sourceRecordServiceClient.getRepresentationRevision(intersectedCloudIdAndTimestamps.get(0).getCloudId(), SOURCE_REPRESENTATION_NAME, DEREFERENCE_REVISION, SOURCE_PROVIDER_ID, utcFormateDateString);
+            assertNotNull(representationRevisionResponse.getFiles());
+            assertEquals(representationRevisionResponse.getFiles().size(), 1);
+
+            InputStream stream = sourceFileServiceClient.getFile(representationRevisionResponse.getCloudId(), SOURCE_REPRESENTATION_NAME, representationRevisionResponse.getVersion(), representationRevisionResponse.getFiles().get(0).getFileName());
+            List<String> lines = IOUtils.readLines(stream);
+            assertNotNull(lines);
+            assertEquals(lines.size(), 1);
+            assertEquals(lines.get(0), FILE_CONTENT);
+
+            //Do any Conversion to the file content; Mock it in here to use the same content
+            String convertedContent = lines.get(0);
+            String uri = sourceDatasetHelper.addFileToNewRepresentation(SOURCE_REPRESENTATION_NAME, SOURCE_PROVIDER_ID, convertedContent);
+            assertNotNull(uri);
             System.out.println("ActiveRecordsTestCase Finished Successfully ..");
 
         } finally {
             cleanUp();
         }
+    }
+
+    private String getUTCDateString(List<CloudIdAndTimestampResponse> intersectedCloudIdAndTimestamps) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(intersectedCloudIdAndTimestamps.get(0).getRevisionTimestamp());
     }
 
     private List<CloudIdAndTimestampResponse> intersectCloudIdAndTimestampResponsesBasedOnCloudId(List<CloudIdAndTimestampResponse> dereferenceCloudIdAndTimestampResponseList, List<CloudIdAndTimestampResponse> publishedCloudIdAndTimestampResponseList) {

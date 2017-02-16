@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 
-import static eu.europeana.cloud.integration.helper.IntegrationConstants.*;
+import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 9/19/2016.
