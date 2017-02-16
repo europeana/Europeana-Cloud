@@ -152,15 +152,6 @@ public class RevisionResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullUpdateDate() throws Exception {
-        revision.setUpdateTimeStamp(null);
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertEquals(response.getStatus(), 405);
-
-    }
-
-
-    @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
         Response response = revisionWebTargetWithTag.resolveTemplate(P_TAG, Tags.ACCEPTANCE.getTag()).request().post(null);
         assertNotNull(response);
