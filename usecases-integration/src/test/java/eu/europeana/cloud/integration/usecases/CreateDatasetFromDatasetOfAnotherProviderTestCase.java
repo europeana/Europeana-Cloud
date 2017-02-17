@@ -6,13 +6,9 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.integration.helper.IntegrationConstants;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.*;
@@ -20,14 +16,15 @@ import static org.junit.Assert.*;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.*;
+
+import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 9/19/2016.
  */
 
-public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends IntegrationConstants implements TestCase {
+public class CreateDatasetFromDatasetOfAnotherProviderTestCase implements TestCase {
 
     @Resource
     private DatasetHelper sourceDatasetHelper;
@@ -40,6 +37,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
     @Resource
     private UISClient adminUisClient;
 
+
     @Resource
     private Properties appProperties;
 
@@ -50,16 +48,15 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
     @Autowired
     private RevisionServiceClient revisionServiceClient;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateDatasetFromDatasetOfAnotherProviderTestCase.class);
-
 
     public void executeTestCase() throws CloudException, MCSException, IOException {
+        System.out.println("CreateDatasetFromDatasetOfAnotherProviderTestCase started ..");
         try {
             String now = TestHelper.getTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
-
             assertCloudVersionRevisionResponseListWithExpectedValues(cloudVersionRevisionResponseList);
+            System.out.println("CreateDatasetFromDatasetOfAnotherProviderTestCase Finished Successfully!");
         } finally {
             cleanUp();
         }
@@ -97,10 +94,8 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
         List<String> tags = new ArrayList<>();
         tags.add(Tags.PUBLISHED.getTag());
         tags.add(Tags.DELETED.getTag());
-        URI uri = sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS);
-        LOGGER.info("The source dataSet {} has been created! Its url is {}", SOURCE_DATASET_NAME, uri);
+        sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS, null);
         destinationDatasetHelper.prepareEmptyDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        LOGGER.info("The destination dataSet {} has been created! Its url is {} ", DESTINATION_DATASET_NAME, uri);
         List<Representation> representations = sourceDatasetHelper.getRepresentationsInsideDataSetByName(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME);
         for (Representation representation : representations) {
             destinationDatasetHelper.assignRepresentationVersionToDataSet(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
@@ -110,23 +105,14 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase extends Integrati
     }
 
     public void cleanUp() throws CloudException, MCSException {
-        try {
-            sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
-        } catch (DataSetNotExistsException e) {
-            LOGGER.info("The source dataSet {} can't be removed because it doesn't exist ", SOURCE_DATASET_NAME);
-
-        }
-        try {
-            destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
-        } catch (DataSetNotExistsException e) {
-            LOGGER.info("The destination dataSet {} can't be removed because it doesn't exist ", DESTINATION_DATASET_NAME);
-
-        }
-        List<String> cloudIds = sourceDatasetHelper.getCloudIds();
+        System.out.println("CreateDatasetFromDatasetOfAnotherProviderTestCase cleaning up ..");
+        Set<String> cloudIds = sourceDatasetHelper.getCloudIds();
         for (String cloudId : cloudIds) {
-            adminRecordServiceClient.deleteRecord(cloudId);
+            adminRecordServiceClient.deleteRepresentation(cloudId, SOURCE_REPRESENTATION_NAME);
             adminUisClient.deleteCloudId(cloudId);
         }
+        sourceDatasetHelper.deleteDataset(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME);
+        destinationDatasetHelper.deleteDataset(DESTINATION_PROVIDER_ID, DESTINATION_DATASET_NAME);
         sourceDatasetHelper.cleanCloudIds();
 
     }
