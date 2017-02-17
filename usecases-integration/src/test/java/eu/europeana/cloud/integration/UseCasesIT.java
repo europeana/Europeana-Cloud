@@ -2,6 +2,7 @@ package eu.europeana.cloud.integration;
 
 import eu.europeana.cloud.integration.usecases.ActiveRecordsTestCase;
 import eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase;
+import eu.europeana.cloud.integration.usecases.RepresentationRevisionFilesTestCase;
 import eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,8 @@ public class UseCasesIT {
     private UpdateDatasetTestCase updateDatasetTestCase;
     @Autowired
     private ActiveRecordsTestCase activeRecordsTestCase;
+    @Autowired
+    private RepresentationRevisionFilesTestCase representationRevisionFilesTestCase;
 
 
     @Test
@@ -31,5 +34,6 @@ public class UseCasesIT {
         createDatasetFromDatasetOfAnotherProviderTestCase.executeTestCase();
         updateDatasetTestCase.executeTestCase();
         activeRecordsTestCase.executeTestCase();
+        representationRevisionFilesTestCase.executeTestCase();
     }
 }

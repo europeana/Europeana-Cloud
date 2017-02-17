@@ -52,7 +52,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase implements TestCa
     public void executeTestCase() throws CloudException, MCSException, IOException {
         System.out.println("CreateDatasetFromDatasetOfAnotherProviderTestCase started ..");
         try {
-            String now = TestHelper.getTime();
+            String now = TestHelper.getCurrentTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = destinationDatasetHelper.getDataSetCloudIdsByRepresentation(DESTINATION_DATASET_NAME, DESTINATION_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
             assertCloudVersionRevisionResponseListWithExpectedValues(cloudVersionRevisionResponseList);

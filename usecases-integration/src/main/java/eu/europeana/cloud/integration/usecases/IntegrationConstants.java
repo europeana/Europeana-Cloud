@@ -12,6 +12,7 @@ public class IntegrationConstants {
     public final static String DESTINATION_PROVIDER_ID = "EF";
 
     public final static String SOURCE_REPRESENTATION_NAME = "EDM-External";
+    public final static String DESTINATION_REPRESENTATION_NAME = "EDM-Internal";
     public final static String DESTINATION_REVISION_NAME = "IMPORT-11";
     public static final String SOURCE_REVISION_NAME = "SOURCE_IMPORT-11";
 

@@ -3,6 +3,7 @@ package eu.europeana.cloud.integration.usecases;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -107,16 +108,21 @@ public class DatasetHelper {
             if (specificCloudId == null) {
                 newCloudId = prepareCloudId(providerId);
             }
-            String version = getVersionFromFileUri(representationName, providerId);
-            for (String tagName : tagNames) {
-                revisionServiceClient.addRevision(newCloudId, representationName, version, revisionName, providerId, tagName);
-            }
+            String uri = addFileToNewRepresentation(representationName, providerId, FILE_CONTENT);
+            String version = getVersionFromFileUri(uri);
+            addRevision(providerId, representationName, revisionName, tagNames, newCloudId, version);
             dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, newCloudId, representationName, version);
         }
     }
 
+    public void addRevision(String providerId, String representationName, String revisionName, List<String> tagNames, String newCloudId, String version) throws MCSException {
+        for (String tagName : tagNames) {
+            revisionServiceClient.addRevision(newCloudId, representationName, version, revisionName, providerId, tagName);
+        }
+    }
 
-    private String prepareCloudId(String providerId) throws CloudException, MCSException {
+
+    public String prepareCloudId(String providerId) throws CloudException, MCSException {
         cloudId = uisClient.createCloudId(providerId);
         cloudIds.add(cloudId.getId());
         return cloudId.getId();
@@ -131,15 +137,14 @@ public class DatasetHelper {
         }
     }
 
-    public String addFileToNewRepresentation(String representationName, String providerId,String fileContent) throws MCSException {
+    public String addFileToNewRepresentation(String representationName, String providerId, String fileContent) throws MCSException {
         InputStream inputStream = IOUtils.toInputStream(fileContent);
         URI uri = recordServiceClient.createRepresentation(cloudId.getId(), representationName, providerId, inputStream, "text/plain");
         return uri.toString();
     }
 
-    private String getVersionFromFileUri(String representationName, String providerId) throws MalformedURLException, MCSException {
-        String url = addFileToNewRepresentation(representationName, providerId,FILE_CONTENT);
-        UrlParser parser = new UrlParser(url);
+    public String getVersionFromFileUri(String URL) throws MalformedURLException, MCSException {
+        UrlParser parser = new UrlParser(URL);
         return parser.getPart(UrlPart.VERSIONS);
     }
 
@@ -149,6 +154,12 @@ public class DatasetHelper {
 
     public final List<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionProvider, String revisionName, String representationName, Boolean isDeleted) throws MCSException {
         return dataSetServiceClient.getLatestDataSetCloudIdByRepresentationAndRevision(dataSetId, providerId, revisionProvider, revisionName, representationName, isDeleted);
+    }
+
+    public final List<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId,
+                                                             String representationName, String revisionName,
+                                                             String revisionProviderId, String revisionTimestamp) throws MCSException {
+        return dataSetServiceClient.getDataSetRevisions(providerId, dataSetId, representationName, revisionName, revisionProviderId, revisionTimestamp);
     }
 
 }

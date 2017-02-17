@@ -47,12 +47,12 @@ public class UpdateDatasetTestCase implements TestCase {
     public void executeTestCase() throws CloudException, MCSException, IOException {
         System.out.println("UpdateDatasetTestCase started ..");
         try {
-            String now = TestHelper.getTime();
+            String now = TestHelper.getCurrentTime();
             prepareTestCase();
             List<CloudVersionRevisionResponse> cloudVersionRevisionResponseList = sourceDatasetHelper.getDataSetCloudIdsByRepresentation(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_REPRESENTATION_NAME, now, Tags.PUBLISHED.getTag());
             assertNotNull(cloudVersionRevisionResponseList);
             assertEquals(cloudVersionRevisionResponseList.size(), RECORDS_NUMBERS);
-            String newDate = TestHelper.getTime();
+            String newDate = TestHelper.getCurrentTime();
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
