@@ -14,7 +14,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -60,7 +59,7 @@ public class ActiveRecordsTestCase implements TestCase {
             assertNotNull(intersectedCloudIdAndTimestamps);
             assertEquals(intersectedCloudIdAndTimestamps.size(), 1);
 
-            String utcFormateDateString = getUTCDateString(intersectedCloudIdAndTimestamps.get(0).getRevisionTimestamp());
+            String utcFormateDateString = TestHelper.getUTCDateString(intersectedCloudIdAndTimestamps.get(0).getRevisionTimestamp());
             RepresentationRevisionResponse representationRevisionResponse = sourceRecordServiceClient.getRepresentationRevision(intersectedCloudIdAndTimestamps.get(0).getCloudId(), SOURCE_REPRESENTATION_NAME, DEREFERENCE_REVISION, SOURCE_PROVIDER_ID, utcFormateDateString);
             assertNotNull(representationRevisionResponse.getFiles());
             assertEquals(representationRevisionResponse.getFiles().size(), 1);
@@ -103,11 +102,6 @@ public class ActiveRecordsTestCase implements TestCase {
         return sourceDatasetHelper.getLatestDataSetCloudIdByRepresentationAndRevision(SOURCE_DATASET_NAME, SOURCE_PROVIDER_ID, SOURCE_PROVIDER_ID, DEREFERENCE_REVISION, SOURCE_REPRESENTATION_NAME, null);
     }
 
-    private String getUTCDateString(Date timeResponse) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(timeResponse);
-    }
 
     private List<CloudIdAndTimestampResponse> intersectCloudIdAndTimestampResponsesBasedOnCloudId(List<CloudIdAndTimestampResponse> dereferenceCloudIdAndTimestampResponseList, List<CloudIdAndTimestampResponse> publishedCloudIdAndTimestampResponseList) {
         List<CloudIdAndTimestampResponse> intesectCloudIds = new ArrayList<>();

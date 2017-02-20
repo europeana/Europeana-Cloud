@@ -10,9 +10,12 @@ import java.util.TimeZone;
 public class TestHelper {
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-    //2016-10-05 10:05:05+0200
-    public final static String getTime() {
+    public static final String getCurrentTime() {
         Date date = new Date();
+        return getUTCDateString(date);
+    }
+
+    public static final String getUTCDateString(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(date);

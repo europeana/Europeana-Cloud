@@ -163,4 +163,8 @@
           scope="prototype">
     </bean>
 
+    <bean id="representationRevisionFilesTestCase" class="eu.europeana.cloud.integration.usecases.RepresentationRevisionFilesTestCase"
+          scope="prototype">
+    </bean>
+
   </beans>
