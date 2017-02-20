@@ -54,7 +54,7 @@ public class RepresentationRevisionFilesTestCase implements TestCase {
             tags.add(Tags.PUBLISHED.getTag());
 
             String cloudId = sourceDatasetHelper.prepareCloudId(SOURCE_PROVIDER_ID);
-            prepareTestCase(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS, cloudId);
+            sourceDatasetHelper.prepareDatasetWithRecordsInside(SOURCE_PROVIDER_ID, SOURCE_DATASET_NAME, SOURCE_REPRESENTATION_NAME, SOURCE_REVISION_NAME, tags, RECORDS_NUMBERS, cloudId);
             List<Revision> revisions = getRevisions(cloudId, SOURCE_REPRESENTATION_NAME);
 
             assertNotNull(revisions);
@@ -96,14 +96,9 @@ public class RepresentationRevisionFilesTestCase implements TestCase {
     }
 
     private List<Revision> getRevisions(String cloudId, String representationName) throws MCSException {
-        Representation representation = sourceRecordServiceClient.getRepresentation(cloudId, representationName);
-        return representation.getRevisions();
+        return sourceRecordServiceClient.getRepresentation(cloudId, representationName).getRevisions();
     }
 
-
-    private void prepareTestCase(String providerId, String datasetName, String representationName, String revisionName, List<String> tags, int recordNum, String cloudId) throws MCSException, MalformedURLException, CloudException {
-        sourceDatasetHelper.prepareDatasetWithRecordsInside(providerId, datasetName, representationName, revisionName, tags, recordNum, cloudId);
-    }
 
     public void cleanUp() throws CloudException, MCSException {
         System.out.println("RepresentationRevisionFilesTestCase cleaning up ..");
