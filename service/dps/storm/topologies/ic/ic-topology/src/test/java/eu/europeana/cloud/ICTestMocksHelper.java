@@ -4,6 +4,7 @@ package eu.europeana.cloud;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -16,9 +17,10 @@ import org.apache.storm.Config;
 import org.apache.storm.testing.MkClusterParam;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+
 import java.util.List;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -94,9 +96,14 @@ public class ICTestMocksHelper {
 
     protected void mockDPSDAO() throws Exception {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
-        PowerMockito.whenNew(CassandraTaskInfoDAO.class).withAnyArguments().thenReturn(taskInfoDAO);
+        PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
+        when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
         subTaskInfoDAO = Mockito.mock(CassandraSubTaskInfoDAO.class);
-        PowerMockito.whenNew(CassandraSubTaskInfoDAO.class).withAnyArguments().thenReturn(subTaskInfoDAO);
-        PowerMockito.whenNew(CassandraConnectionProvider.class).withAnyArguments().thenReturn(Mockito.mock(CassandraConnectionProvider.class));
+        PowerMockito.mockStatic(CassandraSubTaskInfoDAO.class);
+        when(CassandraSubTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(subTaskInfoDAO);
+        PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
+        when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }
+
+
 }

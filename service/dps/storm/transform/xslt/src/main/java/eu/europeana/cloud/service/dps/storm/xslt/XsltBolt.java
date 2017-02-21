@@ -27,7 +27,7 @@ public class XsltBolt extends AbstractDpsBolt {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
-    private LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
+    private static LRUCache<String, Transformer> cache = new LRUCache<String, Transformer>(
             50);
 
     @Override

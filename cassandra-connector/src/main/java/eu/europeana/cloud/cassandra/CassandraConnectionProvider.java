@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+
 /**
  * Connector to Cassandra cluster.
  */
@@ -33,7 +34,6 @@ public class CassandraConnectionProvider {
     private String port;
 
     private String keyspaceName;
-
 
     /**
      * Constructor. Use it when your Cassandra cluster does not support
@@ -92,7 +92,7 @@ public class CassandraConnectionProvider {
     /**
      * Obtain common cassandra Cluster Builder.
      *
-     * @param port port of endpoints
+     * @param port          port of endpoints
      * @param contactPoints list of cassandra ip addresses
      * @return {@link com.datastax.driver.core.Cluster.Builder}
      */

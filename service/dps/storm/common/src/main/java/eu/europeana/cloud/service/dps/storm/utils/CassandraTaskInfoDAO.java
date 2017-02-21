@@ -29,12 +29,26 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     private PreparedStatement updateProcessedFiles;
 
 
+    private static CassandraTaskInfoDAO instance = null;
+
+    public static CassandraTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            synchronized (CassandraTaskInfoDAO.class) {
+                if (instance == null) {
+                    instance = new CassandraTaskInfoDAO(cassandra);
+                }
+            }
+        }
+        return instance;
+    }
+
+
     /**
      * @param dbService The service exposing the connection and session
      */
-    public CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
+    private CassandraTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
-        cassandraSubTaskInfoDAO = new CassandraSubTaskInfoDAO(dbService);
+        cassandraSubTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(dbService);
     }
 
     @Override
@@ -85,9 +99,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updateTask.bind(state, startDate, info, taskId));
     }
 
-    public void endTask(long taskId,int processeFilesCount, String info, String state, Date finishDate)
+    public void endTask(long taskId, int processeFilesCount, String info, String state, Date finishDate)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(endTask.bind(processeFilesCount,state, finishDate, info, taskId));
+        dbService.getSession().execute(endTask.bind(processeFilesCount, state, finishDate, info, taskId));
     }
 
     public void insert(long taskId, String topologyName, int expectedSize, String state, String info, Date sentTime)
@@ -97,7 +111,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public void setUpdateProcessedFiles(long taskId, int processedFilesCount)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(taskInsertStatement.bind(processedFilesCount, taskId));
+        dbService.getSession().execute(updateProcessedFiles.bind(processedFilesCount, taskId));
 
     }
 

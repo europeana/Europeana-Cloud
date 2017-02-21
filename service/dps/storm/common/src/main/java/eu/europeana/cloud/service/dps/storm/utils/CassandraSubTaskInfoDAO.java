@@ -22,10 +22,23 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
     private PreparedStatement subtaskSearchStatement;
     private PreparedStatement subtaskInsertStatement;
 
+    private static CassandraSubTaskInfoDAO instance = null;
+
+    public static CassandraSubTaskInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            synchronized (CassandraSubTaskInfoDAO.class) {
+                if (instance == null) {
+                    instance = new CassandraSubTaskInfoDAO(cassandra);
+                }
+            }
+        }
+        return instance;
+    }
+
     /**
      * @param dbService The service exposing the connection and session
      */
-    public CassandraSubTaskInfoDAO(CassandraConnectionProvider dbService) {
+    private  CassandraSubTaskInfoDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
 
