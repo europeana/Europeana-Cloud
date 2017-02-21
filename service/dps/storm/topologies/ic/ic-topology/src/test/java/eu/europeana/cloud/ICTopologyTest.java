@@ -3,9 +3,12 @@ package eu.europeana.cloud;
 
 import eu.europeana.cloud.bolts.TestInspectionBolt;
 import eu.europeana.cloud.bolts.TestSpout;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.*;
@@ -47,7 +50,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
 
@@ -260,6 +263,8 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+
+
     }
 
 
