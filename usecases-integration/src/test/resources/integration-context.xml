@@ -16,7 +16,6 @@
     <context:component-scan
             base-package="eu.europeana.cloud.integration.usecases"/>
 
-
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location" value="test.properties"/>
@@ -48,8 +47,15 @@
         <constructor-arg name="password" value="${password}"/>
     </bean>
 
+    <bean id="sourceFileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient" scope="prototype">
+        <constructor-arg name="baseUrl" value="${mcsLocation}"/>
+        <constructor-arg name="username" value="${username}"/>
+        <constructor-arg name="password" value="${password}"/>
+    </bean>
 
-    <bean id="destinationRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient" scope="prototype">
+
+    <bean id="destinationRecordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${destinationUserName}"/>
         <constructor-arg name="password" value="${destinationPassword}"/>
@@ -110,13 +116,15 @@
     </bean>
 
 
-    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+    <bean id="sourceRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${username}"/>
         <constructor-arg name="password" value="${password}"/>
     </bean>
 
-    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient" scope="prototype">
+    <bean id="destinationRevisionServiceClient" class="eu.europeana.cloud.mcs.driver.RevisionServiceClient"
+          scope="prototype">
         <constructor-arg name="baseUrl" value="${mcsLocation}"/>
         <constructor-arg name="username" value="${destinationUserName}"/>
         <constructor-arg name="password" value="${destinationPassword}"/>
@@ -142,8 +150,21 @@
     </bean>
 
 
-    <bean id="createDatasetFromDatasetOfAnotherProviderTestCase" class="eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase" scope="prototype">
+    <bean id="createDatasetFromDatasetOfAnotherProviderTestCase"
+          class="eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase"
+          scope="prototype">
     </bean>
 
+    <bean id="updateDatasetTestCase" class="eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase"
+          scope="prototype">
+    </bean>
 
-</beans>
+    <bean id="activeRecordsTestCase" class="eu.europeana.cloud.integration.usecases.ActiveRecordsTestCase"
+          scope="prototype">
+    </bean>
+
+    <bean id="representationRevisionFilesTestCase" class="eu.europeana.cloud.integration.usecases.RepresentationRevisionFilesTestCase"
+          scope="prototype">
+    </bean>
+
+  </beans>

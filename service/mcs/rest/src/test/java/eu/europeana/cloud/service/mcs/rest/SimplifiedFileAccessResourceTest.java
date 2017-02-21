@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -178,11 +177,7 @@ public class SimplifiedFileAccessResourceTest {
     }
 
     private void setupAuthentication() {
-        User user = new User();
-        user.setUsername("admin");
-        user.setUsername("pass");
-        Authentication auth = new UsernamePasswordAuthenticationToken(user, null);
-
+        Authentication auth = new UsernamePasswordAuthenticationToken("admin", "pass");
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
     

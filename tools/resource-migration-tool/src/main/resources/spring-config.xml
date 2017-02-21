@@ -10,6 +10,7 @@
         <constructor-arg ref="resProvider"/>
         <constructor-arg name="dataProvidersMappingFile" value="${data.providers.mapping}"/>
         <constructor-arg name="threadsCount" value="${provider.threads.count}"/>
+        <constructor-arg ref="fileProcessorFactory"/>
     </bean>
 
     <bean id="mcs" class="eu.europeana.cloud.mcs.driver.RecordServiceClient">
@@ -37,4 +38,8 @@
         <constructor-arg name="dataProviderId" value="${data.provider.id}"/>
     </bean>
 
+    <bean name="fileProcessorFactory" class="eu.europeana.cloud.migrator.processing.FileProcessorFactory">
+        <constructor-arg name="processingClass" value="${processing.class}"/>
+        <constructor-arg name="processingConfig" value="${processing.config.filename}"/>
+    </bean>
 </beans>

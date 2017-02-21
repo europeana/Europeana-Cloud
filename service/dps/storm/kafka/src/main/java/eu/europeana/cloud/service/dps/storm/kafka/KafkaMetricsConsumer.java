@@ -10,12 +10,12 @@ import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
+import org.apache.storm.metric.api.IMetricsConsumer;
+import org.apache.storm.task.IErrorReporter;
+import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.metric.api.IMetricsConsumer;
-import backtype.storm.task.IErrorReporter;
-import backtype.storm.task.TopologyContext;
 
 /*
  * Listens for, sends them to the proper Kafka topic.
@@ -37,7 +37,7 @@ public class KafkaMetricsConsumer implements IMetricsConsumer {
 
 	@Override
 	public void prepare(Map stormConf, Object registrationArgument,
-			TopologyContext context, IErrorReporter errorReporter) {
+						TopologyContext context, IErrorReporter errorReporter) {
 
 		parseConfig(stormConf);
 	}

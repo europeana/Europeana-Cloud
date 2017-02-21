@@ -1,27 +1,38 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import backtype.storm.Config;
-import backtype.storm.task.GeneralTopologyContext;
-import backtype.storm.task.OutputCollector;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.TupleImpl;
-import backtype.storm.tuple.Values;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import org.apache.storm.Config;
+import org.apache.storm.task.GeneralTopologyContext;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
+
+
+
 import static org.hamcrest.Matchers.*;
 
 public class NotificationBoltTest extends CassandraTestBase {
@@ -36,12 +47,14 @@ public class NotificationBoltTest extends CassandraTestBase {
         collector = Mockito.mock(OutputCollector.class);
         testedBolt = new NotificationBolt(HOST, PORT, KEYSPACE, "", "");
         NotificationBolt.clearCache();
+
         Map<String, Object> boltConfig = new HashMap<>();
         boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
         boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
         boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
+
     }
 
     @Test

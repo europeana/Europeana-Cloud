@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.service.dps.storm.metrics.ZookeeperMultiCountMetric;
-import backtype.storm.task.TopologyContext;
+
+
 
 /**
  * Increases progress by 1 per Task / per tuple received.
@@ -34,7 +36,7 @@ public class ProgressBolt extends AbstractDpsBolt
         initMetrics(topologyContext);
     }
 
-    void initMetrics(TopologyContext context) 
+    void initMetrics(TopologyContext context)
     {		
         zMetric = new ZookeeperMultiCountMetric(zkAddress);
         context.registerMetric("zMetric=>", zMetric, 10);

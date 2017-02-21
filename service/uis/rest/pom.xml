@@ -354,25 +354,19 @@
             <version>${version.org.glassfish.jersey.test-framework}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.cassandraunit</groupId>
-            <artifactId>cassandra-unit-spring</artifactId>
-            <version>${version.cassandra-unit}</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>net.jpountz.lz4</groupId>
             <artifactId>lz4</artifactId>
             <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -467,10 +461,9 @@
                 </execution>
             </executions>
             <configuration>
-                <licence> <!-- MireDot free open source license, valid until 2017-01-15 -->
-                        UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNy0wMS0xNXxmYWxzZSNNQ3dDRkdMbHdnL1VLTGw2RXVMZkZXYi93anBKaWQvMUFoUmNsYWxYZkN3TzFFRXlDWmdLbkpaelJiU3p6dz09
-                    </licence>
-                    <restModel>
+                <!--valid until January 1st, 2020-->
+                <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
+                <restModel>
                         <httpStatusCodes>
                             <httpStatusCode>
                                 <httpCode>200</httpCode>

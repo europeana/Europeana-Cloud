@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.File;
@@ -14,6 +12,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

@@ -264,9 +264,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<licence>
-                    	UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtYWFzLXJlc3R8MjAxNi0xMC0wNnx0cnVlI01Dd0NGRlo5ZDIxTXJWNTBmUmgxUGZZc2tJWmpsYmp2QWhSa2tWZjZ3OWN0TU1hTVVvRG5qcWZKcDVtU3hRPT0=
-					</licence>
+					<!--valid until January 1st, 2020-->
+					<licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
 					<restModel>
 						<httpStatusCodes>
 							<httpStatusCode>

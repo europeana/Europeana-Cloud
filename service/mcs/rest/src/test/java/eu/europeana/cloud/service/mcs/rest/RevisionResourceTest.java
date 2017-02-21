@@ -35,10 +35,9 @@ import java.util.Map;
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -65,7 +64,6 @@ public class RevisionResourceTest extends JerseyTest {
     public void mockUp() throws Exception {
         ApplicationContext applicationContext = ApplicationContextUtils
                 .getApplicationContext();
-
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -100,8 +98,6 @@ public class RevisionResourceTest extends JerseyTest {
         String revisionPathWithMultipleTags = "records/{" + P_CLOUDID + "}/representations/{"
                 + P_REPRESENTATIONNAME + "}/versions/{" + P_VER + "}/revisions/{" + P_REVISION_NAME + "}/revisionProvider/{" + P_REVISION_PROVIDER_ID + "}/tags";
         revisionWebTargetWithMultipleTags = target(revisionPathWithMultipleTags).resolveTemplates(revisionPathParamsWithTag);
-
-
     }
 
     @After
@@ -154,15 +150,6 @@ public class RevisionResourceTest extends JerseyTest {
         Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
         assertEquals(response.getStatus(), 405);
     }
-
-    @Test
-    public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullUpdateDate() throws Exception {
-        revision.setUpdateTimeStamp(null);
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
-        assertEquals(response.getStatus(), 405);
-
-    }
-
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
@@ -246,30 +233,31 @@ public class RevisionResourceTest extends JerseyTest {
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        String revisionId = RevisionUtils.getRevisionKey(revisionForDataProvider
-                .getRevisionProviderId(), revisionForDataProvider.getRevisionName());
         verify(dataSetService,times(1)).addDataSetsRevisions(
                 dataProvider.getId(),
                 dataSet.getId(),
-                revisionId,
+                revisionForDataProvider,
                 rep.getRepresentationName(),
                 rep.getCloudId());
     }
 
     @Test
-    public void shouldNotAssignDataSetOfDifferentProvider() throws Exception {
+    public void shouldProperlyUpdateAllRevisionDatasetsEntries() throws Exception {
         //given
         DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-        dataSetService.addAssignment(dataProvider.getId(),dataSet.getId(),rep.getCloudId(),rep.getRepresentationName
-                (),rep.getVersion());
+        dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
+                (), rep.getVersion());
 
         //when
-        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revision));
+        Response response = revisionWebTarget.request().accept(MediaType.APPLICATION_JSON).post(Entity.json(revisionForDataProvider));
 
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 201);
-        verify(dataSetService,times(0)).addDataSetsRevisions(anyString(),anyString(),
-                anyString(),anyString(),anyString());
+        verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(
+                rep.getCloudId(),
+                rep.getRepresentationName(),
+                rep.getVersion(),
+                revisionForDataProvider);
     }
 }

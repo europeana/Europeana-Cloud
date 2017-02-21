@@ -4,18 +4,14 @@ package eu.europeana.cloud.service.dps.storm.logging;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.storm.metric.api.IMetricsConsumer;
+import org.apache.storm.task.IErrorReporter;
+import org.apache.storm.task.TopologyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.metric.LoggingMetricsConsumer;
-import backtype.storm.metric.api.IMetricsConsumer;
-import backtype.storm.task.IErrorReporter;
-import backtype.storm.task.TopologyContext;
 
-/**
- * Similar to {@link LoggingMetricsConsumer}
- * 
- */
+
 public class SimpleLoggingMetricsConsumer implements IMetricsConsumer {
 	
     public static final Logger LOG = LoggerFactory.getLogger(SimpleLoggingMetricsConsumer.class);

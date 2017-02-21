@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import backtype.storm.task.OutputCollector;
+
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
