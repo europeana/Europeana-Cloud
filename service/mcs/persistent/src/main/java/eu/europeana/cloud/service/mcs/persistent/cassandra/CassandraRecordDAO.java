@@ -62,6 +62,8 @@ public class CassandraRecordDAO {
 
     private PreparedStatement getLatestRepresentationRevisionStatement;
 
+    private PreparedStatement getAllVersionsForRevisionNameStatement;
+
     private PreparedStatement removeFileStatement;
 
     private PreparedStatement getFilesStatement;
@@ -162,6 +164,18 @@ public class CassandraRecordDAO {
                 .prepare("SELECT version_id, files, revision_timestamp FROM representation_revisions WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? LIMIT 1;");
         getLatestRepresentationRevisionStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
+        getAllVersionsForRevisionNameStatement = s
+                .prepare("SELECT " +
+                                "cloud_id, " +
+                                "representation_id, " +
+                                "revision_provider_id, " +
+                                "revision_name, " +
+                                "revision_timestamp, " +
+                                "version_id " +
+                            "FROM representation_revisions " +
+                            "WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? and revision_timestamp > ? LIMIT 100");
+        getAllVersionsForRevisionNameStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         insertRepresentationRevisionStatement = s
                 .prepare("INSERT INTO representation_revisions (cloud_id, representation_id, version_id, revision_provider_id, revision_name, revision_timestamp) VALUES (?,?,?,?,?,?);");
@@ -605,6 +619,39 @@ public class CassandraRecordDAO {
             return representationRevision;
         }
         return null;
+    }
+
+    /**
+     * Retreives all versions of given representation (cloudId and representation name) that has specified revision name (revision providerId and revisionName).
+     * Revision timestamp is not taken into acount here.
+     *
+     * @param cloudId
+     * @param representationName
+     * @param revision
+     * @param firstTimestamp used for result pagination
+     * @return
+     */
+    public List<Representation> getAllRepresentationVersionsForRevisionName(String cloudId, String representationName, Revision revision, Date firstTimestamp) {
+
+        if (firstTimestamp == null) {
+            firstTimestamp = new Date(0);
+        }
+
+        BoundStatement statement = getAllVersionsForRevisionNameStatement.bind(cloudId, representationName, revision.getRevisionProviderId(), revision.getRevisionName(), firstTimestamp);
+        ResultSet rs = connectionProvider.getSession().execute(statement);
+
+        rs.getExecutionInfo().getPagingState();
+        QueryTracer.logConsistencyLevel(statement, rs);
+
+        List<Representation> results = new ArrayList<>();
+        for (Row row : rs) {
+            Representation rep = new Representation();
+            rep.setCloudId(row.getString("cloud_id"));
+            rep.setRepresentationName(row.getString("representation_id"));
+            rep.setVersion(row.getUUID("version_id").toString());
+            results.add(rep);
+        }
+        return results;
     }
 
 

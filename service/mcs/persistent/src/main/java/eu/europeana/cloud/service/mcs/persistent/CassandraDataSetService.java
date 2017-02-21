@@ -134,6 +134,15 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private void updateLatestProviderDatasetRevisions(String providerId, String dataSetId, String recordId, String schema, String version, Map<String, Revision> latestRevisions) {
+        //
+        Representation rep = new Representation();
+        rep.setCloudId(recordId);
+        rep.setRepresentationName(schema);
+        rep.setVersion(version);
+        DataSet ds = new DataSet();
+        ds.setId(dataSetId);
+        ds.setProviderId(providerId);
+        //
         if (!latestRevisions.isEmpty()) {
             for (String revisionKey : latestRevisions.keySet()) {
                 Revision latestRevision = latestRevisions.get(revisionKey);
@@ -142,6 +151,7 @@ public class CassandraDataSetService implements DataSetService {
                     dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
                             recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getCreationTimeStamp(), version,
                             latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
+                    dataSetDAO.addLatestRevisionForDatasetAssignment(ds, rep, latestRevision);
                 }
             }
         }
@@ -185,7 +195,7 @@ public class CassandraDataSetService implements DataSetService {
                 dataProvider.getPartitionKey());
 
 
-        Set<String> deletedRevisions = new HashSet<>();
+        Set<Revision> deletedRevisions = new HashSet<>();
         if (representation != null) {
             for (Revision revision : representation.getRevisions()) {
                 String revisionName = revision.getRevisionName();
@@ -194,7 +204,7 @@ public class CassandraDataSetService implements DataSetService {
                 if (!deletedRevisions.contains(revisionId)) {
                     dataSetDAO.deleteLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
                             recordId, schema, revisionName, revisionProvider);
-                    deletedRevisions.add(revisionId);
+                    deletedRevisions.add(revision);
                 }
                 dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
                 dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getCreationTimeStamp());
@@ -203,12 +213,68 @@ public class CassandraDataSetService implements DataSetService {
             }
         }
 
-        //In here to update the latest provider revisions table
-        if (!deletedRevisions.isEmpty()) {
+        //
+        DataSet dataSet = new DataSet();
+        dataSet.setProviderId(providerId);
+        dataSet.setId(dataSetId);
+        //
+        findNewRepresentationVersionsWithLatestRevisions(dataSet,deletedRevisions,representation);
+    }
 
+    private void findNewRepresentationVersionsWithLatestRevisions(DataSet dataSet, Set<Revision> deletedRevisions, Representation representation) {
+        if (!deletedRevisions.isEmpty()) {
+            for (Revision deletedRevision : deletedRevisions) {
+                findNewRepresentationVersionWithLatestRevision(representation, deletedRevision, dataSet);
+            }
         }
     }
 
+    private void findNewRepresentationVersionWithLatestRevision(Representation unassignedRepresentation, Revision revision, DataSet dataset){
+
+        List<Representation> representations = recordDAO.getAllRepresentationVersionsForRevisionName(
+                unassignedRepresentation.getCloudId(),
+                unassignedRepresentation.getRepresentationName(),
+                revision,
+                null);
+
+        for (Representation representation : representations) {
+            if (!isRepresentationBeingRemoved(representation, unassignedRepresentation)) {
+                if (isRepresentationInsideDataSet(representation, dataset)) {
+                    insertRevisionAsLatestForRepresentation(representation, revision, dataset);
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean isRepresentationBeingRemoved(Representation foundRepresentation, Representation removedRepresentation) {
+        if (foundRepresentation.getVersion().equals(removedRepresentation.getVersion()))
+            return true;
+        else
+            return false;
+    }
+
+    private boolean isRepresentationInsideDataSet(Representation rep, DataSet dataSet){
+        try {
+            Collection<CompoundDataSetId> datasetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(rep.getCloudId(),rep.getRepresentationName(),rep.getVersion());
+            CompoundDataSetId compoundDataSetId = new CompoundDataSetId(dataSet.getProviderId(), dataSet.getId());
+            if(datasetIds.contains(compoundDataSetId)){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (RepresentationNotExistsException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void insertRevisionAsLatestForRepresentation(Representation rep, Revision rev, DataSet dataset){
+        dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataset.getId(), dataset.getProviderId(),
+                rep.getCloudId(), rep.getRepresentationName(), rev.getRevisionName(), rev.getRevisionProviderId(), rev.getCreationTimeStamp(), rep.getVersion(),
+                rev.isAcceptance(), rev.isPublished(), rev.isDeleted());
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataset, rep, rev);
+    }
 
     /**
      * >>>>>>> develop
