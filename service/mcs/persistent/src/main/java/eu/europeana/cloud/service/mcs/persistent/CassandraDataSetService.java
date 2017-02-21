@@ -128,8 +128,8 @@ public class CassandraDataSetService implements DataSetService {
             dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
                     RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
         }
-
         updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
     }
 
@@ -270,60 +270,60 @@ public class CassandraDataSetService implements DataSetService {
         return new ResultSlice<DataSet>(nextDataSet, dataSets);
     }
 
-	@Override
-	public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
-		return dataSetDAO.getDataSets(cloudId, representationName, version);
-	}
+    @Override
+    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
+        return dataSetDAO.getDataSets(cloudId, representationName, version);
+    }
 
-	@Override
-	public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
-			throws ProviderNotExistsException, DataSetNotExistsException {
-		// check whether provider exists
-		if (!uis.existsProvider(providerId))
-			throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+    @Override
+    public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
+            throws ProviderNotExistsException, DataSetNotExistsException {
+        // check whether provider exists
+        if (!uis.existsProvider(providerId))
+            throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
 
-		// check whether data set exists
-		if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
-			throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+        // check whether data set exists
+        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+            throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
 
-		// run the query requesting one more element than items per page to determine the starting cloud id for the next slice
-		List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
+        // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
+        List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
 
-		String nextToken = null;
+        String nextToken = null;
 
-		// when the list size is one element bigger than requested it means there is going to be next slice
-		if (list.size() == limit + 1) {
-			// set token to the last from list
-			nextToken = list.get(limit).getProperty("nextSlice");
-			// remove last element of the list
-			list.remove(limit);
-		}
-		return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
-	}
+        // when the list size is one element bigger than requested it means there is going to be next slice
+        if (list.size() == limit + 1) {
+            // set token to the last from list
+            nextToken = list.get(limit).getProperty("nextSlice");
+            // remove last element of the list
+            list.remove(limit);
+        }
+        return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
+    }
 
-	private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {
-		List<CloudTagsResponse> result = new ArrayList<>(list.size());
+    private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {
+        List<CloudTagsResponse> result = new ArrayList<>(list.size());
 
-		for (Properties properties : list) {
-			result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
-					Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted")), Boolean.valueOf(properties.getProperty("acceptance"))));
-		}
+        for (Properties properties : list) {
+            result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
+                    Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted")), Boolean.valueOf(properties.getProperty("acceptance"))));
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	/**
-	 * @inheritDoc
-	 */
-	@Override
-	public void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
-									 String representationName, String cloudId)
-			throws ProviderNotExistsException{
-		if (uis.getProvider(providerId) == null) {
-			throw new ProviderNotExistsException();
-		}
-		dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision, representationName, cloudId);
-	}
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
+                                     String representationName, String cloudId)
+            throws ProviderNotExistsException {
+        if (uis.getProvider(providerId) == null) {
+            throw new ProviderNotExistsException();
+        }
+        dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision, representationName, cloudId);
+    }
 
 
     @Override
@@ -360,7 +360,6 @@ public class CassandraDataSetService implements DataSetService {
 
         // collect data sets the version is assigned to
         Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
-
         // now we have to insert rows for each data set
         for (CompoundDataSetId dsID : dataSets) {
             String datasetName = dsID.getDataSetId();
@@ -374,6 +373,7 @@ public class CassandraDataSetService implements DataSetService {
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
             dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revision, schema, globalId);
             dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(datasetProvider, datasetName), rep, revision);
+
         }
     }
 
@@ -418,24 +418,24 @@ public class CassandraDataSetService implements DataSetService {
         return result;
     }
 
-	@Override
-	public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
-			throws RepresentationNotExistsException {
-		// check whether representation exists
-		Representation rep = recordDAO.getRepresentation(globalId, schema, version);
-		if (rep == null)
-			throw new RepresentationNotExistsException(schema);
+    @Override
+    public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
+            throws RepresentationNotExistsException {
+        // check whether representation exists
+        Representation rep = recordDAO.getRepresentation(globalId, schema, version);
+        if (rep == null)
+            throw new RepresentationNotExistsException(schema);
 
-		// collect data sets the version is assigned to
-		Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
+        // collect data sets the version is assigned to
+        Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
 
-		// now we have to insert rows for each data set
-		for (CompoundDataSetId dsID : dataSets) {
-			dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
-					globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
-					revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-		}
-	}
+        // now we have to insert rows for each data set
+        for (CompoundDataSetId dsID : dataSets) {
+            dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
+                    globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
+                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+        }
+    }
 
     @Override
     public String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String

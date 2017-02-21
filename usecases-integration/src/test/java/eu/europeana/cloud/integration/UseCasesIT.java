@@ -1,9 +1,6 @@
 package eu.europeana.cloud.integration;
 
-import eu.europeana.cloud.integration.usecases.ActiveRecordsTestCase;
-import eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase;
-import eu.europeana.cloud.integration.usecases.RepresentationRevisionFilesTestCase;
-import eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase;
+import eu.europeana.cloud.integration.usecases.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +24,8 @@ public class UseCasesIT {
     private ActiveRecordsTestCase activeRecordsTestCase;
     @Autowired
     private RepresentationRevisionFilesTestCase representationRevisionFilesTestCase;
+    @Autowired
+    private IncrementalExecutionTestCase incrementalExecutionTestCase;
 
 
     @Test
@@ -35,5 +34,6 @@ public class UseCasesIT {
         updateDatasetTestCase.executeTestCase();
         activeRecordsTestCase.executeTestCase();
         representationRevisionFilesTestCase.executeTestCase();
+        incrementalExecutionTestCase.executeTestCase();
     }
 }

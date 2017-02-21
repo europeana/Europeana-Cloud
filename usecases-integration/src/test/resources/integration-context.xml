@@ -167,4 +167,8 @@
           scope="prototype">
     </bean>
 
+    <bean id="incrementalExecutionTestCase" class="eu.europeana.cloud.integration.usecases.IncrementalExecutionTestCase"
+          scope="prototype">
+    </bean>
+
   </beans>

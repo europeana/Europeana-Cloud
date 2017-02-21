@@ -49,6 +49,8 @@ public class DataSetServiceClient extends MCSClient {
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
     private static final String representationsPath; // = dataSetPath + "/representations/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
 
+    private static final String LatelyTaggedRecordsPath;
+
     private static final String revisionAndRepresentationPath;
 
     static {
@@ -89,6 +91,7 @@ public class DataSetServiceClient extends MCSClient {
                 .append("}");
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
+        LatelyTaggedRecordsPath = dataSetPath + "/latelyRevisionedVersion";
         revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
     }
 
@@ -511,7 +514,7 @@ public class DataSetServiceClient extends MCSClient {
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(String providerId, String dataSetId,
                                                                    String representationName, String revisionName,
                                                                    String revisionProviderId, String revisionTimestamp, String startFrom, Integer limit)
-            throws MCSException{
+            throws MCSException {
 
         WebTarget target = client.target(baseUrl)
                 .path(dataSetRevisionsPath)
@@ -553,9 +556,9 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException on unexpected situations
      */
     public List<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId,
-                                            String representationName, String revisionName,
-                                            String revisionProviderId, String revisionTimestamp)
-            throws MCSException{
+                                                       String representationName, String revisionName,
+                                                       String revisionProviderId, String revisionTimestamp)
+            throws MCSException {
 
         List<CloudTagsResponse> resultList = new ArrayList<>();
         ResultSlice<CloudTagsResponse> resultSlice;
@@ -563,7 +566,7 @@ public class DataSetServiceClient extends MCSClient {
         do {
             resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
                     revisionName, revisionProviderId, revisionTimestamp, startFrom, null);
-            if (resultSlice == null || resultSlice.getResults() == null){
+            if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
@@ -750,6 +753,46 @@ public class DataSetServiceClient extends MCSClient {
         } while (resultSlice.getNextSlice() != null);
 
         return resultList;
+    }
+
+
+    /**
+     * Gives the versionId of specified representation that has the newest revision (by revision timestamp) with given name.
+     *
+     * @param dataSetId          dataset identifier
+     * @param providerId         dataset owner
+     * @param cloudId            representation cloud identifier
+     * @param representationName representation name
+     * @param revisionName       revision name
+     * @param revisionProviderId revision owner
+     * @return version identifier of representation
+     * @throws DataSetNotExistsException
+     */
+    public String getLatelyTaggedRecords(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId)
+            throws MCSException {
+
+        WebTarget target = client.target(this.baseUrl).path(LatelyTaggedRecordsPath)
+                .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
+                .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
+                .queryParam(ParamConstants.F_CLOUDID, cloudId)
+                .queryParam(ParamConstants.F_REPRESENTATIONNAME, representationName)
+                .queryParam(ParamConstants.F_REVISION_NAME, revisionName)
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, revisionProviderId);
+
+        Response response = null;
+        try {
+            response = target.request().get();
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(String.class);
+            } else {
+                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+                throw MCSExceptionProvider.generateException(errorInfo);
+            }
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
     }
 
 }

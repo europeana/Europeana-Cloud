@@ -311,7 +311,7 @@ public class RecordServiceClient extends MCSClient {
                                     InputStream data,
                                     String fileName,
                                     String mediaType) throws MCSException {
-        WebTarget target = client.target(baseUrl).path(represtationNamePath+"/files")
+        WebTarget target = client.target(baseUrl).path(represtationNamePath + "/files")
                 .resolveTemplate(P_CLOUDID, cloudId)
                 .resolveTemplate(P_REPRESENTATIONNAME, representationName);
         Builder request = target.request();
@@ -319,7 +319,7 @@ public class RecordServiceClient extends MCSClient {
         FormDataMultiPart multipart = prepareRequestBody(providerId, data, fileName, mediaType);
 
         Response response = null;
-        request.header("Content-Type","multipart/form-data");
+        request.header("Content-Type", "multipart/form-data");
         try {
             response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
             if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
@@ -357,10 +357,10 @@ public class RecordServiceClient extends MCSClient {
     }
 
     private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
-        FormDataMultiPart requestBody =  new FormDataMultiPart()
-                    .field(ParamConstants.F_PROVIDER, providerId)
-                    .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                    .field(ParamConstants.F_FILE_MIME, mediaType);
+        FormDataMultiPart requestBody = new FormDataMultiPart()
+                .field(ParamConstants.F_PROVIDER, providerId)
+                .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                .field(ParamConstants.F_FILE_MIME, mediaType);
 
         if (fileName != null && !"".equals(fileName.trim())) {
             requestBody.field(ParamConstants.F_FILE_NAME, fileName);
@@ -702,7 +702,7 @@ public class RecordServiceClient extends MCSClient {
      *
      * @param cloudId            id of the record to get representation from (required)
      * @param representationName name of the representation (required)
-     * @param revisionName         revision name (required)
+     * @param revisionName       revision name (required)
      * @param revisionProviderId revision provider identifier, together with revisionId it is used to determine the correct revision (required)
      * @return requested representation version
      * @throws RepresentationNotExistsException if specified representation does
@@ -718,8 +718,7 @@ public class RecordServiceClient extends MCSClient {
 
         if (revisionProviderId != null) {
             webtarget = webtarget.queryParam(F_REVISION_PROVIDER_ID, revisionProviderId);
-        }
-        else
+        } else
             throw new MCSException("RevisionProviderId is required");
         // revision timestamp is optional
         if (revisionTimestamp != null)
@@ -730,7 +729,6 @@ public class RecordServiceClient extends MCSClient {
         Response response = null;
         try {
             response = request.get();
-            System.out.println(response);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 RepresentationRevisionResponse representationRevisionResponse = response.readEntity(RepresentationRevisionResponse.class);
                 return representationRevisionResponse;

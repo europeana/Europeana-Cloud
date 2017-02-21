@@ -49,7 +49,6 @@ public class DatasetHelper {
         try {
             uri = dataSetServiceClient.createDataSet(providerId, datasetName, "");
         } catch (DataSetAlreadyExistsException e) {
-
         }
         addRecordsToDataset(numberOfRecords, datasetName, providerId, representationName, revisionName, tagNames, specificCloudId);
         return uri;
@@ -112,6 +111,7 @@ public class DatasetHelper {
             String version = getVersionFromFileUri(uri);
             addRevision(providerId, representationName, revisionName, tagNames, newCloudId, version);
             dataSetServiceClient.assignRepresentationToDataSet(providerId, datasetName, newCloudId, representationName, version);
+
         }
     }
 
@@ -162,4 +162,9 @@ public class DatasetHelper {
         return dataSetServiceClient.getDataSetRevisions(providerId, dataSetId, representationName, revisionName, revisionProviderId, revisionTimestamp);
     }
 
+    public String getLatelyTaggedRecords(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId)
+            throws MCSException {
+        return dataSetServiceClient.getLatelyTaggedRecords(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+
+    }
 }

@@ -7,11 +7,13 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -587,7 +589,7 @@ public class DataSetServiceClientTest {
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
         String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-        
+
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
@@ -602,7 +604,7 @@ public class DataSetServiceClientTest {
         String cloudId = "1DZ6HTS415W";
         String representationName = "schema77";
         String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-        
+
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
 
@@ -864,7 +866,7 @@ public class DataSetServiceClientTest {
         ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
                 revisionName, revisionProviderId, revisionTimestamp, null, null);
         //then
-        assertThat(cloudIds.getNextSlice(),nullValue());
+        assertThat(cloudIds.getNextSlice(), nullValue());
         assertThat(cloudIds.getResults().size(), is(2));
         CloudTagsResponse cid = cloudIds.getResults().get(0);
         assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
@@ -878,4 +880,27 @@ public class DataSetServiceClientTest {
         assertFalse(cid.isDeleted());
         assertTrue(cid.isPublished());
     }
+
+    @Betamax(tape = "dataSets_shouldRetrieveLatelyTaggedRecordsVersion")
+    @Test
+    public void shouldReturnSpecificVersion()
+            throws MCSException {
+
+
+        String providerId = "provider";
+        String dataSetId = "dataset";
+        String cloudId = "cloudId";
+        String representationName = "representation";
+        String revisionName = "revision";
+        String revisionProviderId = "revisionProvider";
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        //when
+        String version = instance.getLatelyTaggedRecords(dataSetId, providerId, cloudId, representationName, revisionName, revisionProviderId);
+        //then
+        assertNotNull(version);
+        assertEquals(version, "ef240330-f783-11e6-a0f6-1c6f653f9042");
+
+    }
+
 }
