@@ -44,7 +44,9 @@ public class File {
 	private URI contentUri;
 
     /**
-     * Indicate where file is stored
+     * Indicate where file is stored. </br>
+	 *
+	 * Default value {@link Storage#OBJECT_STORAGE}
      */
     private Storage fileStorage;
 
