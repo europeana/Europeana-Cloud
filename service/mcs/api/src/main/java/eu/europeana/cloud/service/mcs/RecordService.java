@@ -168,8 +168,7 @@ public interface RecordService {
      * @throws CannotModifyPersistentRepresentationException specified representation version is persistent so its files cannot be modified.
      */
     boolean putContent(String globalId, String schema, String version, File file, InputStream content)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException;
-
+            throws CannotModifyPersistentRepresentationException, RepresentationNotExistsException;
 
     /**
      * Copy a range of the file content to the output stream. File is identified by global identifier, schema, version

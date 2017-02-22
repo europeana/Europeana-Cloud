@@ -12,6 +12,7 @@ import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.apache.commons.io.input.NullInputStream;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
@@ -62,7 +63,7 @@ public class FileUploadResourceTest extends JerseyTest {
         rep.setVersion("versionId");
         file = new File();
         file.setFileName("fileName");
-        file.setMimeType("mime/fileSpecialMime");
+        file.setMimeType("application/octet-stream");
         Map<String, Object> allPathParams = ImmutableMap.<String, Object>of(ParamConstants.P_CLOUDID,
                 rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
                 rep.getVersion());

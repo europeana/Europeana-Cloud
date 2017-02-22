@@ -9,21 +9,21 @@
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 						http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
-    <import resource="classpath:config.xml" />
-    <task:annotation-driven/>
-
-
-    <bean class="eu.europeana.cloud.service.mcs.ApplicationContextUtils"/>
-
     <context:annotation-config/>
 
-    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
-        <constructor-arg value="524288" />
+    <!--connection provider - with options the same as in embedded cassandra-->
+    <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
+        <constructor-arg name="hosts" value="localhost" />
+        <constructor-arg name="port" value="19142" />
+        <constructor-arg name="keyspaceName" value="ecloud_test" />
+        <constructor-arg name="userName" value="" />
+        <constructor-arg name="password" value="" />
     </bean>
-    <bean id="filesResource" class="eu.europeana.cloud.service.mcs.rest.FilesResource"/>
 
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+    
+    <!--spy on everything-->
+    <mockito:spy beanName="dbService"/>
+    <mockito:spy beanName="cassandraContentDAO"/>
 
-    <mockito:mock id="cassandraRecordService" class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
-    <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
-    <mockito:mock id="mutableAclService" class="org.springframework.security.acls.model.MutableAclService"/>
 </beans>

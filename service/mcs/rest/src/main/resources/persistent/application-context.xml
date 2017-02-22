@@ -60,7 +60,20 @@
           class="eu.europeana.cloud.service.mcs.persistent.CassandraRecordService"/>
     <bean id="cassandraRecordDAO" 
           class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO"/>
-    <bean id="swiftContentDAO" 
+    <bean id="objectStoreSizeThreshold" class="java.lang.Integer">
+        <constructor-arg value="524288" />
+    </bean>
+    <bean id="dynamicContentDAO"
+          class="eu.europeana.cloud.service.mcs.persistent.DynamicContentDAO">
+        <constructor-arg>
+            <map key-type="eu.europeana.cloud.service.mcs.Storage">
+                <entry key="OBJECT_STORAGE"  value-ref="swiftContentDAO"/>
+                <entry key="DATA_BASE" value-ref="cassandraContentDAO"/>
+            </map>
+        </constructor-arg>
+    </bean>
+    <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
+    <bean id="swiftContentDAO"
           class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
     <bean id="swiftConnectionProvider" 
           class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">

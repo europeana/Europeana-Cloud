@@ -8,6 +8,7 @@ CREATE TABLE data_sets (
        PRIMARY KEY (provider_id, dataset_id)
 );
 
+
 CREATE TABLE data_set_assignments (
 	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
 	cloud_id varchar,
@@ -128,3 +129,9 @@ CREATE TABLE representation_revisions (
        files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
        PRIMARY KEY ((cloud_id, representation_id), revision_provider_id, revision_name, revision_timestamp, version_id)
 )WITH CLUSTERING ORDER BY (revision_provider_id ASC, revision_name ASC, revision_timestamp DESC, version_id ASC) AND comment='Retrieve version_id based on the rest known fields of the primary key';
+
+CREATE TABLE files_content (
+    fileName varchar,
+    data blob,
+    PRIMARY KEY (fileName)
+);

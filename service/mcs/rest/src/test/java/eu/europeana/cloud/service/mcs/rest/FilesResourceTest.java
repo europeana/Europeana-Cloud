@@ -10,31 +10,29 @@ import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-import javax.ws.rs.Path;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static org.junit.Assert.*;
 
 /**
  * FileResourceTest
@@ -68,7 +66,7 @@ public class FilesResourceTest extends JerseyTest {
         rep = recordService.createRepresentation("1", "1", "1");
         file = new File();
         file.setFileName("fileName");
-        file.setMimeType("mime/fileSpecialMime");
+        file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
             rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
@@ -107,11 +105,12 @@ public class FilesResourceTest extends JerseyTest {
         // when content is added to record representation
         FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    APPLICATION_OCTET_STREAM_TYPE);
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
-        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue
+         ());
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -139,7 +138,7 @@ public class FilesResourceTest extends JerseyTest {
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+                    APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
@@ -159,7 +158,6 @@ public class FilesResourceTest extends JerseyTest {
         assertArrayEquals(content, contentBos.toByteArray());
     }
 
-
     @Test
     public void shouldBeReturn409WhenFileAlreadyExist()
             throws Exception {
@@ -176,7 +174,7 @@ public class FilesResourceTest extends JerseyTest {
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(modifiedContent),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+                    APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CONFLICT.getStatusCode(), postFileResponse.getStatus());

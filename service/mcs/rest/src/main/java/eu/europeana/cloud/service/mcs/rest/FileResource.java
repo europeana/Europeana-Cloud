@@ -8,6 +8,9 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.rest.exceptionmappers.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream;
+import eu.europeana.cloud.service.mcs.rest.storage.selector.StorageSelector;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.rest.storage.selector.PreBufferedInputStream.wrap;
 
 /**
  * Resource to manage representation version's files with their content.
@@ -47,14 +51,14 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 @Component
 @Scope("request")
 public class FileResource {
+    private static final String HEADER_RANGE = "Range";
 
     @Autowired
     private RecordService recordService;
-
-    private static final String HEADER_RANGE = "Range";
-
 	@Autowired
 	private MutableAclService mutableAclService;
+    @Autowired
+    private Integer objectStoreSizeThreshold;
 
     private final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
@@ -98,15 +102,18 @@ public class FileResource {
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileNotExistsException {
         ParamUtil.require(F_FILE_DATA, data);
-
-        // For throw  FileNotExistsException if specified file does not exist.
-        recordService.getFile(globalId, schema, version, fileName);
-
+        ParamUtil.require(F_FILE_MIME, mimeType);
         File f = new File();
         f.setMimeType(mimeType);
         f.setFileName(fileName);
 
-        recordService.putContent(globalId, schema, version, f, data);
+        PreBufferedInputStream prebufferedInputStream = wrap(data, objectStoreSizeThreshold);
+        f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
+
+        // For throw  FileNotExistsException if specified file does not exist.
+        recordService.getFile(globalId, schema, version, fileName);
+        recordService.putContent(globalId, schema, version, f, prebufferedInputStream);
+        IOUtils.closeQuietly(prebufferedInputStream);
         EnrichUriUtil.enrich(uriInfo, globalId, schema, version, f);
 
         return Response.status(Response.Status.NO_CONTENT).location(f.getContentUri()).tag(f.getMd5()).build();

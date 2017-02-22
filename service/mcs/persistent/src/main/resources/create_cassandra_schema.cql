@@ -1,7 +1,7 @@
-/* 
+/*
    ! IMPORTANT NOTICE !
    Due to a bug in parsing by cassandraunit, statements must end with a semicolon directly followed by 
-   a newline character - particularly, there cannot be whitespace before line end 
+   a newline character - particularly, there cannot be whitespace before line end
    This file assumes that it is executed in a particular keyspace context. 
    In order to create a keyspace, you can use e.g.
   
@@ -135,3 +135,9 @@ CREATE TABLE latest_revisions_for_dataset_assignment (
        version_id timeuuid,
        PRIMARY KEY ((provider_id, dataset_id, representation_id, cloud_id, revision_name, revision_provider_id))
 )WITH comment='Stores information about representation version that has latest revision';
+
+CREATE TABLE files_content (
+    fileName varchar,
+    data blob,
+    PRIMARY KEY (fileName)
+);
