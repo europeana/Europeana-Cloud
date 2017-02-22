@@ -784,6 +784,8 @@ public class DataSetServiceClient extends MCSClient {
             response = target.request().get();
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return response.readEntity(String.class);
+            } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+                return null;
             } else {
                 ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
                 throw MCSExceptionProvider.generateException(errorInfo);
