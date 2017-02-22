@@ -49,7 +49,7 @@ public class DataSetServiceClient extends MCSClient {
     //data-providers/{DATAPROVIDER}/data-sets/{DATASET}/representations/{REPRESENTATIONNAME}
     private static final String representationsPath; // = dataSetPath + "/representations/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
 
-    private static final String LatelyTaggedRecordsPath;
+    private static final String latelyTaggedRecordsPath;
 
     private static final String revisionAndRepresentationPath;
 
@@ -91,7 +91,7 @@ public class DataSetServiceClient extends MCSClient {
                 .append("}");
         dataSetRevisionsPath = dataSetRevisionsPathBuilder.toString();
         representationsPath = dataSetPath + "/" + ParamConstants.REPRESENTATIONS + "/{" + ParamConstants.P_REPRESENTATIONNAME + "}";
-        LatelyTaggedRecordsPath = dataSetPath + "/latelyRevisionedVersion";
+        latelyTaggedRecordsPath = dataSetPath + "/latelyRevisionedVersion";
         revisionAndRepresentationPath = dataSetPath + "/revision" + "/{" + P_REVISION_NAME + "}/" + REVISION_PROVIDER + "/{" + P_REVISION_PROVIDER_ID + "}/" + REPRESENTATIONS + "/{" + P_REPRESENTATIONNAME + "}";
     }
 
@@ -771,7 +771,7 @@ public class DataSetServiceClient extends MCSClient {
     public String getLatelyTaggedRecords(String dataSetId, String providerId, String cloudId, String representationName, String revisionName, String revisionProviderId)
             throws MCSException {
 
-        WebTarget target = client.target(this.baseUrl).path(LatelyTaggedRecordsPath)
+        WebTarget target = client.target(this.baseUrl).path(latelyTaggedRecordsPath)
                 .resolveTemplate(ParamConstants.P_PROVIDER, providerId)
                 .resolveTemplate(ParamConstants.P_DATASET, dataSetId)
                 .queryParam(ParamConstants.F_CLOUDID, cloudId)

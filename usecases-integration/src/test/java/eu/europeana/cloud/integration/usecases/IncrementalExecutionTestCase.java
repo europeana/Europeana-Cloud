@@ -10,6 +10,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -71,8 +72,10 @@ public class IncrementalExecutionTestCase {
                     revisions = getRevisions(cloudTagsResponse.getCloudId(), SOURCE_REPRESENTATION_NAME);
                     assertNotNull(revisions);
                     assertEquals(revisions.size(), 3);
-                    assertEquals(revisions.get(0).getRevisionName(), DESTINATION_REVISION_NAME);
-                    assertTrue(revisions.get(0).isDeleted());
+                    Revision destinationRevision = getDestinationRevision(revisions);
+                    assertNotNull(destinationRevision);
+                    assertEquals(destinationRevision.getRevisionName(), DESTINATION_REVISION_NAME);
+                    assertTrue(destinationRevision.isDeleted());
 
 
                 } else {
@@ -103,6 +106,15 @@ public class IncrementalExecutionTestCase {
         } finally {
             cleanUp();
         }
+    }
+
+    private Revision getDestinationRevision(List<Revision> revisions) {
+        for (Revision revision1 : revisions) {
+            if (revision1.getRevisionName().equals(DESTINATION_REVISION_NAME)) {
+                return revision1;
+            }
+        }
+        return null;
     }
 
     private List<Revision> getRevisions(String cloudId, String representationName) throws MCSException {
