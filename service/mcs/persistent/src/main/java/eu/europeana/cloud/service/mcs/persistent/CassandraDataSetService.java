@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
@@ -98,13 +99,55 @@ public class CassandraDataSetService implements DataSetService {
     public void addAssignment(String providerId, String dataSetId,
                               String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
 
-        if (ds == null) {
-            throw new DataSetNotExistsException();
+        isDataSetExists(providerId, dataSetId);
+        Representation rep = getRepresentationIfExist(recordId, schema, version);
+
+        // now - when everything is validated - add assignment
+        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
+                rep.getVersion());
+        DataProvider dataProvider = uis.getProvider(providerId);
+        dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+
+        representationIndexer.addAssignment(rep.getVersion(),
+                new CompoundDataSetId(providerId, dataSetId),
+                dataProvider.getPartitionKey());
+
+
+        Map<String, Revision> latestRevisions = new HashMap<>();
+
+        for (Revision revision : rep.getRevisions()) {
+            String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
+            Revision currentRevision = latestRevisions.get(revisionKey);
+            if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
+                latestRevisions.put(revisionKey, revision);
+            }
+            dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
+                    schema, recordId);
+
+            dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
+                    RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
+                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
         }
+        updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
+    }
 
-        // check if representation exists
+    private void updateLatestProviderDatasetRevisions(String providerId, String dataSetId, String recordId, String schema, String version, Map<String, Revision> latestRevisions) {
+        if (!latestRevisions.isEmpty()) {
+            for (String revisionKey : latestRevisions.keySet()) {
+                Revision latestRevision = latestRevisions.get(revisionKey);
+                Date latestStoredRevisionTimestamp = dataSetDAO.getLatestRevisionTimeStamp(dataSetId, providerId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), recordId);
+                if (latestStoredRevisionTimestamp == null || latestStoredRevisionTimestamp.getTime() < latestRevision.getCreationTimeStamp().getTime()) {
+                    dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
+                            recordId, schema, latestRevision.getRevisionName(), latestRevision.getRevisionProviderId(), latestRevision.getCreationTimeStamp(), version,
+                            latestRevision.isAcceptance(), latestRevision.isPublished(), latestRevision.isDeleted());
+                }
+            }
+        }
+    }
+
+    private Representation getRepresentationIfExist(String recordId, String schema, String version) throws RepresentationNotExistsException {
         Representation rep;
         if (version == null) {
             rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
@@ -118,32 +161,9 @@ public class CassandraDataSetService implements DataSetService {
                 throw new RepresentationNotExistsException();
             }
         }
-
-        // now - when everything is validated - add assignment
-        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
-                rep.getVersion());
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
-
-        addDataSetAssignmentForAllRevisions(providerId, dataSetId, schema, rep);
-
-        representationIndexer.addAssignment(rep.getVersion(),
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
-        for (Revision revision : rep.getRevisions())
-            dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
-                    RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
-                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+        return rep;
     }
 
-    private void addDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String schema, Representation rep) {
-        for (Revision revision : rep.getRevisions()) {
-            if (revision != null) {
-                dataSetDAO.addDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision),
-                        schema, rep.getCloudId());
-            }
-        }
-    }
 
     /**
      * @inheritDoc
@@ -151,10 +171,7 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void removeAssignment(String providerId, String dataSetId,
                                  String recordId, String schema, String versionId) throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
+        isDataSetExists(providerId, dataSetId);
 
         dataSetDAO.removeAssignment(providerId, dataSetId, recordId, schema, versionId);
         DataProvider dataProvider = uis.getProvider(providerId);
@@ -163,27 +180,39 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         Representation representation = recordDAO.getRepresentation(recordId, schema, versionId);
-        removeDataSetAssignmentForAllRevisions(providerId, dataSetId, recordId, schema, representation);
         representationIndexer.removeAssignment(recordId, schema,
                 new CompoundDataSetId(providerId, dataSetId),
                 dataProvider.getPartitionKey());
 
-        Representation rep = recordDAO.getRepresentation(recordId, schema, versionId);
-        if (rep != null) {
-            for (Revision revision : rep.getRevisions())
-                dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getUpdateTimeStamp());
+
+        Set<String> deletedRevisions = new HashSet<>();
+        if (representation != null) {
+            for (Revision revision : representation.getRevisions()) {
+                String revisionName = revision.getRevisionName();
+                String revisionProvider = revision.getRevisionProviderId();
+                String revisionId = revisionName + "_" + revisionProvider;
+                if (!deletedRevisions.contains(revisionId)) {
+                    dataSetDAO.deleteLatestProviderDatasetRepresentationInfo(dataSetId, providerId,
+                            recordId, schema, revisionName, revisionProvider);
+                    deletedRevisions.add(revisionId);
+                }
+                dataSetDAO.removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
+                dataSetDAO.deleteProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, schema, revision.getCreationTimeStamp());
+                DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+                dataSetDAO.removeLatestRevisionForDatasetAssignment(ds, representation, revision);
+            }
+        }
+
+        //In here to update the latest provider revisions table
+        if (!deletedRevisions.isEmpty()) {
+
         }
     }
 
-    private void removeDataSetAssignmentForAllRevisions(String providerId, String dataSetId, String recordId, String schema, Representation representation) {
-        if (representation != null) {
-            for (Revision revision : representation.getRevisions())
-                if (revision != null)
-                    dataSetDAO.removeDataSetsRevision(providerId, dataSetId, RevisionUtils.getRevisionKey(revision), schema, recordId);
-        }
-    }
 
     /**
+     * >>>>>>> develop
+     *
      * @inheritDoc
      */
     @Override
@@ -242,64 +271,65 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     @Override
-    public Set<String> getDataSets(String providerId, String cloudId, String representationName, String version) {
-        return dataSetDAO.getDataSets(providerId, cloudId, representationName, version);
+    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
+        return dataSetDAO.getDataSets(cloudId, representationName, version);
+    }
+
+    @Override
+    public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
+            throws ProviderNotExistsException, DataSetNotExistsException {
+        // check whether provider exists
+        if (!uis.existsProvider(providerId))
+            throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+
+        // check whether data set exists
+        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+            throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+
+        // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
+        List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
+
+        String nextToken = null;
+
+        // when the list size is one element bigger than requested it means there is going to be next slice
+        if (list.size() == limit + 1) {
+            // set token to the last from list
+            nextToken = list.get(limit).getProperty("nextSlice");
+            // remove last element of the list
+            list.remove(limit);
+        }
+        return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
+    }
+
+    private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {
+        List<CloudTagsResponse> result = new ArrayList<>(list.size());
+
+        for (Properties properties : list) {
+            result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
+                    Boolean.valueOf(properties.getProperty("published")), Boolean.valueOf(properties.getProperty("deleted")), Boolean.valueOf(properties.getProperty("acceptance"))));
+        }
+
+        return result;
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
-
-        if (ds == null) {
-            throw new DataSetNotExistsException();
-        }
-        dataSetDAO.deleteDataSet(providerId, dataSetId);
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        representationIndexer.removeAssignmentsFromDataSet(
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
-    }
-
-    @Override
-    public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws ProviderNotExistsException, DataSetNotExistsException {
-        if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
-            return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        }
-        return Collections.emptySet();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public List<String> getDataSetsRevisions(String providerId, String dataSetId, String revisionId, String representationName, String startFrom, int limit) {
-        if (startFrom == null) {
-            return dataSetDAO.getDataSetsRevision(providerId, dataSetId, revisionId, representationName, limit);
-        } else {
-            return dataSetDAO.getDataSetsRevisionWithPagination(providerId, dataSetId, revisionId, representationName, startFrom, limit);
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public void addDataSetsRevisions(String providerId, String dataSetId, String revisionId,
+    public void addDataSetsRevisions(String providerId, String dataSetId, Revision revision,
                                      String representationName, String cloudId)
             throws ProviderNotExistsException {
         if (uis.getProvider(providerId) == null) {
             throw new ProviderNotExistsException();
         }
-        dataSetDAO.addDataSetsRevision(providerId, dataSetId, revisionId, representationName, cloudId);
+        dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision, representationName, cloudId);
     }
 
+
     @Override
-    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String dataSetId, String providerId, String representationName, Date dateFrom, String startFrom, int numberOfElementsPerPage)
+    public ResultSlice<CloudVersionRevisionResponse> getDataSetCloudIdsByRepresentationPublished(String
+                                                                                                         dataSetId, String providerId, String representationName, Date dateFrom, String startFrom,
+                                                                                                 int numberOfElementsPerPage)
             throws ProviderNotExistsException, DataSetNotExistsException {
         // check whether provider and data set exist
         validateRequest(dataSetId, providerId);
@@ -319,6 +349,60 @@ public class CassandraDataSetService implements DataSetService {
         return new ResultSlice<>(nextToken, prepareResponseList(list));
     }
 
+
+    @Override
+    public void updateAllRevisionDatasetsEntries(String globalId, String schema, String
+            version, Revision revision)
+            throws RepresentationNotExistsException {
+        Representation rep = recordDAO.getRepresentation(globalId, schema, version);
+        if (rep == null)
+            throw new RepresentationNotExistsException(schema);
+
+        // collect data sets the version is assigned to
+        Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
+        // now we have to insert rows for each data set
+        for (CompoundDataSetId dsID : dataSets) {
+            String datasetName = dsID.getDataSetId();
+            String datasetProvider = dsID.getDataSetProviderId();
+            String revisionId = RevisionUtils.getRevisionKey(revision);
+            dataSetDAO.insertProviderDatasetRepresentationInfo(datasetName, datasetProvider,
+                    globalId, version, schema, revisionId, revision.getCreationTimeStamp(),
+                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.insertLatestProviderDatasetRepresentationInfo(datasetName, datasetProvider,
+                    globalId, schema, revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), version,
+                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+            dataSetDAO.addDataSetsRevision(datasetProvider, datasetName, revision, schema, globalId);
+            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(datasetProvider, datasetName), rep, revision);
+
+        }
+    }
+
+    @Override
+    public void deleteDataSet(String providerId, String dataSetId)
+            throws DataSetNotExistsException {
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+
+        if (ds == null) {
+            throw new DataSetNotExistsException();
+        }
+        dataSetDAO.deleteDataSet(providerId, dataSetId);
+        DataProvider dataProvider = uis.getProvider(providerId);
+        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
+        representationIndexer.removeAssignmentsFromDataSet(
+                new CompoundDataSetId(providerId, dataSetId),
+                dataProvider.getPartitionKey());
+    }
+
+    @Override
+    public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws
+            ProviderNotExistsException, DataSetNotExistsException {
+        if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
+            return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
+        }
+        return Collections.emptySet();
+    }
+
+
     private List<CloudVersionRevisionResponse> prepareResponseList(List<Properties> list) {
         List<CloudVersionRevisionResponse> result = new ArrayList<>(list.size());
 
@@ -334,24 +418,6 @@ public class CassandraDataSetService implements DataSetService {
         return result;
     }
 
-
-    @Override
-    public CloudIdAndTimestampResponse getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionId, String representationName, Date dateFrom)
-            throws ProviderNotExistsException, DataSetNotExistsException {
-        validateRequest(dataSetId, providerId);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionId, representationName, dateFrom, null, new CloudIdAndTimestampResponse());
-        return cloudIdAndTimestampResponse;
-    }
-
-    private void validateRequest(String dataSetId, String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
-        if (!uis.existsProvider(providerId))
-            throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
-
-        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
-            throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
-    }
-
-
     @Override
     public void updateProviderDatasetRepresentation(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException {
@@ -366,9 +432,39 @@ public class CassandraDataSetService implements DataSetService {
         // now we have to insert rows for each data set
         for (CompoundDataSetId dsID : dataSets) {
             dataSetDAO.insertProviderDatasetRepresentationInfo(dsID.getDataSetId(), dsID.getDataSetProviderId(),
-                    globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getUpdateTimeStamp(),
+                    globalId, version, schema, RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
                     revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
         }
+    }
+
+    @Override
+    public String getLatestVersionForGivenRevision(String dataSetId, String providerId, String cloudId, String
+            representationName, String revisionName, String revisionProviderId) throws DataSetNotExistsException {
+        if (isDataSetExists(providerId, dataSetId)) {
+            DataSet dataset = new DataSet();
+            dataset.setProviderId(providerId);
+            dataset.setId(dataSetId);
+            //
+            Representation rep = new Representation();
+            rep.setCloudId(cloudId);
+            rep.setRepresentationName(representationName);
+            //
+            Revision revision = new Revision();
+            revision.setRevisionName(revisionName);
+            revision.setRevisionProviderId(revisionProviderId);
+
+            DataSetRepresentationForLatestRevision result = dataSetDAO.getRepresentationForLatestRevisionFromDataset(dataset, rep, revision);
+            if (result != null) {
+                return result.getRepresentation().getVersion();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void addLatestRevisionForGivenVersionInDataset(DataSet dataSet, Representation representation, Revision
+            revision) {
+        dataSetDAO.addLatestRevisionForDatasetAssignment(dataSet, representation, revision);
     }
 
     private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
@@ -390,6 +486,7 @@ public class CassandraDataSetService implements DataSetService {
         byte[] paramsJoined = Joiner.on('\n').join(parts)
                 .getBytes(Charset.forName("UTF-8"));
         return BaseEncoding.base32().encode(paramsJoined);
+
     }
 
     private List<String> decodeParams(String encodedParams) {
@@ -398,5 +495,47 @@ public class CassandraDataSetService implements DataSetService {
                 Charset.forName("UTF-8"));
         return Splitter.on('\n').splitToList(paramsDecodedString);
     }
+
+
+    /**
+     * get a list of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
+     * This list will contain one row per revision per cloudId;
+     *
+     * @param dataSetId               data set identifier
+     * @param providerId              provider identifier
+     * @param revisionName            revision name
+     * @param revisionProvider        revision provider
+     * @param representationName      representation name
+     * @param startFrom               cloudId to start from
+     * @param isDeleted               revision marked-deleted
+     * @param numberOfElementsPerPage number of elements in a slice
+     * @return slice of the latest cloud identifier,revision timestamp that belong to data set of a specified provider for a specific representation and revision.
+     * This list will contain one row per revision per cloudId ;
+     * @throws ProviderNotExistsException
+     * @throws DataSetNotExistsException
+     */
+
+    @Override
+    public ResultSlice<CloudIdAndTimestampResponse> getLatestDataSetCloudIdByRepresentationAndRevision(String dataSetId, String providerId, String revisionName, String revisionProvider, String representationName, String startFrom, Boolean isDeleted, int numberOfElementsPerPage)
+            throws ProviderNotExistsException, DataSetNotExistsException {
+
+        validateRequest(dataSetId, providerId);
+        List<CloudIdAndTimestampResponse> list = dataSetDAO.getLatestDataSetCloudIdByRepresentationAndRevision(providerId, dataSetId, revisionName, revisionProvider, representationName, startFrom, isDeleted, numberOfElementsPerPage);
+        String nextToken = null;
+        if (list.size() == numberOfElementsPerPage + 1) {
+            nextToken = list.get(numberOfElementsPerPage).getCloudId();
+            list.remove(numberOfElementsPerPage);
+        }
+        return new ResultSlice<>(nextToken, list);
+    }
+
+    private void validateRequest(String dataSetId, String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
+        if (!uis.existsProvider(providerId))
+            throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
+
+        if (dataSetDAO.getDataSet(providerId, dataSetId) == null)
+            throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
+    }
+
 
 }

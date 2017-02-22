@@ -1,7 +1,6 @@
 package eu.europeana.cloud.integration;
 
-import eu.europeana.cloud.integration.usecases.CreateDatasetFromDatasetOfAnotherProviderTestCase;
-import eu.europeana.cloud.integration.usecases.UpdateDatasetTestCase;
+import eu.europeana.cloud.integration.usecases.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +20,20 @@ public class UseCasesIT {
     private CreateDatasetFromDatasetOfAnotherProviderTestCase createDatasetFromDatasetOfAnotherProviderTestCase;
     @Autowired
     private UpdateDatasetTestCase updateDatasetTestCase;
+    @Autowired
+    private ActiveRecordsTestCase activeRecordsTestCase;
+    @Autowired
+    private RepresentationRevisionFilesTestCase representationRevisionFilesTestCase;
+    @Autowired
+    private IncrementalExecutionTestCase incrementalExecutionTestCase;
+
 
     @Test
     public void testCreateDatasetFromDatasetOfAnotherProviderTestCase() throws Exception {
         createDatasetFromDatasetOfAnotherProviderTestCase.executeTestCase();
         updateDatasetTestCase.executeTestCase();
+        activeRecordsTestCase.executeTestCase();
+        representationRevisionFilesTestCase.executeTestCase();
+        incrementalExecutionTestCase.executeTestCase();
     }
 }

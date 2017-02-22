@@ -4,6 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
@@ -40,12 +41,13 @@ public class NotificationBolt extends BaseRichBolt {
     private final String keyspaceName;
     private final String userName;
     private final String password;
-    private LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
+    private static LRUCache<Long, NotificationCache> cache = new LRUCache<Long, NotificationCache>(
             100);
 
     private String topologyName;
-    private CassandraTaskInfoDAO taskInfoDAO;
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private static CassandraConnectionProvider cassandraConnectionProvider;
+    private static CassandraTaskInfoDAO taskInfoDAO;
+    private static CassandraSubTaskInfoDAO subTaskInfoDAO;
     private static final int PROCESSED_INTERVAL = 100;
 
     /**
@@ -65,6 +67,7 @@ public class NotificationBolt extends BaseRichBolt {
         this.keyspaceName = keyspaceName;
         this.userName = userName;
         this.password = password;
+
     }
 
     @Override
@@ -110,18 +113,20 @@ public class NotificationBolt extends BaseRichBolt {
                         notificationTuple.getParameters());
                 if (nCache.isComplete()) {
                     storeFinishState(taskId, processesFilesCount);
-                } else if (processesFilesCount % PROCESSED_INTERVAL == 0)
-                    taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
+                } else {
+                    if ((processesFilesCount % PROCESSED_INTERVAL) == 0)
+                        taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
+                }
                 break;
         }
     }
 
     @Override
     public void prepare(Map stormConf, TopologyContext tc, OutputCollector oc) {
-        CassandraConnectionProvider cassandra = new CassandraConnectionProvider(hosts, port, keyspaceName,
+        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        taskInfoDAO = new CassandraTaskInfoDAO(cassandra);
-        subTaskInfoDAO = new CassandraSubTaskInfoDAO(cassandra);
+        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
         this.stormConfig = stormConf;
         this.topologyContext = tc;
@@ -172,7 +177,7 @@ public class NotificationBolt extends BaseRichBolt {
         subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 
-    private class NotificationCache {
+    private static class NotificationCache {
         int totalSize;
         int processed = 0;
 
@@ -191,8 +196,13 @@ public class NotificationBolt extends BaseRichBolt {
         public int getProcessed() {
             return processed;
         }
+
+
     }
 
+    public static void clearCache() {
+        cache.clear();
+    }
 
     private int getExpectedSize(long taskId) throws TaskInfoDoesNotExistException {
         TaskInfo task = taskInfoDAO.searchById(taskId);

@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
@@ -14,10 +16,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -26,6 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -37,6 +44,13 @@ public class CassandraRecordService implements RecordService {
 
     @Autowired
     private CassandraRecordDAO recordDAO;
+
+
+    @Autowired
+    private CassandraDataSetService dataSetService;
+
+    @Autowired
+    private CassandraDataSetDAO dataSetDAO;
 
     @Autowired
     private DynamicContentDAO contentDAO;
@@ -113,6 +127,7 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void deleteRepresentation(String globalId, String schema)
             throws RepresentationNotExistsException {
+
         List<Representation> listRepresentations = recordDAO.listRepresentationVersions(globalId, schema);
 
         sortByProviderId(listRepresentations);
@@ -132,6 +147,20 @@ public class CassandraRecordService implements RecordService {
                 } catch (FileNotExistsException ex) {
                     LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                             f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
+                }
+            }
+
+            for (Revision r : rep.getRevisions()) {
+                recordDAO.deleteRepresentationRevision(globalId, schema, rep.getVersion(), r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
+            }
+
+            Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, rep.getVersion());
+            if (!compoundDataSetIds.isEmpty()) {
+                for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+                    try {
+                        dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, rep.getVersion());
+                    } catch (DataSetNotExistsException e) {
+                    }
                 }
             }
         }
@@ -217,7 +246,22 @@ public class CassandraRecordService implements RecordService {
                         f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
             }
         }
+
+        for (Revision r : rep.getRevisions()) {
+            recordDAO.deleteRepresentationRevision(globalId, schema, version, r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
+        }
+
+        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, version);
+        if (!compoundDataSetIds.isEmpty()) {
+            for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+                try {
+                    dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, version);
+                } catch (DataSetNotExistsException e) {
+                }
+            }
+        }
         recordDAO.deleteRepresentation(globalId, schema, version);
+
     }
 
 
@@ -295,6 +339,12 @@ public class CassandraRecordService implements RecordService {
         file.setDate(fmt.print(now));
         file.setContentLength(result.getContentLength());
         recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
+
+        for (Revision revision : representation.getRevisions()) {
+            // update information in extra table
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), file);
+        }
+
         return isCreate;
     }
 
@@ -428,7 +478,20 @@ public class CassandraRecordService implements RecordService {
     @Override
     public void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException {
         recordDAO.addOrReplaceRevisionInRepresentation(globalId, schema, version, revision);
+    }
 
+    @Override
+    public RepresentationRevisionResponse getRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+        return recordDAO.getRepresentationRevision(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
+    }
+
+    @Override
+    public void insertRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, String versionId, Date revisionTimestamp) {
+        // add additional association between representation version and revision
+        Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
+        recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName, revisionTimestamp);
+        for (File file : representation.getFiles())
+            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName, revisionTimestamp, file);
     }
 
     /**

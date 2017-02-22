@@ -22,6 +22,7 @@ public interface ParamConstants {
 
     String REVISIONS = "revisions";
 
+    String REVISION_PROVIDER = "revisionProvider";
 
     static final String COPY = "copy";
 
@@ -90,12 +91,20 @@ public interface ParamConstants {
     static final String F_DATASETS = "dataSets";
 
     static final String F_TAG = "tag";
+
     static final String F_TAGS = "tags";
 
+    static final String IS_DELETED = "deleted";
+
+    static final String F_REVISION_TIMESTAMP = "revisionTimestamp";
+
+    static final String F_REVISION_PROVIDER_ID = "revisionProviderId";
+
     static final String P_REVISION_NAME = "REVISION_NAME";
-    static final String REVISION_PROVIDER = "revisionProvider";
 
     static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
+
+    static final String F_REVISION_NAME = "revisionName";
 
     //header paramiters' names
     static final String H_RANGE = "Range";

@@ -32,6 +32,9 @@ public class ServiceExceptionTranslatorAspectTest {
     @Autowired
     private RecordService cassandraRecordService;
 
+	@Autowired
+	private DataSetService cassandraDataSetService;
+
     @Autowired
     private DataSetService dataSetService;
 

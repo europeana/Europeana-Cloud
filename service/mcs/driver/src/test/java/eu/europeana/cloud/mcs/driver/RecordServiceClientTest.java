@@ -6,6 +6,8 @@ import co.freeside.betamax.TapeMode;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
+import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -931,4 +933,22 @@ public class RecordServiceClientTest {
         InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
     };
+
+
+    @Betamax(tape = "records_shouldRetrieveRepresentationRevision")
+    @Test
+    public void shouldRetrieveRepresentationRevision() throws MCSException {
+
+        RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs/");
+
+        // retrieve representation revision
+        RepresentationRevisionResponse representationRevisionResponse = instance.getRepresentationRevision("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", "t1", "DEREFERENCE", "EF", "2017-01-04T08:11:27.336");
+        assertNotNull(representationRevisionResponse);
+        assertEquals("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ", representationRevisionResponse.getCloudId());
+        assertEquals("t1",
+                representationRevisionResponse.getRepresentationName());
+        assertEquals("f25011f0-d188-11e6-91ce-50e5493601c6", representationRevisionResponse.getVersion());
+        assertEquals("EF", representationRevisionResponse.getRevisionProviderId());
+        assertEquals("DEREFERENCE", representationRevisionResponse.getRevisionName());
+    }
 }

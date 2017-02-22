@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -14,8 +15,6 @@ import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +26,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -75,7 +76,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                 .existsCloudId(Mockito.anyString());
 
         rep = recordService.createRepresentation("1", "1", "1");
-        revisionForDataProvider = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID);
+        revisionForDataProvider = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, new Date(), true, true, true);
 
         String dataSetPath = DataSetResource.class.getAnnotation(Path.class).value();
 
@@ -118,25 +119,46 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
     @Test
     public void shouldProperlyReturnCloudIdAndTimestamp() throws Exception {
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(null);
+        assertEquals(cloudIdAndTimestampResponseList.get(0).getCloudId(), rep.getCloudId());
+    }
+
+    @Test
+    public void shouldProperlyReturnCloudIdAndTimestampWhenDeleted() throws Exception {
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(true);
+        assertEquals(cloudIdAndTimestampResponseList.get(0).getCloudId(), rep.getCloudId());
+    }
+
+    @Test
+    public void shouldReturnEmptyResults() throws Exception {
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(false);
+        assertTrue(cloudIdAndTimestampResponseList.isEmpty());
+    }
+
+    private List<CloudIdAndTimestampResponse> getDataSetCloudIdsByRepresentationAndRevisionSuccessfully(Boolean isDeleted) throws ProviderNotExistsException, DataSetAlreadyExistsException, RevisionIsNotValidException, DataSetNotExistsException, RepresentationNotExistsException {
         //given
         PrepareTest(dataProvider.getId(), DATE_SET_NAME);
 
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
+        makeExistsProviderPass();
 
-
-        String dateFrom = "2016-5-05";
         //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, isDeleted).request().get();
         //then
+        assertSuccessfulCallToLatestRevisionAndRepresentation(response);
+        ResultSlice<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseResultSlice = response.readEntity(ResultSlice.class);
+        return cloudIdAndTimestampResponseResultSlice.getResults();
+
+    }
+
+
+    private void assertSuccessfulCallToLatestRevisionAndRepresentation(Response response) {
         assertNotNull(response);
         assertEquals(response.getStatus(), 200);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = response.readEntity(CloudIdAndTimestampResponse.class);
-        assertEquals(cloudIdAndTimestampResponse.getCloudId(), rep.getCloudId());
-        DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
-        assertTrue(cloudIdAndTimestampResponse.getRevisionTimestamp().getTime() > utc.getMillis());
+    }
 
-
+    private void makeExistsProviderPass() {
+        Mockito.doReturn(true).when(uisHandler)
+                .existsProvider("1");
     }
 
     private void PrepareTest(String providerId, String datasetName) throws ProviderNotExistsException, DataSetAlreadyExistsException, RevisionIsNotValidException, DataSetNotExistsException, RepresentationNotExistsException {
@@ -148,35 +170,12 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldReturnEmptyCloudIdAndTimestampWithBigDate() throws Exception {
-        //given
-        PrepareTest(dataProvider.getId(), DATE_SET_NAME);
-
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
-
-
-        String dateFrom = "3000-12-12";
-        //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
-        //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 200);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = response.readEntity(CloudIdAndTimestampResponse.class);
-        assertTrue(cloudIdAndTimestampResponse.isEmpty());
-
-
-    }
-
-    @Test
     public void shouldReturnDataSetNotExistError() throws Exception {
 
         PrepareTest(dataProvider.getId(), "None_Existed_Dataset");
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
+        makeExistsProviderPass();
 
-        String dateFrom = "2016-5-05";
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, null).request().get();
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
         ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
@@ -189,7 +188,6 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
         //given
         PrepareTest("1", DATE_SET_NAME);
 
-        String dateFrom = "2016-5-05";
         //when
 
         Map<String, Object> revisionAndRepresentationNoneExistedProviderId = ImmutableMap
@@ -201,7 +199,7 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
                         dataProvider.getId());
 
         revisionAndRepresenttaionWebTargetInsideDataSet = target(revisionAndRepresentationPath).resolveTemplates(revisionAndRepresentationNoneExistedProviderId);
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
+        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_START_FROM, null).queryParam(IS_DELETED, null).request().get();
         //then
         assertNotNull(response);
         assertEquals(response.getStatus(), 404);
@@ -210,22 +208,4 @@ public class DataSetRevisionTimeStampResourceTest extends JerseyTest {
 
 
     }
-
-    @Test
-    public void shouldReturnBadRequestWhenDateisNotValid() throws Exception {
-        //given
-        PrepareTest(dataProvider.getId(), DATE_SET_NAME);
-
-        Mockito.doReturn(true).when(uisHandler)
-                .existsProvider("1");
-
-
-        String dateFrom = "None-Valid-Date";
-        //when
-        Response response = revisionAndRepresenttaionWebTargetInsideDataSet.queryParam(F_DATE_FROM, dateFrom).request().get();
-        //then
-        assertNotNull(response);
-        assertEquals(response.getStatus(), 400);
-    }
-
 }

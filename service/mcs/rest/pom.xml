@@ -297,9 +297,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <licence>
-                        UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtbWNzLXJlc3R8MjAxNy0wMS0xNXxmYWxzZSNNQzBDRkdyREJmZjZRdzQvTlJaVTliKzZjZ3E5bU5JSUFoVUFsZWZBMVhSaDI2UGpqVy9venppa0dqdDBIRlk9
-                    </licence>
+                    <!--valid until January 1st, 2020-->
+                    <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
                     <restModel>
                         <httpStatusCodes>
                             <httpStatusCode>

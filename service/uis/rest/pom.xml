@@ -461,10 +461,9 @@
                 </execution>
             </executions>
             <configuration>
-                <licence> <!-- MireDot free open source license, valid until 2017-01-15 -->
-                        UHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuZWNsb3VkLXNlcnZpY2UtdWlzLXJlc3R8MjAxNy0wMS0xNXxmYWxzZSNNQ3dDRkdMbHdnL1VLTGw2RXVMZkZXYi93anBKaWQvMUFoUmNsYWxYZkN3TzFFRXlDWmdLbkpaelJiU3p6dz09
-                    </licence>
-                    <restModel>
+                <!--valid until January 1st, 2020-->
+                <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
+                <restModel>
                         <httpStatusCodes>
                             <httpStatusCode>
                                 <httpCode>200</httpCode>
