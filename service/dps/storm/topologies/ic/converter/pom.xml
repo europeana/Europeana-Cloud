@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps-storm-topologies-ic</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>0.6-SNAPSHOT</version>
+        <version>0.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
