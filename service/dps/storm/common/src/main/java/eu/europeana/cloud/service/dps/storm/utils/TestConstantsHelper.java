@@ -11,6 +11,7 @@ public interface TestConstantsHelper {
     static final String RESULT = "result";
     static final String SOURCE = "source";
     static final String CLOUD_ID = "CloudId";
+    static final String CLOUD_ID2 = "CloudId2";
     static final String REPRESENTATION_NAME = "RepresentationName";
     static final String VERSION = "Version";
     static final String FILE = "FileName";
@@ -41,6 +42,10 @@ public interface TestConstantsHelper {
 
     static final int NUM_WORKERS = 1;
 
+
+    static final String TASK_NAME = "TASK_NAME";
+    static final String REVISION_NAME = "REVISION_NAME";
+    static final String REVISION_PROVIDER = "REVISION_PROVIDER";
 
     static final String TEST_END_BOLT = "testEndBolt";
     static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.IC_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
