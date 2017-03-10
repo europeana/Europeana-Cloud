@@ -98,6 +98,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, "REPRESENTATION_NAME");
         String topologyName = "ic_topology";
         prepareMocks(topologyName);
 
@@ -113,6 +114,26 @@ public class TopologyTasksResourceTest extends JerseyTest {
         }
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
+
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws MCSException {
+        //given
+        DpsTask task = new DpsTask("icTask");
+        task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        String topologyName = "ic_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
 
     @Test
     public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws MCSException {

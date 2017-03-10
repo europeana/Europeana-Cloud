@@ -192,12 +192,12 @@ public class TopologyTasksResource {
                         String createdTaskUrl = buildTaskUrl(uriInfo, task, topologyName);
                         Response response = Response.created(new URI(createdTaskUrl)).build();
                         taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.PENDING.toString(), "The task is in a pending mode, it is being processed before submission", sentTime);
+                        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
                         int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
                         task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
                         submitService.submitTask(task, topologyName);
-                        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
                         LOGGER.info("Task submitted successfully");
                         taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
                     } catch (URISyntaxException e) {

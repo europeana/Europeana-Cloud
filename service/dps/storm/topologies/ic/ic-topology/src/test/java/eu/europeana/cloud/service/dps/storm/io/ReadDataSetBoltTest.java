@@ -85,9 +85,9 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
 
     {
         List<File> files = new ArrayList<>();
-        List<Revision>  revisions = new ArrayList<>();
+        List<Revision> revisions = new ArrayList<>();
         files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files,revisions, false, new Date());
+        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
         return representation;
     }
 
@@ -103,6 +103,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
     private HashMap<String, String> prepareStormTaskTupleParameters(String dataSetUrl) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
+        parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.DATASET_URL, dataSetUrl);
         return parameters;
     }
