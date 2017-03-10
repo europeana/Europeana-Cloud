@@ -76,7 +76,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                         if (revisionTimestamp != null) {
                             handleExactRevisions(t, dataSetServiceClient, recordServiceClient, representationName, revisionName, revisionProvider, revisionTimestamp, urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                         } else {
-                            handleLatestRevisions(t, dataSetServiceClient, recordServiceClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_SETS));
+                            handleLatestRevisions(t, dataSetServiceClient, recordServiceClient, representationName, revisionName, revisionProvider, urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS));
                         }
                     } else {
                         RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
