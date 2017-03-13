@@ -2,14 +2,17 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import java.io.*;
+import java.util.Collections;
 import java.util.HashMap;
 
 
+import eu.europeana.cloud.common.model.Revision;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -29,6 +32,7 @@ public class StormTaskTuple implements Serializable {
     private String taskName;
     private Map<String, String> parameters;
     private static final int BATCH_MAX_SIZE = 1024 * 4;
+    private List<Revision> revisionsToBeApplied = Collections.emptyList();
 
     public StormTaskTuple() {
 
@@ -44,6 +48,17 @@ public class StormTaskTuple implements Serializable {
         this.fileUrl = fileUrl;
         this.fileData = fileData;
         this.parameters = parameters;
+    }
+
+    public StormTaskTuple(long taskId, String taskName, String fileUrl,
+                          byte[] fileData, Map<String, String> parameters, List<Revision> revisions) {
+        this(taskId, taskName, fileUrl, fileData, parameters);
+
+        if(revisions == null){
+            this.revisionsToBeApplied = Collections.emptyList();
+        }else{
+            this.revisionsToBeApplied = revisions;
+        }
     }
 
     public String getFileUrl() {
@@ -109,6 +124,22 @@ public class StormTaskTuple implements Serializable {
 
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    public void setRevisionsToBeApplied(List<Revision> revisionsToBeApplied) {
+        if (revisionsToBeApplied == null) {
+            this.revisionsToBeApplied = Collections.emptyList();
+        } else {
+            this.revisionsToBeApplied = revisionsToBeApplied;
+        }
+    }
+
+    public List<Revision> getRevisionsToBeApplied() {
+        return revisionsToBeApplied;
+    }
+
+    public boolean hasRevisionsToBeApplied(){
+        return revisionsToBeApplied.size() > 0;
     }
 
     public static StormTaskTuple fromStormTuple(Tuple tuple) {

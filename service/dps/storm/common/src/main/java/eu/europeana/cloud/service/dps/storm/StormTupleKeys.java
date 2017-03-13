@@ -23,4 +23,6 @@ public final class StormTupleKeys {
 	
 	public static final String PARAMETERS_TUPLE_KEY = "PARAMETERS";
 
+	public static final String REVISIONS = "REVISIONS";
+
 }

@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -62,6 +63,10 @@ public class RevisionServiceClient extends MCSClient {
         client = JerseyClientBuilder.newClient()
                 .register(MultiPartFeature.class)
                 .register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
+    }
+
+    public void useAuthorizationHeader(final String headerValue) {
+        client.register(new ECloudBasicAuthFilter(headerValue));
     }
 
     /**
