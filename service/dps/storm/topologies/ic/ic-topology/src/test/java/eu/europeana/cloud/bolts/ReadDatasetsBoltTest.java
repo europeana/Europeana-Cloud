@@ -3,7 +3,6 @@ package eu.europeana.cloud.bolts;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetsBolt;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -23,9 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 
-public class ReadDatasetsBoltTest implements TestConstantsHelper {
+public class ReadDatasetsBoltTest {
 
     private ReadDatasetsBolt instance;
     private OutputCollector oc;

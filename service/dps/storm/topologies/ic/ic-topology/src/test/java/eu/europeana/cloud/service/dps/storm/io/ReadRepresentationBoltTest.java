@@ -2,16 +2,11 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
+import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -35,8 +30,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
-public class ReadRepresentationBoltTest implements TestConstantsHelper {
+public class ReadRepresentationBoltTest {
 
     private ReadRepresentationBolt instance;
     private OutputCollector oc;
@@ -45,6 +41,7 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
     private final byte[] FILE_DATA = null;
     private FileServiceClient fileClient;
+    private TestHelper testHelper;
 
 
     @Before
@@ -52,6 +49,7 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
         instance = getTestInstance("http://localhost:8080/mcs", oc);
+        testHelper = new TestHelper();
     }
 
     @Captor
@@ -60,27 +58,19 @@ public class ReadRepresentationBoltTest implements TestConstantsHelper {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        Representation representation = prepareRepresentation();
+        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation));
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
-        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
+        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
         assertFile(exptectedFileUrl, allValues);
         verifyNoMoreInteractions(oc);
-    }
-
-    private Representation prepareRepresentation() throws URISyntaxException {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
-        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
-        Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files,revisions, false, new Date());
-        return representation;
     }
 
 

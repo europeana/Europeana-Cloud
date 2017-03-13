@@ -4,9 +4,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -15,7 +13,7 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
+import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -37,8 +35,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
-public class ReadDataSetBoltTest implements TestConstantsHelper {
+public class ReadDataSetBoltTest  {
 
 
     private ReadDatasetBolt instance;
@@ -49,6 +48,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
     private RepresentationIterator representationIterator;
     private RecordServiceClient recordServiceClient;
     private static Date date = new Date();
+    private TestHelper testHelper;
 
 
     @Before
@@ -58,6 +58,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
         recordServiceClient = mock(RecordServiceClient.class);
         representationIterator = mock(RepresentationIterator.class);
         instance = getTestInstance("http://localhost:8080/mcs", oc);
+        testHelper = new TestHelper();
     }
 
     @Captor
@@ -67,7 +68,7 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL));
-        Representation representation = prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         when(datasetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
@@ -89,10 +90,10 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
     public void successfulStormTupleExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
         //given
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL));
-        Representation firstRepresentation = prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        Representation secondRepresentation = prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
 
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = prepareCloudIdAndTimestampResponseList();
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
         RepresentationRevisionResponse secondRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -126,10 +127,10 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL));
         tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
 
-        Representation firstRepresentation = prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-        Representation secondRepresentation = prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
 
-        List<CloudTagsResponse> cloudIdCloudTagsResponses = prepareCloudTagsResponsesList();
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
         when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -156,38 +157,6 @@ public class ReadDataSetBoltTest implements TestConstantsHelper {
         assertRepresentation(expectedSecondRepresentation, ((Map<String, String>) allValues.get(1).get(4)).get(PluginParameterKeys.REPRESENTATION));
         verifyNoMoreInteractions(oc);
     }
-
-
-    private Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
-                                                 String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException
-
-    {
-        List<File> files = new ArrayList<>();
-        List<Revision> revisions = new ArrayList<>();
-        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
-        Representation representation = new Representation(cloudId, representationName, version, new URI(fileUrl), new URI(fileUrl), dataProvider, files, revisions, persistent, creationDate);
-        return representation;
-    }
-
-    private List<CloudIdAndTimestampResponse> prepareCloudIdAndTimestampResponseList() {
-        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = new ArrayList<>();
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID, date);
-        CloudIdAndTimestampResponse cloudIdAndTimestampResponse2 = new CloudIdAndTimestampResponse(SOURCE + CLOUD_ID2, date);
-        cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse);
-        cloudIdAndTimestampResponseList.add(cloudIdAndTimestampResponse2);
-        return cloudIdAndTimestampResponseList;
-    }
-
-
-    private List<CloudTagsResponse> prepareCloudTagsResponsesList() {
-        List<CloudTagsResponse> CloudTagsResponseList = new ArrayList<>();
-        CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, true, false, false);
-        CloudTagsResponse cloudTagsResponseResponse12 = new CloudTagsResponse(SOURCE + CLOUD_ID2, true, false, false);
-        CloudTagsResponseList.add(cloudTagsResponseResponse1);
-        CloudTagsResponseList.add(cloudTagsResponseResponse12);
-        return CloudTagsResponseList;
-    }
-
 
     private void assertRepresentation(Representation expectedRepresentation, String representationJSON) {
         Type type = new TypeToken<Representation>() {

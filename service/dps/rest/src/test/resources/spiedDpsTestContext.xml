@@ -36,9 +36,17 @@
 
     <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
 
-    <mockito:mock id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
+    <mockito:mock id="filesCounterFactory"
+                  class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
+
+    <bean id="revisionFileCounterUtil"
+          class="eu.europeana.cloud.service.dps.utils.files.counter.RevisionFileCounterUtil">
+        <constructor-arg name="dataSetServiceClient" ref="dataSetServiceClient"/>
+        <constructor-arg name="recordServiceClient" ref="recordServiceClient"/>
+    </bean>
 
 
+    <mockito:mock id="urlParser" class="eu.europeana.cloud.service.commons.urls.UrlParser"/>
 
 
 </beans>

@@ -46,12 +46,13 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
-public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHelper {
+public class ICTopologyTest extends ICTestMocksHelper {
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
@@ -85,6 +86,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     private static Map<String, String> routingRules;
     private static StormTopology topology;
     private static Date date = new Date();
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.IC_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     public ICTopologyTest() {
 

@@ -5,7 +5,6 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.junit.Before;
@@ -21,10 +20,11 @@ import java.net.URISyntaxException;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.management.*"})
-public class AddResultToDataSetBoltTest implements TestConstantsHelper {
+public class AddResultToDataSetBoltTest {
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
