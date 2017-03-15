@@ -36,7 +36,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 		try {
 			if (stormTaskTuple.hasRevisionsToBeApplied()) {
 				LOGGER.info("Adding revisions to representation version: " + stormTaskTuple.getFileUrl());
-				addDefinedRevisions(stormTaskTuple.getFileUrl(), stormTaskTuple);
+				addDefinedRevisions(stormTaskTuple);
 			} else {
 				LOGGER.info("Revisions list is empty");
 			}
@@ -56,11 +56,10 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 		revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
 	}
 
-	protected void addDefinedRevisions(String versionURI, StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException {
-		final UrlParser urlParser = new UrlParser(versionURI.toString());
+	protected void addDefinedRevisions(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException {
+		final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl().toString());
 		revisionsClient.useAuthorizationHeader(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-		for (Revision revisionToBeApplied :
-				stormTaskTuple.getRevisionsToBeApplied()) {
+		for (Revision revisionToBeApplied : stormTaskTuple.getRevisionsToBeApplied()) {
 			revisionsClient.addRevision(
 					urlParser.getPart(UrlPart.RECORDS),
 					urlParser.getPart(UrlPart.REPRESENTATIONS),

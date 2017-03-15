@@ -20,6 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.mockito.Mockito.anyString;
@@ -46,7 +47,7 @@ public class RevisionWriterBoltTest {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
 		testMock.execute(new StormTaskTuple());
 
-		Mockito.verify(testMock, Mockito.times(0)).addDefinedRevisions(Mockito.anyString(), Mockito.any(StormTaskTuple.class));
+		Mockito.verify(testMock, Mockito.times(0)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
 	}
 
@@ -54,7 +55,7 @@ public class RevisionWriterBoltTest {
 	public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
 		testMock.execute(prepareTuple());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.anyString(), Mockito.any(StormTaskTuple.class));
+		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
 	}
 
@@ -62,30 +63,26 @@ public class RevisionWriterBoltTest {
 	public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
 		testMock.execute(prepareTupleWithMalformedURL());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.anyString(), Mockito.any(StormTaskTuple.class));
+		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
 
 	@Test
 	public void mcsExceptionShouldBeHandled() throws MalformedURLException, MCSException {
-		Mockito.when(revisionServiceClient.addRevision(anyString(),anyString(),anyString(),Mockito.any(Revision.class))).thenThrow(MCSException.class);
+		Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
 		testMock.execute(prepareTuple());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.anyString(), Mockito.any(StormTaskTuple.class));
+		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
 
 	private StormTaskTuple prepareTuple() {
-		StormTaskTuple tuple = new StormTaskTuple();
-		tuple.setRevisionsToBeApplied(Arrays.asList(new Revision()));
-		tuple.setFileUrl("http://sampleFileUrl");
+		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://sampleFileUrl", null, new HashMap(), Arrays.asList(new Revision()));
 		return tuple;
 	}
 
-	private StormTaskTuple prepareTupleWithMalformedURL(){
-		StormTaskTuple tuple = new StormTaskTuple();
-		tuple.setRevisionsToBeApplied(Arrays.asList(new Revision()));
-		tuple.setFileUrl("malformedURL");
+	private StormTaskTuple prepareTupleWithMalformedURL() {
+		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "malformedURL", null, new HashMap(), Arrays.asList(new Revision()));
 		return tuple;
 	}
 }

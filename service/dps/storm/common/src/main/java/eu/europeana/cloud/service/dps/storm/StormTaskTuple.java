@@ -54,9 +54,7 @@ public class StormTaskTuple implements Serializable {
                           byte[] fileData, Map<String, String> parameters, List<Revision> revisions) {
         this(taskId, taskName, fileUrl, fileData, parameters);
 
-        if(revisions == null){
-            this.revisionsToBeApplied = Collections.emptyList();
-        }else{
+        if (revisions != null) {
             this.revisionsToBeApplied = revisions;
         }
     }
@@ -124,14 +122,6 @@ public class StormTaskTuple implements Serializable {
 
     public Map<String, String> getParameters() {
         return parameters;
-    }
-
-    public void setRevisionsToBeApplied(List<Revision> revisionsToBeApplied) {
-        if (revisionsToBeApplied == null) {
-            this.revisionsToBeApplied = Collections.emptyList();
-        } else {
-            this.revisionsToBeApplied = revisionsToBeApplied;
-        }
     }
 
     public List<Revision> getRevisionsToBeApplied() {
