@@ -67,7 +67,7 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                     RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                     while (iterator.hasNext()) {
                         Representation representation = iterator.next();
-                        if (representationName == null || representation.getRepresentationName().equals(representationName)) {
+                        if (representation.getRepresentationName().equals(representationName)) {
                             StormTaskTuple next = buildStormTaskTuple(t, representation);
                             outputCollector.emit(inputTuple, next.toStormTuple());
                         }

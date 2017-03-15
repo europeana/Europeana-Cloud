@@ -59,6 +59,7 @@ public class ICTopologyTest extends ICTestMocksHelper implements TestConstantsHe
     private static final String TASK_PARAMETERS = "\"parameters\":" +
             "{\"MIME_TYPE\":\"image/tiff\"," +
             "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+            "\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
             "\"OUTPUT_DATA_SETS\":\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
             "\"taskId\":1," +

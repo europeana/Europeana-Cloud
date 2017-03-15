@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class DatasetFilesCounter extends FilesCounter {
                 RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
                 while (iterator.hasNext()) {
                     Representation representation = iterator.next();
-                    if (representationName == null || representation.getRepresentationName().equals(representationName)) {
+                    if (representation.getRepresentationName().equals(representationName)) {
                         size += representation.getFiles().size();
                     }
                 }
