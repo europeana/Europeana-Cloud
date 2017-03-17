@@ -70,21 +70,12 @@ public class ReadDataSetBoltTest {
         //given
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL));
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>();
+        representations.add(representation);
         when(datasetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
-        //when
-        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
-        //then
-        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), is(1));
-        List<Values> allValues = captor.getAllValues();
-        assertEquals(allValues.get(0).size(), 5);
-        assertTrue(allValues.get(0).get(4) instanceof Map);
-        assertRepresentation(representation, ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.REPRESENTATION));
-        verifyNoMoreInteractions(oc);
+        assertBoltExecutionResults(tuple, representations);
     }
 
 
