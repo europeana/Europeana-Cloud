@@ -24,20 +24,21 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt.getTestInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
-public class ReadDataSetBoltTest  {
+public class ReadDataSetBoltTest {
 
 
     private ReadDatasetBolt instance;
@@ -77,11 +78,12 @@ public class ReadDataSetBoltTest  {
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         //then
-        Representation expectedRepresentation = representation;
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertRepresentation(expectedRepresentation, ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.REPRESENTATION));
+        assertEquals(allValues.get(0).size(), 5);
+        assertTrue(allValues.get(0).get(4) instanceof Map);
+        assertRepresentation(representation, ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.REPRESENTATION));
         verifyNoMoreInteractions(oc);
     }
 
@@ -92,7 +94,9 @@ public class ReadDataSetBoltTest  {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL));
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
-
+        List<Representation> representations = new ArrayList<>();
+        representations.add(firstRepresentation);
+        representations.add(secondRepresentation);
         List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
 
         RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
@@ -105,18 +109,24 @@ public class ReadDataSetBoltTest  {
 
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        assertBoltExecutionResults(tuple, representations);
+    }
 
+    private void assertBoltExecutionResults(StormTaskTuple tuple, List<Representation> representations) {
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
         //then
-        Representation expectedFirstRepresentation = firstRepresentation;
-        Representation expectedSecondRepresentation = secondRepresentation;
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), is(2));
+        int expectedExecutionTimes = representations.size();
+        verify(oc, times(expectedExecutionTimes)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), is(expectedExecutionTimes));
         List<Values> allValues = captor.getAllValues();
-        assertRepresentation(expectedFirstRepresentation, ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.REPRESENTATION));
-        assertRepresentation(expectedSecondRepresentation, ((Map<String, String>) allValues.get(1).get(4)).get(PluginParameterKeys.REPRESENTATION));
+        for (int i = 0; i < expectedExecutionTimes; i++) {
+            assertEquals(allValues.get(i).size(), 5);
+            assertTrue(allValues.get(i).get(4) instanceof Map);
+            assertRepresentation(representations.get(i), ((Map<String, String>) allValues.get(i).get(4)).get(PluginParameterKeys.REPRESENTATION));
+        }
+
         verifyNoMoreInteractions(oc);
     }
 
@@ -129,6 +139,9 @@ public class ReadDataSetBoltTest  {
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>();
+        representations.add(firstRepresentation);
+        representations.add(secondRepresentation);
 
         List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
         when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
@@ -141,21 +154,7 @@ public class ReadDataSetBoltTest  {
         when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(secondRepresentationRevisionResponse);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
-        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
-
-        //when
-        instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
-        //then
-        Representation expectedFirstRepresentation = firstRepresentation;
-        Representation expectedSecondRepresentation = secondRepresentation;
-
-        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
-
-        assertThat(captor.getAllValues().size(), is(2));
-        List<Values> allValues = captor.getAllValues();
-        assertRepresentation(expectedFirstRepresentation, ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.REPRESENTATION));
-        assertRepresentation(expectedSecondRepresentation, ((Map<String, String>) allValues.get(1).get(4)).get(PluginParameterKeys.REPRESENTATION));
-        verifyNoMoreInteractions(oc);
+        assertBoltExecutionResults(tuple, representations);
     }
 
     private void assertRepresentation(Representation expectedRepresentation, String representationJSON) {
