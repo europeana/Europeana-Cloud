@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -20,25 +21,39 @@ import java.util.List;
  */
 public class DatasetFilesCounter extends FilesCounter {
     private DataSetServiceClient dataSetServiceClient;
+    private RecordServiceClient recordServiceClient;
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
 
-    DatasetFilesCounter(DataSetServiceClient dataSetServiceClient) {
+    DatasetFilesCounter(DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient) {
         this.dataSetServiceClient = dataSetServiceClient;
+        this.recordServiceClient = recordServiceClient;
     }
 
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
+        RevisionFileCounterUtil revisionFileCounterUtil = new RevisionFileCounterUtil(dataSetServiceClient, recordServiceClient);
         int size = 0;
         List<String> dataSets = task.getInputData().get(DpsTask.DATASET_URLS);
         String representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        final String revisionName = task.getParameter(PluginParameterKeys.REVISION_NAME);
+        final String revisionProvider = task.getParameter(PluginParameterKeys.REVISION_PROVIDER);
         dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
         for (String dataSet : dataSets) {
             try {
                 UrlParser urlParser = new UrlParser(dataSet);
-                RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
-                while (iterator.hasNext()) {
-                    Representation representation = iterator.next();
-                    if (representation.getRepresentationName().equals(representationName)) {
-                        size += representation.getFiles().size();
+                if (revisionName != null && revisionProvider != null) {
+                    String revisionTimestamp = task.getParameter(PluginParameterKeys.REVISION_TIMESTAMP);
+                    if (revisionTimestamp != null) {
+                        size += revisionFileCounterUtil.getFilesCountForSpecificRevisions(representationName, revisionName, revisionProvider, urlParser, revisionTimestamp);
+                    } else {
+                        size += revisionFileCounterUtil.getFilesCountForTheLatestRevisions(representationName, revisionName, revisionProvider, urlParser);
+                    }
+                } else {
+                    RepresentationIterator iterator = dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+                    while (iterator.hasNext()) {
+                        Representation representation = iterator.next();
+                        if (representationName == null || representation.getRepresentationName().equals(representationName)) {
+                            size += representation.getFiles().size();
+                        }
                     }
                 }
             } catch (MalformedURLException ex) {
@@ -51,4 +66,6 @@ public class DatasetFilesCounter extends FilesCounter {
         }
         return size;
     }
+
+
 }

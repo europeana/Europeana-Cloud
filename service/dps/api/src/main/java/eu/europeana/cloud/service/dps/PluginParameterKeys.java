@@ -66,6 +66,13 @@ public final class PluginParameterKeys {
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
 
+    //----------Revision ---------------
+
+    public static final String REVISION_NAME = "REVISION_NAME";
+    public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
+    public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
+
+
     public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
     static {

@@ -5,11 +5,11 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.KakaduConverterTiffToJP2;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.util.ImageConverterUtil;
-import eu.europeana.cloud.service.dps.storm.utils.TestConstantsHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 import static org.junit.Assert.*;
 
@@ -19,7 +19,7 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 
-public class ImageConverterServiceImplTest implements TestConstantsHelper {
+public class ImageConverterServiceImplTest {
 
     private ImageConverterServiceImpl imageConverterService;
     private ConverterContext converterContext;
