@@ -40,7 +40,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 		try {
 			if (stormTaskTuple.hasRevisionsToBeApplied()) {
 				LOGGER.info("Adding revisions to representation version: " + stormTaskTuple.getFileUrl());
-				final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl().toString());
+				final UrlParser urlParser = new UrlParser(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
 				for (Revision revisionToBeApplied : stormTaskTuple.getRevisionsToBeApplied()) {
 					revisionsClient.addRevision(
 							urlParser.getPart(UrlPart.RECORDS),
@@ -52,10 +52,9 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 				LOGGER.info("Revisions list is empty");
 			}
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			LOGGER.error("URL is malformed: " + stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
 			emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
 		} catch (MCSException e) {
-			e.printStackTrace();
 			LOGGER.warn("Error while communicating with MCS", e.getMessage());
 			emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
 		}
