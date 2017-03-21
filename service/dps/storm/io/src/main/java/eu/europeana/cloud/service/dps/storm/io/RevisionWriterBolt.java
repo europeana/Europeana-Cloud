@@ -16,7 +16,6 @@ import java.net.URI;
 
 /**
  * Adds defined revisions to given representationVersion
- *
  */
 public class RevisionWriterBolt extends AbstractDpsBolt {
 
@@ -24,27 +23,38 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
 	private String ecloudMcsAddress;
 
-	private RevisionServiceClient revisionsClient;
-
 	public RevisionWriterBolt(String ecloudMcsAddress) {
 		this.ecloudMcsAddress = ecloudMcsAddress;
 	}
 
 	@Override
 	public void execute(StormTaskTuple stormTaskTuple) {
+		RevisionServiceClient revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+		final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+		revisionsClient.useAuthorizationHeader(authorizationHeader);
+		addRevisions(stormTaskTuple, revisionsClient);
+	}
+
+	protected void addRevisions(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
 		LOGGER.info(getClass().getSimpleName() + " executed");
 		try {
 			if (stormTaskTuple.hasRevisionsToBeApplied()) {
 				LOGGER.info("Adding revisions to representation version: " + stormTaskTuple.getFileUrl());
-				addDefinedRevisions(stormTaskTuple);
+				final UrlParser urlParser = new UrlParser(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+				for (Revision revisionToBeApplied : stormTaskTuple.getRevisionsToBeApplied()) {
+					revisionsClient.addRevision(
+							urlParser.getPart(UrlPart.RECORDS),
+							urlParser.getPart(UrlPart.REPRESENTATIONS),
+							urlParser.getPart(UrlPart.VERSIONS),
+							revisionToBeApplied);
+				}
 			} else {
 				LOGGER.info("Revisions list is empty");
 			}
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			LOGGER.error("URL is malformed: " + stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
 			emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
 		} catch (MCSException e) {
-			e.printStackTrace();
 			LOGGER.warn("Error while communicating with MCS", e.getMessage());
 			emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
 		}
@@ -53,18 +63,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
 	@Override
 	public void prepare() {
-		revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+
 	}
 
-	protected void addDefinedRevisions(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException {
-		final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl().toString());
-		revisionsClient.useAuthorizationHeader(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-		for (Revision revisionToBeApplied : stormTaskTuple.getRevisionsToBeApplied()) {
-			revisionsClient.addRevision(
-					urlParser.getPart(UrlPart.RECORDS),
-					urlParser.getPart(UrlPart.REPRESENTATIONS),
-					urlParser.getPart(UrlPart.VERSIONS),
-					revisionToBeApplied);
-		}
-	}
 }

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.MalformedURLException;
@@ -26,6 +28,7 @@ import java.util.List;
 import static org.mockito.Mockito.anyString;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.management.*"})
 public class RevisionWriterBoltTest {
 
 	@Mock(name = "outputCollector")
@@ -45,25 +48,25 @@ public class RevisionWriterBoltTest {
 	@Test
 	public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.execute(new StormTaskTuple());
+		testMock.addRevisions(new StormTaskTuple(), revisionServiceClient);
 
-		Mockito.verify(testMock, Mockito.times(0)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
+		Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
 	}
 
 	@Test
 	public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.execute(prepareTuple());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
+		testMock.addRevisions(prepareTuple(), revisionServiceClient);
+		Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
 	}
 
 	@Test
 	public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.execute(prepareTupleWithMalformedURL());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
+		testMock.addRevisions(prepareTupleWithMalformedURL(), revisionServiceClient);
+		Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
 
@@ -71,18 +74,21 @@ public class RevisionWriterBoltTest {
 	public void mcsExceptionShouldBeHandled() throws MalformedURLException, MCSException {
 		Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.execute(prepareTuple());
-		Mockito.verify(testMock, Mockito.times(1)).addDefinedRevisions(Mockito.any(StormTaskTuple.class));
+		testMock.addRevisions(prepareTuple(), revisionServiceClient);
+		Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
 
 	private StormTaskTuple prepareTuple() {
-		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://sampleFileUrl", null, new HashMap(), Arrays.asList(new Revision()));
+		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, new HashMap(), Arrays.asList(new Revision()));
+		tuple.addParameter(PluginParameterKeys.OUTPUT_URL,"http://sampleFileUrl");
+
 		return tuple;
 	}
 
 	private StormTaskTuple prepareTupleWithMalformedURL() {
-		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "malformedURL", null, new HashMap(), Arrays.asList(new Revision()));
+		StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, new HashMap(), Arrays.asList(new Revision()));
+		tuple.addParameter(PluginParameterKeys.OUTPUT_URL,"malformedURL");
 		return tuple;
 	}
 }
