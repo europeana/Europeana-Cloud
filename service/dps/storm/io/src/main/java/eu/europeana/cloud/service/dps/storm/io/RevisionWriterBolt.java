@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 
 /**
  * Adds defined revisions to given representationVersion
@@ -32,22 +31,21 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 		RevisionServiceClient revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
 		final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
 		revisionsClient.useAuthorizationHeader(authorizationHeader);
-		addRevisions(stormTaskTuple, revisionsClient);
+		addRevision(stormTaskTuple, revisionsClient);
 	}
 
-	protected void addRevisions(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
+	protected void addRevision(StormTaskTuple stormTaskTuple, RevisionServiceClient revisionsClient) {
 		LOGGER.info(getClass().getSimpleName() + " executed");
 		try {
-			if (stormTaskTuple.hasRevisionsToBeApplied()) {
+			if (stormTaskTuple.hasRevisionToBeApplied()) {
 				LOGGER.info("Adding revisions to representation version: " + stormTaskTuple.getFileUrl());
 				final UrlParser urlParser = new UrlParser(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
-				for (Revision revisionToBeApplied : stormTaskTuple.getRevisionsToBeApplied()) {
-					revisionsClient.addRevision(
-							urlParser.getPart(UrlPart.RECORDS),
-							urlParser.getPart(UrlPart.REPRESENTATIONS),
-							urlParser.getPart(UrlPart.VERSIONS),
-							revisionToBeApplied);
-				}
+				Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
+				revisionsClient.addRevision(
+						urlParser.getPart(UrlPart.RECORDS),
+						urlParser.getPart(UrlPart.REPRESENTATIONS),
+						urlParser.getPart(UrlPart.VERSIONS),
+						revisionToBeApplied);
 			} else {
 				LOGGER.info("Revisions list is empty");
 			}

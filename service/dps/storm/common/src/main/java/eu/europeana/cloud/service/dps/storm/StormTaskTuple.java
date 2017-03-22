@@ -32,7 +32,7 @@ public class StormTaskTuple implements Serializable {
     private String taskName;
     private Map<String, String> parameters;
     private static final int BATCH_MAX_SIZE = 1024 * 4;
-    private List<Revision> revisionsToBeApplied = Collections.emptyList();
+    private Revision revisionToBeApplied;
 
     public StormTaskTuple() {
 
@@ -51,12 +51,9 @@ public class StormTaskTuple implements Serializable {
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters, List<Revision> revisions) {
+                          byte[] fileData, Map<String, String> parameters, Revision revision) {
         this(taskId, taskName, fileUrl, fileData, parameters);
-
-        if (revisions != null) {
-            this.revisionsToBeApplied = revisions;
-        }
+        this.revisionToBeApplied = revision;
     }
 
     public String getFileUrl() {
@@ -124,12 +121,12 @@ public class StormTaskTuple implements Serializable {
         return parameters;
     }
 
-    public List<Revision> getRevisionsToBeApplied() {
-        return revisionsToBeApplied;
+    public Revision getRevisionToBeApplied() {
+        return revisionToBeApplied;
     }
 
-    public boolean hasRevisionsToBeApplied(){
-        return revisionsToBeApplied.size() > 0;
+    public boolean hasRevisionToBeApplied() {
+        return revisionToBeApplied != null;
     }
 
     public static StormTaskTuple fromStormTuple(Tuple tuple) {
