@@ -27,6 +27,7 @@ public final class TopologyPropertyKeys {
     public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
     public static final String IC_BOLT_PARALLEL = "IC_BOLT_PARALLEL";
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
+    public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
 
     public static final String READ_DATASETS_BOLT_PARALLEL = "READ_DATASETS_BOLT_PARALLEL";
     public static final String READ_DATASET_BOLT_PARALLEL = "READ_DATASET_BOLT_PARALLEL";
@@ -43,6 +44,7 @@ public final class TopologyPropertyKeys {
     public static final String  RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS="RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
     public static final String XSLT_BOLT_NUMBER_OF_TASKS="XSLT_BOLT_NUMBER_OF_TASKS";
     public static final String  WRITE_BOLT_NUMBER_OF_TASKS="WRITE_BOLT_NUMBER_OF_TASKS";
+    public static final String  Revision_WRITER_BOLT_NUMBER_OF_TASKS="Revision_WRITER_BOLT_NUMBER_OF_TASKS";
     public static final String  READ_DATASETS_BOLT_NUMBER_OF_TASKS="READ_DATASETS_BOLT_NUMBER_OF_TASKS";
     public static final String READ_DATASET_BOLT_NUMBER_OF_TASKS="READ_DATASET_BOLT_NUMBER_OF_TASKS";
     public static final String READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS="READ_REPRESENTATION_BOLT_NUMBER_OF_TASKS";

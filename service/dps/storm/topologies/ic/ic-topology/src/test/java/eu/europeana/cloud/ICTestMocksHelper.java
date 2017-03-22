@@ -5,10 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.*;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
@@ -34,6 +31,8 @@ public class ICTestMocksHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected RepresentationIterator representationIterator;
+    protected RevisionServiceClient revisionServiceClient;
+
 
     private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
     private static Gson gson = new GsonBuilder().create();
@@ -79,6 +78,12 @@ public class ICTestMocksHelper {
     protected void mockDatSetClient() throws Exception {
         dataSetClient = Mockito.mock(DataSetServiceClient.class);
         PowerMockito.whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetClient);
+
+    }
+
+    protected void mockRevisionServiceClient() throws Exception {
+        revisionServiceClient = Mockito.mock(RevisionServiceClient.class);
+        PowerMockito.whenNew(RevisionServiceClient.class).withAnyArguments().thenReturn(revisionServiceClient);
 
     }
 

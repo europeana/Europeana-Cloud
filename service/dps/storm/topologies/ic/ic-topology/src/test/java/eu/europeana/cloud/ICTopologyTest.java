@@ -29,6 +29,7 @@ import org.apache.tika.mime.MimeTypeException;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -50,8 +51,9 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, IcBolt.class, WriteRecordBolt.class, RevisionWriterBolt.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
+
 public class ICTopologyTest extends ICTestMocksHelper {
 
     private static final String DATASET_STREAM = "DATASET_URLS";
@@ -63,31 +65,27 @@ public class ICTopologyTest extends ICTestMocksHelper {
             "\"OUTPUT_DATA_SETS\":\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
             "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
             "\"taskId\":1," +
+            "\"outputRevision\":" +
+            "{\"revisionName\":\"revisionName\"," +
+            "\"revisionProviderId\":\"revisionProvider\"," +
+            "\"creationTimeStamp\":1490178872617," +
+            "\"published\":false," +
+            "\"acceptance\":false," +
+            "\"deleted\":false}," +
             "\"taskName\":\"taskName\"}";
-    private static final String FILE_CONTENTS = "    [\n" +
-            "      116,\n" +
-            "      101,\n" +
-            "      115,\n" +
-            "      116,\n" +
-            "      67,\n" +
-            "      111,\n" +
-            "      110,\n" +
-            "      116,\n" +
-            "      101,\n" +
-            "      110,\n" +
-            "      116\n" +
-            "    ],\n" +
-            "    {\n" +
-            "      \"MIME_TYPE\": \"image/tiff\",\n" +
-            "      \"OUTPUT_MIME_TYPE\": \"image/jp2\",\n" +
-            "      \"AUTHORIZATION_HEADER\": \"AUTHORIZATION_HEADER\",\n" +
-            "    }\n" +
-            "  ]\n" +
-            "]";
+
+    private static final String TASK_PARAMETERS_WITH_NULL_REVISION = "\"parameters\":" +
+            "{\"MIME_TYPE\":\"image/tiff\"," +
+            "\"OUTPUT_MIME_TYPE\":\"image/jp2\"," +
+            "\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
+            "\"OUTPUT_DATA_SETS\":\"http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet\"," +
+            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
+            "\"taskId\":1," +
+            "\"taskName\":\"taskName\"}";
     private static Map<String, String> routingRules;
     private static StormTopology topology;
     private static Date date = new Date();
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.IC_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.IC_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     public ICTopologyTest() {
 
@@ -110,6 +108,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         mockImageCS();
         mockDPSDAO();
         mockDatSetClient();
+        mockRevisionServiceClient();
         configureMocks();
         mockRepresentationIterator();
     }
@@ -138,6 +137,19 @@ public class ICTopologyTest extends ICTestMocksHelper {
                 "{\"FILE_URLS\":" +
                 "[\"" + SOURCE_VERSION_URL + "\"]}," +
                 TASK_PARAMETERS;
+        assertTopology(input);
+
+    }
+
+    @Test
+    public final void testBasicTopologyWithEmptyOutputRevision() throws MCSException, MimeTypeException, IOException, ICSException, URISyntaxException {
+        //given
+        prepareForSingleDataset();
+
+        final String input = "{\"inputData\":" +
+                "{\"FILE_URLS\":" +
+                "[\"" + SOURCE_VERSION_URL + "\"]}," +
+                TASK_PARAMETERS_WITH_NULL_REVISION;
         assertTopology(input);
 
     }
@@ -209,17 +221,9 @@ public class ICTopologyTest extends ICTestMocksHelper {
                 "[\"" + SOURCE_DATASET_URL + "\",\"" + SOURCE_DATASET_URL2 + "\"]}," +
                 TASK_PARAMETERS;
 
-        final List<String> expectedTuples = Arrays.asList("[\n" +
-                        "  [\n" +
-                        "    1,\n" +
-                        "    \"taskName\",\n" +
-                        "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\n" +
-                        FILE_CONTENTS,
-                " [ [\n" +
-                        "    1,\n" +
-                        "    \"taskName\",\n" +
-                        "    \"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName\",\n" +
-                        FILE_CONTENTS);
+
+        final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]",
+                "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\": \"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion2/files/sourceFileName\",\"state\":\"SUCCESS\",\"additionalInfo\":\"\"}]]");
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
@@ -246,7 +250,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
         //then
         printDefaultStreamTuples(result);
 
-        List actualTuples = Testing.readTuples(result, TopologyHelper.IC_BOLT);
+        List actualTuples = Testing.readTuples(result, TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
+
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
             String expected = expectedTuples.get(i);
@@ -289,6 +294,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2)).thenReturn(secondRepresentation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION + 2, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL2));
+        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
     }
 
 
@@ -308,6 +314,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
     }
 
     private final void prepareForSingleDataSetWithLatestRevisions() throws URISyntaxException, IOException, MCSException {
@@ -331,6 +338,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
+
     }
 
 
@@ -350,6 +359,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
         when(fileServiceClient.uploadFile(anyString(), any(InputStream.class), anyString())).thenReturn(new URI(RESULT_FILE_URL));
         when(recordServiceClient.persistRepresentation(anyString(), anyString(), anyString())).thenReturn(new URI(RESULT_VERSION_URL));
+        when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
     }
 
 
@@ -360,6 +370,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         ReadDatasetBolt readDataSetBolt = new ReadDatasetBolt(MCS_URL);
         ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt(MCS_URL);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(MCS_URL);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(MCS_URL);
@@ -374,7 +385,8 @@ public class ICTopologyTest extends ICTestMocksHelper {
                 .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
         builder.setBolt(TopologyHelper.IC_BOLT, new IcBolt()).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt).shuffleGrouping(TopologyHelper.IC_BOLT);
-        builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt).shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
+        builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
@@ -385,6 +397,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
                 .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.IC_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
         topology = builder.createTopology();
 

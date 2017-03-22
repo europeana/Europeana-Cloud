@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps;
 
+import eu.europeana.cloud.common.model.Revision;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -13,104 +15,115 @@ import java.util.Map;
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-	/* Dataset Key */
-	public static final String DATASET_URLS = "DATASET_URLS";
-	
-	/* File URL Key */
-	public static final String FILE_URLS = "FILE_URLS";
+    /* Dataset Key */
+    public static final String DATASET_URLS = "DATASET_URLS";
 
-	/* List of input data (cloud-records or cloud-datasets) */
-	private Map<String, List<String>> inputData;
-	
-	/* List of parameters (specific for each dps-topology) */
-	private Map<String, String> parameters;
+    /* File URL Key */
+    public static final String FILE_URLS = "FILE_URLS";
 
-	/* Task start time */
-	private Date startTime = null;
+    /* List of input data (cloud-records or cloud-datasets) */
+    private Map<String, List<String>> inputData;
 
-	/* Task create time */
-	private Date createTime = new Date(System.currentTimeMillis());
+    /* List of parameters (specific for each dps-topology) */
+    private Map<String, String> parameters;
 
-	/* Task end time*/
-	private Date endTime = null;
-	
-	/* Unique id for this task */
-	private long taskId;
-	
-	/* Name for the task */
-	private String taskName;
+    public Revision getOutputRevision() {
+        return outputRevision;
+    }
+
+    public void setOutputRevision(Revision outputRevision) {
+        this.outputRevision = outputRevision;
+    }
+
+    /* output revision*/
+    private Revision outputRevision;
+
+    /* Task start time */
+    private Date startTime = null;
+
+    /* Task create time */
+    private Date createTime = new Date(System.currentTimeMillis());
+
+    /* Task end time*/
+    private Date endTime = null;
+
+    /* Unique id for this task */
+    private long taskId;
+
+    /* Name for the task */
+    private String taskName;
 
 
-	public DpsTask() {
-            this("");
-	}
-	
-	/**
-	 * @param taskName
-	 */
-	public DpsTask(String taskName) {
-		
-            this.taskName = taskName;
+    public DpsTask() {
+        this("");
+    }
 
-            inputData = new HashMap();
-            parameters = new HashMap();
+    /**
+     * @param taskName
+     */
+    public DpsTask(String taskName) {
 
-            taskId = UUID.randomUUID().getMostSignificantBits();
-	}
+        this.taskName = taskName;
 
-	/**
-	 * @return Unique id for this task
-	 */
-	public long getTaskId() {
-            return taskId;
-	}
-        
-	public void setTaskName(String taskName) {
-            this.taskName = taskName;
-	}
+        inputData = new HashMap();
+        parameters = new HashMap();
 
-	/**
-	 * @return Name for the task
-	 */
-	public String getTaskName() {
-            return taskName;
-	}
+        taskId = UUID.randomUUID().getMostSignificantBits();
+    }
 
-	public void addDataEntry(String dataType, List<String> data) {  
-            inputData.put(dataType, data);
-	}
-        
-        public List<String> getDataEntry(String dataType) { 
-            return inputData.get(dataType);
-	}
+    /**
+     * @return Unique id for this task
+     */
+    public long getTaskId() {
+        return taskId;
+    }
 
-	public void addParameter(String parameterKey, String parameterValue) {
-            parameters.put(parameterKey, parameterValue);
-	}
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
 
-	public String getParameter(String parameterKey) {
-            return parameters.get(parameterKey);
-	}
+    /**
+     * @return Name for the task
+     */
+    public String getTaskName() {
+        return taskName;
+    }
 
-	/**
-	 * @return List of parameters (specific for each dps-topology)
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
+    public void addDataEntry(String dataType, List<String> data) {
+        inputData.put(dataType, data);
+    }
 
-	public void setParameters(Map<String, String> parameters) {
-            this.parameters = parameters;
-	}
+    public List<String> getDataEntry(String dataType) {
+        return inputData.get(dataType);
+    }
 
-	/**
-	 * @return List of input data (cloud-records or cloud-datasets)
-	 */
-	public Map<String, List<String>> getInputData() {
-		return inputData;
-	}
+    public void addParameter(String parameterKey, String parameterValue) {
+        parameters.put(parameterKey, parameterValue);
+    }
 
-	public void setInputData(Map<String, List<String>> inputData) {
-            this.inputData = inputData;
-	}
+    public String getParameter(String parameterKey) {
+        return parameters.get(parameterKey);
+    }
+
+    /**
+     * @return List of parameters (specific for each dps-topology)
+     */
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
+    /**
+     * @return List of input data (cloud-records or cloud-datasets)
+     */
+    public Map<String, List<String>> getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(Map<String, List<String>> inputData) {
+        this.inputData = inputData;
+    }
 }

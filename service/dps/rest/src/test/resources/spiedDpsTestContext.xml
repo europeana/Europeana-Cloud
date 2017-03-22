@@ -39,6 +39,9 @@
     <mockito:mock id="filesCounterFactory"
                   class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
 
+    <mockito:mock id="filesCounter"
+                  class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter"/>
+
     <bean id="revisionFileCounterUtil"
           class="eu.europeana.cloud.service.dps.utils.files.counter.RevisionFileCounterUtil">
         <constructor-arg name="dataSetServiceClient" ref="dataSetServiceClient"/>

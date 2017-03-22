@@ -56,7 +56,7 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
 			
 			for (String fileUrl : files) {
 				LOGGER.info("emmiting..." + fileUrl);
-				collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(),  fileUrl, null, taskParameters).toStormTuple());
+				collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(),  fileUrl, null, taskParameters,null).toStormTuple());
 			}
 			
 			Utils.sleep(6000000);
