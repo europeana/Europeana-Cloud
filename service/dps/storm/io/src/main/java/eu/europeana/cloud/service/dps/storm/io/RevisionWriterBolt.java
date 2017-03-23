@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.util.Date;
 
 /**
  * Adds defined revisions to given representationVersion
@@ -41,6 +42,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                 LOGGER.info("Adding revisions to representation version: " + stormTaskTuple.getFileUrl());
                 final UrlParser urlParser = new UrlParser(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
                 Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
+                if (revisionToBeApplied.getCreationTimeStamp() == null)
+                    revisionToBeApplied.setCreationTimeStamp(new Date());
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
