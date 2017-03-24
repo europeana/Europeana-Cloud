@@ -1,18 +1,20 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ApplicationContextUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
@@ -47,6 +49,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FileServiceClient fileServiceClient;
     private CassandraTaskInfoDAO taskDAO;
     private FilesCounterFactory filesCounterFactory;
+    private FilesCounter filesCounter;
 
     @Override
     protected Application configure() {
@@ -60,6 +63,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         mutableAclService = applicationContext.getBean(MutableAclService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
         filesCounterFactory = applicationContext.getBean(FilesCounterFactory.class);
+        filesCounter = applicationContext.getBean(FilesCounter.class);
         context = applicationContext.getBean(ApplicationContext.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
@@ -69,7 +73,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTask() throws MCSException {
+    public void shouldProperlySendTask() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
@@ -92,7 +96,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithDatsetEntry() throws MCSException {
+    public void shouldProperlySendTaskWithDatsetEntry() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -115,9 +119,34 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
 
+    @Test
+    public void shouldProperlySendTaskWithDatsetEntryWithOutputRevision() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("icTask");
+        task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
+        task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
+        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.setOutputRevision(new Revision("REVISION_NAME", "REVISION_PROVIDER"));
+        String topologyName = "ic_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws MCSException {
+    public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -136,7 +165,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
 
     @Test
-    public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws MCSException {
+    public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
@@ -151,7 +180,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
-    private void prepareMocks(String topologyName) throws MCSException {
+    private void prepareMocks(String topologyName) throws MCSException, TaskSubmissionException {
         //Mock security
         HashMap<String, String> user = new HashMap<>();
         user.put(topologyName, "Smith");
@@ -165,6 +194,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
+        when(filesCounterFactory.createFilesCounter(anyString())).thenReturn(filesCounter);
+        when(filesCounter.getFilesCount(isA(DpsTask.class), anyString())).thenReturn(1);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));

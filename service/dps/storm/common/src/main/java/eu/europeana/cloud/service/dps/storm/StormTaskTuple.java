@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import java.io.*;
-import java.util.Collections;
 import java.util.HashMap;
 
 
@@ -12,7 +11,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -41,20 +39,16 @@ public class StormTaskTuple implements Serializable {
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters) {
+                          byte[] fileData, Map<String, String> parameters, Revision revision) {
 
         this.taskId = taskId;
         this.taskName = taskName;
         this.fileUrl = fileUrl;
         this.fileData = fileData;
         this.parameters = parameters;
+        revisionToBeApplied = revision;
     }
 
-    public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters, Revision revision) {
-        this(taskId, taskName, fileUrl, fileData, parameters);
-        this.revisionToBeApplied = revision;
-    }
 
     public String getFileUrl() {
         return fileUrl;
@@ -125,6 +119,10 @@ public class StormTaskTuple implements Serializable {
         return revisionToBeApplied;
     }
 
+    public void setRevisionToBeApplied(Revision revision) {
+        revisionToBeApplied = revision;
+    }
+
     public boolean hasRevisionToBeApplied() {
         return revisionToBeApplied != null;
     }
@@ -137,12 +135,14 @@ public class StormTaskTuple implements Serializable {
                 tuple.getStringByField(StormTupleKeys.INPUT_FILES_TUPLE_KEY),
                 tuple.getBinaryByField(StormTupleKeys.FILE_CONTENT_TUPLE_KEY),
                 (HashMap<String, String>) tuple
-                        .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY));
+                        .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY),
+                (Revision) tuple
+                        .getValueByField(StormTupleKeys.REVISIONS));
 
     }
 
     public Values toStormTuple() {
-        return new Values(taskId, taskName, fileUrl, fileData, parameters);
+        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied);
     }
 
     public static Fields getFields() {
@@ -151,7 +151,8 @@ public class StormTaskTuple implements Serializable {
                 StormTupleKeys.TASK_NAME_TUPLE_KEY,
                 StormTupleKeys.INPUT_FILES_TUPLE_KEY,
                 StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-                StormTupleKeys.PARAMETERS_TUPLE_KEY);
+                StormTupleKeys.PARAMETERS_TUPLE_KEY,
+                StormTupleKeys.REVISIONS);
     }
 
 

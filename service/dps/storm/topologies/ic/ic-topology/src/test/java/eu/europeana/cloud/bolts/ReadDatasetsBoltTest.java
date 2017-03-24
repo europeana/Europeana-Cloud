@@ -1,5 +1,6 @@
 package eu.europeana.cloud.bolts;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetsBolt;
@@ -45,7 +46,7 @@ public class ReadDatasetsBoltTest {
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet";
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls),new Revision());
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -66,7 +67,7 @@ public class ReadDatasetsBoltTest {
     public void successfulExecuteStormTupleProcessingDataSets() throws MCSException, URISyntaxException {
         //given
         String dataSetUrls = "http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet,http://localhost:8080/mcs/data-providers/testDataProvider/data-sets/dataSet2";
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(dataSetUrls),new Revision());
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
