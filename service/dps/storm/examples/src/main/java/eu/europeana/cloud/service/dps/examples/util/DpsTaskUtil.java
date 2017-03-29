@@ -18,8 +18,8 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
  */
 public class DpsTaskUtil {
 
-    // number of records to be included
-    private final static int DATASET_COUNT = 1;
+    // number of data sets to be included
+    private final static int DATASETS_COUNT = 1;
 
     private static String datasetURLForXSLT = "http://localhost:8080/mcs/data-providers/Tiff_tarek_final/data-sets/xsltDataset";
     private static String xsltURL = "http://localhost:8080/mcs/records/TAJZ2ZVNTXLQ6R5SMBY2MYKONUCFBFMPY2TCQNMA2ZL4CXHMATHA/representations/Tarek_Representation1/versions/29dc84f0-144b-11e7-87bb-1c6f653f9042/files/30e5772f-23e4-4910-af0f-ded2e5e883ee";
@@ -33,22 +33,12 @@ public class DpsTaskUtil {
      * @return a hardcoded {@link DpsTask}
      */
     public static DpsTask generateDpsTaskForXSLT() {
-        return generateDpsTaskForXSLT(datasetURLForXSLT, xsltURL, DATASET_COUNT);
+        return generateDpsTaskForXSLT(datasetURLForXSLT, xsltURL, DATASETS_COUNT);
     }
 
     public static DpsTask generateDpsTaskForXSLT(final String dataSetURL, final String xslt, final int recordCount) {
 
-        DpsTask task = new DpsTask();
-        task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
-
-        List<String> datasets = Lists.newArrayList();
-        for (int i = 0; i < recordCount; i++) {
-            datasets.add(dataSetURL);
-        }
-
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
-        task.addDataEntry(DpsTask.DATASET_URLS, datasets);
-        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+        DpsTask task = createDpsTask(dataSetURL, recordCount);
         task.addParameter(PluginParameterKeys.XSLT_URL, xslt);
         task.addParameter(PluginParameterKeys.OUTPUT_URL, null);
 
@@ -57,25 +47,30 @@ public class DpsTaskUtil {
 
     public static DpsTask generateDpsTaskForIc(final String dataSetURL, final int recordCount) {
 
-        DpsTask task = new DpsTask();
-        task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
-
-        List<String> datasets = Lists.newArrayList();
-        for (int i = 0; i < recordCount; i++) {
-            datasets.add(dataSetURL);
-        }
-
-        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
-        task.addDataEntry(DpsTask.DATASET_URLS, datasets);
-        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+        DpsTask task = createDpsTask(dataSetURL, recordCount);
 
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         return task;
     }
 
+    private static DpsTask createDpsTask(String dataSetURL, int recordCount) {
+        DpsTask task = new DpsTask();
+        task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
+
+        List<String> dataSets = Lists.newArrayList();
+        for (int i = 0; i < recordCount; i++) {
+            dataSets.add(dataSetURL);
+        }
+
+        String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
+        task.addDataEntry(DpsTask.DATASET_URLS, dataSets);
+        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+        return task;
+    }
+
     public static DpsTask generateDPsTaskForIC() {
-        return generateDpsTaskForIc(datasetURLForIC, DATASET_COUNT);
+        return generateDpsTaskForIc(datasetURLForIC, DATASETS_COUNT);
     }
 
 

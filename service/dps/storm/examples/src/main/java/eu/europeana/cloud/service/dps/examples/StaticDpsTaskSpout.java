@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.dps.examples;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -56,13 +54,13 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
             LOGGER.info("taskParameters size=" + taskParameters.size());
 
             List<String> dataSets = task.getDataEntry(DpsTask.DATASET_URLS);
-            LOGGER.info("files size=" + dataSets.size());
+            LOGGER.info("data Sets size=" + dataSets.size());
 
             String dataEntry = convertListToString(dataSets);
             taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
 
             for (String dataset : dataSets) {
-                LOGGER.info("emmiting..." + dataset);
+                LOGGER.info("emitting..." + dataset);
                 collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), dataset, null, taskParameters, task.getOutputRevision()).toStormTuple());
             }
 
