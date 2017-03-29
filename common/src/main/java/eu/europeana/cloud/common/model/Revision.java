@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Date;
  */
 
 @XmlRootElement
-public class Revision {
+public class Revision implements Serializable {
     private String revisionName;
     private String revisionProviderId;
     private Date creationTimeStamp;
