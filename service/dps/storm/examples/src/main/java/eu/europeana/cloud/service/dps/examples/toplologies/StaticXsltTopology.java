@@ -15,6 +15,15 @@ import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
 
+
+/**
+ * Example for XSLTTopology to read Datasets:
+ * <p/>
+ * - Creates a DpsTask using {@link StaticDpsTaskSpout}
+ * <p/>
+ * - Reads a DataSet/DataSets or part of them using Revisions from eCloud ; Reads Files inside those DataSets , transform those files using XSLT_Transform file;
+ * - Writes those transformed Files to eCloud ; Assigns them to outputRevision in case specified and assigns them to output dataSets in case specified!.
+ */
 public class StaticXsltTopology {
 
     public static void main(String[] args) throws Exception {

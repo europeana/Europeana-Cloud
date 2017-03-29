@@ -1,21 +1,11 @@
 package eu.europeana.cloud.service.dps.examples.toplologies.builder;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.tuple.Fields;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Tarek on 3/27/2017.

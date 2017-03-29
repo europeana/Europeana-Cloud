@@ -16,13 +16,12 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
 
 
 /**
- * Example ecloud topology:
+ * Example for ICTopology to read Datasets:
  * <p/>
  * - Creates a DpsTask using {@link StaticDpsTaskSpout}
  * <p/>
- * - Reads a File from eCloud
- * <p/>
- * - Writes a File to eCloud
+ * - Reads a DataSet/DataSets or part of them using Revisions from eCloud ; Reads Files inside those DataSets , converts those files into jp2;
+ * - Writes those jp2 Files to eCloud ; Assigns them to outputRevision in case specified and assigns them to output dataSets in case specified!.
  */
 public class StaticICTopology {
 

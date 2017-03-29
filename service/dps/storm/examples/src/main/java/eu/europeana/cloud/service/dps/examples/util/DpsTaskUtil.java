@@ -30,7 +30,7 @@ public class DpsTaskUtil {
 
 
     /**
-     * @return a hardcoded {@link DpsTask}
+     * @return  {@link DpsTask}
      */
     public static DpsTask generateDpsTaskForXSLT() {
         return generateDpsTaskForXSLT(datasetURLForXSLT, xsltURL, DATASETS_COUNT);
