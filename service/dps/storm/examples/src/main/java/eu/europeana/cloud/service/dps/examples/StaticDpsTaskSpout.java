@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dps.examples;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -19,68 +19,80 @@ import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 
 /**
  * Always uses the same {@link DpsTask} (instead of consuming tasks from a Kafka Topic)
- * 
+ * <p>
  * Useful for testing without having Kafka deployed.
- * 
+ *
  * @author manos
  */
 public class StaticDpsTaskSpout extends BaseRichSpout {
 
-	private SpoutOutputCollector collector;
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StaticDpsTaskSpout.class);
+    private SpoutOutputCollector collector;
 
-	/** The task to be consumed */
-	private DpsTask task;
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticDpsTaskSpout.class);
 
-	public StaticDpsTaskSpout(DpsTask task) {
-		this.task = task;
-	}
+    /**
+     * The task to be consumed
+     */
+    private DpsTask task;
 
-	@Override
-	public void open(Map conf, TopologyContext context,
-			SpoutOutputCollector collector) {
+    public StaticDpsTaskSpout(DpsTask task) {
+        this.task = task;
+    }
 
-		this.collector = collector;
-	}
+    @Override
+    public void open(Map conf, TopologyContext context,
+                     SpoutOutputCollector collector) {
 
-	@Override
-	public void nextTuple() {
+        this.collector = collector;
+    }
 
-		try {	
-			Map<String, String> taskParameters = task.getParameters();
-			LOGGER.info("taskParameters size=" + taskParameters.size());
-			
-			List<String> files = task.getDataEntry(DpsTask.FILE_URLS);
-			LOGGER.info("files size=" + files.size());
-			
-			for (String fileUrl : files) {
-				LOGGER.info("emmiting..." + fileUrl);
-				collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(),  fileUrl, null, taskParameters,null).toStormTuple());
-			}
-			
-			Utils.sleep(6000000);
+    @Override
+    public void nextTuple() {
 
-		} catch (Exception e) {
-			LOGGER.error("StaticDpsTaskSpout error:" + e.getMessage());
-		}
-	}
+        try {
+            Map<String, String> taskParameters = task.getParameters();
+            LOGGER.info("taskParameters size=" + taskParameters.size());
 
-	@Override
-	public void ack(Object id) {
-	}
+            List<String> dataSets = task.getDataEntry(DpsTask.DATASET_URLS);
+            LOGGER.info("data Sets size=" + dataSets.size());
 
-	@Override
-	public void fail(Object id) {
-	}
+            String dataEntry = convertListToString(dataSets);
+            taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
 
-	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(
-				StormTupleKeys.TASK_ID_TUPLE_KEY,
-				StormTupleKeys.TASK_NAME_TUPLE_KEY,
-				StormTupleKeys.INPUT_FILES_TUPLE_KEY,
-					StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
-						StormTupleKeys.PARAMETERS_TUPLE_KEY));
-	}
+            for (String dataset : dataSets) {
+                LOGGER.info("emitting..." + dataset);
+                collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), dataset, null, taskParameters, task.getOutputRevision()).toStormTuple());
+            }
+
+            Utils.sleep(6000000);
+
+        } catch (Exception e) {
+            LOGGER.error("StaticDpsTaskSpout error:" + e.getMessage());
+        }
+    }
+
+    @Override
+    public void ack(Object id) {
+    }
+
+    @Override
+    public void fail(Object id) {
+    }
+
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        declarer.declare(new Fields(
+                StormTupleKeys.TASK_ID_TUPLE_KEY,
+                StormTupleKeys.TASK_NAME_TUPLE_KEY,
+                StormTupleKeys.INPUT_FILES_TUPLE_KEY,
+                StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
+                StormTupleKeys.PARAMETERS_TUPLE_KEY,
+                StormTupleKeys.REVISIONS));
+    }
+
+    private String convertListToString(List<String> list) {
+        String listString = list.toString();
+        return listString.substring(1, listString.length() - 1);
+
+    }
 }

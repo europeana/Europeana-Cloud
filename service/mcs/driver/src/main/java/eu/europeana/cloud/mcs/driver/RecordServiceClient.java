@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
@@ -362,9 +363,11 @@ public class RecordServiceClient extends MCSClient {
                 .field(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .field(ParamConstants.F_FILE_MIME, mediaType);
 
-        if (fileName != null && !"".equals(fileName.trim())) {
-            requestBody.field(ParamConstants.F_FILE_NAME, fileName);
+
+        if (fileName == null || !"".equals(fileName.trim())) {
+            fileName = UUID.randomUUID().toString();
         }
+        requestBody.field(ParamConstants.F_FILE_NAME, fileName);
 
         return requestBody;
     }

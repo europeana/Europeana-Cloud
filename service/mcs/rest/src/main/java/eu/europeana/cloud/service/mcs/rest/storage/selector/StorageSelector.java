@@ -23,7 +23,8 @@ public class StorageSelector {
 
     /**
      * Creates {@link StorageSelector}.
-     * @param inputStream input stream
+     *
+     * @param inputStream   input stream
      * @param userMediaType
      */
     public StorageSelector(final PreBufferedInputStream inputStream, final String userMediaType) {
@@ -34,6 +35,7 @@ public class StorageSelector {
 
     /**
      * Select {@link Storage}.
+     *
      * @return chosen storage
      */
     public Storage selectStorage() {
@@ -42,7 +44,8 @@ public class StorageSelector {
 
     /**
      * Make decision based {@link MediaType} and data size.
-     * @param detected media type
+     *
+     * @param detected  media type
      * @param available data size
      * @return
      */
@@ -72,7 +75,7 @@ public class StorageSelector {
             throw new BadRequestException("Unable to detect mime type.", e);
         }
         if (userMediaType == null || !userMediaType.equals(detected)) {
-            throw new BadRequestException("Provided media type does not match to content media type!");
+            throw new BadRequestException("Provided media type does not match to content media type! The content media type is " + detected);
         }
         return detected;
     }

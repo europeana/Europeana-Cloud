@@ -86,7 +86,7 @@ public final class PluginParameterKeys {
         PLUGIN_PARAMETERS.put(DPS_TASK_INPUT_DATA, "DPS_TASK_INPUT_DATA");
 
         //the default value for output mimeType
-        PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/xml");
+        PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");
 
         PLUGIN_PARAMETERS.put(TASK_NAME, "TASK_NAME");
         PLUGIN_PARAMETERS.put(ROUTING, "ROUTING");

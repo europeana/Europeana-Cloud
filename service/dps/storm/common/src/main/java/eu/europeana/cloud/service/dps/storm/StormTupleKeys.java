@@ -23,6 +23,8 @@ public final class StormTupleKeys {
 	
 	public static final String PARAMETERS_TUPLE_KEY = "PARAMETERS";
 
+	public static final String DPS_TASK_INPUT_DATA = "DPS_TASK_INPUT_DATA";
+
 	public static final String REVISIONS = "REVISIONS";
 
 }

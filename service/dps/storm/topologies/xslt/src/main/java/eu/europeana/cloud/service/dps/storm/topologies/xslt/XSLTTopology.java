@@ -51,6 +51,14 @@ public class XSLTTopology {
 
     public StormTopology buildTopology(String xsltTopic, String ecloudMcsAddress) {
 
+
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
+        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+        // kafkaConfig. forceFromStart = true;
+        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+        KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
+        TopologyBuilder builder = new TopologyBuilder();
+
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(PluginParameterKeys.FILE_URLS, DATASET_STREAM);
         routingRules.put(PluginParameterKeys.DATASET_URLS, FILE_STREAM);
@@ -58,14 +66,6 @@ public class XSLTTopology {
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, xsltTopic, "", "storm");
-        kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        // kafkaConfig. forceFromStart = true;
-        kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        TopologyBuilder builder = new TopologyBuilder();
-        KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
-
         // TOPOLOGY STRUCTURE!
         builder.setSpout(TopologyHelper.SPOUT, kafkaSpout,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))

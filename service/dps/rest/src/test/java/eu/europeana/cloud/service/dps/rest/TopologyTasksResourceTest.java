@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
+
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;

@@ -39,17 +39,11 @@ public class IcBolt extends AbstractDpsBolt {
             ImageConverterService imageConverterService = new ImageConverterServiceImpl();
             imageConverterService.convertFile(stormTaskTuple);
             LOGGER.info("IC Bolt: conversion success for: {}", fileUrl);
-            StormTaskTuple next = buildStormTaskTuple(stormTaskTuple);
-            outputCollector.emit(inputTuple,stormTaskTuple.toStormTuple());
+            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
         } catch (IOException | MimeTypeException | MCSException | ICSException | RuntimeException e) {
             LOGGER.error("IC Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
             logAndEmitError(stormTaskTuple, e.getMessage());
         }
-    }
-
-    private StormTaskTuple buildStormTaskTuple(StormTaskTuple t) {
-        t.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,null);
-        return t;
     }
 
     @Override
