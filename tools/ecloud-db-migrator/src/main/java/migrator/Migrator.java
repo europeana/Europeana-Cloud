@@ -53,6 +53,11 @@ public class Migrator {
             System.exit(1);
         }
 
+        if (!serviceMatchesKeySpace(service, keySpace)) {
+            log.error("Service name: " + service + " does not match keySpace name: " + keySpace);
+            System.exit(1);
+        }
+
         MigrationExecutor executor = new MigrationExecutor(keySpace, host, Integer.parseInt(port), user, password, new
                 String[]{chosenMigrationDir});
         executor.migrate();
@@ -68,5 +73,13 @@ public class Migrator {
         options.addCliSetRequiredOption(PASSWORD, "password");
         options.addCliSetRequiredOption(SERVICE, "migrate service eg. (UIS, MCS, DLS, DPS, AAS)");
         return options;
+    }
+
+    private static boolean serviceMatchesKeySpace(String service, String keySpace) {
+        if (keySpace.toLowerCase().contains(service.toLowerCase())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
