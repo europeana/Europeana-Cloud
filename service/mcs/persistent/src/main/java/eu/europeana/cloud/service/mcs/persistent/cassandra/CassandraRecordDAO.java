@@ -42,8 +42,6 @@ public class CassandraRecordDAO {
 
     private PreparedStatement deleteRepresentationVersionStatement;
 
-    private PreparedStatement deleteRecordStatement;
-
     private PreparedStatement deleteRepresentationStatement;
 
     private PreparedStatement getRepresentationVersionStatement;
@@ -132,14 +130,6 @@ public class CassandraRecordDAO {
                 .prepare("SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files FROM representation_versions WHERE cloud_id = ? ORDER BY schema_id DESC, version_id DESC;");
         getAllRepresentationsForRecordStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-        deleteRecordStatement = s.prepare("BEGIN BATCH "
-                + "DELETE FROM representation_versions WHERE cloud_id = ? "
-                + "DELETE FROM data_set_assignments WHERE cloud_id = ? "
-                + "APPLY BATCH;");
-        deleteRecordStatement.setConsistencyLevel(connectionProvider
-                .getConsistencyLevel());
-
         deleteRepresentationStatement = s
                 .prepare("DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? ;");
         deleteRepresentationStatement.setConsistencyLevel(connectionProvider
@@ -217,20 +207,6 @@ public class CassandraRecordDAO {
             }
         }
         return new Record(cloudId, representations);
-    }
-
-    /**
-     * Deletes record with all representations and all versions. If such record
-     * doesn't exist - nothing happens.
-     *
-     * @param cloudId indentifier of record to be deleted.
-     */
-    public void deleteRecord(String cloudId) throws NoHostAvailableException,
-            QueryExecutionException {
-        BoundStatement boundStatement = deleteRecordStatement.bind(cloudId,
-                cloudId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
     /**

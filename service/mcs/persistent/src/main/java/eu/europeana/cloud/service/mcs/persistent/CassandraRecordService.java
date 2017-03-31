@@ -108,7 +108,6 @@ public class CassandraRecordService implements RecordService {
                 deleteRepresentationRevision(cloudId, repVersion);
                 recordDAO.deleteRepresentation(cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
             }
-            recordDAO.deleteRecord(cloudId);
         } else {
             throw new RecordNotExistsException(cloudId);
         }
