@@ -25,6 +25,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -174,7 +175,7 @@ public class FilesResourceTest extends JerseyTest {
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(modifiedContent),
-                    APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CONFLICT.getStatusCode(), postFileResponse.getStatus());

@@ -103,20 +103,27 @@ public class CassandraRecordService implements RecordService {
                     dPId = repVersion.getDataProvider();
                     representationIndexer.removeRecordRepresentations(cloudId, uis.getProvider(dPId).getPartitionKey());
                 }
-                for (File f : repVersion.getFiles()) {
-                    try {
-                        contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
-                                repVersion.getVersion(), f.getFileName()),f.getFileStorage());
-                    } catch (FileNotExistsException ex) {
-                        LOGGER.warn(
-                                "File {} was found in representation {}-{}-{} but no content of such file was found",
-                                f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
-                    }
-                }
+                removeFilesFromRepresentationVersion(cloudId, repVersion);
+                removeRepresentationAssignmentFromDataSets(cloudId, repVersion);
+                deleteRepresentationRevision(cloudId, repVersion);
+                recordDAO.deleteRepresentation(cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
             }
             recordDAO.deleteRecord(cloudId);
         } else {
             throw new RecordNotExistsException(cloudId);
+        }
+    }
+
+    private void removeFilesFromRepresentationVersion(String cloudId, Representation repVersion) {
+        for (File f : repVersion.getFiles()) {
+            try {
+                contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
+                        repVersion.getVersion(), f.getFileName()), f.getFileStorage());
+            } catch (FileNotExistsException ex) {
+                LOGGER.warn(
+                        "File {} was found in representation {}-{}-{} but no content of such file was found",
+                        f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
+            }
         }
     }
 
@@ -140,31 +147,17 @@ public class CassandraRecordService implements RecordService {
                 dPId = rep.getDataProvider();
                 representationIndexer.removeRepresentation(globalId, schema, uis.getProvider(dPId).getPartitionKey());
             }
-            for (File f : rep.getFiles()) {
-                try {
-                    contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, rep.getVersion(), f
-                            .getFileName()),f.getFileStorage());
-                } catch (FileNotExistsException ex) {
-                    LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                            f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
-                }
-            }
-
-            for (Revision r : rep.getRevisions()) {
-                recordDAO.deleteRepresentationRevision(globalId, schema, rep.getVersion(), r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
-            }
-
-            Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, rep.getVersion());
-            if (!compoundDataSetIds.isEmpty()) {
-                for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
-                    try {
-                        dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, rep.getVersion());
-                    } catch (DataSetNotExistsException e) {
-                    }
-                }
-            }
+            removeFilesFromRepresentationVersion(globalId, rep);
+            removeRepresentationAssignmentFromDataSets(globalId, rep);
+            deleteRepresentationRevision(globalId, rep);
         }
         recordDAO.deleteRepresentation(globalId, schema);
+    }
+
+    private void deleteRepresentationRevision(String globalId, Representation rep) {
+        for (Revision r : rep.getRevisions()) {
+            recordDAO.deleteRepresentationRevision(globalId, rep.getRepresentationName(), rep.getVersion(), r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
+        }
     }
 
 
@@ -238,30 +231,23 @@ public class CassandraRecordService implements RecordService {
         representationIndexer.removeRepresentationVersion(version, uis.getProvider(rep.getDataProvider())
                 .getPartitionKey());
 
-        for (File f : rep.getFiles()) {
-            try {
-                contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, f.getFileName()),f.getFileStorage());
-            } catch (FileNotExistsException ex) {
-                LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
-                        f.getFileName(), globalId, rep.getRepresentationName(), rep.getVersion());
-            }
-        }
+        removeFilesFromRepresentationVersion(globalId, rep);
+        removeRepresentationAssignmentFromDataSets(globalId, rep);
+        deleteRepresentationRevision(globalId, rep);
+        recordDAO.deleteRepresentation(globalId, schema, version);
 
-        for (Revision r : rep.getRevisions()) {
-            recordDAO.deleteRepresentationRevision(globalId, schema, version, r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
-        }
+    }
 
-        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, schema, version);
+    private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation) throws RepresentationNotExistsException {
+        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, representation.getRepresentationName(), representation.getVersion());
         if (!compoundDataSetIds.isEmpty()) {
             for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
                 try {
-                    dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, schema, version);
+                    dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, representation.getRepresentationName(), representation.getVersion());
                 } catch (DataSetNotExistsException e) {
                 }
             }
         }
-        recordDAO.deleteRepresentation(globalId, schema, version);
-
     }
 
 
@@ -330,7 +316,7 @@ public class CassandraRecordService implements RecordService {
         String keyForFile = FileUtils.generateKeyForFile(globalId, schema, version, file.getFileName());
         PutResult result;
         try {
-            result = contentDAO.putContent(keyForFile, content,file.getFileStorage());
+            result = contentDAO.putContent(keyForFile, content, file.getFileStorage());
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -378,8 +364,8 @@ public class CassandraRecordService implements RecordService {
         Representation rep = getRepresentation(globalId, schema, version);
         File file = findFileInRepresentation(rep, fileName);
         try {
-                contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
-                        file.getFileStorage());
+            contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
+                    file.getFileStorage());
         } catch (IOException ex) {
             throw new SystemException(ex);
         }
@@ -400,7 +386,7 @@ public class CassandraRecordService implements RecordService {
         }
         recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
         File file = findFileInRepresentation(representation, fileName);
-        contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName),file.getFileStorage());
+        contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
     }
 
 
@@ -423,14 +409,14 @@ public class CassandraRecordService implements RecordService {
             File copiedFile = new File(srcFile);
             try {
                 contentDAO.copyContent(FileUtils.generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
-                    FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()),
+                        FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()),
                         srcFile.getFileStorage());
             } catch (FileNotExistsException ex) {
                 LOGGER.warn("File {} was found in representation {}-{}-{} but no content of such file was found",
                         srcFile.getFileName(), globalId, schema, version);
             } catch (FileAlreadyExistsException ex) {
                 LOGGER.warn("File already exists in newly created representation?", copiedFile.getFileName(), globalId,
-                    schema, copiedRep.getVersion());
+                        schema, copiedRep.getVersion());
             } catch (IOException e) {
                 e.printStackTrace();
             }
