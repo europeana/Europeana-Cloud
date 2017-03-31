@@ -12,25 +12,26 @@ public class V1__Initial_DPS implements JavaMigration {
         session.execute(
                 "CREATE TABLE notifications (\n" +
                         "    task_id bigint,\n" +
+                        "    resource_num int,\n"+
                         "    topology_name text,\n" +
                         "    resource text,\n" +
                         "    additional_informations text,\n" +
                         "    info_text text,\n" +
                         "    result_resource text,\n" +
                         "    state text,\n" +
-                        "    PRIMARY KEY (task_id, topology_name, resource)\n" +
-                        ") WITH CLUSTERING ORDER BY (topology_name ASC, resource ASC);\n");
+                        "    PRIMARY KEY (task_id, resource_num)\n" +
+                        ") WITH CLUSTERING ORDER BY (resource_num ASC);\n");
 
         session.execute(
                 "CREATE TABLE basic_info (\n" +
-                        "    task_id bigint,\n" +
+                        "    task_id bigint PRIMARY KEY,\n" +
                         "    topology_name text,\n" +
                         "    expected_size int,\n" +
+                        "    finish_time timestamp,\n" +
                         "    info text,\n" +
-                        "    state text,\n" +
-                        "    PRIMARY KEY (task_id, topology_name)\n" +
-                        ") WITH CLUSTERING ORDER BY (topology_name ASC);\n");
-
-
+                        "    processed_files_count int,\n" +
+                        "    sent_time timestamp,\n" +
+                        "    start_time timestamp,\n" +
+                        "    state text)\n");
     }
 }
