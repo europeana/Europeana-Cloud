@@ -446,17 +446,26 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+        isDataSetExists(providerId, dataSetId);
+        Representation lastRepresentation = null;
+        int maxSize = 10000;
 
-        if (ds == null) {
-            throw new DataSetNotExistsException();
+        List<Representation> representations = dataSetDAO.listDataSet(providerId, dataSetId, null, null, maxSize);
+        for (Representation representation : representations) {
+            removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        }
+
+        if (representations.size() == maxSize) {
+            lastRepresentation = representations.get(maxSize - 1);
+            while (representations.size() == maxSize) {
+                representations = dataSetDAO.listDataSet(providerId, dataSetId, lastRepresentation.getCloudId(), lastRepresentation.getRepresentationName(), maxSize);
+                for (Representation representation : representations) {
+                    removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+                }
+                lastRepresentation = representations.get(representations.size() - 1);
+            }
         }
         dataSetDAO.deleteDataSet(providerId, dataSetId);
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        representationIndexer.removeAssignmentsFromDataSet(
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
     }
 
     @Override
