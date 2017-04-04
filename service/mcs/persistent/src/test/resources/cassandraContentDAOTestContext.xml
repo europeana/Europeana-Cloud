@@ -22,8 +22,6 @@
 
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
 
-    <mockito:mock id ="uisClient" class="eu.europeana.cloud.client.uis.rest.UISClient"/>
-    
     <!--spy on everything-->
     <mockito:spy beanName="dbService"/>
     <mockito:spy beanName="cassandraContentDAO"/>
