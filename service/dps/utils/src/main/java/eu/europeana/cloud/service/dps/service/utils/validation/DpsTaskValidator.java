@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 
@@ -18,6 +19,7 @@ public class DpsTaskValidator {
     
     public DpsTaskValidator(String validatorName){
         this.validatorName = validatorName;
+        addDefaultConstraints();
     }
     
     public DpsTaskValidator withParameter(String parameterName) {
@@ -155,8 +157,15 @@ public class DpsTaskValidator {
                 validateInputData(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.ID)) {
                 validateId(task, re);
+            }else if(fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)){
+                validateOutputRevision(task);
             }
         }
+    }
+
+    private void addDefaultConstraints(){
+        DpsTaskConstraint outputRevisionConstraint=  new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+        dpsTaskConstraints.add(outputRevisionConstraint);
     }
 
     private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
@@ -248,6 +257,15 @@ public class DpsTaskValidator {
         }
         throw new DpsTaskValidationException("Task id is not valid.");
     }
+
+    private void validateOutputRevision(DpsTask task) throws DpsTaskValidationException {
+        Revision outputRevision = task.getOutputRevision();
+        if (outputRevision != null) {
+            if (outputRevision.getRevisionName() == null || outputRevision.getRevisionProviderId() == null) {
+                throw new DpsTaskValidationException("Revision name and revision provider has to be not null");
+            }
+        }
+    }
 }
 
 /**
@@ -302,5 +320,6 @@ enum DpsTaskFieldType {
     PARAMETER,
     INPUT_DATA,
     ID,
-    NAME;
+    NAME,
+    OUTPUT_REVISION;
 }

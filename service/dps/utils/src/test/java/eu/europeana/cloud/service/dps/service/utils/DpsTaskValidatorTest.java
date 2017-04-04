@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
@@ -15,6 +16,9 @@ public class DpsTaskValidatorTest {
     private static final long TASK_ID = 121212;
     private DpsTask dpsTask;
     private DpsTask icTopologyTask;
+    private DpsTask dpsTaskWithIncorrectRevision_1;
+    private DpsTask dpsTaskWithIncorrectRevision_2;
+    private DpsTask dpsTaskWithIncorrectRevision_3;
 
     private static final String TASK_NAME = "taksName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
@@ -24,6 +28,7 @@ public class DpsTaskValidatorTest {
     private static final String EXISTING_DATA_ENTRY_NAME = "dataEntryName";
     private static final List<String> EXISTING_DATA_ENTRY_VALUE = Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
+    private static final Revision correctRevision = new Revision("sampleRevisionName","sampleRevisionProvider");
     @Before
     public void init() {
         dpsTask = new DpsTask();
@@ -31,11 +36,26 @@ public class DpsTaskValidatorTest {
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
+        dpsTask.setOutputRevision(correctRevision);
         //
         icTopologyTask = new DpsTask();
         icTopologyTask.addDataEntry("FILE_URLS", Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
         icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
+        //
+        dpsTaskWithIncorrectRevision_1 = new DpsTask(TASK_NAME);
+        Revision r1 = new Revision();
+        dpsTaskWithIncorrectRevision_1.setOutputRevision(r1);
+        //
+        dpsTaskWithIncorrectRevision_2 = new DpsTask(TASK_NAME);
+        Revision revisionWithoutProviderId = new Revision();
+        revisionWithoutProviderId.setRevisionName("sampleRevisionName");
+        dpsTaskWithIncorrectRevision_2.setOutputRevision(revisionWithoutProviderId);
+        //
+        dpsTaskWithIncorrectRevision_3 = new DpsTask(TASK_NAME);
+        Revision revisionWithoutName = new Revision();
+        revisionWithoutName.setRevisionProviderId("sampleRevisionProvider");
+        dpsTaskWithIncorrectRevision_3.setOutputRevision(revisionWithoutName);
     }
 
     @Test
@@ -147,6 +167,29 @@ public class DpsTaskValidatorTest {
                 .withParameter("OUTPUT_MIME_TYPE")
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);
+    }
+
+    ////
+    //Output Revision
+    ////
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_1() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_1);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_2() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_2);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_3() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_3);
+    }
+
+    @Test
+    public void validatorShouldValidateDpsTaskWithCorrectOutputRevision() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTask);
     }
 
 }
