@@ -28,7 +28,8 @@ public class DpsTaskValidatorTest {
     private static final String EXISTING_DATA_ENTRY_NAME = "dataEntryName";
     private static final List<String> EXISTING_DATA_ENTRY_VALUE = Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
-    private static final Revision correctRevision = new Revision("sampleRevisionName","sampleRevisionProvider");
+    private static final Revision correctRevision = new Revision("sampleRevisionName", "sampleRevisionProvider");
+
     @Before
     public void init() {
         dpsTask = new DpsTask();

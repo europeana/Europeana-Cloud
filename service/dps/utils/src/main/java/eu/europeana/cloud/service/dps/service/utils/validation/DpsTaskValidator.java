@@ -13,15 +13,15 @@ public class DpsTaskValidator {
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
     private String validatorName;
 
-    public DpsTaskValidator(){
+    public DpsTaskValidator() {
         this("Default validator");
     }
-    
-    public DpsTaskValidator(String validatorName){
+
+    public DpsTaskValidator(String validatorName) {
         this.validatorName = validatorName;
         addDefaultConstraints();
     }
-    
+
     public DpsTaskValidator withParameter(String parameterName) {
         DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.PARAMETER, parameterName);
 
@@ -64,7 +64,7 @@ public class DpsTaskValidator {
     /**
      * Will check if dps task contains input data with selected name (value of this input data will not be validated)
      *
-      * @param inputDataName
+     * @param inputDataName
      * @return
      */
     public DpsTaskValidator withDataEntry(String inputDataName) {
@@ -124,6 +124,7 @@ public class DpsTaskValidator {
 
     /**
      * Will check if dps task contains selected task id
+     *
      * @param taskId
      * @return
      */
@@ -132,7 +133,7 @@ public class DpsTaskValidator {
         dpsTaskConstraints.add(constraint);
         return this;
     }
-    
+
     /**
      * Will check if dps task contains any task id
      *
@@ -157,14 +158,14 @@ public class DpsTaskValidator {
                 validateInputData(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.ID)) {
                 validateId(task, re);
-            }else if(fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)){
+            } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
                 validateOutputRevision(task);
             }
         }
     }
 
-    private void addDefaultConstraints(){
-        DpsTaskConstraint outputRevisionConstraint=  new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+    private void addDefaultConstraints() {
+        DpsTaskConstraint outputRevisionConstraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
         dpsTaskConstraints.add(outputRevisionConstraint);
     }
 
@@ -223,20 +224,20 @@ public class DpsTaskValidator {
 
     private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         for (String expectedInputDataValue : expectedInputData) {
-            if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_FILE)){
+            if (constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_FILE)) {
                 try {
                     UrlParser parser = new UrlParser(expectedInputDataValue);
-                    if(parser.isUrlToRepresentationVersionFile()){
+                    if (parser.isUrlToRepresentationVersionFile()) {
                         continue;
                     }
                     throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
                 } catch (MalformedURLException e) {
                     throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
                 }
-            }else if(constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_DATASET)){
+            } else if (constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_DATASET)) {
                 try {
                     UrlParser parser = new UrlParser(expectedInputDataValue);
-                    if(parser.isUrlToDataset()){
+                    if (parser.isUrlToDataset()) {
                         continue;
                     }
                     throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
@@ -246,7 +247,7 @@ public class DpsTaskValidator {
             }
         }
     }
-            
+
     private void validateId(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         long taskId = task.getTaskId();
         if (constraint.getExpectedValue() == null) {  //any id
@@ -269,8 +270,7 @@ public class DpsTaskValidator {
 }
 
 /**
- * Holds the definition of single constraint that should be fullfiled by dpsTask  
- * 
+ * Holds the definition of single constraint that should be fullfiled by dpsTask
  */
 class DpsTaskConstraint {
     private DpsTaskFieldType fieldType;
