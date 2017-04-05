@@ -19,6 +19,9 @@ public class DpsTaskValidatorTest {
     private DpsTask dpsTaskWithIncorrectRevision_1;
     private DpsTask dpsTaskWithIncorrectRevision_2;
     private DpsTask dpsTaskWithIncorrectRevision_3;
+    private DpsTask dpsTaskWithIncorrectRevision_4;
+    private DpsTask dpsTaskWithIncorrectRevision_5;
+    private DpsTask dpsTaskWithIncorrectRevision_6;
 
     private static final String TASK_NAME = "taksName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
@@ -57,6 +60,25 @@ public class DpsTaskValidatorTest {
         Revision revisionWithoutName = new Revision();
         revisionWithoutName.setRevisionProviderId("sampleRevisionProvider");
         dpsTaskWithIncorrectRevision_3.setOutputRevision(revisionWithoutName);
+        //
+        dpsTaskWithIncorrectRevision_4 = new DpsTask(TASK_NAME);
+        Revision revisionWithEmptyName = new Revision();
+        revisionWithEmptyName.setRevisionProviderId("sampleRevisionProvider");
+        revisionWithEmptyName.setRevisionName("");
+        dpsTaskWithIncorrectRevision_4.setOutputRevision(revisionWithEmptyName);
+        //
+        dpsTaskWithIncorrectRevision_5 = new DpsTask(TASK_NAME);
+        Revision revisionWithEmptyProviderId = new Revision();
+        revisionWithEmptyProviderId.setRevisionProviderId("");
+        revisionWithEmptyProviderId.setRevisionName("sampleRevisionName");
+        dpsTaskWithIncorrectRevision_5.setOutputRevision(revisionWithEmptyProviderId);
+        //
+        dpsTaskWithIncorrectRevision_6 = new DpsTask(TASK_NAME);
+        Revision revisionWithEmptyProviderIdAndName = new Revision();
+        revisionWithEmptyProviderIdAndName.setRevisionProviderId("");
+        revisionWithEmptyProviderIdAndName.setRevisionName("");
+        dpsTaskWithIncorrectRevision_6.setOutputRevision(revisionWithEmptyProviderIdAndName);
+        //
     }
 
     @Test
@@ -186,6 +208,21 @@ public class DpsTaskValidatorTest {
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatOutputRevisionIsNotCorrect_3() throws DpsTaskValidationException {
         new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_3);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_4() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_4);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_5() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_5);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_6() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithIncorrectRevision_6);
     }
 
     @Test
