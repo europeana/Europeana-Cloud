@@ -399,6 +399,7 @@ public class CassandraRecordService implements RecordService {
             throw new CannotModifyPersistentRepresentationException();
         }
         recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
+        recordDAO.removeFileFromRepresentationRevisionsTable(representation, fileName);
         File file = findFileInRepresentation(representation, fileName);
         contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName),file.getFileStorage());
     }
