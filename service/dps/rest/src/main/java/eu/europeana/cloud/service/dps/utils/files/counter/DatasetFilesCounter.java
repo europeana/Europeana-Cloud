@@ -30,13 +30,14 @@ public class DatasetFilesCounter extends FilesCounter {
     }
 
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
-        RevisionFileCounterUtil revisionFileCounterUtil = new RevisionFileCounterUtil(dataSetServiceClient, recordServiceClient);
         int size = 0;
         List<String> dataSets = task.getInputData().get(DpsTask.DATASET_URLS);
         String representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         final String revisionName = task.getParameter(PluginParameterKeys.REVISION_NAME);
         final String revisionProvider = task.getParameter(PluginParameterKeys.REVISION_PROVIDER);
         dataSetServiceClient.useAuthorizationHeader(authorizationHeader);
+        recordServiceClient.useAuthorizationHeader(authorizationHeader);
+        RevisionFileCounterUtil revisionFileCounterUtil = new RevisionFileCounterUtil(dataSetServiceClient, recordServiceClient);
         for (String dataSet : dataSets) {
             try {
                 UrlParser urlParser = new UrlParser(dataSet);
