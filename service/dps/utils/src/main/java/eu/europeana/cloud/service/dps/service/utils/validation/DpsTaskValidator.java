@@ -266,7 +266,7 @@ public class DpsTaskValidator {
                 throw new DpsTaskValidationException("Revision name and revision provider has to be not null");
             }
 
-            if (outputRevision.getRevisionName().equals("") || outputRevision.getRevisionProviderId().equals("")) {
+            if (outputRevision.getRevisionName().matches("\\s*") || outputRevision.getRevisionProviderId().matches("\\s*")) {
                 throw new DpsTaskValidationException("Revision name and revision provider has to be non empty");
             }
         }
