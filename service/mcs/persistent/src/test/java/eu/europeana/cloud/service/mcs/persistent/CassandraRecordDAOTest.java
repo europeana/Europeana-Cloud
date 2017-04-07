@@ -1,8 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
+import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
@@ -76,4 +79,46 @@ public class CassandraRecordDAOTest extends CassandraTestBase {
 			Assert.assertThat(rep.getRepresentationName(), is("repName"));
 		}
 	}
+
+    @Test
+    public void shouldRemoveAllRelevantEntriesFromREpresentationRevisionsTable() throws ProviderNotExistsException, RecordNotExistsException, RevisionIsNotValidException {
+        String version_0 = new com.eaio.uuid.UUID().toString();
+        //
+        Representation rep = new Representation();
+        rep.setCloudId("sampleCloudId");
+        rep.setRepresentationName("sampleRepName");
+        rep.setVersion(version_0);
+        //
+        Date d = new Date();
+        Revision revision_1 = new Revision("revName", "revProvider", d, false, true, false);
+        rep.getRevisions().add(revision_1);
+        Revision revision_2 = new Revision("revName_1", "revProvider_1", d, false, true, false);
+        rep.getRevisions().add(revision_2);
+        //
+        File file = new File("sampleFileName","application/xml","md5","date",12,null, Storage.DATA_BASE);
+        rep.getFiles().add(file);
+        //
+
+        recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0, rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
+        recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0, rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
+
+        recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0, rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp(), file);
+        recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0, rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp(), file);
+
+        //first check
+        RepresentationRevisionResponse response1 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
+        RepresentationRevisionResponse response2 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
+
+        Assert.assertThat(response1.getFiles().size(), is(1));
+        Assert.assertThat(response2.getFiles().size(), is(1));
+
+        recordDAO.removeFileFromRepresentationRevisionsTable(rep, file.getFileName());
+
+        //second check
+        response1 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(), rep.getRevisions().get(0).getCreationTimeStamp());
+        response2 = recordDAO.getRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
+
+        Assert.assertThat(response1.getFiles().size(), is(0));
+        Assert.assertThat(response2.getFiles().size(), is(0));
+    }
 }

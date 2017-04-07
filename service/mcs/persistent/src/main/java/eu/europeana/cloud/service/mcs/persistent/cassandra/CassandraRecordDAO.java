@@ -66,6 +66,8 @@ public class CassandraRecordDAO {
 
     private PreparedStatement removeFileStatement;
 
+    private PreparedStatement removeFileFromRepresentationRevisionsTableStatement;
+
     private PreparedStatement getFilesStatement;
 
     private PreparedStatement getAllRepresentationsForRecordStatement;
@@ -122,6 +124,19 @@ public class CassandraRecordDAO {
                 .prepare("DELETE files[?] FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
         removeFileStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
+
+        removeFileFromRepresentationRevisionsTableStatement = s
+                .prepare(
+                        "DELETE files[?] " +
+                                "FROM representation_revisions " +
+                                "WHERE " +
+                                "cloud_id = ? AND " +
+                                "representation_id = ? AND " +
+                                "revision_provider_id = ? AND " +
+                                "revision_name = ? AND " +
+                                "revision_timestamp = ? AND " +
+                                "version_id = ?;");
+        removeFileFromRepresentationRevisionsTableStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getFilesStatement = s
                 .prepare("SELECT files FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;");
@@ -654,6 +669,22 @@ public class CassandraRecordDAO {
         return results;
     }
 
+    public void removeFileFromRepresentationRevisionsTable(Representation representation, String fileName) throws NoHostAvailableException,
+            QueryExecutionException {
+        for (Revision revision : representation.getRevisions()) {
+            BoundStatement boundStatement = removeFileFromRepresentationRevisionsTableStatement.bind(
+                    fileName,
+                    representation.getCloudId(),
+                    representation.getRepresentationName(),
+                    revision.getRevisionProviderId(),
+                    revision.getRevisionName(),
+                    revision.getCreationTimeStamp(),
+                    UUID.fromString(representation.getVersion()));
+
+            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+            QueryTracer.logConsistencyLevel(boundStatement, rs);
+        }
+    }
 
     /**
      * Adds or modifies given file to list of files of representation revision.
