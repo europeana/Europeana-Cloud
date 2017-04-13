@@ -604,16 +604,16 @@ public class CassandraDataSetDAO {
         return result;
     }
 
-    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version){
+    public Map<String, Set<String>> getDataSets(String cloudId, String representationName, String version) {
         BoundStatement boundStatement = getDataSetsForVersionStatement.bind(
                 cloudId,
                 representationName,
                 UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement,rs);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
         Set<String> providerDataSets = new LinkedHashSet<>();
         Map<String, Set<String>> result = new HashMap<>();
-        for(Row row : rs){
+        for (Row row : rs) {
             String provider_dataset_id = row.getString("provider_dataset_id");
             String[] parts = provider_dataset_id.split("\n");
             if (parts.length != 2)
@@ -638,14 +638,8 @@ public class CassandraDataSetDAO {
      */
     public void deleteDataSet(String providerId, String dataSetId)
             throws NoHostAvailableException, QueryExecutionException {
-        String providerDataSetId = createProviderDataSetId(providerId,
-                dataSetId);
-
-        removeAllDataSetAssignments(providerDataSetId);
-        removeAllDataSetRevisonAssignments(providerId, dataSetId);
         removeAllDataSetCloudIdsByRepresentation(providerId, dataSetId);
         removeAllDataSetBuckets(providerId, dataSetId);
-
         // remove dataset itself
         BoundStatement boundStatement = deleteDataSetStatement.bind(providerId, dataSetId);
         connectionProvider.getSession().execute(boundStatement);
@@ -693,39 +687,6 @@ public class CassandraDataSetDAO {
             decreaseProviderDatasetBuckets(providerId, dataSetId, bucket_id);
         }
     }
-
-    private void removeAllDataSetAssignments(String providerDataSetId) {
-        BoundStatement boundStatement = listDataSetAssignmentsNoPaging
-                .bind(providerDataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        for (Row row : rs) {
-            String cloudId = row.getString("cloud_id");
-            String schemaId = row.getString("schema_id");
-            UUID versionId = row.getUUID("version_id");
-            connectionProvider.getSession().execute(
-                    removeAssignmentStatement.bind(providerDataSetId, cloudId,
-                            schemaId, versionId));
-        }
-    }
-
-    private void removeAllDataSetRevisonAssignments(String providerId, String dataSetId) {
-        BoundStatement boundStatement = listDataSetRevisionAssignmentsNoPaging
-                .bind(providerId, dataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        for (Row row : rs){
-            String revisionProviderId = row.getString("revision_provider_id");
-            String revisionName = row.getString("revision_name");
-            Date revisionTimestamp = row.getDate("revision_timestamp");
-            String representationId = row.getString("representation_id");
-            String cloudId = row.getString("cloud_id");
-            connectionProvider.getSession().execute(
-                    removeDataSetsRevision.bind(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
-                            representationId, cloudId));
-        }
-    }
-
 
     public Set<String> getAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
         BoundStatement boundStatement = getDataSetsRepresentationsNamesList.bind(providerId, dataSetId);

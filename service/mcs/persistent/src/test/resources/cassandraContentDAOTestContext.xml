@@ -21,7 +21,7 @@
     </bean>
 
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
-    
+
     <!--spy on everything-->
     <mockito:spy beanName="dbService"/>
     <mockito:spy beanName="cassandraContentDAO"/>

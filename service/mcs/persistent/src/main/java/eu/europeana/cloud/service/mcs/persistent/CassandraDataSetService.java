@@ -218,7 +218,7 @@ public class CassandraDataSetService implements DataSetService {
         dataSet.setProviderId(providerId);
         dataSet.setId(dataSetId);
         //
-        findNewRepresentationVersionsWithLatestRevisions(dataSet,deletedRevisions,representation);
+        findNewRepresentationVersionsWithLatestRevisions(dataSet, deletedRevisions, representation);
     }
 
     private void findNewRepresentationVersionsWithLatestRevisions(DataSet dataSet, Set<Revision> deletedRevisions, Representation representation) {
@@ -229,7 +229,7 @@ public class CassandraDataSetService implements DataSetService {
         }
     }
 
-    private void findNewRepresentationVersionWithLatestRevision(Representation unassignedRepresentation, Revision revision, DataSet dataset){
+    private void findNewRepresentationVersionWithLatestRevision(Representation unassignedRepresentation, Revision revision, DataSet dataset) {
 
         List<Representation> representations = recordDAO.getAllRepresentationVersionsForRevisionName(
                 unassignedRepresentation.getCloudId(),
@@ -254,13 +254,13 @@ public class CassandraDataSetService implements DataSetService {
             return false;
     }
 
-    private boolean isRepresentationInsideDataSet(Representation rep, DataSet dataSet){
+    private boolean isRepresentationInsideDataSet(Representation rep, DataSet dataSet) {
         try {
-            Collection<CompoundDataSetId> datasetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(rep.getCloudId(),rep.getRepresentationName(),rep.getVersion());
+            Collection<CompoundDataSetId> datasetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
             CompoundDataSetId compoundDataSetId = new CompoundDataSetId(dataSet.getProviderId(), dataSet.getId());
-            if(datasetIds.contains(compoundDataSetId)){
+            if (datasetIds.contains(compoundDataSetId)) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
         } catch (RepresentationNotExistsException e) {
@@ -269,7 +269,7 @@ public class CassandraDataSetService implements DataSetService {
         return false;
     }
 
-    private void insertRevisionAsLatestForRepresentation(Representation rep, Revision rev, DataSet dataset){
+    private void insertRevisionAsLatestForRepresentation(Representation rep, Revision rev, DataSet dataset) {
         dataSetDAO.insertLatestProviderDatasetRepresentationInfo(dataset.getId(), dataset.getProviderId(),
                 rep.getCloudId(), rep.getRepresentationName(), rev.getRevisionName(), rev.getRevisionProviderId(), rev.getCreationTimeStamp(), rep.getVersion(),
                 rev.isAcceptance(), rev.isPublished(), rev.isDeleted());
@@ -446,17 +446,23 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
-        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+        isDataSetExists(providerId, dataSetId);
+        Representation lastRepresentation = null;
+        int maxSize = 10000;
 
-        if (ds == null) {
-            throw new DataSetNotExistsException();
+        List<Representation> representations = dataSetDAO.listDataSet(providerId, dataSetId, null, null, maxSize);
+        for (Representation representation : representations) {
+            removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        }
+
+        while (representations.size() == maxSize) {
+            lastRepresentation = representations.get(maxSize - 1);
+            representations = dataSetDAO.listDataSet(providerId, dataSetId, lastRepresentation.getCloudId(), lastRepresentation.getRepresentationName(), maxSize);
+            for (Representation representation : representations) {
+                removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+            }
         }
         dataSetDAO.deleteDataSet(providerId, dataSetId);
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.removeAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        representationIndexer.removeAssignmentsFromDataSet(
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
     }
 
     @Override
