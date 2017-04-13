@@ -455,14 +455,11 @@ public class CassandraDataSetService implements DataSetService {
             removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
         }
 
-        if (representations.size() == maxSize) {
+        while (representations.size() == maxSize) {
             lastRepresentation = representations.get(maxSize - 1);
-            while (representations.size() == maxSize) {
-                representations = dataSetDAO.listDataSet(providerId, dataSetId, lastRepresentation.getCloudId(), lastRepresentation.getRepresentationName(), maxSize);
-                for (Representation representation : representations) {
-                    removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-                }
-                lastRepresentation = representations.get(representations.size() - 1);
+            representations = dataSetDAO.listDataSet(providerId, dataSetId, lastRepresentation.getCloudId(), lastRepresentation.getRepresentationName(), maxSize);
+            for (Representation representation : representations) {
+                removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
             }
         }
         dataSetDAO.deleteDataSet(providerId, dataSetId);
