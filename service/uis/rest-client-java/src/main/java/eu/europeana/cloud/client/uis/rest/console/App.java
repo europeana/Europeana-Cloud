@@ -48,7 +48,7 @@ public class App implements Runnable {
 
 	@Override
 	public void run() {
-		UISClient client = new UISClient();
+		UISClient client = new UISClient("http://cloud.europeana.eu");
 
 		Map<String, Command> commands = populateCommands();
 		boolean supported = true;

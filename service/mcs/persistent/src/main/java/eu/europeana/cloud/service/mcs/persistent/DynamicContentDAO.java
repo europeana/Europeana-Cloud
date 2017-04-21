@@ -16,7 +16,8 @@ import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static org.apache.commons.lang3.Validate.notEmpty;
+import static org.apache.commons.lang.Validate.notEmpty;
+
 
 /**
  * Proxy that switch contentDAO based on {@link Storage} value.
