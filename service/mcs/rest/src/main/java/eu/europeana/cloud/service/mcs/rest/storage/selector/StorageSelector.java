@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.rest.storage.selector;
 import com.google.common.collect.ImmutableSet;
 import eu.europeana.cloud.service.mcs.Storage;
 import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MediaTypeRegistry;
 
 import javax.ws.rs.BadRequestException;
 import java.io.IOException;
@@ -74,9 +75,32 @@ public class StorageSelector {
         } catch (IOException e) {
             throw new BadRequestException("Unable to detect mime type.", e);
         }
-        if (userMediaType == null || !userMediaType.equals(detected)) {
+        if (userMediaType == null || !userTypeMatchesDetectedType(detected)) {
             throw new BadRequestException("Provided media type does not match to content media type! The content media type is " + detected);
         }
         return detected;
+    }
+
+    private boolean userTypeMatchesDetectedType(MediaType calculatedType) {
+
+        if(calculatedType.equals(MediaType.OCTET_STREAM) && calculatedType.equals(userMediaType)){
+            return true;
+        }
+
+        MediaTypeRegistry registry = MediaTypeRegistry.getDefaultRegistry();
+
+        while (calculatedType != null && !calculatedType.equals(MediaType.OCTET_STREAM)) {
+            if (calculatedType.equals(userMediaType)) {
+                return true;
+            } else {
+                for (MediaType alias : registry.getAliases(calculatedType)) {
+                    if (alias.equals(userMediaType)) {
+                        return true;
+                    }
+                }
+            }
+            calculatedType = registry.getSupertype(calculatedType);
+        }
+        return false;
     }
 }
