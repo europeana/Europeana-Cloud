@@ -104,11 +104,10 @@ public class CassandraConnectionProvider {
 
 
     @PreDestroy
-    private void closeConnections() {
+    public void closeConnections() {
         LOGGER.info("Cluster is shutting down.");
         cluster.close();
     }
-
 
     /**
      * Expose a singleton instance connection to a database on the requested

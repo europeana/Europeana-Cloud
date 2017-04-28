@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.web;
 
 /**
- * Constants for the UIS.
+ * constants for the UIS.
  * 
  * Shared between the Wrapper and the Rest API.
  */

@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
 /**
- * Constants for text stripping topology.
+ * constants for text stripping topology.
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class TextStrippingConstants 
