@@ -30,7 +30,7 @@ public class DataValidator {
 
 
     private static final String SELECT_COLUMN_NAMES = "SELECT " + COLUMN_NAME_SELECTOR + ", " + COLUMN_INDEX_TYPE + " FROM " + SYSTEM_SCHEMA_COLUMNS_TABLE +
-            "  WHERE keyspace_name =  ?  AND columnfamily_name = ? ;";
+            "  WHERE " + KEYSPACE_NAME_LABEL + "=  ?  AND " + TABLE_NAME_LABEL + "= ? ;";
 
 
     public void validate(String sourceTableName, String targetTableName, int threadsCount) {
@@ -38,31 +38,27 @@ public class DataValidator {
         Session targetSession = null;
         ExecutorService executorService = null;
         try {
+            int progressCounter = 0;
             executorService = Executors.newFixedThreadPool(threadsCount);
             session = sourceCassandraConnectionProvider.getSession();
             List<String> primaryKeys = getPrimaryKeysNames(sourceTableName, session);
-            String selectPrimaryKeysFromSourceTable = CQLBuilder.constructSelectPrimaryKeysFromSourceTable(sourceTableName, primaryKeys);
-            PreparedStatement sourceSelectStatement = session.prepare(selectPrimaryKeysFromSourceTable);
-            sourceSelectStatement.setConsistencyLevel(sourceCassandraConnectionProvider.getConsistencyLevel());
-            BoundStatement boundStatement = sourceSelectStatement.bind();
-            ResultSet rs = session.execute(boundStatement);
+            ResultSet rs = getPrimaryKeysFromSourceTable(sourceTableName, session, primaryKeys);
             Iterator<Row> iterator = rs.iterator();
 
-            String matchCountStatementCQL = CQLBuilder.getMatchCountStatementFromTargetTable(targetTableName, primaryKeys);
             targetSession = targetCassandraConnectionProvider.getSession();
-            PreparedStatement matchCountStatementCQLStatement = targetSession.prepare(matchCountStatementCQL);
-            matchCountStatementCQLStatement.setConsistencyLevel(targetCassandraConnectionProvider.getConsistencyLevel());
-            BoundStatement matchingBoundStatement = matchCountStatementCQLStatement.bind();
+            BoundStatement matchingBoundStatement = prepareBoundStatementForMatchingTargetTable(targetTableName, targetSession, primaryKeys);
 
             while (iterator.hasNext()) {
                 Row row = iterator.next();
                 Callable<Long> callable = new RowValidatorJob(targetSession, primaryKeys, matchingBoundStatement, row);
                 Future<Long> future = executorService.submit(callable);
-                System.out.println("Thread tarek " + future.get());
+                future.get();
+                progressCounter++;
+                if (progressCounter % PROGRESS_COUNTER == 0)
+                    System.out.println("The data is matching properly till now and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
             }
-
         } catch (Exception e) {
-            System.out.println(e.getCause());
+            e.printStackTrace();
         } finally {
             if (session != null)
                 session.close();
@@ -70,10 +66,24 @@ public class DataValidator {
                 targetSession.close();
             sourceCassandraConnectionProvider.closeConnections();
             targetCassandraConnectionProvider.closeConnections();
-            if (executorService!=null)
-            executorService.shutdown();
+            if (executorService != null)
+                executorService.shutdown();
         }
+    }
 
+    private BoundStatement prepareBoundStatementForMatchingTargetTable(String targetTableName, Session targetSession, List<String> primaryKeys) {
+        String matchCountStatementCQL = CQLBuilder.getMatchCountStatementFromTargetTable(targetTableName, primaryKeys);
+        PreparedStatement matchCountStatementCQLStatement = targetSession.prepare(matchCountStatementCQL);
+        matchCountStatementCQLStatement.setConsistencyLevel(targetCassandraConnectionProvider.getConsistencyLevel());
+        return matchCountStatementCQLStatement.bind();
+    }
+
+    private ResultSet getPrimaryKeysFromSourceTable(String sourceTableName, Session session, List<String> primaryKeys) {
+        String selectPrimaryKeysFromSourceTable = CQLBuilder.constructSelectPrimaryKeysFromSourceTable(sourceTableName, primaryKeys);
+        PreparedStatement sourceSelectStatement = session.prepare(selectPrimaryKeysFromSourceTable);
+        sourceSelectStatement.setConsistencyLevel(sourceCassandraConnectionProvider.getConsistencyLevel());
+        BoundStatement boundStatement = sourceSelectStatement.bind();
+        return session.execute(boundStatement);
     }
 
     private List<String> getPrimaryKeysNames(String tableName, Session session) {
@@ -90,6 +100,4 @@ public class DataValidator {
         }
         return names;
     }
-
-
 }

@@ -158,4 +158,8 @@ public class CassandraConnectionProvider {
     public String getKeyspaceName() {
         return keyspaceName;
     }
+
+    public Metadata getMetadata() {
+        return this.cluster.getMetadata();
+    }
 }

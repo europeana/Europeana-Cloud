@@ -1,6 +1,9 @@
 package data.validator;
 
+import data.validator.constants.ValidatorType;
 import data.validator.utils.CommandLineHelper;
+import data.validator.validator.Validator;
+import data.validator.validator.ValidatorFactory;
 import org.apache.commons.cli.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -43,13 +46,22 @@ public class IntegrityValidatorTool {
     private static void executeIntegrityValidation(CommandLine cmd) throws Exception {
         String sourceTable = cmd.getOptionValue(SOURCE_TABLE);
         String targetTable = cmd.getOptionValue(TARGET_TABLE);
+
+        ValidatorType validatorType = ValidatorType.TABLE;
+        if ((sourceTable == null) && (targetTable != null))
+            sourceTable = targetTable;
+        else if ((sourceTable != null) && (targetTable == null))
+            targetTable = sourceTable;
+        else if ((sourceTable == null) && (targetTable == null))
+            validatorType = ValidatorType.KEYSPACE;
+
         String threads = cmd.getOptionValue(THREADS_COUNT);
         int threadsCount = DEFAULT_THREADS_COUNT;
         if (threads != null)
             threadsCount = Integer.parseInt(threads);
         ApplicationContext context =
                 new ClassPathXmlApplicationContext(new String[]{"data-validator-context.xml"});
-        DataValidator dataValidator = (DataValidator) context.getBean("dataValidator");
-        dataValidator.validate(sourceTable, targetTable, threadsCount);
+        Validator validator = ValidatorFactory.getValidator(validatorType);
+        validator.validate(context, sourceTable, targetTable, threadsCount);
     }
 }

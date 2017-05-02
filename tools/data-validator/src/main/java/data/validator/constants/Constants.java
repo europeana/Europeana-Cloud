@@ -9,8 +9,9 @@ public final class Constants {
     public static final String COLUMN_NAME_SELECTOR = "column_name";
     public static final String SYSTEM_SCHEMA_COLUMNS_TABLE = "system.schema_columns";
     public static final String COLUMN_INDEX_TYPE = "type";
-
-
+    public static final String KEYSPACE_NAME_LABEL = "keyspace_name";
+    public static final String TABLE_NAME_LABEL = "columnfamily_name";
+    public static final int PROGRESS_COUNTER = 10000;
 
 
 }
