@@ -29,7 +29,7 @@ public final class Constants {
     public static final String TARGET_TABLE = "targetTable";
     public static final String THREADS_COUNT = "threads";
     public static final String CONFIGURATION_PROPERTIES = "configuration";
-    public static final int DEFAULT_THREADS_COUNT = 10;
+    public static final int DEFAULT_THREADS_COUNT = 100;
     public static final String DEFAULT_PROPERTIES_FILE = "test.properties";
 
 }

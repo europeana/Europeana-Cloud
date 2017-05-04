@@ -55,8 +55,10 @@ public class DataValidator {
                 Future<Long> future = executorService.submit(callable);
                 future.get();
                 progressCounter++;
-                if (progressCounter % PROGRESS_COUNTER == 0)
+                if (progressCounter % PROGRESS_COUNTER == 0) {
                     System.out.println("The data is matching properly till now and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
+                    progressCounter = 0;
+                }
             }
             System.out.println("The data For for source table " + sourceTableName + " and target table " + targetTableName + " was validated correctly!");
         } catch (Exception e) {

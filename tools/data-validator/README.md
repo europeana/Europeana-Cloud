@@ -9,5 +9,5 @@ Data Validator
 and if you want to override it you can simply create your own properties file with the same properties keys and pass it to the tool by specifying the configuration argument:
     java -jar data-validator-0.7-SNAPSHOT.jar -configuration newTest.properties
 
-3- Another optional argument could be passed to the tool which is -threads : define how many threads per table should handle the validation process ;Default value =10;
+3- Another optional argument could be passed to the tool which is -threads : define how many threads per table should handle the validation process ;Default value =100;
 
