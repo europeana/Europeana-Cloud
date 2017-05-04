@@ -15,9 +15,9 @@ public class PropertyFileLoader {
             if (providedPropertyFile != null)
                 reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("ERROR while reading the properties file " + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("ERROR while reading the properties file " + e.getMessage());
         }
     }
 
