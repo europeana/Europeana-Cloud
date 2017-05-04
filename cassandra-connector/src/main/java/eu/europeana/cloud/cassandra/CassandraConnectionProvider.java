@@ -35,6 +35,10 @@ public class CassandraConnectionProvider {
 
     private String keyspaceName;
 
+    private String userName;
+
+    private String password;
+
     /**
      * Constructor. Use it when your Cassandra cluster does not support
      * authentication.
@@ -70,6 +74,8 @@ public class CassandraConnectionProvider {
         this.hosts = hosts;
         this.port = String.valueOf(port);
         this.keyspaceName = keyspaceName;
+        this.userName = userName;
+        this.password = password;
 
         String[] contactPoints = hosts.split(",");
         cluster = getClusterBuilder(port, contactPoints)
@@ -160,6 +166,18 @@ public class CassandraConnectionProvider {
     }
 
     public Metadata getMetadata() {
-        return this.cluster.getMetadata();
+        return cluster.getMetadata();
+    }
+
+    private String getUserName() {
+        return userName;
+    }
+
+    private String getPassword() {
+        return password;
+    }
+
+    public CassandraConnectionProvider(final CassandraConnectionProvider cassandraConnectionProvider) {
+        this(cassandraConnectionProvider.getHosts(), Integer.parseInt(cassandraConnectionProvider.getPort()), cassandraConnectionProvider.getKeyspaceName(), cassandraConnectionProvider.getUserName(), cassandraConnectionProvider.getPassword());
     }
 }

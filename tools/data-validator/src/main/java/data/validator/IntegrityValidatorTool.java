@@ -1,23 +1,25 @@
 package data.validator;
 
 import data.validator.constants.ValidatorType;
+import data.validator.properities.PropertyFileLoader;
 import data.validator.utils.CommandLineHelper;
 import data.validator.validator.Validator;
 import data.validator.validator.ValidatorFactory;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.commons.cli.*;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.Properties;
+
+import static data.validator.constants.Constants.*;
 
 /**
  * Created by Tarek on 4/27/2017.
  */
 public class IntegrityValidatorTool {
-    private static final String SOURCE_TABLE = "sourceTable";
-    private static final String TARGET_TABLE = "targetTable";
-    private static final String THREADS_COUNT = "threads";
-    private static final int DEFAULT_THREADS_COUNT = 10;
+    private static Properties topologyProperties;
 
     public static void main(String[] args) {
+        topologyProperties = new Properties();
         Options options = getOptions();
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
@@ -32,7 +34,6 @@ public class IntegrityValidatorTool {
         } catch (Exception e) {
             System.out.println("An exception happened caused by: " + e.getMessage());
         }
-
     }
 
     private static Options getOptions() {
@@ -40,10 +41,16 @@ public class IntegrityValidatorTool {
         commandLineHelper.addOption(SOURCE_TABLE, "source table", false);
         commandLineHelper.addOption(TARGET_TABLE, "target table", false);
         commandLineHelper.addOption(THREADS_COUNT, "threads count (int)(optional)(default=10)", false);
+        commandLineHelper.addOption(CONFIGURATION_PROPERTIES, "properties file to configure source and target databases", false);
         return commandLineHelper.getOptions();
     }
 
     private static void executeIntegrityValidation(CommandLine cmd) throws Exception {
+        String configurationFileName = cmd.getOptionValue(CONFIGURATION_PROPERTIES);
+        PropertyFileLoader.loadPropertyFile(DEFAULT_PROPERTIES_FILE, configurationFileName, topologyProperties);
+
+        CassandraConnectionProvider sourceCassandraConnectionProvider = getCassandraConnectionProviderFromConfiguration(SOURCE_HOSTS, SOURCE_PORT, SOURCE_KEYSPACE, SOURCE_USER_NAME, SOURCE_PASSWORD);
+        CassandraConnectionProvider targetCassandraConnectionProvider = getCassandraConnectionProviderFromConfiguration(TARGET_HOSTS, TARGET_PORT, TARGET_KEYSPACE, TARGET_USER_NAME, TARGET_PASSWORD);
         String sourceTable = cmd.getOptionValue(SOURCE_TABLE);
         String targetTable = cmd.getOptionValue(TARGET_TABLE);
 
@@ -59,9 +66,16 @@ public class IntegrityValidatorTool {
         int threadsCount = DEFAULT_THREADS_COUNT;
         if (threads != null)
             threadsCount = Integer.parseInt(threads);
-        ApplicationContext context =
-                new ClassPathXmlApplicationContext(new String[]{"data-validator-context.xml"});
+
         Validator validator = ValidatorFactory.getValidator(validatorType);
-        validator.validate(context, sourceTable, targetTable, threadsCount);
+        validator.validate(sourceCassandraConnectionProvider, targetCassandraConnectionProvider, sourceTable, targetTable, threadsCount);
     }
+
+    private static CassandraConnectionProvider getCassandraConnectionProviderFromConfiguration(String hosts, String port, String keyspace, String userName, String password) {
+        return new CassandraConnectionProvider(topologyProperties.getProperty(hosts),
+                Integer.parseInt(topologyProperties.getProperty(port)), topologyProperties.getProperty(keyspace), topologyProperties.getProperty(userName)
+                , topologyProperties.getProperty(password));
+    }
+
+
 }

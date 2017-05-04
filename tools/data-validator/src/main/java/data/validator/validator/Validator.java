@@ -1,6 +1,6 @@
 package data.validator.validator;
 
-import org.springframework.context.ApplicationContext;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import java.util.concurrent.ExecutionException;
 
@@ -8,5 +8,5 @@ import java.util.concurrent.ExecutionException;
  * Created by Tarek on 5/2/2017.
  */
 public interface Validator {
-    void validate(ApplicationContext context, String sourceTableName, String targetTableName, int threadsCount) throws InterruptedException,ExecutionException;
+    void validate(CassandraConnectionProvider sourceCassandraConnectionProvider, CassandraConnectionProvider targetCassandraConnectionProvider, String sourceTableName, String targetTableName, int threadsCount) throws InterruptedException, ExecutionException;
 }

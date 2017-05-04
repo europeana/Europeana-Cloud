@@ -13,5 +13,23 @@ public final class Constants {
     public static final String TABLE_NAME_LABEL = "columnfamily_name";
     public static final int PROGRESS_COUNTER = 10000;
 
+    public static final String SOURCE_HOSTS = "sourceHosts";
+    public static final String SOURCE_PORT = "sourcePort";
+    public static final String SOURCE_KEYSPACE = "sourceKeyspace";
+    public static final String SOURCE_USER_NAME = "sourceUserName";
+    public static final String SOURCE_PASSWORD = "sourcePassword";
+
+    public static final String TARGET_HOSTS = "targetHosts";
+    public static final String TARGET_PORT = "targetPort";
+    public static final String TARGET_KEYSPACE = "targetKeyspace";
+    public static final String TARGET_USER_NAME = "targetUserName";
+    public static final String TARGET_PASSWORD = "targetPassword";
+
+    public static final String SOURCE_TABLE = "sourceTable";
+    public static final String TARGET_TABLE = "targetTable";
+    public static final String THREADS_COUNT = "threads";
+    public static final String CONFIGURATION_PROPERTIES = "configuration";
+    public static final int DEFAULT_THREADS_COUNT = 10;
+    public static final String DEFAULT_PROPERTIES_FILE = "test.properties";
 
 }

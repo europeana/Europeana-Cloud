@@ -8,7 +8,6 @@ import data.validator.cql.CQLBuilder;
 import data.validator.jobs.RowValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -22,16 +21,18 @@ import java.util.concurrent.Future;
 
 
 public class DataValidator {
-    @Resource
     private CassandraConnectionProvider sourceCassandraConnectionProvider;
-
-    @Resource
     private CassandraConnectionProvider targetCassandraConnectionProvider;
 
 
     private static final String SELECT_COLUMN_NAMES = "SELECT " + COLUMN_NAME_SELECTOR + ", " + COLUMN_INDEX_TYPE + " FROM " + SYSTEM_SCHEMA_COLUMNS_TABLE +
             "  WHERE " + KEYSPACE_NAME_LABEL + "=  ?  AND " + TABLE_NAME_LABEL + "= ? ;";
 
+
+    public DataValidator(CassandraConnectionProvider sourceCassandraConnectionProvider, CassandraConnectionProvider targetCassandraConnectionProvider) {
+        this.sourceCassandraConnectionProvider = sourceCassandraConnectionProvider;
+        this.targetCassandraConnectionProvider = targetCassandraConnectionProvider;
+    }
 
     public void validate(String sourceTableName, String targetTableName, int threadsCount) {
         Session session = null;
@@ -57,8 +58,9 @@ public class DataValidator {
                 if (progressCounter % PROGRESS_COUNTER == 0)
                     System.out.println("The data is matching properly till now and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
             }
+            System.out.println("The data For for source table " + sourceTableName + " and target table " + targetTableName + " was validated correctly!");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("ERROR happened: " + e.getMessage() + " and The data for source table " + sourceTableName + " and target table " + targetTableName + " was NOT validated properly!");
         } finally {
             if (session != null)
                 session.close();
