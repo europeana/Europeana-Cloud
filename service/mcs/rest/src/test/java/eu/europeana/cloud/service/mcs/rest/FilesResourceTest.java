@@ -9,6 +9,8 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.ApplicationContextUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -51,6 +53,9 @@ public class FilesResourceTest extends JerseyTest {
 
     private UISClientHandler uisHandler;
 
+    private static final byte[] XSLT_CONTENT = "<?xml version=\"1.0\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"></xsl:stylesheet>".getBytes();
+    private static final byte[] XML_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?><sample></sample>".getBytes();
+    private static final byte[] RDF_CONTENT = "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:si=\"https://www.w3schools.com/rdf/\"></rdf:RDF>".getBytes();
 
     @Before
     public void mockUp()
@@ -191,5 +196,85 @@ public class FilesResourceTest extends JerseyTest {
             insertedFile.getFileName(), contentBos);
         assertNotSame("MD5 file mismatch", modifiedContentMd5, insertedFile.getMd5());
         assertNotSame(modifiedContent.length, insertedFile.getContentLength());
+    }
+
+    @Test
+    public void shouldUploadXMLFileWithApplicationXMLMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XML_CONTENT,"application/xml");
+    }
+
+    @Test
+    public void shouldUploadXMLFileWithTextXMLMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XML_CONTENT,"text/xml");
+    }
+
+    @Test
+    public void shouldUploadXMLFileWithTextPlainMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XML_CONTENT,"text/plain");
+    }
+
+    @Test
+    public void shouldUploadRdfFileWithTextXmlMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(RDF_CONTENT,"text/xml");
+    }
+
+    @Test
+    public void shouldUploadRdfFileWithTextPlainMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(RDF_CONTENT,"text/plain");
+    }
+
+    @Test
+    public void shouldUploadRdfFileWithApplicationXmlMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(RDF_CONTENT,"application/xml");
+    }
+
+    @Test
+    public void shouldUploadXsltFileWithTextPlainMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/plain");
+    }
+
+    @Test
+    public void shouldUploadXsltFileWithTextXmlMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XSLT_CONTENT,"text/xml");
+    }
+
+    @Test
+    public void shouldUploadXsltFileWithApplicationXmlMimeType()
+            throws Exception {
+        uploadFileWithGivenMimeType(XSLT_CONTENT,"application/xml");
+    }
+
+    private void uploadFileWithGivenMimeType(byte[] fileContent, String mimeType) throws RepresentationNotExistsException, FileNotExistsException {
+        String contentMd5 = Hashing.md5().hashBytes(fileContent).toString();
+
+        // when content is added to record representation
+        FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, mimeType)
+                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(fileContent),
+                        APPLICATION_OCTET_STREAM_TYPE);
+
+        Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
+        assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue
+                ());
+
+        // then data should be in record service
+        rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+        assertEquals(1, rep.getFiles().size());
+
+        File insertedFile = rep.getFiles().get(0);
+        ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
+        recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+                insertedFile.getFileName(), contentBos);
+        assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
+        assertEquals(fileContent.length, insertedFile.getContentLength());
+        assertArrayEquals(fileContent, contentBos.toByteArray());
     }
 }
