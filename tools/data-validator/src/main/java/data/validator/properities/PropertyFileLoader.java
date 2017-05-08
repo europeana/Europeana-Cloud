@@ -31,8 +31,7 @@ public class PropertyFileLoader {
     }
 
     public void loadProvidedPropertyFile(String fileName, Properties topologyProperties) throws IOException {
-        File file = new File(fileName);
-        FileInputStream fileInput = new FileInputStream(file);
+        FileInputStream fileInput = new FileInputStream(fileName);
         topologyProperties.load(fileInput);
         fileInput.close();
     }

@@ -5,7 +5,7 @@ import com.datastax.driver.core.*;
 import static data.validator.constants.Constants.*;
 
 import data.validator.cql.CQLBuilder;
-import data.validator.jobs.RowValidatorJob;
+import data.validator.jobs.RowsValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public class DataValidator {
         Session targetSession = null;
         ExecutorService executorService = null;
         try {
-            int progressCounter = 0;
+            long progressCounter = 0l;
             executorService = Executors.newFixedThreadPool(threadsCount);
             session = sourceCassandraConnectionProvider.getSession();
             List<String> primaryKeys = getPrimaryKeysNames(sourceTableName, session);
@@ -48,17 +48,20 @@ public class DataValidator {
 
             targetSession = targetCassandraConnectionProvider.getSession();
             BoundStatement matchingBoundStatement = prepareBoundStatementForMatchingTargetTable(targetTableName, targetSession, primaryKeys);
+            List<Row> rows = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 Row row = iterator.next();
-                Callable<Long> callable = new RowValidatorJob(targetSession, primaryKeys, matchingBoundStatement, row);
-                Future<Long> future = executorService.submit(callable);
-                future.get();
+                rows.add(row);
                 progressCounter++;
                 if (progressCounter % PROGRESS_COUNTER == 0) {
-                    System.out.println("The data is matching properly till now and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
-                    progressCounter = 0;
+                    executeTheRowsJob(targetSession, executorService, primaryKeys, matchingBoundStatement, rows);
+                    System.out.println("The data was matched properly for " + progressCounter + " records  and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
+                    rows.clear();
                 }
+            }
+            if (!rows.isEmpty()) {
+                executeTheRowsJob(targetSession, executorService, primaryKeys, matchingBoundStatement, rows);
             }
             System.out.println("The data For for source table " + sourceTableName + " and target table " + targetTableName + " was validated correctly!");
         } catch (Exception e) {
@@ -73,6 +76,12 @@ public class DataValidator {
             if (executorService != null)
                 executorService.shutdown();
         }
+    }
+
+    private void executeTheRowsJob(Session targetSession, ExecutorService executorService, List<String> primaryKeys, BoundStatement matchingBoundStatement, List<Row> rows) throws InterruptedException, java.util.concurrent.ExecutionException {
+        Callable<Void> callable = new RowsValidatorJob(targetSession, primaryKeys, matchingBoundStatement, rows);
+        Future<Void> future = executorService.submit(callable);
+        future.get();
     }
 
     private BoundStatement prepareBoundStatementForMatchingTargetTable(String targetTableName, Session targetSession, List<String> primaryKeys) {

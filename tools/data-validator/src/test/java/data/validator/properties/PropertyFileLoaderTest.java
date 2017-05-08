@@ -32,9 +32,6 @@ public class PropertyFileLoaderTest {
         reader.loadDefaultPropertyFile(DEFAULT_PROPERTIES_FILE, topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
-        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
-            assertNotNull(e.getKey());
-        }
 
     }
 
@@ -43,10 +40,7 @@ public class PropertyFileLoaderTest {
         reader.loadProvidedPropertyFile(PROVIDED_PROPERTIES_FILE, topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
-        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
-            assertNotNull(e.getKey());
 
-        }
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -65,9 +59,7 @@ public class PropertyFileLoaderTest {
         PropertyFileLoader.loadPropertyFile(DEFAULT_PROPERTIES_FILE, "NON_EXISTED_PROVIDED_FILE", topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());
-        for (final Map.Entry<Object, Object> e : topologyProperties.entrySet()) {
-            assertNotNull(e.getKey());
-        }
+
     }
 
 }
