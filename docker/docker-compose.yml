@@ -10,7 +10,8 @@ tomcat:
     - kafka:kafka
   volumes:
     - ./tomcat/webapps/:/usr/local/tomcat/webapps/
-
+  environment:
+    JAVA_OPTS: "-Xmx3064m -Xms3064m"
 cassandra:
   build: cassandra
   ports:
