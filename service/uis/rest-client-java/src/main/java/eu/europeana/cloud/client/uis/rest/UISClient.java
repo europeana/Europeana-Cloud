@@ -1,6 +1,5 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import eu.europeana.cloud.client.uis.rest.web.DynamicUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
 import eu.europeana.cloud.common.model.CloudId;
@@ -10,11 +9,9 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
-import eu.europeana.cloud.service.coordination.provider.ServiceProvider;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +19,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
 
 /**
  * The REST API client for the Unique Identifier Service.
@@ -37,83 +33,6 @@ public class UISClient {
     private UrlProvider urlProvider;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
-
-    /**
-     * Creates a new instance of this class.
-     *
-     * Since no URL is provided, 
-	 * default properties will be read from the properties file.
-	 * 
-     */
-    public UISClient() {
-        LOGGER.info("UISClient starting... no UIS-URL provided.");
-
-        try {
-            urlProvider = new DynamicUrlProvider();
-        } catch (final IOException e) {
-            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
-        }
-
-        LOGGER.info("UISClient started successfully.");
-    }
-
-    /**
-     * Creates a new instance of this class.
-     *
-     * Since no URL is provided, default properties will be read from the properties file.
-     * Same as {@link #UISClient()} but includes username and password to
-     * perform authenticated requests.
-     */
-    public UISClient(final String username, final String password) {
-        LOGGER.info("UISClient starting... no UIS-URL provided.");
-
-        try {
-            urlProvider = new DynamicUrlProvider();
-        } catch (final IOException e) {
-            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
-        }
-
-        LOGGER.info("UISClient started successfully.");
-    }
-
-
-    /**
-     * Creates a new instance of this class. 
-     * UIS url is dynamically provided from the specified {@link ServiceProvider}
-     *
-     * @param uisProvider
-     */
-    public UISClient(final ServiceProvider uisProvider) {
-        LOGGER.info("UISClient starting...");
-
-        try {
-            urlProvider = new DynamicUrlProvider(uisProvider);
-        } catch (final Exception e) {
-            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
-        }
-
-        LOGGER.info("UISClient started successfully.");
-    }
-
-    /**
-     * Creates a new instance of this class. Same as
-     * {@link #UISClient(ServiceProvider)} but includes username and password to
-     * perform authenticated requests.
-     *
-     */
-    public UISClient(final ServiceProvider uisProvider, final String username, final String password) {
-        LOGGER.info("UISClient starting...");
-
-        client.register(HttpAuthenticationFeature.basic(username, password));
-
-        try {
-            urlProvider = new DynamicUrlProvider(uisProvider);
-        } catch (final Exception e) {
-            LOGGER.error("Error while starting UISClient... Could not start UrlProvider.. {}", e.getMessage());
-        }
-
-        LOGGER.info("UISClient started successfully.");
-    }
 
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}

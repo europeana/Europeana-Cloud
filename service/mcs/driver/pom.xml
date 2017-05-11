@@ -6,7 +6,6 @@
         <artifactId>ecloud-service-mcs</artifactId>
         <version>0.7-SNAPSHOT</version>
     </parent>
-    <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
     <version>0.7-SNAPSHOT</version>
     <name>Europeana Cloud: Metadata and Content Service Java Client</name>
@@ -44,42 +43,18 @@
             <version>${version.jersey}</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+
+        <!--test dependencies-->
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>18.0</version>
             <scope>test</scope>
         </dependency>
-
-
-        <!--logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-        </dependency>
-        <!-- SLF4J extensions -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-ext</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-
-        <!--test dependencies-->
         <dependency>
             <groupId>co.freeside</groupId>
             <artifactId>betamax</artifactId>

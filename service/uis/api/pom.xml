@@ -20,6 +20,12 @@
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-common</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.security</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	 <dependency>
 	  <groupId>commons-codec</groupId>
