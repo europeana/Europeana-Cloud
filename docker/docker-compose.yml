@@ -11,7 +11,7 @@ tomcat:
   volumes:
     - ./tomcat/webapps/:/usr/local/tomcat/webapps/
   environment:
-    JAVA_OPTS: "-Xmx3064m -Xms3064m"
+    JAVA_OPTS: "-Xmx3064m -Xms3064m -XX:MaxPermSize=512m"
     CATALINA_OPTS: "-DlogsDir=/usr/local/tomcat/"        
 cassandra:
   build: cassandra
