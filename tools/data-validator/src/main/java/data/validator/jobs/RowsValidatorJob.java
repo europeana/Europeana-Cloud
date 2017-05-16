@@ -1,8 +1,8 @@
 package data.validator.jobs;
 
 import com.datastax.driver.core.*;
-import data.validator.constants.CassandraColumnTypes;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -36,46 +36,45 @@ public class RowsValidatorJob implements Callable<Void> {
 
     private void validateRows() throws Exception {
         for (Row row : rows) {
-            getMatchingCountWithRetry(row, 0, MAX_RETRY_COUNT);
+            for (int i = 0; i < primaryKeys.size(); i++) {
+                boundTheValues(row, i);
+            }
+            matchCountWithRetry(row, 0, MAX_RETRY_COUNT);
         }
     }
 
-    private long getMatchingCountWithRetry(Row row, int retryCount, int retryLimit) throws Exception {
+    private void matchCountWithRetry(Row row, int retryCount, int retryLimit) throws Exception {
         try {
-            return getMatchingCount(row);
+            matchCount(row);
         } catch (Exception e) {
-            if (retryCount > retryLimit) {
+            if (retryCount >= retryLimit) {
                 throw e;
             }
             Thread.sleep(TIME_BETWEEN_RETRIES);
-            return getMatchingCountWithRetry(row, ++retryCount, retryLimit);
+            matchCountWithRetry(row, ++retryCount, retryLimit);
         }
     }
 
-    private long getMatchingCount(Row row) throws Exception {
-        for (int i = 0; i < primaryKeys.size(); i++) {
-            boundTheValues(row, i);
-        }
+    private void matchCount(Row row) throws Exception {
         ResultSet resultSet = session.execute(matchingBoundStatement);
         long count = resultSet.one().getLong("count");
         if (count != 1) {
             String message = constructTheExceptionMessage(row);
             throw new Exception("The data doesn't fully match!. The exception was thrown for this query: " + matchingBoundStatement.preparedStatement().getQueryString() + " Using these values" + message);
         }
-        return count;
     }
 
     private void boundTheValues(Row row, int i) {
         Object value = row.getObject(i);
-        if (value.getClass().getName().equals(CassandraColumnTypes.UUID.getClassName()))
+        if (value instanceof UUID)
             matchingBoundStatement.setUUID(i, row.getUUID(i));
-        else if (value.getClass().getName().equals(CassandraColumnTypes.DATE.getClassName()))
+        else if (value instanceof Date)
             matchingBoundStatement.setDate(i, row.getDate(i));
-        else if (value.getClass().getName().equals(CassandraColumnTypes.INTEGER.getClassName()))
+        else if (value instanceof Integer)
             matchingBoundStatement.setInt(i, row.getInt(i));
-        else if (value.getClass().getName().equals(CassandraColumnTypes.BOOLEAN.getClassName()))
+        else if (value instanceof Boolean)
             matchingBoundStatement.setBool(i, row.getBool(i));
-        else if (value.getClass().getName().equals(CassandraColumnTypes.LONG.getClassName()))
+        else if (value instanceof Long)
             matchingBoundStatement.setLong(i, row.getLong(i));
         else matchingBoundStatement.setString(i, value.toString());
     }

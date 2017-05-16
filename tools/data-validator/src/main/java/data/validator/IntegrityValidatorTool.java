@@ -7,6 +7,7 @@ import data.validator.validator.Validator;
 import data.validator.validator.ValidatorFactory;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.commons.cli.*;
+import org.apache.log4j.Logger;
 
 import java.util.Properties;
 
@@ -17,6 +18,7 @@ import static data.validator.constants.Constants.*;
  */
 public class IntegrityValidatorTool {
     private static Properties topologyProperties;
+    final static Logger LOGGER = Logger.getLogger(IntegrityValidatorTool.class);
 
     public static void main(String[] args) {
         topologyProperties = new Properties();
@@ -32,7 +34,8 @@ public class IntegrityValidatorTool {
             formatter.printHelp("Integrity Validator ", options);
 
         } catch (Exception e) {
-            System.out.println("An exception happened caused by: " + e.getMessage());
+            LOGGER.error("An exception happened caused by: " + e.getMessage());
+            System.exit(1);
         }
     }
 
