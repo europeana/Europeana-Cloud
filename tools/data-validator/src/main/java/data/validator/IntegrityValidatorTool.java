@@ -79,6 +79,4 @@ public class IntegrityValidatorTool {
                 Integer.parseInt(topologyProperties.getProperty(port)), topologyProperties.getProperty(keyspace), topologyProperties.getProperty(userName)
                 , topologyProperties.getProperty(password));
     }
-
-
 }

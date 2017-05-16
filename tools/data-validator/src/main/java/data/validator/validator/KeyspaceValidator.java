@@ -33,10 +33,7 @@ public class KeyspaceValidator implements Validator {
                 LOGGER.info("Checking data integrity between source table " + t.getName() + " and target table " + t.getName());
                 tableValidatorJobs.add(new TableValidatorJob(dataValidator, t.getName(), t.getName(), threadsCount));
             }
-            List<Future<Void>> results = executorService.invokeAll(tableValidatorJobs);
-            for (Future<Void> future : results) {
-                future.get();
-            }
+            executorService.invokeAll(tableValidatorJobs);
         } finally
 
         {

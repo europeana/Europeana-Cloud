@@ -38,31 +38,36 @@ public class DataValidator {
     }
 
     public void validate(String sourceTableName, String targetTableName, int threadsCount) {
-        Session session = null;
         Session targetSession = null;
         ExecutorService executorService = null;
         try {
             long progressCounter = 0l;
             executorService = Executors.newFixedThreadPool(threadsCount);
-            session = sourceCassandraConnectionProvider.getSession();
             List<String> primaryKeys = CassandraHelper.getPrimaryKeysNames(sourceCassandraConnectionProvider, sourceTableName, SELECT_COLUMN_NAMES);
             ResultSet rs = CassandraHelper.getPrimaryKeysFromSourceTable(sourceCassandraConnectionProvider, sourceTableName, primaryKeys);
             Iterator<Row> iterator = rs.iterator();
-
             targetSession = targetCassandraConnectionProvider.getSession();
             BoundStatement matchingBoundStatement = CassandraHelper.prepareBoundStatementForMatchingTargetTable(targetCassandraConnectionProvider, targetTableName, primaryKeys);
             List<Row> rows = new ArrayList<>();
+            List<Future> futures = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 Row row = iterator.next();
                 rows.add(row);
                 progressCounter++;
                 if (progressCounter % PROGRESS_COUNTER == 0) {
-                    executeTheRowsJob(targetSession, executorService, primaryKeys, matchingBoundStatement, rows);
-                    LOGGER.info("The data was matched properly for " + progressCounter + " records  and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
-                    rows.clear();
+                    Callable<Void> callable = new RowsValidatorJob(targetSession, primaryKeys, matchingBoundStatement, rows);
+                    Future<Void> future = executorService.submit(callable);
+                    futures.add(future);
+                    if (futures.size() == threadsCount) {
+                        waiteForJobsToFinish(sourceTableName, targetTableName, progressCounter, futures);
+                        futures = new ArrayList<>();
+                    }
+                    rows = new ArrayList<>();
                 }
             }
+            if (!futures.isEmpty())
+                waiteForJobsToFinish(sourceTableName, targetTableName, progressCounter, futures);
             if (!rows.isEmpty()) {
                 executeTheRowsJob(targetSession, executorService, primaryKeys, matchingBoundStatement, rows);
             }
@@ -70,8 +75,6 @@ public class DataValidator {
         } catch (Exception e) {
             LOGGER.error("ERROR happened: " + e.getMessage() + " and The data for source table " + sourceTableName + " and target table " + targetTableName + " was NOT validated properly!");
         } finally {
-            if (session != null)
-                session.close();
             if (targetSession != null)
                 targetSession.close();
             sourceCassandraConnectionProvider.closeConnections();
@@ -79,6 +82,13 @@ public class DataValidator {
             if (executorService != null)
                 executorService.shutdown();
         }
+    }
+
+    private void waiteForJobsToFinish(String sourceTableName, String targetTableName, long progressCounter, List<Future> futures) throws InterruptedException, java.util.concurrent.ExecutionException {
+        for (Future future : futures) {
+            future.get();
+        }
+        LOGGER.info("The data was matched properly for " + progressCounter + " records! and the progress will continue for source table " + sourceTableName + " and target table " + targetTableName + " ....");
     }
 
     private void executeTheRowsJob(Session targetSession, ExecutorService executorService, List<String> primaryKeys, BoundStatement matchingBoundStatement, List<Row> rows) throws InterruptedException, java.util.concurrent.ExecutionException {
