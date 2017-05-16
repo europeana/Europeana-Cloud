@@ -1,11 +1,15 @@
 #!/bin/bash
 
 set -e;
-set -u;
+
+HOST="localhost"
+if [ ! -z "$1" ]; then
+        HOST=$1
+fi
 
 sh ~/jenkins/performanceTest/checkApps.sh
 
-sh  ~/jenkins/performanceTest/performanceTestScript.sh "$@" --host localhost --port 8080 --HTTP --threads 2 --loops 2 --Auth admin ecloud_admin | tee ~/performanceTest/results.txt
+sh  ~/jenkins/performanceTest/performanceTestScript.sh "$@" --host $HOST --port 8080 --HTTP --threads 2 --loops 2 --Auth admin ecloud_admin | tee ~/performanceTest/results.txt
 
 timestamp=( $(cat ~/jenkins/performanceTest/results.txt |  sed -nr 's/results have timestamp (.+)/\1/p'))
 cmd=( $(cat ~/jenkins/performanceTest/results.txt | grep Err | sed -e 's/.\+Err:[^0-9]\+\([0-9]\+\).\+/\1/g'))
