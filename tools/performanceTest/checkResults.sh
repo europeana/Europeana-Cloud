@@ -28,6 +28,6 @@ if [ $errors -gt 0 ] ; then
         echo "tests failed; there were errors"
         echo -e  "\n#############################\n"
         echo Test cases with errors output:
-        tail -n +1 -- ~/jenkins/pTest${timestamp}/err*
+        tail -n +1 -- ~/jenkins/performanceTest/pTest${timestamp}/err*
         exit 1;
 fi
