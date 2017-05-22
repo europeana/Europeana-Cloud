@@ -4,7 +4,6 @@ import com.datastax.driver.core.*;
 
 import static data.validator.constants.Constants.*;
 
-import data.validator.cql.CQLBuilder;
 import data.validator.cql.CassandraHelper;
 import data.validator.jobs.RowsValidatorJob;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;

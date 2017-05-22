@@ -44,7 +44,7 @@ public class RowsValidatorJob implements Callable<Void> {
         try {
             matchCount(row);
         } catch (Exception e) {
-            if (retryCount >= retryLimit) {
+            if (retryCount >= retryLimit-1) {
                 throw e;
             }
             Thread.sleep(TIME_BETWEEN_RETRIES);
@@ -58,7 +58,7 @@ public class RowsValidatorJob implements Callable<Void> {
         long count = resultSet.one().getLong("count");
         if (count != 1) {
             String message = constructTheExceptionMessage(row);
-            throw new Exception("The data doesn't fully match!. The exception was thrown for this query: " + matchingBoundStatement.preparedStatement().getQueryString() + " Using these values" + message + " " + count);
+            throw new Exception("The data doesn't fully match!. The exception was thrown for this query: " + matchingBoundStatement.preparedStatement().getQueryString() + " Using these values" + message);
         }
     }
 
@@ -73,7 +73,7 @@ public class RowsValidatorJob implements Callable<Void> {
             ResultSet resultSet = session.execute(matchingBoundStatement);
             return resultSet;
         } catch (Exception e) {
-            if (retryCount >= retryLimit) {
+            if (retryCount >= retryLimit-1) {
                 throw e;
             }
             Thread.sleep(TIME_BETWEEN_RETRIES);
