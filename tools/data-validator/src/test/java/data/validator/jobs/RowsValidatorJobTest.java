@@ -70,7 +70,7 @@ public class RowsValidatorJobTest {
         } catch (Exception e) {
             //an Exception should be thrown
         }
-        verify(session, times(3)).execute(any(BoundStatement.class));
+        verify(session, times(5)).execute(any(BoundStatement.class));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class RowsValidatorJobTest {
         } catch (Exception e) {
             assertEquals("The data doesn't fully match!. The exception was thrown for this query: Select count(*) From TableName Using these values(Item1)", e.getMessage());
         }
-        verify(session, times(3)).execute(any(BoundStatement.class));
+        verify(session, times(5)).execute(any(BoundStatement.class));
     }
 }
 

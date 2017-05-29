@@ -16,8 +16,8 @@ public class RowsValidatorJob implements Callable<Void> {
     private List<String> primaryKeys;
     private BoundStatement matchingBoundStatement;
     private List<Row> rows;
-    private static final int MAX_RETRY_COUNT = 3;
-    private static final int TIME_BETWEEN_RETRIES = 1000; //5 seconds
+    private static final int MAX_RETRY_COUNT = 5;
+    private static final int TIME_BETWEEN_RETRIES = 1000; //1 second (It will be multiplied by the number of retries)
 
 
     public RowsValidatorJob(Session session, List<String> primaryKeys, BoundStatement matchingBoundStatement, List<Row> rows) {
@@ -47,8 +47,9 @@ public class RowsValidatorJob implements Callable<Void> {
             if (retryCount >= retryLimit-1) {
                 throw e;
             }
-            Thread.sleep(TIME_BETWEEN_RETRIES);
-            matchCountWithRetry(row, ++retryCount, retryLimit);
+            retryCount ++;
+            Thread.sleep(retryCount*TIME_BETWEEN_RETRIES);
+            matchCountWithRetry(row, retryCount, retryLimit);
         }
     }
 
@@ -76,8 +77,9 @@ public class RowsValidatorJob implements Callable<Void> {
             if (retryCount >= retryLimit-1) {
                 throw e;
             }
-            Thread.sleep(TIME_BETWEEN_RETRIES);
-            return executeTheQueryWithRetry(++retryCount, retryLimit);
+            retryCount ++;
+            Thread.sleep(retryCount*TIME_BETWEEN_RETRIES);
+            return executeTheQueryWithRetry(retryCount, retryLimit);
         }
     }
 
