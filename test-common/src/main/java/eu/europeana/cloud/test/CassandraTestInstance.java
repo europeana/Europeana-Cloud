@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Thread.sleep;
+
 public final class CassandraTestInstance {
     private static final int PORT = 19142;
     private static final String CASSANDRA_CONFIG_FILE = "eu-cassandra.yaml";
@@ -50,7 +52,7 @@ public final class CassandraTestInstance {
                 .withProtocolVersion(ProtocolVersion.V3)
                 .withQueryOptions(queryOptions)
                 .withSocketOptions(socketOptions)
-                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(3,3,3)))
+                .withRetryPolicy(new LoggingRetryPolicy(new TestRetryPolicy(20,20,20, 1000)))
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator()).build();
     }
 
@@ -185,16 +187,20 @@ public final class CassandraTestInstance {
         private final double maxReadNbRetry;
         private final double maxWriteNbRetry;
         private final double maxUnavailableNbRetry;
+        private final long waitRetryTime;
 
-        TestRetryPolicy(double maxReadNbRetry, double maxWriteNbRetry, double maxUnavailableNbRetry) {
+        TestRetryPolicy(double maxReadNbRetry, double maxWriteNbRetry, double maxUnavailableNbRetry,
+                        long waitRetryTime) {
             this.maxReadNbRetry = maxReadNbRetry;
             this.maxWriteNbRetry = maxWriteNbRetry;
             this.maxUnavailableNbRetry = maxUnavailableNbRetry;
+            this.waitRetryTime = waitRetryTime;
         }
 
         @Override
         public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
                                            int receivedResponses, boolean dataRetrieved, int nbRetry) {
+            waitForNextRetry();
             if(dataRetrieved && receivedResponses >= requiredResponses){
                 return RetryDecision.ignore();
             }else if(nbRetry < maxReadNbRetry){
@@ -204,15 +210,26 @@ public final class CassandraTestInstance {
             }
         }
 
+        @SuppressWarnings({"squid:S2142","InterruptedException should not be ignored"})
+        private void waitForNextRetry() {
+            try {
+                sleep(waitRetryTime);
+            } catch (InterruptedException e) {
+                log.error("Sleep interrupted!", e);
+            }
+        }
+
         @Override
         public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType,
                                             int requiredAcks, int receivedAcks, int nbRetry) {
+            waitForNextRetry();
             return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry, maxWriteNbRetry);
         }
 
         @Override
         public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica,
                                            int aliveReplica, int nbRetry) {
+            waitForNextRetry();
             return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry, maxUnavailableNbRetry);
         }
 

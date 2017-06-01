@@ -12,6 +12,8 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -75,8 +78,8 @@ public class FilesResourceTest extends JerseyTest {
         file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
         Map<String, Object> allPathParams = ImmutableMap.<String, Object> of(ParamConstants.P_CLOUDID,
-            rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
-            rep.getVersion());
+                rep.getCloudId(), ParamConstants.P_REPRESENTATIONNAME, rep.getRepresentationName(), ParamConstants.P_VER,
+                rep.getVersion());
         filesWebTarget = target(FilesResource.class.getAnnotation(Path.class).value()).resolveTemplates(allPathParams);
     }
 
@@ -84,7 +87,11 @@ public class FilesResourceTest extends JerseyTest {
     @After
     public void cleanUp()
             throws Exception {
-        recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
+        try {
+            recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
+        }catch (Exception e){
+            // do nothing it's cleaning step
+        }
     }
 
 
@@ -111,12 +118,12 @@ public class FilesResourceTest extends JerseyTest {
         // when content is added to record representation
         FormDataMultiPart multipart = new FormDataMultiPart().field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                    APPLICATION_OCTET_STREAM_TYPE);
+                        APPLICATION_OCTET_STREAM_TYPE);
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
         assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue
-         ());
+                ());
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -125,7 +132,7 @@ public class FilesResourceTest extends JerseyTest {
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
         recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-            insertedFile.getFileName(), contentBos);
+                insertedFile.getFileName(), contentBos);
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
         assertArrayEquals(content, contentBos.toByteArray());
@@ -144,7 +151,7 @@ public class FilesResourceTest extends JerseyTest {
         FormDataMultiPart multipart = new FormDataMultiPart()
                 .field(ParamConstants.F_FILE_MIME, file.getMimeType())
                 .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(content),
-                    APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+                        APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
         assertEquals("Unexpected status code", Response.Status.CREATED.getStatusCode(), postFileResponse.getStatus());
@@ -157,7 +164,7 @@ public class FilesResourceTest extends JerseyTest {
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
         recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-            insertedFile.getFileName(), contentBos);
+                insertedFile.getFileName(), contentBos);
         assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
         assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
         assertEquals(content.length, insertedFile.getContentLength());
@@ -171,20 +178,25 @@ public class FilesResourceTest extends JerseyTest {
         byte[] content = { 1, 2, 3, 4 };
         String contentMd5 = Hashing.md5().hashBytes(content).toString();
         recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
-            new ByteArrayInputStream(content));
+                new ByteArrayInputStream(content));
 
         byte[] modifiedContent = { 5, 6, 7 };
         ThreadLocalRandom.current().nextBytes(modifiedContent);
         String modifiedContentMd5 = Hashing.md5().hashBytes(content).toString();
         // when content is added to record representation
+
+        ByteArrayInputStream modifiedInputStream = new ByteArrayInputStream(modifiedContent);
+        MediaType detect = getMediaType(modifiedInputStream);
         FormDataMultiPart multipart = new FormDataMultiPart()
-                .field(ParamConstants.F_FILE_MIME, file.getMimeType())
-                .field(ParamConstants.F_FILE_DATA, new ByteArrayInputStream(modifiedContent),
-                        APPLICATION_OCTET_STREAM_TYPE).field(ParamConstants.F_FILE_NAME, file.getFileName());
+                .field(ParamConstants.F_FILE_MIME, detect.toString())
+                .field(ParamConstants.F_FILE_DATA, modifiedInputStream,
+                        detect).field(ParamConstants.F_FILE_NAME, file.getFileName());
 
         Response postFileResponse = filesWebTarget.request().post(Entity.entity(multipart, multipart.getMediaType()));
-        assertEquals("Unexpected status code", Response.Status.CONFLICT.getStatusCode(), postFileResponse.getStatus());
-        //assertEquals("File content tag mismatch", contentMd5, postFileResponse.getEntityTag().getValue());
+        assertEquals("Unexpected status code" + postFileResponse.readEntity(String.class), Response.Status
+                        .CONFLICT
+                        .getStatusCode(),
+                postFileResponse.getStatus());
 
         // then data should be in record service
         rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
@@ -193,9 +205,14 @@ public class FilesResourceTest extends JerseyTest {
         File insertedFile = rep.getFiles().get(0);
         ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
         recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-            insertedFile.getFileName(), contentBos);
+                insertedFile.getFileName(), contentBos);
         assertNotSame("MD5 file mismatch", modifiedContentMd5, insertedFile.getMd5());
         assertNotSame(modifiedContent.length, insertedFile.getContentLength());
+    }
+
+    private MediaType getMediaType(ByteArrayInputStream modifiedInputStream) throws IOException {
+        return MediaType.valueOf(new AutoDetectParser().getDetector().detect(modifiedInputStream, new
+                Metadata()).toString());
     }
 
     @Test
