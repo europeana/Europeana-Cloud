@@ -35,6 +35,10 @@ public class CassandraConnectionProvider {
 
     private String keyspaceName;
 
+    private String userName;
+
+    private String password;
+
     /**
      * Constructor. Use it when your Cassandra cluster does not support
      * authentication.
@@ -70,6 +74,8 @@ public class CassandraConnectionProvider {
         this.hosts = hosts;
         this.port = String.valueOf(port);
         this.keyspaceName = keyspaceName;
+        this.userName = userName;
+        this.password = password;
 
         String[] contactPoints = hosts.split(",");
         cluster = getClusterBuilder(port, contactPoints)
@@ -104,11 +110,10 @@ public class CassandraConnectionProvider {
 
 
     @PreDestroy
-    private void closeConnections() {
+    public void closeConnections() {
         LOGGER.info("Cluster is shutting down.");
         cluster.close();
     }
-
 
     /**
      * Expose a singleton instance connection to a database on the requested
@@ -158,5 +163,21 @@ public class CassandraConnectionProvider {
      */
     public String getKeyspaceName() {
         return keyspaceName;
+    }
+
+    public Metadata getMetadata() {
+        return cluster.getMetadata();
+    }
+
+    private String getUserName() {
+        return userName;
+    }
+
+    private String getPassword() {
+        return password;
+    }
+
+    public CassandraConnectionProvider(final CassandraConnectionProvider cassandraConnectionProvider) {
+        this(cassandraConnectionProvider.getHosts(), Integer.parseInt(cassandraConnectionProvider.getPort()), cassandraConnectionProvider.getKeyspaceName(), cassandraConnectionProvider.getUserName(), cassandraConnectionProvider.getPassword());
     }
 }

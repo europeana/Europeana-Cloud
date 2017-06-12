@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.web;
 
 /**
- * Constants for the AAS.
+ * constants for the AAS.
  * 
  * Shared between the Wrapper and the Rest API.
  */

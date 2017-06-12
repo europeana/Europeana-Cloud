@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dls.solr;
 
 /**
- * Constants for solr document field names.
+ * constants for solr document field names.
  */
 interface SolrFields {
 
