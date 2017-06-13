@@ -10,13 +10,17 @@ public class V4_1__create___data_set_assignments_by_revision_id_MCS implements J
     @Override
     public void migrate(Session session) {
         session.execute("CREATE TABLE data_set_assignments_by_revision_id (\n" +
-                "provider_id varchar,\n" +
-                "dataset_id varchar,\n" +
-                "revision_id varchar,\n" +
-                "representation_id varchar,\n" +
-                "cloud_id varchar,\n" +
-                "PRIMARY KEY ((provider_id, dataset_id, representation_id), revision_id, cloud_id)\n" +
+                "provider_id text,\n" +
+                "dataset_id text,\n" +
+                "revision_provider_id text,\n" +
+                "revision_name text,\n" +
+                "revision_timestamp timestamp,\n" +
+                "representation_id text,\n" +
+                "cloud_id text,\n" +
+                "acceptance boolean,\n" +
+                "mark_deleted boolean,\n" +
+                "published boolean,\n" +
+                "PRIMARY KEY ((provider_id, dataset_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id)\n" +
                 ");\n");
     }
 }
-
