@@ -81,3 +81,19 @@ ui:
     - nimbus:nimbus
     - zookeeper:zookeeper
   restart: always
+
+cassandra2:
+  build: cassandra2
+  links:
+    - sftp:sftp
+  ports:
+    - "9042:9042"
+    - "9160:9160"
+  volumes:
+    - ./cassandra2/volume/:/volume/
+
+sftp:
+  image: atmoz/sftp
+  ports:
+     - "2222:22"
+  command: ecloud:ecloud_admin:::backup
