@@ -1,36 +1,21 @@
 #!/bin/bash
+# based on https://github.com/GoogleCloudPlatform/cassandra-cloud-backup/blob/master/cassandra-cloud
+# -backup.sh
 #
-# Copyright 2016 Google Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS-IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-#
-# Description :  Take snapshot and incremental backups of Cassandra and copy them to Google Cloud Storage
+# Description :  Take snapshot and incremental backups of Cassandra and copy them to SFTP
 #                Optionally restore full system from snapshot
-# This is not an official Google product.
 #
 VERSION='1.0'
 SCRIPT_NAME="cassandra-cloud-backup.sh"
 #exit on any error
 set -e
-set -x
 # Prints the usage for this script
 function print_usage() {
   echo "Cassandra Backup to Google Cloud Storage Version: ${VERSION}"
   cat <<'EOF'
 Usage: ./cassandra-cloud-backup.sh [ options ] <command>
 Description:
-  Utility for creating and managing Cassandra Backups with Google Cloud Storage.
+  Utility for creating and managing Cassandra Backups with SFTP.
   Run with admin level privileges.
 
   The backup command can use gzip or bzip2 for compression, and split large files
@@ -55,8 +40,8 @@ Flags:
   -B, backup
     Default action is to take a backup
 
-  -b, --gcsbucket
-   Google Cloud Storage bucket used in deployment and by the cluster.
+  -b, --sftpbucket
+   SFTP bucket used in deployment and by the cluster.
 
   -c, --clear-old-ss
     Clear any old SnapShots taken prior to this backup run to save space
@@ -71,7 +56,7 @@ Flags:
     has enough space and the appropriate permissions
 
   -D, --download-only
-    During a restore this will only download the target files from GCS
+    During a restore this will only download the target files from SFTP
 
   -f, --force
     Used to force the restore without confirmation prompt
@@ -89,7 +74,7 @@ Flags:
     be run when compression is enabled with -z or -j
 
   -j, --bzip
-    Compresses the backup files with bzip2 prior to pushing to Google Cloud Storage
+    Compresses the backup files with bzip2 prior to pushing to SFTP
     This option will use additional local disk space set the --target-gz-dir
     to use an alternate disk location if free space is an issue
 
@@ -117,7 +102,7 @@ Flags:
     The Cassandra User Password if required for security
 
   -r,  restore
-    Restore a backup, requires a --gcsbucket path and optional --backupdir
+    Restore a backup, requires a --sftpbucket path and optional --backupdir
 
   -s, --split-size
     Split the resulting tar archive into the configured size in Megabytes, default 100M
@@ -145,6 +130,9 @@ Flags:
     For posterity's sake, to save the read caches in a backup use this flag, although it
     likely represents a waste of space
 
+  -x
+    Debug
+
   -y, --yaml
     Path to the Cassandra yaml configuration file
     default: /etc/cassandra/cassandra.yaml
@@ -169,28 +157,38 @@ commands              List available commands
 options               list available options
 
 Examples:
+
   Take a full snapshot, gzip compress it with nice=15,
-  upload into the GCS Bucket, and clear old incremental and snapshot files
-  ./cassandra-cloud-backup.sh -b gs://cassandra-backups123/ -zCc -N 15 backup
+  upload into the SFTP Bucket
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b sftp://user:password@sftp:22/backup \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra -v backup
 
   Do a dry run of a full snapshot with verbose output and
   create list of files that would have been copied
-  ./cassandra-cloud-backup.sh -b gs://cassandra-backups123/ -vn backup
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b sftp://user:password@sftp:22/backup \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra -vn backup
 
   Backup and bzip2 compress copies of the most recent incremental
   backup files since the last incremental backup
-  ./cassandra-cloud-backup.sh -b gs://cassandra-backups123/ -ji backup
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b sftp://user:password@sftp:22/backup \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra -ji backup
 
   Restore a backup without prompting from specified bucket path and keep the old files locally
-  ./cassandra-cloud-backup.sh -b gs://cass-bk123/backups/host01/snpsht/2016-01-20_18-57/ -fk restore
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b \
+  sftp://user:password@sftp:22/backup/backups/$(hostname)/snpsht/2017-06-26_11-52 \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra -k \
+  -d /var/lib/cassandra/backups -o "root:root" restore
 
   Restore a specific backup to a custom CASSANDRA_HOME directory with secure credentials in
   password.txt file with Cassandra running as a Linux service name cass
-  ./cassandra-cloud-backup.sh -b gs://cass-bk123/backups/host01/snpsht/2016-01-20_18-57/ \
-   -y /opt/cass/conf/cassandra.yaml -H /opt/cass -U password.txt -S cass restore
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b \
+  sftp://user:password@sftp:22/backup/backups/$(hostname)/snpsht/2017-06-26_11-52 \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra -k \
+  -d /var/lib/cassandra/backups -o "root:root" -U password.txt -S cassandra restore
 
   List inventory of available backups stored in Google Cloud Store
-  ./cassandra-cloud-backup.sh -b gs://cass-bk123 inventory
+  ./cassandra_backup.sh -H /opt/apache-cassandra-2.1.8 -b sftp://user:password@sftp:22/backup \
+  --yaml /opt/apache-cassandra-2.1.8/conf/cassandra.yaml -p cassandra -u cassandra  inventory
 
 EOF
 }
@@ -251,12 +249,12 @@ function validate() {
     logerror "Cannot find lftp utility please make sure it is in the PATH"
     exit 1
   fi
-  if [ -z ${GCS_BUCKET} ]; then
-      logerror "Please pass in the GCS Bucket to use with this script"
+  if [ -z ${SFTP_BUCKET} ]; then
+      logerror "Please pass in the SFTP Bucket to use with this script"
       exit 1
   else
-      if ! $(${LFTP} ${GCS_BUCKET} -e "ls"); then
-        logerror "Cannot access SFTP disk ${GCS_BUCKET} make sure" \
+      if ! $(${LFTP} -c "open ${SFTP_BUCKET}; ls" &> /dev/null) ; then
+        logerror "Cannot access SFTP disk ${SFTP_BUCKET} make sure" \
         " it exists"
         exit 1
       fi
@@ -330,58 +328,58 @@ function validate() {
       logerror "The tar and nice utilities must be present to win."
     fi
     if [ ${ACTION} = "restore" ]; then
-      GCS_LS=$(${LFTP} ${GCS_BUCKET} -e "ls"| head -n1)
-      loginfo "GCS first file listed: ${GCS_LS}"
-      if  grep -q 'incr' <<< "${GCS_LS}"; then
+      SFTP_LS=$(${LFTP} -c "open ${SFTP_BUCKET}; ls" | sed '1,2d' | head -n1 | awk -F " " '{print $9}')
+      loginfo "SFTP first file listed: ${SFTP_LS}"
+      if  grep -q 'incr' <<< "${SFTP_LS}"; then
         loginfo "Detected incremental backup requested for restore. This script " \
         "will only download the files locally"
         DOWNLOAD_ONLY=true
         INCREMENTAL=true
         SUFFIX="incr"
       else
-        if grep -q 'snpsht' <<< "${GCS_LS}"; then
+        if grep -q 'snpsht' <<< "${SFTP_LS}"; then
           loginfo "Detected full snapshot backup requested for restore."
         else
-          logerror "Detected a Google Cloud Storage bucket path that is not a backup" \
-          " location. Make sure the --gcsbucket e is the full path to a specific backup"
+          logerror "Detected a SFTP bucket path that is not a backup" \
+          " location. Make sure the --sftpbucket e is the full path to a specific backup"
         fi
       fi
-      if grep -q "tgz" <<< "${GCS_LS}"; then
+      if grep -q "tgz" <<< "${SFTP_LS}"; then
         loginfo "Detected compressed .tgz file for restore"
         COMPRESSION=true
         TAR_EXT="tgz"
         TAR_CFLAG="-z"
       fi
-      if  grep -q "tbz" <<< "${GCS_LS}"; then
+      if  grep -q "tbz" <<< "${SFTP_LS}"; then
         loginfo "Detected compressed .tbz file for restore"
         COMPRESSION=true
         TAR_EXT="tbz"
         TAR_CFLAG="-j"
       fi
-      if  grep -q "tar" <<< "${GCS_LS}"; then
+      if  grep -q "tar" <<< "${SFTP_LS}"; then
         loginfo "Detected uncompressed .tar file for restore"
         COMPRESSION=false
         TAR_EXT="tar"
         TAR_CFLAG=""
       fi
-      RESTORE_FILE=$(awk -F"/" '{print $NF}' <<< "${GCS_LS}")
+      RESTORE_FILE=$(awk -F"/" '{print $NF}' <<< "${SFTP_LS}")
       if [[ "${RESTORE_FILE}" != *.${TAR_EXT} ]] ; then
           #Detect Split Files${TAR_EXT}-
           if [[ "${RESTORE_FILE}" ==  ${TAR_EXT}-* ]]; then
             SPLIT_FILE=true
             loginfo "Split file restore detected"
           else
-            logerror "Restore is not a tar file  ${GCS_BUCKET}"
+            logerror "Restore is not a tar file  ${SFTP_BUCKET}"
           fi
       fi
-      if [[ ! ${GCS_BUCKET} =~ ^.*\.${TAR_EXT}$ ]]; then
+      if [[ ! ${SFTP_BUCKET} =~ ^.*\.${TAR_EXT}$ ]]; then
         if ${SPLIT_FILE}; then
           #remove the trailing digits and replace the suffix
           RESTORE_FILE="${RESTORE_FILE%${SUFFIX}*}${SUFFIX}*"
-          GCS_BUCKET="${GCS_BUCKET%/}/${RESTORE_FILE}"
+          SFTP_BUCKET="${SFTP_BUCKET%/}/${RESTORE_FILE}"
         else
-          GCS_BUCKET="${GCS_BUCKET%/}/${RESTORE_FILE}"
-          loginfo "Fixed up restore bucket path: ${GCS_BUCKET}"
+          SFTP_BUCKET="${SFTP_BUCKET%/}/${RESTORE_FILE}"
+          loginfo "Fixed up restore bucket path: ${SFTP_BUCKET}"
         fi
       fi
 
@@ -452,8 +450,8 @@ function verbose_vars() {
   logverbose "DOWNLOAD_ONLY: ${DOWNLOAD_ONLY}"
   logverbose "DRY_RUN: ${DRY_RUN}"
   logverbose "FORCE_RESTORE: ${FORCE_RESTORE}"
-  logverbose "GCS_BUCKET: ${GCS_BUCKET}"
-  logverbose "GCS_TMPDIR: ${GCS_TMPDIR}"
+  logverbose "SFTP_BUCKET: ${SFTP_BUCKET}"
+  logverbose "SFTP_TMPDIR: ${SFTP_TMPDIR}"
   logverbose "LFTP: ${LFTP}"
   logverbose "HOSTNAME: ${HOSTNAME}"
   logverbose "INCREMENTAL: ${INCREMENTAL}"
@@ -502,21 +500,30 @@ function touch_logfile() {
   fi
 }
 
-# List available backups in GCS
+# List available backups in sftp
 function inventory() {
   loginfo "Available Snapshots:"
-  gsutil ls -d "${GCS_BUCKET}/backups/${HOSTNAME}/snpsht/*"
+  if ! $(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/snpsht" 2>&1 &> /dev/null); then
+      loginfo "No snapshots"
+  else
+    ${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/snpsht" | sed '1,2d' | head -n1 | awk -F " " '{print $9}'
+  fi
   if [ -z $incremental_backups ] || [ $incremental_backups = false ]; then
     loginfo "Incremental Backups are not enabled for Cassandra"
   fi
   loginfo "Available Incremental Backups:"
-  gsutil ls -d "${GCS_BUCKET}/backups/${HOSTNAME}/incr/*"
+
+  if ! $(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/incr" 2>&1 &> /dev/null); then
+    loginfo "No incremental backups"
+  else
+    ${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/incr" | sed '1,2d' | head -n1 | awk -F " " '{print $9}'
+  fi
 }
 
 # This is the main backup function that orchestrates all the options
-# to create the backup set and then push it to GCS
+# to create the backup set and then push it to SFTP
 function backup() {
-  create_gcs_backup_path
+  create_sftp_backup_path
   clear_backup_file_list
   if ${CLEAR_SNAPSHOTS}; then
     clear_snapshots
@@ -535,7 +542,7 @@ function backup() {
   else
     archive_compress
   fi
-  copy_to_gcs
+  copy_to_sftp
   save_last_inc_backup_time
   backup_cleanup
   if ${CLEAR_INCREMENTALS}; then
@@ -637,8 +644,8 @@ function set_auth_string() {
 }
 
 # Set the backup path bucket URL
-function create_gcs_backup_path() {
-  SFTP_BACKUP_PATH="${GCS_BUCKET}/backups/${HOSTNAME}/${SUFFIX}/${DATE}/"
+function create_sftp_backup_path() {
+  SFTP_BACKUP_PATH="${SFTP_BUCKET}/backups/${HOSTNAME}/${SUFFIX}/${DATE}/"
   loginfo "Will use target backup directory: ${SFTP_BACKUP_PATH}"
 }
 
@@ -803,20 +810,21 @@ function clear_incrementals() {
 }
 
 # Copy the backup files up to the SFTP folder
-function copy_to_gcs() {
+function copy_to_sftp() {
   loginfo "Copying files to ${SFTP_BACKUP_PATH}"
   if ${DRY_RUN}; then
+    loginfo "DRY RUN: ${LFTP} -c \"open ${SFTP_BUCKET}; mkdir -p -f backups/${HOSTNAME}/${SUFFIX}/${DATE}\""
     if ${SPLIT_FILE}; then
-      loginfo "DRY RUN: ${LFTP} -m cp ${COMPRESS_DIR}/${SPLIT_FILE_SUFFIX}* ${SFTP_BACKUP_PATH}"
+      loginfo "DRY RUN: ${LFTP} -c \"open ${SFTP_BACKUP_PATH}; mput ${COMPRESS_DIR}/${SPLIT_FILE_SUFFIX}*\""
     else
-      loginfo "DRY RUN: echo \"mput ${COMPRESS_DIR}/${SPLIT_FILE_SUFFIX}*\" | ${LFTP}\"${SFTP_BACKUP_PATH}\""
+      loginfo "DRY RUN: ${LFTP} -c \"open ${SFTP_BACKUP_PATH}; put ${COMPRESS_DIR}/${ARCHIVE_FILE}\""
     fi
   else
-    echo "mkdir -p -f /backup/backups/${HOSTNAME}/${SUFFIX}/${DATE}/" | ${LFTP} "${GCS_BUCKET}"
+    ${LFTP} -c "open ${SFTP_BUCKET}; mkdir -p -f backups/${HOSTNAME}/${SUFFIX}/${DATE}"
     if ${SPLIT_FILE}; then
-      echo "mput ${COMPRESS_DIR}/${SPLIT_FILE_SUFFIX}*" | ${LFTP} "${SFTP_BACKUP_PATH}"
+      ${LFTP} -c "open ${SFTP_BACKUP_PATH}; mput ${COMPRESS_DIR}/${SPLIT_FILE_SUFFIX}*"
     else
-      echo "put ${COMPRESS_DIR}/${ARCHIVE_FILE}" | ${LFTP} "${SFTP_BACKUP_PATH}"
+      ${LFTP} -c "open ${SFTP_BACKUP_PATH}; put ${COMPRESS_DIR}/${ARCHIVE_FILE}"
     fi
   fi
 }
@@ -876,31 +884,31 @@ function restore_get_files() {
     rm -rf ${VERBOSE_RM} ${BACKUP_DIR}/restore/*
   fi
   if ${SPLIT_FILE}; then
-    restore_split_from_gcs
+    restore_split_from_sftp
   else
-    restore_compressed_from_gcs
+    restore_compressed_from_sftp
   fi
 
 }
 
-# Download uncompressed backup files from GCS
-function restore_split_from_gcs() {
-  loginfo "Downloading restore files from GCS"
+# Download uncompressed backup files from SFTP
+function restore_split_from_sftp() {
+  loginfo "Downloading restore files from SFTP"
   if ${DRY_RUN}; then
-    loginfo "DRY RUN: ${LFTP} -m -r cp ${GCS_BUCKET} ${COMPRESS_DIR}"
+    loginfo "DRY RUN: ${LFTP} -c \"open ${SFTP_BUCKET}; mirror -R ${SFTP_BUCKET}\" \"${COMPRESS_DIR}\""
   else
-    ${LFTP} -m cp -r  "${GCS_BUCKET}" "${COMPRESS_DIR}"
+    ${LFTP} -c "open ${SFTP_BUCKET}; mirror -R ${SFTP_BUCKET}" "${COMPRESS_DIR}"
   fi
   restore_split
 }
 
 # Retrieve the compressed backup file
-function restore_compressed_from_gcs() {
+function restore_compressed_from_sftp() {
     if ${DRY_RUN}; then
-      loginfo "DRY RUN: ${LFTP} cp ${GCS_BUCKET} ${COMPRESS_DIR}"
+      loginfo "DRY RUN: ${LFTP} -c \"open ${SFTP_BUCKET}; get ${SFTP_BUCKET} -o ${COMPRESS_DIR}\""
     else
        #copy the tar.gz file
-      ${LFTP} cp "${GCS_BUCKET}" "${COMPRESS_DIR}"
+      ${LFTP} -c "open ${SFTP_BUCKET}; get ${SFTP_BUCKET} -o ${COMPRESS_DIR}"
     fi
     restore_decompress
 }
@@ -935,11 +943,11 @@ function restore_split() {
 # The archive commands save permissions but the new directories need this
 # @param directory path to chown
 function restore_fix_perms() {
-  loginfo "Fixing file ownership"
+  loginfo "Fixing file ownership to ${CASSANDRA_OG} user"
   if ${DRY_RUN}; then
     loginfo "DRY RUN: chown -R ${CASSANDRA_OG} ${1} "
   else
-    chown -R ${CASSANDRA_OG} ${1}
+   chown -R ${CASSANDRA_OG} ${1}
   fi
 }
 
@@ -973,10 +981,10 @@ function restore_files() {
     restore_fix_perms "${saved_caches_directory}"
     loginfo "Performing rsync commitlogs and caches from restore directory to full path"
     if [ -d "${BACKUP_DIR}/restore${commitlog_directory}" ]; then
-      rsync -aH ${VERBOSE_RSYNC} ${BACKUP_DIR}/restore${commitlog_directory}/* ${commitlog_directory}/
+      ${RSYNC} -aH ${VERBOSE_RSYNC} ${BACKUP_DIR}/restore${commitlog_directory}/* ${commitlog_directory}/
     fi
     if [ -d "${BACKUP_DIR}/restore${saved_caches_directory}" ]; then
-      rsync -aH ${VERBOSE_RSYNC} ${BACKUP_DIR}/restore${saved_caches_directory}/* ${saved_caches_directory}/
+      ${RSYNC} -aH ${VERBOSE_RSYNC} ${BACKUP_DIR}/restore${saved_caches_directory}/* ${saved_caches_directory}/
     fi
 
     for i in "${data_file_directories[@]}"
@@ -984,7 +992,7 @@ function restore_files() {
       #have to recreate it since we moved the old one for safety
       mkdir -p ${i} && restore_fix_perms ${i}
       loginfo "Performing rsync data files from restore directory to full path ${i}"
-      rsync -aH ${VERBOSE_RSYNC}  ${BACKUP_DIR}/restore${i}/*  ${i}/
+      ${RSYNC} -aH ${VERBOSE_RSYNC}  ${BACKUP_DIR}/restore${i}/*  ${i}/
       loginfo "Moving snapshot files up two directories to their keyspace base directories"
       #assume the snap* pattern is safe since no other
       # snapshots should have been copied in the backup process
@@ -1011,12 +1019,16 @@ function restore_stop_cassandra() {
       loginfo "Attempted to Stop Cassandra service but it seems to already be stopped"
     else
       $NODETOOL ${USER_OPTIONS} flush
-      loginfo "Stopping Cassandra Service ${SERVICE_NAME} and sleep for 10 seconds"
-      service ${SERVICE_NAME} stop
-      sleep 10
+      stop_cassandra
     fi
     set -e
   fi
+}
+
+function stop_cassandra(){
+      loginfo "Stopping Cassandra Service ${SERVICE_NAME} and sleep for 10 seconds"
+      sudo /etc/init.d/cassandra stop
+      sleep 10s
 }
 
 # If Cassandra is not part of a cluster then restart it. If it is part of a cluster,
@@ -1027,9 +1039,14 @@ function restore_start_cassandra() {
       loginfo "DRY RUN: Starting Cassandra"
   else
     if "${AUTO_RESTART}"; then
-      service ${SERVICE_NAME} start
+      loginfo "Starting Cassandra"
+      start_cassandra
     fi
   fi
+}
+
+function start_cassandra(){
+    sudo /etc/init.d/cassandra start
 }
 
 # This will optionally go through and delete any copies of old data files
@@ -1074,7 +1091,7 @@ function restore_confirm() {
     while true
     do
       read -p "Confirm: Stop Cassandra and restore the files \
-      from ${BACKUP_DIR}/restore? Y or N" ans
+      from ${BACKUP_DIR}/restore? Y or N " ans
       case $ans in
         [yY]* )
                 echo "Okay, commencing restore";
@@ -1111,7 +1128,7 @@ for arg in "$@"; do
     "inventory") set -- "$@" "-I" ;;
     "--alt-hostname")   set -- "$@" "-a" ;;
     "--auth-file") set -- "$@" "-U" ;;
-    "--gcsbucket") set -- "$@" "-b" ;;
+    "--sftpbucket") set -- "$@" "-b" ;;
     "--backupdir")   set -- "$@" "-d" ;;
     "--bzip")    set -- "$@" "-j" ;;
     "--clear-old-ss")   set -- "$@" "-c" ;;
@@ -1126,25 +1143,27 @@ for arg in "$@"; do
     "--keep-old")   set -- "$@" "-k" ;;
     "--noop")   set -- "$@" "-n" ;;
     "--nice")   set -- "$@" "-N" ;;
+    "--owner")   set -- "$@" "-o" ;;
     "--service-name")   set -- "$@" "-S" ;;
     "--split-size")   set -- "$@" "-s" ;;
     "--target-gz-dir")   set -- "$@" "-T" ;;
     "--verbose")   set -- "$@" "-v" ;;
     "--with-caches")   set -- "$@" "-w" ;;
+    "--xdebug") set -- "$@" "-x" ;;
     "--yaml")   set -- "$@" "-y" ;;
     "--zip")   set -- "$@" "-z" ;;
     *)        set -- "$@" "$arg"
   esac
 done
 
-while getopts 'a:b:BcCd:DfhH:iIjkl:LnN:p:rs:S:T:u:U:vwy:z' OPTION
+while getopts 'a:b:BcCd:DfhH:iIjkl:LnN:o:p:rs:S:T:u:U:vwy:x:z' OPTION
 do
   case $OPTION in
       a)
           HOSTNAME=${OPTARG}
           ;;
       b)
-          GCS_BUCKET=${OPTARG%/}
+          SFTP_BUCKET=${OPTARG%/}
           ;;
       B)
           ACTION="backup"
@@ -1199,6 +1218,9 @@ do
       N)
           NICE_LEVEL=${OPTARG}
           ;;
+      o)
+          CASSANDRA_OG=${OPTARG%/}
+          ;;
       p)
           CASSANDRA_PASS=${OPTARG}
           ;;
@@ -1229,6 +1251,9 @@ do
       w)
           INCLUDE_CACHES=true
           ;;
+      x)
+          set -x
+          ;;
       y)
           YAML_FILE=${OPTARG}
           ;;
@@ -1250,7 +1275,7 @@ BACKUP_DIR=${BACKUP_DIR:-/cassandra/backups} # Backups base directory
 BZIP=${BZIP:-false} #use bzip2 compression
 CASSANDRA_PASS=${CASSANDRA_PASS:-''} #Password for Cassandra CQLSH account
 CASSANDRA_USER=${CASSANDRA_USER:-''} #Username for Cassandra CQLSH account
-CASSANDRA_OG="cassandra:cassandra" #modify this if you changed the system cassandra user and group
+CASSANDRA_OG=${CASSANDRA_OG:-'root:root'} #modify this if you changed the system cassandra user and group
 CLEAR_INCREMENTALS=${CLEAR_INCREMENTALS:-false} #flag to delete incrementals post snapshot
 CLEAR_SNAPSHOTS=${CLEAR_SNAPSHOTS:-false} #clear old snapshots pre-snapshot
 COMPRESS_DIR=${COMPRESS_DIR:-${BACKUP_DIR}/compressed} #directory to house backup archive
@@ -1262,8 +1287,8 @@ DOWNLOAD_ONLY=${DOWNLOAD_ONLY:-false} #user flag or used if incremental restore 
 DRY_RUN=${DRY_RUN:-false} #flag to only print what would have executed
 ERROR_COUNT=0 #used in validation step will exit if > 0
 FORCE_RESTORE=${FORCE_RESTORE:-false} #flag to bypass restore confirmation prompt
-LFTP="$(which lftp)" #which gsutil script
-HOSTNAME=${HOSTNAME:-"$(hostname)"} #used for gcs backup location
+LFTP="$(which lftp)" #which lftp script
+HOSTNAME=${HOSTNAME:-"$(hostname)"} #used for sftp backup location
 INCLUDE_CACHES=${INCLUDE_CACHES:-false} #include the saved caches for posterity
 INCLUDE_COMMIT_LOGS=${INCLUDE_COMMIT_LOGS:-false} #include the commit logs for extra safety
 INCREMENTAL=${INCREMENTAL:-false}  # flag to indicate only incremental files
@@ -1275,6 +1300,7 @@ NICE="$(which nice)" #which nice for low impact tar
 NICE_LEVEL=${NICE_LEVEL:-10} ##10 is default nice level
 NODETOOL="$(which nodetool)" #which nodetool
 USER_OPTIONS="" #nodetool and cqlsh options
+RSYNC="$(which rsync)" #which rsync script
 SCHEMA_DIR="${BACKUP_DIR}/schema" # schema backups directory
 TOKEN_RING_DIR="${BACKUP_DIR}/token_ring" # token ring backups directory
 SERVICE_NAME=${SERVICE_NAME:-cassandra} # sometimes the service name is different

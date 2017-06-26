@@ -9,8 +9,11 @@ RUN apt-get update \
         lftp \
         rsync \
         wget  \
+        sudo \
         vim \
     && rm -rf /var/lib/apt/lists/*
+#
+
 
 ENV CASSANDRA_DIR /opt/apache-cassandra-2.1.8
 
@@ -20,13 +23,13 @@ RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandr
 COPY ./cqls/*.cql /etc/cassandra/
 COPY scripts/configure.sh /etc/cassandra/
 COPY scripts/initialize_tables.sh /etc/cassandra/
-COPY scripts/cassandra_backup.sh /cassandra_backup.sh
 COPY confs/rsyslog.conf /etc/rsyslog.d/50-default.conf
 COPY confs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
+COPY scripts/cassandra.sh /etc/init.d/cassandra
 
 RUN mkdir -p /var/log/supervisor
-RUN chmod 555 /entrypoint.sh /etc/cassandra/*
+RUN chmod 555 /etc/init.d/cassandra /entrypoint.sh /etc/cassandra/*
 
 # 7000: intra-node communication
 # 7001: TLS intra-node communication

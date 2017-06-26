@@ -21,8 +21,8 @@ if [ ! -e /cassandrac.pid ]; then
 fi
 
 echo "Starting services..."
-#/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
-/bin/bash -c "/opt/apache-cassandra-2.1.8/bin/cassandra"
+#
+sudo /etc/init.d/cassandra start
 sleep 15s
 
 wait_for_cassandra_bootup
@@ -34,5 +34,3 @@ if [ ! -e /cassandrak.pid ]; then
 fi
 
 ssh-keyscan -t rsa sftp >> ~/.ssh/known_hosts
-
-#ls -l /var/log/supervisor/cassandra.log && tail /var/log/supervisor/cassandra.log
