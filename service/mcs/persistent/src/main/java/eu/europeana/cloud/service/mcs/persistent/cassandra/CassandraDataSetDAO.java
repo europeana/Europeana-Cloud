@@ -87,7 +87,6 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentationWhenMarkedDeleted;
 
-    private PreparedStatement getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation;
 
     private PreparedStatement insertProviderDatasetRepresentationInfo;
 
@@ -301,13 +300,6 @@ public class CassandraDataSetDAO {
                 + "FROM provider_dataset_representation " //
                 + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND representation_id = ? AND revision_timestamp > ? AND published = true LIMIT ?;");
         getDataSetCloudIdsByRepresentationPublished.setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-
-        getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation = connectionProvider.getSession().prepare("SELECT cloud_id, revision_timestamp " //
-                + "FROM provider_dataset_representation " //
-                + "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ? AND revision_id = ? And representation_id = ? AND revision_timestamp > ?  LIMIT ?;");
-        getDataSetCloudIdsAndTimestampsByRevisionAndRepresentation.setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
 
         getLatestDataSetCloudIdsAndTimestampsByRevisionAndRepresentation = connectionProvider.getSession().prepare("SELECT cloud_id, revision_timestamp " //
                 + "FROM latest_provider_dataset_representation_revision " //
