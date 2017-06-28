@@ -502,22 +502,26 @@ function touch_logfile() {
 
 # List available backups in sftp
 function inventory() {
-  loginfo "Available Snapshots:"
+  loginfo "*************AVAILABLE_SNAPSHOTS*************"
   if ! $(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/snpsht" 2>&1 &> /dev/null); then
-      loginfo "No snapshots"
+    loginfo "No snapshots"
   else
-    ${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/snpsht" | sed '1,2d' | head -n1 | awk -F " " '{print $9}'
+    file_list=$(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/snpsht" | sed '1,2d' \
+    | head -n1 | awk -F " " '{print $9}')
+    loginfo "$file_list"
   fi
+  loginfo "*************AVAILABLE_INCREMENTAL_BACKUPS*************"
   if [ -z $incremental_backups ] || [ $incremental_backups = false ]; then
     loginfo "Incremental Backups are not enabled for Cassandra"
   fi
-  loginfo "Available Incremental Backups:"
-
   if ! $(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/incr" 2>&1 &> /dev/null); then
     loginfo "No incremental backups"
   else
-    ${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/incr" | sed '1,2d' | head -n1 | awk -F " " '{print $9}'
+    file_list=$(${LFTP} -c "open ${SFTP_BUCKET}; ls /backup/backups/${HOSTNAME}/incr" | sed '1,2d' \
+    | head -n1 | awk -F " " '{print $9}')
+    loginfo "$file_list"
   fi
+  loginfo "*******************************************************"
 }
 
 # This is the main backup function that orchestrates all the options
