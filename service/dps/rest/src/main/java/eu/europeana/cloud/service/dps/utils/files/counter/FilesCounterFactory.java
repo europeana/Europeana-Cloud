@@ -2,9 +2,11 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 /**
  * Created by Tarek on 4/6/2016.
@@ -19,9 +21,9 @@ public class FilesCounterFactory {
     RecordServiceClient recordServiceClient;
 
     public FilesCounter createFilesCounter(String taskType) {
-        if (PluginParameterKeys.FILE_URLS.equals(taskType))
+        if (FILE_URLS.name().equals(taskType))
             return new RecordFilesCounter();
-        if (PluginParameterKeys.DATASET_URLS.equals(taskType))
+        if (DATASET_URLS.name().equals(taskType))
             return new DatasetFilesCounter(dataSetServiceClient, recordServiceClient);
         else
             return null;

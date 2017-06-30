@@ -4,6 +4,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+
 public class DpsTaskValidatorFactory {
 
     private static final DpsTaskValidator EMPTY_VALIDATOR = new DpsTaskValidator();
@@ -16,29 +19,25 @@ public class DpsTaskValidatorFactory {
 
     public static DpsTaskValidator createValidator(String taskType) {
         if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_URLS)) {
-            DpsTaskValidator validator = new DpsTaskValidator("FileUrl validator for XSLT Topology")
+            return new DpsTaskValidator("FileUrl validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
-                    .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE);
-            return validator;
+                    .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE);
         } else if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS)) {
-            DpsTaskValidator validator = new DpsTaskValidator("DataSet validator for XSLT Topology")
+            return new DpsTaskValidator("DataSet validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
                     .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
-                    .withDataEntry(PluginParameterKeys.DATASET_URLS, InputDataValueType.LINK_TO_DATASET);
-            return validator;
+                    .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET);
         } else if (taskType.equalsIgnoreCase(IC_TOPOLOGY_TASK_WITH_FILE_URLS)) {
-            DpsTaskValidator validator = new DpsTaskValidator("FileUrl validator for IC Topology")
+            return new DpsTaskValidator("FileUrl validator for IC Topology")
                     .withParameter(PluginParameterKeys.MIME_TYPE)
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
-                    .withDataEntry(PluginParameterKeys.FILE_URLS, InputDataValueType.LINK_TO_FILE);
-            return validator;
+                    .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE);
         } else if (taskType.equalsIgnoreCase(IC_TOPOLOGY_TASK_WITH_DATASETS)) {
-            DpsTaskValidator validator = new DpsTaskValidator("DataSet validator for IC Topology")
+            return new DpsTaskValidator("DataSet validator for IC Topology")
                     .withParameter(PluginParameterKeys.MIME_TYPE)
                     .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
-                    .withDataEntry(PluginParameterKeys.DATASET_URLS, InputDataValueType.LINK_TO_DATASET);
-            return validator;
+                    .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET);
         } else {
             return EMPTY_VALIDATOR;
         }

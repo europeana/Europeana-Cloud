@@ -4,9 +4,10 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import java.util.List;
+
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 /**
  * Created by Tarek on 4/6/2016.
@@ -17,7 +18,7 @@ public class RecordFilesCounter extends FilesCounter {
 
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
         try {
-            List<String> fileUrls = task.getInputData().get(DpsTask.FILE_URLS);
+            List<String> fileUrls = task.getInputData().get(FILE_URLS);
             int size = fileUrls.size();
             return size;
         } catch (Exception ex) {

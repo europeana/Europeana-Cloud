@@ -4,6 +4,5 @@ public class DpsTaskValidationException extends Exception {
 
     public DpsTaskValidationException(String message){
         super(message);
-
     }
 }
