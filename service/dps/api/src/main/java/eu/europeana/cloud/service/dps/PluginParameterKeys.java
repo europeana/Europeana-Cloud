@@ -72,6 +72,8 @@ public final class PluginParameterKeys {
     public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
     public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
 
+    // ---------- OAI-PMH ----------
+    public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";
 
     public static Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
 
