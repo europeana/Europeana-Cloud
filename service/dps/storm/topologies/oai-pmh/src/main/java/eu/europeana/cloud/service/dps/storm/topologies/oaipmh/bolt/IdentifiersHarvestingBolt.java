@@ -20,6 +20,9 @@ import java.util.*;
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
 
+    /** OAI-PMH source */
+    private ServiceProvider source = null;
+
     /**
      * Harvest identifiers from the OAI-PMH source
      *
@@ -56,15 +59,16 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
             throws BadArgumentException {
         validateParameters(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getSets(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
 
-        OAIClient client = new HttpOAIClient(sourceDetails.getUrl());
-        ServiceProvider source = new ServiceProvider(new Context().withOAIClient(client));
-        return listIdentifiers(source, sourceDetails.getSchema(), sourceDetails.getSets(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
+        if (source == null) {
+            OAIClient client = new HttpOAIClient(sourceDetails.getUrl());
+            source = new ServiceProvider(new Context().withOAIClient(client));
+        }
+        return listIdentifiers(sourceDetails.getSchema(), sourceDetails.getSets(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
     }
 
     /**
      * Configure the request parameters and run the ListIdentifiers request
      *
-     * @param source configured OAI-PMH source
      * @param schema schema to harvest, mandatory parameter
      * @param sets sets to harvest, optional parameter
      * @param excludedSets sets to exclude, optional parameter
@@ -73,9 +77,12 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @return list of OAI identifiers
      * @throws BadArgumentException
      */
-    private List<String> listIdentifiers(ServiceProvider source, String schema, Set<String> sets, Set<String> excludedSets, Date dateFrom, Date dateUntil)
+    private List<String> listIdentifiers(String schema, Set<String> sets, Set<String> excludedSets, Date dateFrom, Date dateUntil)
             throws BadArgumentException {
         List<String> identifiers = new ArrayList<>();
+        if (source == null) {
+            return identifiers;
+        }
 
         ListIdentifiersParameters parameters = configureParameters(schema, dateFrom, dateUntil);
         if (sets != null && !sets.isEmpty()) {
@@ -181,9 +188,10 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     /**
      * Should be used only on tests.
      */
-    public static IdentifiersHarvestingBolt getTestInstance(OutputCollector outputCollector) {
+    public static IdentifiersHarvestingBolt getTestInstance(OutputCollector outputCollector, ServiceProvider source) {
         IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
         instance.outputCollector = outputCollector;
+        instance.source = source;
         return instance;
     }
 }

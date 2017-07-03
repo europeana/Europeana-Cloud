@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
 
 import java.net.URISyntaxException;
 import java.util.*;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class IdentifiersHarvestingBoltTest {
     private IdentifiersHarvestingBolt instance;
     private OutputCollector oc;
+    private ServiceProvider source;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String OAI_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
@@ -51,7 +53,8 @@ public class IdentifiersHarvestingBoltTest {
     @Before
     public void init() {
         oc = mock(OutputCollector.class);
-        instance = getTestInstance(oc);
+        source = mock(ServiceProvider.class);
+        instance = getTestInstance(oc, source);
     }
 
     @Ignore
@@ -137,15 +140,19 @@ public class IdentifiersHarvestingBoltTest {
     public void testSimpleHarvestingWhenSetSpecified() {
         //given
         initHeaders();
-
+        try {
+            when(source.listIdentifiers((ListIdentifiersParameters) anyObject())).thenReturn(iterator);
+        } catch (BadArgumentException e) {
+            // nothing to report
+        }
         OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
-        verify(oc, atLeast(1)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), greaterThanOrEqualTo(1));
+        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), is(2));
         verifyNoMoreInteractions(oc);
     }
 
