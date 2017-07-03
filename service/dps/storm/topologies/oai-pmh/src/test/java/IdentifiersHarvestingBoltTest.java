@@ -15,14 +15,14 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mockito;
 
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt.getTestInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -41,6 +41,12 @@ public class IdentifiersHarvestingBoltTest {
     private final String TASK_NAME = "TASK_NAME";
     private final String OAI_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     private final String SCHEMA = "oai_dc";
+    private final String SET1 = "set1";
+    private final String SET2 = "set2";
+    private final String ID1 = "oai:localhost:1";
+    private final String ID2 = "oai:localhost:2";
+    private Set<Header> headers;
+    private Iterator<Header> iterator;
 
     @Before
     public void init() {
@@ -48,6 +54,7 @@ public class IdentifiersHarvestingBoltTest {
         instance = getTestInstance(oc);
     }
 
+    @Ignore
     @Test
     public void testSimpleHarvesting() {
         //given
@@ -64,4 +71,90 @@ public class IdentifiersHarvestingBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+
+    @Test
+    public void testURLInvalid() {
+        //given
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(null, SCHEMA);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+    }
+
+    @Test
+    public void testSchemaInvalid() {
+        //given
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, null);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+    }
+
+    @Test
+    public void testSetsInvalid() {
+        //given
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        Set<String> sets = new HashSet<>();
+        sets.add(SET1);
+        Set<String> excluded = new HashSet<>();
+        excluded.add(SET2);
+        sourceDetails.setSets(sets);
+        sourceDetails.setExcludedSets(excluded);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+    }
+
+
+    @Test
+    public void testDatesInvalid() {
+        //given
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        Date from = new Date();
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            // nothing to report
+        }
+        Date until = new Date();
+        sourceDetails.setDateUntil(from);
+        sourceDetails.setDateFrom(until);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+    }
+
+
+    @Test
+    public void testSimpleHarvestingWhenSetSpecified() {
+        //given
+        initHeaders();
+
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atLeast(1)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), greaterThanOrEqualTo(1));
+        verifyNoMoreInteractions(oc);
+    }
+
+    private void initHeaders() {
+        headers = new HashSet<>();
+
+        headers.add(new Header().withIdentifier(ID1).withSetSpec(SET1));
+        headers.add(new Header().withIdentifier(ID2).withSetSpec(SET2));
+
+        iterator = headers.iterator();
+    }
 }
