@@ -53,6 +53,13 @@ public class OAIPMHSourceDetails {
         return sets;
     }
 
+    public String getSet() {
+        if (sets == null || sets.isEmpty()) {
+            return null;
+        }
+        return sets.iterator().next();
+    }
+
     public void setSets(Set<String> sets) {
         this.sets = sets;
     }
