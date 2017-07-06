@@ -3,12 +3,14 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DpsTaskValidator {
+
 
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
     private String validatorName;
@@ -202,7 +204,13 @@ public class DpsTaskValidator {
     }
 
     private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-        List<String> expectedInputData = task.getDataEntry(constraint.getExpectedName());
+        final InputDataType dataType;
+        try {
+            dataType = InputDataType.valueOf(constraint.getExpectedName());
+        }catch (IllegalArgumentException e){
+            throw new DpsTaskValidationException("Input data is not valid.");
+        }
+        List<String> expectedInputData = task.getDataEntry(dataType);
 
         if (expectedInputData == null) {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());

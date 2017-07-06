@@ -1,22 +1,14 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-
-
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import eu.europeana.cloud.service.dps.storm.xslt.XsltBolt;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -25,6 +17,11 @@ import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -39,8 +36,8 @@ public class XSLTTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private final static String TOPOLOGY_PROPERTIES_FILE = "xslt-topology-config.properties";
-    private final String DATASET_STREAM = DpsTask.DATASET_URLS;
-    private final String FILE_STREAM = DpsTask.FILE_URLS;
+    private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
+    private final String FILE_STREAM = InputDataType.FILE_URLS.name();
 
 
     public XSLTTopology(String defaultPropertyFile, String providedPropertyFile) {
@@ -60,8 +57,8 @@ public class XSLTTopology {
         TopologyBuilder builder = new TopologyBuilder();
 
         Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(PluginParameterKeys.FILE_URLS, DATASET_STREAM);
-        routingRules.put(PluginParameterKeys.DATASET_URLS, FILE_STREAM);
+        routingRules.put(DATASET_STREAM, DATASET_STREAM);
+        routingRules.put(FILE_STREAM, FILE_STREAM);
 
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);

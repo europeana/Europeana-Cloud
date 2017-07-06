@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.dps.examples;
 
-import java.util.List;
-import java.util.Map;
-
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -13,9 +14,8 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Always uses the same {@link DpsTask} (instead of consuming tasks from a Kafka Topic)
@@ -53,7 +53,7 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
             Map<String, String> taskParameters = task.getParameters();
             LOGGER.info("taskParameters size=" + taskParameters.size());
 
-            List<String> dataSets = task.getDataEntry(DpsTask.DATASET_URLS);
+            List<String> dataSets = task.getDataEntry(InputDataType.DATASET_URLS);
             LOGGER.info("data Sets size=" + dataSets.size());
 
             String dataEntry = convertListToString(dataSets);

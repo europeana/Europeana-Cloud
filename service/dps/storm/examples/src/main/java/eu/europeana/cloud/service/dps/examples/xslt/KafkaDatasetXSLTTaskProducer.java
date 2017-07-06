@@ -1,16 +1,17 @@
 package eu.europeana.cloud.service.dps.examples.xslt;
 
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
+import kafka.producer.ProducerConfig;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-import eu.europeana.cloud.service.dps.DpsTask;
 
 public class KafkaDatasetXSLTTaskProducer {
 
@@ -54,7 +55,7 @@ public class KafkaDatasetXSLTTaskProducer {
 			e.printStackTrace();
 		}
 
-		msg.addDataEntry("FILE_URLS", records);
+		msg.addDataEntry(InputDataType.FILE_URLS, records);
 		msg.addParameter("XSLT_URL", args[3]);
 
 		if (args.length == 5) {

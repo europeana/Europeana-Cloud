@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+
 /**
  * Created by Tarek on 4/6/2016.
  * File counters inside a dataset task
@@ -31,7 +33,7 @@ public class DatasetFilesCounter extends FilesCounter {
 
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
         int size = 0;
-        List<String> dataSets = task.getInputData().get(DpsTask.DATASET_URLS);
+        List<String> dataSets = task.getInputData().get(DATASET_URLS);
         String representationName = task.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
         final String revisionName = task.getParameter(PluginParameterKeys.REVISION_NAME);
         final String revisionProvider = task.getParameter(PluginParameterKeys.REVISION_PROVIDER);
