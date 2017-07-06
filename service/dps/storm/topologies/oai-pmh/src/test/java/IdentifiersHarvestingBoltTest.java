@@ -1,16 +1,11 @@
 import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.model.oaipmh.Identify;
-import com.lyncode.xoai.model.oaipmh.ListIdentifiers;
 import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.model.Context;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHSourceDetails;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -20,10 +15,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.mockito.verification.VerificationMode;
 
-import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt.getTestInstance;
@@ -62,7 +54,7 @@ public class IdentifiersHarvestingBoltTest {
     public void testSimpleHarvesting() {
         //given
         instance = getTestInstance(oc, null); // overwrite the instance from init where mock source is used
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
@@ -79,7 +71,7 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testURLInvalid() {
         //given
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(null, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(null, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         //when
         instance.execute(tuple);
@@ -90,7 +82,7 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testSchemaInvalid() {
         //given
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, null);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, null);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         //when
         instance.execute(tuple);
@@ -102,7 +94,7 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testDatesInvalid() {
         //given
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
         Date from = new Date();
         try {
             Thread.sleep(5);
@@ -128,7 +120,7 @@ public class IdentifiersHarvestingBoltTest {
         } catch (BadArgumentException e) {
             // nothing to report
         }
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
@@ -157,7 +149,7 @@ public class IdentifiersHarvestingBoltTest {
         } catch (BadArgumentException e) {
             // nothing to report
         }
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
         Set<String> sets = new HashSet<>();
         sets.add(SET1);
         sourceDetails.setExcludedSets(sets);

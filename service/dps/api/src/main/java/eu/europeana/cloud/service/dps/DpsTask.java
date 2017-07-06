@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingDetails;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -37,6 +38,9 @@ public class DpsTask implements Serializable {
 
     /* output revision*/
     private Revision outputRevision;
+
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
 
     /* Task start time */
     private Date startTime = null;
@@ -125,5 +129,13 @@ public class DpsTask implements Serializable {
 
     public void setInputData(Map<String, List<String>> inputData) {
         this.inputData = inputData;
+    }
+
+    public OAIPMHHarvestingDetails getHarvestingDetails() {
+        return harvestingDetails;
+    }
+
+    public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
+        this.harvestingDetails = harvestingDetails;
     }
 }

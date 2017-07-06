@@ -11,7 +11,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHSourceDetails;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingDetails;
 import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
-            OAIPMHSourceDetails sourceDetails = stormTaskTuple.getSourceDetails();
+            OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
             List<String> identifiers = harvestIdentifiers(sourceDetails);
             LOGGER.debug("Harvested " + identifiers.size() + " identifiers for source (" + sourceDetails + ")");
             for (String identifier : identifiers) {
@@ -61,7 +61,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @return list of OAI identfiers
      * @throws BadArgumentException
      */
-    private List<String> harvestIdentifiers(OAIPMHSourceDetails sourceDetails)
+    private List<String> harvestIdentifiers(OAIPMHHarvestingDetails sourceDetails)
             throws BadArgumentException {
         validateParameters(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
 

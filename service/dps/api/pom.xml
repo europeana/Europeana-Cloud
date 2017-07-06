@@ -22,6 +22,18 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-dps-storm-common</artifactId>
+			<version>0.7-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>eu.europeana.cloud</groupId>
+					<artifactId>ecloud-service-dps-cassandra</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 	
 	<properties>

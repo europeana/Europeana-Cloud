@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
-public class OAIPMHSourceDetails {
+public class OAIPMHHarvestingDetails {
 
-    /** OAI-PMH endpoint URL */
-    private String url;
+    /** Schemas to harvest */
+    private Set<String> schemas = null;
 
-    /** Schema to harvest */
-    private String schema;
+    /** Schemas to exclude */
+    private Set<String> excludedSchemas = null;
 
     /** Sets to harvest */
     private Set<String> sets = null;
@@ -24,29 +23,24 @@ public class OAIPMHSourceDetails {
     /** Until date */
     private Date dateUntil = null;
 
-    public OAIPMHSourceDetails(String url, String schema) {
-        this.url = url;
-        this.schema = schema;
-    }
-
-    public OAIPMHSourceDetails(String url, String schema, Set<String> sets, Date dateFrom, Date dateUntil) {
-        this(url, schema);
+    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> sets, Date dateFrom, Date dateUntil) {
+        this.schemas = schemas;
         this.sets = sets;
         this.dateFrom = dateFrom;
         this.dateUntil = dateUntil;
     }
 
-    public OAIPMHSourceDetails(String url, String schema, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil) {
-        this(url, schema, sets, dateFrom, dateUntil);
+    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil) {
+        this(schemas, sets, dateFrom, dateUntil);
+        this.excludedSchemas = excludedSchemas;
         this.excludeSets = excludeSets;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
     public String getSchema() {
-        return schema;
+        if (schemas == null || schemas.isEmpty()) {
+            return null;
+        }
+        return schemas.iterator().next();
     }
 
     public Set<String> getSets() {
@@ -86,5 +80,29 @@ public class OAIPMHSourceDetails {
 
     public void setDateUntil(Date dateUntil) {
         this.dateUntil = dateUntil;
+    }
+
+    public Set<String> getSchemas() {
+        return schemas;
+    }
+
+    public void setSchemas(Set<String> schemas) {
+        this.schemas = schemas;
+    }
+
+    public Set<String> getExcludedSchemas() {
+        return excludedSchemas;
+    }
+
+    public void setExcludedSchemas(Set<String> excludedSchemas) {
+        this.excludedSchemas = excludedSchemas;
+    }
+
+    public Set<String> getExcludeSets() {
+        return excludeSets;
+    }
+
+    public void setExcludeSets(Set<String> excludeSets) {
+        this.excludeSets = excludeSets;
     }
 }

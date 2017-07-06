@@ -84,7 +84,7 @@ public class ParseTaskBolt extends BaseRichBolt {
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 task.getTaskId(),
                 task.getTaskName(),
-                null, null, taskParameters, task.getOutputRevision());
+                null, null, taskParameters, task.getOutputRevision(), task.getHarvestingDetails());
         String stream = getStream(task);
         if (stream != null) {
             String dataEntry = convertListToString(task.getDataEntry(stream));
