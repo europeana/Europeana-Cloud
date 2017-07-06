@@ -8,6 +8,7 @@ import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.model.Context;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHSourceDetails;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
@@ -20,15 +21,15 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
 
 import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt.getTestInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class IdentifiersHarvestingBoltTest {
     private IdentifiersHarvestingBolt instance;
     private OutputCollector oc;
+    private ServiceProvider source;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String OAI_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
@@ -51,13 +53,15 @@ public class IdentifiersHarvestingBoltTest {
     @Before
     public void init() {
         oc = mock(OutputCollector.class);
-        instance = getTestInstance(oc);
+        source = mock(ServiceProvider.class);
+        instance = getTestInstance(oc, source);
     }
 
     @Ignore
     @Test
     public void testSimpleHarvesting() {
         //given
+        instance = getTestInstance(oc, null); // overwrite the instance from init where mock source is used
         OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
@@ -94,23 +98,6 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
     }
 
-    @Test
-    public void testSetsInvalid() {
-        //given
-        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
-        Set<String> sets = new HashSet<>();
-        sets.add(SET1);
-        Set<String> excluded = new HashSet<>();
-        excluded.add(SET2);
-        sourceDetails.setSets(sets);
-        sourceDetails.setExcludedSets(excluded);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
-        //when
-        instance.execute(tuple);
-        //then
-        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
-    }
-
 
     @Test
     public void testDatesInvalid() {
@@ -132,20 +119,59 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
     }
 
-
     @Test
-    public void testSimpleHarvestingWhenSetSpecified() {
+    public void testHarvestingAll() {
         //given
         initHeaders();
-
+        try {
+            when(source.listIdentifiers((ListIdentifiersParameters) anyObject())).thenReturn(iterator);
+        } catch (BadArgumentException e) {
+            // nothing to report
+        }
         OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
         //then
-        verify(oc, atLeast(1)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), greaterThanOrEqualTo(1));
+        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(2));
+
+        Set<String> identifiers = new HashSet<>();
+        identifiers.add(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>)values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        assertTrue(identifiers.contains(ID1));
+        assertTrue(identifiers.contains(ID2));
+
+        verifyNoMoreInteractions(oc);
+    }
+
+    @Test
+    public void testSimpleHarvestingWhenExcludedSetSpecified() {
+        //given
+        initHeaders();
+        try {
+            when(source.listIdentifiers((ListIdentifiersParameters) anyObject())).thenReturn(iterator);
+        } catch (BadArgumentException e) {
+            // nothing to report
+        }
+        OAIPMHSourceDetails sourceDetails = new OAIPMHSourceDetails(OAI_URL, SCHEMA);
+        Set<String> sets = new HashSet<>();
+        sets.add(SET1);
+        sourceDetails.setExcludedSets(sets);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(1));
+        assertThat(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
+
         verifyNoMoreInteractions(oc);
     }
 
