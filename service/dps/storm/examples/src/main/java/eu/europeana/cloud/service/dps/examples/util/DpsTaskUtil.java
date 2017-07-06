@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.examples.util;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import net.iharder.Base64;
 
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
+import java.util.List;
+
+import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_PASSWORD;
+import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.ECLOUD_MCS_USERNAME;
 
 /**
  * dps Task helpers
@@ -64,7 +65,7 @@ public class DpsTaskUtil {
         }
 
         String authorizationHeader = "Basic " + Base64.encodeBytes((ECLOUD_MCS_USERNAME + ":" + ECLOUD_MCS_PASSWORD).getBytes());
-        task.addDataEntry(DpsTask.DATASET_URLS, dataSets);
+        task.addDataEntry(InputDataType.DATASET_URLS, dataSets);
         task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
         return task;
     }

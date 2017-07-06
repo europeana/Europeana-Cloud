@@ -12,7 +12,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 public class DpsTaskValidatorTest {
 
@@ -219,18 +220,7 @@ public class DpsTaskValidatorTest {
                 .validate(icTopologyTask);
     }
 
-    @Test
-    public void shouldValidateTaskForOAIPMHHarvestingTopology() throws DpsTaskValidationException {
 
-        DpsTask task = new DpsTask();
-        task.addDataEntry(REPOSITORY_URLS, Arrays.asList("http://lib.psnc.pl/dlibra/oai-pmh-repository.xml"));
-        task.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
-
-        new DpsTaskValidator()
-                .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                .withParameter("SAMPLE_PARAMETER")
-                .validate(task);
-    }
 
     ////
     //Output Revision
