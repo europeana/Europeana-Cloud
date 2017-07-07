@@ -173,10 +173,11 @@ public class DpsTaskValidatorTest {
     public void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
         new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask);
     }
+
+
     ////
     //inputData
     ////
-
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsNoInputDataWithSelectedName() throws DpsTaskValidationException {
         new DpsTaskValidator().withDataEntry("notExistingDataEntry").validate(dpsTask);
@@ -219,7 +220,6 @@ public class DpsTaskValidatorTest {
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);
     }
-
 
 
     ////

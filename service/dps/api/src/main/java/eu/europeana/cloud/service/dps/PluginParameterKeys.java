@@ -39,6 +39,7 @@ public final class PluginParameterKeys {
     public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     public static final String OUTPUT_DATA_SETS = "OUTPUT_DATA_SETS";
 
+
     // ---------  Messages  -----------
     public static final String NEW_DATASET_MESSAGE = "NewDataset";
     public static final String NEW_FILE_MESSAGE = "NewFile";
@@ -68,6 +69,18 @@ public final class PluginParameterKeys {
     // InputDataType.FILE_URLS
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+
+    //----------  OAI-PMH harvesting DPS task  ----
+
+    // Output params
+
+    // PROVIDER_ID - required
+    // DATASET_ID - required
+    // REPRESENTATION_NAME -required
+    // REVISION_NAME - required
+    // REVISION_PROVIDER - required
+    // REVISION_TIMESTAMP - required
+
 
     //----------Revision ---------------
 

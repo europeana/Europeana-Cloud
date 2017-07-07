@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
+import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -44,6 +45,9 @@ public class DpsTask implements Serializable {
 
     /* Name for the task */
     private String taskName;
+
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
 
 
     public DpsTask() {
@@ -117,6 +121,35 @@ public class DpsTask implements Serializable {
 
     public void setInputData(Map<InputDataType, List<String>> inputData) {
         this.inputData = inputData;
+    }
+
+    public OAIPMHHarvestingDetails getHarvestingDetails() {
+        return harvestingDetails;
+    }
+
+    public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
+        this.harvestingDetails = harvestingDetails;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DpsTask)) return false;
+        DpsTask dpsTask = (DpsTask) o;
+        return taskId == dpsTask.taskId &&
+                com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
+                Objects.equal(parameters, dpsTask.parameters) &&
+                Objects.equal(outputRevision, dpsTask.outputRevision) &&
+                Objects.equal(startTime, dpsTask.startTime) &&
+                Objects.equal(createTime, dpsTask.createTime) &&
+                Objects.equal(endTime, dpsTask.endTime) &&
+                Objects.equal(taskName, dpsTask.taskName) &&
+                Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
     }
 }
 
