@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by pwozniak on 6/30/17.
+ * Tests for {@link RecordHarvestingBolt}
+ *
  */
 
 @RunWith(MockitoJUnitRunner.class)

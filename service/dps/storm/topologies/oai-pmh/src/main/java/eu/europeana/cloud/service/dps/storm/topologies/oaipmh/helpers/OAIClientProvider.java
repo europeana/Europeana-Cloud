@@ -4,7 +4,8 @@ import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
 import com.lyncode.xoai.serviceprovider.client.OAIClient;
 
 /**
- * Created by pwozniak on 7/4/17.
+ * Provides {@link OAIClient} to one who is interested to.
+ *
  */
 public class OAIClientProvider {
 
