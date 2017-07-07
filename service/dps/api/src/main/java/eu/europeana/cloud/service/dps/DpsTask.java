@@ -64,6 +64,8 @@ public class DpsTask implements Serializable {
         parameters = new HashMap();
 
         taskId = UUID.randomUUID().getMostSignificantBits();
+
+        harvestingDetails = null;
     }
 
     /**

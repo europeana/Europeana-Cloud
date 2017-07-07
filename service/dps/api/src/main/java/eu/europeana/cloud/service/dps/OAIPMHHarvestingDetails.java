@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.dps;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-public class OAIPMHHarvestingDetails {
+public class OAIPMHHarvestingDetails implements Serializable {
 
     /** Schemas to harvest */
     private Set<String> schemas = null;
@@ -23,6 +24,9 @@ public class OAIPMHHarvestingDetails {
 
     /** Until date */
     private Date dateUntil = null;
+
+    public OAIPMHHarvestingDetails() {
+    }
 
     public OAIPMHHarvestingDetails(String schema) {
         this.schemas = new HashSet<>();
