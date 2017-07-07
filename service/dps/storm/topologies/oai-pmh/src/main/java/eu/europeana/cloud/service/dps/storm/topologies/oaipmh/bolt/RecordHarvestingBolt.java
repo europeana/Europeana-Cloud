@@ -18,7 +18,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * Created by pwozniak on 6/30/17.
+ * Storm bolt for harvesting single record from OAI endpoint.
+ *
  */
 public class RecordHarvestingBolt extends AbstractDpsBolt {
 
@@ -31,6 +32,15 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     }
 
     /**
+     * For given: <br/>
+     * <ul>
+     * <li>OAI endpoint url</li>
+     * <li>recordId</li>
+     * <li>metadata prefix</li>
+     * </ul>
+     *
+     * record will be fetched from OAI endpoint. All need parameters should be provided in {@link StormTaskTuple}.
+     *
      * @param stormTaskTuple
      */
     @Override
