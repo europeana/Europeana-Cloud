@@ -54,8 +54,9 @@ public class IdentifiersHarvestingBoltTest {
     public void testSimpleHarvesting() {
         //given
         instance = getTestInstance(oc, null); // overwrite the instance from init where mock source is used
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_URL);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -71,7 +72,7 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testURLInvalid() {
         //given
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(null, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
         //when
         instance.execute(tuple);
@@ -82,8 +83,9 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testSchemaInvalid() {
         //given
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, null);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(null);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_URL);
         //when
         instance.execute(tuple);
         //then
@@ -94,7 +96,7 @@ public class IdentifiersHarvestingBoltTest {
     @Test
     public void testDatesInvalid() {
         //given
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(SCHEMA);
         Date from = new Date();
         try {
             Thread.sleep(5);
@@ -105,6 +107,7 @@ public class IdentifiersHarvestingBoltTest {
         sourceDetails.setDateUntil(from);
         sourceDetails.setDateFrom(until);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_URL);
         //when
         instance.execute(tuple);
         //then
@@ -120,8 +123,9 @@ public class IdentifiersHarvestingBoltTest {
         } catch (BadArgumentException e) {
             // nothing to report
         }
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(SCHEMA);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_URL);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -149,11 +153,12 @@ public class IdentifiersHarvestingBoltTest {
         } catch (BadArgumentException e) {
             // nothing to report
         }
-        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(OAI_URL, SCHEMA);
+        OAIPMHHarvestingDetails sourceDetails = new OAIPMHHarvestingDetails(SCHEMA);
         Set<String> sets = new HashSet<>();
         sets.add(SET1);
         sourceDetails.setExcludedSets(sets);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_URL);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);

@@ -33,7 +33,8 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
             OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
-            List<String> identifiers = harvestIdentifiers(sourceDetails);
+            String url = stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            List<String> identifiers = harvestIdentifiers(url, sourceDetails);
             LOGGER.debug("Harvested " + identifiers.size() + " identifiers for source (" + sourceDetails + ")");
             for (String identifier : identifiers) {
                 emitIdentifier(stormTaskTuple, identifier);
@@ -61,12 +62,12 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @return list of OAI identfiers
      * @throws BadArgumentException
      */
-    private List<String> harvestIdentifiers(OAIPMHHarvestingDetails sourceDetails)
+    private List<String> harvestIdentifiers(String url, OAIPMHHarvestingDetails sourceDetails)
             throws BadArgumentException {
-        validateParameters(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
+        validateParameters(url, sourceDetails.getSchema(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
 
         if (source == null) {
-            OAIClient client = new HttpOAIClient(sourceDetails.getUrl());
+            OAIClient client = new HttpOAIClient(url);
             source = new ServiceProvider(new Context().withOAIClient(client));
         }
         return listIdentifiers(sourceDetails.getSchema(), sourceDetails.getSet(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());

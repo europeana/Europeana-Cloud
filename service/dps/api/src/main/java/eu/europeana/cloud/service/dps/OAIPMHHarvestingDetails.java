@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 public class OAIPMHHarvestingDetails {
@@ -22,6 +23,11 @@ public class OAIPMHHarvestingDetails {
 
     /** Until date */
     private Date dateUntil = null;
+
+    public OAIPMHHarvestingDetails(String schema) {
+        this.schemas = new HashSet<>();
+        this.schemas.add(schema);
+    }
 
     public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> sets, Date dateFrom, Date dateUntil) {
         this.schemas = schemas;
