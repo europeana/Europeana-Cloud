@@ -114,7 +114,7 @@ public class ReadDataSetBoltTest {
         assertThat(captor.getAllValues().size(), is(expectedExecutionTimes));
         List<Values> allValues = captor.getAllValues();
         for (int i = 0; i < expectedExecutionTimes; i++) {
-            assertEquals(allValues.get(i).size(), 6);
+            assertEquals(allValues.get(i).size(), 7);
             assertTrue(allValues.get(i).get(4) instanceof Map);
             assertRepresentation(representations.get(i), ((Map<String, String>) allValues.get(i).get(4)).get(PluginParameterKeys.REPRESENTATION));
         }
