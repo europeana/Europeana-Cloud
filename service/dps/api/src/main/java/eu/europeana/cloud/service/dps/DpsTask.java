@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingDetails;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
+package eu.europeana.cloud.service.dps;
 
 import java.util.Date;
 import java.util.Set;

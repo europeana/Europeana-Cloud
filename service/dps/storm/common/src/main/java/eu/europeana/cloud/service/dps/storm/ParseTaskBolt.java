@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 /**
  * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.
@@ -125,6 +126,8 @@ public class ParseTaskBolt extends BaseRichBolt {
             return FILE_URLS.name();
         else if (task.getInputData().get(DATASET_URLS) != null)
             return DATASET_URLS.name();
+        else if (task.getInputData().get(REPOSITORY_URLS) != null)
+            return REPOSITORY_URLS.name();
         return null;
 
     }
