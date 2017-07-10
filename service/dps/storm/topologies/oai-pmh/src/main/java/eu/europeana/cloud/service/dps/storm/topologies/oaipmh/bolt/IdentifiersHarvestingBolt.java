@@ -1,18 +1,17 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
+import com.lyncode.xoai.model.oaipmh.Verb;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.model.Context;
+import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import com.lyncode.xoai.serviceprovider.parameters.Parameters;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHSourceDetails;
-import org.apache.storm.task.OutputCollector;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +20,12 @@ import java.util.*;
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
 
-    /** OAI-PMH source */
-    private ServiceProvider source = null;
+    private SourceProvider sourceProvider;
+
+
+    public IdentifiersHarvestingBolt(SourceProvider sourceProvider) {
+        this.sourceProvider = sourceProvider;
+    }
 
     /**
      * Harvest identifiers from the OAI-PMH source
@@ -38,7 +41,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
             for (String identifier : identifiers) {
                 emitIdentifier(stormTaskTuple, identifier);
             }
-        } catch (BadArgumentException | RuntimeException e) {
+        } catch (OAIRequestException | BadArgumentException | RuntimeException e) {
             LOGGER.error("Identifiers Harvesting Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
             logAndEmitError(stormTaskTuple, e.getMessage());
         }
@@ -62,14 +65,10 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @throws BadArgumentException
      */
     private List<String> harvestIdentifiers(OAIPMHSourceDetails sourceDetails)
-            throws BadArgumentException {
+            throws BadArgumentException, OAIRequestException {
         validateParameters(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
 
-        if (source == null) {
-            OAIClient client = new HttpOAIClient(sourceDetails.getUrl());
-            source = new ServiceProvider(new Context().withOAIClient(client));
-        }
-        return listIdentifiers(sourceDetails.getSchema(), sourceDetails.getSet(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
+        return listIdentifiers(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getSet(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
     }
 
     /**
@@ -83,18 +82,15 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @return list of OAI identifiers
      * @throws BadArgumentException
      */
-    private List<String> listIdentifiers(String schema, String set, Set<String> excludedSets, Date dateFrom, Date dateUntil)
-            throws BadArgumentException {
+    private List<String> listIdentifiers(String url, String schema, String set, Set<String> excludedSets, Date dateFrom, Date dateUntil)
+            throws BadArgumentException, OAIRequestException {
         List<String> identifiers = new ArrayList<>();
-        if (source == null) {
-            return identifiers;
-        }
 
         ListIdentifiersParameters parameters = configureParameters(schema, dateFrom, dateUntil);
         if (set != null) {
             parameters.withSetSpec(set);
         }
-        identifiers.addAll(parseHeaders(source.listIdentifiers(parameters), excludedSets));
+        identifiers.addAll(parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), excludedSets));
         return identifiers;
     }
 
@@ -178,16 +174,5 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         if (dateFrom != null && dateUntil != null && dateUntil.before(dateFrom)) {
             throw new IllegalArgumentException("Date until is earlier than the date from.");
         }
-    }
-
-
-    /**
-     * Should be used only on tests.
-     */
-    public static IdentifiersHarvestingBolt getTestInstance(OutputCollector outputCollector, ServiceProvider source) {
-        IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
-        instance.outputCollector = outputCollector;
-        instance.source = source;
-        return instance;
     }
 }

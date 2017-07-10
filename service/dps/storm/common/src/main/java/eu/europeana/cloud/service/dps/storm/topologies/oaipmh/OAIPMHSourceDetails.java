@@ -87,4 +87,11 @@ public class OAIPMHSourceDetails {
     public void setDateUntil(Date dateUntil) {
         this.dateUntil = dateUntil;
     }
+
+    @Override
+    public String toString() {
+        return "OAIPMHSourceDetails{" + " url=" + url + ", schema=" + schema +
+                ", sets=" + sets + ", excludeSets=" + excludeSets +
+                ", dateFrom=" + dateFrom + ", dateUntil=" + dateUntil;
+    }
 }
