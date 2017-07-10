@@ -40,7 +40,7 @@ public class AllSchemasSplitterTest {
         oaiHelper = mock(OAIHelper.class);
         outputCollector = mock(OutputCollector.class);
         splitter = mock(Splitter.class);
-        oaipmhHarvestingDetails = mock(OAIPMHHarvestingDetails.class);
+        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         stormTaskTuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), oaipmhHarvestingDetails);
 
         initTestScenario();
@@ -62,7 +62,7 @@ public class AllSchemasSplitterTest {
     {
         Set<String> excludedSchemas = new HashSet<>();
         excludedSchemas.add(SCHEMA1);
-        when(oaipmhHarvestingDetails.getExcludedSchemas()).thenReturn(excludedSchemas);
+        oaipmhHarvestingDetails.setExcludedSchemas(excludedSchemas);
         allSchemasSplitter = new AllSchemasSplitter(splitter);
         allSchemasSplitter.split();
         verify(splitter, times(1)).separateSchemaBySet(anyString(), anySet(), any(Date.class), any(Date.class));

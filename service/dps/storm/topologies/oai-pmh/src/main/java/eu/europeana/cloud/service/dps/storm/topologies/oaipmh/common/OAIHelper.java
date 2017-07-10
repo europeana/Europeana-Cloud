@@ -16,7 +16,7 @@ public class OAIHelper {
     private ServiceProvider serviceProvider;
 
     public OAIHelper(String resourceURL) {
-        OAIClient client = new HttpOAIClient(resourceURL);//should be external resource
+        OAIClient client = new HttpOAIClient(resourceURL);
         serviceProvider = new ServiceProvider(new Context().withOAIClient(client));
     }
 

@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
+import org.apache.storm.shade.org.joda.time.Period;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -19,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,7 +39,6 @@ public class SplitterTest {
 
     protected StormTaskTuple stormTaskTuple;
     private OutputCollector outputCollector;
-    private Set<String> sets;
     private OAIHelper oaiHelper;
     private OAIPMHHarvestingDetails oaipmhHarvestingDetails;
     private Tuple inputTuple;
@@ -45,10 +46,9 @@ public class SplitterTest {
 
     @Before
     public void init() {
-        sets = new HashSet<>();
         oaiHelper = mock(OAIHelper.class);
         outputCollector = mock(OutputCollector.class);
-        oaipmhHarvestingDetails = mock(OAIPMHHarvestingDetails.class);
+        oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         initTestScenarioWithTwoSchemas();
         stormTaskTuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), oaipmhHarvestingDetails);
         splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper);
@@ -62,7 +62,7 @@ public class SplitterTest {
 
     @Test
     public void testSplitWithTwoSchemasAndEmptySets() {
-        when(oaipmhHarvestingDetails.getSets()).thenReturn(sets);
+        oaipmhHarvestingDetails.setSets(new HashSet<String>());
         splitter.splitBySchema();
         verify(outputCollector, times(2)).emit(any(Tuple.class), anyList());
     }
@@ -70,9 +70,11 @@ public class SplitterTest {
 
     @Test
     public void testSplitWithTwoSchemasAndTwoSets() {
-        includeTwoSetsToTheTask();
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
         splitter.splitBySchema();
-        verify(outputCollector, times(4)).emit(any(Tuple.class), anyList());
+        verify(outputCollector, times(4)).emit(any(Tuple.class), captor.capture());
+        assertEquals(captor.getAllValues().size(), 4);
+        assertTupleValues();
     }
 
     @Test
@@ -80,22 +82,34 @@ public class SplitterTest {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date start = sdf.parse("15/1/2012");
         Date end = sdf.parse("1/4/2012");
-        when(oaipmhHarvestingDetails.getDateFrom()).thenReturn(start);
-        when(oaipmhHarvestingDetails.getDateUntil()).thenReturn(end);
-        includeTwoSetsToTheTask();
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
         splitter.splitBySchema();
         verify(outputCollector, times(12)).emit(any(Tuple.class), captor.capture());
         assertEquals(captor.getAllValues().size(), 12);
+        assertTupleValues();
     }
 
+    private void assertTupleValues() {
+        for (Values values : captor.getAllValues()) {
+            assertTrue(values.get(6) instanceof OAIPMHHarvestingDetails);
+            OAIPMHHarvestingDetails oaipmhHarvestingDetails = (OAIPMHHarvestingDetails) values.get(6);
+            assertEquals((oaipmhHarvestingDetails.getSchemas().size()), 1);
+            assertEquals((oaipmhHarvestingDetails.getSets().size()), 1);
+            Period p = new Period(oaipmhHarvestingDetails.getDateUntil().getTime(), oaipmhHarvestingDetails.getDateFrom().getTime());
+            assertTrue(p.getDays() <= 31);
+        }
+    }
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
-    private void includeTwoSetsToTheTask() {
+    private Set<String> buildTwoItemsSet() {
+        Set<String> sets = new HashSet<>();
         sets.add("SET1");
         sets.add("SET2");
-        when(oaipmhHarvestingDetails.getSets()).thenReturn(sets);
+        return sets;
     }
 
     private void initTestScenarioWithTwoSchemas() {

@@ -53,7 +53,7 @@ public class Splitter {
     private void emitNextTupleByDateRange(String schema, String set, Date start, Date end) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(start);
-        OAIPMHHarvestingDetails oaipmhHarvestingDetails = stormTaskTuple.getSourceDetails();
+        OAIPMHHarvestingDetails oaipmhHarvestingDetails = new Cloner().deepClone(stormTaskTuple.getSourceDetails());
         setOAIPMHSourceDetails(oaipmhHarvestingDetails, schema, set);
         while (start.compareTo(end) <= 0) {
             cal.add(Calendar.MONTH, 1);
