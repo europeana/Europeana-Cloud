@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.model.oaipmh.Verb;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -15,13 +13,14 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProv
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
 
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
 
     private SourceProvider sourceProvider;
-
 
     public IdentifiersHarvestingBolt(SourceProvider sourceProvider) {
         this.sourceProvider = sourceProvider;
@@ -35,12 +34,12 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
-            OAIPMHSourceDetails sourceDetails = stormTaskTuple.getSourceDetails();
-            List<String> identifiers = harvestIdentifiers(sourceDetails);
-            LOGGER.debug("Harvested " + identifiers.size() + " identifiers for source (" + sourceDetails + ")");
-            for (String identifier : identifiers) {
-                emitIdentifier(stormTaskTuple, identifier);
+            if (stormTaskTuple.getSourceDetails() == null) {
+                logAndEmitError(stormTaskTuple, "Harvesting details object is null!");
+                return;
             }
+            int count = harvestIdentifiers(stormTaskTuple);
+            LOGGER.debug("Harvested " + count + " identifiers for source (" + stormTaskTuple.getSourceDetails() + ")");
         } catch (OAIRequestException | BadArgumentException | RuntimeException e) {
             LOGGER.error("Identifiers Harvesting Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
             logAndEmitError(stormTaskTuple, e.getMessage());
@@ -60,55 +59,35 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     /**
      * Validate parameters, init source and continue with ListIdentifiers request.
      *
-     * @param sourceDetails details of the source to harvest
-     * @return list of OAI identfiers
+     * @param stormTaskTuple tuple with harvesting details, it will also be used for emitting identifiers further
      * @throws BadArgumentException
      */
-    private List<String> harvestIdentifiers(OAIPMHSourceDetails sourceDetails)
+    private int harvestIdentifiers(StormTaskTuple stormTaskTuple)
             throws BadArgumentException, OAIRequestException {
-        validateParameters(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
+        OAIPMHSourceDetails sourceDetails = stormTaskTuple.getSourceDetails();
+        validateParameters(sourceDetails);
 
-        return listIdentifiers(sourceDetails.getUrl(), sourceDetails.getSchema(), sourceDetails.getSet(), sourceDetails.getExcludedSets(), sourceDetails.getDateFrom(), sourceDetails.getDateUntil());
+        ListIdentifiersParameters parameters = configureParameters(sourceDetails);
+        return parseHeaders(sourceProvider.provide(sourceDetails.getUrl()).listIdentifiers(parameters), sourceDetails.getExcludedSets(), stormTaskTuple);
     }
 
-    /**
-     * Configure the request parameters and run the ListIdentifiers request
-     *
-     * @param schema schema to harvest, mandatory parameter
-     * @param set sets to harvest, optional parameter
-     * @param excludedSets sets to exclude, optional parameter
-     * @param dateFrom date from, optional parameter
-     * @param dateUntil date until, optional parameter
-     * @return list of OAI identifiers
-     * @throws BadArgumentException
-     */
-    private List<String> listIdentifiers(String url, String schema, String set, Set<String> excludedSets, Date dateFrom, Date dateUntil)
-            throws BadArgumentException, OAIRequestException {
-        List<String> identifiers = new ArrayList<>();
-
-        ListIdentifiersParameters parameters = configureParameters(schema, dateFrom, dateUntil);
-        if (set != null) {
-            parameters.withSetSpec(set);
-        }
-        identifiers.addAll(parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), excludedSets));
-        return identifiers;
-    }
 
     /**
      * Configure request parameters
      *
-     * @param schema schema to harvest, mandatory parameter
-     * @param dateFrom date from, optional parameter
-     * @param dateUntil date until, optional parameter
+     * @param sourceDetails harvesting parameters
      * @return object representing parameters for ListIdentifiers request
      */
-    private ListIdentifiersParameters configureParameters(String schema, Date dateFrom, Date dateUntil) {
-        ListIdentifiersParameters parameters = ListIdentifiersParameters.request().withMetadataPrefix(schema);
-        if (dateFrom != null) {
-            parameters.withFrom(dateFrom);
+    private ListIdentifiersParameters configureParameters(OAIPMHSourceDetails sourceDetails) {
+        ListIdentifiersParameters parameters = ListIdentifiersParameters.request().withMetadataPrefix(sourceDetails.getSchema());
+        if (sourceDetails.getDateFrom() != null) {
+            parameters.withFrom(sourceDetails.getDateFrom());
         }
-        if (dateUntil != null) {
-            parameters.withUntil(dateUntil);
+        if (sourceDetails.getDateUntil() != null) {
+            parameters.withUntil(sourceDetails.getDateUntil());
+        }
+        if (sourceDetails.getSet() != null) {
+            parameters.withSetSpec(sourceDetails.getSet());
         }
         return parameters;
     }
@@ -118,21 +97,23 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      *
      * @param headerIterator iterator of headers returned by the source
      * @param excludedSets sets to exclude
-     * @return list of OAI identifiers
+     * @param stormTaskTuple tuple to be used for emitting identifier
+     * @return number of harvested identifiers
      */
-    private List<String> parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets) {
-        List<String> filteredIdentifiers = new ArrayList<>();
-
+    private int parseHeaders(Iterator<Header> headerIterator, Set<String> excludedSets, StormTaskTuple stormTaskTuple) {
         if (headerIterator == null) {
             throw new IllegalArgumentException("Header iterator is null");
         }
 
+        int count = 0;
         while (headerIterator.hasNext()) {
             Header header = headerIterator.next();
-            filterHeader(header, excludedSets, filteredIdentifiers);
+            if (filterHeader(header, excludedSets)) {
+                emitIdentifier(stormTaskTuple, header.getIdentifier());
+                count++;
+            }
         }
-
-        return filteredIdentifiers;
+        return count;
     }
 
     /**
@@ -140,38 +121,33 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      *
      * @param header header to filter
      * @param excludedSets sets to exclude
-     * @param filteredIdentifiers result list where the identifier will be added if not filtered
      */
-    private void filterHeader(Header header, Set<String> excludedSets, List<String> filteredIdentifiers) {
+    private boolean filterHeader(Header header, Set<String> excludedSets) {
         if (excludedSets != null && !excludedSets.isEmpty()) {
             for (String set : excludedSets) {
                 if (header.getSetSpecs().contains(set)) {
-                    return;
+                    return false;
                 }
             }
         }
-        filteredIdentifiers.add(header.getIdentifier());
+        return true;
     }
 
 
     /**
      * Validate parameters coming to this bolt.
      *
-     * @param sourceUrl OAI-PMH source URL, mandatory parameter
-     * @param schema schema to harvest, mandatory parameter
-     * @param dateFrom date from, optional parameter
-     * @param dateUntil date until, optional parameter
      */
-    private void validateParameters(String sourceUrl, String schema, Date dateFrom, Date dateUntil) {
-        if (sourceUrl == null) {
+    private void validateParameters(OAIPMHSourceDetails sourceDetails) {
+        if (sourceDetails.getUrl() == null) {
             throw new IllegalArgumentException("Source is not configured.");
         }
 
-        if (schema == null) {
+        if (sourceDetails.getSchema() == null) {
             throw new IllegalArgumentException("Schema is not specified.");
         }
 
-        if (dateFrom != null && dateUntil != null && dateUntil.before(dateFrom)) {
+        if (sourceDetails.getDateFrom() != null && sourceDetails.getDateUntil() != null && sourceDetails.getDateUntil().before(sourceDetails.getDateFrom())) {
             throw new IllegalArgumentException("Date until is earlier than the date from.");
         }
     }
