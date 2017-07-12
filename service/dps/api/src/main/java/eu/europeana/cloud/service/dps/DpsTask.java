@@ -2,27 +2,19 @@ package eu.europeana.cloud.service.dps;
 
 import eu.europeana.cloud.common.model.Revision;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-    /* Dataset Key */
-    public static final String DATASET_URLS = "DATASET_URLS";
 
-    /* File URL Key */
-    public static final String FILE_URLS = "FILE_URLS";
-
-    /* List of input data (cloud-records or cloud-datasets) */
-    private Map<String, List<String>> inputData;
+    /* Map of input data:
+    cloud-records - InputDataType.FILE_URLS
+    cloud-datasets InputDataType.DATASET_URLS
+    */
+    private Map<InputDataType, List<String>> inputData;
 
     /* List of parameters (specific for each dps-topology) */
     private Map<String, String> parameters;
@@ -37,6 +29,9 @@ public class DpsTask implements Serializable {
 
     /* output revision*/
     private Revision outputRevision;
+
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
 
     /* Task start time */
     private Date startTime = null;
@@ -69,6 +64,8 @@ public class DpsTask implements Serializable {
         parameters = new HashMap();
 
         taskId = UUID.randomUUID().getMostSignificantBits();
+
+        harvestingDetails = null;
     }
 
     /**
@@ -89,11 +86,11 @@ public class DpsTask implements Serializable {
         return taskName;
     }
 
-    public void addDataEntry(String dataType, List<String> data) {
+    public void addDataEntry(InputDataType dataType, List<String> data) {
         inputData.put(dataType, data);
     }
 
-    public List<String> getDataEntry(String dataType) {
+    public List<String> getDataEntry(InputDataType dataType) {
         return inputData.get(dataType);
     }
 
@@ -119,11 +116,20 @@ public class DpsTask implements Serializable {
     /**
      * @return List of input data (cloud-records or cloud-datasets)
      */
-    public Map<String, List<String>> getInputData() {
+    public Map<InputDataType, List<String>> getInputData() {
         return inputData;
     }
 
-    public void setInputData(Map<String, List<String>> inputData) {
+    public void setInputData(Map<InputDataType, List<String>> inputData) {
         this.inputData = inputData;
     }
+
+    public OAIPMHHarvestingDetails getHarvestingDetails() {
+        return harvestingDetails;
+    }
+
+    public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
+        this.harvestingDetails = harvestingDetails;
+    }
 }
+

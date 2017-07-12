@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -17,11 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 /**
  * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.
@@ -84,10 +85,10 @@ public class ParseTaskBolt extends BaseRichBolt {
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 task.getTaskId(),
                 task.getTaskName(),
-                null, null, taskParameters, task.getOutputRevision());
+                null, null, taskParameters, task.getOutputRevision(), task.getHarvestingDetails());
         String stream = getStream(task);
         if (stream != null) {
-            String dataEntry = convertListToString(task.getDataEntry(stream));
+            String dataEntry = convertListToString(task.getDataEntry(InputDataType.valueOf(stream)));
             stormTaskTuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
             updateTask(task.getTaskId(), "", TaskState.CURRENTLY_PROCESSING, startTime);
             outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
@@ -121,10 +122,12 @@ public class ParseTaskBolt extends BaseRichBolt {
     }
 
     private String getStream(DpsTask task) {
-        if (task.getInputData().get(DpsTask.FILE_URLS) != null)
-            return DpsTask.FILE_URLS;
-        else if (task.getInputData().get(DpsTask.DATASET_URLS) != null)
-            return DpsTask.DATASET_URLS;
+        if (task.getInputData().get(FILE_URLS) != null)
+            return FILE_URLS.name();
+        else if (task.getInputData().get(DATASET_URLS) != null)
+            return DATASET_URLS.name();
+        else if (task.getInputData().get(REPOSITORY_URLS) != null)
+            return REPOSITORY_URLS.name();
         return null;
 
     }

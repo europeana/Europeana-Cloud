@@ -38,5 +38,6 @@
         <module>cassandra</module>
         <module>storm/topologies/ic</module>
         <module>utils</module>
+        <module>storm/topologies/oai-pmh</module>
     </modules>
 </project>

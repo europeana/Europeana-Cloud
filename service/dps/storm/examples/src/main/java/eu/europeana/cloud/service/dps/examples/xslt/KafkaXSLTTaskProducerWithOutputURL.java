@@ -1,13 +1,14 @@
 package eu.europeana.cloud.service.dps.examples.xslt;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
-import eu.europeana.cloud.service.dps.DpsTask;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class KafkaXSLTTaskProducerWithOutputURL {
 
@@ -39,7 +40,7 @@ public class KafkaXSLTTaskProducerWithOutputURL {
 
 		List<String> records = new ArrayList<String>();
 		records.add(args[2]);
-		msg.addDataEntry("FILE_URLS", records);
+		msg.addDataEntry(InputDataType.FILE_URLS, records);
 		msg.addParameter("XSLT_URL", args[3]);
 		msg.addParameter("OUTPUT_URL", args[4]);
 		KeyedMessage<String, DpsTask> data = new KeyedMessage<String, DpsTask>(
