@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.INTERVAL;
+
 /**
  * Created by Tarek on 7/6/2017.
  */
@@ -22,12 +24,16 @@ public class Splitter {
     private Tuple inputTuple;
     private OutputCollector outputCollector;
     private OAIHelper oaiHelper;
+    private long defaultInterval;
 
-    public Splitter(StormTaskTuple stormTaskTuple, Tuple inputTuple, OutputCollector outputCollector, OAIHelper oaiHelper) {
+    public Splitter(StormTaskTuple stormTaskTuple, Tuple inputTuple, OutputCollector outputCollector, OAIHelper oaiHelper, long defaultInterval) {
         this.stormTaskTuple = stormTaskTuple;
         this.inputTuple = inputTuple;
         this.outputCollector = outputCollector;
         this.oaiHelper = oaiHelper;
+        this.defaultInterval = defaultInterval;
+
+
     }
 
     public void splitBySchema() {
@@ -43,25 +49,38 @@ public class Splitter {
             end = new Date();
         if (sets == null || sets.isEmpty()) {
             emitNextTupleByDateRange(schema, null, start, end);
-        } else {
+        } else
             for (String set : sets)
                 emitNextTupleByDateRange(schema, set, start, end);
-        }
 
     }
 
     private void emitNextTupleByDateRange(String schema, String set, Date start, Date end) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(start);
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(start);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new Cloner().deepClone(stormTaskTuple.getSourceDetails());
         setOAIPMHSourceDetails(oaipmhHarvestingDetails, schema, set);
+        long interval = getInterval();
         while (start.compareTo(end) <= 0) {
-            cal.add(Calendar.MONTH, 1);
-            Date until = cal.getTime();
-            setOAIPMHSourceDetailsDateRange(oaipmhHarvestingDetails, start, until);
-            start = until;
-            outputCollector.emit(inputTuple, buildStormTaskTuple(stormTaskTuple, oaipmhHarvestingDetails).toStormTuple());
+            if ((end.getTime() - start.getTime()) <= interval) {
+                OAIPMHHarvestingDetails oaiPmhHarvestingDetailsCloned = buildOAIPMHSourceWithDetailsDateRange(oaipmhHarvestingDetails, start, end);
+                outputCollector.emit(inputTuple, buildStormTaskTuple(stormTaskTuple, oaiPmhHarvestingDetailsCloned).toStormTuple());
+                break;
+            }
+            startCal.setTimeInMillis(start.getTime() + interval);
+            Date until = startCal.getTime();
+            OAIPMHHarvestingDetails oaipmhHarvestingDetails1 = buildOAIPMHSourceWithDetailsDateRange(oaipmhHarvestingDetails, start, until);
+            startCal.setTimeInMillis(until.getTime() + 1); //next start = current end +! millisecond
+            start = startCal.getTime();
+            outputCollector.emit(inputTuple, buildStormTaskTuple(stormTaskTuple, oaipmhHarvestingDetails1).toStormTuple());
         }
+    }
+
+    private long getInterval() {
+        String providedInterval = stormTaskTuple.getParameter(INTERVAL);
+        if (providedInterval != null)
+            return Long.parseLong(providedInterval);
+        return defaultInterval;
     }
 
     private void setOAIPMHSourceDetails(OAIPMHHarvestingDetails oaipmhHarvestingDetails, String schema, String set) {
@@ -75,9 +94,11 @@ public class Splitter {
         }
     }
 
-    private void setOAIPMHSourceDetailsDateRange(OAIPMHHarvestingDetails oaipmhHarvestingDetails, Date from, Date until) {
-        oaipmhHarvestingDetails.setDateFrom(from);
-        oaipmhHarvestingDetails.setDateUntil(until);
+    private OAIPMHHarvestingDetails buildOAIPMHSourceWithDetailsDateRange(OAIPMHHarvestingDetails oaipmhHarvestingDetails, Date from, Date until) {
+        OAIPMHHarvestingDetails oaiPmhHarvestingDetailsCloned = new Cloner().deepClone(oaipmhHarvestingDetails);
+        oaiPmhHarvestingDetailsCloned.setDateFrom(from);
+        oaiPmhHarvestingDetailsCloned.setDateUntil(until);
+        return oaiPmhHarvestingDetailsCloned;
     }
 
     private StormTaskTuple buildStormTaskTuple(StormTaskTuple t, OAIPMHHarvestingDetails oaipmhHarvestingDetails) {

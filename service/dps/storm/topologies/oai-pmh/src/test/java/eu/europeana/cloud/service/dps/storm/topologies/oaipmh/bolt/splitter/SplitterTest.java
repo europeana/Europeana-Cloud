@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
-import org.apache.storm.shade.org.joda.time.Period;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -18,6 +17,7 @@ import org.mockito.Captor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -36,6 +36,7 @@ public class SplitterTest {
     private final String SCHEMA2 = "oai_qdc ";
     private final String TASK_NAME = "TASK_NAME";
     private final long TASK_ID = 1;
+    private final long INTERVAL = 2592000000l;
 
     protected StormTaskTuple stormTaskTuple;
     private OutputCollector outputCollector;
@@ -51,7 +52,7 @@ public class SplitterTest {
         oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         initTestScenarioWithTwoSchemas();
         stormTaskTuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), oaipmhHarvestingDetails);
-        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper);
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
     }
 
     @Test
@@ -74,8 +75,39 @@ public class SplitterTest {
         splitter.splitBySchema();
         verify(outputCollector, times(4)).emit(any(Tuple.class), captor.capture());
         assertEquals(captor.getAllValues().size(), 4);
-        assertTupleValues();
+        assertTupleValues(30);
     }
+
+    @Test
+    public void testSplitWithTwoSchemasAndTwoSetsWithLessThanMonthRange() throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("15/3/2012");
+        Date end = sdf.parse("1/4/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        splitter.splitBySchema();
+        verify(outputCollector, times(4)).emit(any(Tuple.class), captor.capture());
+        assertEquals(captor.getAllValues().size(), 4);
+        assertTupleValues(16);
+    }
+
+
+    @Test
+    public void testSplitWithTwoSchemasAndTwoSetsWithProvidedInterval() throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date start = sdf.parse("1/3/2012");
+        Date end = sdf.parse("1/4/2012");
+        oaipmhHarvestingDetails.setDateFrom(start);
+        oaipmhHarvestingDetails.setDateUntil(end);
+        oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
+        stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "86400000");//one day
+        splitter.splitBySchema();
+        verify(outputCollector, times(124)).emit(any(Tuple.class), captor.capture());//2*2*31
+        assertEquals(captor.getAllValues().size(), 124);
+        assertTupleValues(1);
+    }
+
 
     @Test
     public void testSplitWithTwoSchemasAndTwoSetsWithThreeMonthsRange() throws ParseException {
@@ -88,17 +120,15 @@ public class SplitterTest {
         splitter.splitBySchema();
         verify(outputCollector, times(12)).emit(any(Tuple.class), captor.capture());
         assertEquals(captor.getAllValues().size(), 12);
-        assertTupleValues();
+        assertTupleValues(30);
     }
 
-    private void assertTupleValues() {
+    private void assertTupleValues(int maxIntervalTimeInDay) {
         for (Values values : captor.getAllValues()) {
             assertTrue(values.get(6) instanceof OAIPMHHarvestingDetails);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = (OAIPMHHarvestingDetails) values.get(6);
-            assertEquals((oaipmhHarvestingDetails.getSchemas().size()), 1);
-            assertEquals((oaipmhHarvestingDetails.getSets().size()), 1);
-            Period p = new Period(oaipmhHarvestingDetails.getDateUntil().getTime(), oaipmhHarvestingDetails.getDateFrom().getTime());
-            assertTrue(p.getDays() <= 31);
+            long diffInDays = TimeUnit.DAYS.convert(oaipmhHarvestingDetails.getDateUntil().getTime() - oaipmhHarvestingDetails.getDateFrom().getTime(), TimeUnit.MILLISECONDS);
+            assertTrue(diffInDays <= maxIntervalTimeInDay);
         }
     }
 

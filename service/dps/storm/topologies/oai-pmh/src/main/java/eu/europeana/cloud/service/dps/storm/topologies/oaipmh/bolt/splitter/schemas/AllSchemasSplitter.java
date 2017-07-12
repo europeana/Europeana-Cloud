@@ -15,7 +15,6 @@ public class AllSchemasSplitter extends SchemasSplitter {
         super(splitter);
     }
 
-
     /**
      * List all the resource schemas and iterate over them to emit tuple per each schema.
      */

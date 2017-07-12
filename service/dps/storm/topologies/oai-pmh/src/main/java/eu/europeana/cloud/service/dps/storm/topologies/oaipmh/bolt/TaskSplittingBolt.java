@@ -17,10 +17,17 @@ import org.slf4j.LoggerFactory;
 
 public class TaskSplittingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(TaskSplittingBolt.class);
+    private long defaultInterval;
+
+
+    //will be passed on the topology level as it will be extracted as a property of oai-topology-config file
+    public TaskSplittingBolt(long defaultInterval) {
+        this.defaultInterval = defaultInterval;
+    }
 
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
-            Splitter splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, new OAIHelper(stormTaskTuple.getFileUrl()));
+            Splitter splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, new OAIHelper(stormTaskTuple.getFileUrl()), defaultInterval);
             splitter.splitBySchema();
 
         } catch (Exception e) {

@@ -22,6 +22,7 @@ public class SchemasSplitterFactoryTest {
     private final String SCHEMA = "oai_dc";
     private final String TASK_NAME = "TASK_NAME";
     private final long TASK_ID = 1;
+    private final long INTERVAL = 2592000000l;
 
     protected StormTaskTuple stormTaskTuple;
     private Splitter splitter;
@@ -29,7 +30,7 @@ public class SchemasSplitterFactoryTest {
     @Before
     public void init() {
         stormTaskTuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision());
-        splitter = new Splitter(stormTaskTuple, null, null, null);
+        splitter = new Splitter(stormTaskTuple, null, null, null, INTERVAL);
 
     }
 
