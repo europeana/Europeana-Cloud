@@ -70,7 +70,7 @@ public class Splitter {
             startCal.setTimeInMillis(start.getTime() + interval);
             Date until = startCal.getTime();
             OAIPMHHarvestingDetails oaipmhHarvestingDetails1 = buildOAIPMHSourceWithDetailsDateRange(oaipmhHarvestingDetails, start, until);
-            startCal.setTimeInMillis(until.getTime() + 1); //next start = current end +! millisecond
+            startCal.setTimeInMillis(until.getTime() + 1); //next start = current end +1 millisecond
             start = startCal.getTime();
             outputCollector.emit(inputTuple, buildStormTaskTuple(stormTaskTuple, oaipmhHarvestingDetails1).toStormTuple());
         }

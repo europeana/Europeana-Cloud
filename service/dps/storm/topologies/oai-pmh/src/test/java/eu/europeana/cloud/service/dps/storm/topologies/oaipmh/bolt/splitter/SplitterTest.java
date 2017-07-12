@@ -127,6 +127,8 @@ public class SplitterTest {
         for (Values values : captor.getAllValues()) {
             assertTrue(values.get(6) instanceof OAIPMHHarvestingDetails);
             OAIPMHHarvestingDetails oaipmhHarvestingDetails = (OAIPMHHarvestingDetails) values.get(6);
+            assertEquals((oaipmhHarvestingDetails.getSchemas().size()), 1);
+            assertEquals((oaipmhHarvestingDetails.getSets().size()), 1);
             long diffInDays = TimeUnit.DAYS.convert(oaipmhHarvestingDetails.getDateUntil().getTime() - oaipmhHarvestingDetails.getDateFrom().getTime(), TimeUnit.MILLISECONDS);
             assertTrue(diffInDays <= maxIntervalTimeInDay);
         }
