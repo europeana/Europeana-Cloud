@@ -102,6 +102,7 @@ public class SplitterTest {
         oaipmhHarvestingDetails.setDateUntil(end);
         oaipmhHarvestingDetails.setSets(buildTwoItemsSet());
         stormTaskTuple.getParameters().put(PluginParameterKeys.INTERVAL, "86400000");//one day
+        splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, oaiHelper, INTERVAL);
         splitter.splitBySchema();
         verify(outputCollector, times(124)).emit(any(Tuple.class), captor.capture());//2*2*31
         assertEquals(captor.getAllValues().size(), 124);

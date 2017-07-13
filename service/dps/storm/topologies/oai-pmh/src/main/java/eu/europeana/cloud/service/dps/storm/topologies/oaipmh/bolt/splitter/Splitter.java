@@ -24,14 +24,14 @@ public class Splitter {
     private Tuple inputTuple;
     private OutputCollector outputCollector;
     private OAIHelper oaiHelper;
-    private long defaultInterval;
+    private long interval;
 
     public Splitter(StormTaskTuple stormTaskTuple, Tuple inputTuple, OutputCollector outputCollector, OAIHelper oaiHelper, long defaultInterval) {
         this.stormTaskTuple = stormTaskTuple;
         this.inputTuple = inputTuple;
         this.outputCollector = outputCollector;
         this.oaiHelper = oaiHelper;
-        this.defaultInterval = defaultInterval;
+        this.interval = getInterval(defaultInterval);
 
 
     }
@@ -60,7 +60,6 @@ public class Splitter {
         startCal.setTime(start);
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = new Cloner().deepClone(stormTaskTuple.getSourceDetails());
         setOAIPMHSourceDetails(oaipmhHarvestingDetails, schema, set);
-        long interval = getInterval();
         while (start.compareTo(end) <= 0) {
             if ((end.getTime() - start.getTime()) <= interval) {
                 OAIPMHHarvestingDetails oaiPmhHarvestingDetailsCloned = buildOAIPMHSourceWithDetailsDateRange(oaipmhHarvestingDetails, start, end);
@@ -76,7 +75,7 @@ public class Splitter {
         }
     }
 
-    private long getInterval() {
+    private long getInterval(long defaultInterval) {
         String providedInterval = stormTaskTuple.getParameter(INTERVAL);
         if (providedInterval != null)
             return Long.parseLong(providedInterval);
