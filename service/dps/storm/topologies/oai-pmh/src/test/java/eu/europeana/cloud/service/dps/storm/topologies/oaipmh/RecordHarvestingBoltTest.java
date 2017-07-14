@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 import com.lyncode.xoai.serviceprovider.client.OAIClient;
 import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.Parameters;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
@@ -79,7 +80,7 @@ public class RecordHarvestingBoltTest {
 
     private StormTaskTuple taskWithAllNeededParameters(){
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHSourceDetails details = new OAIPMHSourceDetails("willBeRemoved","schema");
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.OAI_IDENTIFIER,"oaiIdentifier");
@@ -88,14 +89,14 @@ public class RecordHarvestingBoltTest {
 
     private StormTaskTuple taskWithoutResourceUrl(){
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHSourceDetails details = new OAIPMHSourceDetails("willBeRemoved","schema");
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         return task;
     }
 
     private StormTaskTuple taskWithoutRecordId(){
         StormTaskTuple task = new StormTaskTuple();
-        OAIPMHSourceDetails details = new OAIPMHSourceDetails("willBeRemoved","schema");
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
 
@@ -105,7 +106,7 @@ public class RecordHarvestingBoltTest {
     private StormTaskTuple taskWithoutPrefix(){
         StormTaskTuple task = new StormTaskTuple();
 
-        OAIPMHSourceDetails details = new OAIPMHSourceDetails("willBeRemoved",null);
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null);
         task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
         task.addParameter(PluginParameterKeys.OAI_IDENTIFIER,"oaiIdentifier");
         task.setSourceDetails(details);
