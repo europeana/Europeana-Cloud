@@ -13,20 +13,13 @@ public class DpsTask implements Serializable {
 
     /* Map of input data:
     cloud-records - InputDataType.FILE_URLS
-    cloud-datasets InputDataType.DATASET_URLS
+    cloud-datasets - InputDataType.DATASET_URLS
+    cloud-repositoryurl - InputDataType.REPOSITORY_URLS
     */
     private Map<InputDataType, List<String>> inputData;
 
     /* List of parameters (specific for each dps-topology) */
     private Map<String, String> parameters;
-
-    public Revision getOutputRevision() {
-        return outputRevision;
-    }
-
-    public void setOutputRevision(Revision outputRevision) {
-        this.outputRevision = outputRevision;
-    }
 
     /* output revision*/
     private Revision outputRevision;
@@ -66,6 +59,15 @@ public class DpsTask implements Serializable {
 
         taskId = UUID.randomUUID().getMostSignificantBits();
     }
+
+    public Revision getOutputRevision() {
+        return outputRevision;
+    }
+
+    public void setOutputRevision(Revision outputRevision) {
+        this.outputRevision = outputRevision;
+    }
+
 
     /**
      * @return Unique id for this task

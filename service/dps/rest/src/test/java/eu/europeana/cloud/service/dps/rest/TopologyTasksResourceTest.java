@@ -125,13 +125,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
         task.addDataEntry(REPOSITORY_URLS, Arrays.asList
                 ("http://example.com/oai-pmh-repository.xml"));
         task.setHarvestingDetails(new OAIPMHHarvestingDetails("Schema"));
-        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
-        task.addParameter(PROVIDER_ID,"validProviderName");
-        task.addParameter(DATASET_ID,"validDataset");
-        task.addParameter(REPRESENTATION_NAME,"newRepresentationName");
-        task.addParameter(REVISION_NAME,"revisonName");
-        task.addParameter(REVISION_PROVIDER,"resisionProvider");
-        task.addParameter(REVISION_TIMESTAMP,"revisionTimestemp");
         String topologyName = "oai_pmh_topology";
         prepareMocks(topologyName);
         WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);

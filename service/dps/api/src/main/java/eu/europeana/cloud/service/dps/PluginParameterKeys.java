@@ -10,10 +10,6 @@ import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
  * Parameters for {@link DpsTask}
  */
 public final class PluginParameterKeys {
-
-    private PluginParameterKeys() {
-    }
-
     public static final String XSLT_URL = "XSLT_URL";
     public static final String OUTPUT_URL = "OUTPUT_URL";
 
@@ -65,6 +61,7 @@ public final class PluginParameterKeys {
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
     public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
+
     // InputDataType.DATASET_URLS
     // InputDataType.FILE_URLS
     public static final String REPRESENTATION = "REPRESENTATION";
@@ -72,15 +69,10 @@ public final class PluginParameterKeys {
 
     //----------  OAI-PMH harvesting DPS task  ----
 
-    // Output params
+    // Input params
+    // DPS_TASK_INPUT_DATA - required
 
-    // PROVIDER_ID - required
-    // DATASET_ID - required
-    // REPRESENTATION_NAME -required
-    // REVISION_NAME - required
-    // REVISION_PROVIDER - required
-    // REVISION_TIMESTAMP - required
-
+    // HARVESTING_DETAILS - OAIPMHHarvestingDetails.java - optional
 
     //----------Revision ---------------
 
@@ -144,6 +136,10 @@ public final class PluginParameterKeys {
 
         /* File URL Key */
         PLUGIN_PARAMETERS.put(FILE_URLS.name(), "FILE_URLS");
+    }
+
+    private PluginParameterKeys() {
+        throw new UnsupportedOperationException("Pure static class!");
     }
 
 }

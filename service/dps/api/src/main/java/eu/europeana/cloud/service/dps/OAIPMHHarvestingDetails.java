@@ -2,32 +2,35 @@ package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+@XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {
 
-    /** Schemas to harvest */
+    /** Schemas to harvest - optional */
     private Set<String> schemas;
 
-    /** Schemas to exclude */
+    /** Schemas to exclude - optional */
     private Set<String> excludedSchemas;
 
-    /** Sets to harvest */
+    /** Sets to harvest - optional */
     private Set<String> sets;
 
-    /** Sets to exclude */
+    /** Sets to exclude - optional */
     private Set<String> excludeSets;
 
-    /** From date */
+    /** From date - optional */
     private Date dateFrom;
 
-    /** Until date */
+    /** Until date - optional */
     private Date dateUntil;
 
     public OAIPMHHarvestingDetails() {
+        // serialization purposes
     }
 
     public OAIPMHHarvestingDetails(String schema) {
@@ -47,7 +50,6 @@ public class OAIPMHHarvestingDetails implements Serializable {
         this.excludedSchemas = excludedSchemas;
         this.excludeSets = excludeSets;
     }
-
 
     public Set<String> getSchemas() {
         return schemas;
@@ -73,10 +75,16 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return dateUntil;
     }
 
+
     @Override
+    @SuppressWarnings({"squid:S1067"})
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OAIPMHHarvestingDetails)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof OAIPMHHarvestingDetails)) {
+            return false;
+        }
         OAIPMHHarvestingDetails that = (OAIPMHHarvestingDetails) o;
         return Objects.equal(schemas, that.schemas) &&
                 Objects.equal(excludedSchemas, that.excludedSchemas) &&
