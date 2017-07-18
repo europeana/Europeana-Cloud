@@ -9,6 +9,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 import static org.junit.Assert.*;
@@ -82,9 +83,29 @@ public class ImageConverterServiceImplTest {
     }
 
     private void assertResultedStormTaskTuple(StormTaskTuple stormTaskTuple) {
+        assertNotNull(stormTaskTuple.getParameters());
+        assertEquals(stormTaskTuple.getParameters().size(), 5);
+
         String outputFileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
         assertNotNull(outputFileName);
         assertEquals(FilenameUtils.getExtension(outputFileName), JP2_EXTENSION);
+
+        String cloudId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID);
+        assertNotNull(cloudId);
+        assertEquals(cloudId, SOURCE + CLOUD_ID);
+
+        String representationName = stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME);
+        assertNotNull(representationName);
+        assertEquals(representationName, SOURCE + REPRESENTATION_NAME);
+
+        String version = stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION);
+        assertNotNull(version);
+        assertEquals(version, SOURCE + VERSION);
+
+        String outputMimeType = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE);
+        assertNotNull(outputMimeType);
+        assertEquals(outputMimeType, "image/jp2");
+
         assertNotNull(stormTaskTuple.getFileByteDataAsStream());
         assertNotNull(stormTaskTuple.getFileData());
 
