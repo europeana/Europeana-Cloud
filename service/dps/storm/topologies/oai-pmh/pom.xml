@@ -41,7 +41,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/com.lyncode/xoai-common -->
         <dependency>
             <groupId>com.lyncode</groupId>
@@ -53,6 +52,25 @@
             <groupId>com.lyncode</groupId>
             <artifactId>xoai-service-provider</artifactId>
             <version>4.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-core</artifactId>
+            <version>${version.powermock}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>${version.powermock-mockito}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${version.powermock}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all -->

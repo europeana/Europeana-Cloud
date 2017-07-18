@@ -74,6 +74,7 @@ public final class PluginParameterKeys {
     public static final String REVISION_NAME = "REVISION_NAME";
     public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
     public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
+    public static final String INTERVAL = "INTERVAL";
 
     // ---------- OAI-PMH ----------
     public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";

@@ -18,7 +18,7 @@ public class PropertyFileLoader {
         try {
             PropertyFileLoader reader = new PropertyFileLoader();
             reader.loadDefaultPropertyFile(defaultPropertyFile, topologyProperties);
-            if (providedPropertyFile != "")
+            if (!providedPropertyFile.equals(""))
                 reader.loadProvidedPropertyFile(providedPropertyFile, topologyProperties);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
