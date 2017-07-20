@@ -37,8 +37,7 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -418,6 +417,9 @@ public class TopologyTasksResource {
         if (task.getDataEntry(DATASET_URLS) != null) {
             return topologyName + "_" + DATASET_URLS.name().toLowerCase();
         }
+        if (task.getDataEntry(REPOSITORY_URLS) != null) {
+             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+         }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 

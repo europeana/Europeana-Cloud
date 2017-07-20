@@ -5,16 +5,21 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
 
+@RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
 
     private static final long TASK_ID = 121212;
@@ -173,10 +178,11 @@ public class DpsTaskValidatorTest {
     public void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
         new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask);
     }
+
+
     ////
     //inputData
     ////
-
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsNoInputDataWithSelectedName() throws DpsTaskValidationException {
         new DpsTaskValidator().withDataEntry("notExistingDataEntry").validate(dpsTask);
@@ -201,26 +207,51 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectContentType() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), InputDataValueType.LINK_TO_FILE)
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), LINK_TO_FILE)
                 .validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndIncorrectContentType() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), InputDataValueType
-                .LINK_TO_DATASET).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(),
+                LINK_TO_DATASET).validate(dpsTask);
     }
 
     @Test
     public void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
         new DpsTaskValidator()
-                .withDataEntry("FILE_URLS", InputDataValueType.LINK_TO_FILE)
+                .withDataEntry("FILE_URLS", LINK_TO_FILE)
                 .withParameter("OUTPUT_MIME_TYPE")
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);
     }
 
+    @Test(expected = DpsTaskValidationException.class)
+    @Parameters({"domainbroken/paht",
+            "http://domainlondon/paht/some.xml","domainlon.com/paht/some.xml"})
+    public void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) throws
+            DpsTaskValidationException {
+        commonOaiPmhValidation(url);
+    }
 
+
+    @Test
+    @Parameters({"http://domain.com/paht",
+            "http://domain.com/paht/some.xml", "https://domain.com/paht/some.xml" })
+    public void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
+        commonOaiPmhValidation(url);
+    }
+
+    private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
+        final DpsTask oaiPmhTask = new DpsTask("OaiPmhTopology");
+        final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
+        inputData.put(REPOSITORY_URLS, Collections.singletonList(url));
+        oaiPmhTask.setInputData(inputData);
+
+        new DpsTaskValidator()
+                .withDataEntry(REPOSITORY_URLS.name(), LINK_TO_EXTERNAL_URL)
+                .validate(oaiPmhTask);
+    }
 
     ////
     //Output Revision

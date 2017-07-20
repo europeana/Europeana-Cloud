@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
+import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -12,26 +13,16 @@ public class DpsTask implements Serializable {
 
     /* Map of input data:
     cloud-records - InputDataType.FILE_URLS
-    cloud-datasets InputDataType.DATASET_URLS
+    cloud-datasets - InputDataType.DATASET_URLS
+    cloud-repositoryurl - InputDataType.REPOSITORY_URLS
     */
     private Map<InputDataType, List<String>> inputData;
 
     /* List of parameters (specific for each dps-topology) */
     private Map<String, String> parameters;
 
-    public Revision getOutputRevision() {
-        return outputRevision;
-    }
-
-    public void setOutputRevision(Revision outputRevision) {
-        this.outputRevision = outputRevision;
-    }
-
     /* output revision*/
     private Revision outputRevision;
-
-    /** Details of harvesting process */
-    private OAIPMHHarvestingDetails harvestingDetails;
 
     /* Task start time */
     private Date startTime = null;
@@ -47,6 +38,9 @@ public class DpsTask implements Serializable {
 
     /* Name for the task */
     private String taskName;
+
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
 
 
     public DpsTask() {
@@ -67,6 +61,15 @@ public class DpsTask implements Serializable {
 
         harvestingDetails = null;
     }
+
+    public Revision getOutputRevision() {
+        return outputRevision;
+    }
+
+    public void setOutputRevision(Revision outputRevision) {
+        this.outputRevision = outputRevision;
+    }
+
 
     /**
      * @return Unique id for this task
@@ -130,6 +133,27 @@ public class DpsTask implements Serializable {
 
     public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
         this.harvestingDetails = harvestingDetails;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DpsTask)) return false;
+        DpsTask dpsTask = (DpsTask) o;
+        return taskId == dpsTask.taskId &&
+                com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
+                Objects.equal(parameters, dpsTask.parameters) &&
+                Objects.equal(outputRevision, dpsTask.outputRevision) &&
+                Objects.equal(startTime, dpsTask.startTime) &&
+                Objects.equal(createTime, dpsTask.createTime) &&
+                Objects.equal(endTime, dpsTask.endTime) &&
+                Objects.equal(taskName, dpsTask.taskName) &&
+                Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
     }
 }
 

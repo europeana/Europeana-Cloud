@@ -5,8 +5,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * Created by Tarek on 4/6/2016.
@@ -25,6 +24,8 @@ public class FilesCounterFactory {
             return new RecordFilesCounter();
         if (DATASET_URLS.name().equals(taskType))
             return new DatasetFilesCounter(dataSetServiceClient, recordServiceClient);
+        if (REPOSITORY_URLS.name().equals(taskType))
+            return new OaiPmhFilesCounter();
         else
             return null;
     }

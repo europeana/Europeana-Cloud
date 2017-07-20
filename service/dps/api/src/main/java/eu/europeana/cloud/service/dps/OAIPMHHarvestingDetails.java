@@ -1,31 +1,36 @@
 package eu.europeana.cloud.service.dps;
 
+import com.google.common.base.Objects;
+
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+@XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {
 
-    /** Schemas to harvest */
-    private Set<String> schemas = null;
+    /** Schemas to harvest - optional */
+    private Set<String> schemas;
 
-    /** Schemas to exclude */
-    private Set<String> excludedSchemas = null;
+    /** Schemas to exclude - optional */
+    private Set<String> excludedSchemas;
 
-    /** Sets to harvest */
-    private Set<String> sets = null;
+    /** Sets to harvest - optional */
+    private Set<String> sets;
 
-    /** Sets to exclude */
-    private Set<String> excludeSets = null;
+    /** Sets to exclude - optional */
+    private Set<String> excludeSets;
 
-    /** From date */
-    private Date dateFrom = null;
+    /** From date - optional */
+    private Date dateFrom;
 
-    /** Until date */
-    private Date dateUntil = null;
+    /** Until date - optional */
+    private Date dateUntil;
 
     public OAIPMHHarvestingDetails() {
+        // serialization purposes
     }
 
     public OAIPMHHarvestingDetails(String schema) {
@@ -53,8 +58,12 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return schemas.iterator().next();
     }
 
-    public Set<String> getSets() {
-        return sets;
+    public Set<String> getSchemas() {
+        return schemas;
+    }
+
+    public Set<String> getExcludedSchemas() {
+        return excludedSchemas;
     }
 
     public String getSet() {
@@ -64,16 +73,12 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return sets.iterator().next();
     }
 
-    public void setSets(Set<String> sets) {
-        this.sets = sets;
+    public Set<String> getSets() {
+        return sets;
     }
 
     public Set<String> getExcludedSets() {
         return excludeSets;
-    }
-
-    public void setExcludedSets(Set<String> sets) {
-        this.excludeSets = sets;
     }
 
     public Date getDateFrom() {
@@ -92,27 +97,42 @@ public class OAIPMHHarvestingDetails implements Serializable {
         this.dateUntil = dateUntil;
     }
 
-    public Set<String> getSchemas() {
-        return schemas;
-    }
-
     public void setSchemas(Set<String> schemas) {
         this.schemas = schemas;
-    }
-
-    public Set<String> getExcludedSchemas() {
-        return excludedSchemas;
     }
 
     public void setExcludedSchemas(Set<String> excludedSchemas) {
         this.excludedSchemas = excludedSchemas;
     }
 
-    public Set<String> getExcludeSets() {
-        return excludeSets;
+    public void setSets(Set<String> sets) {
+        this.sets = sets;
     }
 
-    public void setExcludeSets(Set<String> excludeSets) {
+    public void setExcludedSets(Set<String> excludeSets) {
         this.excludeSets = excludeSets;
+    }
+
+    @Override
+    @SuppressWarnings({"squid:S1067"})
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof OAIPMHHarvestingDetails)) {
+            return false;
+        }
+        OAIPMHHarvestingDetails that = (OAIPMHHarvestingDetails) o;
+        return Objects.equal(schemas, that.schemas) &&
+                Objects.equal(excludedSchemas, that.excludedSchemas) &&
+                Objects.equal(sets, that.sets) &&
+                Objects.equal(excludeSets, that.excludeSets) &&
+                Objects.equal(dateFrom, that.dateFrom) &&
+                Objects.equal(dateUntil, that.dateUntil);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(schemas, excludedSchemas, sets, excludeSets, dateFrom, dateUntil);
     }
 }
