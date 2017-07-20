@@ -21,7 +21,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
     private Set<String> sets;
 
     /** Sets to exclude - optional */
-    private Set<String> excludeSets;
+    private Set<String> excludedSets;
 
     /** From date - optional */
     private Date dateFrom;
@@ -48,7 +48,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
     public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil) {
         this(schemas, sets, dateFrom, dateUntil);
         this.excludedSchemas = excludedSchemas;
-        this.excludeSets = excludeSets;
+        this.excludedSets = excludeSets;
     }
 
     public String getSchema() {
@@ -78,7 +78,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
     }
 
     public Set<String> getExcludedSets() {
-        return excludeSets;
+        return excludedSets;
     }
 
     public Date getDateFrom() {
@@ -110,7 +110,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
     }
 
     public void setExcludedSets(Set<String> excludeSets) {
-        this.excludeSets = excludeSets;
+        this.excludedSets = excludeSets;
     }
 
     @Override
@@ -126,13 +126,13 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return Objects.equal(schemas, that.schemas) &&
                 Objects.equal(excludedSchemas, that.excludedSchemas) &&
                 Objects.equal(sets, that.sets) &&
-                Objects.equal(excludeSets, that.excludeSets) &&
+                Objects.equal(excludedSets, that.excludedSets) &&
                 Objects.equal(dateFrom, that.dateFrom) &&
                 Objects.equal(dateUntil, that.dateUntil);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(schemas, excludedSchemas, sets, excludeSets, dateFrom, dateUntil);
+        return Objects.hashCode(schemas, excludedSchemas, sets, excludedSets, dateFrom, dateUntil);
     }
 }
