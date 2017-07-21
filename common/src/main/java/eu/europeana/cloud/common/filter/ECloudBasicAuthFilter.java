@@ -1,9 +1,8 @@
-package eu.europeana.cloud.mcs.driver.filter;
+package eu.europeana.cloud.common.filter;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.IOException;
 
 /**

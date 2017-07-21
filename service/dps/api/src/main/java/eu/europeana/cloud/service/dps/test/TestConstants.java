@@ -8,6 +8,7 @@ public class TestConstants {
     public static final String RESULT = "result";
     public static final String SOURCE = "source";
     public static final String CLOUD_ID = "CloudId";
+    public static final String LOCAL_ID = "LOCAL_ID";
     public static final String CLOUD_ID2 = "CloudId2";
     public static final String REPRESENTATION_NAME = "RepresentationName";
     public static final String VERSION = "Version";
