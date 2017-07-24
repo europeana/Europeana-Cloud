@@ -2,6 +2,7 @@ package eu.europeana.cloud.client.uis.rest;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -516,6 +517,16 @@ public class UISClient {
         if (response != null) {
             response.close();
         }
+    }
+
+    /**
+     * Client will use provided authorization header for all requests;
+     *
+     * @param headerValue authorization header value
+     * @return
+     */
+    public void useAuthorizationHeader(final String headerValue) {
+        client.register(new ECloudBasicAuthFilter(headerValue));
     }
 
     @Override

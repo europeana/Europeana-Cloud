@@ -26,6 +26,7 @@ public final class PluginParameterKeys {
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String DATASET_ID = "DATASET_ID";
     public static final String CLOUD_ID = "CLOUD_ID";
+    public static final String LOCAL_ID = "LOCAL_ID";
     public static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
     public static final String NEW_REPRESENTATION_NAME = "NEW_REPRESENTATION_NAME";
     public static final String REPRESENTATION_VERSION = "REPRESENTATION_VERSION";
