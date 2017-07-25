@@ -39,7 +39,7 @@ public class IdentifiersHarvestingBoltTest {
     private ServiceProvider source;
 
     @InjectMocks
-    private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt(sourceProvider);
+    private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
 
     private final int TASK_ID = 1;
 
@@ -82,7 +82,7 @@ public class IdentifiersHarvestingBoltTest {
         sourceDetails.setDateFrom(from);
         sourceDetails.setDateUntil(until);
         initHeaders(sourceDetails);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(),new Revision(), sourceDetails);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, url);
         return tuple;
     }
@@ -129,7 +129,7 @@ public class IdentifiersHarvestingBoltTest {
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
 
-        assertEquals(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID2);
+        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID2);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class IdentifiersHarvestingBoltTest {
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
 
-        assertEquals(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID1);
+        assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID1);
     }
 
     @Test
@@ -158,8 +158,8 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(2));
 
         Set<String> identifiers = new HashSet<>();
-        identifiers.add(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
-        identifiers.add(((HashMap<String, String>)values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
     }
@@ -178,8 +178,8 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(2));
 
         Set<String> identifiers = new HashSet<>();
-        identifiers.add(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
-        identifiers.add(((HashMap<String, String>)values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
 
@@ -198,7 +198,7 @@ public class IdentifiersHarvestingBoltTest {
 
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
-        assertThat(((HashMap<String, String>)values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
+        assertThat(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
 
         verifyNoMoreInteractions(oc);
     }

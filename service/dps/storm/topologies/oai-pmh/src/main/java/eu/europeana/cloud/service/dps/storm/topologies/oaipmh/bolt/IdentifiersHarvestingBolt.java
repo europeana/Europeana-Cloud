@@ -20,12 +20,7 @@ import java.util.Set;
 
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
-
     private SourceProvider sourceProvider;
-
-    public IdentifiersHarvestingBolt(SourceProvider sourceProvider) {
-        this.sourceProvider = sourceProvider;
-    }
 
     /**
      * Harvest identifiers from the OAI-PMH source
@@ -55,6 +50,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        sourceProvider = new SourceProvider();
     }
 
     /**
@@ -98,7 +94,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * Parse headers returned by the OAI-PMH source
      *
      * @param headerIterator iterator of headers returned by the source
-     * @param excludedSets sets to exclude
+     * @param excludedSets   sets to exclude
      * @param stormTaskTuple tuple to be used for emitting identifier
      * @return number of harvested identifiers
      */
@@ -121,7 +117,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     /**
      * Filter header by checking whether it belongs to any of excluded sets.
      *
-     * @param header header to filter
+     * @param header       header to filter
      * @param excludedSets sets to exclude
      */
     private boolean filterHeader(Header header, Set<String> excludedSets) {
@@ -138,7 +134,6 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
     /**
      * Validate parameters coming to this bolt.
-     *
      */
     private void validateParameters(String url, OAIPMHHarvestingDetails sourceDetails) {
         if (url == null) {

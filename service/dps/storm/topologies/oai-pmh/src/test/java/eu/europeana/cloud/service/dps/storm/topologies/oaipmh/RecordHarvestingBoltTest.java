@@ -40,7 +40,7 @@ public class RecordHarvestingBoltTest {
     private OAIClient oaiClient;
 
     @InjectMocks
-    private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt(oaiClientProvider);
+    private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
 
     @Test
     public void harvestingForAllParametersSpecified() throws OAIRequestException, IOException {

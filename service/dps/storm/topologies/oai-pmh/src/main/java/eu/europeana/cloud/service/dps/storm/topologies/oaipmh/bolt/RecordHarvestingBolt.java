@@ -19,7 +19,6 @@ import java.io.StringWriter;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
- *
  */
 public class RecordHarvestingBolt extends AbstractDpsBolt {
 
@@ -27,9 +26,6 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     private OAIClientProvider oaiClientProvider;
 
-    public RecordHarvestingBolt(OAIClientProvider oaiClientProvider) {
-        this.oaiClientProvider = oaiClientProvider;
-    }
 
     /**
      * For given: <br/>
@@ -38,7 +34,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
      * <li>recordId</li>
      * <li>metadata prefix</li>
      * </ul>
-     *
+     * <p>
      * record will be fetched from OAI endpoint. All need parameters should be provided in {@link StormTaskTuple}.
      *
      * @param stormTaskTuple
@@ -79,6 +75,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        oaiClientProvider = new OAIClientProvider();
     }
 
     private boolean parametersAreValid(String endpointLocation, String recordId, String metadataPrefix) {
