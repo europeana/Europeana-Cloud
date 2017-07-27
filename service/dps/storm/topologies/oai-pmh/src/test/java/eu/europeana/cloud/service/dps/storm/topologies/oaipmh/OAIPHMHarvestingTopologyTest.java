@@ -94,7 +94,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
     }
 
     @BeforeClass
-    public static void buildToplogy() {
+    public static void initTopology() {
         routingRules = new HashMap<>();
         routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
         buildTopology();

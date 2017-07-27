@@ -36,14 +36,14 @@ public class OAIPHMHarvestingTopology {
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    public final StormTopology buildTopology(String icTopic, String ecloudMcsAddress, String uisAddress) {
+    public final StormTopology buildTopology(String oaiTopic, String ecloudMcsAddress, String uisAddress) {
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(REPOSITORY_STREAM, REPOSITORY_STREAM);
 
 
         WriteRecordBolt writeRecordBolt = new OAIWriteRecordBolt(ecloudMcsAddress, uisAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
-        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, icTopic, "", "storm");
+        SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         // kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
@@ -52,59 +52,59 @@ public class OAIPHMHarvestingTopology {
 
 
         builder.setSpout(TopologyHelper.SPOUT, kafkaSpout,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
+                (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_NUMBER_OF_TASKS))));
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.KAFKA_SPOUT_NUMBER_OF_TASKS))));
 
         builder.setBolt(TopologyHelper.PARSE_TASK_BOLT, new ParseTaskBolt(routingRules),
-                ((int) Integer
+                (Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.PARSE_TASKS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.SPOUT);
 
 
         builder.setBolt(TopologyHelper.TASK_SPLITTING_BOLT, new TaskSplittingBolt(Long.parseLong(topologyProperties.getProperty(TopologyPropertyKeys.INTERVAL))),
-                ((int) Integer
+                (Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.TASK_SPLITTING_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, REPOSITORY_STREAM);
 
 
         builder.setBolt(TopologyHelper.IDENTIFIERS_HARVESTING_BOLT, new IdentifiersHarvestingBolt(),
-                ((int) Integer
+                (Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IDENTIFIERS_HARVESTING_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IDENTIFIERS_HARVESTING_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.IDENTIFIERS_HARVESTING_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.TASK_SPLITTING_BOLT);
 
 
         builder.setBolt(TopologyHelper.RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
-                ((int) Integer
+                (Integer
                         .parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RECORD_HARVESTING_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.IDENTIFIERS_HARVESTING_BOLT);
 
         builder.setBolt(TopologyHelper.WRITE_RECORD_BOLT, writeRecordBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL))))
+                (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.WRITE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RECORD_HARVESTING_BOLT);
 
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, revisionWriterBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
+                (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.WRITE_RECORD_BOLT);
 
 
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.ADD_TO_DATASET_BOLT_PARALLEL))))
+                (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.ADD_TO_DATASET_BOLT_PARALLEL))))
                 .setNumTasks(
-                        ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))))
+                        (Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
         return builder.createTopology();
     }
