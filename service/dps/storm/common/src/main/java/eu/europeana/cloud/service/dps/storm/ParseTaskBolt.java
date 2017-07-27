@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -82,10 +83,14 @@ public class ParseTaskBolt extends BaseRichBolt {
         }
         Date startTime = new Date();
 
+
+        OAIPMHHarvestingDetails oaipmhHarvestingDetails = task.getHarvestingDetails();
+        if (oaipmhHarvestingDetails == null)
+            oaipmhHarvestingDetails = new OAIPMHHarvestingDetails();
         StormTaskTuple stormTaskTuple = new StormTaskTuple(
                 task.getTaskId(),
                 task.getTaskName(),
-                null, null, taskParameters, task.getOutputRevision(), task.getHarvestingDetails());
+                null, null, taskParameters, task.getOutputRevision(), oaipmhHarvestingDetails);
         String stream = getStream(task);
         if (stream != null) {
             String dataEntry = convertListToString(task.getDataEntry(InputDataType.valueOf(stream)));

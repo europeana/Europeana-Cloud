@@ -1,4 +1,4 @@
-package eu.europeana.cloud.bolts;
+package eu.europeana.cloud.service.dps.storm.utils;
 
 
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;

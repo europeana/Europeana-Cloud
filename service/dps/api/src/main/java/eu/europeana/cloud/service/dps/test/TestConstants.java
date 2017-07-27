@@ -45,6 +45,7 @@ public class TestConstants {
             + DATASET_NAME;
     public static final String SOURCE_DATASET_URL2 = SOURCE_DATASET_URL + 2;
     public static final String MCS_URL = "http://localhost:8080/mcs";
+    public static final String UIS_URL = "http://localhost:8080/uis";
 
     public static final int NUM_WORKERS = 1;
 

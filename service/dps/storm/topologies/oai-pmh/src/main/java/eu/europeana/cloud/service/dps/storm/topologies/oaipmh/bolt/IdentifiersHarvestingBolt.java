@@ -20,7 +20,9 @@ import java.util.Set;
 
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
     public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
+
     private SourceProvider sourceProvider;
+
 
     /**
      * Harvest identifiers from the OAI-PMH source
@@ -64,7 +66,6 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
         String url = stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         validateParameters(url, sourceDetails);
-
         ListIdentifiersParameters parameters = configureParameters(sourceDetails);
         return parseHeaders(sourceProvider.provide(url).listIdentifiers(parameters), sourceDetails.getExcludedSets(), stormTaskTuple);
     }
