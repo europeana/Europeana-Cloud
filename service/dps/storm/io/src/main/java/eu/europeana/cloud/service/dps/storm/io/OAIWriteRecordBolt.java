@@ -39,7 +39,8 @@ public class OAIWriteRecordBolt extends WriteRecordBolt {
 
     }
 
-    private String getCloudId(String authorizationHeader, String providerId, String localId) throws CloudException {
+    public String getCloudId(String authorizationHeader, String providerId, String localId) throws
+            CloudException {
         UISClient uisClient = new UISClient(ecloudUisAddress);
         uisClient.useAuthorizationHeader(authorizationHeader);
         CloudId cloudId = uisClient.getCloudId(providerId, localId);
