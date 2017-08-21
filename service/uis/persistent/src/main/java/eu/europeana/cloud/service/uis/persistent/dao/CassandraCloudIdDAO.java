@@ -52,20 +52,21 @@ public class CassandraCloudIdDAO {
 	insertIfNoExistsStatement = dbService
 		.getSession()
 		.prepare(
-			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false) IF NOT EXISTS");
+			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?) IF NOT EXISTS");
 	insertStatement = dbService
 		.getSession()
 		.prepare(
-			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)");
+			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
 	insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 	searchStatementNonActive = dbService.getSession().prepare(
 		"SELECT * FROM Cloud_Id WHERE cloud_id=?");
 	searchStatementNonActive.setConsistencyLevel(dbService
 		.getConsistencyLevel());
+
 	deleteStatement = dbService
 		.getSession()
 		.prepare(
-			"UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+			"Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
 	deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
