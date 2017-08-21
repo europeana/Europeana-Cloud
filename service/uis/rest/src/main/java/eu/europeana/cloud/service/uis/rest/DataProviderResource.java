@@ -10,47 +10,27 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.*;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.stereotype.Component;
-
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
-import org.springframework.security.acls.model.AlreadyExistsException;
-import org.springframework.security.acls.model.ChildrenExistException;
-import org.springframework.security.acls.model.NotFoundException;
-
-import java.util.List;
 
 /**
  * Resource for DataProvider.
@@ -197,7 +177,7 @@ public class DataProviderResource {
      */
     @GET
     @Path("localIds")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getLocalIdsByProvider(@PathParam(P_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_FROM) String from,
@@ -240,7 +220,7 @@ public class DataProviderResource {
      */
     @GET
     @Path("cloudIds")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
     public Response getCloudIdsByProvider(@PathParam(P_PROVIDER) String providerId,
             @QueryParam(UISParamConstants.Q_FROM) String from,
@@ -308,7 +288,7 @@ public class DataProviderResource {
      */
     @POST
     @Path("cloudIds/{" + P_CLOUDID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PreAuthorize("isAuthenticated()")
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
     public Response createIdMapping(@PathParam(P_PROVIDER) String providerId, @PathParam(P_CLOUDID) String cloudId,
@@ -382,7 +362,7 @@ public class DataProviderResource {
      */
     @DELETE
     @Path("localIds/{" + P_LOCALID + "}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @PreAuthorize("hasPermission(#localId.concat('/').concat(#providerId),'" + LOCAL_ID_CLASS_NAME + "', write)")
     public Response removeIdMapping(@PathParam(P_PROVIDER) String providerId, @PathParam(P_LOCALID) String localId)
             throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
