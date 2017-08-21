@@ -160,15 +160,13 @@ public class CassandraLocalIdDAO {
         List<CloudId> cloudIds = new ArrayList<>();
         if (rs != null) {
             for (Row row : rs.all()) {
-                if (!row.getBool("deleted")) {
-                    LocalId lId = new LocalId();
-                    lId.setProviderId(row.getString("provider_Id"));
-                    lId.setRecordId(row.getString("record_Id"));
-                    CloudId cloudId = new CloudId();
-                    cloudId.setId(row.getString("cloud_id"));
-                    cloudId.setLocalId(lId);
-                    cloudIds.add(cloudId);
-                }
+                LocalId lId = new LocalId();
+                lId.setProviderId(row.getString("provider_Id"));
+                lId.setRecordId(row.getString("record_Id"));
+                CloudId cloudId = new CloudId();
+                cloudId.setId(row.getString("cloud_id"));
+                cloudId.setLocalId(lId);
+                cloudIds.add(cloudId);
             }
         }
 
