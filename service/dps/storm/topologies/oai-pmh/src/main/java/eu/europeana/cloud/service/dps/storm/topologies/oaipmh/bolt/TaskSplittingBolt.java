@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
@@ -27,7 +28,8 @@ public class TaskSplittingBolt extends AbstractDpsBolt {
 
     public void execute(StormTaskTuple stormTaskTuple) {
         try {
-            Splitter splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, new OAIHelper(stormTaskTuple.getFileUrl()), defaultInterval);
+            final String repositoryUrl = stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+            Splitter splitter = new Splitter(stormTaskTuple, inputTuple, outputCollector, new OAIHelper(repositoryUrl), defaultInterval);
             splitter.splitBySchema();
 
         } catch (Exception e) {
