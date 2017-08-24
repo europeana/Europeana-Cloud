@@ -1,9 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
+import com.lyncode.xml.exceptions.XmlWriteException;
 import com.lyncode.xoai.model.oaipmh.Header;
 import com.lyncode.xoai.serviceprovider.ServiceProvider;
 import com.lyncode.xoai.serviceprovider.client.OAIClient;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
+import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import com.lyncode.xoai.serviceprovider.parameters.Parameters;
@@ -13,10 +16,14 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
-import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
+import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.OAITestMocksHelper;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -39,6 +46,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.TransformerConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,13 +58,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Tarek on 7/26/2017.
@@ -167,7 +174,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         }
     }
 
-    private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException {
+    private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, IdDoesNotExistException, XMLStreamException, TransformerConfigurationException {
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
         Set<Header> headers = new HashSet<>();
@@ -176,7 +183,8 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         when(serviceProvider.listIdentifiers(any(ListIdentifiersParameters.class))).thenReturn(headers.iterator());
 
         OAIClient oaiClient = mock(OAIClient.class);
-        when(oaiClientProvider.provide(anyString())).thenReturn(oaiClient);
+        when(harvester.harvestRecord(anyString(),anyString(),anyString())).thenReturn(new
+                ByteArrayInputStream(new byte[]{}));
         InputStream inputStream = new ReaderInputStream(new StringReader("largeString"), StandardCharsets.UTF_8);
         when(oaiClient.execute(any(Parameters.class))).thenReturn(inputStream);
 

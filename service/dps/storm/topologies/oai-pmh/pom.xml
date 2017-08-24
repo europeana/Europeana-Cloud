@@ -144,6 +144,11 @@
             <version>1.42</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-matchers</artifactId>
+            <version>2.3.0</version>
+        </dependency>
     </dependencies>
 
 

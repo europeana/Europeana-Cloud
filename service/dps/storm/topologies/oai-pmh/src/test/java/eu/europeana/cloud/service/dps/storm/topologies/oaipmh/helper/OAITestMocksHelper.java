@@ -4,9 +4,12 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.mcs.driver.*;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.OAIClientProvider;
+import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.apache.storm.Config;
 import org.apache.storm.testing.MkClusterParam;
@@ -15,7 +18,8 @@ import org.powermock.api.mockito.PowerMockito;
 
 import java.util.List;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -27,7 +31,7 @@ public class OAITestMocksHelper {
     protected RecordServiceClient recordServiceClient;
     protected RevisionServiceClient revisionServiceClient;
     protected SourceProvider sourceProvider;
-    protected OAIClientProvider oaiClientProvider;
+    protected Harvester harvester;
     protected UISClient uisClient;
 
 
@@ -79,8 +83,8 @@ public class OAITestMocksHelper {
     }
 
     protected void mockOAIClientProvider() throws Exception {
-        oaiClientProvider = Mockito.mock(OAIClientProvider.class);
-        PowerMockito.whenNew(OAIClientProvider.class).withAnyArguments().thenReturn(oaiClientProvider);
+        harvester = Mockito.mock(Harvester.class);
+        PowerMockito.whenNew(Harvester.class).withAnyArguments().thenReturn(harvester);
 
     }
 

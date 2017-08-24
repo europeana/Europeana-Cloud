@@ -26,7 +26,13 @@ public abstract class WiremockHelper {
                 .withBody(fileContent);
     }
 
-    protected static String getFileContent(String name) throws IOException {
+    protected static ResponseDefinitionBuilder response404() {
+        return aResponse()
+                .withHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
+                .withStatus(404);
+    }
+
+    public static String getFileContent(String name) throws IOException {
         return IOUtils.toString(
                 Object.class.getResourceAsStream(name),
                 "UTF-8");
