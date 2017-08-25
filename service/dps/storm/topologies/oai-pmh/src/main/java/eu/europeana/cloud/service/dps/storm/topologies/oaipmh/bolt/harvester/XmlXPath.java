@@ -14,6 +14,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -35,7 +36,7 @@ class XmlXPath {
      * @return result of xpath
      * @throws HarvesterException
      */
-    InputStream xpath(String expression) throws HarvesterException {
+    InputStream xpath(String expression) throws HarvesterException, IOException {
         try {
             final XPathExpression expr = compileExpression(expression);
 
@@ -43,9 +44,13 @@ class XmlXPath {
             final NodeList result = (NodeList) expr.evaluate(inputSource,
                     XPathConstants.NODESET);
 
-            return produceOutput(result);
+            return convertToStream(result);
         } catch (XPathExpressionException | TransformerException e) {
             throw new HarvesterException("Cannot xpath XML!", e);
+        } finally {
+            if(input != null){
+                input.close();
+            }
         }
     }
 
@@ -54,15 +59,15 @@ class XmlXPath {
         return xpath.compile(expression);
     }
 
-    private InputStream produceOutput(NodeList node) throws TransformerException, HarvesterException {
-        final int length = node.getLength();
+    private InputStream convertToStream(NodeList nodes) throws TransformerException, HarvesterException {
+        final int length = nodes.getLength();
         if(length < 1){
             throw new HarvesterException("Empty XML!");
         } else if(length > 1){
             throw new HarvesterException("More than one XML!");
         }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Source xmlSource = new DOMSource(node.item(0));
+        Source xmlSource = new DOMSource(nodes.item(0));
         Result outputTarget = new StreamResult(outputStream);
         TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
         return new ByteArrayInputStream(outputStream.toByteArray());
