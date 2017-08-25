@@ -38,6 +38,7 @@ import org.apache.storm.testing.MockedSources;
 import org.apache.storm.testing.TestJob;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Values;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -58,11 +59,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
  * Created by Tarek on 7/26/2017.
@@ -125,7 +126,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         MkClusterParam mkClusterParam = prepareMKClusterParm();
         Testing.withSimulatedTimeLocalCluster(mkClusterParam, new TestJob() {
             @Override
-            public void run(ILocalCluster cluster) {
+            public void run(ILocalCluster cluster) throws JSONException {
 
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
@@ -156,7 +157,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         return Arrays.asList(actualTuples.get(index));
     }
 
-    private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, List<String> expectedTuples) {
+    private void assertResultedTuple(ILocalCluster cluster, StormTopology topology, CompleteTopologyParam completeTopologyParam, List<String> expectedTuples) throws JSONException {
         Map result = Testing.completeTopology(cluster, topology,
                 completeTopologyParam);
         //then
@@ -165,7 +166,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
             String expected = expectedTuples.get(i);
-            assertEquals(expected, actual);
+            assertEquals(expected,actual,false);
         }
     }
 
