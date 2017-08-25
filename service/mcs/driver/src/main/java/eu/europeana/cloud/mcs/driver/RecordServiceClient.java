@@ -1,12 +1,12 @@
 package eu.europeana.cloud.mcs.driver;
 
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -25,9 +25,6 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;

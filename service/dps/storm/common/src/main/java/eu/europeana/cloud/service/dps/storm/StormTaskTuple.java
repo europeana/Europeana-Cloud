@@ -1,17 +1,15 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
-import java.io.*;
-import java.util.HashMap;
-
-
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHSourceDetails;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
+import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -32,7 +30,7 @@ public class StormTaskTuple implements Serializable {
     private Map<String, String> parameters;
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     private Revision revisionToBeApplied;
-    private OAIPMHSourceDetails sourceDetails;
+    private OAIPMHHarvestingDetails sourceDetails;
 
     public StormTaskTuple() {
 
@@ -52,7 +50,7 @@ public class StormTaskTuple implements Serializable {
     }
 
     public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                          byte[] fileData, Map<String, String> parameters, Revision revision, OAIPMHSourceDetails sourceDetails) {
+                          byte[] fileData, Map<String, String> parameters, Revision revision, OAIPMHHarvestingDetails sourceDetails) {
         this(taskId, taskName, fileUrl, fileData, parameters, revision);
         this.sourceDetails = sourceDetails;
     }
@@ -114,11 +112,11 @@ public class StormTaskTuple implements Serializable {
         parameters.put(parameterKey, parameterValue);
     }
 
-    public OAIPMHSourceDetails getSourceDetails() {
+    public OAIPMHHarvestingDetails getSourceDetails() {
         return sourceDetails;
     }
 
-    public void setSourceDetails(OAIPMHSourceDetails sourceDetails) {
+    public void setSourceDetails(OAIPMHHarvestingDetails sourceDetails) {
         this.sourceDetails = sourceDetails;
     }
 
@@ -153,7 +151,7 @@ public class StormTaskTuple implements Serializable {
                         .getValueByField(StormTupleKeys.PARAMETERS_TUPLE_KEY),
                 (Revision) tuple
                         .getValueByField(StormTupleKeys.REVISIONS),
-                (OAIPMHSourceDetails) tuple.getValueByField(StormTupleKeys.SOURCE_TO_HARVEST));
+                (OAIPMHHarvestingDetails) tuple.getValueByField(StormTupleKeys.SOURCE_TO_HARVEST));
 
     }
 

@@ -29,15 +29,14 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt.getTestInstance;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 public class ReadDataSetBoltTest {
 
@@ -114,7 +113,7 @@ public class ReadDataSetBoltTest {
         assertThat(captor.getAllValues().size(), is(expectedExecutionTimes));
         List<Values> allValues = captor.getAllValues();
         for (int i = 0; i < expectedExecutionTimes; i++) {
-            assertEquals(allValues.get(i).size(), 6);
+            assertEquals(allValues.get(i).size(), 7);
             assertTrue(allValues.get(i).get(4) instanceof Map);
             assertRepresentation(representations.get(i), ((Map<String, String>) allValues.get(i).get(4)).get(PluginParameterKeys.REPRESENTATION));
         }

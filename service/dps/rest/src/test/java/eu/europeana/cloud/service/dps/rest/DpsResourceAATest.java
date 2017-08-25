@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Arrays;
 
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -105,13 +106,13 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void mockUp() throws Exception {
 
         XSLT_TASK = new DpsTask("xsltTask");
-        XSLT_TASK.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        XSLT_TASK.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
 
         XSLT_TASK2 = new DpsTask("xsltTask");
-        XSLT_TASK2.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        XSLT_TASK2.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
 
         XSLT_TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
-        XSLT_TASK_WITH_MALFORMED_URL.addDataEntry("FILE_URLS", Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        XSLT_TASK_WITH_MALFORMED_URL.addDataEntry(FILE_URLS, Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
 
 
         URI_INFO = Mockito.mock(UriInfo.class);
@@ -142,7 +143,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         logoutEveryone();
         login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
         DpsTask task = new DpsTask();
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         topologyTasksResource.submitTask(asyncResponse, task, SAMPLE_TOPOLOGY_NAME, URI_INFO, AUTH_HEADER_VALUE);
@@ -152,7 +153,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldBeAbleToSubmitTaskToXsltTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("xsltTask");
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
@@ -185,7 +186,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingXsltUrl() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("xsltTask");
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -205,7 +206,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldBeAbleToSubmitTaskToIcTopology() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
         String topologyName = "ic_topology";
@@ -220,7 +221,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     public void shouldNotBeAbleToSubmitTaskToIcTopologyWithUnacceptedOutputMimeType() throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException {
         //when
         DpsTask task = new DpsTask("icTask");
-        task.addDataEntry(DpsTask.FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "undefined");
         String topologyName = "ic_topology";

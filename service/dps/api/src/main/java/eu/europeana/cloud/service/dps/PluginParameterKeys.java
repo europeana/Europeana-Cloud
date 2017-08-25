@@ -3,14 +3,13 @@ package eu.europeana.cloud.service.dps;
 import java.util.HashMap;
 import java.util.Map;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+
 /**
  * Parameters for {@link DpsTask}
  */
 public final class PluginParameterKeys {
-
-    private PluginParameterKeys() {
-    }
-
     public static final String XSLT_URL = "XSLT_URL";
     public static final String OUTPUT_URL = "OUTPUT_URL";
 
@@ -27,6 +26,7 @@ public final class PluginParameterKeys {
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String DATASET_ID = "DATASET_ID";
     public static final String CLOUD_ID = "CLOUD_ID";
+    public static final String LOCAL_ID = "LOCAL_ID";
     public static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
     public static final String NEW_REPRESENTATION_NAME = "NEW_REPRESENTATION_NAME";
     public static final String REPRESENTATION_VERSION = "REPRESENTATION_VERSION";
@@ -35,6 +35,7 @@ public final class PluginParameterKeys {
     public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
     public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     public static final String OUTPUT_DATA_SETS = "OUTPUT_DATA_SETS";
+
 
     // ---------  Messages  -----------
     public static final String NEW_DATASET_MESSAGE = "NewDataset";
@@ -61,16 +62,25 @@ public final class PluginParameterKeys {
     public static final String OUTPUT_FILE_NAME = "OUTPUT_FILE_NAME";
     public static final String KAKADU_ARGUEMENTS = "KAKADU_ARGUEMENTS";
     //----------  DPS task  ----
-    public static final String DATASET_URLS = "DATASET_URLS";
-    public static final String FILE_URLS = "FILE_URLS";
+
+    // InputDataType.DATASET_URLS
+    // InputDataType.FILE_URLS
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
+
+    //----------  OAI-PMH harvesting DPS task  ----
+
+    // Input params
+    // DPS_TASK_INPUT_DATA - required
+
+    // HARVESTING_DETAILS - OAIPMHHarvestingDetails.java - optional
 
     //----------Revision ---------------
 
     public static final String REVISION_NAME = "REVISION_NAME";
     public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
     public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
+    public static final String INTERVAL = "INTERVAL";
 
     // ---------- OAI-PMH ----------
     public static final String OAI_IDENTIFIER = "OAI_IDENTIFIER";
@@ -126,10 +136,14 @@ public final class PluginParameterKeys {
         PLUGIN_PARAMETERS.put(KAKADU_ARGUEMENTS, "-rate 1.0,0.84,0.7,0.6,0.5,0.4,0.35,0.3,0.25,0.21,0.18,0.15,0.125,0.1,0.088,0.075,0.0625,0.05,0.04419,0.03716,0.03125,0.025,0.0221,0.01858,0.015625 Clevels=6 Cmodes={BYPASS} Corder=RLCP -no_palette");
 
         //----------- DPS task --------
-        PLUGIN_PARAMETERS.put(DATASET_URLS, "DATASET_URLS");
+        PLUGIN_PARAMETERS.put(DATASET_URLS.name(), "DATASET_URLS");
 
         /* File URL Key */
-        PLUGIN_PARAMETERS.put(FILE_URLS, "FILE_URLS");
+        PLUGIN_PARAMETERS.put(FILE_URLS.name(), "FILE_URLS");
+    }
+
+    private PluginParameterKeys() {
+        throw new UnsupportedOperationException("Pure static class!");
     }
 
 }

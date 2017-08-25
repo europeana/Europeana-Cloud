@@ -21,6 +21,13 @@
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -89,6 +96,18 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

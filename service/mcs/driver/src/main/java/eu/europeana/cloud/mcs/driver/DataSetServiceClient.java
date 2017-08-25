@@ -1,7 +1,8 @@
 package eu.europeana.cloud.mcs.driver;
 
-import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
@@ -9,7 +10,6 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;

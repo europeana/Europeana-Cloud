@@ -3,20 +3,24 @@ MAINTAINER kadamski
 
 RUN apt-get update \
     && apt-get install -y \
-        python2.7 \
+        python=2.7.\* \
+        python-pip \
         rsyslog \
         supervisor \
         wget  \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
 
+    # Problem with cqlsh and python https://issues.apache.org/jira/browse/CASSANDRA-11850
+    && pip install cqlsh \
+    &&  sed -i 's/DEFAULT_PROTOCOL_VERSION = 4/DEFAULT_PROTOCOL_VERSION = 3/' \
+        /usr/local/bin/cqlsh
 ENV CASSANDRA_DIR /opt/apache-cassandra-2.1.8
 
 RUN wget -q -O - 'http://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz' \
     | tar -C /opt -xz
 
 COPY ./cqls/*.cql /etc/cassandra/
-COPY scripts/configure.sh /etc/cassandra/
-COPY scripts/initialize_tables.sh /etc/cassandra/
+COPY scripts/* /etc/cassandra/
 COPY confs/rsyslog.conf /etc/rsyslog.d/50-default.conf
 COPY confs/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
@@ -30,5 +34,5 @@ RUN chmod 555 /entrypoint.sh /etc/cassandra/*
 # 9042: CQL
 # 9160: thrift service
 EXPOSE 7000 7001 7199 8012 9042 9160
-
+#
 ENTRYPOINT /entrypoint.sh $CASSANDRA_DIR

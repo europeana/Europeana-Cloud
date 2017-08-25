@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api;
 
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
@@ -16,7 +18,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.mime.MimeTypeException;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -77,18 +81,22 @@ public class ImageConverterServiceImpl implements ImageConverterService {
                 String inputFilePath = ImageConverterUtil.buildFilePath(folderPath, tempFileName, inputExtension);
                 String outputExtension = ExtensionHelper.getExtension(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
                 String outputFilePath = ImageConverterUtil.buildFilePath(folderPath, tempFileName, outputExtension);
-
-
                 if (JPEG_EXTENSION.equals(inputExtension)) {
                     inputFilePath = convertJpgToTiff(folderPath, inputFilePath, tempFileName);
                 }
-
                 converterContext.setConverter(new KakaduConverterTiffToJP2());
                 List<String> properties = new ArrayList<>();
                 properties.add(TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.KAKADU_ARGUEMENTS));
                 converterContext.convert(inputFilePath, outputFilePath, properties);
                 stormTaskTuple.setFileData(imageConverterUtil.getStream(outputFilePath));
+                final UrlParser urlParser = new UrlParser(fileUrl);
+                if (urlParser.isUrlToRepresentationVersionFile()) {
+                    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+                    stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
+                    stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
+                }
                 stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_FILE_NAME, tempFileName + outputExtension);
+                stormTaskTuple.getParameters().remove(PluginParameterKeys.MIME_TYPE);
                 LOGGER.info("The converting process for file " + fileUrl + " completed successfully");
             }
         } finally {

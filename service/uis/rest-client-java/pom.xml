@@ -18,7 +18,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>

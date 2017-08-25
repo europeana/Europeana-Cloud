@@ -1,39 +1,25 @@
 package eu.europeana.cloud.service.dps;
 
+import com.google.common.base.Objects;
 import eu.europeana.cloud.common.model.Revision;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 
 @XmlRootElement()
 public class DpsTask implements Serializable {
 
-    /* Dataset Key */
-    public static final String DATASET_URLS = "DATASET_URLS";
 
-    /* File URL Key */
-    public static final String FILE_URLS = "FILE_URLS";
-
-    /* List of input data (cloud-records or cloud-datasets) */
-    private Map<String, List<String>> inputData;
+    /* Map of input data:
+    cloud-records - InputDataType.FILE_URLS
+    cloud-datasets - InputDataType.DATASET_URLS
+    cloud-repositoryurl - InputDataType.REPOSITORY_URLS
+    */
+    private Map<InputDataType, List<String>> inputData;
 
     /* List of parameters (specific for each dps-topology) */
     private Map<String, String> parameters;
-
-    public Revision getOutputRevision() {
-        return outputRevision;
-    }
-
-    public void setOutputRevision(Revision outputRevision) {
-        this.outputRevision = outputRevision;
-    }
 
     /* output revision*/
     private Revision outputRevision;
@@ -53,6 +39,9 @@ public class DpsTask implements Serializable {
     /* Name for the task */
     private String taskName;
 
+    /** Details of harvesting process */
+    private OAIPMHHarvestingDetails harvestingDetails;
+
 
     public DpsTask() {
         this("");
@@ -69,7 +58,18 @@ public class DpsTask implements Serializable {
         parameters = new HashMap();
 
         taskId = UUID.randomUUID().getMostSignificantBits();
+
+        harvestingDetails = null;
     }
+
+    public Revision getOutputRevision() {
+        return outputRevision;
+    }
+
+    public void setOutputRevision(Revision outputRevision) {
+        this.outputRevision = outputRevision;
+    }
+
 
     /**
      * @return Unique id for this task
@@ -89,11 +89,11 @@ public class DpsTask implements Serializable {
         return taskName;
     }
 
-    public void addDataEntry(String dataType, List<String> data) {
+    public void addDataEntry(InputDataType dataType, List<String> data) {
         inputData.put(dataType, data);
     }
 
-    public List<String> getDataEntry(String dataType) {
+    public List<String> getDataEntry(InputDataType dataType) {
         return inputData.get(dataType);
     }
 
@@ -119,11 +119,41 @@ public class DpsTask implements Serializable {
     /**
      * @return List of input data (cloud-records or cloud-datasets)
      */
-    public Map<String, List<String>> getInputData() {
+    public Map<InputDataType, List<String>> getInputData() {
         return inputData;
     }
 
-    public void setInputData(Map<String, List<String>> inputData) {
+    public void setInputData(Map<InputDataType, List<String>> inputData) {
         this.inputData = inputData;
     }
+
+    public OAIPMHHarvestingDetails getHarvestingDetails() {
+        return harvestingDetails;
+    }
+
+    public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
+        this.harvestingDetails = harvestingDetails;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DpsTask)) return false;
+        DpsTask dpsTask = (DpsTask) o;
+        return taskId == dpsTask.taskId &&
+                com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
+                Objects.equal(parameters, dpsTask.parameters) &&
+                Objects.equal(outputRevision, dpsTask.outputRevision) &&
+                Objects.equal(startTime, dpsTask.startTime) &&
+                Objects.equal(createTime, dpsTask.createTime) &&
+                Objects.equal(endTime, dpsTask.endTime) &&
+                Objects.equal(taskName, dpsTask.taskName) &&
+                Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(inputData, parameters, outputRevision, startTime, createTime, endTime, taskId, taskName, harvestingDetails);
+    }
 }
+

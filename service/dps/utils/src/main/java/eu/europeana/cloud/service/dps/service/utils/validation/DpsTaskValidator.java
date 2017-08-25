@@ -3,12 +3,17 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
+
 public class DpsTaskValidator {
+
 
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
     private String validatorName;
@@ -146,8 +151,6 @@ public class DpsTaskValidator {
     }
 
     public void validate(DpsTask task) throws DpsTaskValidationException {
-        int constraintsNumber = dpsTaskConstraints.size();
-
         for (DpsTaskConstraint re : dpsTaskConstraints) {
             DpsTaskFieldType fieldType = re.getFieldType();
             if (fieldType.equals(DpsTaskFieldType.NAME)) {
@@ -202,7 +205,13 @@ public class DpsTaskValidator {
     }
 
     private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-        List<String> expectedInputData = task.getDataEntry(constraint.getExpectedName());
+        final InputDataType dataType;
+        try {
+            dataType = InputDataType.valueOf(constraint.getExpectedName());
+        }catch (IllegalArgumentException e){
+            throw new DpsTaskValidationException("Input data is not valid.",e);
+        }
+        List<String> expectedInputData = task.getDataEntry(dataType);
 
         if (expectedInputData == null) {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
@@ -213,7 +222,7 @@ public class DpsTaskValidator {
         if (constraint.getExpectedValue() == null && expectedInputData != null) {   //any value
             return;
         }
-        if ("".equals(constraint.getExpectedValue()) && expectedInputData.size() == 0) {    //empty value
+        if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
             return;
         }
         if (expectedInputData.equals(constraint.getExpectedValue())) {  //exact value
@@ -224,27 +233,38 @@ public class DpsTaskValidator {
 
     private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         for (String expectedInputDataValue : expectedInputData) {
-            if (constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_FILE)) {
-                try {
-                    UrlParser parser = new UrlParser(expectedInputDataValue);
-                    if (parser.isUrlToRepresentationVersionFile()) {
-                        continue;
-                    }
-                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                } catch (MalformedURLException e) {
-                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+            try {
+                if (constraint.getExpectedValueType().equals(LINK_TO_FILE)) {
+                        tryValidateFileUrl(expectedInputDataValue);
+                } else if (constraint.getExpectedValueType().equals(LINK_TO_DATASET)) {
+                    tryValidateDatasetUrl(expectedInputDataValue);
+                } else if (constraint.getExpectedValueType().equals(LINK_TO_EXTERNAL_URL)) {
+                    tryValidateResourceUrl(expectedInputDataValue);
                 }
-            } else if (constraint.getExpectedValueType().equals(InputDataValueType.LINK_TO_DATASET)) {
-                try {
-                    UrlParser parser = new UrlParser(expectedInputDataValue);
-                    if (parser.isUrlToDataset()) {
-                        continue;
-                    }
-                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                } catch (MalformedURLException e) {
-                    throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
-                }
+            } catch (MalformedURLException e) {
+                throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
             }
+        }
+    }
+
+    private void tryValidateResourceUrl(String expectedInputDataValue) throws DpsTaskValidationException {
+        UrlValidator urlValidator = new UrlValidator();
+        if (!urlValidator.isValid(expectedInputDataValue)) {
+            throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+        }
+    }
+
+    private void tryValidateFileUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+        UrlParser parser = new UrlParser(expectedInputDataValue);
+        if (!parser.isUrlToRepresentationVersionFile()) {
+            throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+        }
+    }
+
+    private void tryValidateDatasetUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+        UrlParser parser = new UrlParser(expectedInputDataValue);
+        if (!parser.isUrlToDataset()) {
+            throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
         }
     }
 
@@ -325,5 +345,5 @@ enum DpsTaskFieldType {
     INPUT_DATA,
     ID,
     NAME,
-    OUTPUT_REVISION;
+    OUTPUT_REVISION
 }
