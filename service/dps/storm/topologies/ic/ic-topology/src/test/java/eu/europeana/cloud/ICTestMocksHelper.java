@@ -7,7 +7,10 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.mcs.driver.*;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.Converter;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.converter.ConverterContext;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
+import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.util.ImageConverterUtil;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.Config;
@@ -18,6 +21,7 @@ import org.powermock.api.mockito.PowerMockito;
 import java.util.List;
 
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -25,7 +29,6 @@ import static org.mockito.Mockito.when;
  */
 public class ICTestMocksHelper {
     protected FileServiceClient fileServiceClient;
-    protected ImageConverterServiceImpl imageConverterService;
     protected DataSetServiceClient dataSetClient;
     protected RecordServiceClient recordServiceClient;
     protected CassandraTaskInfoDAO taskInfoDAO;
@@ -88,10 +91,13 @@ public class ICTestMocksHelper {
     }
 
     protected void mockImageCS() throws Exception {
-        imageConverterService = Mockito.mock(ImageConverterServiceImpl.class);
+        ConverterContext converterContext = Mockito.mock(ConverterContext.class);
+        doNothing().when(converterContext).setConverter(any(Converter.class));
+        doNothing().when(converterContext).convert(anyString(), anyString(), anyList());
+        ImageConverterUtil imageConverterUtil = Mockito.mock(ImageConverterUtil.class);
+        ImageConverterServiceImpl imageConverterService = new ImageConverterServiceImpl(converterContext, imageConverterUtil);
         PowerMockito.whenNew(ImageConverterServiceImpl.class).withAnyArguments().thenReturn(imageConverterService);
     }
-
 
     protected void mockRepresentationIterator() throws Exception {
         representationIterator = Mockito.mock(RepresentationIterator.class);

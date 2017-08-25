@@ -24,7 +24,6 @@ nbactions.xml
 /service/dls/target/
 /service/aas/rest/target/
 /service/aas/rest-client-java/target/
-/service/dls/target/
 /service/commons/target/
 
 **/.vagrant
@@ -54,3 +53,5 @@ service/ips/target/
 /service/dps/utils/target/
 /service/dps/storm/topologies/ic/ic-topology/target/
 /service/dps/storm/topologies/ic/converter/target/
+/service/dps/storm/topologies/oai-phm/target/
+/service/dps/storm/topologies/oai-pmh/target/

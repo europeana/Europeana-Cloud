@@ -1,13 +1,14 @@
 package eu.europeana.cloud.service.dps.examples.xslt;
 
+import eu.europeana.cloud.client.dps.rest.DpsClient;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import eu.europeana.cloud.client.dps.rest.DpsClient;
-import eu.europeana.cloud.service.dps.DpsTask;
 
 public class DatasetXSLTTaskProducer {
 
@@ -44,7 +45,7 @@ public class DatasetXSLTTaskProducer {
 			e.printStackTrace();
 		}
 
-		task.addDataEntry("FILE_URLS", records);
+		task.addDataEntry(InputDataType.FILE_URLS, records);
 		task.addParameter("XSLT_URL", args[3]);
 
 		DpsClient dps = new DpsClient(dpsUrl, username, password);

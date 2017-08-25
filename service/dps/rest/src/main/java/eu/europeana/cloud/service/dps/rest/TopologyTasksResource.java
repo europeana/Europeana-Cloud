@@ -15,17 +15,15 @@ import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.DpsTaskValidatorFactory;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
-import org.glassfish.jersey.server.ManagedAsync;
+import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -36,8 +34,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -411,12 +411,15 @@ public class TopologyTasksResource {
     }
 
     private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
-        if (task.getDataEntry(PluginParameterKeys.FILE_URLS) != null) {
-            return topologyName + "_" + PluginParameterKeys.FILE_URLS.toLowerCase();
+        if (task.getDataEntry(FILE_URLS) != null) {
+            return topologyName + "_" + FILE_URLS.name().toLowerCase();
         }
-        if (task.getDataEntry(PluginParameterKeys.DATASET_URLS) != null) {
-            return topologyName + "_" + PluginParameterKeys.DATASET_URLS.toLowerCase();
+        if (task.getDataEntry(DATASET_URLS) != null) {
+            return topologyName + "_" + DATASET_URLS.name().toLowerCase();
         }
+        if (task.getDataEntry(REPOSITORY_URLS) != null) {
+             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+         }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 
@@ -426,16 +429,14 @@ public class TopologyTasksResource {
     private int getFilesCountInsideTask(DpsTask submittedTask, String authorizationHeader) throws TaskSubmissionException {
         String taskType = getTaskType(submittedTask);
         FilesCounter filesCounter = filesCounterFactory.createFilesCounter(taskType);
-        int recordsInsideTask = filesCounter.getFilesCount(submittedTask, authorizationHeader);
-        return recordsInsideTask;
+        return filesCounter.getFilesCount(submittedTask, authorizationHeader);
     }
 
     //get TaskType
     private String getTaskType(DpsTask task) {
-        if (task.getInputData().get(DpsTask.FILE_URLS) != null)
-            return PluginParameterKeys.FILE_URLS;
-        return PluginParameterKeys.DATASET_URLS;
-
+        //TODO sholud be done in more error prone way
+        final InputDataType first = task.getInputData().keySet().iterator().next();
+        return first.name();
     }
 
 

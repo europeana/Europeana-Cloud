@@ -3,10 +3,10 @@ set -u
 set -e
 
 MAIN_DIR=$1
-BIN=$MAIN_DIR/bin
 
 function wait_for_cassandra_bootup () {
-    until $BIN/cqlsh -u cassandra -p cassandra \
+
+    until cqlsh --cqlversion=3.2.0 -u cassandra -p cassandra \
         -e "DESCRIBE system.schema_columnfamilies;" &> /dev/null
     do
         echo "."

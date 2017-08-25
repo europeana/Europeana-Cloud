@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -27,12 +25,13 @@ import java.net.URI;
  */
 public class WriteRecordBolt extends AbstractDpsBolt {
     private String ecloudMcsAddress;
-    public static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
+    protected Logger LOGGER;
 
     public WriteRecordBolt(String ecloudMcsAddress) {
         this.ecloudMcsAddress = ecloudMcsAddress;
-
+        LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
     }
+
 
     @Override
     public void prepare() {
@@ -57,23 +56,25 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         }
     }
 
-    private URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException {
-        FileServiceClient mcsClient = new FileServiceClient(ecloudMcsAddress);
+    protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple) throws MalformedURLException, MCSException, CloudException {
         RecordServiceClient recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
-        URI newFileUri = null;
-        final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
-        if (urlParser.isUrlToRepresentationVersionFile()) {
-            final String newRepresentationName = TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME);
-            final String outputMimeType = TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE);
-            final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-            mcsClient.useAuthorizationHeader(authorizationHeader);
-            recordServiceClient.useAuthorizationHeader(authorizationHeader);
-            Representation rep = recordServiceClient.getRepresentation(urlParser.getPart(UrlPart.RECORDS), urlParser.getPart(UrlPart.REPRESENTATIONS), urlParser.getPart(UrlPart.VERSIONS));
-            final String fileName = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME);
-            newFileUri = recordServiceClient.createRepresentation(urlParser.getPart(UrlPart.RECORDS), newRepresentationName, rep.getDataProvider(), stormTaskTuple.getFileByteDataAsStream(), fileName, outputMimeType);
-        }
-        return newFileUri;
+        final String authorizationHeader = stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
+        recordServiceClient.useAuthorizationHeader(authorizationHeader);
+        return createRepresentationAndUploadFile(stormTaskTuple, recordServiceClient);
+    }
+
+
+    protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException, CloudException {
+        return recordServiceClient.createRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.NEW_REPRESENTATION_NAME), getProviderId(stormTaskTuple, recordServiceClient), stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
+
+    }
+
+    private String getProviderId(StormTaskTuple stormTaskTuple, RecordServiceClient recordServiceClient) throws MCSException {
+        Representation rep = recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION));
+        return rep.getDataProvider();
+
     }
 
 
 }
+
