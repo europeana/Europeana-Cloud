@@ -35,13 +35,7 @@
         <module>storm/transform/xslt</module>
         <module>storm/topologies/xslt</module>
         <module>storm/examples</module>
-        <module>storm/topologies/text</module>
-        <module>storm/transform/text</module>
-        <module>storm/topologies/indexer</module>
-        <module>similarity</module>
-        <module>index</module>
         <module>cassandra</module>
-        <module>storm/topologies/extract_and_index</module>
         <module>storm/topologies/ic</module>
         <module>utils</module>
     </modules>

@@ -96,10 +96,6 @@ public class CassandraCloudIdDAO {
         }
     }
 
-    public List<CloudId> searchActive(String... args)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException {
-        return searchById(args[0]);
-    }
 
     /**
      * Search for all the Cloud Identifiers regardless if they are deleted or
