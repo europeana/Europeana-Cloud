@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
@@ -42,7 +43,16 @@ public class OAIWriteRecordBolt extends WriteRecordBolt {
     private String getCloudId(String authorizationHeader, String providerId, String localId) throws CloudException {
         UISClient uisClient = new UISClient(ecloudUisAddress);
         uisClient.useAuthorizationHeader(authorizationHeader);
-        CloudId cloudId = uisClient.getCloudId(providerId, localId);
+        CloudId cloudId;
+        try {
+            cloudId = uisClient.getCloudId(providerId, localId);
+        } catch (CloudException e) {
+            if (e.getCause() instanceof RecordDoesNotExistException) {
+                cloudId = null;
+            } else {
+                throw e;
+            }
+        }
         if (cloudId != null)
             return cloudId.getId();
         return uisClient.createCloudId(providerId, localId).getId();

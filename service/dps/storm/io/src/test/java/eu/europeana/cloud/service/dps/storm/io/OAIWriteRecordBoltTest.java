@@ -1,12 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -85,9 +88,10 @@ public class OAIWriteRecordBoltTest {
 
     @Test
     public void successfulExecuteStormTupleWithCreatingNewCloudId() throws Exception {
+        CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(null);
+        when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(uri);
