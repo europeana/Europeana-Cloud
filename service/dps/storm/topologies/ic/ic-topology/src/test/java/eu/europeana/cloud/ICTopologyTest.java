@@ -1,8 +1,8 @@
 package eu.europeana.cloud;
 
 
-import eu.europeana.cloud.bolts.TestInspectionBolt;
-import eu.europeana.cloud.bolts.TestSpout;
+import eu.europeana.cloud.service.dps.storm.utils.TestInspectionBolt;
+import eu.europeana.cloud.service.dps.storm.utils.TestSpout;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
 import eu.europeana.cloud.common.model.File;
@@ -13,7 +13,6 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.exceptions.ICSException;
-import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterService;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConverterServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;

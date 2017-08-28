@@ -135,4 +135,16 @@ public class OAIPMHHarvestingDetails implements Serializable {
     public int hashCode() {
         return Objects.hashCode(schemas, excludedSchemas, sets, excludedSets, dateFrom, dateUntil);
     }
+
+    @Override
+    public String toString() {
+        return "OAIPMHHarvestingDetails{" +
+                "schemas=" + schemas +
+                ", excludedSchemas=" + excludedSchemas +
+                ", sets=" + sets +
+                ", excludedSets=" + excludedSets +
+                ", dateFrom=" + dateFrom +
+                ", dateUntil=" + dateUntil +
+                '}';
+    }
 }

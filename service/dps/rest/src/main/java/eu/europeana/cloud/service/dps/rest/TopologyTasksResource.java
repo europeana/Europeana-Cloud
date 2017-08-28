@@ -434,10 +434,9 @@ public class TopologyTasksResource {
 
     //get TaskType
     private String getTaskType(DpsTask task) {
-        if (task.getInputData().get(FILE_URLS) != null)
-            return FILE_URLS.name();
-        return DATASET_URLS.name();
-
+        //TODO sholud be done in more error prone way
+        final InputDataType first = task.getInputData().keySet().iterator().next();
+        return first.name();
     }
 
 

@@ -15,16 +15,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-mcs-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${version.jersey}</version>
@@ -43,11 +33,19 @@
             <version>${version.jersey}</version>
         </dependency>
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-
-
         <!--test dependencies-->
         <dependency>
             <groupId>com.google.guava</groupId>
