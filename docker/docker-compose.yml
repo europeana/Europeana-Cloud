@@ -1,3 +1,11 @@
+management:
+  image: portainer/portainer
+  ports:
+      - "80:9000"
+  volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  command: --no-auth -H unix:///var/run/docker.sock
+
 tomcat:
   build: tomcat
   ports:
