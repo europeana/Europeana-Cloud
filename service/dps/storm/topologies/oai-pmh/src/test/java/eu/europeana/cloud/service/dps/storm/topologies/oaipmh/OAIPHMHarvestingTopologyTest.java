@@ -41,6 +41,7 @@ import org.apache.storm.tuple.Values;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;

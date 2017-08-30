@@ -21,9 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * This bolt is responsible for convert {@link DpsTask} to {@link StormTaskTuple} and it emits result to specific storm stream.

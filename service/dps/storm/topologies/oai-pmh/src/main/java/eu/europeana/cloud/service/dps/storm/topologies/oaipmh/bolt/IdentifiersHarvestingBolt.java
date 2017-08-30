@@ -5,21 +5,19 @@ import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
-import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
 public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
-    public static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentifiersHarvestingBolt.class);
 
     private SourceProvider sourceProvider;
 
@@ -38,7 +36,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
             }
             int count = harvestIdentifiers(stormTaskTuple);
             LOGGER.debug("Harvested " + count + " identifiers for source (" + stormTaskTuple.getSourceDetails() + ")");
-        } catch (OAIRequestException | BadArgumentException | RuntimeException e) {
+        } catch (BadArgumentException | RuntimeException e) {
             LOGGER.error("Identifiers Harvesting Bolt error: {} \n StackTrace: \n{}", e.getMessage(), e.getStackTrace());
             logAndEmitError(stormTaskTuple, e.getMessage());
         }
@@ -62,7 +60,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @throws BadArgumentException
      */
     private int harvestIdentifiers(StormTaskTuple stormTaskTuple)
-            throws BadArgumentException, OAIRequestException {
+            throws BadArgumentException {
         OAIPMHHarvestingDetails sourceDetails = stormTaskTuple.getSourceDetails();
         String url = stormTaskTuple.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         validateParameters(url, sourceDetails);

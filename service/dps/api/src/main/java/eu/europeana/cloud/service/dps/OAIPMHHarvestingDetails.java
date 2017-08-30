@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
@@ -51,6 +52,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
         this.excludedSets = excludeSets;
     }
 
+    @JsonIgnore
     public String getSchema() {
         if (schemas == null || schemas.isEmpty()) {
             return null;
@@ -66,6 +68,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return excludedSchemas;
     }
 
+    @JsonIgnore
     public String getSet() {
         if (sets == null || sets.isEmpty()) {
             return null;
