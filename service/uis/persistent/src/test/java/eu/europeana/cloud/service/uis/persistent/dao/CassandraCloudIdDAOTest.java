@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.persistent.dao;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.persistent.CassandraTestBase;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
     }
 
     @Test(expected = CloudIdAlreadyExistException.class)
-    public void insert_tryInsertTheSameConntentTwice_ThrowsCloudIdAlreadyExistException()
+    public void insert_tryInsertTheSameContentTwice_ThrowsCloudIdAlreadyExistException()
 	    throws Exception {
 	// given
 	final String providerId = "providerId";
@@ -53,8 +54,8 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
 
     }
 
-    @Test()
-    public void insert_tryInsertTheSameConntentTwice() throws Exception {
+    @Test(expected = CloudIdDoesNotExistException.class)
+    public void deleteCloudIdShouldRemoveCloudId() throws Exception {
 	// given
 	final String providerId = "providerId";
 	final String recordId = "recordId";
@@ -64,14 +65,11 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
 	localIdDao.insert(id, providerId, recordId);
 
 	final int size = service.insert(false, id, providerId, recordId).size();
-	assertEquals(1, size);
+    assertEquals(1, size);
+    assertEquals(1, service.searchById(id).size());
 	service.delete(id, providerId, recordId);
-	assertEquals(0, service.searchById(false, id).size());
-	// when
-	// content is overwriten
-	service.insert(false, id, providerId, recordId);
-	// then
-	assertEquals(1, service.searchById(false, id).size());
-
+	assertEquals(0, service.searchById(id).size());
     }
+
+
 }

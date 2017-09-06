@@ -19,9 +19,8 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Dao providing access to database operations on Cloud id database
- * 
+ *
  * @author Yorgos.Mamakis@ kb.nl
- * 
  */
 public class CassandraCloudIdDAO {
 
@@ -36,40 +35,40 @@ public class CassandraCloudIdDAO {
 
     /**
      * The Cloud Id Dao
-     * 
-     * @param dbService
-     *            The service exposing the connection and session
+     *
+     * @param dbService The service exposing the connection and session
      */
     public CassandraCloudIdDAO(CassandraConnectionProvider dbService) {
-	this.dbService = dbService;
-	this.hostList = dbService.getHosts();
-	this.port = dbService.getPort();
-	this.keyspaceName = dbService.getKeyspaceName();
-	prepareStatements();
+        this.dbService = dbService;
+        this.hostList = dbService.getHosts();
+        this.port = dbService.getPort();
+        this.keyspaceName = dbService.getKeyspaceName();
+        prepareStatements();
     }
 
     private void prepareStatements() {
-	insertIfNoExistsStatement = dbService
-		.getSession()
-		.prepare(
-			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false) IF NOT EXISTS");
-	insertStatement = dbService
-		.getSession()
-		.prepare(
-			"INSERT INTO Cloud_Id(cloud_id,provider_id,record_id,deleted) VALUES(?,?,?,false)");
-	insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-	searchStatementNonActive = dbService.getSession().prepare(
-		"SELECT * FROM Cloud_Id WHERE cloud_id=?");
-	searchStatementNonActive.setConsistencyLevel(dbService
-		.getConsistencyLevel());
-	deleteStatement = dbService
-		.getSession()
-		.prepare(
-			"UPDATE Cloud_Id SET deleted=true WHERE cloud_Id=? AND provider_id=? AND record_id=?");
-	deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        insertIfNoExistsStatement = dbService
+                .getSession()
+                .prepare(
+                        "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?) IF NOT EXISTS");
+        insertStatement = dbService
+                .getSession()
+                .prepare(
+                        "INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
+        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        searchStatementNonActive = dbService.getSession().prepare(
+                "SELECT * FROM Cloud_Id WHERE cloud_id=?");
+        searchStatementNonActive.setConsistencyLevel(dbService
+                .getConsistencyLevel());
+
+        deleteStatement = dbService
+                .getSession()
+                .prepare(
+                        "Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
-    public List<CloudId> searchById(boolean deleted, String... args)
+    public List<CloudId> searchById(String... args)
             throws DatabaseConnectionException, CloudIdDoesNotExistException {
         try {
             ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args[0]));
@@ -80,15 +79,13 @@ public class CassandraCloudIdDAO {
             }
             List<CloudId> cloudIds = new ArrayList<>();
             for (Row row : rs.all()) {
-                if (row.getBool("deleted") == deleted) {
-                    CloudId cId = new CloudId();
-                    cId.setId(args[0]);
-                    LocalId lId = new LocalId();
-                    lId.setProviderId(row.getString("provider_Id"));
-                    lId.setRecordId(row.getString("record_Id"));
-                    cId.setLocalId(lId);
-                    cloudIds.add(cId);
-                }
+                CloudId cId = new CloudId();
+                cId.setId(args[0]);
+                LocalId lId = new LocalId();
+                lId.setProviderId(row.getString("provider_Id"));
+                lId.setRecordId(row.getString("record_Id"));
+                cId.setLocalId(lId);
+                cloudIds.add(cId);
             }
 
             return cloudIds;
@@ -100,16 +97,15 @@ public class CassandraCloudIdDAO {
     }
 
     public List<CloudId> searchActive(String... args)
-	    throws DatabaseConnectionException, CloudIdDoesNotExistException {
-	return searchById(false, args[0]);
+            throws DatabaseConnectionException, CloudIdDoesNotExistException {
+        return searchById(args[0]);
     }
 
     /**
      * Search for all the Cloud Identifiers regardless if they are deleted or
      * not
-     * 
-     * @param args
-     *            The cloudId to search on
+     *
+     * @param args The cloudId to search on
      * @return A list of cloudIds
      * @throws DatabaseConnectionException
      */
@@ -163,35 +159,35 @@ public class CassandraCloudIdDAO {
     }
 
     public void delete(String... args) throws DatabaseConnectionException {
-	try {
-	    dbService.getSession().execute(
-		    deleteStatement.bind(args[0], args[1], args[2]));
-	} catch (NoHostAvailableException e) {
-	    throw new DatabaseConnectionException(
-		    new IdentifierErrorInfo(
-			    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				    .getHttpCode(),
-			    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-				    .getErrorInfo(hostList, port,
-					    e.getMessage())));
-	}
+        try {
+            dbService.getSession().execute(
+                    deleteStatement.bind(args[0], args[1], args[2]));
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(hostList, port,
+                                            e.getMessage())));
+        }
     }
 
     public void update(String... obj) throws DatabaseConnectionException {
-	throw new UnsupportedOperationException(
-		"This method is not implemented for the Cloud Id");
+        throw new UnsupportedOperationException(
+                "This method is not implemented for the Cloud Id");
     }
 
     public String getHostList() {
-	return hostList;
+        return hostList;
     }
 
     public String getKeyspace() {
-	return keyspaceName;
+        return keyspaceName;
     }
 
     public String getPort() {
-	return this.port;
+        return this.port;
     }
 
 }
