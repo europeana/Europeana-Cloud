@@ -154,7 +154,7 @@
 			<artifactId>
         		ecloud-service-dps-storm-transform-xslt
         	</artifactId>
-			<version>${project.version}</version>
+			<version>0.5.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jcl-over-slf4j</artifactId>
@@ -175,7 +175,7 @@
 			<artifactId>
 				ecloud-service-dps-storm-transform-text
 			</artifactId>
-			<version>${project.version}</version>
+			<version>0.5.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j</artifactId>
@@ -192,7 +192,7 @@
 			<artifactId>
 				ecloud-service-dps-storm-topologies-text
 			</artifactId>
-			<version>${project.version}</version>
+			<version>0.5.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>kafka_2.9.2</artifactId>
@@ -209,7 +209,7 @@
 			<artifactId>
 				ecloud-service-dps-storm-topologies-indexer
 			</artifactId>
-			<version>${project.version}</version>
+			<version>0.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
