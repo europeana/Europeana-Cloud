@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>0.5.3</version>
+        <version>0.5.4-SNAPSHOT</version>
     </parent>
     <artifactId>ecloud-service-dps-cassandra</artifactId>
     <packaging>jar</packaging>
@@ -13,13 +13,13 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
-            <version>0.5.3</version>
+            <version>0.5.4-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-cassandra-connector</artifactId>
-            <version>0.5.3</version>
+            <version>0.5.4-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
