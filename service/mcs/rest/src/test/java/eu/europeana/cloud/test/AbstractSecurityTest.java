@@ -1,6 +1,7 @@
 package eu.europeana.cloud.test;
 
 import org.junit.After;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
     @Qualifier("authenticationManager")
     private AuthenticationManager authenticationManager;
 
-    @After
+    @Before
     public synchronized void clear() {
         SecurityContextHolder.clearContext();
     }

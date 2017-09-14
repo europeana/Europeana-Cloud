@@ -176,7 +176,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
         List<CloudId> cIds = service
                 .getCloudIdsByProvider(providerId, "notExisting", 10);
         //then
-        assertThat(cIds.size(), is(0));
+        assertThat(cIds.size(), is(2));
     }
 
     /**
