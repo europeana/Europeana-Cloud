@@ -19,8 +19,9 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 /**
  * Dao providing access to database operations on Cloud id database
- *
+ * 
  * @author Yorgos.Mamakis@ kb.nl
+ * 
  */
 public class CassandraCloudIdDAO {
 
@@ -35,8 +36,9 @@ public class CassandraCloudIdDAO {
 
     /**
      * The Cloud Id Dao
-     *
-     * @param dbService The service exposing the connection and session
+     * 
+     * @param dbService
+     *            The service exposing the connection and session
      */
     public CassandraCloudIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
@@ -96,16 +98,13 @@ public class CassandraCloudIdDAO {
         }
     }
 
-    public List<CloudId> searchActive(String... args)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException {
-        return searchById(args[0]);
-    }
 
     /**
      * Search for all the Cloud Identifiers regardless if they are deleted or
      * not
-     *
-     * @param args The cloudId to search on
+     * 
+     * @param args
+     *            The cloudId to search on
      * @return A list of cloudIds
      * @throws DatabaseConnectionException
      */
