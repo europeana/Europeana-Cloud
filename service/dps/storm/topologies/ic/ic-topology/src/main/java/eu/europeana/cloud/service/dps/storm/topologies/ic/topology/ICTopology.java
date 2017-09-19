@@ -47,7 +47,7 @@ public class ICTopology {
     public final StormTopology buildTopology(String icTopic, String ecloudMcsAddress) {
         Map<String, String> routingRules = new HashMap<>();
         routingRules.put(DATASET_STREAM, DATASET_STREAM);
-        routingRules.put(DATASET_STREAM, FILE_STREAM);
+        routingRules.put(FILE_STREAM, FILE_STREAM);
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
