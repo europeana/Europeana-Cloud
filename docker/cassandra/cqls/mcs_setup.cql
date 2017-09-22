@@ -31,8 +31,6 @@ CREATE TABLE representation_versions (
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 
-CREATE INDEX representations_provider_id ON representation_versions (provider_id);
-
 CREATE TABLE data_set_assignments_by_revision_id (
        provider_id varchar,
        dataset_id varchar,
