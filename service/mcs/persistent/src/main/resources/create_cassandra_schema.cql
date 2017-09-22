@@ -18,16 +18,41 @@ CREATE TABLE data_sets (
 	PRIMARY KEY (provider_id, dataset_id)
 );
 
-CREATE TABLE data_set_assignments (
-	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
-	cloud_id varchar,
-	schema_id varchar,
-	version_id timeuuid,
-	creation_date timestamp,
-	PRIMARY KEY (cloud_id, schema_id, version_id, provider_dataset_id)
-);
-CREATE INDEX data_set_assignments_provider_dataset_id ON data_set_assignments (provider_dataset_id);
+//CREATE TABLE data_set_assignments (
+//	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
+//	cloud_id varchar,
+//	schema_id varchar,
+//	version_id timeuuid,
+//	creation_date timestamp,
+//	PRIMARY KEY (cloud_id, schema_id, version_id, provider_dataset_id)
+//);
+//CREATE INDEX data_set_assignments_provider_dataset_id ON data_set_assignments (provider_dataset_id);
 
+CREATE TABLE data_set_assignments (
+  provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
+  bucket_id timeuuid,
+  cloud_id varchar,
+  schema_id varchar,
+  version_id timeuuid,
+  creation_date timestamp,
+  PRIMARY KEY ((provider_dataset_id, bucket_id) cloud_id, schema_id, version_id)
+);
+
+CREATE TABLE data_set_assignments_buckets (
+  provider_dataset_id varchar,
+  bucket_id timeuuid,
+  rows_count counter,
+  PRIMARY KEY (provider_dataset_id, bucket_id)
+) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
+
+CREATE TABLE data_set_assignments_by_representations (
+  cloud_id varchar,
+  schema_id varchar,
+  version_id timeuuid,
+  provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
+  creation_date timestamp,
+PRIMARY KEY ((cloud_id, schema_id), version_id, provider_dataset_id)
+);
 
 CREATE TABLE representation_versions (
 	cloud_id varchar,
