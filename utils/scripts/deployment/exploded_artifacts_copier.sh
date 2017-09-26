@@ -12,6 +12,15 @@ testMachines=( 81 82 83)
 productionMachines=( 95 96 97)
 environment=$1
 
+function copyApplications {
+    for j in "${applicationsToBeDeployed[@]}"
+        do
+            appLocation=../../../service/$j/rest/target/ecloud-service-$j-rest-*/
+            echo -e "\tCopying "$appLocation" to "$i
+            scp -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$j/
+        done
+        echo -e "\t"
+}
 
 if [ "$environment" == "TEST" ]
 then
@@ -19,13 +28,7 @@ then
 
     for i in "${testMachines[@]}"
         do
-            for j in "${applicationsToBeDeployed[@]}"
-                do
-                    appLocation=../../../service/$j/rest/target/ecloud-service-$j-rest-*/
-                    echo -e "\tCopying "$appLocation" to "$i
-                    scp -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$j/
-                done
-                echo -e "\t"
+            copyApplications
         done
 
 elif [ "$environment" == "PROD" ]
@@ -34,13 +37,7 @@ then
 
     for i in "${productionMachines[@]}"
         do
-            for j in "${applicationsToBeDeployed[@]}"
-                do
-                    appLocation=../../../service/$j/rest/target/ecloud-service-$j-rest-*/
-                    echo -e "\tCopying "$appLocation" to "$i
-                    scp -r -q $appLocation centos@chara-$i.man.poznan.pl:$newAppDirectory/$j/
-                done
-                echo -e "\t"
+            copyApplications
         done
 
 else
