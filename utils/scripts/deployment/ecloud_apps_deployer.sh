@@ -17,6 +17,14 @@ echo "Copying old apps to backup directory"
 backupTime=`date +"%Y-%m-%d-%H:%M:%S"`
 mkdir $backupDirectory$backupTime
 
+function removeApplications {
+    for i in "${applicationsToBeDeployed[@]}"
+    do
+            echo -e "\tRemoving: "$1$i
+            rm -R $1$i
+    done
+}
+
 for i in "${applicationsToBeDeployed[@]}"
 do
         echo -e "\tCopying to: "$backupDirectory$backupTime/$i
@@ -34,11 +42,7 @@ do
 done
 
 echo "Removing apps from tomcat server"
-for i in "${applicationsToBeDeployed[@]}"
-do
-        echo -e "\tRemoving: "$webAppsDirectory$i
-        rm -R $webAppsDirectory$i
-done
+removeApplications $webAppsDirectory
 
 echo "Copying new apps to tomcat server"
 for i in "${applicationsToBeDeployed[@]}"
@@ -48,9 +52,4 @@ do
 done
 
 echo "Removing new apps from deployment directory"
-for i in "${applicationsToBeDeployed[@]}"
-do
-        echo -e "\tRemoving: "$newAppDirectory$i
-        rm -R $newAppDirectory$i
-done
-
+removeApplications $newAppDirectory
