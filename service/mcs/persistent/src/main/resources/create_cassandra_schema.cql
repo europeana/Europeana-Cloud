@@ -40,7 +40,6 @@ CREATE TABLE representation_versions (
 	creation_date timestamp,
 	PRIMARY KEY (cloud_id, schema_id, version_id)
 );
-CREATE INDEX representations_provider_id ON representation_versions (provider_id);
 
 CREATE TABLE data_set_representation_names(
        provider_id varchar,
