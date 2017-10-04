@@ -53,15 +53,17 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
             Map<String, String> taskParameters = task.getParameters();
             LOGGER.info("taskParameters size=" + taskParameters.size());
 
-            List<String> dataSets = task.getDataEntry(InputDataType.DATASET_URLS);
-            LOGGER.info("data Sets size=" + dataSets.size());
+            List<String> sources = task.getDataEntry(InputDataType.REPOSITORY_URLS);
+            if (sources == null)
+                sources = task.getDataEntry(InputDataType.DATASET_URLS);
+            LOGGER.info("Sources size" + sources.size());
 
-            String dataEntry = convertListToString(dataSets);
+            String dataEntry = convertListToString(sources);
             taskParameters.put(PluginParameterKeys.DPS_TASK_INPUT_DATA, dataEntry);
 
-            for (String dataset : dataSets) {
-                LOGGER.info("emitting..." + dataset);
-                collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), dataset, null, taskParameters, task.getOutputRevision()).toStormTuple());
+            for (String sourceURL : sources) {
+                LOGGER.info("emitting..." + sourceURL);
+                collector.emit(new StormTaskTuple(task.getTaskId(), task.getTaskName(), sourceURL, null, taskParameters, task.getOutputRevision(), task.getHarvestingDetails()).toStormTuple());
             }
 
             Utils.sleep(6000000);
@@ -87,7 +89,8 @@ public class StaticDpsTaskSpout extends BaseRichSpout {
                 StormTupleKeys.INPUT_FILES_TUPLE_KEY,
                 StormTupleKeys.FILE_CONTENT_TUPLE_KEY,
                 StormTupleKeys.PARAMETERS_TUPLE_KEY,
-                StormTupleKeys.REVISIONS));
+                StormTupleKeys.REVISIONS,
+                StormTupleKeys.SOURCE_TO_HARVEST));
     }
 
     private String convertListToString(List<String> list) {

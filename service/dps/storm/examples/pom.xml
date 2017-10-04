@@ -21,6 +21,25 @@
 
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-dps-storm-topologies-oai-pmh-harvester</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>9.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
 				ecloud-service-dps-storm-topologies-ic-topology
 			</artifactId>
