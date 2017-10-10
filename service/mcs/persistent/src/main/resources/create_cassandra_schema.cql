@@ -18,16 +18,6 @@ CREATE TABLE data_sets (
 	PRIMARY KEY (provider_id, dataset_id)
 );
 
-//CREATE TABLE data_set_assignments (
-//	provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
-//	cloud_id varchar,
-//	schema_id varchar,
-//	version_id timeuuid,
-//	creation_date timestamp,
-//	PRIMARY KEY (cloud_id, schema_id, version_id, provider_dataset_id)
-//);
-//CREATE INDEX data_set_assignments_provider_dataset_id ON data_set_assignments (provider_dataset_id);
-
 CREATE TABLE data_set_assignments (
   provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
   bucket_id timeuuid,
@@ -35,7 +25,7 @@ CREATE TABLE data_set_assignments (
   schema_id varchar,
   version_id timeuuid,
   creation_date timestamp,
-  PRIMARY KEY ((provider_dataset_id, bucket_id) cloud_id, schema_id, version_id)
+  PRIMARY KEY ((provider_dataset_id, bucket_id), schema_id, cloud_id, version_id)
 );
 
 CREATE TABLE data_set_assignments_buckets (
