@@ -155,7 +155,7 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "INSERT INTO " //
-                                + "data_set_assignments (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) " //
+                                + "data_set_assignments_by_dataset (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) " //
                                 + "VALUES (?,?,?,?,?,?);");
         addAssignmentStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
@@ -201,7 +201,7 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "DELETE FROM " //
-                                + "data_set_assignments " //
+                                + "data_set_assignments_by_dataset " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ?;");
         removeAssignmentStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
@@ -212,7 +212,7 @@ public class CassandraDataSetDAO {
                 .prepare( //
                         "SELECT " //
                                 + "cloud_id, schema_id, version_id  " //
-                                + "FROM data_set_assignments " //
+                                + "FROM data_set_assignments_by_dataset " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? "
                                 + "LIMIT ?;");
         listDataSetRepresentationsStatement
@@ -282,7 +282,7 @@ public class CassandraDataSetDAO {
                 .prepare(
                         "SELECT " //
                                 + "schema_id, cloud_id " //
-                                + "FROM data_set_assignments " //
+                                + "FROM data_set_assignments_by_dataset " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? LIMIT 1;");
         hasProvidedRepresentationName
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
