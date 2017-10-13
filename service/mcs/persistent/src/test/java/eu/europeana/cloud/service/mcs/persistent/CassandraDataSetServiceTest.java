@@ -253,7 +253,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
                 .listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
                 .getResults();
         assertThat(assignedRepresentations, is(Arrays.asList(r2)));
-
     }
 
     @Test

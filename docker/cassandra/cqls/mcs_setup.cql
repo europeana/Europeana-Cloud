@@ -8,7 +8,7 @@ CREATE TABLE data_sets (
        PRIMARY KEY (provider_id, dataset_id)
 );
 
-CREATE TABLE data_set_assignments_by_dataset (
+CREATE TABLE data_set_assignments_by_data_set (
   provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
   bucket_id timeuuid,
   cloud_id varchar,
@@ -18,7 +18,7 @@ CREATE TABLE data_set_assignments_by_dataset (
 PRIMARY KEY ((provider_dataset_id, bucket_id), schema_id, cloud_id, version_id)
 );
 
-CREATE TABLE data_set_assignments_by_dataset_buckets (
+CREATE TABLE data_set_assignments_by_data_set_buckets (
   provider_dataset_id varchar,
   bucket_id timeuuid,
   rows_count counter,

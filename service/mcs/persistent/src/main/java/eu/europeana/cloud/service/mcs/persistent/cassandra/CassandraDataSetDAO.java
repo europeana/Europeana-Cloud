@@ -16,7 +16,6 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,11 +52,13 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement decreaseDatasetAssignmentBuckets;
 
-    private PreparedStatement getDatasetAssignmentBucketCount;
+    private PreparedStatement getDatasetAssignmentBucketsCounts;
 
     private PreparedStatement getNextDatasetAssignmentBucket;
 
     private PreparedStatement getFirstDatasetAssignmentBucket;
+
+    private PreparedStatement getDatasetAssignmentBucketCount;
 
     private PreparedStatement deleteDatasetAssignmentBuckets;
 
@@ -155,36 +156,41 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "INSERT INTO " //
-                                + "data_set_assignments_by_dataset (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) " //
+                                + "data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) " //
                                 + "VALUES (?,?,?,?,?,?);");
         addAssignmentStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
-        updateDatasetAssignmentBuckets = connectionProvider.getSession().prepare("UPDATE data_set_assignments_buckets " //
+        updateDatasetAssignmentBuckets = connectionProvider.getSession().prepare("UPDATE data_set_assignments_by_data_set_buckets " //
                 + "SET rows_count = rows_count + 1 WHERE provider_dataset_id = ? AND bucket_id = ?;");
         updateDatasetAssignmentBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        decreaseDatasetAssignmentBuckets = connectionProvider.getSession().prepare("UPDATE data_set_assignments_buckets " //
+        decreaseDatasetAssignmentBuckets = connectionProvider.getSession().prepare("UPDATE data_set_assignments_by_data_set_buckets " //
                 + "SET rows_count = rows_count - 1 WHERE provider_dataset_id = ? AND bucket_id = ?;");
         decreaseDatasetAssignmentBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
-        getDatasetAssignmentBucketCount = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
-                + "FROM data_set_assignments_buckets " //
+        getDatasetAssignmentBucketsCounts = connectionProvider.getSession().prepare("SELECT bucket_id, rows_count " //
+                + "FROM data_set_assignments_by_data_set_buckets " //
                 + "WHERE provider_dataset_id = ?;");
-        getDatasetAssignmentBucketCount.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+        getDatasetAssignmentBucketsCounts.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getNextDatasetAssignmentBucket = connectionProvider.getSession().prepare("SELECT bucket_id " //
-                + "FROM data_set_assignments_buckets " //
+                + "FROM data_set_assignments_by_data_set_buckets " //
                 + "WHERE provider_dataset_id = ? AND bucket_id > ? LIMIT 1;");
         getNextDatasetAssignmentBucket.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getFirstDatasetAssignmentBucket = connectionProvider.getSession().prepare("SELECT bucket_id " //
-                + "FROM data_set_assignments_buckets " //
+                + "FROM data_set_assignments_by_data_set_buckets " //
                 + "WHERE provider_dataset_id = ? LIMIT 1;");
         getFirstDatasetAssignmentBucket.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
+        getDatasetAssignmentBucketCount = connectionProvider.getSession().prepare("SELECT rows_count " //
+                + "FROM data_set_assignments_by_data_set_buckets " //
+                + "WHERE provider_dataset_id = ? and bucket_id = ?;");
+        getDatasetAssignmentBucketCount.setConsistencyLevel(connectionProvider.getConsistencyLevel());
+
         deleteDatasetAssignmentBuckets = connectionProvider.getSession().prepare("DELETE FROM " //
-                + "data_set_assignments_buckets "
+                + "data_set_assignments_by_data_set_buckets "
                 + "WHERE provider_dataset_id = ? AND bucket_id = ?;");
         deleteDatasetAssignmentBuckets.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
@@ -201,7 +207,7 @@ public class CassandraDataSetDAO {
                 .getSession()
                 .prepare( //
                         "DELETE FROM " //
-                                + "data_set_assignments_by_dataset " //
+                                + "data_set_assignments_by_data_set " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ?;");
         removeAssignmentStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
@@ -212,7 +218,7 @@ public class CassandraDataSetDAO {
                 .prepare( //
                         "SELECT " //
                                 + "cloud_id, schema_id, version_id  " //
-                                + "FROM data_set_assignments_by_dataset " //
+                                + "FROM data_set_assignments_by_data_set " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? "
                                 + "LIMIT ?;");
         listDataSetRepresentationsStatement
@@ -282,7 +288,7 @@ public class CassandraDataSetDAO {
                 .prepare(
                         "SELECT " //
                                 + "schema_id, cloud_id " //
-                                + "FROM data_set_assignments_by_dataset " //
+                                + "FROM data_set_assignments_by_data_set " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? LIMIT 1;");
         hasProvidedRepresentationName
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
@@ -1207,8 +1213,13 @@ public class CassandraDataSetDAO {
     }
 
 
+    public Bucket getCurrentDataSetAssignmentBucket(String providerId, String datasetId) {
+        return getCurrentDataSetAssignmentBucket(createProviderDataSetId(providerId, datasetId));
+    }
+
+
     private Bucket getCurrentDataSetAssignmentBucket(String providerDatasetId) {
-        BoundStatement statement = getDatasetAssignmentBucketCount.bind(providerDatasetId);
+        BoundStatement statement = getDatasetAssignmentBucketsCounts.bind(providerDatasetId);
         ResultSet rs = connectionProvider.getSession().execute(statement);
 
         List<Row> rows = rs.all();
@@ -1268,6 +1279,23 @@ public class CassandraDataSetDAO {
         BoundStatement bs = decreaseDatasetAssignmentBuckets.bind(providerDataSetId, UUID.fromString(bucketId));
         ResultSet rs = connectionProvider.getSession().execute(bs);
         QueryTracer.logConsistencyLevel(bs, rs);
+        Bucket bucket = getDataSetAssignmentBucket(providerDataSetId, bucketId);
+        if (bucket != null && bucket.getRowsCount() == 0) {
+            bs = deleteDatasetAssignmentBuckets.bind(providerDataSetId, UUID.fromString(bucketId));
+            rs = connectionProvider.getSession().execute(bs);
+            QueryTracer.logConsistencyLevel(bs, rs);
+        }
+    }
+
+    private Bucket getDataSetAssignmentBucket(String providerDataSetId, String bucketId) {
+        BoundStatement bs = getDatasetAssignmentBucketCount.bind(providerDataSetId, UUID.fromString(bucketId));
+        ResultSet rs = connectionProvider.getSession().execute(bs);
+        QueryTracer.logConsistencyLevel(bs, rs);
+        Row row = rs.one();
+        if (row != null) {
+            return new Bucket(bucketId, row.getLong("rows_count"));
+        }
+        return null;
     }
 
     /**
