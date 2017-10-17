@@ -26,13 +26,9 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
  */
 public class CassandraLocalIdDAO {
 
-    private String hostList;
-    private String port;
-    private String keyspaceName;
     private CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
-    private PreparedStatement updateStatement;
     private PreparedStatement searchByProviderStatement;
     private PreparedStatement searchByRecordIdStatement;
     private PreparedStatement searchByProviderPaginatedStatement;
@@ -44,9 +40,6 @@ public class CassandraLocalIdDAO {
      */
     public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
-        this.hostList = dbService.getHosts();
-        this.port = dbService.getPort();
-        this.keyspaceName = dbService.getKeyspaceName();
         prepareStatements();
     }
 
@@ -57,9 +50,6 @@ public class CassandraLocalIdDAO {
         deleteStatement = dbService.getSession().prepare(
                 "DELETE FROM Provider_Record_Id WHERE provider_id=? AND record_Id=?");
         deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-        updateStatement = dbService.getSession().prepare(
-                "UPDATE Provider_Record_Id SET cloud_id=? WHERE provider_id=? AND record_Id=?");
-        updateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         searchByProviderStatement = dbService.getSession().prepare(
                 "SELECT * FROM Provider_Record_Id WHERE provider_id=?");
         searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -86,7 +76,7 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
         }
     }
 
@@ -112,7 +102,7 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
         }
         List<CloudId> cIds = new ArrayList<>();
         CloudId cId = new CloudId();
@@ -131,26 +121,8 @@ public class CassandraLocalIdDAO {
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
         }
-    }
-
-    public void update(String... args) throws DatabaseConnectionException {
-        try {
-            dbService.getSession().execute(updateStatement.bind(args[0], args[1], args[2]));
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
-        }
-    }
-
-    public String getHostList() {
-        return hostList;
-    }
-
-    public String getKeyspace() {
-        return keyspaceName;
     }
 
     private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
@@ -168,9 +140,5 @@ public class CassandraLocalIdDAO {
         }
 
         return cloudIds;
-    }
-
-    public String getPort() {
-        return this.port;
     }
 }
