@@ -63,7 +63,7 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
             increaseDatasetAssignmentBucketCount(session, dataset_assignment.getString("provider_dataset_id"), bucket.getBucketId());
             //
 
-            insertRowToAssignmentsByRepresentationsTable(session, bucket.getBucketId(), dataset_assignment);
+            insertRowToAssignmentsByRepresentationsTable(session, dataset_assignment);
             insertRowToAssignmentsByDataSetsTable(session, bucket.getBucketId(), dataset_assignment);
         }
     }
@@ -85,7 +85,7 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
         session.execute(statement);
     }
 
-    private void insertRowToAssignmentsByRepresentationsTable(Session session, String bucketId, Row dataset_assignment) {
+    private void insertRowToAssignmentsByRepresentationsTable(Session session, Row dataset_assignment) {
         BoundStatement boundStatement = insertAssignmentByRepresentationsStatement.bind(
                 dataset_assignment.getString("cloud_id"),
                 dataset_assignment.getString("schema_id"),
