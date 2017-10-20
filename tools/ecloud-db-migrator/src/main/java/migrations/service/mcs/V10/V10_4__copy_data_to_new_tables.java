@@ -11,7 +11,6 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
 
     private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 10000;
 
-    PreparedStatement newBucketStatement;
     PreparedStatement selectAssignmentsStatement;
     PreparedStatement insertAssignmentByRepresentationsStatement;
     PreparedStatement insertAssignmentByDataSetsStatement;
@@ -21,7 +20,6 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
 
     private void initStatements(Session session) {
 
-        newBucketStatement = session.prepare("UPDATE data_set_assignments_by_data_set_buckets SET rows_count = rows_count + 1 WHERE provider_dataset_id = ? AND bucket_id = ?;");
         selectAssignmentsStatement = session.prepare("select provider_dataset_id,cloud_id, schema_id, version_id, creation_date from data_set_assignments");
 
         insertAssignmentByRepresentationsStatement = session.prepare("INSERT INTO "

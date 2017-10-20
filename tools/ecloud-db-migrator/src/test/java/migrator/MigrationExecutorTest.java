@@ -34,7 +34,7 @@ public class MigrationExecutorTest {
         migrator.migrate();
 
         //then
-        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments;").all());
+        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments_by_data_set;").all());
         assertThat(cloudIds.size(), is(2));
     }
 
@@ -48,7 +48,7 @@ public class MigrationExecutorTest {
         migrator.migrate();
 
         //then
-        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments;").all());
+        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments_by_data_set;").all());
         assertThat(cloudIds.size(), is(2));
     }
 
