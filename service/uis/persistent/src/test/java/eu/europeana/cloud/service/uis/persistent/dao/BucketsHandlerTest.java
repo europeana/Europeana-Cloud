@@ -22,7 +22,7 @@ public class BucketsHandlerTest extends CassandraTestBase {
     @Autowired
     private CassandraConnectionProvider dbService;
 
-    private static final String BUCKETS_TABLE_NAME = "sample_buckets_table";
+    private static final String BUCKETS_TABLE_NAME = "provider_record_id_buckets";
 
     @Test
     public void currentBucketShouldBeNull() {
@@ -121,6 +121,28 @@ public class BucketsHandlerTest extends CassandraTestBase {
         Assert.assertTrue(bucket_2.getObjectId().equals(secondBucket.getObjectId()));
         Assert.assertTrue(bucket_2.getRowsCount() == secondBucket.getRowsCount());
         Assert.assertTrue(bucket_2.getBucketId().equals(secondBucket.getBucketId()));
+    }
+
+    @Test
+    public void shouldRemoveBucket(){
+        //for
+        Bucket firstBucket = new Bucket("sampleObjectId_1", new com.eaio.uuid.UUID().toString(), 1);
+        Bucket secondBucket = new Bucket("sampleObjectId_2", new com.eaio.uuid.UUID().toString(), 1);
+        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, firstBucket);
+        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, secondBucket);
+        //when
+        bucketsHandler.removeBucket(BUCKETS_TABLE_NAME, firstBucket);
+        //then
+        ResultSet rs = dbService.getSession().execute("SELECT * FROM " + BUCKETS_TABLE_NAME + " WHERE object_id='" + firstBucket.getObjectId() + "' AND bucket_id=" + java.util.UUID.fromString(firstBucket.getBucketId()));
+        List<Row> rows = rs.all();
+        Assert.assertTrue(rows.size() == 0);
+        //
+        rs = dbService.getSession().execute("SELECT * FROM " + BUCKETS_TABLE_NAME + " WHERE object_id='" + secondBucket.getObjectId() + "' AND bucket_id=" + java.util.UUID.fromString(secondBucket.getBucketId()));
+        rows = rs.all();
+        Assert.assertTrue(rows.size() == 1);
+        Assert.assertTrue(rows.get(0).getString(BucketsHandler.OBJECT_ID_COLUMN_NAME).equals(secondBucket.getObjectId()));
+        Assert.assertTrue(rows.get(0).getUUID(BucketsHandler.BUCKET_ID_COLUMN_NAME).toString().equals(secondBucket.getBucketId()));
+        Assert.assertTrue(rows.get(0).getLong(BucketsHandler.ROWS_COUNT_COLUMN_NAME) == secondBucket.getRowsCount());
     }
 
     private void assertResults(Bucket bucket, int rowsCount) {

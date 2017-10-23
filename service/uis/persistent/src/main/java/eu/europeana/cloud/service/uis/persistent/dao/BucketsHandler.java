@@ -15,10 +15,11 @@ import java.util.List;
  */
 public class BucketsHandler {
 
+    public static final int MAX_BUCKET_SIZE = 10000;
     //
-    private static final String OBJECT_ID_COLUMN_NAME = "object_id";
-    private static final String BUCKET_ID_COLUMN_NAME = "bucket_id";
-    private static final String ROWS_COUNT_COLUMN_NAME = "rows_count";
+    public static final String OBJECT_ID_COLUMN_NAME = "object_id";
+    public static final String BUCKET_ID_COLUMN_NAME = "bucket_id";
+    public static final String ROWS_COUNT_COLUMN_NAME = "rows_count";
     //
     private CassandraConnectionProvider dbService;
 
@@ -27,7 +28,7 @@ public class BucketsHandler {
     }
 
     public Bucket getCurrentBucket(String bucketsTableName, String objectId) {
-        String query = "SELECT bucket_id, rows_count FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
+        String query = "SELECT object_id, bucket_id, rows_count FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
         ResultSet rs = dbService.getSession().execute(query);
 
         List<Row> rows = rs.all();
@@ -76,6 +77,11 @@ public class BucketsHandler {
     public Bucket getNextBucket(String bucketsTableName, String objectId, Bucket bucket) {
         String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id > " + bucket.getBucketId() + " LIMIT 1;";
         return getNextBucket(query);
+    }
+
+    public void removeBucket(String bucketsTableName, Bucket bucket){
+        String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
+        dbService.getSession().execute(query);
     }
 
     private Bucket getNextBucket(String query) {
