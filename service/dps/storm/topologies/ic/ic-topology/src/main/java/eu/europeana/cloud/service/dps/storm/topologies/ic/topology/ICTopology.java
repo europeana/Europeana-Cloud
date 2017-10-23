@@ -1,22 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.io.*;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
+import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -24,6 +17,11 @@ import org.apache.storm.kafka.*;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -37,8 +35,8 @@ public class ICTopology {
     private static Properties topologyProperties;
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "ic-topology-config.properties";
-    private static final String DATASET_STREAM = DpsTask.DATASET_URLS;
-    private static final String FILE_STREAM = DpsTask.FILE_URLS;
+    private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
+    private final String FILE_STREAM = InputDataType.FILE_URLS.name();
 
     public ICTopology(String defaultPropertyFile, String providedPropertyFile) {
         topologyProperties = new Properties();
@@ -48,8 +46,8 @@ public class ICTopology {
 
     public final StormTopology buildTopology(String icTopic, String ecloudMcsAddress) {
         Map<String, String> routingRules = new HashMap<>();
-        routingRules.put(PluginParameterKeys.FILE_URLS, DATASET_STREAM);
-        routingRules.put(PluginParameterKeys.DATASET_URLS, FILE_STREAM);
+        routingRules.put(DATASET_STREAM, DATASET_STREAM);
+        routingRules.put(FILE_STREAM, FILE_STREAM);
         ReadFileBolt retrieveFileBolt = new ReadFileBolt(ecloudMcsAddress);
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);

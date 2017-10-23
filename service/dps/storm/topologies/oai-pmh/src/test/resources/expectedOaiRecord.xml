@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+           xmlns:dc="http://purl.org/dc/elements/1.1/"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+    <dc:title>Fotografowie z zakładu przy ul. Kocha, Białystok,ok. 1942 r.</dc:title>
+    <dc:creator>Dawdo Danuta</dc:creator>
+    <dc:publisher>Mediateka Centrum im. Ludwika Zamenhofa w Białymstoku</dc:publisher>
+    <dc:date>1942</dc:date>
+    <dc:type>dokument obrazowy</dc:type>
+    <dc:format>video/mp4</dc:format>
+    <dc:identifier>http://www.mediateka.centrumzamenhofa.pl/photos/?show_image=19</dc:identifier>
+    <dc:relation>
+        http://www.mediateka.centrumzamenhofa.pl/files/PL_2004_1/PL_2004_1_1/PL_2004_1_1_2/large/PL_2004_1_1_2_002-large.jpg
+    </dc:relation>
+    <dc:rights>Creative Commons Uznanie Autorstwa - Użycie Niekomercyjne - Na Tych Samych Warunkach
+        (CC-BY-NC-SA)
+    </dc:rights>
+</oai_dc:dc>

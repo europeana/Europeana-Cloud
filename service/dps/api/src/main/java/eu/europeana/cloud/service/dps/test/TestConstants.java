@@ -8,6 +8,7 @@ public class TestConstants {
     public static final String RESULT = "result";
     public static final String SOURCE = "source";
     public static final String CLOUD_ID = "CloudId";
+    public static final String LOCAL_ID = "LOCAL_ID";
     public static final String CLOUD_ID2 = "CloudId2";
     public static final String REPRESENTATION_NAME = "RepresentationName";
     public static final String VERSION = "Version";
@@ -44,6 +45,7 @@ public class TestConstants {
             + DATASET_NAME;
     public static final String SOURCE_DATASET_URL2 = SOURCE_DATASET_URL + 2;
     public static final String MCS_URL = "http://localhost:8080/mcs";
+    public static final String UIS_URL = "http://localhost:8080/uis";
 
     public static final int NUM_WORKERS = 1;
 

@@ -1,11 +1,11 @@
 package eu.europeana.cloud.mcs.driver;
 
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.JerseyClientBuilder;

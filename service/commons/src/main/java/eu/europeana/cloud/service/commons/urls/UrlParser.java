@@ -227,10 +227,6 @@ public class UrlParser {
         return true;
     }
 
-    //////////////////////
-    //
-    //////////////////////
-
     /**
      * Returns one part of given URL. If requested part does not exist, null will be returned
      *

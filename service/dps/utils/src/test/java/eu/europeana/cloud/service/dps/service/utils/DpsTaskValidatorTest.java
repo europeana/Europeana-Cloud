@@ -2,15 +2,24 @@ package eu.europeana.cloud.service.dps.service.utils;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
+
+@RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {
 
     private static final long TASK_ID = 121212;
@@ -31,7 +40,7 @@ public class DpsTaskValidatorTest {
     private static final String EXISTING_PARAMETER_VALUE = "param_1_value";
     private static final String EMPTY_PARAMETER_NAME = "empty_param";
 
-    private static final String EXISTING_DATA_ENTRY_NAME = "dataEntryName";
+    private static final InputDataType EXISTING_DATA_ENTRY_NAME = DATASET_URLS;
     private static final List<String> EXISTING_DATA_ENTRY_VALUE = Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
     private static final Revision correctRevision = new Revision("sampleRevisionName", "sampleRevisionProvider");
@@ -46,7 +55,7 @@ public class DpsTaskValidatorTest {
         dpsTask.setOutputRevision(correctRevision);
         //
         icTopologyTask = new DpsTask();
-        icTopologyTask.addDataEntry("FILE_URLS", Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        icTopologyTask.addDataEntry(FILE_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
         icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
         //
@@ -169,10 +178,11 @@ public class DpsTaskValidatorTest {
     public void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
         new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask);
     }
+
+
     ////
     //inputData
     ////
-
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsNoInputDataWithSelectedName() throws DpsTaskValidationException {
         new DpsTaskValidator().withDataEntry("notExistingDataEntry").validate(dpsTask);
@@ -180,36 +190,67 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name()).validate(dpsTask);
     }
 
     @Test
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt")).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Arrays.asList
+                ("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt")).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndWrongValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME, Arrays.asList("someWrongValue")).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Arrays.asList("someWrongValue"))
+                .validate(dpsTask);
     }
 
     @Test
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectContentType() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME, InputDataValueType.LINK_TO_FILE).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), LINK_TO_FILE)
+                .validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndIncorrectContentType() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME, InputDataValueType.LINK_TO_DATASET).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(),
+                LINK_TO_DATASET).validate(dpsTask);
     }
 
     @Test
     public void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
         new DpsTaskValidator()
-                .withDataEntry("FILE_URLS", InputDataValueType.LINK_TO_FILE)
+                .withDataEntry("FILE_URLS", LINK_TO_FILE)
                 .withParameter("OUTPUT_MIME_TYPE")
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    @Parameters({"domainbroken/paht",
+            "http://domainlondon/paht/some.xml","domainlon.com/paht/some.xml"})
+    public void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) throws
+            DpsTaskValidationException {
+        commonOaiPmhValidation(url);
+    }
+
+
+    @Test
+    @Parameters({"http://domain.com/paht",
+            "http://domain.com/paht/some.xml", "https://domain.com/paht/some.xml" })
+    public void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
+        commonOaiPmhValidation(url);
+    }
+
+    private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
+        final DpsTask oaiPmhTask = new DpsTask("OaiPmhTopology");
+        final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
+        inputData.put(REPOSITORY_URLS, Collections.singletonList(url));
+        oaiPmhTask.setInputData(inputData);
+
+        new DpsTaskValidator()
+                .withDataEntry(REPOSITORY_URLS.name(), LINK_TO_EXTERNAL_URL)
+                .validate(oaiPmhTask);
     }
 
     ////

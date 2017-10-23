@@ -1,9 +1,9 @@
 package eu.europeana.cloud.mcs.driver;
 
+import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.mcs.driver.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;

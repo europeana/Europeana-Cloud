@@ -1,3 +1,11 @@
+management:
+  image: portainer/portainer
+  ports:
+      - "80:9000"
+  volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  command: --no-auth -H unix:///var/run/docker.sock
+
 tomcat:
   build: tomcat
   ports:
@@ -37,7 +45,7 @@ kafka:
   links:
    - zookeeper:zookeeper
   environment:
-    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1"
+    KAFKA_CREATE_TOPICS: "logging:1:1,indexing:1:1,ic_topology:1:1,xslt_topology:1:1,oai_topology:1:1"
     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     HOSTNAME_COMMAND: "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $$1}'"
   ports:
