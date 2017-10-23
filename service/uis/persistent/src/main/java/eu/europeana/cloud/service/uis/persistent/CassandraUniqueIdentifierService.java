@@ -81,7 +81,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         String recordId = recordInfo.length > 1 ? recordInfo[1] : IdGenerator.timeEncode(providerId);
         LOGGER.info("createCloudId() creating cloudId providerId='{}', recordId='{}'", providerId, recordId);
-        if (!localIdDao.searchActive(providerId, recordId).isEmpty()) {
+        if (!localIdDao.searchById(providerId, recordId).isEmpty()) {
             LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);
             throw new RecordExistsException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
@@ -105,7 +105,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
             throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         LOGGER.info("getCloudId() providerId='{}', recordId='{}'", providerId, recordId);
-        List<CloudId> cloudIds = localIdDao.searchActive(providerId, recordId);
+        List<CloudId> cloudIds = localIdDao.searchById(providerId, recordId);
         if (cloudIds.isEmpty()) {
             throw new RecordDoesNotExistException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
@@ -122,7 +122,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException {
         LOGGER.info("getLocalIdsByCloudId() cloudId='{}'", cloudId);
-        List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
+        List<CloudId> cloudIds = cloudIdDao.searchById(cloudId);
         if (cloudIds.isEmpty()) {
             LOGGER.warn("CloudIdDoesNotExistException for cloudId={}", cloudId);
             throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
@@ -131,7 +131,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         List<CloudId> localIds = new ArrayList<>();
         for (CloudId cId : cloudIds) {
-            if (localIdDao.searchActive(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId()).size() > 0) {
+            if (localIdDao.searchById(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId()).size() > 0) {
                 localIds.add(cId);
             }
         }
@@ -154,9 +154,9 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         }
         List<CloudId> cloudIds = null;
         if (start == null) {
-            cloudIds = localIdDao.searchActive(providerId);
+            cloudIds = localIdDao.searchById(providerId);
         } else {
-            cloudIds = localIdDao.searchActiveWithPagination(start, end, providerId);
+            cloudIds = localIdDao.searchByIdWithPagination(start, end, providerId);
         }
         List<CloudId> localIds = new ArrayList<>();
         for (CloudId cloudId : cloudIds) {
@@ -179,9 +179,9 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
         if (startRecordId == null) {
-            return localIdDao.searchActive(providerId);
+            return localIdDao.searchById(providerId);
         } else {
-            return localIdDao.searchActiveWithPagination(startRecordId, limit, providerId);
+            return localIdDao.searchByIdWithPagination(startRecordId, limit, providerId);
         }
     }
 
@@ -200,7 +200,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
 
-        List<CloudId> cloudIds = cloudIdDao.searchActive(cloudId);
+        List<CloudId> cloudIds = cloudIdDao.searchById(cloudId);
         if (cloudIds.isEmpty()) {
             LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}', providerId='{}', recordId='{}'", cloudId,
                 providerId, recordId);
@@ -208,7 +208,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
         }
-        List<CloudId> localIds = localIdDao.searchActive(providerId, recordId);
+        List<CloudId> localIds = localIdDao.searchById(providerId, recordId);
         if (!localIds.isEmpty()) {
             LOGGER.warn("IdHasBeenMappedException for cloudId='{}', providerId='{}', recordId='{}'", cloudId,
                 providerId, recordId);
@@ -256,7 +256,7 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
             throws DatabaseConnectionException, CloudIdDoesNotExistException {
 
         LOGGER.info("deleteCloudId() deleting cloudId='{}' ...", cloudId);
-        if (cloudIdDao.searchActive(cloudId).isEmpty()) {
+        if (cloudIdDao.searchById(cloudId).isEmpty()) {
             LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}'", cloudId);
             throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),

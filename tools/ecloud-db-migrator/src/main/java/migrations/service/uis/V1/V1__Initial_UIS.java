@@ -24,24 +24,16 @@ public class V1__Initial_UIS implements JavaMigration {
                         "    cloud_id text,\n" +
                         "    provider_id text,\n" +
                         "    record_id text,\n" +
-                        "    deleted boolean,\n" +
                         "    PRIMARY KEY (cloud_id, provider_id, record_id)\n" +
                         ") WITH CLUSTERING ORDER BY (provider_id ASC, record_id ASC);\n");
-
-        session.execute(
-                "CREATE INDEX deleted_records ON cloud_id (deleted);\n");
 
         session.execute(
                 "CREATE TABLE provider_record_id (\n" +
                         "    provider_id text,\n" +
                         "    record_id text,\n" +
                         "    cloud_id text,\n" +
-                        "    deleted boolean,\n" +
                         "    PRIMARY KEY (provider_id, record_id)\n" +
                         ") WITH CLUSTERING ORDER BY (record_id ASC);\n");
-
-        session.execute(
-                "CREATE INDEX record_deleted ON provider_record_id (deleted);\n");
 
 
     }

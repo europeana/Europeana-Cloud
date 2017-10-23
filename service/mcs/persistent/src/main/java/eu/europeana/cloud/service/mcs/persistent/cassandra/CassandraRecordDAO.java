@@ -70,8 +70,6 @@ public class CassandraRecordDAO {
 
     private PreparedStatement getAllRepresentationsForRecordStatement;
 
-    private PreparedStatement singleRecordIdForProviderStatement;
-
     private PreparedStatement insertRepresentationRevisionStatement;
 
     private PreparedStatement insertRepresentationRevisionFileStatement;
@@ -153,11 +151,6 @@ public class CassandraRecordDAO {
         deleteRepresentationVersionStatement = s
                 .prepare("DELETE FROM representation_versions WHERE cloud_id = ? AND schema_id = ? AND version_id = ? ;");
         deleteRepresentationVersionStatement
-                .setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
-        singleRecordIdForProviderStatement = s
-                .prepare("SELECT cloud_id FROM representation_versions WHERE provider_id = ? LIMIT 1;");
-        singleRecordIdForProviderStatement
                 .setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getRepresentationRevisionStatement = s
@@ -481,24 +474,6 @@ public class CassandraRecordDAO {
                 cloudId, schema, UUID.fromString(version));
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
-    }
-
-    /**
-     * Checks if given provider has any representations.
-     *
-     * @param providerId identifier of the provider
-     * @return true if provider has representations, false otherwise
-     * @throws QueryExecutionException  if error occured while executing a query.
-     * @throws NoHostAvailableException if no Cassandra host are available.
-     */
-    public boolean providerHasRepresentations(String providerId)
-            throws NoHostAvailableException, QueryExecutionException {
-        BoundStatement boundStatement = singleRecordIdForProviderStatement
-                .bind(providerId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        Row row = rs.one();
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        return row != null;
     }
 
     private Representation mapToRepresentation(Row row) {
