@@ -66,7 +66,7 @@
     <bean id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>
 
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.uis.persistent.dao.BucketsHandler">
-        <constructor-arg name="dbService" ref="dbService" />
+        <constructor-arg name="session" value="#{dbService.session}"/>
     </bean>
     
 </beans>

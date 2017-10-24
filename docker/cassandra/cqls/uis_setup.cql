@@ -21,7 +21,7 @@ CREATE TABLE Provider_Record_Id(
         bucket_id timeuuid,
         record_id varchar,
         cloud_id varchar,
-        PRIMARY KEY ((provider_id,bukect_id),record_id)
+        PRIMARY KEY ((provider_id,bucket_id),record_id)
 );
 
 CREATE TABLE provider_record_id_buckets (

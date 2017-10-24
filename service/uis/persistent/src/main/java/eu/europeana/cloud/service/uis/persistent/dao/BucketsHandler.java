@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.uis.persistent.dao;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import com.datastax.driver.core.Session;
 import eu.europeana.cloud.common.utils.Bucket;
 
 import java.util.ArrayList;
@@ -21,15 +21,15 @@ public class BucketsHandler {
     public static final String BUCKET_ID_COLUMN_NAME = "bucket_id";
     public static final String ROWS_COUNT_COLUMN_NAME = "rows_count";
     //
-    private CassandraConnectionProvider dbService;
+    private Session session;
 
-    public BucketsHandler(CassandraConnectionProvider dbService) {
-        this.dbService = dbService;
+    public BucketsHandler(Session session){
+        this.session = session;
     }
 
     public Bucket getCurrentBucket(String bucketsTableName, String objectId) {
         String query = "SELECT object_id, bucket_id, rows_count FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
-        ResultSet rs = dbService.getSession().execute(query);
+        ResultSet rs = session.execute(query);
 
         List<Row> rows = rs.all();
         Row row = rows.isEmpty() ? null : rows.get(rows.size() - 1);
@@ -44,17 +44,17 @@ public class BucketsHandler {
 
     public void increaseBucketCount(String bucketsTableName, Bucket bucket) {
         String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count + 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
-        dbService.getSession().execute(query);
+        session.execute(query);
     }
 
     public void decreaseBucketCount(String bucketsTableName, Bucket bucket) {
         String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count - 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
-        dbService.getSession().execute(query);
+        session.execute(query);
     }
 
     public List<Bucket> getAllBuckets(String bucketsTableName, String objectId) {
         String query = "SELECT * FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
-        ResultSet rs = dbService.getSession().execute(query);
+        ResultSet rs = session.execute(query);
 
         List<Bucket> resultBuckets = new ArrayList<>();
 
@@ -81,11 +81,11 @@ public class BucketsHandler {
 
     public void removeBucket(String bucketsTableName, Bucket bucket){
         String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
-        dbService.getSession().execute(query);
+        session.execute(query);
     }
 
     private Bucket getNextBucket(String query) {
-        ResultSet rs = dbService.getSession().execute(query);
+        ResultSet rs = session.execute(query);
         Row row = rs.one();
         Bucket resultBucket = null;
         if (row != null) {
