@@ -36,6 +36,6 @@
         <constructor-arg name="dbService" ref="dbService" />
     </bean>
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.uis.persistent.dao.BucketsHandler">
-        <constructor-arg name="dbService" ref="dbService" />
+        <constructor-arg name="session" value="#{dbService.session}"/>
     </bean>
 </beans>
