@@ -25,7 +25,7 @@ CREATE TABLE Provider_Record_Id(
 );
 
 CREATE TABLE provider_record_id_buckets (
-    object_id varchar,
+    object_id varchar, /*provider id*/
     bucket_id timeuuid,
     rows_count counter,
    PRIMARY KEY (object_id, bucket_id)

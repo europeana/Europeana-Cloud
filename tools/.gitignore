@@ -8,5 +8,6 @@ performanceTest/p*
 *.log
 *.parms
 records-downloader-tool/target
+ecloud-db-migrator/target
 
 
