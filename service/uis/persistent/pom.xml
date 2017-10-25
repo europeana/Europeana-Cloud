@@ -24,6 +24,11 @@
             <artifactId>ecloud-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
          <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-cassandra-connector</artifactId>

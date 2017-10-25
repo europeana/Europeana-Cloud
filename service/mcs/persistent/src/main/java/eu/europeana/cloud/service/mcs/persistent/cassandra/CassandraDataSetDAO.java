@@ -544,7 +544,7 @@ public class CassandraDataSetDAO {
             bucket = getCurrentDataSetAssignmentBucket(providerDataSetId);
             // when there is no bucket or bucket rows count is max we should add another bucket
             if (bucket == null || bucket.getRowsCount() == MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {
-                bucket = new Bucket(createBucket(), 0);
+                bucket = new Bucket(providerDataSetId, createBucket(), 0);
             }
             increaseDatasetAssignmentBucketCount(providerDataSetId, bucket.getBucketId());
         }
@@ -1220,7 +1220,7 @@ public class CassandraDataSetDAO {
         List<Row> rows = rs.all();
         Row row = rows.isEmpty() ? null : rows.get(rows.size() - 1);
         if (row != null) {
-            return new Bucket(row.getUUID("bucket_id").toString(), row.getLong("rows_count"));
+            return new Bucket(providerDatasetId, row.getUUID("bucket_id").toString(), row.getLong("rows_count"));
         }
         return null;
     }
@@ -1288,7 +1288,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(bs, rs);
         Row row = rs.one();
         if (row != null) {
-            return new Bucket(bucketId, row.getLong("rows_count"));
+            return new Bucket(providerDataSetId, bucketId, row.getLong("rows_count"));
         }
         return null;
     }
