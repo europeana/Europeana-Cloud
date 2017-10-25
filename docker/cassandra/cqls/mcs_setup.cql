@@ -19,7 +19,7 @@ PRIMARY KEY ((provider_dataset_id, bucket_id), schema_id, cloud_id, version_id)
 );
 
 CREATE TABLE data_set_assignments_by_data_set_buckets (
-  provider_dataset_id varchar,
+  object_id varchar,
   bucket_id timeuuid,
   rows_count counter,
   PRIMARY KEY (provider_dataset_id, bucket_id)

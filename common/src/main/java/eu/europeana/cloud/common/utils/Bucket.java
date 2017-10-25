@@ -8,7 +8,7 @@ public class Bucket {
 
     private long rowsCount;
 
-    public Bucket(String bucketId, long rowsCount){
+    public Bucket(String bucketId, long rowsCount) {
         this.bucketId = bucketId;
         this.rowsCount = rowsCount;
     }
