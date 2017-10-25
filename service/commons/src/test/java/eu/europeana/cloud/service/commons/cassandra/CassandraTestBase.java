@@ -13,7 +13,7 @@ public class CassandraTestBase {
     /**
      * CassandraTestBase KEYSPACE
      */
-    private static final String KEYSPACE = "aas_test";
+    private static final String KEYSPACE = "test_keyspace";
 
     /**
      * Creates a new instance of this class.

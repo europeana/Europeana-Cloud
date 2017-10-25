@@ -35,7 +35,7 @@
     <bean id="localIdDao" class="eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO">
         <constructor-arg name="dbService" ref="dbService" />
     </bean>
-    <bean id="bucketsHandler" class="eu.europeana.cloud.service.uis.persistent.dao.BucketsHandler">
+    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
         <constructor-arg name="session" value="#{dbService.session}"/>
     </bean>
 </beans>

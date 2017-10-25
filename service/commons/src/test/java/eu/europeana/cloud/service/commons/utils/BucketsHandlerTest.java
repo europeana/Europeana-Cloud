@@ -1,9 +1,9 @@
-package eu.europeana.cloud.service.uis.persistent.dao;
+package eu.europeana.cloud.service.commons.utils;
 
 import com.datastax.driver.core.*;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.utils.Bucket;
-import eu.europeana.cloud.service.uis.persistent.CassandraTestBase;
+import eu.europeana.cloud.service.commons.cassandra.CassandraTestBase;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/default-context.xml"})
+@ContextConfiguration(locations = {"classpath:/context.xml"})
 public class BucketsHandlerTest extends CassandraTestBase {
 
     @Autowired
@@ -104,7 +104,7 @@ public class BucketsHandlerTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldReturnFirstBucket(){
+    public void shouldReturnFirstBucket() {
         //for
         Bucket firstBucket = new Bucket("sampleObjectId_1", new com.eaio.uuid.UUID().toString(), 1);
         Bucket secondBucket = new Bucket("sampleObjectId_2", new com.eaio.uuid.UUID().toString(), 1);
@@ -124,7 +124,7 @@ public class BucketsHandlerTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldRemoveBucket(){
+    public void shouldRemoveBucket() {
         //for
         Bucket firstBucket = new Bucket("sampleObjectId_1", new com.eaio.uuid.UUID().toString(), 1);
         Bucket secondBucket = new Bucket("sampleObjectId_2", new com.eaio.uuid.UUID().toString(), 1);
