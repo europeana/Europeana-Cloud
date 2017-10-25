@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.uis.persistent.dao;
+package eu.europeana.cloud.service.commons.utils;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -23,7 +23,7 @@ public class BucketsHandler {
     //
     private Session session;
 
-    public BucketsHandler(Session session){
+    public BucketsHandler(Session session) {
         this.session = session;
     }
 
@@ -79,7 +79,7 @@ public class BucketsHandler {
         return getNextBucket(query);
     }
 
-    public void removeBucket(String bucketsTableName, Bucket bucket){
+    public void removeBucket(String bucketsTableName, Bucket bucket) {
         String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
         session.execute(query);
     }
