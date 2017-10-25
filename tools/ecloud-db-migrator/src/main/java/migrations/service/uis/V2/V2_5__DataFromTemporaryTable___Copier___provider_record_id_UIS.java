@@ -3,7 +3,7 @@ package migrations.service.uis.V2;
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.*;
-import eu.europeana.cloud.service.uis.persistent.dao.BucketsHandler;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
 import java.util.UUID;
 
