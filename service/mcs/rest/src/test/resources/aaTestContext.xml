@@ -60,7 +60,11 @@
     <bean id="representationVersionResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource"/>
     <bean id="representationAuthorizationResource" class="eu.europeana.cloud.service.mcs.rest.RepresentationAuthorizationResource"/>
     <bean id="permissionsGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
-    
+
+    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
+        <constructor-arg name="session" value="#{dbService.session}"/>
+    </bean>
+
     <!--spy on everything-->
     <mockito:spy beanName="dbService"/>
     <mockito:spy beanName="dataProviderDAO"/>

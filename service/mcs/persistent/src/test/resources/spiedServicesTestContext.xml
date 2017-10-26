@@ -38,10 +38,6 @@
     </bean>
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
 
-    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
-        <constructor-arg name="session" value="#{dbService.session}"/>
-    </bean>
-
     <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
     <bean id="SimpleSwiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
         <constructor-arg name="provider" type="java.lang.String" value="transient"/>
@@ -51,6 +47,11 @@
         <constructor-arg name="password" type="java.lang.String" value="test_pwd"/>
     </bean>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
+
+    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
+        <constructor-arg name="session" value="#{dbService.session}"/>
+    </bean>
+
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
 
     
