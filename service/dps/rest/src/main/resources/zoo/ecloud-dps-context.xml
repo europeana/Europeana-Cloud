@@ -37,19 +37,19 @@
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/cos/zookeeper/zookeeperPath"/>
         </constructor-arg>
 	</bean>
-	
+
     <bean id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService">
         <constructor-arg name="kafkaBroker" value="${dps.kafka.broker}" />
         <constructor-arg name="zookeeperAddress" value="${dps.zookeeper.address}" />
-        
+
         <!-- TODO: those should be removed completely -->
         <constructor-arg name="genericTaskNotificationTopic" value="storm_metrics_topic" />
         <constructor-arg name="taskProgressNotificationTopic" value="storm_metrics_topic" />
         <!--  -->
-        
+
         <constructor-arg name="kafkaGroupId" value="${dps.kafka.groupId}" />
     </bean>
-    
+
 	<!-- Loads properties saved in Zookeeper  -->
 	<bean id="configurationLoader" class="eu.europeana.cloud.service.coordination.configuration.ConfigurationLoader">
   		<property name="zookeeperService" ref="zookeeperService"/>

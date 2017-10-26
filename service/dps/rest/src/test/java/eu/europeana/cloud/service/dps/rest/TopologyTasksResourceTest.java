@@ -100,7 +100,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithDatsetEntry() throws MCSException, TaskSubmissionException {
+    public void shouldProperlySendTaskWithDataSetEntry() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -119,7 +119,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException {
+    public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException, InterruptedException {
         //given
         DpsTask task = new DpsTask("oaiPmhHarvestingTask");
         task.addDataEntry(REPOSITORY_URLS, Arrays.asList
@@ -134,7 +134,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
         //then
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        verify(kafkaSubmitService).submitTask(any(DpsTask.class),eq(topologyName));
+        Thread.sleep(10000);
+        verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
         verifyNoMoreInteractions(kafkaSubmitService);
     }
 
@@ -178,7 +179,6 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
 
-
     @Test
     public void shouldThrowDpsTaskValidationExceptionOnSendTask() throws MCSException, TaskSubmissionException {
         //given
@@ -196,7 +196,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_1() throws MCSException, TaskSubmissionException{
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_1() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -216,7 +216,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_2() throws MCSException, TaskSubmissionException{
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_2() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
@@ -236,7 +236,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_3() throws MCSException, TaskSubmissionException{
+    public void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision_3() throws MCSException, TaskSubmissionException {
         //given
         DpsTask task = new DpsTask("icTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
