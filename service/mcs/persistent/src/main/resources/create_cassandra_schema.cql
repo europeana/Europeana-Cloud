@@ -32,7 +32,7 @@ CREATE TABLE data_set_assignments_by_data_set_buckets (
   object_id varchar,
   bucket_id timeuuid,
   rows_count counter,
-  PRIMARY KEY (provider_dataset_id, bucket_id)
+  PRIMARY KEY (object_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
 CREATE TABLE data_set_assignments_by_representations (
