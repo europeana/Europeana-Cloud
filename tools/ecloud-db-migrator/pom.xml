@@ -39,6 +39,11 @@
             <version>0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>0.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>

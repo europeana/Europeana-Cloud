@@ -1,7 +1,7 @@
 package migrator;
 
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
+import migrator.validators.V10_validator;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -34,6 +34,7 @@ public class MigrationExecutorTest {
         migrator.migrate();
 
         //then
+        validateMigration();
         List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments_by_data_set;").all());
         assertThat(cloudIds.size(), is(2));
     }
@@ -60,5 +61,7 @@ public class MigrationExecutorTest {
         return cloudIds;
     }
 
-
+    private void validateMigration(){
+        new V10_validator(session).validate();
+    }
 }
