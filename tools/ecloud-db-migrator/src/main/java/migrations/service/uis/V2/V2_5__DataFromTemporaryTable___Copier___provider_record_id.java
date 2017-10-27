@@ -3,6 +3,7 @@ package migrations.service.uis.V2;
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.*;
+import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
 import java.util.UUID;
@@ -15,8 +16,6 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
     private static final String SOURCE_TABLE = "provider_record_id_copy";
     private static final String TARGET_TABLE = "provider_record_id";
     private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
-
-    private static final int MAX_PROVIDER_RECORD_ID_BUCKET_COUNT = 10000;
 
     PreparedStatement selectFromTemporaryStatement;
     PreparedStatement insertToProviderRecordIdStatement;
@@ -47,7 +46,7 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
         ResultSet rs = session.execute(boundStatement);
         for (Row providerRecordIdRow : rs) {
             Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerRecordIdRow.getString("provider_id"));
-            if (bucket == null || bucket.getRowsCount() >= MAX_PROVIDER_RECORD_ID_BUCKET_COUNT) {
+            if (bucket == null || bucket.getRowsCount() >= BucketSize.PROVIDER_RECORD_ID_TABLE) {
                 bucket = new Bucket(providerRecordIdRow.getString("provider_id"), new com.eaio.uuid.UUID().toString(), 0);
             }
             bucketsHandler.increaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
@@ -65,6 +64,4 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
         );
         session.execute(boundStatement);
     }
-
 }
-
