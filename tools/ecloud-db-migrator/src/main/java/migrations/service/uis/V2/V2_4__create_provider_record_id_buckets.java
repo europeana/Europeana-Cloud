@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 /**
  * @author Tarek.
  */
-public class V2_4__create_provider_record_id_buckets_UIS implements JavaMigration {
+public class V2_4__create_provider_record_id_buckets implements JavaMigration {
     @Override
     public void migrate(Session session) {
         session.execute(

@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 /**
  * @author Tarek.
  */
-public class V2_3__changeSchemaTable___provider_record_id_UIS implements JavaMigration {
+public class V2_3__changeSchemaTable___provider_record_id implements JavaMigration {
     @Override
     public void migrate(Session session) {
         session.execute(

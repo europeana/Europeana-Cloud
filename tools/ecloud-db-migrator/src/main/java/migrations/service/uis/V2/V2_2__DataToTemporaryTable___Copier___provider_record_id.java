@@ -9,7 +9,7 @@ import migrations.common.TableCopier;
 /**
  * @author Tarek.
  */
-public class V2_2__DataToTemporaryTable___Copier___provider_record_id_UIS extends TableCopier implements JavaMigration {
+public class V2_2__DataToTemporaryTable___Copier___provider_record_id extends TableCopier implements JavaMigration {
 
     private static final String sourceTable = "provider_record_id";
     private static final String targetTable = "provider_record_id_copy";

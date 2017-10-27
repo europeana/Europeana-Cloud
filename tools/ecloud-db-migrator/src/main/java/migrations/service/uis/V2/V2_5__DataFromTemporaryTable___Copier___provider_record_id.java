@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * @author Tarek.
  */
-public class V2_5__DataFromTemporaryTable___Copier___provider_record_id_UIS implements JavaMigration {
+public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implements JavaMigration {
 
     private static final String SOURCE_TABLE = "provider_record_id_copy";
     private static final String TARGET_TABLE = "provider_record_id";

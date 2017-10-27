@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 /**
  * @author krystian.
  */
-public class V1_1__Add_UIS implements JavaMigration {
+public class V1_1__Add implements JavaMigration {
     @Override
     public void migrate(Session session) {
         session.execute("INSERT INTO "

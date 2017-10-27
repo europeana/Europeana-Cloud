@@ -41,11 +41,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-common</artifactId>
-            <version>0.7-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

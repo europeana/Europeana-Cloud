@@ -2,9 +2,7 @@ package migrator;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import org.junit.After;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -66,10 +64,16 @@ public class MigrationExecutorTest {
         List<Row> rows = session.execute("SELECT * FROM provider_record_id;").all();
         assertEquals(rows.size(), 1);
         Row row = rows.get(0);
+        assertTheMigratedTableValues(row);
+        deleteMigrationEntries(session);
+    }
+
+    private void assertTheMigratedTableValues(Row row) {
         assertNotNull(row.getString("provider_id"));
         assertEquals(row.getString("provider_id"), "provider_id");
         assertNotNull(row.getUUID("bucket_id").toString());
-        deleteMigrationEntries(session);
+        assertEquals(row.getString("record_id"), "record_id");
+        assertEquals(row.getString("cloud_id"), "cloud_id");
     }
 
     private void deleteMigrationEntries(Session session) {
