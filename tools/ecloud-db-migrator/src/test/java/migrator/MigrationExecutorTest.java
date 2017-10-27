@@ -2,6 +2,8 @@ package migrator;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -19,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author krystian.
  */
 public class MigrationExecutorTest {
-    private static final String contatactPoint = "localhost";
+    private static final String contactPoint = "localhost";
     private static final String cassandraUsername = "";
     private static final String[] scriptsLocations = new String[]{"migrations/service/mcs",
             "testMigrations/mcs"};
@@ -30,10 +32,18 @@ public class MigrationExecutorTest {
     public static final EmbeddedCassandra instance = new EmbeddedCassandra();
 
 
+    @Before
+    public void deleteMigrationEntries() {
+        session.execute("DROP TABLE IF EXISTS cassandra_migration_version");
+        session.execute("DROP TABLE IF EXISTS cassandra_migration_version_counts");
+
+    }
+
+
     @Test
     public void shouldSuccessfullyMigrateData() {
         //given
-        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contatactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
+        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
 
         //when
         migrator.migrate();
@@ -58,14 +68,13 @@ public class MigrationExecutorTest {
         //given
         final String[] scriptsLocations1 = new String[]{"migrations/service/uis",
                 "testMigrations/uis"};
-        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contatactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations1);
+        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations1);
         //when
         migrator.migrate();
         List<Row> rows = session.execute("SELECT * FROM provider_record_id;").all();
         assertEquals(rows.size(), 1);
         Row row = rows.get(0);
         assertTheMigratedTableValues(row);
-        deleteMigrationEntries(session);
     }
 
     private void assertTheMigratedTableValues(Row row) {
@@ -76,10 +85,6 @@ public class MigrationExecutorTest {
         assertEquals(row.getString("cloud_id"), "cloud_id");
     }
 
-    private void deleteMigrationEntries(Session session) {
-        session.execute("DROP TABLE IF EXISTS cassandra_migration_version");
-        session.execute("DROP TABLE IF EXISTS cassandra_migration_version_counts");
 
-    }
 }
 

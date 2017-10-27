@@ -4,7 +4,7 @@ import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
 
 /**
- * @author krystian.
+ * @author Tarek.
  */
 public class V2_6__dropTemporaryTable___provider_record_id implements JavaMigration {
     @Override

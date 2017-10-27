@@ -20,7 +20,6 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
 
     PreparedStatement selectFromTemporaryStatement;
     PreparedStatement insertToProviderRecordIdStatement;
-    PreparedStatement getProviderRecordBucketCountStatement;
 
 
     private void initStatements(Session session) {
