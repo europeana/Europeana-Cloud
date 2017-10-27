@@ -14,6 +14,7 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.utils.Bucket;
+import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
@@ -73,20 +74,15 @@ public class CassandraLocalIdDAO {
             ResultSet rs = null;
             List<CloudId> result = new ArrayList<>();
 
-            if (args.length == 1) {
-                Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
-                while (bucket != null) {
+            Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
+            while (bucket != null) {
+                if (args.length == 1) {
                     rs = dbService.getSession().execute(searchByProviderStatement.bind(args[0], UUID.fromString(bucket.getBucketId())));
-                    result.addAll(createCloudIdsFromRs(rs));
-                    bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0], bucket);
-                }
-            } else if (args.length >= 2) {
-                Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
-                while (bucket != null) {
+                } else if (args.length >= 2) {
                     rs = dbService.getSession().execute(searchByRecordIdStatement.bind(args[0], UUID.fromString(bucket.getBucketId()), args[1]));
-                    result.addAll(createCloudIdsFromRs(rs));
-                    bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0], bucket);
                 }
+                result.addAll(createCloudIdsFromRs(rs));
+                bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0], bucket);
             }
             return result;
         } catch (NoHostAvailableException e) {
@@ -123,7 +119,7 @@ public class CassandraLocalIdDAO {
     public List<CloudId> insert(String... args) throws DatabaseConnectionException {
         try {
             Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
-            if (bucket == null || bucket.getRowsCount() == BucketsHandler.MAX_BUCKET_SIZE) {
+            if (bucket == null || bucket.getRowsCount() == BucketSize.PROVIDER_RECORD_ID_TABLE) {
                 bucket = new Bucket(args[0], new com.eaio.uuid.UUID().toString(), 0);
             }
             bucketsHandler.increaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);

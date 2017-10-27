@@ -15,8 +15,6 @@ import java.util.List;
  */
 public class BucketsHandler {
 
-    public static final int MAX_BUCKET_SIZE = 10000;
-    //
     public static final String OBJECT_ID_COLUMN_NAME = "object_id";
     public static final String BUCKET_ID_COLUMN_NAME = "bucket_id";
     public static final String ROWS_COUNT_COLUMN_NAME = "rows_count";
