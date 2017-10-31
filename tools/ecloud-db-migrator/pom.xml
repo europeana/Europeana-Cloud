@@ -40,6 +40,14 @@
             <version>2.1.9.2</version>
             <scope>test</scope>
         </dependency>
+
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>0.7-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
