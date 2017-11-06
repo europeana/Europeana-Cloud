@@ -159,7 +159,7 @@ public class CassandraDataSetDAO {
                 .prepare( //
                         "DELETE FROM " //
                                 + "data_set_assignments_by_data_set " //
-                                + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ?;");
+                                + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;");
         removeAssignmentStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 

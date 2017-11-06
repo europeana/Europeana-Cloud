@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.BoundStatement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
@@ -88,34 +89,47 @@ public class CassandraDataSetService implements DataSetService {
         isDataSetExists(providerId, dataSetId);
         Representation rep = getRepresentationIfExist(recordId, schema, version);
 
-        // now - when everything is validated - add assignment
-        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
-                rep.getVersion());
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+        if (!isAssignmentExists(providerId, dataSetId, recordId, schema, version)) {
+            // now - when everything is validated - add assignment
+            dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
+                    rep.getVersion());
+            DataProvider dataProvider = uis.getProvider(providerId);
+            dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
 
-        representationIndexer.addAssignment(rep.getVersion(),
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
+            representationIndexer.addAssignment(rep.getVersion(),
+                    new CompoundDataSetId(providerId, dataSetId),
+                    dataProvider.getPartitionKey());
 
 
-        Map<String, Revision> latestRevisions = new HashMap<>();
+            Map<String, Revision> latestRevisions = new HashMap<>();
 
-        for (Revision revision : rep.getRevisions()) {
-            String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
-            Revision currentRevision = latestRevisions.get(revisionKey);
-            if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
-                latestRevisions.put(revisionKey, revision);
+            for (Revision revision : rep.getRevisions()) {
+                String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
+                Revision currentRevision = latestRevisions.get(revisionKey);
+                if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
+                    latestRevisions.put(revisionKey, revision);
+                }
+                dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
+                        schema, recordId);
+
+                dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
+                        RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
+                        revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+                dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
             }
-            dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
-                    schema, recordId);
-
-            dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
-                    RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
-                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
+            updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
         }
-        updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
+    }
+
+    private boolean isAssignmentExists(String providerId, String dataSetId, String recordId, String schema, String version) {
+        Map<String, Set<String>> providerDataSets = dataSetDAO.getDataSets(recordId, schema, version);
+        if (!providerDataSets.isEmpty()) {
+            Set<String> dataSets = providerDataSets.get(providerId);
+            if (dataSets.contains(dataSetId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateLatestProviderDatasetRevisions(String providerId, String dataSetId, String recordId, String schema, String version, Map<String, Revision> latestRevisions) {
