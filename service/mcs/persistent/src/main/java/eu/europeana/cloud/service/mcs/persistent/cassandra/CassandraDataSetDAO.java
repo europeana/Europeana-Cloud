@@ -51,6 +51,8 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement addAssignmentByRepresentationStatement;
 
+    private PreparedStatement removeAssignmentByRepresentationsStatement;
+
     private PreparedStatement removeAssignmentStatement;
 
     private PreparedStatement listDataSetRepresentationsStatement;
@@ -161,6 +163,16 @@ public class CassandraDataSetDAO {
                                 + "data_set_assignments_by_data_set " //
                                 + "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;");
         removeAssignmentStatement.setConsistencyLevel(connectionProvider
+                .getConsistencyLevel());
+
+
+        removeAssignmentByRepresentationsStatement = connectionProvider
+                .getSession()
+                .prepare( //
+                        "DELETE FROM " //
+                                + "data_set_assignments_by_representations " //
+                                + "WHERE cloud_id = ? AND schema_id = ? AND version_id = ? AND provider_dataset_id = ? IF EXISTS;");
+        removeAssignmentByRepresentationsStatement.setConsistencyLevel(connectionProvider
                 .getConsistencyLevel());
 
 
@@ -606,10 +618,17 @@ public class CassandraDataSetDAO {
             if (rs.wasApplied()) {
                 // remove bucket count
                 bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
+                removeAssignmentByRepresentation(providerDataSetId, recordId, schema, versionId);
                 return;
             }
             bucket = bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId, bucket);
         }
+    }
+
+    private void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
+        BoundStatement boundStatement = removeAssignmentByRepresentationsStatement.bind(cloudId, schema, UUID.fromString(versionId), providerDataSetId);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
     /**
