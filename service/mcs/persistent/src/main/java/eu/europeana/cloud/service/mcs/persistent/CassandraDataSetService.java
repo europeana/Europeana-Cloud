@@ -89,7 +89,7 @@ public class CassandraDataSetService implements DataSetService {
         isDataSetExists(providerId, dataSetId);
         Representation rep = getRepresentationIfExist(recordId, schema, version);
 
-        if (!isAssignmentExists(providerId, dataSetId, recordId, schema, version)) {
+        if (!isAssignmentExists(providerId, dataSetId, recordId, schema, rep.getVersion())) {
             // now - when everything is validated - add assignment
             dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
                     rep.getVersion());
