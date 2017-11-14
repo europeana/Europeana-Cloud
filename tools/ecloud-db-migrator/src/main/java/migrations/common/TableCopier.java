@@ -9,9 +9,9 @@ import java.util.Iterator;
  */
 public abstract class TableCopier {
 
-    private final static int DEFAULT_RETRIES = 10;
+    private final static int DEFAULT_RETRIES = 20;
 
-    private final static long SLEEP_TIME = 5000;
+    private final static long SLEEP_TIME = 60000;
 
     public void copyTable(Session session, PreparedStatement selectStatement, PreparedStatement insertStatement) {
         insertStatement.setConsistencyLevel(ConsistencyLevel.QUORUM);
@@ -49,6 +49,7 @@ public abstract class TableCopier {
                     }
                 } else {
                     System.out.println("Exception while copying table.\n" + e.getMessage());
+                    throw e;
                 }
             }
         }

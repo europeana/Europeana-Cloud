@@ -6,12 +6,17 @@ import eu.europeana.cloud.common.utils.*;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 /**
  * @author Tarek.
  */
 public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implements JavaMigration {
+
+    private final static int DEFAULT_RETRIES = 20;
+
+    private final static long SLEEP_TIME = 60000;
 
     private static final String SOURCE_TABLE = "provider_record_id_copy";
     private static final String TARGET_TABLE = "provider_record_id";
@@ -39,21 +44,50 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
 
     @Override
     public void migrate(Session session) {
+        long counter = 0;
         BucketsHandler bucketsHandler = new BucketsHandler(session);
         initStatements(session);
         BoundStatement boundStatement = selectFromTemporaryStatement.bind();
         boundStatement.setFetchSize(100);
         ResultSet rs = session.execute(boundStatement);
-        for (Row providerRecordIdRow : rs) {
+
+        Iterator<Row> ri = rs.iterator();
+
+        while (hasNextRow(ri)) {
+            Row providerRecordIdRow = ri.next();
             Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerRecordIdRow.getString("provider_id"));
             if (bucket == null || bucket.getRowsCount() >= BucketSize.PROVIDER_RECORD_ID_TABLE) {
                 bucket = new Bucket(providerRecordIdRow.getString("provider_id"), new com.eaio.uuid.UUID().toString(), 0);
             }
             bucketsHandler.increaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
             insertToProviderRecordIdTable(session, bucket.getBucketId(), providerRecordIdRow);
+            if (++counter % 10000 == 0) {
+                System.out.print("\rCopy table progress: " + counter);
+            }
         }
     }
 
+    private boolean hasNextRow(Iterator<Row> iterator) {
+        int retries = DEFAULT_RETRIES;
+
+        while (retries-- > 0) {
+            try {
+                return iterator.hasNext();
+            } catch (Exception e) {
+                if (retries > 0){
+                    try {
+                        Thread.sleep(SLEEP_TIME * (DEFAULT_RETRIES - retries));
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                } else {
+                    System.out.println("Exception while copying table.\n" + e.getMessage());
+                    throw e;
+                }
+            }
+        }
+        return false;
+    }
 
     private void insertToProviderRecordIdTable(Session session, String bucketId, Row providerRecordIdRow) {
         BoundStatement boundStatement = insertToProviderRecordIdStatement.bind(
