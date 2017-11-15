@@ -7,6 +7,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.ApplicationContextUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -49,6 +50,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private TopologyManager topologyManager;
     private MutableAclService mutableAclService;
     private WebTarget webTarget;
+    private WebTarget detailedReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -57,6 +59,19 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounterFactory filesCounterFactory;
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
+    private TaskExecutionReportService reportService;
+
+    public static final String DETAILED_REPORT_RESPONSE = "[\n" +
+            "    {\n" +
+            "       \"task_id\": 12345,\n" +
+            "        \"resource_num\": 1,\n" +
+            "        \"topology_name\": \"any_topology\",\n" +
+            "        \"resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE\",\n" +
+            "        \"state\": \"SUCCESS\",\n" +
+            "        \"info_text\": \"\",\n" +
+            "        \"additional_informations\": \"\",\n" +
+            "        \"result_resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE\"\n" +
+            "    }]";
 
 
     @Override
@@ -73,11 +88,13 @@ public class TopologyTasksResourceTest extends JerseyTest {
         filesCounterFactory = applicationContext.getBean(FilesCounterFactory.class);
         filesCounter = applicationContext.getBean(FilesCounter.class);
         context = applicationContext.getBean(ApplicationContext.class);
+        reportService = applicationContext.getBean(TaskExecutionReportService.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
+        detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
 
     }
 
@@ -254,6 +271,29 @@ public class TopologyTasksResourceTest extends JerseyTest {
         //then
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
+
+    @Test
+    public void shouldGetDetailedReportForTheFirst100Resources() {
+        String topologyName = "any_topology";
+        String taskId = "12345";
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", topologyName).resolveTemplate("taskId", taskId);
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(taskId), eq(1), eq(100))).thenReturn(DETAILED_REPORT_RESPONSE);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(detailedReportResponse.readEntity(String.class), is(DETAILED_REPORT_RESPONSE));
+    }
+
+    @Test
+    public void shouldGetDetailedReportForSpecifiedResources() {
+        String topologyName = "any_topology";
+        String taskId = "12345";
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", topologyName).resolveTemplate("taskId", taskId).queryParam("from", 120).queryParam("to", 150);
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(taskId), eq(120), eq(150))).thenReturn(DETAILED_REPORT_RESPONSE);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(detailedReportResponse.readEntity(String.class), is(DETAILED_REPORT_RESPONSE));
+    }
+
 
     private void prepareMocks(String topologyName) throws MCSException, TaskSubmissionException {
         //Mock security

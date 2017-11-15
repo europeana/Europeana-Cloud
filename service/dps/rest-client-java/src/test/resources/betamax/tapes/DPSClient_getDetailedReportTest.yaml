@@ -1,0 +1,21 @@
+!tape
+name: DPSClient_getDetailedReportTest
+interactions:
+- recorded: 2017-11-15T07:12:29.086Z
+  request:
+    method: GET
+    uri: http://localhost:8080/dps/topologies/TopologyName/tasks/12345/reports/details
+    headers:
+      Accept: text/html, *; q=.2, */*; q=.2
+      Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu
+      Host: localhost:8080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_60)
+    body: userneme=user
+  response:
+    status: 200
+    headers:
+      Content-Type: text/html
+      ETag: '"ed88f9ed3a8b84f10b01fb2027022c0d"'
+      Server: Apache-Coyote/1.1
+    body: '[{"task_id": 12345,"resource_num":1 ,"topology_name": "TopologyName","resource": "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE","state":"SUCCESS","info_text": "", "additional_informations": "","result_resource": "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE"}]'

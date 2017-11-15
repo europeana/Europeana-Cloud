@@ -23,7 +23,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 
 /**
- * Stores / retrieves dps tasks and task progress notifications from / to Kafka
+ * Stores / retrieves dps tasks and task progress/details from / to Kafka
  * topics.
  */
 public class KafkaDpsService implements TaskExecutionReportService, TaskExecutionSubmitService {
@@ -93,7 +93,7 @@ public class KafkaDpsService implements TaskExecutionReportService, TaskExecutio
     }
 
     @Override
-    public String getTaskNotificationChuncks(String taskId, int from, int to) {
+    public String getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 

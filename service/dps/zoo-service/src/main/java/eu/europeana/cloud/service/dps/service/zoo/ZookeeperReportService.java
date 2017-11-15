@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
 /**
- * Stores / retrieves dps tasks and task progress notifications from / to Kafka
+ * Stores / retrieves dps tasks and task progress/reports from / to Kafka
  * topics.
  * <p/>
  * Progress notifications are stored in Zookeeper directories as direct ZK child nodes of the root parent ZK node
@@ -65,7 +65,7 @@ public class ZookeeperReportService implements TaskExecutionReportService {
 
 
     @Override
-    public String getTaskNotificationChuncks(String taskId, int from, int to) {
+    public String getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 

@@ -85,7 +85,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     }
 
     @Override
-    public String getTaskNotificationChuncks(String taskId, int from, int to) {
+    public String getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         Statement selectFromNotification = QueryBuilder.select()
                 .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
                 .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.valueOf(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));

@@ -1185,7 +1185,7 @@ vars.put(&quot;representationName&quot;,correctlyFormulatedRepresentationName);<
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/dps/topologies/ic_topology/tasks/${icTaskId}/notification</stringProp>
+          <stringProp name="HTTPSampler.path">/dps/topologies/ic_topology/tasks/${icTaskId}/reports/details</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -1222,7 +1222,7 @@ vars.put(&quot;representationName&quot;,correctlyFormulatedRepresentationName);<
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/dps/topologies/xslt_topology/tasks/${xsltTaskId}/notification</stringProp>
+          <stringProp name="HTTPSampler.path">/dps/topologies/xslt_topology/tasks/${xsltTaskId}/reports/details</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

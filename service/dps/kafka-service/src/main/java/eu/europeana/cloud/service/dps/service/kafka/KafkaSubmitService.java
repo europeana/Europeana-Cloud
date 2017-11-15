@@ -22,7 +22,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionSubmitService;
 
 /**
- * Stores / retrieves dps tasks and task progress notifications from / to Kafka
+ * Stores / retrieves dps tasks and task progress and reports from / to Kafka
  * topics.
  */
 public class KafkaSubmitService implements TaskExecutionSubmitService {

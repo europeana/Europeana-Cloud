@@ -32,7 +32,7 @@ public class CreateDatasetFromDatasetOfAnotherProviderTestCase implements TestCa
     private DatasetHelper destinationDatasetHelper;
 
     @Resource
-    private RecordServiceClient adminRecordServiceClient;
+    private RecordServiceClient adminRecordServiceClient
 
     @Resource
     private UISClient adminUisClient;

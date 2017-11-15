@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 
 
 /**
- * Service to get progress / notification information for Task Executions
+ * Service to get progress / reports  information for Task Executions
  */
 public interface TaskExecutionReportService {
 
@@ -16,9 +16,9 @@ public interface TaskExecutionReportService {
     String getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
-     * @return Info messages for the specified task between chuncks
+     * @return Info messages for the specified task between chunks
      */
-    String getTaskNotificationChuncks(String taskId, int from, int to);
+    String getDetailedTaskReportBetweenChunks(String taskId, int from, int to);
 
 
     /**
