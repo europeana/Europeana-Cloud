@@ -20,10 +20,11 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>eu.europeana.cloud</groupId>
-			<artifactId>ecloud-service-dps-storm-topologies-oai-pmh-harvester</artifactId>
-			<version>${project.version}</version>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
@@ -65,7 +66,7 @@
             	</exclusion>
             </exclusions>
         </dependency>
-        
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>ecloud-service-dps-api</artifactId>
@@ -173,7 +174,27 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>ecloud-service-dps-storm-topologies-oai-pmh-harvester</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>
@@ -243,7 +264,7 @@
 		</resources>
 
 		<plugins>
-			<!-- Bind the maven-assembly-plugin to the package phase this will create 
+			<!-- Bind the maven-assembly-plugin to the package phase this will create
 				a jar file without the storm dependencies suitable for deployment to a cluster. -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -310,7 +331,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>

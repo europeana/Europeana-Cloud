@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
+package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
@@ -8,7 +8,6 @@ import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.exceptions.HarvesterException;
 import org.apache.storm.task.OutputCollector;

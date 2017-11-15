@@ -13,13 +13,15 @@
     <artifactId>ecloud-service-dps-storm-topologies-oai-pmh-harvester</artifactId>
 
     <name>Europeana Cloud: DPS Storm Topology for OAI-PMH Harvesting</name>
-<dependencyManagement><dependencies>
-    <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
-    </dependency>
-</dependencies></dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>1.3</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -155,6 +157,14 @@
             <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>topologies-common-helper-test</artifactId>
+            <version>0.7-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
@@ -181,7 +191,8 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology</mainClass>
+                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology
+                            </mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -268,7 +279,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
@@ -281,7 +292,8 @@
                     <configuration>
                         <archive>
                             <manifest>
-                                <mainClass>eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology
+                                <mainClass>
+                                    eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology
                                 </mainClass>
                             </manifest>
                         </archive>

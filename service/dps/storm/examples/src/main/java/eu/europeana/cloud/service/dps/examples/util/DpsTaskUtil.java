@@ -23,12 +23,12 @@ public class DpsTaskUtil {
 
     // number of data sets to be included
     private final static int DATASETS_COUNT = 1;
-    private static String datasetURLForXSLT = "http://localhost:8080/mcs/data-providers/Tiff_tarek_final/data-sets/xsltDataset";
-    private static String xsltURL = "http://localhost:8080/mcs/records/TAJZ2ZVNTXLQ6R5SMBY2MYKONUCFBFMPY2TCQNMA2ZL4CXHMATHA/representations/Tarek_Representation1/versions/29dc84f0-144b-11e7-87bb-1c6f653f9042/files/30e5772f-23e4-4910-af0f-ded2e5e883ee";
+    private static String datasetURLForXSLT = "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset";
+    private static String xsltURL = "http://localhost:8080/mcs/records/EU6ZTUYQRZWDQTDHIQUPYQHZUSHG2IXU5RCP4F5SBSLQ25QFNJ7Q/representations/TarekRep/versions/a73d68b0-c06c-11e7-88d5-1c6f653f9042/files/00b863a9-2215-461a-9111-dcde2352c3bc";
     private final static String REVISION_NAME = "REVISION_NAME";
     private final static String REVISION_PROVIDER = "Tiff_tarek_final";
 
-    private static String datasetURLForIC = "http://localhost:8080/mcs/data-providers/Tiff_tarek_final/data-sets/ic_dataset";
+    private static String datasetURLForIC = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset4";
     private final static String REPOSITORY_URL = "http://lib.psnc.pl/dlibra/oai-pmh-repository.xml";
     public static final String OUTPUT_DATASET = "http://localhost:8080/mcs/data-providers/provider/data-sets/dataset3";
 
@@ -44,7 +44,7 @@ public class DpsTaskUtil {
 
         DpsTask task = createDpsTask(dataSetURL, recordCount);
         task.addParameter(PluginParameterKeys.XSLT_URL, xslt);
-        task.addParameter(PluginParameterKeys.OUTPUT_URL, null);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, "http://localhost:8080/mcs/data-providers/provider/data-sets/XSltDataset");
 
         return task;
     }

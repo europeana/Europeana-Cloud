@@ -239,6 +239,16 @@
 
 
         <!-- Testing -->
+
+
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>topologies-common-helper-test</artifactId>
+            <version>0.7-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
