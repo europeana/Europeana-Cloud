@@ -2,6 +2,7 @@ package migrator;
 
 import com.datastax.driver.core.*;
 import migrator.validators.V10_validator;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -55,7 +56,7 @@ public class MigrationExecutorTest {
     @Test
     public void shouldThrowExceptionOnTwiceDataMigrations() {
         //given
-        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contatactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
+        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
         migrator.migrate();
 
         //when
