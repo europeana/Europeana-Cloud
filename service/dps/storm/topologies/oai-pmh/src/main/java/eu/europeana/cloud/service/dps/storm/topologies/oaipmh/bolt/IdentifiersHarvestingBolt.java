@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import com.lyncode.xoai.model.oaipmh.Header;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
+import com.lyncode.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -103,7 +103,7 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
         }
 
         int count = 0;
-        while (headerIterator.hasNext()) {
+        while (hasNext(headerIterator)) {
             Header header = headerIterator.next();
             if (filterHeader(header, excludedSets)) {
                 emitIdentifier(stormTaskTuple, header.getIdentifier());
@@ -111,6 +111,30 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
             }
         }
         return count;
+    }
+
+    private boolean hasNext(Iterator<Header> headerIterator) {
+        int retries = DEFAULT_RETRIES;
+
+        while (true) {
+            try {
+                return headerIterator.hasNext();
+            }
+            catch (InvalidOAIResponse e) {
+                if (retries-- > 0) {
+                    LOGGER.warn("Error when harvesting identifiers. Retries left: " + retries);
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        LOGGER.error(e1.getMessage());
+                    }
+                }
+                else {
+                    LOGGER.error("Harvesting identifiers failed.");
+                    throw e;
+                }
+            }
+        }
     }
 
     /**
