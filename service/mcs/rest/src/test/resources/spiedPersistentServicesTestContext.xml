@@ -57,7 +57,10 @@
     </bean>
     <bean id="solrRepresentationIndexer" class="eu.europeana.cloud.service.mcs.persistent.SolrRepresentationIndexer"/>
     <bean id="permissionGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
-            
+
+    <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">
+        <constructor-arg name="session" value="#{dbService.session}"/>
+    </bean>
     
     <mockito:mock id="uisClientHandler" class="eu.europeana.cloud.service.mcs.UISClientHandler"/>
     <mockito:mock id="producerWrapper" class="eu.europeana.cloud.service.mcs.kafka.ProducerWrapper"/>
