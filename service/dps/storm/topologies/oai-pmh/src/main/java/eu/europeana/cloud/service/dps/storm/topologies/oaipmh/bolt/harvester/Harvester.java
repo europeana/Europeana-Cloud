@@ -41,10 +41,10 @@ public class Harvester implements Serializable {
 
 
         GetRecordParameters params = new GetRecordParameters().withIdentifier(recordId).withMetadataFormatPrefix(metadataPrefix);
-        OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
         int retries = AbstractDpsBolt.DEFAULT_RETRIES;
         while (true) {
             try {
+                OAIClient client = new HttpOAIClient(oaiPmhEndpoint);
                 final InputStream record = client.execute(Parameters.parameters().withVerb(Verb.Type.GetRecord).include(params));
                 return new XmlXPath(record).xpath(METADATA_XPATH);
             } catch (OAIRequestException e) {
