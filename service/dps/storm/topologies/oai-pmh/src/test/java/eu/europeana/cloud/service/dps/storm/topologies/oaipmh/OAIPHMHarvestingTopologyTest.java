@@ -15,6 +15,8 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
@@ -28,7 +30,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.OAITestMock
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.storm.Config;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -37,11 +38,11 @@ import org.apache.storm.testing.MkClusterParam;
 import org.apache.storm.testing.MockedSources;
 import org.apache.storm.testing.TestJob;
 import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -71,7 +72,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, ParseTaskBolt.class})
+@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, ParseTaskBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
@@ -96,7 +97,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
     private static Map<String, String> routingRules;
     private static StormTopology topology;
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.TASK_SPLITTING_BOLT, TopologyHelper.IDENTIFIERS_HARVESTING_BOLT, TopologyHelper.RECORD_HARVESTING_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.TASK_SPLITTING_BOLT, TopologyHelper.IDENTIFIERS_HARVESTING_BOLT, TopologyHelper.RECORD_HARVESTING_BOLT, TopologyHelper.WRITE_RECORD_BOLT, TopologyHelper.REVISION_WRITER_BOLT, TopologyHelper.WRITE_TO_DATA_SET_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
     public OAIPHMHarvestingTopologyTest() {
 
@@ -121,6 +122,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         mockRevisionServiceClient();
         mockUISClient();
         configureMocks();
+        mockCassandraInteraction();
     }
 
     private void assertTopology(final String input) {
@@ -133,7 +135,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
                 final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -141,9 +143,6 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
     @Test
     public final void testBasicTopology() throws MCSException, IOException, URISyntaxException {
-        //given
-        prepareForSingleDataset();
-
         final String input = "{\"inputData\":" +
                 "{\"REPOSITORY_URLS\":" +
                 "[\"" + SOURCE_VERSION_URL + "\"]}," +
@@ -166,7 +165,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         for (int i = 0; i < expectedTuples.size(); i++) {
             String actual = parse(selectSingle(actualTuples, i));
             String expected = expectedTuples.get(i);
-            assertEquals(expected,actual,false);
+            assertEquals(expected, actual, false);
         }
     }
 
@@ -185,7 +184,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         when(serviceProvider.listIdentifiers(any(ListIdentifiersParameters.class))).thenReturn(headers.iterator());
 
         OAIClient oaiClient = mock(OAIClient.class);
-        when(harvester.harvestRecord(anyString(),anyString(),anyString())).thenReturn(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(new
                 ByteArrayInputStream(new byte[]{}));
         InputStream inputStream = new ReaderInputStream(new StringReader("largeString"), StandardCharsets.UTF_8);
         when(oaiClient.execute(any(Parameters.class))).thenReturn(inputStream);
@@ -199,15 +198,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         doNothing().when(fileServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetClient).useAuthorizationHeader(anyString());
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
-    }
-
-    private final void prepareForSingleDataset() throws URISyntaxException, IOException, MCSException {
-
-        when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL));
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(InputStream.class), anyString(), anyString())).thenReturn(new URI(RESULT_FILE_URL)).thenReturn(new URI(RESULT_FILE_URL2));
         when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
         doNothing().when(dataSetClient).assignRepresentationToDataSet(anyString(), anyString(), anyString(), anyString(), anyString());
 
@@ -219,6 +210,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(MCS_URL);
         TestInspectionBolt endTest = new TestInspectionBolt();
         AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(MCS_URL);
+        NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout(TopologyHelper.SPOUT, new TestSpout(), 1);
@@ -231,18 +223,14 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         builder.setBolt(TopologyHelper.WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
-
+        builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
+                .fieldsGrouping(TopologyHelper.PARSE_TASK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.TASK_SPLITTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.IDENTIFIERS_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
         topology = builder.createTopology();
-
-
-    }
-
-    private CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
-        Config conf = new Config();
-        conf.setNumWorkers(NUM_WORKERS);
-        CompleteTopologyParam completeTopologyParam = new CompleteTopologyParam();
-        completeTopologyParam.setMockedSources(mockedSources);
-        completeTopologyParam.setStormConf(conf);
-        return completeTopologyParam;
     }
 }

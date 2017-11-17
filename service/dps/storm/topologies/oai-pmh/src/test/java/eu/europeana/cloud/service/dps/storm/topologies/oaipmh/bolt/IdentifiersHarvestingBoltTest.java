@@ -1,12 +1,15 @@
+package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
+
 import com.lyncode.xoai.model.oaipmh.Header;
 import com.lyncode.xoai.serviceprovider.ServiceProvider;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -18,6 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -88,35 +92,76 @@ public class IdentifiersHarvestingBoltTest {
     }
 
     @Test
-    public void testURLInvalid() {
+    public void testInvalidURL() {
         //given
         StormTaskTuple tuple = configureStormTaskTuple(null, SCHEMA, null, null, null, null);
         //when
         instance.execute(tuple);
         //then
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+        NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
+                null, States.ERROR, "Source is not configured.", "{DPS_TASK_INPUT_DATA=null}");
+        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
     @Test
-    public void testSchemaInvalid() {
+    public void testInvalidSchema() {
         //given
         StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, null, null, null, null, null);
         //when
         instance.execute(tuple);
         //then
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+        NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
+                null, States.ERROR, "Schema is not specified.", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
+        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 
 
     @Test
-    public void testDatesInvalid() {
+    public void testNullHarvestingDetails() {
         //given
-        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, DATE2, DATE1);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, null, null, null, new HashMap<String, String>(), null, null);
         //when
         instance.execute(tuple);
         //then
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+        NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
+                null, States.ERROR, "Harvesting details object is null!", "{}");
+        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
+
+
+    @Test
+    public void testRunTimeException() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, DATE1, DATE2);
+        when(sourceProvider.provide(anyString())).thenThrow(new RuntimeException("Runtime exception..."));
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+        NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
+                null, States.ERROR, "Runtime exception...", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
+        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+    @Test
+    public void testBadArgumentException() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, DATE1, DATE2);
+        when(sourceProvider.provide(anyString())).thenThrow(new RuntimeException("Bad Argument Exception..."));
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
+        NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
+                null, States.ERROR, "Bad Argument Exception...", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
+        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+    }
+
+
+
 
     @Test
     public void testDateFromSpecified() {
@@ -128,8 +173,8 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
-
         assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID2);
+        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     @Test
@@ -144,6 +189,7 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(1));
 
         assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID1);
+        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     @Test
@@ -162,6 +208,7 @@ public class IdentifiersHarvestingBoltTest {
         identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
+        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     @Test
@@ -184,6 +231,7 @@ public class IdentifiersHarvestingBoltTest {
         assertTrue(identifiers.contains(ID2));
 
         verifyNoMoreInteractions(oc);
+        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     @Test
@@ -201,6 +249,7 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
 
         verifyNoMoreInteractions(oc);
+        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
     }
 
     private boolean setOK(String setToCheck, String set, Set<String> excludedSets) {

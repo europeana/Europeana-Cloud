@@ -14,6 +14,7 @@ public class TestConstants {
     public static final String VERSION = "Version";
     public static final String REVISIONS = "revisions";
     public static final String FILE = "FileName";
+    public static final String FILE2 = "FileName2";
     public static final String DATASET_NAME = "dataSet";
     public static final String DATA_PROVIDER = "testDataProvider";
 
@@ -31,6 +32,10 @@ public class TestConstants {
             + RESULT + CLOUD_ID + "/representations/"
             + RESULT + REPRESENTATION_NAME + "/versions/"
             + RESULT + VERSION;
+    public static final String RESULT_VERSION_URL2 = "http://localhost:8080/mcs/records/"
+            + RESULT + CLOUD_ID + "/representations/"
+            + RESULT + REPRESENTATION_NAME + "/versions/"
+            + RESULT + VERSION + 2;
 
 
     public static final String REVISION_URL = "http://localhost:8080/mcs/records/"
@@ -39,6 +44,8 @@ public class TestConstants {
             + RESULT + REVISIONS;
 
     public static final String RESULT_FILE_URL = RESULT_VERSION_URL + "/files/" + FILE;
+    public static final String RESULT_FILE_URL2 = RESULT_VERSION_URL2 + "/files/" + FILE2;
+
 
     public static final String SOURCE_DATASET_URL = "http://localhost:8080/mcs/data-providers/"
             + DATA_PROVIDER + "/data-sets/"

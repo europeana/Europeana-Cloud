@@ -34,6 +34,7 @@ public class TaskSplittingBolt extends AbstractDpsBolt {
 
         } catch (Exception e) {
             LOGGER.error("Task Splitting Bolt error: {} ", e.getMessage());
+            logAndEmitError(stormTaskTuple, e.getMessage());
         }
     }
 

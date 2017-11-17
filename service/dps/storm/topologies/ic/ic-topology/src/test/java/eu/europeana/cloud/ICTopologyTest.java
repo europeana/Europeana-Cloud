@@ -18,7 +18,6 @@ import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api.ImageConv
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.storm.Config;
 import org.apache.storm.ILocalCluster;
 import org.apache.storm.Testing;
 import org.apache.storm.generated.StormTopology;
@@ -109,7 +108,7 @@ public class ICTopologyTest extends ICTestMocksHelper {
         mockRecordSC();
         mockFileSC();
         mockImageCS();
-        mockDPSDAO();
+        mockCassandraInteraction();
         mockDatSetClient();
         mockRevisionServiceClient();
         configureMocks();
@@ -406,17 +405,6 @@ public class ICTopologyTest extends ICTestMocksHelper {
                 .fieldsGrouping(TopologyHelper.WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
         topology = builder.createTopology();
 
-
-    }
-
-    private CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
-        // prepare the config
-        Config conf = new Config();
-        conf.setNumWorkers(NUM_WORKERS);
-        CompleteTopologyParam completeTopologyParam = new CompleteTopologyParam();
-        completeTopologyParam.setMockedSources(mockedSources);
-        completeTopologyParam.setStormConf(conf);
-        return completeTopologyParam;
 
     }
 
