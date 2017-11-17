@@ -44,6 +44,8 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
         BucketsHandler bucketsHandler = new BucketsHandler(session);
         initStatements(session);
 
+        long counter = 0;
+
         BoundStatement boundStatement = selectAssignmentsStatement.bind();
         boundStatement.setFetchSize(100);
         ResultSet rs = session.execute(boundStatement);
@@ -61,6 +63,12 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
             //
             insertRowToAssignmentsByRepresentationsTable(session, dataset_assignment);
             insertRowToAssignmentsByDataSetsTable(session, bucket.getBucketId(), dataset_assignment);
+            if (++counter % 10000 == 0) {
+                System.out.print("\rCopy table progress: " + counter);
+            }
+        }
+        if (counter > 0) {
+            System.out.println("\rCopy table progress: " + counter);
         }
     }
 

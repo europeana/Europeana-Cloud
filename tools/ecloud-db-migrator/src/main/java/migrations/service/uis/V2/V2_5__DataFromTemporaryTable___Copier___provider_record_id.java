@@ -62,6 +62,9 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
                 System.out.print("\rCopy table progress: " + counter);
             }
         }
+        if (counter > 0) {
+            System.out.println("\rCopy table progress: " + counter);
+        }
     }
 
     private void insertToProviderRecordIdTable(Session session, String bucketId, Row providerRecordIdRow) {
