@@ -1,5 +1,7 @@
 package eu.europeana.cloud.client.dps.rest;
 
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
@@ -10,8 +12,10 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * The REST API client for the Data Processing service.
@@ -122,31 +126,50 @@ public class DpsClient {
     /**
      * Retrieves progress for the specified combination of taskId and topology.
      */
-    public String getTaskProgress(String topologyName, final long taskId) {
+    public TaskInfo getTaskProgress(String topologyName, final long taskId) {
 
-        Response getResponse = null;
+        Response response = null;
 
         try {
-            getResponse = client
+            response = client
                     .target(dpsUrl)
                     .path(TASK_PROGRESS_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)
                     .resolveTemplate(TASK_ID, taskId)
                     .request().get();
 
-            if (getResponse.getStatus() == Response.Status.OK.getStatusCode()) {
-                String taskProgress = getResponse.readEntity(String.class);
-                return taskProgress;
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                TaskInfo taskInfo = response.readEntity(TaskInfo.class);
+                return taskInfo;
             } else {
                 LOGGER.error("Task progress cannot be read");
                 throw new RuntimeException();
             }
         } finally {
-            closeResponse(getResponse);
+            closeResponse(response);
         }
     }
 
-    public String getDetailedTaskReport(final String topologyName, final long taskId) {
+    public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId) {
+
+        Response response = null;
+
+        try {
+            response = client
+                    .target(dpsUrl)
+                    .path(DETAILED_TASK_REPORT_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId)
+                    .request().get();
+
+            return handleResponse(response);
+
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId,int from,int to) {
 
         Response getResponse = null;
 
@@ -155,19 +178,24 @@ public class DpsClient {
                     .target(dpsUrl)
                     .path(DETAILED_TASK_REPORT_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
+                    .resolveTemplate(TASK_ID, taskId).queryParam("from", from).queryParam("to", to)
                     .request().get();
 
-            if (getResponse.getStatus() == Response.Status.OK.getStatusCode()) {
-                String taskProgress = getResponse.readEntity(String.class);
-                return taskProgress;
-            } else {
-                LOGGER.error("Task notification cannot be read");
-                throw new RuntimeException();
-            }
+            return handleResponse(getResponse);
 
         } finally {
             closeResponse(getResponse);
+        }
+    }
+
+    private List<SubTaskInfo> handleResponse(Response response) {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            List<SubTaskInfo> subTaskInfoList = response.readEntity(new GenericType<List<SubTaskInfo>>() {
+            });
+            return subTaskInfoList;
+        } else {
+            LOGGER.error("Task detailed report cannot be read");
+            throw new RuntimeException();
         }
     }
 
@@ -177,3 +205,6 @@ public class DpsClient {
         }
     }
 }
+
+
+

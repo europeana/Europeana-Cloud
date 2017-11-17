@@ -31,9 +31,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 
-
-
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 
 public class NotificationBoltTest extends CassandraTestBase {
 
@@ -119,32 +118,30 @@ public class NotificationBoltTest extends CassandraTestBase {
         final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
         testedBolt.execute(setUpTuple);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(taskId, resource, state, text, additionalInformation, resultResource));
-        String beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        TaskInfo beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(tuple);
 
         for (int i = 0; i < 99; i++) {
             testedBolt.execute(tuple);
         }
 
-        String afterOneHundredExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        TaskInfo afterOneHundredExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(tuple);
-        String afterAllExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        TaskInfo afterAllExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
 
-        assertThat(beforeExecute, allOf(
-                containsString("\"processed\":0,"),
-                containsString("\"state\":\"CURRENTLY_PROCESSING\"")));
-        assertThat(afterOneHundredExecutions, allOf(
-                containsString("\"processed\":100,"),
-                containsString("\"state\":\"CURRENTLY_PROCESSING\"")));
-        assertThat(afterAllExecutions, allOf(
-                containsString("\"processed\":101,"),
-                containsString("\"state\":\"PROCESSED\"")));
+        assertEquals(afterOneHundredExecutions.getProcessedElementCount(), 100);
+        assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
+
+        assertEquals(afterAllExecutions.getProcessedElementCount(), 101);
+        assertThat(afterAllExecutions.getState(), is(TaskState.PROCESSED));
     }
 
 
     private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {
         TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime, finishTime);
-        expectedTaskInfo.setContainsElements(containElement);
+        expectedTaskInfo.setExpectedSize(containElement);
         return expectedTaskInfo;
     }
 

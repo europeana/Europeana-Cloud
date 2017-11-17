@@ -1,6 +1,8 @@
 package eu.europeana.cloud.client.dps.rest;
 
 import co.freeside.betamax.Betamax;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import org.junit.Ignore;
 import org.junit.Rule;
 
@@ -37,7 +39,6 @@ public class DPSClientTest {
 
     //@TODO ECL-520 write betamax test of dps java client
     //@Betamax(tape = "DPSClient/createAndRetrieveProviderTest")
-    @Test
     @Ignore
     public final void shouldSubmitTask()
             throws Exception {
@@ -66,9 +67,10 @@ public class DPSClientTest {
     }
 
     @Test
-    @Betamax(tape = "DPSClient_getDetailedReportTest")
-    public final void shouldReturnedDetailedReport() {
-        String expectedResult = "[{\"task_id\": 12345,\"resource_num\":1 ,\"topology_name\": \"TopologyName\",\"resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE\",\"state\":\"SUCCESS\",\"info_text\": \"\", \"additional_informations\": \"\",\"result_resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE\"}]";
-        assertThat(dpsClient.getDetailedTaskReport(TOPOLOGY_NAME, 12345), is(expectedResult));
+    @Betamax(tape = "DPSClient/getTaskProgressTest")
+    public final void shouldReturnedProgressReport() {
+        TaskInfo taskInfo = new TaskInfo(12345, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, null, null, null);
+        assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, 12345), is(taskInfo));
+
     }
 }

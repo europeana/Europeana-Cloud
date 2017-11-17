@@ -4,18 +4,16 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Report service powered by Cassandra.
@@ -39,60 +37,38 @@ public class CassandraReportService implements TaskExecutionReportService {
     }
 
     @Override
-    public String getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
-        long taskId_ = Long.valueOf(taskId);
-
-        JsonObject res = new JsonObject();
-        res.addProperty("taskId", taskId_);
-
-        //read basic informations from Cassandra
+    public TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
+        long taskIdValue = Long.valueOf(taskId);
         Statement selectFromBasicInfo = QueryBuilder.select().all()
                 .from(CassandraTablesAndColumnsNames.BASIC_INFO_TABLE)
-                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.BASIC_TASK_ID, taskId_));
+                .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.BASIC_TASK_ID, taskIdValue));
 
         Row basicInfo = cassandra.getSession().execute(selectFromBasicInfo).one();
-        //basicInfo == null means: task has been dropped or task is still running and calcutalion of expected size is in progress
         if (basicInfo != null) {
-            int expectedSize = basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE);
-            res.addProperty("topologyName", basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME));
-            res.addProperty("totalSize", expectedSize);
-            res.addProperty("processed", basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT));
-            res.addProperty("state", basicInfo.getString(CassandraTablesAndColumnsNames.STATE));
-            res.addProperty("info", basicInfo.getString(CassandraTablesAndColumnsNames.INFO));
-            res.addProperty("sent_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.SENT_TIME)));
-            res.addProperty("start_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME)));
-            res.addProperty("finish_time", prepareDate(basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME)));
-        } else {
-            res.addProperty("topologyName", "");
-            res.addProperty("totalSize", "?");
-            res.addProperty("processed", "0");
-            res.addProperty("state", "");
-            res.addProperty("info", "");
-            res.addProperty("sent_time", "");
-            res.addProperty("start_time", "");
-            res.addProperty("finish_time", "");
+            TaskInfo taskInfo = new TaskInfo(taskIdValue,
+                    basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME),
+                    TaskState.valueOf(basicInfo.getString(CassandraTablesAndColumnsNames.STATE)),
+                    basicInfo.getString(CassandraTablesAndColumnsNames.INFO),
+                    basicInfo.getInt(CassandraTablesAndColumnsNames.BASIC_EXPECTED_SIZE),
+                    basicInfo.getInt(CassandraTablesAndColumnsNames.PROCESSED_FILES_COUNT),
+                    basicInfo.getDate(CassandraTablesAndColumnsNames.SENT_TIME),
+                    basicInfo.getDate(CassandraTablesAndColumnsNames.START_TIME),
+                    basicInfo.getDate(CassandraTablesAndColumnsNames.FINISH_TIME));
+            return taskInfo;
         }
-
-        return new Gson().toJson(res);
-
+        throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
     }
 
-
-    private String prepareDate(Date date) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss", Locale.ENGLISH);
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("CET"));
-        return date == null ? "" : simpleDateFormat.format(date);
-    }
 
     @Override
-    public String getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(String taskId, int from, int to) {
         Statement selectFromNotification = QueryBuilder.select()
                 .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
                 .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.valueOf(taskId))).and(QueryBuilder.gte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, from)).and(QueryBuilder.lte(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM, to));
 
-        ResultSet notifications = cassandra.getSession().execute(selectFromNotification);
+        ResultSet detailedTaskReportResultSet = cassandra.getSession().execute(selectFromNotification);
 
-        return new Gson().toJson(notificationResultsetToJsonObject(notifications));
+        return convertDetailedTaskReportToListOfSubTaskInfo(detailedTaskReportResultSet);
     }
 
 
@@ -101,40 +77,19 @@ public class CassandraReportService implements TaskExecutionReportService {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private JsonArray notificationResultsetToJsonObject(ResultSet data) {
-        JsonArray res = new JsonArray();
+    private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
+
+        List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
-            JsonObject line = new JsonObject();
-
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
-                    row.getLong(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
-                    row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME,
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE,
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_STATE,
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT,
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS,
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS));
-
-            line.addProperty(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE,
+            SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
+                    States.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
+                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
-
-            res.add(line);
+            subTaskInfoList.add(subTaskInfo);
         }
-
-        return res;
+        return subTaskInfoList;
     }
 }

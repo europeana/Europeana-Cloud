@@ -1,20 +1,74 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@XmlRootElement()
 public class TaskInfo {
-    private final long id;
-    private final String topologyName;
-    private int containsElements;
+    private long id;
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setTopologyName(String topologyName) {
+        this.topologyName = topologyName;
+    }
+
+    private String topologyName;
+    private int expectedSize;
+    private int processedElementCount;
     private TaskState state;
     private String info;
 
     private Date finishDate;
     private Date startDate;
     private Date sentDate;
+
+
+    public TaskInfo() {
+
+    }
+
+    public Date getFinishDate() {
+        return finishDate;
+    }
+
+    public void setFinishDate(Date finishDate) {
+        this.finishDate = finishDate;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getSentDate() {
+        return sentDate;
+    }
+
+    public void setSentDate(Date sentDate) {
+        this.sentDate = sentDate;
+    }
+
+    public void setSubtasks(List<SubTaskInfo> subtasks) {
+        this.subtasks = subtasks;
+    }
+
+    public int getProcessedElementCount() {
+        return processedElementCount;
+    }
+
+    public void setProcessedElementCount(int processedElementCount) {
+        this.processedElementCount = processedElementCount;
+    }
+
     private List<SubTaskInfo> subtasks = new ArrayList<>();
 
     public TaskState getState() {
@@ -35,10 +89,16 @@ public class TaskInfo {
 
 
     public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
+        this(id, topologyName, state, info, 0, 0, sentDate, startDate, finishDate);
+    }
+
+    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
         this.info = info;
+        this.expectedSize = containsElements;
+        this.processedElementCount = processedElementCount;
         this.sentDate = sentDate;
         this.startDate = startDate;
         this.finishDate = finishDate;
@@ -53,12 +113,12 @@ public class TaskInfo {
         return topologyName;
     }
 
-    public int getContainsElements() {
-        return containsElements;
+    public int getExpectedSize() {
+        return expectedSize;
     }
 
-    public void setContainsElements(int containsElements) {
-        this.containsElements = containsElements;
+    public void setExpectedSize(int expectedSize) {
+        this.expectedSize = expectedSize;
     }
 
     public List<SubTaskInfo> getSubtasks() {
@@ -76,7 +136,7 @@ public class TaskInfo {
 
         TaskInfo taskInfo = (TaskInfo) o;
 
-        if (containsElements != taskInfo.containsElements) return false;
+        if (expectedSize != taskInfo.expectedSize) return false;
         if (id != taskInfo.id) return false;
         if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null) return false;
         if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null)
@@ -103,7 +163,7 @@ public class TaskInfo {
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (topologyName != null ? topologyName.hashCode() : 0);
-        result = 31 * result + containsElements;
+        result = 31 * result + expectedSize;
         result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);

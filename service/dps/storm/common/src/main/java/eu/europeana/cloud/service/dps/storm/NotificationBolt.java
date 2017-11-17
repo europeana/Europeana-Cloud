@@ -206,7 +206,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     private int getExpectedSize(long taskId) throws TaskInfoDoesNotExistException {
         TaskInfo task = taskInfoDAO.searchById(taskId);
-        return task.getContainsElements();
+        return task.getExpectedSize();
 
     }
 
