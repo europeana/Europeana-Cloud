@@ -5,18 +5,21 @@ import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import static migrations.common.TableCopier.hasNextRow;
+
 public class V10_4__copy_data_to_new_tables implements JavaMigration {
 
-    private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 10000;
+    private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
 
     private static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_TABLE_NAME = "data_set_assignments_by_data_set_buckets";
 
-    PreparedStatement selectAssignmentsStatement;
-    PreparedStatement insertAssignmentByRepresentationsStatement;
-    PreparedStatement insertAssignmentByDataSetsStatement;
+    private PreparedStatement selectAssignmentsStatement;
+    private PreparedStatement insertAssignmentByRepresentationsStatement;
+    private PreparedStatement insertAssignmentByDataSetsStatement;
 
     private void initStatements(Session session) {
 
@@ -44,7 +47,11 @@ public class V10_4__copy_data_to_new_tables implements JavaMigration {
         BoundStatement boundStatement = selectAssignmentsStatement.bind();
         boundStatement.setFetchSize(100);
         ResultSet rs = session.execute(boundStatement);
-        for (Row dataset_assignment : rs) {
+
+        Iterator<Row> ri = rs.iterator();
+
+        while (hasNextRow(ri)) {
+            Row dataset_assignment = ri.next();
             //
             Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_TABLE_NAME, dataset_assignment.getString("provider_dataset_id"));
             if (bucket == null || bucket.getRowsCount() == MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT) {

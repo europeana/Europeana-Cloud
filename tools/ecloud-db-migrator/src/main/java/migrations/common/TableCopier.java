@@ -32,9 +32,12 @@ public abstract class TableCopier {
                 System.out.print("\rCopy table progress: " + counter);
             }
         }
+        if (counter > 0) {
+            System.out.println("\rCopy table progress: " + counter);
+        }
     }
 
-    private boolean hasNextRow(Iterator<Row> iterator) {
+    public static boolean hasNextRow(Iterator<Row> iterator) {
         int retries = DEFAULT_RETRIES;
 
         while (retries-- > 0) {

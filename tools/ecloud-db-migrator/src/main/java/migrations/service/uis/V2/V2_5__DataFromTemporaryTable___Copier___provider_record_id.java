@@ -5,6 +5,7 @@ import com.datastax.driver.core.*;
 import eu.europeana.cloud.common.utils.*;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import static migrations.common.TableCopier.hasNextRow;
 
 import java.util.Iterator;
 import java.util.UUID;
@@ -13,10 +14,6 @@ import java.util.UUID;
  * @author Tarek.
  */
 public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implements JavaMigration {
-
-    private final static int DEFAULT_RETRIES = 20;
-
-    private final static long SLEEP_TIME = 60000;
 
     private static final String SOURCE_TABLE = "provider_record_id_copy";
     private static final String TARGET_TABLE = "provider_record_id";
@@ -65,28 +62,6 @@ public class V2_5__DataFromTemporaryTable___Copier___provider_record_id implemen
                 System.out.print("\rCopy table progress: " + counter);
             }
         }
-    }
-
-    private boolean hasNextRow(Iterator<Row> iterator) {
-        int retries = DEFAULT_RETRIES;
-
-        while (retries-- > 0) {
-            try {
-                return iterator.hasNext();
-            } catch (Exception e) {
-                if (retries > 0){
-                    try {
-                        Thread.sleep(SLEEP_TIME * (DEFAULT_RETRIES - retries));
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                } else {
-                    System.out.println("Exception while copying table.\n" + e.getMessage());
-                    throw e;
-                }
-            }
-        }
-        return false;
     }
 
     private void insertToProviderRecordIdTable(Session session, String bucketId, Row providerRecordIdRow) {
