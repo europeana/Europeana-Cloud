@@ -225,7 +225,7 @@ public class TopologyTasksResource {
     }
 
     /**
-     * Retrieves notifications for the specified task.It will return notifications about
+     * Retrieves a detailed report for the specified task.It will return info about
      * the first 100 resources unless you specified the needed chunk by using from&to parameters
      * <p/>
      * <br/><br/>
@@ -241,13 +241,13 @@ public class TopologyTasksResource {
      * @param from   The starting resource number should be bigger than 0
      * @param to     The ending resource number should be bigger than 0
      * @return Notification messages for the specified task.
-     * @summary Retrieve task notifications
+     * @summary Retrieve task detailed report
      */
     @GET
-    @Path("{taskId}/notification")
+    @Path("{taskId}/reports/details")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public String getTaskNotificationChunck(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
-        String progress = reportService.getTaskNotificationChuncks(taskId, from, to);
+    public String getTaskDetailedReport(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
+        String progress = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
         return progress;
     }
 
