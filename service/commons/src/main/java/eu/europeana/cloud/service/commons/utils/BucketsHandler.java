@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.utils.Bucket;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This class is responsible for handling all operations related to data bucketing for any table (that requires bucketing).
@@ -41,13 +42,18 @@ public class BucketsHandler {
     }
 
     public void increaseBucketCount(String bucketsTableName, Bucket bucket) {
-        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count + 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
+        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count + 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
     }
 
     public void decreaseBucketCount(String bucketsTableName, Bucket bucket) {
-        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count - 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
+        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count - 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
+
+        Bucket actual = getBucket(bucketsTableName, bucket);
+        if (actual != null && actual.getRowsCount() == 0) {
+            removeBucket(bucketsTableName, bucket);
+        }
     }
 
     public List<Bucket> getAllBuckets(String bucketsTableName, String objectId) {
@@ -67,22 +73,28 @@ public class BucketsHandler {
         return resultBuckets;
     }
 
+
+    public Bucket getBucket(String bucketsTableName, Bucket bucket) {
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
+        return getBucket(query);
+    }
+
     public Bucket getNextBucket(String bucketsTableName, String objectId) {
         String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' LIMIT 1;";
-        return getNextBucket(query);
+        return getBucket(query);
     }
 
     public Bucket getNextBucket(String bucketsTableName, String objectId, Bucket bucket) {
-        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id > " + bucket.getBucketId() + " LIMIT 1;";
-        return getNextBucket(query);
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id > " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
+        return getBucket(query);
     }
 
     public void removeBucket(String bucketsTableName, Bucket bucket) {
-        String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + bucket.getBucketId() + ";";
+        String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
     }
 
-    private Bucket getNextBucket(String query) {
+    private Bucket getBucket(String query) {
         ResultSet rs = session.execute(query);
         Row row = rs.one();
         Bucket resultBucket = null;

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.BoundStatement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
@@ -52,41 +53,26 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetNotExistsException();
         }
 
-        // now - decode parameters encoded in thresholdParam
-        String thresholdCloudId = null;
-        String thresholdSchemaId = null;
-        if (thresholdParam != null) {
-            List<String> thresholdCloudIdAndSchema = decodeParams(thresholdParam);
-            if (thresholdCloudIdAndSchema.size() != 2) {
-                throw new IllegalArgumentException("Wrong threshold param!");
-            }
-
-            thresholdCloudId = thresholdCloudIdAndSchema.get(0);
-            thresholdSchemaId = thresholdCloudIdAndSchema.get(1);
-        }
-
         // get representation stubs from data set
-        List<Representation> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId, thresholdCloudId,
-                thresholdSchemaId, limit + 1);
+        List<Properties> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId, thresholdParam, limit);
 
         // if this is not last slice of result - add reference to next one by
         // encoding parameters in thresholdParam
         String nextResultToken = null;
         if (representationStubs.size() == limit + 1) {
-            Representation nextResult = representationStubs.get(limit);
-            nextResultToken = encodeParams(nextResult.getCloudId(), nextResult.getRepresentationName());
+            nextResultToken = representationStubs.get(limit).getProperty("nextSlice");
             representationStubs.remove(limit);
         }
 
         // replace representation stubs with real representations
         List<Representation> representations = new ArrayList<>(representationStubs.size());
-        for (Representation stub : representationStubs) {
-            if (stub.getVersion() == null) {
-                representations.add(recordDAO.getLatestPersistentRepresentation(stub.getCloudId(),
-                        stub.getRepresentationName()));
+        for (Properties stub : representationStubs) {
+            if (stub.getProperty("versionId") == null) {
+                representations.add(recordDAO.getLatestPersistentRepresentation(stub.getProperty("cloudId"),
+                        stub.getProperty("schema")));
             } else {
-                representations.add(recordDAO.getRepresentation(stub.getCloudId(), stub.getRepresentationName(),
-                        stub.getVersion()));
+                representations.add(recordDAO.getRepresentation(stub.getProperty("cloudId"), stub.getProperty("schema"),
+                        stub.getProperty("versionId")));
             }
         }
         return new ResultSlice<Representation>(nextResultToken, representations);
@@ -103,34 +89,47 @@ public class CassandraDataSetService implements DataSetService {
         isDataSetExists(providerId, dataSetId);
         Representation rep = getRepresentationIfExist(recordId, schema, version);
 
-        // now - when everything is validated - add assignment
-        dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
-                rep.getVersion());
-        DataProvider dataProvider = uis.getProvider(providerId);
-        dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
+        if (!isAssignmentExists(providerId, dataSetId, recordId, schema, rep.getVersion())) {
+            // now - when everything is validated - add assignment
+            dataSetDAO.addAssignment(providerId, dataSetId, recordId, schema,
+                    rep.getVersion());
+            DataProvider dataProvider = uis.getProvider(providerId);
+            dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
 
-        representationIndexer.addAssignment(rep.getVersion(),
-                new CompoundDataSetId(providerId, dataSetId),
-                dataProvider.getPartitionKey());
+            representationIndexer.addAssignment(rep.getVersion(),
+                    new CompoundDataSetId(providerId, dataSetId),
+                    dataProvider.getPartitionKey());
 
 
-        Map<String, Revision> latestRevisions = new HashMap<>();
+            Map<String, Revision> latestRevisions = new HashMap<>();
 
-        for (Revision revision : rep.getRevisions()) {
-            String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
-            Revision currentRevision = latestRevisions.get(revisionKey);
-            if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
-                latestRevisions.put(revisionKey, revision);
+            for (Revision revision : rep.getRevisions()) {
+                String revisionKey = revision.getRevisionName() + "_" + revision.getRevisionProviderId();
+                Revision currentRevision = latestRevisions.get(revisionKey);
+                if (currentRevision == null || revision.getCreationTimeStamp().getTime() > currentRevision.getCreationTimeStamp().getTime()) {
+                    latestRevisions.put(revisionKey, revision);
+                }
+                dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
+                        schema, recordId);
+
+                dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
+                        RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
+                        revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
+                dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
             }
-            dataSetDAO.addDataSetsRevision(providerId, dataSetId, revision,
-                    schema, recordId);
-
-            dataSetDAO.insertProviderDatasetRepresentationInfo(dataSetId, providerId, recordId, rep.getVersion(), schema,
-                    RevisionUtils.getRevisionKey(revision), revision.getCreationTimeStamp(),
-                    revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
-            dataSetDAO.addLatestRevisionForDatasetAssignment(dataSetDAO.getDataSet(providerId, dataSetId), rep, revision);
+            updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
         }
-        updateLatestProviderDatasetRevisions(providerId, dataSetId, recordId, schema, version, latestRevisions);
+    }
+
+    private boolean isAssignmentExists(String providerId, String dataSetId, String recordId, String schema, String version) {
+        Map<String, Set<String>> providerDataSets = dataSetDAO.getDataSets(recordId, schema, version);
+        if (!providerDataSets.isEmpty()) {
+            Set<String> dataSets = providerDataSets.get(providerId);
+            if (dataSets.contains(dataSetId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateLatestProviderDatasetRevisions(String providerId, String dataSetId, String recordId, String schema, String version, Map<String, Revision> latestRevisions) {
@@ -447,19 +446,19 @@ public class CassandraDataSetService implements DataSetService {
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetNotExistsException {
         isDataSetExists(providerId, dataSetId);
-        Representation lastRepresentation = null;
+        String nextToken = null;
         int maxSize = 10000;
 
-        List<Representation> representations = dataSetDAO.listDataSet(providerId, dataSetId, null, null, maxSize);
-        for (Representation representation : representations) {
-            removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        List<Properties> representations = dataSetDAO.listDataSet(providerId, dataSetId, null, maxSize);
+        for (Properties representation : representations) {
+            removeAssignment(providerId, dataSetId, representation.getProperty("cloudId"), representation.getProperty("schema"), representation.getProperty("versionId"));
         }
 
-        while (representations.size() == maxSize) {
-            lastRepresentation = representations.get(maxSize - 1);
-            representations = dataSetDAO.listDataSet(providerId, dataSetId, lastRepresentation.getCloudId(), lastRepresentation.getRepresentationName(), maxSize);
-            for (Representation representation : representations) {
-                removeAssignment(providerId, dataSetId, representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        while (representations.size() == maxSize + 1) {
+            nextToken = representations.get(maxSize).getProperty("nextSlice");
+            representations = dataSetDAO.listDataSet(providerId, dataSetId, nextToken, maxSize);
+            for (Properties representation : representations) {
+                removeAssignment(providerId, dataSetId, representation.getProperty("cloudId"), representation.getProperty("schema"), representation.getProperty("versionId"));
             }
         }
         dataSetDAO.deleteDataSet(providerId, dataSetId);

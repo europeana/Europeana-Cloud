@@ -1,8 +1,7 @@
 package migrator;
 
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import org.junit.After;
+import com.datastax.driver.core.*;
+import migrator.validators.V10_validator;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -49,10 +48,24 @@ public class MigrationExecutorTest {
         migrator.migrate();
 
         //then
-        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments;").all());
+        validateMigration();
+        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments_by_data_set;").all());
         assertThat(cloudIds.size(), is(2));
     }
 
+    @Test
+    public void shouldThrowExceptionOnTwiceDataMigrations() {
+        //given
+        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations);
+        migrator.migrate();
+
+        //when
+        migrator.migrate();
+
+        //then
+        List<String> cloudIds = getCloudIds(session.execute("SELECT * FROM data_set_assignments_by_data_set;").all());
+        assertThat(cloudIds.size(), is(2));
+    }
 
     private List<String> getCloudIds(List<Row> rows) {
         List<String> cloudIds = new ArrayList<>();
@@ -62,6 +75,9 @@ public class MigrationExecutorTest {
         return cloudIds;
     }
 
+    private void validateMigration(){
+        new V10_validator(session).validate();
+    }
 
     @Test
     public void shouldSuccessfullyMigrateDataInUIS() {
