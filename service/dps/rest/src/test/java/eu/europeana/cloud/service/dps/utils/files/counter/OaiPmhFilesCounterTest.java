@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Sets;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import org.apache.commons.io.IOUtils;
@@ -11,7 +12,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -58,6 +62,29 @@ public class OaiPmhFilesCounterTest {
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
+
+    @Test
+    public void shouldReturnMinusOneWhen200ReturnedButErrorInResponse() throws Exception {
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers"))
+                .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiersIncorrectMetadataPrefix.xml"))));
+        OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
+        DpsTask task = getDpsTask(details);
+
+        assertEquals(-1, counter.getFilesCount(task, null));
+    }
+
+    @Test
+    public void shouldReturnMinusOneWhenNoResumptionToken() throws Exception {
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers"))
+                .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiersNoResumptionToken.xml"))));
+        OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
+        DpsTask task = getDpsTask(details);
+
+        assertEquals(-1, counter.getFilesCount(task, null));
+    }
+
     @Test
     public void shouldReturnMinusOneWhen404Returned() throws Exception {
         stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers"))
@@ -75,7 +102,7 @@ public class OaiPmhFilesCounterTest {
 
         String set1 = "set1";
 
-        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&set=" + set1 + "&metadataPrefix=" + schema1 ))
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&set=" + set1 + "&metadataPrefix=" + schema1))
                 .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers.xml"))));
         stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&set=" + set1 + "&metadataPrefix=" + schema2))
                 .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers2.xml"))));
@@ -92,7 +119,7 @@ public class OaiPmhFilesCounterTest {
         String schema1 = "schema1";
         String schema2 = "schema2";
 
-        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&metadataPrefix=" + schema1 ))
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&metadataPrefix=" + schema1))
                 .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers.xml"))));
         stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers&metadataPrefix=" + schema2))
                 .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers2.xml"))));
@@ -123,7 +150,6 @@ public class OaiPmhFilesCounterTest {
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
-
     @Test
     public void shouldReturnMinusOneWhenSetsExcluded() throws Exception {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
@@ -136,18 +162,36 @@ public class OaiPmhFilesCounterTest {
     @Test
     public void shouldReturnMinusOneWhenSchemasExcluded() throws Exception {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
-        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null,Sets.newHashSet("a", "b", "c"),  null, null, null, null);
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, Sets.newHashSet("a", "b", "c"), null, null, null, null);
         DpsTask task = getDpsTask(details);
 
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
+    @Test
+    public void shouldReturnMinusOneWhenRepositoryURLsIsNull() throws Exception {
+        OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null, null);
+        DpsTask task = getDpsTaskNoEndpoint(details);
+        assertEquals(-1, counter.getFilesCount(task, null));
+    }
+
     private DpsTask getDpsTask(OAIPMHHarvestingDetails details) {
-        DpsTask task = new DpsTask("test_oai_task");
-        task.setHarvestingDetails(details);
-        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, OAI_PMH_ENDPOINT);
+        DpsTask task = getDpsTaskNoEndpoint(details);
+
+        List<String> urls = new ArrayList<>();
+        urls.add(OAI_PMH_ENDPOINT);
+        task.addDataEntry(InputDataType.REPOSITORY_URLS, urls);
+
         return task;
     }
+
+    private DpsTask getDpsTaskNoEndpoint(OAIPMHHarvestingDetails details) {
+        DpsTask task = new DpsTask("test_oai_task");
+        task.setHarvestingDetails(details);
+        return task;
+    }
+
 
     private ResponseDefinitionBuilder response200XmlContent(String fileContent) {
         return aResponse()

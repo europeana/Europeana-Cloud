@@ -7,8 +7,8 @@ import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import com.lyncode.xoai.serviceprovider.parameters.Parameters;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.OAIResponseParseException;
 import org.slf4j.Logger;
@@ -19,6 +19,8 @@ import org.xml.sax.InputSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.*;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,7 +41,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
      * Returns the number of records to harvest. Executes ListIdentifiers request on OAI endpoint and extracts
      * completeListSize attribute (of resumptionToken node). When multiple schemas are specified, it sums the sizes
      * for all of them.
-     *
+     * <p>
      * <p>
      * Accurate results are not available in special scenarios:
      * <ul>
@@ -65,30 +67,46 @@ public class OaiPmhFilesCounter extends FilesCounter {
             return DEFAULT_LIST_SIZE;
         }
 
-        String repositoryUrl = task.getParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA);
-        OAIClient client = new HttpOAIClient(repositoryUrl);
-        ListIdentifiersParameters params = new ListIdentifiersParameters()
-                .withFrom(harvestingDetails.getDateFrom())
-                .withUntil(harvestingDetails.getDateUntil());
+        String repositoryUrl = getRepositoryUrl(task.getInputData());
+        if (repositoryUrl != null) {
+            OAIClient client = new HttpOAIClient(repositoryUrl);
+            ListIdentifiersParameters params = new ListIdentifiersParameters()
+                    .withFrom(harvestingDetails.getDateFrom())
+                    .withUntil(harvestingDetails.getDateUntil());
 
-        Set<String> schemas = harvestingDetails.getSchemas();
-        Set<String> sets = harvestingDetails.getSets();
+            Set<String> schemas = harvestingDetails.getSchemas();
+            Set<String> sets = harvestingDetails.getSets();
 
-        if (specified(sets)) {
-            if (sets.size() == 1) {
-                params.withSetSpec(sets.iterator().next());
-            } else {
-                LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Specifying multiple sets is not supported");
+            if (specified(sets)) {
+                if (sets.size() == 1) {
+                    params.withSetSpec(sets.iterator().next());
+                } else {
+                    LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Specifying multiple sets is not supported");
+                    return DEFAULT_LIST_SIZE;
+                }
+            }
+
+            try {
+                return getListSizeForSchemasAndSet(client, params, schemas);
+            } catch (OAIRequestException | OAIResponseParseException e) {
+                LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
                 return DEFAULT_LIST_SIZE;
             }
-        }
-
-        try {
-            return getListSizeForSchemasAndSet(client, params, schemas);
-        } catch (OAIRequestException | OAIResponseParseException e) {
-            LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
+        } else {
+            LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Check REPRESENTATION_URLS parameter.");
             return DEFAULT_LIST_SIZE;
         }
+    }
+
+    private String getRepositoryUrl(Map<InputDataType, List<String>> inputData) {
+        if (inputData != null && !inputData.isEmpty()) {
+            List<String> urls = inputData.get(InputDataType.REPOSITORY_URLS);
+            if (urls != null && !urls.isEmpty()) {
+                String repositoryUrl = urls.get(0);
+                return repositoryUrl;
+            }
+        }
+        return null;
     }
 
     private int getListSizeForSchemasAndSet(OAIClient client, ListIdentifiersParameters params, Set<String> schemas) throws OAIRequestException, OAIResponseParseException {
@@ -117,10 +135,13 @@ public class OaiPmhFilesCounter extends FilesCounter {
             expr = xpath.compile(COMPLETE_LIST_SIZE_XPATH);
 
             Node resumptionTokenNode = (Node) expr.evaluate(inputSource, XPathConstants.NODE);
-            Node node = resumptionTokenNode.getAttributes().getNamedItem(COMPLETE_LIST_SIZE);
-            if (node != null) {
-                String completeListSize = node.getNodeValue();
-                return Integer.parseInt(completeListSize);
+            if (resumptionTokenNode != null) {
+                Node node = resumptionTokenNode.getAttributes().getNamedItem(COMPLETE_LIST_SIZE);
+                if (node != null) {
+                    String completeListSize = node.getNodeValue();
+                    return Integer.parseInt(completeListSize);
+                } else
+                    throw new OAIResponseParseException("Cannot read completeListSize from OAI response. No resumption token node.");
             } else
                 throw new OAIResponseParseException("Cannot read completeListSize from OAI response. No resumption token node.");
         } catch (XPathExpressionException | NumberFormatException e) {
@@ -129,9 +150,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
     }
 
     private boolean specified(Set<String> sets) {
-        if (sets == null)
-            return false;
-        if (sets.isEmpty())
+        if (sets == null || sets.isEmpty())
             return false;
         return true;
     }
