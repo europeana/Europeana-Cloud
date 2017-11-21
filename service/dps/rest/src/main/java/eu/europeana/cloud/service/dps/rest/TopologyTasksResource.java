@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -35,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
@@ -93,11 +96,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-         * <ul>
-             * <li>Authenticated user</li>
-             * <li>Read permission for selected task</li>
-         * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -127,10 +130,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-             * <ul>
-                 * <li>Read permissions for selected task</li>
-             * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Read permissions for selected task</li>
+     * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -140,20 +143,19 @@ public class TopologyTasksResource {
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @summary Get Task Progress
-     * @summary Get Task Progress
      */
     @GET
     @Path("{taskId}/progress")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    @ReturnType("java.lang.String")
-    public Response getTaskProgress(
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public TaskInfo getTaskProgress(
             @PathParam("topologyName") String topologyName,
             @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
 
         assertContainTopology(topologyName);
 
-        String progress = reportService.getTaskProgress(taskId);
-        return Response.ok(progress).build();
+        TaskInfo progress = reportService.getTaskProgress(taskId);
+        return progress;
     }
 
     /**
@@ -176,7 +178,7 @@ public class TopologyTasksResource {
     @Path("/")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
                                final DpsTask task,
-                               @PathParam("topologyName")final String topologyName,
+                               @PathParam("topologyName") final String topologyName,
                                @Context final UriInfo uriInfo,
                                @HeaderParam("Authorization") final String authorizationHeader
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
@@ -230,11 +232,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-            * <strong>Required permissions:</strong>
-            * <ul>
-             * <li>Authenticated user</li>
-             * <li>Read permission for selected task</li>
-            * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -245,10 +247,11 @@ public class TopologyTasksResource {
      */
     @GET
     @Path("{taskId}/reports/details")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public String getTaskDetailedReport(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
-        String progress = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
-        return progress;
+    public List<SubTaskInfo> getTaskDetailedReport(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
+        List<SubTaskInfo> taskInfo = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
+        return taskInfo;
     }
 
 
@@ -257,10 +260,10 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-        * <strong>Required permissions:</strong>
-        * <ul>
-          * <li>Admin permissions</li>
-        * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Admin permissions</li>
+     * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -294,11 +297,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-         * <ul>
-           * <li>Authenticated user</li>
-           * <li>Write permission for selected task</li>
-         * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Write permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
@@ -328,11 +331,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-         * <ul>
-             * <li>Authenticated user</li>
-             * <li>Read permission for selected task</li>
-         * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -356,11 +359,11 @@ public class TopologyTasksResource {
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-         * <strong>Required permissions:</strong>
-            * <ul>
-                * <li>Authenticated user</li>
-                * <li>Write permission for selected task</li>
-             * </ul>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Write permission for selected task</li>
+     * </ul>
      * </div>
      *
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
@@ -418,8 +421,8 @@ public class TopologyTasksResource {
             return topologyName + "_" + DATASET_URLS.name().toLowerCase();
         }
         if (task.getDataEntry(REPOSITORY_URLS) != null) {
-             return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
-         }
+            return topologyName + "_" + REPOSITORY_URLS.name().toLowerCase();
+        }
         throw new DpsTaskValidationException("Validation failed. Missing required data_entry");
     }
 

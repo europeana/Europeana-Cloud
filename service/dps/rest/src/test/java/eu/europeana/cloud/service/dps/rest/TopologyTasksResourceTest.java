@@ -1,6 +1,11 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -8,6 +13,7 @@ import eu.europeana.cloud.service.dps.ApplicationContextUtils;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -20,22 +26,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
+import org.springframework.test.annotation.ExpectedException;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -51,6 +58,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private MutableAclService mutableAclService;
     private WebTarget webTarget;
     private WebTarget detailedReportWebTarget;
+    private WebTarget progressReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -61,17 +69,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private KafkaSubmitService kafkaSubmitService;
     private TaskExecutionReportService reportService;
 
-    public static final String DETAILED_REPORT_RESPONSE = "[\n" +
-            "    {\n" +
-            "       \"task_id\": 12345,\n" +
-            "        \"resource_num\": 1,\n" +
-            "        \"topology_name\": \"any_topology\",\n" +
-            "        \"resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE\",\n" +
-            "        \"state\": \"SUCCESS\",\n" +
-            "        \"info_text\": \"\",\n" +
-            "        \"additional_informations\": \"\",\n" +
-            "        \"result_resource\": \"http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE\"\n" +
-            "    }]";
+    private static final String RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
+    private static final String RESULT_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE";
+    private static final long TASK_ID = 12345;
+    private static final String TOPOLOGY_NAME = "ANY_TOPOLOGY";
 
 
     @Override
@@ -95,6 +96,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         kafkaSubmitService = applicationContext.getBean(KafkaSubmitService.class);
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
+        progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
 
     }
 
@@ -274,26 +276,56 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
     @Test
     public void shouldGetDetailedReportForTheFirst100Resources() {
-        String topologyName = "any_topology";
-        String taskId = "12345";
-        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", topologyName).resolveTemplate("taskId", taskId);
-        when(reportService.getDetailedTaskReportBetweenChunks(eq(taskId), eq(1), eq(100))).thenReturn(DETAILED_REPORT_RESPONSE);
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
         Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(detailedReportResponse.readEntity(String.class), is(DETAILED_REPORT_RESPONSE));
+        assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
+
+    }
+
+    @Test
+    public void shouldGetProgressReport() throws Exception {
+        WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "",100,100, new Date(), new Date(), new Date());
+        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        TaskInfo resultedTaskInfo = detailedReportResponse.readEntity(TaskInfo.class);
+        assertThat(taskInfo, is(resultedTaskInfo));
+    }
+
+    @Test
+    public void shouldThrowExceptionIfTaskIdWasNotFound() throws Exception {
+        WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenThrow(AccessDeniedOrObjectDoesNotExistException.class);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        assertEquals(detailedReportResponse.getStatus(), 405);
     }
 
     @Test
     public void shouldGetDetailedReportForSpecifiedResources() {
-        String topologyName = "any_topology";
-        String taskId = "12345";
-        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", topologyName).resolveTemplate("taskId", taskId).queryParam("from", 120).queryParam("to", 150);
-        when(reportService.getDetailedTaskReportBetweenChunks(eq(taskId), eq(120), eq(150))).thenReturn(DETAILED_REPORT_RESPONSE);
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("from", 120).queryParam("to", 150);
+        List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
         Response detailedReportResponse = enrichedWebTarget.request().get();
-        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(detailedReportResponse.readEntity(String.class), is(DETAILED_REPORT_RESPONSE));
+        assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
     }
 
+    private List<SubTaskInfo> createDummySubTaskInfoList() {
+        List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, States.SUCCESS, "", "", RESULT_RESOURCE_URL);
+        subTaskInfoList.add(subTaskInfo);
+        return subTaskInfoList;
+    }
+
+    private void assertDetailedReportResponse(SubTaskInfo subTaskInfo, Response detailedReportResponse) {
+        assertThat(detailedReportResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
+        List<SubTaskInfo> resultedSubTaskInfoList = detailedReportResponse.readEntity(new GenericType<List<SubTaskInfo>>() {
+        });
+        assertThat(resultedSubTaskInfoList.get(0), is(subTaskInfo));
+    }
 
     private void prepareMocks(String topologyName) throws MCSException, TaskSubmissionException {
         //Mock security

@@ -90,6 +90,10 @@ public class UnitedExceptionMapper {
     public Response toResponse(TaskSubmissionException exception) {
         return buildResponse(Response.Status.BAD_REQUEST, DpsErrorCode.OTHER, exception);
     }
+
+    public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.OTHER, exception);
+    }
     
     private static Response buildResponse(Response.Status httpStatus, DpsErrorCode errorCode, Exception e) {
         return buildResponse(httpStatus.getStatusCode(), errorCode, e);

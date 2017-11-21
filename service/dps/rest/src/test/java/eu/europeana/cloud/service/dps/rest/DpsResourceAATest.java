@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.rest;
 
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -29,12 +31,14 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Date;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
@@ -88,6 +92,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
     private final static String ADMIN = "admin";
     private final static String ADMIN_PASSWORD = "admin";
+    private final static long TASK_ID=12345;
 
     private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
     private final static String PROGRESS = "100%";
@@ -95,6 +100,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private DpsTask XSLT_TASK2;
     private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
     private DpsTask IC_TASK;
+
+
 
     private UriInfo URI_INFO;
     private AsyncResponse asyncResponse;
@@ -117,7 +124,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         URI_INFO = Mockito.mock(UriInfo.class);
         asyncResponse = Mockito.mock(AsyncResponse.class);
-        Mockito.doReturn(PROGRESS).when(reportService).getTaskProgress(Mockito.anyString());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "",100,100, new Date(), new Date(), new Date());
+        Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());

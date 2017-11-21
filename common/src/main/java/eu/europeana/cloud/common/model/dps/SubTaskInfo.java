@@ -1,17 +1,52 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement()
 public class SubTaskInfo {
 
 
     private int resourceNum;
-    private final String resource;
+    private String resource;
     private States state;
     private String info;
     private String additionalInformations;
     private String resultResource;
 
+    public int getResourceNum() {
+        return resourceNum;
+    }
+
+    public void setResourceNum(int resourceNum) {
+        this.resourceNum = resourceNum;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    public String getAdditionalInformations() {
+        return additionalInformations;
+    }
+
+    public void setAdditionalInformations(String additionalInformations) {
+        this.additionalInformations = additionalInformations;
+    }
+
+    public String getResultResource() {
+        return resultResource;
+    }
+
+    public void setResultResource(String resultResource) {
+        this.resultResource = resultResource;
+    }
+
+    public SubTaskInfo() {
+
+    }
+
     public SubTaskInfo(int resourceNum, String resource, States state, String info, String additionalInformations) {
-        this(resource);
+        this.resource=resource;
         this.state = state;
         this.info = info;
         this.additionalInformations = additionalInformations;

@@ -17,11 +17,11 @@
 
     <bean id="permissionManger" class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
     <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
-    
+
     <bean id="mcsLocation" class="java.lang.String">
         <constructor-arg type="java.lang.String" value="http://mcsLocation.com"/>
     </bean>
-    
+
     <mockito:mock id="recordServiceClient" class="eu.europeana.cloud.mcs.driver.RecordServiceClient"/>
 
     <mockito:mock  id="fileServiceClient" class="eu.europeana.cloud.mcs.driver.FileServiceClient"/>
@@ -34,8 +34,9 @@
 
 
     <bean id="topologyResource"  class="eu.europeana.cloud.service.dps.rest.TopologiesResource" />
-         
-    <mockito:mock id="dpsService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaDpsService"/>
+
+    <mockito:mock id="dpsSubmittingService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService"/>
+    <mockito:mock id="dpsReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService"/>
     <mockito:mock id="taskDAO" class="eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO"/>
     <mockito:mock id="filesCounterFactory" class="eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory"/>
 </beans>

@@ -16,45 +16,6 @@
     </properties>
 
     <profiles>
-
-        <profile>
-            <id>zoo</id>
-            <properties>
-                <spring.config.dir>zoo</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-zoo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>zookeeper-kafka</id>
-            <properties>
-                <spring.config.dir>zookeeper-kafka</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-zoo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>tomcat</id>
             <activation>

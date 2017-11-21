@@ -1,6 +1,10 @@
 package eu.europeana.cloud.service.dps;
 
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+
+import java.util.List;
 
 
 /**
@@ -13,12 +17,12 @@ public interface TaskExecutionReportService {
      * by the last bolt of a topology.
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
-    String getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
+    TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
      * @return Info messages for the specified task between chunks
      */
-    String getDetailedTaskReportBetweenChunks(String taskId, int from, int to);
+    List<SubTaskInfo> getDetailedTaskReportBetweenChunks(String taskId, int from, int to);
 
 
     /**
