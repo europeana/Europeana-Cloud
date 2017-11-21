@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,11 @@ public class TaskSplittingBoltTest {
         splitter = mock(Splitter.class);
         whenNew(Splitter.class).withAnyArguments().thenReturn(splitter);
 
+    }
+
+    @Before
+    public void resetCollector() {
+        reset(outputCollector);
     }
 
     @Test
