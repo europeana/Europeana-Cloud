@@ -3,13 +3,14 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 import com.lyncode.xoai.model.oaipmh.Header;
 import com.lyncode.xoai.serviceprovider.ServiceProvider;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
+import com.lyncode.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -86,9 +87,57 @@ public class IdentifiersHarvestingBoltTest {
         sourceDetails.setDateFrom(from);
         sourceDetails.setDateUntil(until);
         initHeaders(sourceDetails);
+        mockSource(iterator);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, url);
         return tuple;
+    }
+
+    @Test
+    public void testRetriesFailed() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+
+        Iterator<Header> mockIterator = Mockito.mock(Iterator.class);
+        mockSource(mockIterator);
+        when(mockIterator.hasNext()).thenThrow(new InvalidOAIResponse());
+
+        //when
+        instance.execute(tuple);
+
+        //then
+        verify(oc, times(0)).emit(any(Tuple.class), captor.capture());
+        verify(oc, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), anyList());
+        verifyNoMoreInteractions(oc);
+    }
+
+    @Test
+    public void testRetriesSuccessful() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+
+        Iterator<Header> mockIterator = Mockito.mock(Iterator.class);
+        mockSource(mockIterator);
+        when(mockIterator.hasNext()).thenThrow(new InvalidOAIResponse()).thenThrow(new InvalidOAIResponse()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(mockIterator.next()).thenReturn(iterator.next()).thenReturn(iterator.next());
+
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(2));
+
+        Set<String> identifiers = new HashSet<>();
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        assertTrue(identifiers.contains(ID1));
+        assertTrue(identifiers.contains(ID2));
+
+        verifyNoMoreInteractions(oc);
     }
 
     @Test
@@ -292,10 +341,12 @@ public class IdentifiersHarvestingBoltTest {
         }
 
         iterator = headers.iterator();
+    }
 
+    private void mockSource(Iterator<Header> headerIterator) {
         try {
             when(sourceProvider.provide(Mockito.anyString())).thenReturn(source);
-            when(source.listIdentifiers(Mockito.any(ListIdentifiersParameters.class))).thenReturn(iterator);
+            when(source.listIdentifiers(Mockito.any(ListIdentifiersParameters.class))).thenReturn(headerIterator);
         } catch (BadArgumentException e) {
             // nothing to report
         }
