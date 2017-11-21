@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_XML;
 import static org.junit.Assert.assertEquals;
@@ -86,13 +87,27 @@ public class OaiPmhFilesCounterTest {
     }
 
     @Test
-    public void shouldReturnMinusOneWhen404Returned() throws Exception {
-        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers"))
-                .willReturn(response404()));
+    public void shouldRetry10TimesAndFail() throws Exception {
+        for (int i = 0; i < 10; i++)
+            stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and fail scenario")
+                    .willReturn(response404()));
+
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
         DpsTask task = getDpsTask(details);
         assertEquals(-1, counter.getFilesCount(task, null));
+    }
+
+    @Test
+    public void shouldRetryAndReturnACorrectValue() throws Exception {
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and success scenario").whenScenarioStateIs(STARTED).willSetStateTo("one time requested")
+                .willReturn(response404()));
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and success scenario").whenScenarioStateIs("one time requested")
+                .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers.xml"))));
+        OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
+        OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
+        DpsTask task = getDpsTask(details);
+        assertEquals(2932, counter.getFilesCount(task, null));
     }
 
     @Test
@@ -141,13 +156,16 @@ public class OaiPmhFilesCounterTest {
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
+
     @Test
-    public void shouldReturnMinusOneWhenEmptySchemasProvided() throws Exception {
+    public void shouldReturnCountForSchemaWhenEmptySetsProvided() throws Exception {
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers"))
+                .willReturn(response200XmlContent(getFileContent("/oaiListIdentifiers.xml"))));
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, new HashSet<String>(), null, null, null);
         DpsTask task = getDpsTask(details);
 
-        assertEquals(-1, counter.getFilesCount(task, null));
+        assertEquals(2932, counter.getFilesCount(task, null));
     }
 
     @Test
