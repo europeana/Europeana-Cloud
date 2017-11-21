@@ -1,6 +1,8 @@
 package eu.europeana.cloud.client.dps.rest;
 
 import co.freeside.betamax.Betamax;
+import eu.europeana.cloud.common.model.dps.States;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import org.junit.Ignore;
@@ -10,6 +12,9 @@ import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -71,6 +76,16 @@ public class DPSClientTest {
     public final void shouldReturnedProgressReport() {
         TaskInfo taskInfo = new TaskInfo(12345, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, null, null, null);
         assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, 12345), is(taskInfo));
+
+    }
+
+    @Test
+    @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
+    public final void shouldReturnedDetailsReport() {
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", States.SUCCESS, "", "", "result");
+        List<SubTaskInfo> taskInfoList = new ArrayList<>();
+        taskInfoList.add(subTaskInfo);
+        assertThat(dpsClient.getDetailedTaskReport(TOPOLOGY_NAME, 12345), is(taskInfoList));
 
     }
 }
