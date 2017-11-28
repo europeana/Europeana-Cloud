@@ -108,7 +108,7 @@ public class IdentifiersHarvestingBoltTest {
 
         //then
         verify(oc, times(0)).emit(any(Tuple.class), captor.capture());
-        verify(oc, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), anyList());
+        verify(oc, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
         verifyNoMoreInteractions(oc);
     }
 
@@ -150,7 +150,11 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
         NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
                 null, States.ERROR, "Source is not configured.", "{DPS_TASK_INPUT_DATA=null}");
-        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        verifyExecutionTimes(1, nt);
+    }
+
+    private void verifyExecutionTimes(int times, NotificationTuple nt) {
+        verify(oc, times(times)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), eq(nt.toStormTuple()));
     }
 
     @Test
@@ -163,7 +167,7 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
         NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
                 null, States.ERROR, "Schema is not specified.", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
-        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        verifyExecutionTimes(1, nt);
     }
 
 
@@ -177,7 +181,7 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
         NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
                 null, States.ERROR, "Harvesting details object is null!", "{}");
-        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        verifyExecutionTimes(1, nt);
     }
 
 
@@ -192,7 +196,7 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
         NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
                 null, States.ERROR, "Runtime exception...", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
-        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        verifyExecutionTimes(1, nt);
     }
 
     @Test
@@ -206,10 +210,8 @@ public class IdentifiersHarvestingBoltTest {
         verify(oc, atMost(0)).emit(any(Tuple.class), captor.capture());
         NotificationTuple nt = NotificationTuple.prepareNotification(TASK_ID,
                 null, States.ERROR, "Bad Argument Exception...", "{DPS_TASK_INPUT_DATA=" + OAI_URL + "}");
-        verify(oc, times(1)).emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        verifyExecutionTimes(1, nt);
     }
-
-
 
 
     @Test
@@ -223,7 +225,7 @@ public class IdentifiersHarvestingBoltTest {
         List<Values> values = captor.getAllValues();
         assertThat(values.size(), is(1));
         assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID2);
-        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verifyNoInteraction();
     }
 
     @Test
@@ -238,7 +240,7 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(values.size(), is(1));
 
         assertEquals(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), ID1);
-        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verifyNoInteraction();
     }
 
     @Test
@@ -257,7 +259,7 @@ public class IdentifiersHarvestingBoltTest {
         identifiers.add(((HashMap<String, String>) values.get(1).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
         assertTrue(identifiers.contains(ID1));
         assertTrue(identifiers.contains(ID2));
-        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verifyNoInteraction();
     }
 
     @Test
@@ -280,7 +282,11 @@ public class IdentifiersHarvestingBoltTest {
         assertTrue(identifiers.contains(ID2));
 
         verifyNoMoreInteractions(oc);
-        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verifyNoInteraction();
+    }
+
+    private void verifyNoInteraction() {
+        verify(oc, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     }
 
     @Test
@@ -298,7 +304,7 @@ public class IdentifiersHarvestingBoltTest {
         assertThat(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER), is(ID2));
 
         verifyNoMoreInteractions(oc);
-        verify(oc,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verifyNoInteraction();
     }
 
     private boolean setOK(String setToCheck, String set, Set<String> excludedSets) {
