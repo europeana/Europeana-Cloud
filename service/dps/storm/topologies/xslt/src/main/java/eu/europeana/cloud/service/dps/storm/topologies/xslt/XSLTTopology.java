@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
@@ -53,7 +54,12 @@ public class XSLTTopology {
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-        KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
+        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+
         TopologyBuilder builder = new TopologyBuilder();
 
         Map<String, String> routingRules = new HashMap<>();

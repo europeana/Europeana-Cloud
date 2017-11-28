@@ -9,10 +9,12 @@ import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.OAIWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
+import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
@@ -60,7 +62,12 @@ public class OAIPHMHarvestingTopology {
         // kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
-        KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
+        CustomKafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
+                topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
+
 
 
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
