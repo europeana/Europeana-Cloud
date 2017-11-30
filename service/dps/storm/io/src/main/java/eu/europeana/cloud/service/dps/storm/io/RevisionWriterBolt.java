@@ -53,6 +53,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             } else {
                 LOGGER.info("Revisions list is empty");
             }
+            outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: " + stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
@@ -60,7 +61,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
             LOGGER.warn("Error while communicating with MCS", e.getMessage());
             emitErrorNotification(stormTaskTuple.getTaskId(), null, e.getMessage(), stormTaskTuple.getParameters().toString());
         }
-        outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+
     }
 
     @Override
