@@ -17,7 +17,6 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.OAI_IDENTIFIER;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
- *
  */
 public class RecordHarvestingBolt extends AbstractDpsBolt {
     private Harvester harvester;
@@ -31,7 +30,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
      * <li>recordId</li>
      * <li>metadata prefix</li>
      * </ul>
-     *
+     * <p>
      * record will be fetched from OAI endpoint. All need parameters should be provided in {@link StormTaskTuple}.
      *
      * @param stormTaskTuple
@@ -40,17 +39,18 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         String endpointLocation = readEndpointLocation(stormTaskTuple);
         String recordId = readRecordId(stormTaskTuple);
+        stormTaskTuple.setFileUrl(recordId);
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             try {
                 LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
 
-                final InputStream record = harvester.harvestRecord(endpointLocation,recordId,
+                final InputStream record = harvester.harvestRecord(endpointLocation, recordId,
                         metadataPrefix);
                 stormTaskTuple.setFileData(record);
                 outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
                 LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
-            } catch ( HarvesterException | IOException e) {
+            } catch (HarvesterException | IOException e) {
                 LOGGER.error("Exception on harvesting", e);
                 StringWriter stack = new StringWriter();
                 e.printStackTrace(new PrintWriter(stack));
@@ -91,7 +91,6 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     private String readMetadataPrefix(StormTaskTuple stormTaskTuple) {
         return stormTaskTuple.getSourceDetails().getSchema();
     }
-
 
 
 }

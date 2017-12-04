@@ -57,7 +57,7 @@ public class OAIPHMHarvestingTopology {
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, oaiTopic, "", "storm");
         kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        // kafkaConfig.ignoreZkOffsets = true;
+        kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaConfig);
