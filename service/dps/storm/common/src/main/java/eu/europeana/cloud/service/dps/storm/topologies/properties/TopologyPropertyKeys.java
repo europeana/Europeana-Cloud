@@ -28,6 +28,7 @@ public final class TopologyPropertyKeys {
     public static final String IC_BOLT_PARALLEL = "IC_BOLT_PARALLEL";
     public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
     public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
+    public static final String VALIDATION_BOLT_PARALLEL = "VALIDATION_BOLT_PARALLEL";
 
     public static final String READ_DATASETS_BOLT_PARALLEL = "READ_DATASETS_BOLT_PARALLEL";
     public static final String READ_DATASET_BOLT_PARALLEL = "READ_DATASET_BOLT_PARALLEL";
@@ -49,6 +50,8 @@ public final class TopologyPropertyKeys {
     public static final String IC_BOLT_NUMBER_OF_TASKS = "IC_BOLT_NUMBER_OF_TASKS";
     public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
     public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
+    public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";
+
 
     //OAI-Parameters
     public static final String TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS = "TASK_SPLITTING_BOLT_BOLT_NUMBER_OF_TASKS";

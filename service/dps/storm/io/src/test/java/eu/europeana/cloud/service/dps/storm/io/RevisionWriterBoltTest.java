@@ -20,7 +20,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class RevisionWriterBoltTest {
 	@Test
 	public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.addRevision(new StormTaskTuple(), revisionServiceClient);
+		testMock.addRevisionAndEmit(new StormTaskTuple(), revisionServiceClient);
 
 		Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
@@ -56,7 +55,7 @@ public class RevisionWriterBoltTest {
 	@Test
 	public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.addRevision(prepareTuple(), revisionServiceClient);
+		testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
 		Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
 	}
@@ -64,7 +63,7 @@ public class RevisionWriterBoltTest {
 	@Test
 	public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.addRevision(prepareTupleWithMalformedURL(), revisionServiceClient);
+		testMock.addRevisionAndEmit(prepareTupleWithMalformedURL(), revisionServiceClient);
 		Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
@@ -73,7 +72,7 @@ public class RevisionWriterBoltTest {
 	public void mcsExceptionShouldBeHandled() throws MalformedURLException, MCSException {
 		Mockito.when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
 		RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-		testMock.addRevision(prepareTuple(), revisionServiceClient);
+		testMock.addRevisionAndEmit(prepareTuple(), revisionServiceClient);
 		Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
 		Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class));
 	}
