@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
+import com.lyncode.xoai.model.oaipmh.Granularity;
 import com.lyncode.xoai.model.oaipmh.Header;
 import com.lyncode.xoai.serviceprovider.ServiceProvider;
 import com.lyncode.xoai.serviceprovider.client.OAIClient;
@@ -120,9 +121,11 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         mockOAIClientProvider();
         mockDatSetClient();
         mockRevisionServiceClient();
+        mockOAIHelper();
         mockUISClient();
         configureMocks();
         mockCassandraInteraction();
+
     }
 
     private void assertTopology(final String input) {
@@ -176,6 +179,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
     }
 
     private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, IdDoesNotExistException, XMLStreamException, TransformerConfigurationException {
+        when(oaiHelper.getGranularity()).thenReturn(Granularity.Day);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
         Set<Header> headers = new HashSet<>();
