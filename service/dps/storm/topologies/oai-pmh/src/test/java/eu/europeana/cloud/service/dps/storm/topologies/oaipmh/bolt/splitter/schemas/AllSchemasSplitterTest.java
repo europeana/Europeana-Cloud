@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.schemas;
 
+import com.lyncode.xoai.model.oaipmh.Granularity;
 import com.lyncode.xoai.model.oaipmh.MetadataFormat;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -72,6 +73,7 @@ public class AllSchemasSplitterTest {
     private void initTestScenario() {
         when(outputCollector.emit(anyList())).thenReturn(null);
         when(splitter.getOaiHelper()).thenReturn(oaiHelper);
+        when(splitter.getGranularity()).thenReturn(Granularity.Second);
         when(splitter.getStormTaskTuple()).thenReturn(stormTaskTuple);
         Iterator<MetadataFormat> metadataFormatIterator = mock(Iterator.class);
         when(metadataFormatIterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);

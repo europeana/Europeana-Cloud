@@ -20,6 +20,7 @@ public class SpecificSchemasSplitter extends SchemasSplitter {
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = splitter.getStormTaskTuple().getSourceDetails();
         Set<String> schemas = oaipmhHarvestingDetails.getSchemas();
         Set<String> excludedSchemas = oaipmhHarvestingDetails.getExcludedSchemas();
+        oaipmhHarvestingDetails.setGranularity(splitter.getGranularity().toString());
         if (excludedSchemas != null)
             schemas.removeAll(excludedSchemas);
         for (String schema : schemas) {

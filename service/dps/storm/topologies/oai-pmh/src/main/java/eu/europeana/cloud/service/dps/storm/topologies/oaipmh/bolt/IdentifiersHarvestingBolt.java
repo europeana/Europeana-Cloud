@@ -76,7 +76,10 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
      * @return object representing parameters for ListIdentifiers request
      */
     private ListIdentifiersParameters configureParameters(OAIPMHHarvestingDetails sourceDetails) {
-        ListIdentifiersParameters parameters = ListIdentifiersParameters.request().withMetadataPrefix(sourceDetails.getSchema());
+        ListIdentifiersParameters parameters = ListIdentifiersParameters.request()
+                .withMetadataPrefix(sourceDetails.getSchema());
+        parameters.withGranularity(sourceDetails.getGranularity());
+
         if (sourceDetails.getDateFrom() != null) {
             parameters.withFrom(sourceDetails.getDateFrom());
         }
@@ -169,6 +172,10 @@ public class IdentifiersHarvestingBolt extends AbstractDpsBolt {
 
         if (sourceDetails.getDateFrom() != null && sourceDetails.getDateUntil() != null && sourceDetails.getDateUntil().before(sourceDetails.getDateFrom())) {
             throw new IllegalArgumentException("Date until is earlier than the date from.");
+        }
+
+        if (sourceDetails.getGranularity() == null) {
+            throw new IllegalArgumentException("Granularity is not specified.");
         }
     }
 }
