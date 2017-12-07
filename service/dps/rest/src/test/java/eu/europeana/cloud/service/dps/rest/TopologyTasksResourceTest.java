@@ -137,6 +137,134 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
 
+
+    @Test
+    public void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldProperlySendTaskWithFileEntryToValidationTopology() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingOutputRevision() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_1() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        Revision revision = new Revision(" ", REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_2() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        Revision revision = new Revision(null, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision_3() throws MCSException, TaskSubmissionException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        Revision revision = new Revision(REVISION_NAME, null);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+
+        //when
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+
+        //then
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+
     @Test
     public void shouldProperlySendTaskWithOaiPmhRepository() throws MCSException, TaskSubmissionException, InterruptedException {
         //given
@@ -287,7 +415,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     @Test
     public void shouldGetProgressReport() throws Exception {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "",100,100, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, new Date(), new Date(), new Date());
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         Response detailedReportResponse = enrichedWebTarget.request().get();
