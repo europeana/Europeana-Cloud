@@ -24,7 +24,7 @@ public class V1__Initial_DPS implements JavaMigration {
 
         session.execute(
                 "CREATE TABLE basic_info (\n" +
-                        "    task_id bigint PRIMARY KEY,\n" +
+                        "    task_id bigint,\n" +
                         "    topology_name text,\n" +
                         "    expected_size int,\n" +
                         "    finish_time timestamp,\n" +
@@ -32,6 +32,8 @@ public class V1__Initial_DPS implements JavaMigration {
                         "    processed_files_count int,\n" +
                         "    sent_time timestamp,\n" +
                         "    start_time timestamp,\n" +
-                        "    state text)\n");
+                        "    state text,\n" +
+                        "    PRIMARY KEY(task_id)\n" +
+                        ");\n");
     }
 }

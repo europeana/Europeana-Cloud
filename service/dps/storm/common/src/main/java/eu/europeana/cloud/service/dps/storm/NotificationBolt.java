@@ -5,11 +5,13 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.commons.lang3.Validate;
@@ -48,6 +50,7 @@ public class NotificationBolt extends BaseRichBolt {
     private static CassandraConnectionProvider cassandraConnectionProvider;
     private static CassandraTaskInfoDAO taskInfoDAO;
     private static CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private static CassandraTaskErrorsDAO taskErrorDAO;
     private static final int PROCESSED_INTERVAL = 100;
 
     /**
@@ -103,22 +106,46 @@ public class NotificationBolt extends BaseRichBolt {
                         notificationTuple.getParameters());
                 break;
             case END_TASK:
-                endTask(taskId, nCache.getProcessed(),
+                endTask(taskId, nCache.getProcessed(), nCache.getErrors(),
                         notificationTuple.getParameters());
                 break;
             case NOTIFICATION:
-                nCache.inc();
-                int processesFilesCount = nCache.getProcessed();
-                storeNotification(processesFilesCount, taskId,
-                        notificationTuple.getParameters());
-                if (nCache.isComplete()) {
-                    storeFinishState(taskId, processesFilesCount);
-                } else {
-                    if ((processesFilesCount % PROCESSED_INTERVAL) == 0)
-                        taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
-                }
+                notifyTask(notificationTuple, nCache, taskId);
                 break;
         }
+    }
+
+    private void notifyTask(NotificationTuple notificationTuple, NotificationCache nCache, long taskId) throws DatabaseConnectionException, TaskInfoDoesNotExistException {
+        boolean error = isError(String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)));
+        nCache.inc(error);
+        int processesFilesCount = nCache.getProcessed();
+        int errors = nCache.getErrors();
+
+        storeNotification(processesFilesCount, taskId,
+                notificationTuple.getParameters());
+
+        if (error) {
+            storeNotificationError(taskId, nCache, notificationTuple.getParameters());
+        }
+        if (nCache.isComplete()) {
+            storeFinishState(taskId, processesFilesCount, errors);
+        } else {
+            if ((processesFilesCount % PROCESSED_INTERVAL) == 0)
+                taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount, errors);
+        }
+    }
+
+    private void storeNotificationError(long taskId, NotificationCache nCache, Map<String, Object> parameters) {
+        Validate.notNull(parameters);
+        String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        String errorType = nCache.getErrorType(errorMessage);
+        String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
+        taskErrorDAO.updateErrorCounter(taskId, errorType);
+        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource);
+    }
+
+    private boolean isError(String state) {
+        return state.equalsIgnoreCase(States.ERROR.toString()) || state.equalsIgnoreCase(States.DROPPED.toString());
     }
 
     @Override
@@ -147,12 +174,12 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
 
-    private void endTask(long taskId, int processeFilesCount, Map<String, Object> parameters) throws DatabaseConnectionException {
+    private void endTask(long taskId, int processeFilesCount, int errors, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
         String state = String.valueOf(parameters.get(NotificationParameterKeys.TASK_STATE));
         Date finishDate = prepareDate(parameters.get(NotificationParameterKeys.FINISH_TIME));
         String info = String.valueOf(parameters.get(NotificationParameterKeys.INFO));
-        taskInfoDAO.endTask(taskId, processeFilesCount, info, state, finishDate);
+        taskInfoDAO.endTask(taskId, processeFilesCount, errors, info, state, finishDate);
     }
 
 
@@ -163,8 +190,8 @@ public class NotificationBolt extends BaseRichBolt {
         return date;
     }
 
-    private void storeFinishState(long taskId, int processeFilesCount) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
-        taskInfoDAO.endTask(taskId, processeFilesCount, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+    private void storeFinishState(long taskId, int processeFilesCount, int errors) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
+        taskInfoDAO.endTask(taskId, processeFilesCount, errors,"Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
     }
 
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
@@ -180,13 +207,18 @@ public class NotificationBolt extends BaseRichBolt {
     private static class NotificationCache {
         int totalSize;
         int processed = 0;
+        int errors = 0;
+        Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache(int totalSize) {
             this.totalSize = totalSize;
         }
 
-        public void inc() {
+        public void inc(boolean error) {
             processed++;
+            if (error) {
+                errors++;
+            }
         }
 
         public Boolean isComplete() {
@@ -197,7 +229,16 @@ public class NotificationBolt extends BaseRichBolt {
             return processed;
         }
 
+        public int getErrors() { return errors; }
 
+        public String getErrorType(String infoText) {
+            String errorType = errorTypes.get(infoText);
+            if (errorType == null) {
+                errorType = new com.eaio.uuid.UUID().toString();
+                errorTypes.put(infoText, errorType);
+            }
+            return errorType;
+        }
     }
 
     public static void clearCache() {

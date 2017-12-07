@@ -2,6 +2,7 @@ package migrator;
 
 import com.datastax.driver.core.*;
 import migrator.validators.V10_validator;
+import migrator.validators.V2_validator;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -101,6 +102,22 @@ public class MigrationExecutorTest {
         assertEquals(row.getString("cloud_id"), "cloud_id");
     }
 
+    @Test
+    public void shouldSuccessfullyMigrateDataInDPS() {
+        //given
+        final String[] scriptsLocations1 = new String[]{"migrations/service/dps",
+                "testMigrations/dps"};
+        MigrationExecutor migrator = new MigrationExecutor(EmbeddedCassandra.KEYSPACE, contactPoint, EmbeddedCassandra.PORT, cassandraUsername, cassandraPassword, scriptsLocations1);
+        //when
+        migrator.migrate();
+
+        //then
+        validateDPSMigration();
+    }
+
+    private void validateDPSMigration() {
+        new V2_validator(session).validate();
+    }
 
 }
 

@@ -7,6 +7,8 @@ public class CassandraTablesAndColumnsNames {
     //------- TABLES -------
     public static final String BASIC_INFO_TABLE = "basic_info";
     public static final String NOTIFICATIONS_TABLE = "notifications";
+    public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
+    public static final String ERROR_COUNTERS_TABLE = "error_counters";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -18,6 +20,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String FINISH_TIME = "finish_time";
     public static final String SENT_TIME = "sent_time";
     public static final String PROCESSED_FILES_COUNT = "processed_files_count";
+    public static final String ERRORS = "errors";
 
 
     //------- NOTIFICATION -------
@@ -29,4 +32,17 @@ public class CassandraTablesAndColumnsNames {
     public static final String NOTIFICATION_INFO_TEXT = "info_text";
     public static final String NOTIFICATION_ADDITIONAL_INFORMATIONS = "additional_informations";
     public static final String NOTIFICATION_RESULT_RESOURCE = "result_resource";
+
+
+    //-------- ERROR NOTIFICATION ---------
+    public static final String ERROR_NOTIFICATION_TASK_ID = "task_id";
+    public static final String ERROR_NOTIFICATION_ERROR_TYPE = "error_type";
+    public static final String ERROR_NOTIFICATION_ERROR_MESSAGE = "error_message";
+    public static final String ERROR_NOTIFICATION_RESOURCE = "resource";
+
+
+    //-------- ERROR COUNTERS ----------
+    public static final String ERROR_COUNTERS_TASK_ID = "task_id";
+    public static final String ERROR_COUNTERS_ERROR_TYPE = "error_type";
+    public static final String ERROR_COUNTERS_COUNTER = "error_count";
 }

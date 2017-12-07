@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -254,6 +255,37 @@ public class TopologyTasksResource {
         return taskInfo;
     }
 
+
+    /**
+     * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
+     * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
+     * A sample of identifiers is returned as well.
+     *
+     * <p/>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
+     * </div>
+     *
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param error <strong>REQUIRED</strong> Error type.
+     * @return Errors that occurred for the specified task.
+     * @summary Retrieve task detailed error report
+     */
+    @GET
+    @Path("{taskId}/reports/errors")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error) throws AccessDeniedOrObjectDoesNotExistException {
+        if (error == null) {
+            return reportService.getGeneralTaskErrorReport(taskId);
+        }
+        return reportService.getSpecificTaskErrorReport(taskId, error);
+    }
 
     /**
      * Grants read / write permissions for a task to the specified user.

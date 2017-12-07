@@ -1,6 +1,7 @@
 package eu.europeana.cloud.client.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -22,13 +23,13 @@ import java.util.List;
  */
 public class DpsClient {
 
+    public static final String ERROR = "error";
     private Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
 
     private String dpsUrl;
 
     private Client client = JerseyClientBuilder.newClient();
 
-    private static final String USERNAME = "Username";
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
     private static final String TASKS_URL = "/topologies/{" + TOPOLOGY_NAME + "}/tasks";
@@ -38,6 +39,7 @@ public class DpsClient {
 
     public static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
     public static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
+    public static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
 
     /**
      * Creates a new instance of this class.
@@ -202,6 +204,36 @@ public class DpsClient {
     private void closeResponse(Response response) {
         if (response != null) {
             response.close();
+        }
+    }
+
+    public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId, final String error) {
+
+        Response response = null;
+
+        try {
+            response = client
+                    .target(dpsUrl)
+                    .path(ERRORS_TASK_REPORT_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                    .resolveTemplate(TASK_ID, taskId)
+                    .queryParam(ERROR, error)
+                    .request().get();
+
+            return handleErrorResponse(response);
+
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    private TaskErrorsInfo handleErrorResponse(Response response) {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            TaskErrorsInfo taskErrorsInfo = response.readEntity(TaskErrorsInfo.class);
+            return taskErrorsInfo;
+        } else {
+            LOGGER.error("Task error report cannot be read");
+            throw new RuntimeException();
         }
     }
 }

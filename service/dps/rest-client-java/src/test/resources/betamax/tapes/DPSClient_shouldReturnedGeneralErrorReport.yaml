@@ -1,0 +1,28 @@
+!tape
+name: DPSClient_shouldReturnedGeneralErrorReport
+interactions:
+- recorded: 2017-11-17T07:12:29.086Z
+  request:
+    method: GET
+    uri: http://localhost:8080/dps/topologies/TopologyName/tasks/12345/reports/errors
+    headers:
+      Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu
+      Content-Length: '13'
+      Content-Type: application/x-www-form-urlencoded
+      Host: localhost:18080
+      Proxy-Connection: keep-alive
+      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_60)
+    body: userneme=admin
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/xml
+      Date: Fri, 06 Nov 2017 07:12:29 GMT
+      Expires: '0'
+      Pragma: no-cache
+      Server: Apache-Coyote/1.1
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: 1; mode=block
+    body: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><taskErrorsInfo><errors><errorType>92f19f57-d173-4e07-8fc9-2a6f0df42549</errorType><message>Message</message><occurrences>5</occurrences></errors><id>12345</id></taskErrorsInfo>
