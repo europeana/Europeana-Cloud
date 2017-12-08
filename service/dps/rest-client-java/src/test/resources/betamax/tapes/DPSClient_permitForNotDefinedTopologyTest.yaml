@@ -4,7 +4,7 @@ interactions:
 - recorded: 2015-11-06T07:12:29.086Z
   request:
     method: POST
-    uri: http://localhost:8080/dps/topologies/NotDefinedTopologyName/permit
+    uri: http://localhost:8080/services/NotDefinedTopologyName/permit
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu

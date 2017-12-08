@@ -23,7 +23,7 @@ import static org.junit.Assert.fail;
 
 public class DPSClientTest {
 
-    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/dps";
+    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/services";
     private static final String BASE_URL = BASE_URL_LOCALHOST;
     private static final String USERNAME_ADMIN = "admin";
     private static final String USER_PASSWORD = "ecloud_admin";

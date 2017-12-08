@@ -7,6 +7,7 @@
         <version>0.8-SNAPSHOT</version>
     </parent>
 
+
     <artifactId>ecloud-service-dps-rest</artifactId>
     <packaging>war</packaging>
     <name>Europeana Cloud: Data Processing Service (DPS-REST)</name>
@@ -73,6 +74,7 @@
     </profiles>
 
     <build>
+        <finalName>services</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

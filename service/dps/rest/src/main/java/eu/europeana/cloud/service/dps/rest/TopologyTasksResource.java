@@ -45,7 +45,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 /**
  * Resource to fetch / submit Tasks to the DPS service
  */
-@Path("/topologies/{topologyName}/tasks")
+@Path("/{topologyName}/tasks")
 @Component
 public class TopologyTasksResource {
 
@@ -175,7 +175,6 @@ public class TopologyTasksResource {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-    @Path("/")
     public Response submitTask(@Suspended final AsyncResponse asyncResponse,
                                final DpsTask task,
                                @PathParam("topologyName") final String topologyName,
@@ -392,7 +391,6 @@ public class TopologyTasksResource {
 
         StringBuilder taskUrl = new StringBuilder()
                 .append(uriInfo.getBaseUri().toString())
-                .append("topologies/")
                 .append(topologyName)
                 .append("/tasks/")
                 .append(task.getTaskId());

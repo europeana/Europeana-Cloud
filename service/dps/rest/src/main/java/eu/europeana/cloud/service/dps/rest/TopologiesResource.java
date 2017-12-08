@@ -27,7 +27,7 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 /**
  * Resource to manage topologies in the DPS service
  */
-@Path("/topologies/{topologyName}")
+@Path("/{topologyName}")
 @Component
 public class TopologiesResource {
 

@@ -31,8 +31,8 @@ public class DpsClient {
     private static final String USERNAME = "Username";
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
-    private static final String TASKS_URL = "/topologies/{" + TOPOLOGY_NAME + "}/tasks";
-    private static final String PERMIT_TOPOLOGY_URL = "/topologies/{" + TOPOLOGY_NAME + "}/permit";
+    private static final String TASKS_URL = "/{" + TOPOLOGY_NAME + "}/tasks";
+    private static final String PERMIT_TOPOLOGY_URL = "/{" + TOPOLOGY_NAME + "}/permit";
     private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
     public static final String REPORTS_RESOURCE = "reports";
 

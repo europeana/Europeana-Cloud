@@ -4,7 +4,7 @@ interactions:
 - recorded: 2017-11-17T07:12:29.086Z
   request:
     method: GET
-    uri: http://localhost:8080/dps/topologies/TopologyName/tasks/12345/reports/details
+    uri: http://localhost:8080/services/TopologyName/tasks/12345/reports/details
     headers:
       Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu
       Content-Length: '13'
