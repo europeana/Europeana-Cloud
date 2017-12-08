@@ -16,6 +16,7 @@ public final class TopologyHelper {
     public static final String XSLT_BOLT = "XSLT_BOLT";
     public static final String WRITE_TO_DATA_SET_BOLT = "writeToDataSetBolt";
     public static final String REVISION_WRITER_BOLT = "revisionWriterBolt";
+    public static final String VALIDATION_BOLT = "validationBolt";
 
     public static final String IDENTIFIERS_HARVESTING_BOLT = "identifiersHarvestingBolt";
     public static final String RECORD_HARVESTING_BOLT = "recordHarvestingBolt";
