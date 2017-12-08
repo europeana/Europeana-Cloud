@@ -39,7 +39,6 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         String endpointLocation = readEndpointLocation(stormTaskTuple);
         String recordId = readRecordId(stormTaskTuple);
-        stormTaskTuple.setFileUrl(recordId);
         String metadataPrefix = readMetadataPrefix(stormTaskTuple);
         if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
             try {

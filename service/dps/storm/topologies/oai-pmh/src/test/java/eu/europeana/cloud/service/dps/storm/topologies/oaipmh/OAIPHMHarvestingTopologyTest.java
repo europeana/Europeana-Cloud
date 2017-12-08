@@ -134,8 +134,8 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
                 MockedSources mockedSources = new MockedSources();
                 mockedSources.addMockData(TopologyHelper.SPOUT, new Values(input));
                 CompleteTopologyParam completeTopologyParam = prepareCompleteTopologyParam(mockedSources);
-                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
-                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
+                final List<String> expectedTuples = Arrays.asList("[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion/files/FileName\",\"resource\":\"ID1\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]",
+                        "[[1,\"NOTIFICATION\",{\"info_text\":\"\",\"resultResource\":\"http://localhost:8080/mcs/records/resultCloudId/representations/resultRepresentationName/versions/resultVersion2/files/FileName2\",\"resource\":\"ID2\",\"additionalInfo\":\"\",\"state\":\"SUCCESS\"}]]");
                 assertResultedTuple(cluster, topology, completeTopologyParam, expectedTuples);
             }
         });
@@ -178,7 +178,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
     private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, IdDoesNotExistException, XMLStreamException, TransformerConfigurationException {
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
-        Set<Header> headers = new HashSet<>();
+        List<Header> headers = new ArrayList<>();
         headers.add(new Header().withIdentifier("ID1").withSetSpec(null).withDatestamp(new Date()));
         headers.add(new Header().withIdentifier("ID2").withSetSpec(null).withDatestamp(new Date()));
         when(serviceProvider.listIdentifiers(any(ListIdentifiersParameters.class))).thenReturn(headers.iterator());
