@@ -17,7 +17,7 @@ public class DpsTaskValidator {
 
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
     private String validatorName;
-    private boolean revisionMustExists = false;
+    private boolean revisionMustExist = false;
 
     public DpsTaskValidator() {
         this("Default validator");
@@ -157,7 +157,7 @@ public class DpsTaskValidator {
      * @return
      */
     public DpsTaskValidator withAnyOutputRevision() {
-        revisionMustExists = true;
+        revisionMustExist = true;
         DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
         dpsTaskConstraints.add(constraint);
         return this;
@@ -181,7 +181,7 @@ public class DpsTaskValidator {
             } else if (fieldType.equals(DpsTaskFieldType.ID)) {
                 validateId(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
-                validateOutputRevision(task, revisionMustExists);
+                validateOutputRevision(task, revisionMustExist);
             }
         }
     }
@@ -207,7 +207,7 @@ public class DpsTaskValidator {
         if (expectedParameter == null) {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
         }
-        if (constraint.getExpectedValue() == null && expectedParameter != null) {  //any name
+        if (constraint.getExpectedValue() == null) {  //any name
             return;
         }
         if ("".equals(constraint.getExpectedValue()) && "".equals(expectedParameter)) {  //empty value
@@ -234,7 +234,7 @@ public class DpsTaskValidator {
         if (constraint.getExpectedValueType() != null) {
             validateInputDataContent(expectedInputData, constraint);
         }
-        if (constraint.getExpectedValue() == null && expectedInputData != null) {   //any value
+        if (constraint.getExpectedValue() == null) {   //any value
             return;
         }
         if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
@@ -294,9 +294,9 @@ public class DpsTaskValidator {
         throw new DpsTaskValidationException("Task id is not valid.");
     }
 
-    private void validateOutputRevision(DpsTask task, boolean RevisionMustExist) throws DpsTaskValidationException {
+    private void validateOutputRevision(DpsTask task, boolean revisionMustExist) throws DpsTaskValidationException {
         Revision outputRevision = task.getOutputRevision();
-        if (RevisionMustExist) {
+        if (revisionMustExist) {
             if (outputRevision == null)
                 throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
             else
