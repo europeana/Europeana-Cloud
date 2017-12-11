@@ -33,7 +33,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>0.8-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>topologies-common-helper-test</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
