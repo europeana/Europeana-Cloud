@@ -15,6 +15,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -54,7 +55,7 @@ public class DpsClient {
     /**
      * Submits a task for execution in the specified topology.
      */
-    public void submitTask(DpsTask task, String topologyName) {
+    public URI submitTask(DpsTask task, String topologyName) {
 
         Response resp = null;
         try {
@@ -66,6 +67,8 @@ public class DpsClient {
 
             if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
                 throw new RuntimeException("submitting task failed!!");
+            } else {
+                return resp.getLocation();
             }
 
         } finally {
