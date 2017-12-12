@@ -53,18 +53,55 @@ public class DPSClientTest {
             throws Exception {
         //given
         dpsClient = new DpsClient(BASE_URL, USERNAME_ADMIN, ADMIN_PASSWORD);
-        DpsTask task = new DpsTask("oaiPmhHarvestingTask");
-        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
-                ("http://example.com/oai-pmh-repository.xml"));
-        task.setHarvestingDetails(new OAIPMHHarvestingDetails("Schema"));
+        DpsTask task = prepareDpsTask();
 
         //when
         dpsClient.topologyPermit(TOPOLOGY_NAME, REGULAR_USER_NAME);
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        URI location = dpsClient.submitTask(task, TOPOLOGY_NAME);
+        long taskId = dpsClient.submitTask(task, TOPOLOGY_NAME);
 
         //then
-        assertEquals(URI.create("http://localhost:8080/services/TopologyName/tasks/2561925310040723252"), location);
+        assertEquals(-2561925310040723252l, taskId);
+    }
+
+    private DpsTask prepareDpsTask() {
+        DpsTask task = new DpsTask("oaiPmhHarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/oai-pmh-repository.xml"));
+        task.setHarvestingDetails(new OAIPMHHarvestingDetails("Schema"));
+        return task;
+    }
+
+
+    @Betamax(tape = "DPSClient/submitTaskAndFail")
+    @Test(expected = RuntimeException.class )
+    public final void shouldThrowAnExceptionWhenCannotSubmitATask()
+            throws Exception {
+        //given
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        DpsTask task = prepareDpsTask();
+
+        //when
+        dpsClient.submitTask(task, TOPOLOGY_NAME);
+
+        //then
+        //throw an exception
+    }
+
+
+    @Betamax(tape = "DPSClient/permitAndSubmitTaskReturnBadURI")
+    @Test(expected = RuntimeException.class )
+    public final void shouldThrowAnExceptionWhenURIMalformed()
+            throws Exception {
+        //given
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        DpsTask task = prepareDpsTask();
+
+        //when
+        dpsClient.submitTask(task, TOPOLOGY_NAME);
+
+        //then
+        //throw an exception
     }
 
     @Test

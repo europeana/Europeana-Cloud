@@ -55,7 +55,7 @@ public class DpsClient {
     /**
      * Submits a task for execution in the specified topology.
      */
-    public URI submitTask(DpsTask task, String topologyName) {
+    public long submitTask(DpsTask task, String topologyName) {
 
         Response resp = null;
         try {
@@ -68,12 +68,17 @@ public class DpsClient {
             if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
                 throw new RuntimeException("submitting task failed!!");
             } else {
-                return resp.getLocation();
+                return getTaskId(resp.getLocation());
             }
 
         } finally {
             closeResponse(resp);
         }
+    }
+
+    private long getTaskId(URI uri) {
+        String[] elements = uri.getRawPath().split("/");
+        return Long.parseLong(elements[elements.length-1]);
     }
 
     /**
@@ -172,7 +177,7 @@ public class DpsClient {
         }
     }
 
-    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId,int from,int to) {
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId, int from, int to) {
 
         Response getResponse = null;
 
