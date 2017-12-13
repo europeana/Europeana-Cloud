@@ -11,6 +11,7 @@ tomcat:
   ports:
     - "8080:8080"
     - "8000:8000"
+    - "8009:8009"
   links:
     - cassandra:cassandra
     - swift:swift

@@ -15,6 +15,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -31,8 +32,8 @@ public class DpsClient {
     private static final String USERNAME = "Username";
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
-    private static final String TASKS_URL = "/topologies/{" + TOPOLOGY_NAME + "}/tasks";
-    private static final String PERMIT_TOPOLOGY_URL = "/topologies/{" + TOPOLOGY_NAME + "}/permit";
+    private static final String TASKS_URL = "/{" + TOPOLOGY_NAME + "}/tasks";
+    private static final String PERMIT_TOPOLOGY_URL = "/{" + TOPOLOGY_NAME + "}/permit";
     private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
     public static final String REPORTS_RESOURCE = "reports";
 
@@ -54,7 +55,7 @@ public class DpsClient {
     /**
      * Submits a task for execution in the specified topology.
      */
-    public void submitTask(DpsTask task, String topologyName) {
+    public long submitTask(DpsTask task, String topologyName) {
 
         Response resp = null;
         try {
@@ -66,11 +67,18 @@ public class DpsClient {
 
             if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
                 throw new RuntimeException("submitting task failed!!");
+            } else {
+                return getTaskId(resp.getLocation());
             }
 
         } finally {
             closeResponse(resp);
         }
+    }
+
+    private long getTaskId(URI uri) {
+        String[] elements = uri.getRawPath().split("/");
+        return Long.parseLong(elements[elements.length-1]);
     }
 
     /**
@@ -169,7 +177,7 @@ public class DpsClient {
         }
     }
 
-    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId,int from,int to) {
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId, int from, int to) {
 
         Response getResponse = null;
 
