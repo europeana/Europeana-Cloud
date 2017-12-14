@@ -6,7 +6,7 @@ import com.google.common.collect.Sets;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -86,7 +85,7 @@ public class OaiPmhFilesCounterTest {
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
-    @Test
+    @Test(expected = TaskSubmissionException.class)
     public void shouldRetry10TimesAndFail() throws Exception {
         for (int i = 0; i < 10; i++)
             stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and fail scenario")
@@ -95,7 +94,7 @@ public class OaiPmhFilesCounterTest {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
         DpsTask task = getDpsTask(details);
-        assertEquals(-1, counter.getFilesCount(task, null));
+        counter.getFilesCount(task, null);
     }
 
     @Test
@@ -186,12 +185,12 @@ public class OaiPmhFilesCounterTest {
         assertEquals(-1, counter.getFilesCount(task, null));
     }
 
-    @Test
-    public void shouldReturnMinusOneWhenRepositoryURLsIsNull() throws Exception {
+    @Test(expected = TaskSubmissionException.class)
+    public void shouldThrowTaskSubmissionExceptionWhenURLsIsNull() throws Exception {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null, null, null);
         DpsTask task = getDpsTaskNoEndpoint(details);
-        assertEquals(-1, counter.getFilesCount(task, null));
+        counter.getFilesCount(task, null);
     }
 
     private DpsTask getDpsTask(OAIPMHHarvestingDetails details) {
