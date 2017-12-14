@@ -87,9 +87,8 @@ public class OaiPmhFilesCounterTest {
 
     @Test(expected = TaskSubmissionException.class)
     public void shouldRetry10TimesAndFail() throws Exception {
-        for (int i = 0; i < 10; i++)
-            stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and fail scenario")
-                    .willReturn(response404()));
+        stubFor(get(urlEqualTo("/oai-phm/?verb=ListIdentifiers")).inScenario("Retry and fail scenario")
+                .willReturn(response404()));
 
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, null, null, null);
