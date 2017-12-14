@@ -88,22 +88,22 @@ public class OaiPmhFilesCounter extends FilesCounter {
 
             try {
                 return getListSizeForSchemasAndSet(repositoryUrl, params, schemas);
-            } catch (OAIRequestException | OAIResponseParseException e) {
+            } catch (OAIResponseParseException e) {
                 LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
                 return DEFAULT_LIST_SIZE;
+            } catch (OAIRequestException e) {
+                LOGGER.info("Cannot complete the request for the following repository URL " + repositoryUrl, e);
+                throw new TaskSubmissionException(e.getMessage());
             }
         } else {
-            LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Check REPRESENTATION_URLS parameter.");
-            return DEFAULT_LIST_SIZE;
+            throw new TaskSubmissionException("The task was dropped because the repositoryUrl can not be null");
         }
     }
 
     private String getRepositoryUrl(Map<InputDataType, List<String>> inputData) {
-        if (inputData != null && !inputData.isEmpty()) {
-            List<String> urls = inputData.get(InputDataType.REPOSITORY_URLS);
-            if (urls != null && !urls.isEmpty()) {
-                return  urls.get(0);
-            }
+        List<String> urls = inputData.get(InputDataType.REPOSITORY_URLS);
+        if (urls != null && !urls.isEmpty()) {
+            return urls.get(0);
         }
         return null;
     }
