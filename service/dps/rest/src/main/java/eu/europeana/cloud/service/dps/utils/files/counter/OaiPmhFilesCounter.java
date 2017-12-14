@@ -63,41 +63,45 @@ public class OaiPmhFilesCounter extends FilesCounter {
     public int getFilesCount(DpsTask task, String authorizationHeader) throws TaskSubmissionException {
 
         OAIPMHHarvestingDetails harvestingDetails = task.getHarvestingDetails();
-        if (specified(harvestingDetails.getExcludedSets()) || specified(harvestingDetails.getExcludedSchemas())) {
-            LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Excluded sets or schemas are not supported");
-            return DEFAULT_LIST_SIZE;
-        }
-
-        String repositoryUrl = getRepositoryUrl(task.getInputData());
-        if (repositoryUrl != null) {
-            ListIdentifiersParameters params = new ListIdentifiersParameters()
-                    .withFrom(harvestingDetails.getDateFrom())
-                    .withUntil(harvestingDetails.getDateUntil());
-
-            Set<String> schemas = harvestingDetails.getSchemas();
-            Set<String> sets = harvestingDetails.getSets();
-
-            if (specified(sets)) {
-                if (sets.size() == 1) {
-                    params.withSetSpec(sets.iterator().next());
-                } else {
-                    LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Specifying multiple sets is not supported");
-                    return DEFAULT_LIST_SIZE;
-                }
-            }
-
-            try {
-                return getListSizeForSchemasAndSet(repositoryUrl, params, schemas);
-            } catch (OAIResponseParseException e) {
-                LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
+        if (harvestingDetails != null) {
+            if (specified(harvestingDetails.getExcludedSets()) || specified(harvestingDetails.getExcludedSchemas())) {
+                LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Excluded sets or schemas are not supported");
                 return DEFAULT_LIST_SIZE;
-            } catch (OAIRequestException e) {
-                LOGGER.info("Cannot complete the request for the following repository URL " + repositoryUrl, e);
-                throw new TaskSubmissionException(e.getMessage());
             }
-        } else {
-            throw new TaskSubmissionException("The task was dropped because the repositoryUrl can not be null");
-        }
+
+            String repositoryUrl = getRepositoryUrl(task.getInputData());
+            if (repositoryUrl != null) {
+                ListIdentifiersParameters params = new ListIdentifiersParameters()
+                        .withFrom(harvestingDetails.getDateFrom())
+                        .withUntil(harvestingDetails.getDateUntil());
+
+                Set<String> schemas = harvestingDetails.getSchemas();
+                Set<String> sets = harvestingDetails.getSets();
+
+                if (specified(sets)) {
+                    if (sets.size() == 1) {
+                        params.withSetSpec(sets.iterator().next());
+                    } else {
+                        LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId() + ". Specifying multiple sets is not supported");
+                        return DEFAULT_LIST_SIZE;
+                    }
+                }
+
+                try {
+                    return getListSizeForSchemasAndSet(repositoryUrl, params, schemas);
+                } catch (OAIResponseParseException e) {
+                    LOGGER.info("Cannot count completeListSize for taskId=" + task.getTaskId(), e);
+                    return DEFAULT_LIST_SIZE;
+                } catch (OAIRequestException e) {
+                    String logMessage = "Cannot complete the request for the following repository URL " + repositoryUrl;
+                    LOGGER.info(logMessage, e);
+                    throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage());
+                }
+            } else {
+                throw new TaskSubmissionException("The task was dropped because the repositoryUrl can not be null");
+            }
+        } else
+            return DEFAULT_LIST_SIZE;
     }
 
     private String getRepositoryUrl(Map<InputDataType, List<String>> inputData) {

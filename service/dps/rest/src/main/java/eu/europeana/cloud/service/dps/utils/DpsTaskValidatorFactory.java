@@ -14,7 +14,7 @@ public class DpsTaskValidatorFactory {
 
     private static final String IC_TOPOLOGY_TASK_WITH_FILE_URLS = "ic_topology_file_urls";
     private static final String IC_TOPOLOGY_TASK_WITH_DATASETS = "ic_topology_dataset_urls";
-    private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_pmh_topology_repository_urls";
+    private static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
     private static final String JP2_MIME_TYPE = "image/jp2";
 
     public static DpsTaskValidator createValidator(String taskType) {
@@ -39,10 +39,8 @@ public class DpsTaskValidatorFactory {
                     .withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
                     .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET);
         } else if (taskType.equalsIgnoreCase(OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL)) {
-            return new DpsTaskValidator("RepositoryUrl validator for OAIPMH Topology")
-                   // .withParameter(PluginParameterKeys.MIME_TYPE)
-                    //.withParameter(PluginParameterKeys.REPRESENTATION_NAME)
-                    //.withParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, JP2_MIME_TYPE)
+            return new DpsTaskValidator("RepositoryUrl validator for OAI-PMH Topology")
+                    .withParameter(PluginParameterKeys.PROVIDER_ID)
                     .withDataEntry(REPOSITORY_URLS.name(), InputDataValueType.LINK_TO_EXTERNAL_URL);
         } else {
             return EMPTY_VALIDATOR;

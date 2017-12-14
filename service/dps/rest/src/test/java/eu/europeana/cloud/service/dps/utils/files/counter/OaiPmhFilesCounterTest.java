@@ -177,6 +177,13 @@ public class OaiPmhFilesCounterTest {
     }
 
     @Test
+    public void shouldReturnMinusOneWheHarvestingDetailsIsNotProvided() throws Exception {
+        OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
+        DpsTask task = getDpsTask(null);
+        assertEquals(-1, counter.getFilesCount(task, null));
+    }
+
+    @Test
     public void shouldReturnMinusOneWhenSchemasExcluded() throws Exception {
         OaiPmhFilesCounter counter = new OaiPmhFilesCounter();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null, Sets.newHashSet("a", "b", "c"), null, null, null, null);
