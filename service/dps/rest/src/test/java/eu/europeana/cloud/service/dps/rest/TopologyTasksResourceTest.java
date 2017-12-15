@@ -9,10 +9,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.ApplicationContextUtils;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
@@ -26,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
-import org.springframework.test.annotation.ExpectedException;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
@@ -143,8 +139,8 @@ public class TopologyTasksResourceTest extends JerseyTest {
         DpsTask task = new DpsTask("oaiPmhHarvestingTask");
         task.addDataEntry(REPOSITORY_URLS, Arrays.asList
                 ("http://example.com/oai-pmh-repository.xml"));
-        task.setHarvestingDetails(new OAIPMHHarvestingDetails("Schema"));
-        String topologyName = "oai_pmh_topology";
+        task.addParameter(PluginParameterKeys.PROVIDER_ID, "providerId");
+        String topologyName = "oai_topology";
         prepareMocks(topologyName);
         WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
 
@@ -156,6 +152,22 @@ public class TopologyTasksResourceTest extends JerseyTest {
         Thread.sleep(10000);
         verify(kafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
         verifyNoMoreInteractions(kafkaSubmitService);
+    }
+
+
+    @Test
+    public void shouldThrowExceptionWhenMissingRequiredProviderId() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("oaiPmhHarvestingTask");
+        task.addDataEntry(REPOSITORY_URLS, Arrays.asList
+                ("http://example.com/oai-pmh-repository.xml"));
+        String topologyName = "oai_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     @Test
@@ -287,7 +299,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     @Test
     public void shouldGetProgressReport() throws Exception {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "",100,100, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, new Date(), new Date(), new Date());
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         Response detailedReportResponse = enrichedWebTarget.request().get();
