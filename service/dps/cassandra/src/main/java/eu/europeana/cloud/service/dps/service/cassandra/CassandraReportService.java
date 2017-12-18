@@ -127,7 +127,7 @@ public class CassandraReportService implements TaskExecutionReportService {
         long taskId = Long.valueOf(task);
         ResultSet rs = cassandra.getSession().execute(selectErrorsStatement.bind(taskId));
         if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
+            return new TaskErrorsInfo(taskId, new ArrayList<TaskErrorInfo>());
         }
 
         List<TaskErrorInfo> errors = new ArrayList<>();
@@ -160,7 +160,7 @@ public class CassandraReportService implements TaskExecutionReportService {
         if (message == null) {
             ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), FETCH_ONE));
             if (!rs.iterator().hasNext()) {
-                throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
+                throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
             }
             message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
             errorMessages.put(errorType, message);
@@ -182,7 +182,7 @@ public class CassandraReportService implements TaskExecutionReportService {
         long taskId = Long.valueOf(task);
         ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), FETCH_SIZE));
         if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
+            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
         }
 
         List<String> identifiers = new ArrayList<>();
@@ -204,7 +204,7 @@ public class CassandraReportService implements TaskExecutionReportService {
     private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
         ResultSet rs = cassandra.getSession().execute(selectErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
+            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
         }
 
         TaskErrorInfo taskErrorInfo = new TaskErrorInfo();
