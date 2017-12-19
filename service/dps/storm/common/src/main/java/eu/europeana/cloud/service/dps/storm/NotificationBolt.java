@@ -154,6 +154,7 @@ public class NotificationBolt extends BaseRichBolt {
                 userName, password);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
         this.stormConfig = stormConf;
         this.topologyContext = tc;
