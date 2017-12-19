@@ -73,6 +73,7 @@ supervisor:
   hostname: supervisor
   ports:
     - "8000"
+    - "1044:1044"
   links:
     - nimbus:nimbus
     - zookeeper:zookeeper
