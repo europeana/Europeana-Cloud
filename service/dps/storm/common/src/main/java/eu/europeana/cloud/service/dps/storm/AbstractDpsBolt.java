@@ -132,7 +132,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitErrorNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.ERROR, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 
     /**
@@ -147,35 +147,19 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected void emitKillNotification(long taskId, String resource, String message, String additionalInformations) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.KILLED, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 
 
-    protected void endTask(long taskId,String info, TaskState state, Date finishTime) {
+    protected void endTask(long taskId, String info, TaskState state, Date finishTime) {
         NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
-
-    protected void updateTask(long taskId,String info, TaskState state, Date startTime) {
-        NotificationTuple nt = NotificationTuple.prepareUpdateTask(taskId, info, state, startTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 
 
     protected void logAndEmitError(StormTaskTuple t, String message) {
         LOGGER.error(message);
         emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
-    }
-
-    protected void logAndEmitError(StormTaskTuple t, String message, Exception e) {
-        LOGGER.error(message, e);
-        StringWriter stack = new StringWriter();
-        e.printStackTrace(new PrintWriter(stack));
-        logAndEmitError(t, message + e.getMessage());
-    }
-
-    protected void emitSuccess(StormTaskTuple t) {
-        outputCollector.emit(inputTuple, t.toStormTuple());
     }
 
 

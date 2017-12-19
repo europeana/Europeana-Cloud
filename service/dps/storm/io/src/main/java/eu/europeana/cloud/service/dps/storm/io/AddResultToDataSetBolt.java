@@ -103,6 +103,6 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
                                          String message, String additionalInformations, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 }

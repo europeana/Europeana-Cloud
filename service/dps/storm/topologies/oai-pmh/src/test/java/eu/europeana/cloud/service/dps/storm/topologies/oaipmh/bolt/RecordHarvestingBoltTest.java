@@ -29,7 +29,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link RecordHarvestingBolt}
- *
  */
 
 @RunWith(MockitoJUnitRunner.class)
@@ -46,7 +45,7 @@ public class RecordHarvestingBoltTest {
     @Test
     public void harvestingForAllParametersSpecified() throws OAIRequestException, IOException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
         //given
-        when(harvester.harvestRecord(anyString(),anyString(),anyString())).thenReturn(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(new
                 ByteArrayInputStream(new byte[]{}));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
@@ -63,7 +62,7 @@ public class RecordHarvestingBoltTest {
     public void shouldEmitErrorOnHarvestingException() throws OAIRequestException, IOException,
             HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
         //given
-        when(harvester.harvestRecord(anyString(),anyString(),anyString())).thenThrow(new
+        when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenThrow(new
                 HarvesterException("Some!"));
         StormTaskTuple task = taskWithAllNeededParameters();
         StormTaskTuple spiedTask = spy(task);
@@ -88,7 +87,7 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void harvestingForEmptyRecordId(){
+    public void harvestingForEmptyRecordId() {
         //given
         StormTaskTuple task = taskWithoutRecordId();
 
@@ -100,7 +99,7 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void harvestForEmptyPrefix(){
+    public void harvestForEmptyPrefix() {
         //given
         StormTaskTuple task = taskWithoutPrefix();
 
@@ -111,35 +110,35 @@ public class RecordHarvestingBoltTest {
         verifyErrorEmit();
     }
 
-    private StormTaskTuple taskWithAllNeededParameters(){
+    private StormTaskTuple taskWithAllNeededParameters() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
-        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER,"oaiIdentifier");
+        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
+        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
         return task;
     }
 
-    private StormTaskTuple taskWithoutResourceUrl(){
+    private StormTaskTuple taskWithoutResourceUrl() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
         return task;
     }
 
-    private StormTaskTuple taskWithoutRecordId(){
+    private StormTaskTuple taskWithoutRecordId() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
         task.setSourceDetails(details);
-        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
+        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
         return task;
     }
 
-    private StormTaskTuple taskWithoutPrefix(){
+    private StormTaskTuple taskWithoutPrefix() {
         StormTaskTuple task = new StormTaskTuple();
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails(null);
-        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA,"urlToOAIEndpoint");
-        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER,"oaiIdentifier");
+        task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
+        task.addParameter(PluginParameterKeys.OAI_IDENTIFIER, "oaiIdentifier");
         task.setSourceDetails(details);
         return task;
     }
@@ -147,18 +146,18 @@ public class RecordHarvestingBoltTest {
     /**
      * Checks if emit to standard stream occured
      */
-    private void verifySuccessfulEmit(){
-        verify(outputCollector,times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
-        verify(outputCollector,times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+    private void verifySuccessfulEmit() {
+        verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     }
 
     /**
      * Checks if emit to error stream occured
      */
-    private void verifyErrorEmit(){
+    private void verifyErrorEmit() {
 
-        verify(outputCollector,times(1)).emit(eq("NotificationStream"), Mockito.anyList());
-        verify(outputCollector,times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     }
 
 }

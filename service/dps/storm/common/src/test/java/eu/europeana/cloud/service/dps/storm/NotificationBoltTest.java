@@ -127,15 +127,11 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         TaskInfo afterOneHundredExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         testedBolt.execute(tuple);
-        TaskInfo afterAllExecutions = cassandraReportService.getTaskProgress(String.valueOf(taskId));
         assertEquals(beforeExecute.getProcessedElementCount(), 0);
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
 
         assertEquals(afterOneHundredExecutions.getProcessedElementCount(), 100);
         assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
-
-        assertEquals(afterAllExecutions.getProcessedElementCount(), 101);
-        assertThat(afterAllExecutions.getState(), is(TaskState.PROCESSED));
     }
 
 

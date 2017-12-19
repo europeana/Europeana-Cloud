@@ -77,7 +77,7 @@ public class NotificationBolt extends BaseRichBolt {
                     .fromStormTuple(tuple);
             NotificationCache nCache = cache.get(notificationTuple.getTaskId());
             if (nCache == null) {
-                nCache = new NotificationCache(getExpectedSize(notificationTuple.getTaskId()));
+                nCache = new NotificationCache();
                 cache.put(notificationTuple.getTaskId(), nCache);
             }
             storeTaskDetails(notificationTuple, nCache);
@@ -111,12 +111,8 @@ public class NotificationBolt extends BaseRichBolt {
                 int processesFilesCount = nCache.getProcessed();
                 storeNotification(processesFilesCount, taskId,
                         notificationTuple.getParameters());
-                if (nCache.isComplete()) {
-                    storeFinishState(taskId, processesFilesCount);
-                } else {
-                    if ((processesFilesCount % PROCESSED_INTERVAL) == 0)
-                        taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
-                }
+                if ((processesFilesCount % PROCESSED_INTERVAL) == 0)
+                    taskInfoDAO.setUpdateProcessedFiles(taskId, processesFilesCount);
                 break;
         }
     }
@@ -163,10 +159,6 @@ public class NotificationBolt extends BaseRichBolt {
         return date;
     }
 
-    private void storeFinishState(long taskId, int processeFilesCount) throws TaskInfoDoesNotExistException, DatabaseConnectionException {
-        taskInfoDAO.endTask(taskId, processeFilesCount, "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
-    }
-
     private void storeNotification(int resourceNum, long taskId, Map<String, Object> parameters) throws DatabaseConnectionException {
         Validate.notNull(parameters);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
@@ -178,19 +170,14 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private static class NotificationCache {
-        int totalSize;
+
         int processed = 0;
 
-        NotificationCache(int totalSize) {
-            this.totalSize = totalSize;
+        NotificationCache() {
         }
 
         public void inc() {
             processed++;
-        }
-
-        public Boolean isComplete() {
-            return totalSize != -1 ? processed >= totalSize : false;
         }
 
         public int getProcessed() {
@@ -202,12 +189,6 @@ public class NotificationBolt extends BaseRichBolt {
 
     public static void clearCache() {
         cache.clear();
-    }
-
-    private int getExpectedSize(long taskId) throws TaskInfoDoesNotExistException {
-        TaskInfo task = taskInfoDAO.searchById(taskId);
-        return task.getExpectedSize();
-
     }
 
 }

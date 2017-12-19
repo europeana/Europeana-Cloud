@@ -37,4 +37,4 @@ CREATE TABLE notifications (
     additional_informations text,
     result_resource varchar,
     PRIMARY KEY(task_id,resource_num)
-);
+) WITH CLUSTERING ORDER BY (resource_num DESC);

@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -65,14 +66,14 @@ public class TaskSplittingBoltTest {
     public void testNormalExecution() throws Exception {
         doNothing().when(splitter).splitBySchema();
         taskSplittingBolt.execute(tuple);
-        verify(outputCollector, times(0)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     }
 
     @Test
     public void testExceptionExecution() throws Exception {
         doThrow(new RuntimeException()).when(splitter).splitBySchema();
         taskSplittingBolt.execute(tuple);
-        verify(outputCollector, times(1)).emit(eq("NotificationStream"), Mockito.anyList());
+        verify(outputCollector, times(1)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     }
 
 }
