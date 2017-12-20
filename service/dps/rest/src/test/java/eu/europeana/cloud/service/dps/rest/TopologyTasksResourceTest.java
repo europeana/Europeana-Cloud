@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.ApplicationContextUtils;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
@@ -38,7 +37,6 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -55,6 +53,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget webTarget;
     private WebTarget detailedReportWebTarget;
     private WebTarget progressReportWebTarget;
+    private WebTarget errorsReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -70,6 +69,10 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private static final long TASK_ID = 12345;
     private static final String TOPOLOGY_NAME = "ANY_TOPOLOGY";
 
+    private static final String ERROR_MESSAGE = "Message";
+    private static final String[] ERROR_TYPES = { "bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
+    private static final int[] ERROR_COUNTS = { 5, 2, 7};
+    private static final String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
 
     @Override
     protected Application configure() {
@@ -93,7 +96,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         webTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value());
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
-
+        errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
     }
 
     @Test
@@ -299,12 +302,57 @@ public class TopologyTasksResourceTest extends JerseyTest {
     @Test
     public void shouldGetProgressReport() throws Exception {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 100, 100, 50, new Date(), new Date(), new Date());
         when(reportService.getTaskProgress(eq(Long.toString(TASK_ID)))).thenReturn(taskInfo);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         Response detailedReportResponse = enrichedWebTarget.request().get();
         TaskInfo resultedTaskInfo = detailedReportResponse.readEntity(TaskInfo.class);
         assertThat(taskInfo, is(resultedTaskInfo));
+    }
+
+    @Test
+    public void shouldGetSpecificErrorReport() throws Exception {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("error", ERROR_TYPES[0]);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
+        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]))).thenReturn(errorsInfo);
+
+        Response response = enrichedWebTarget.request().get();
+        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        assertThat(retrievedInfo, is(errorsInfo));
+    }
+
+    @Test
+    public void shouldGetGeneralErrorReport() throws Exception {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
+        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)))).thenReturn(errorsInfo);
+
+        Response response = enrichedWebTarget.request().get();
+        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        assertThat(retrievedInfo, is(errorsInfo));
+    }
+
+    private TaskErrorsInfo createDummyErrorsInfo(boolean specific) {
+        TaskErrorsInfo info = new TaskErrorsInfo(TASK_ID);
+        List<TaskErrorInfo> errors = new ArrayList<>();
+        info.setErrors(errors);
+        for (int i = 0; i < 3; i++) {
+            TaskErrorInfo error = new TaskErrorInfo();
+            error.setMessage(ERROR_MESSAGE);
+            error.setErrorType(ERROR_TYPES[i]);
+            error.setOccurrences(ERROR_COUNTS[i]);
+            if (specific) {
+                List<String> identifiers = new ArrayList<>();
+                error.setIdentifiers(identifiers);
+                for (int j = 0; j < ERROR_COUNTS[i]; j++) {
+                    identifiers.add(ERROR_RESOURCE_IDENTIFIER + String.valueOf(j));
+                }
+            }
+            errors.add(error);
+        }
+        return info;
     }
 
     @Test

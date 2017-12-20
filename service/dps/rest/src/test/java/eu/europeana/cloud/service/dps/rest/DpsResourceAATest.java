@@ -124,7 +124,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         URI_INFO = Mockito.mock(UriInfo.class);
         asyncResponse = Mockito.mock(AsyncResponse.class);
-        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "",100,100, new Date(), new Date(), new Date());
+        TaskInfo taskInfo = new TaskInfo(TASK_ID, SAMPLE_TOPOLOGY_NAME, TaskState.PROCESSED, "",100, 100, 0, new Date(), new Date(), new Date());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         Mockito.when(URI_INFO.getBaseUri()).thenReturn(new URI("http:127.0.0.1:8080/sampleuri/"));
         Mockito.when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);

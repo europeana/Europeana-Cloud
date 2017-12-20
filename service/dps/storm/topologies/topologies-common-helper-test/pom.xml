@@ -116,6 +116,11 @@
             <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-dps-storm-common</artifactId>
+            <version>0.8-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

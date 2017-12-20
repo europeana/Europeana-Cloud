@@ -8,6 +8,9 @@ import java.util.List;
 
 @XmlRootElement()
 public class TaskInfo {
+
+    private static final int DEFAULT_PROGRESS_PERCENTAGE = -1;
+
     private long id;
 
     public void setId(long id) {
@@ -28,6 +31,8 @@ public class TaskInfo {
     private Date startDate;
     private Date sentDate;
 
+    private int processedPercentage;
+    private int errors;
 
     public TaskInfo() {
 
@@ -69,6 +74,22 @@ public class TaskInfo {
         this.processedElementCount = processedElementCount;
     }
 
+    public int getProcessedPercentage() {
+        return processedPercentage;
+    }
+
+    public void setProcessedPercentage(int processedPercentage) {
+        this.processedPercentage = processedPercentage;
+    }
+
+    public int getErrors() {
+        return errors;
+    }
+
+    public void setErrors(int errors) {
+        this.errors = errors;
+    }
+
     private List<SubTaskInfo> subtasks = new ArrayList<>();
 
     public TaskState getState() {
@@ -87,12 +108,20 @@ public class TaskInfo {
         this.info = info;
     }
 
-
-    public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
-        this(id, topologyName, state, info, 0, 0, sentDate, startDate, finishDate);
+    private void calculateProgress() {
+        if (expectedSize < 0) {
+            processedPercentage = DEFAULT_PROGRESS_PERCENTAGE;
+        }
+        else {
+            processedPercentage = expectedSize > 0 ? 100 * processedElementCount / expectedSize : 0;
+        }
     }
 
-    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, Date sentDate, Date startDate, Date finishDate) {
+    public TaskInfo(long id, String topologyName, TaskState state, String info, Date sentDate, Date startDate, Date finishDate) {
+        this(id, topologyName, state, info, 0, 0, 0, sentDate, startDate, finishDate);
+    }
+
+    public TaskInfo(long id, String topologyName, TaskState state, String info, int containsElements, int processedElementCount, int errors, Date sentDate, Date startDate, Date finishDate) {
         this.id = id;
         this.topologyName = topologyName;
         this.state = state;
@@ -102,6 +131,8 @@ public class TaskInfo {
         this.sentDate = sentDate;
         this.startDate = startDate;
         this.finishDate = finishDate;
+        this.errors = errors;
+        calculateProgress();
     }
 
 
@@ -137,6 +168,8 @@ public class TaskInfo {
         TaskInfo taskInfo = (TaskInfo) o;
 
         if (expectedSize != taskInfo.expectedSize) return false;
+        if (errors != taskInfo.errors) return false;
+        if (processedPercentage != taskInfo.processedPercentage) return false;
         if (id != taskInfo.id) return false;
         if (subtasks != null ? !subtasks.equals(taskInfo.subtasks) : taskInfo.subtasks != null) return false;
         if (topologyName != null ? !topologyName.equals(taskInfo.topologyName) : taskInfo.topologyName != null)
@@ -164,6 +197,8 @@ public class TaskInfo {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (topologyName != null ? topologyName.hashCode() : 0);
         result = 31 * result + expectedSize;
+        result = 31 * result + errors;
+        result = 31 * result + processedPercentage;
         result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);

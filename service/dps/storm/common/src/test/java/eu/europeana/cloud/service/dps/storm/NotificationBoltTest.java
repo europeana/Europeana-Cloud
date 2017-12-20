@@ -21,10 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -39,6 +36,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     private OutputCollector collector;
     private NotificationBolt testedBolt;
     private CassandraTaskInfoDAO taskInfoDAO;
+    private static final int PROCESSED_INTERVAL = 100;
 
 
     @Before
@@ -67,7 +65,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date startTime = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, startTime, null);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, startTime, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, startTime, null, 0);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, startTime));
         //when
         testedBolt.execute(tuple);
@@ -88,7 +86,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String taskInfo = "";
         Date finishDate = new Date();
         TaskInfo expectedTaskInfo = createTaskInfo(taskId, containsElements, topologyName, taskState, taskInfo, null, null, finishDate);
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, null, finishDate);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, containsElements, taskState.toString(), taskInfo, null, null, finishDate, 0);
         final Tuple tuple = createTestTuple(NotificationTuple.prepareEndTask(taskId, taskInfo, taskState, finishDate));
         //when
         testedBolt.execute(tuple);
@@ -109,7 +107,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         String topologyName = null;
         TaskState taskState = TaskState.CURRENTLY_PROCESSING;
         String taskInfo = "";
-        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null);
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
         String resource = "resource";
         States state = States.SUCCESS;
         String text = "text";
@@ -134,6 +132,109 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(afterOneHundredExecutions.getState(), is(TaskState.CURRENTLY_PROCESSING));
     }
 
+
+    @Test
+    public void testNotificationProgressPercentage() throws Exception {
+        //given
+        CassandraReportService cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, "", "");
+        long taskId = 1;
+        int expectedSize = 330;
+        int errors = 5;
+        int middle = (int)(Math.random() * expectedSize);
+        String topologyName = null;
+        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
+        String taskInfo = "";
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
+        testedBolt.execute(setUpTuple);
+
+        //when
+        List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
+
+        TaskInfo beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        TaskInfo middleExecute = null;
+
+        for (int i = 0; i < tuples.size(); i++) {
+            testedBolt.execute(tuples.get(i));
+            if (i == middle - 1) {
+                middleExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+            }
+        }
+
+        TaskInfo afterExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+
+        //then
+        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+        assertEquals(beforeExecute.getProcessedPercentage(), 0);
+
+        if (middleExecute != null) {
+            assertEquals(middleExecute.getProcessedElementCount(), (middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL);
+            assertThat(middleExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+            assertEquals(middleExecute.getProcessedPercentage(), 100 * ((middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL)/ expectedSize);
+        }
+
+        assertEquals(afterExecute.getProcessedElementCount(), expectedSize);
+        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
+        assertEquals(afterExecute.getProcessedPercentage(), 100);
+    }
+
+
+    @Test
+    public void testNotificationForErrors() throws Exception {
+        //given
+        CassandraReportService cassandraReportService = new CassandraReportService(HOST, PORT, KEYSPACE, "", "");
+        long taskId = 1;
+        int expectedSize = 20;
+        int errors = 9;
+        String topologyName = null;
+        TaskState taskState = TaskState.CURRENTLY_PROCESSING;
+        String taskInfo = "";
+        taskInfoDAO.insert(taskId, topologyName, expectedSize, 0, taskState.toString(), taskInfo, null, null, null, 0);
+        final Tuple setUpTuple = createTestTuple(NotificationTuple.prepareUpdateTask(taskId, taskInfo, taskState, null));
+        testedBolt.execute(setUpTuple);
+
+        //when
+        List<Tuple> tuples = prepareTuples(taskId, expectedSize, errors);
+
+        TaskInfo beforeExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+
+        for (Tuple tuple : tuples) {
+            testedBolt.execute(tuple);
+        }
+
+        TaskInfo afterExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+
+        //then
+        assertEquals(beforeExecute.getProcessedElementCount(), 0);
+        assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+        assertEquals(beforeExecute.getErrors(), 0);
+
+        assertEquals(afterExecute.getProcessedElementCount(), expectedSize);
+        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
+        assertEquals(afterExecute.getErrors(), errors);
+    }
+
+    private List<Tuple> prepareTuples(long taskId, int size, int errors) {
+        String resource = "resource";
+        String text = "text";
+        String additionalInformation = "additionalInformation";
+        String resultResource = "";
+        List<Tuple> result = new ArrayList<>();
+
+        if (errors > size) {
+            errors = size;
+        }
+
+        for (int i = 0; i < errors; i++) {
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(i), States.ERROR, text, additionalInformation, resultResource)));
+        }
+
+        while (result.size() < size) {
+            result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, resource + String.valueOf(result.size()), States.SUCCESS, text, additionalInformation, resultResource)));
+        }
+        return result;
+    }
 
     private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info, Date sentTime, Date startTime, Date finishTime) {
         TaskInfo expectedTaskInfo = new TaskInfo(taskId, topologyName, state, info, sentTime, startTime, finishTime);

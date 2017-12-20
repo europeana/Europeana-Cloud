@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.utils.CustomKafkaMessage;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
@@ -36,6 +37,7 @@ public class CustomKafkaSpout extends KafkaSpout {
     private CassandraConnectionProvider cassandraConnectionProvider;
     private CassandraTaskInfoDAO cassandraTaskInfoDAO;
     private CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO;
+    private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
 
     public CustomKafkaSpout(SpoutConfig spoutConf, String hosts, int port, String keyspaceName,
                             String userName, String password) {
@@ -57,7 +59,7 @@ public class CustomKafkaSpout extends KafkaSpout {
                 userName, password);
         cassandraTaskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         cassandraSubTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
-
+        cassandraTaskErrorsDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             long taskId = task.getTaskId();
-            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
+            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId), "Completely processed", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,7 +127,7 @@ public class CustomKafkaSpout extends KafkaSpout {
             Values tupleValues = getTupleValues(customKafkaMessage.getPartition(), messageAndOffset);
             DpsTask task = getDpsTask(tupleValues);
             long taskId = task.getTaskId();
-            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
+            cassandraTaskInfoDAO.endTask(taskId, cassandraSubTaskInfoDAO.getProcessedFilesCount(taskId), cassandraTaskErrorsDAO.getErrorCount(taskId),  "The task was finished without a guarantee of complete processing", String.valueOf(TaskState.PROCESSED), new Date());
 
         } catch (Exception e) {
             e.printStackTrace();

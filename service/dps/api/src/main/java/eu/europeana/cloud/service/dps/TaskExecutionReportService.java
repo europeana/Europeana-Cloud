@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps;
 
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 
@@ -30,6 +31,25 @@ public interface TaskExecutionReportService {
      * by the last bolt of a topology by 1.
      */
     void incrTaskProgress(String taskId);
+
+    /**
+     * Retrieve all errors that occurred for the given task
+     *
+     * @param task task identifier
+     * @return task error info object
+     * @throws AccessDeniedOrObjectDoesNotExistException
+     */
+    TaskErrorsInfo getGeneralTaskErrorReport(String task) throws AccessDeniedOrObjectDoesNotExistException;
+
+    /**
+     * Retrieve sample of identifiers for the given error type
+     *
+     * @param task task identifier
+     * @param errorType type of error
+     *
+     * @return task error info objects with sample identifiers
+     */
+    TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType) throws AccessDeniedOrObjectDoesNotExistException;
 }
 
 
