@@ -3,9 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 
-import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
@@ -174,9 +172,9 @@ public class NotificationBoltTest extends CassandraTestBase {
             assertEquals(middleExecute.getProcessedPercentage(), 100 * ((middle / PROCESSED_INTERVAL) * PROCESSED_INTERVAL)/ expectedSize);
         }
 
-        assertEquals(afterExecute.getProcessedElementCount(), expectedSize);
-        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
-        assertEquals(afterExecute.getProcessedPercentage(), 100);
+        assertEquals(afterExecute.getProcessedElementCount(), (expectedSize / PROCESSED_INTERVAL) * PROCESSED_INTERVAL);
+        assertThat(afterExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+        assertEquals(afterExecute.getProcessedPercentage(), 100 * ((afterExecute.getProcessedElementCount() / PROCESSED_INTERVAL) * PROCESSED_INTERVAL)/ expectedSize);
     }
 
 
@@ -203,16 +201,15 @@ public class NotificationBoltTest extends CassandraTestBase {
             testedBolt.execute(tuple);
         }
 
-        TaskInfo afterExecute = cassandraReportService.getTaskProgress(String.valueOf(taskId));
+        TaskErrorsInfo errorsInfo = cassandraReportService.getGeneralTaskErrorReport(String.valueOf(taskId));
 
         //then
         assertEquals(beforeExecute.getProcessedElementCount(), 0);
         assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
         assertEquals(beforeExecute.getErrors(), 0);
 
-        assertEquals(afterExecute.getProcessedElementCount(), expectedSize);
-        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
-        assertEquals(afterExecute.getErrors(), errors);
+        assertEquals(errorsInfo.getErrors().size(), 1);
+        assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
     }
 
     private List<Tuple> prepareTuples(long taskId, int size, int errors) {

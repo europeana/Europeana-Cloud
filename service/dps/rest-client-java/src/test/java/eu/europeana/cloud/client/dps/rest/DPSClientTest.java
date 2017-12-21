@@ -51,7 +51,6 @@ public class DPSClientTest {
 
     @Before
     public void init() {
-
     }
 
     @Betamax(tape = "DPSClient/permitAndSubmitTask")
@@ -150,6 +149,7 @@ public class DPSClientTest {
     @Test
     @Betamax(tape = "DPSClient_shouldReturnedGeneralErrorReport")
     public final void shouldReturnedGeneralErrorReport() {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         TaskErrorsInfo report = createErrorInfo(TASK_ID, false);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, null), is(report));
 
@@ -158,6 +158,7 @@ public class DPSClientTest {
     @Test
     @Betamax(tape = "DPSClient_shouldReturnedSpecificErrorReport")
     public final void shouldReturnedSpecificErrorReport() {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         TaskErrorsInfo report = createErrorInfo(TASK_ID, true);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, ERROR_TYPE), is(report));
 

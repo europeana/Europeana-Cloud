@@ -72,7 +72,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, ParseTaskBolt.class})
+@PrepareForTest({TaskSplittingBolt.class, IdentifiersHarvestingBolt.class, RecordHarvestingBolt.class, AddResultToDataSetBolt.class, WriteRecordBolt.class, OAIWriteRecordBolt.class, RevisionWriterBolt.class, CassandraConnectionProviderSingleton.class, AddResultToDataSetBolt.class, NotificationBolt.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, ParseTaskBolt.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
