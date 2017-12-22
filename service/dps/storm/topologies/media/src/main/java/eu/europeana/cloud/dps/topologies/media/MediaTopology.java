@@ -23,16 +23,21 @@ public class MediaTopology {
 	
 	public static void main(String[] args)
 			throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
+		
 		Config conf = new Config();
 		conf.setDebug(true);
 		conf.setNumWorkers(2);
 		
+		conf.setMessageTimeoutSecs(2000);
+		
 		Properties topologyProperties = new Properties();
 		PropertyFileLoader.loadPropertyFile("media-topology-config.properties", "", topologyProperties);
 		
+
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("spout", new NumberSpout(), 2);
-		builder.setBolt("consumer", new NumberConsumer(), 3).shuffleGrouping("spout");
+		builder.setSpout("fileUrlSpout", new FileUrlSpout(), 1);
+		builder.setBolt("fileDownloadBolt", new FileDownloadBolt(), 30).shuffleGrouping("fileUrlSpout");
+		builder.setBolt("statsBolt", new StatsBolt(), 1).shuffleGrouping("fileDownloadBolt");
 		
 		builder.setBolt(TopologyHelper.NOTIFICATION_BOLT,
 				new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
@@ -43,8 +48,9 @@ public class MediaTopology {
 				Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL)))
 				.setNumTasks((Integer.parseInt(
 						topologyProperties.getProperty(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))))
-				.fieldsGrouping("consumer", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+				.fieldsGrouping("statsBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
 						new Fields(NotificationTuple.taskIdFieldName));
+		
 		
 		if (args.length > 0) {
 			LocalCluster cluster = new LocalCluster();

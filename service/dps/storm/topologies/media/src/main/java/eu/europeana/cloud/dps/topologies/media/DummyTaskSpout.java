@@ -28,7 +28,8 @@ public class DummyTaskSpout extends BaseRichSpout {
 			Map<String, String> parameters = new HashMap<>();
 			parameters.put(PluginParameterKeys.DATASET_URL,
 					"https://test-cloud.europeana.eu/api/data-providers/mms_prov/data-sets/mms_set");
-			parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "mms_user:haslo"); // TODO dobry sposób zapisu? +uzupełnić hasło
+			parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "mms_user:pass"); // TODO dobry sposób zapisu?
+																						// +uzupełnić hasło
 			Revision revision = new Revision(); // TODO skonsultować z Olą?
 			StormTaskTuple tuple = new StormTaskTuple(777L, "dummy-media-task-1", null, null, parameters, revision);
 			collector.emit(tuple.toStormTuple());

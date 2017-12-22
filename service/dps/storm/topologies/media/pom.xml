@@ -32,10 +32,6 @@
 					<artifactId>log4j-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>zookeeper</artifactId>
-					<groupId>org.apache.zookeeper</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -51,10 +47,6 @@
 				<exclusion>
 					<artifactId>log4j</artifactId>
 					<groupId>log4j</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>zookeeper</artifactId>
-					<groupId>org.apache.zookeeper</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -74,6 +66,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        
+        
+    
+	        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        
+        
 	</dependencies>
 
 	<build>
