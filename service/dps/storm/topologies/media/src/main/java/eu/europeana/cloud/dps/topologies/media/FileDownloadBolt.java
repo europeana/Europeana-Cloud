@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
-public class FileDownloadBolt extends BaseRichBolt {
+public class FileDownloadBolt extends BaseRichBolt implements TupleConstants {
 	
 	private OutputCollector outputCollector;
 	
@@ -34,13 +34,10 @@ public class FileDownloadBolt extends BaseRichBolt {
 	
 	@Override
 	public void execute(Tuple input) {
-		String[] param = input.getStringByField("fileUrl").split(";");
-		String fileUrl = param[1];
-		
+		String fileUrl = input.getStringByField(URL);
 
 		ResourceFile resourceFile = new ResourceFile(fileUrl);
 
-		
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("length", Long.toString(resourceFile.bytes.length));
 		parameters.put("time", Long.toString(resourceFile.downloadTime));

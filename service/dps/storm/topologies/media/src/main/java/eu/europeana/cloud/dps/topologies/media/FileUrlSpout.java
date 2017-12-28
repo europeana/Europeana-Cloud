@@ -2,8 +2,11 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,82 +30,103 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 
-public class FileUrlSpout extends BaseRichSpout {
+public class FileUrlSpout extends BaseRichSpout implements TupleConstants {
+	
+	private static final String CONF_FS_URL = "MEDIATOPOLOGY_FILE_SERVICE_URL";
+	private static final String CONF_FS_USER = "MEDIATOPOLOGY_FILE_SERVICE_USER";
+	private static final String CONF_FS_PASS = "MEDIATOPOLOGY_FILE_SERVICE_PASSWORD";
+	private static final String CONF_FS_PROVIDER = "MEDIATOPOLOGY_FILE_SERVICE_PROVIDER";
+	private static final String CONF_FS_DATASET = "MEDIATOPOLOGY_FILE_SERVICE_DATASET";
+	
 	private SpoutOutputCollector collector;
-	private boolean alreadyEmitted = false;
+	
+	private DataSetServiceClient datasetClient;
+	private ArrayDeque<Representation> currentSliceResults = new ArrayDeque<>();
+	private String datasetProvider, datasetId;
+	private String nextSliceId;
+	private FileServiceClient fileClient;
+	
+	private DocumentBuilder documentBuilder;
 	
 	private static final Logger logger = LoggerFactory.getLogger(FileUrlSpout.class);
 	
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
+		
+		Map<String, String> config = conf;
+		datasetClient = new DataSetServiceClient(config.get(CONF_FS_URL), config.get(CONF_FS_USER),
+				config.get(CONF_FS_PASS));
+		datasetProvider = config.get(CONF_FS_PROVIDER);
+		datasetId = config.get(CONF_FS_DATASET);
+		retrieveSlice();
+		
+		fileClient = new FileServiceClient(config.get(CONF_FS_URL), config.get(CONF_FS_USER), config.get(CONF_FS_PASS));
+		
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			documentBuilder = dbFactory.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			throw new RuntimeException("xml problem", e);
+		}
 	}
 	
 	@Override
 	public void nextTuple() {
-		if (!alreadyEmitted) {
-			DataSetServiceClient datasetClient = new DataSetServiceClient(
-					"https://test-cloud.europeana.eu/api", "mms_user",
-					"pass");
-			try {
-				String nextSlice = null;
-				do {
-					ResultSlice<Representation> data =
-							datasetClient.getDataSetRepresentationsChunk("mms_prov", "mms_set", nextSlice);
-					nextSlice = data.getNextSlice();
-					emitData(data.getResults());
-					
-				} while (nextSlice != null);
-				
-			} catch (Exception e) {
-				logger.error("Emiting data failure", e);
-			}
-			
-			alreadyEmitted = true;
-		}
-	}
-	
-	private void emitData(List<Representation> res)
-			throws MCSException, IOException,
-			ParserConfigurationException, SAXException {
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		
-		for (Representation rep : res) {
-			if (!rep.getRepresentationName().equals("edm"))
-				continue;
-			
-			FileServiceClient fc = new FileServiceClient("https://test-cloud.europeana.eu/api",
-					"mms_user", "pass");
-			
-			for (File representationFile : rep.getFiles()) {
-				try (InputStream is =
-						fc.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-								representationFile.getFileName())) {
-					
-					Document document = dBuilder.parse(is);
-					emitFile("edm:object", document);
-					emitFile("edm:hasView", document);
-					emitFile("edm:isShownBy", document);
+		while (currentSliceResults.isEmpty()) {
+			if (nextSliceId != null) {
+				retrieveSlice();
+			} else {
+				// everything retrieved
+				try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
-				
+				return;
 			}
-			
 		}
-	}
-	
-	private void emitFile(String tagName, Document document) {
-		NodeList ob = document.getElementsByTagName(tagName);
-		if (ob.getLength() > 0) {
-			collector.emit(new Values(tagName + ";" + ((Element) ob.item(0)).getAttribute("rdf:resource")));
+		
+		List<UrlType> urlTypes = Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY);
+		Representation rep = currentSliceResults.remove();
+		for (File file : rep.getFiles()) {
+			Document document;
+			try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+					file.getFileName())) {
+				document = documentBuilder.parse(is);
+			} catch (MCSException | DriverException | IOException | SAXException e) {
+				logger.error("Could not read file " + file + " in representation " + rep, e);
+				return;
+			}
+			for (UrlType urlType : urlTypes) {
+				NodeList list = document.getElementsByTagName(urlType.tagName);
+				if (list.getLength() > 0) {
+					String url = ((Element) list.item(0)).getAttribute("rdf:resource");
+					collector.emit(new Values(url, urlType));
+				}
+			}
 		}
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("fileUrl"));
+		declarer.declare(new Fields(URL, URL_TYPE));
+	}
+
+	private void retrieveSlice() {
+		ResultSlice<Representation> data;
+		try {
+			data = datasetClient.getDataSetRepresentationsChunk(datasetProvider, datasetId, null);
+			currentSliceResults.addAll(data.getResults().stream()
+					.filter(r -> "edm".equals(r.getRepresentationName()))
+					.collect(Collectors.toList()));
+			nextSliceId = data.getNextSlice();
+		} catch (MCSException e) {
+			throw new RuntimeException("File service connection error", e);
+		}
 	}
 	
 }

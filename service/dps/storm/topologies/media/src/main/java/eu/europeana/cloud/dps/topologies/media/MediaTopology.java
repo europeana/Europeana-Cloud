@@ -1,5 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.storm.Config;
@@ -31,9 +32,10 @@ public class MediaTopology {
 		conf.setMessageTimeoutSecs(2000);
 		
 		Properties topologyProperties = new Properties();
-		PropertyFileLoader.loadPropertyFile("media-topology-config.properties", "", topologyProperties);
+		PropertyFileLoader.loadPropertyFile("media-topology-config.properties", "media-topology-config.properties",
+				topologyProperties);
+		conf.putAll((Map) topologyProperties);
 		
-
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout("fileUrlSpout", new FileUrlSpout(), 1);
 		builder.setBolt("fileDownloadBolt", new FileDownloadBolt(), 30).shuffleGrouping("fileUrlSpout");
@@ -55,7 +57,7 @@ public class MediaTopology {
 		if (args.length > 0) {
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology("mediaTopology", conf, builder.createTopology());
-			Utils.sleep(60000);
+			Utils.sleep(6000000);
 			cluster.killTopology("mediaTopology");
 			cluster.shutdown();
 		} else {
