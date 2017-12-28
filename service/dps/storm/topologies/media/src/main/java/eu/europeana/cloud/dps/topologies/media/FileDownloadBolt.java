@@ -2,13 +2,17 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.storm.shade.org.apache.http.HttpEntity;
+import org.apache.storm.shade.org.apache.http.HttpResponse;
+import org.apache.storm.shade.org.apache.http.client.methods.HttpGet;
+import org.apache.storm.shade.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.storm.shade.org.apache.http.impl.client.HttpClients;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,13 +39,15 @@ public class FileDownloadBolt extends BaseRichBolt implements TupleConstants {
 	@Override
 	public void execute(Tuple input) {
 		String fileUrl = input.getStringByField(URL);
-
 		ResourceFile resourceFile = new ResourceFile(fileUrl);
-
+		
 		Map<String, String> parameters = new HashMap<>();
-		parameters.put("length", Long.toString(resourceFile.bytes.length));
-		parameters.put("time", Long.toString(resourceFile.downloadTime));
-		parameters.put("speed", Long.toString(resourceFile.downloadTime));
+		if (StringUtils.isEmpty(resourceFile.error)) {
+			parameters.put("length", Long.toString(resourceFile.bytes.length));
+			parameters.put("time", Long.toString(resourceFile.time));
+		} else {
+			parameters.put("error", resourceFile.error);
+		}
 		Revision revision = new Revision();
 		StormTaskTuple tuple =
 				new StormTaskTuple(777L, "dummy-media-task-", null, null,
@@ -66,30 +72,31 @@ public class FileDownloadBolt extends BaseRichBolt implements TupleConstants {
 	
 	private class ResourceFile {
 		public byte[] bytes;
-		public long downloadTime;
-		public long speed;
+		public long time;
+		public String error;
 		
 		public ResourceFile(String fileUrl) {
-			logger.info("Downloading file " + fileUrl);
-			try {
-				URL url = new URL(fileUrl);
-				URLConnection conn = url.openConnection();
-				conn.setConnectTimeout(5000);
-				conn.setReadTimeout(5000);
-				conn.connect();
-				
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 				long start = System.currentTimeMillis();
-				IOUtils.copy(conn.getInputStream(), baos);
-				long end = System.currentTimeMillis();
-				
-				downloadTime = end - start;
-				bytes = baos.toByteArray();
-				speed = bytes.length / downloadTime;
+				HttpResponse response = httpclient.execute(new HttpGet(fileUrl));
+				HttpEntity entity = response.getEntity();
+				int status = response.getStatusLine().getStatusCode();
+				if (status >= 200 && status < 300) {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					IOUtils.copy(entity.getContent(), baos);
+					
+					time = System.currentTimeMillis() - start;
+					bytes = baos.toByteArray();
+					
+					logger.info("Downloaded file: " + fileUrl + "(size:  " + bytes.length + " )");
+				} else {
+					error = "INVALID_STATUS_CODE: " + status;
+				}
 			} catch (IOException e) {
 				logger.error("", e);
+				error = e.getMessage();
 			}
-			logger.info("Downloaded file: " + fileUrl + "(size:  " + bytes.length + " )");
+			
 		}
 	}
 }

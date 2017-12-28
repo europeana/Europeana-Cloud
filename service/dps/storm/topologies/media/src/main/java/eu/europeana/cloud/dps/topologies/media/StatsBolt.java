@@ -1,9 +1,11 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.storm.shade.org.json.simple.JSONObject;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -12,7 +14,6 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -23,9 +24,11 @@ public class StatsBolt extends BaseRichBolt {
 	
 	private OutputCollector outputCollector;
 	
-	private int files = 0;
-	private BigInteger size = BigInteger.valueOf(0);
-	private BigInteger time = BigInteger.valueOf(0);
+	private long files = 0;
+	private long size = 0;
+	private long time = 0;
+	private Map<String, Long> errors = new HashMap<>();
+	
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -39,34 +42,35 @@ public class StatsBolt extends BaseRichBolt {
 	
 	@Override
 	public void execute(Tuple tuple) {
-		StormTaskTuple t = StormTaskTuple.fromStormTuple(tuple);
+		StormTaskTuple stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
+		String error = stormTaskTuple.getParameter("error");
 		
-		size = size.add(BigInteger.valueOf(Long.parseLong(t.getParameter("length"))));
-		time = time.add(BigInteger.valueOf(Long.parseLong(t.getParameter("time"))));
-		files++;
-		
-		BigInteger averageSize = size.divide(BigInteger.valueOf(files));
-		BigInteger averageSpeed = size.divide(time).multiply(BigInteger.valueOf(1000));
-		BigInteger averageTime = time.divide(BigInteger.valueOf(files));
-		
-		Date startTime = new Date();
-		
-		NotificationTuple nt = null;
-		if (files <= 1) {
-			nt = NotificationTuple.prepareNotification(t.getTaskId(), t.getFileUrl(), States.SUCCESS,
-					
-					averageSize.toString() + ";" + averageSpeed.toString(),
-					averageSize.toString() + ";" + averageSpeed.toString(), "result");
+		if (StringUtils.isEmpty(error)) {
+			size += Long.parseLong(stormTaskTuple.getParameter("length"));
+			time += Long.parseLong(stormTaskTuple.getParameter("time"));
+			files++;
+		} else {
+			if (errors.containsKey(error)) {
+				Long counter = errors.get(error);
+				errors.put(error, ++counter);
+			} else {
+				errors.put(error, Long.valueOf(0));
+			}
 			
 		}
-		
-		else {
-			nt = NotificationTuple.prepareUpdateTask(t.getTaskId(),
-					"{\"averageSize\":\"" + averageSize.toString() + "\",\"averageSpeed\":\""
-							+ averageSpeed.toString() + "\",\"averageTime\":\"" + averageTime + "\"}",
-					TaskState.CURRENTLY_PROCESSING,
-					startTime);
+
+		JSONObject json = new JSONObject();
+		if (files > 0) {
+			json.put("averageSize", size / files);
+			json.put("averageSpeed", (size / time) * 1000);
+			json.put("averageTime", time / files);
 		}
+		
+		json.put("errors", errors);
+		
+		NotificationTuple nt = NotificationTuple.prepareUpdateTask(stormTaskTuple.getTaskId(), json.toJSONString(),
+				TaskState.CURRENTLY_PROCESSING,
+				new Date());
 		
 		outputCollector.emit(AbstractDpsBolt.NOTIFICATION_STREAM_NAME, nt.toStormTuple());
 	}
