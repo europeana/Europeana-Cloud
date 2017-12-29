@@ -20,7 +20,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
 public class StatsBolt extends BaseRichBolt {
-	private static final Logger logger = LoggerFactory.getLogger(FileDownloadBolt.class);
+	private static final Logger logger = LoggerFactory.getLogger(StatsBolt.class);
 	
 	private OutputCollector outputCollector;
 	
@@ -44,6 +44,7 @@ public class StatsBolt extends BaseRichBolt {
 	public void execute(Tuple tuple) {
 		StormTaskTuple stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
 		String error = stormTaskTuple.getParameter("error");
+		logger.debug("Stats bolt executed for task " + stormTaskTuple.getTaskId());
 		
 		if (StringUtils.isEmpty(error)) {
 			size += Long.parseLong(stormTaskTuple.getParameter("length"));
@@ -61,6 +62,7 @@ public class StatsBolt extends BaseRichBolt {
 
 		JSONObject json = new JSONObject();
 		if (files > 0) {
+			json.put("files", files);
 			json.put("averageSize", size / files);
 			json.put("averageSpeed", (size / time) * 1000);
 			json.put("averageTime", time / files);

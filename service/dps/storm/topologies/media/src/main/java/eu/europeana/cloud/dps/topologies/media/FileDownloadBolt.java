@@ -88,7 +88,7 @@ public class FileDownloadBolt extends BaseRichBolt implements TupleConstants {
 					time = System.currentTimeMillis() - start;
 					bytes = baos.toByteArray();
 					
-					logger.info("Downloaded file: " + fileUrl + "(size:  " + bytes.length + " )");
+					logger.debug("Downloaded file: {} (size: {}, time: {})", fileUrl, bytes.length, time);
 				} else {
 					error = "INVALID_STATUS_CODE: " + status;
 				}

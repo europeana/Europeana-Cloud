@@ -94,6 +94,7 @@ public class FileUrlSpout extends BaseRichSpout implements TupleConstants {
 		Representation rep = currentSliceResults.remove();
 		for (File file : rep.getFiles()) {
 			Document document;
+			long start = System.currentTimeMillis();
 			try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
 					file.getFileName())) {
 				document = documentBuilder.parse(is);
@@ -101,6 +102,7 @@ public class FileUrlSpout extends BaseRichSpout implements TupleConstants {
 				logger.error("Could not read file " + file + " in representation " + rep, e);
 				return;
 			}
+			logger.debug("representation file downloaded and parsed in {} ms", System.currentTimeMillis() - start);
 			for (UrlType urlType : urlTypes) {
 				NodeList list = document.getElementsByTagName(urlType.tagName);
 				if (list.getLength() > 0) {
@@ -118,8 +120,10 @@ public class FileUrlSpout extends BaseRichSpout implements TupleConstants {
 	
 	private void retrieveSlice() {
 		try {
+			long start = System.currentTimeMillis();
 			ResultSlice<Representation> data =
 					datasetClient.getDataSetRepresentationsChunk(datasetProvider, datasetId, nextSliceId);
+			logger.debug("dataSet slice downloaded in {} ms", System.currentTimeMillis() - start);
 			currentSliceResults.addAll(data.getResults().stream()
 					.filter(r -> "edm".equals(r.getRepresentationName()))
 					.collect(Collectors.toList()));
