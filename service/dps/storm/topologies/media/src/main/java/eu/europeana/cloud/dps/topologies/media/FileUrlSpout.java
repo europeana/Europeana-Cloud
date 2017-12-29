@@ -115,11 +115,11 @@ public class FileUrlSpout extends BaseRichSpout implements TupleConstants {
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields(URL, URL_TYPE));
 	}
-
+	
 	private void retrieveSlice() {
-		ResultSlice<Representation> data;
 		try {
-			data = datasetClient.getDataSetRepresentationsChunk(datasetProvider, datasetId, null);
+			ResultSlice<Representation> data =
+					datasetClient.getDataSetRepresentationsChunk(datasetProvider, datasetId, nextSliceId);
 			currentSliceResults.addAll(data.getResults().stream()
 					.filter(r -> "edm".equals(r.getRepresentationName()))
 					.collect(Collectors.toList()));
