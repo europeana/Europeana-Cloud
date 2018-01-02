@@ -87,9 +87,10 @@ public class StormTaskTuple implements Serializable {
     }
 
     public void setFileData(InputStream is) throws IOException {
+        ByteArrayOutputStream tempByteArrayOutputStream = null;
         try {
             if (is != null) {
-                ByteArrayOutputStream tempByteArrayOutputStream = new ByteArrayOutputStream();
+                tempByteArrayOutputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[BATCH_MAX_SIZE];
                 IOUtils.copyLarge(is, tempByteArrayOutputStream, buffer);
                 this.fileData = tempByteArrayOutputStream.toByteArray();
@@ -99,6 +100,8 @@ public class StormTaskTuple implements Serializable {
         } finally {
             if (is != null)
                 is.close();
+            if (tempByteArrayOutputStream != null)
+                tempByteArrayOutputStream.close();
         }
     }
 
