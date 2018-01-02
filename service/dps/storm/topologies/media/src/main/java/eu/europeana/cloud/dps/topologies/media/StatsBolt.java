@@ -44,7 +44,7 @@ public class StatsBolt extends BaseRichBolt {
 	public void execute(Tuple tuple) {
 		StormTaskTuple stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
 		String error = stormTaskTuple.getParameter("error");
-		logger.debug("Stats bolt executed for task " + stormTaskTuple.getTaskId());
+		logger.trace("Stats bolt executing for task " + stormTaskTuple.getTaskId());
 		
 		if (StringUtils.isEmpty(error)) {
 			size += Long.parseLong(stormTaskTuple.getParameter("length"));
