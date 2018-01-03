@@ -29,24 +29,32 @@ public class MediaTopology {
 	
 	private static final Logger logger = LoggerFactory.getLogger(MediaTopology.class);
 	
+	private static Config conf;
+	
 	public static void main(String[] args)
 			throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
 		
-		Config conf = loadConfig();
+		loadConfig();
 		
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("fileUrlSpout", new FileUrlSpout(), 1);
-		builder.setBolt("fileDownloadBolt", new FileDownloadBolt(), 10).shuffleGrouping("fileUrlSpout");
-		builder.setBolt("statsBolt", new StatsBolt(), 1).shuffleGrouping("fileDownloadBolt");
+		builder.setSpout("fileUrlSpout", new MediaSpout(), 1);
+		builder.setBolt("fileDownloadBolt", new DownloadBolt(),
+				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD"))
+				.shuffleGrouping("fileUrlSpout");
+		builder.setBolt("processingBolt", new ProcessingBolt(),
+				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING"))
+				.shuffleGrouping("fileDownloadBolt");
+		
+		builder.setBolt("statsBolt", new StatsBolt(), 1).shuffleGrouping("fileDownloadBolt", StatsTupleData.STREAM_ID);
 		
 		builder.setBolt(TopologyHelper.NOTIFICATION_BOLT,
 				new NotificationBolt((String) conf.get(TopologyPropertyKeys.CASSANDRA_HOSTS),
-						(Integer) conf.get(TopologyPropertyKeys.CASSANDRA_PORT),
+						(int) conf.get(TopologyPropertyKeys.CASSANDRA_PORT),
 						(String) conf.get(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
 						(String) conf.get(TopologyPropertyKeys.CASSANDRA_USERNAME),
 						(String) conf.get(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
-				(Integer) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL))
-				.setNumTasks((Integer) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))
+				(int) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL))
+				.setNumTasks((int) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))
 				.fieldsGrouping("statsBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
 						new Fields(NotificationTuple.taskIdFieldName));
 		
@@ -63,9 +71,9 @@ public class MediaTopology {
 		}
 		
 	}
-
-	private static Config loadConfig() {
-		Config conf = new Config();
+	
+	private static void loadConfig() {
+		conf = new Config();
 		Yaml yamlConf = new Yaml(new SafeConstructor());
 		String configFileName = "media-topology-config.yaml";
 		try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName)) {
@@ -79,6 +87,5 @@ public class MediaTopology {
 			logger.warn("Could not load custom config file, using defaults");
 			logger.debug("Custom config load problem", e);
 		}
-		return conf;
 	}
 }

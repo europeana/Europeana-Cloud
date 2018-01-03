@@ -5,19 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.storm.shade.org.json.simple.JSONObject;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
 public class StatsBolt extends BaseRichBolt {
 	private static final Logger logger = LoggerFactory.getLogger(StatsBolt.class);
@@ -42,22 +41,17 @@ public class StatsBolt extends BaseRichBolt {
 	
 	@Override
 	public void execute(Tuple tuple) {
-		StormTaskTuple stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
-		String error = stormTaskTuple.getParameter("error");
-		logger.trace("Stats bolt executing for task " + stormTaskTuple.getTaskId());
+		StatsTupleData data = (StatsTupleData) tuple.getValueByField(StatsTupleData.FIELD_NAME);
+		logger.trace("Stats bolt executing for task " + data.getTaskId());
 		
+		String error = data.getError();
 		if (StringUtils.isEmpty(error)) {
-			size += Long.parseLong(stormTaskTuple.getParameter("length"));
-			time += Long.parseLong(stormTaskTuple.getParameter("time"));
+			size += data.getLength();
+			time += data.getTime();
 			files++;
 		} else {
-			if (errors.containsKey(error)) {
-				Long counter = errors.get(error);
-				errors.put(error, ++counter);
-			} else {
-				errors.put(error, Long.valueOf(0));
-			}
-			
+			Long counter = errors.getOrDefault(error, 0L);
+			errors.put(error, counter + 1);
 		}
 
 		JSONObject json = new JSONObject();
@@ -67,12 +61,10 @@ public class StatsBolt extends BaseRichBolt {
 			json.put("averageSpeed", (size / time) * 1000);
 			json.put("averageTime", time / files);
 		}
-		
 		json.put("errors", errors);
 		
-		NotificationTuple nt = NotificationTuple.prepareUpdateTask(stormTaskTuple.getTaskId(), json.toJSONString(),
-				TaskState.CURRENTLY_PROCESSING,
-				new Date());
+		NotificationTuple nt = NotificationTuple.prepareUpdateTask(data.getTaskId(), json.toString(),
+				TaskState.CURRENTLY_PROCESSING, new Date());
 		
 		outputCollector.emit(AbstractDpsBolt.NOTIFICATION_STREAM_NAME, nt.toStormTuple());
 	}

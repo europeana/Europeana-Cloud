@@ -1,17 +1,19 @@
 package eu.europeana.cloud.common.model;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Representation of a record in specific version.
  */
 @XmlRootElement
-public class Representation {
+public class Representation implements Serializable {
 
     /**
      * Identifier (cloud id) of a record this object is representation of.
@@ -46,7 +48,7 @@ public class Representation {
     /**
      * A list of files which constitute this representation.
      */
-    private List<File> files = new ArrayList<File>(0);
+	private List<File> files = new ArrayList<>(0);
 
     /**
      * If this is temporary representation version: date of this object creation; If this is persistent representation
@@ -71,7 +73,7 @@ public class Representation {
     /**
      * A list of revisions which constitute this representation.
      */
-    private List<Revision> revisions = new ArrayList<Revision>(0);
+	private List<Revision> revisions = new ArrayList<>(0);
 
 
     /**
