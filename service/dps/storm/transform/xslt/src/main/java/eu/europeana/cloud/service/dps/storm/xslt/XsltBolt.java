@@ -33,16 +33,19 @@ public class XsltBolt extends AbstractDpsBolt {
     public void execute(StormTaskTuple stormTaskTuple) {
         InputStream stream = null;
         StringWriter writer = null;
+        InputStream xsltStream = null;
         try {
             String fileUrl = stormTaskTuple.getFileUrl();
             byte[] fileContent = stormTaskTuple.getFileData();
             String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
             LOGGER.info("processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
             Transformer transformer;
+
             if (cache.containsKey(xsltUrl)) {
                 transformer = cache.get(xsltUrl);
             } else {
-                Source xslDoc = new StreamSource(new URL(xsltUrl).openStream());
+                xsltStream = new URL(xsltUrl).openStream();
+                Source xslDoc = new StreamSource(xsltStream);
                 TransformerFactory tFactory = TransformerFactory.newInstance();
                 transformer = tFactory.newTransformer(xslDoc);
                 cache.put(xsltUrl, transformer);
@@ -61,7 +64,7 @@ public class XsltBolt extends AbstractDpsBolt {
                 stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
             }
             stormTaskTuple.getParameters().remove(PluginParameterKeys.XSLT_URL);
-            
+
             outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
         } catch (TransformerConfigurationException e) {
             LOGGER.error("XsltBolt error:" + e.getMessage());
@@ -79,6 +82,12 @@ public class XsltBolt extends AbstractDpsBolt {
             if (stream != null)
                 try {
                     stream.close();
+                } catch (IOException e) {
+                    LOGGER.error("error: during closing the stream" + e.getMessage());
+                }
+            if (xsltStream != null)
+                try {
+                    xsltStream.close();
                 } catch (IOException e) {
                     LOGGER.error("error: during closing the stream" + e.getMessage());
                 }
