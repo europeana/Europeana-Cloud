@@ -162,6 +162,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, t.getParameters().toString());
     }
 
+    protected void emitSuccessNotification(long taskId, String resource,
+                                         String message, String additionalInformations, String resultResource) {
+        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
+                resource, States.SUCCESS, message, additionalInformations, resultResource);
+        outputCollector.emit(NOTIFICATION_STREAM_NAME,inputTuple, nt.toStormTuple());
+    }
 
 
 }
