@@ -62,12 +62,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
-    private static final String TASK_PARAMETERS = "\"parameters\":" +
-            "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
-            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
-            "\"SCHEMA_NAME\":\"edm-internal\"}," +
-            "\"taskId\":1," +
-            "\"taskName\":\"taskName\"}";
+
 
 
     private static final String TASK_PARAMETERS_WITH_OUTPUT_REVISION = "\"parameters\":" +
@@ -134,24 +129,12 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         final String input = "{\"inputData\":" +
                 "{\"FILE_URLS\":" +
                 "[\"" + SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2 + "\"]}," +
-                TASK_PARAMETERS;
+                TASK_PARAMETERS_WITH_OUTPUT_REVISION;
         assertTopology(input);
 
     }
 
-    @Test
-    public final void testTopologyWithDataSet() throws MCSException, IOException, URISyntaxException {
-        //given
-        prepareForDataset();
 
-        final String input = "{\"inputData\":" +
-                "{\"DATASET_URLS\":" +
-                "[\"" + SOURCE_DATASET_URL + "\"]}," +
-                TASK_PARAMETERS;
-
-        assertTopology(input);
-
-    }
 
     @Test
     public final void testTopologyWithDataSetAndOutputRevision() throws MCSException, IOException, URISyntaxException {

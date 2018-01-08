@@ -38,12 +38,6 @@
         <dcterms:issued>1974</dcterms:issued>
         <dcterms:provenance/>
         <edm:type>TEXT</edm:type>
-
-
-
-
-
-
         </ore:Proxy>
     <edm:EuropeanaAggregation rdf:about="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662">
         <edm:aggregatedCHO rdf:resource="10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662"/>
