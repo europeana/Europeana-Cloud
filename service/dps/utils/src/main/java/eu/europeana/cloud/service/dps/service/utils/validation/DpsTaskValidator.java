@@ -17,6 +17,7 @@ public class DpsTaskValidator {
 
     private List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
     private String validatorName;
+    private boolean revisionMustExist = false;
 
     public DpsTaskValidator() {
         this("Default validator");
@@ -24,7 +25,6 @@ public class DpsTaskValidator {
 
     public DpsTaskValidator(String validatorName) {
         this.validatorName = validatorName;
-        addDefaultConstraints();
     }
 
     public DpsTaskValidator withParameter(String parameterName) {
@@ -150,6 +150,25 @@ public class DpsTaskValidator {
         return this;
     }
 
+
+    /**
+     * Will check if dps task contains any task id
+     *
+     * @return
+     */
+    public DpsTaskValidator withAnyOutputRevision() {
+        revisionMustExist = true;
+        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+        dpsTaskConstraints.add(constraint);
+        return this;
+    }
+
+    public DpsTaskValidator withOutputRevisionCheckingIfExists() {
+        DpsTaskConstraint constraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
+        dpsTaskConstraints.add(constraint);
+        return this;
+    }
+
     public void validate(DpsTask task) throws DpsTaskValidationException {
         for (DpsTaskConstraint re : dpsTaskConstraints) {
             DpsTaskFieldType fieldType = re.getFieldType();
@@ -162,15 +181,11 @@ public class DpsTaskValidator {
             } else if (fieldType.equals(DpsTaskFieldType.ID)) {
                 validateId(task, re);
             } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
-                validateOutputRevision(task);
+                validateOutputRevision(task, revisionMustExist);
             }
         }
     }
 
-    private void addDefaultConstraints() {
-        DpsTaskConstraint outputRevisionConstraint = new DpsTaskConstraint(DpsTaskFieldType.OUTPUT_REVISION);
-        dpsTaskConstraints.add(outputRevisionConstraint);
-    }
 
     private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         String taskName = task.getTaskName();
@@ -192,7 +207,7 @@ public class DpsTaskValidator {
         if (expectedParameter == null) {
             throw new DpsTaskValidationException("Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
         }
-        if (constraint.getExpectedValue() == null && expectedParameter != null) {  //any name
+        if (constraint.getExpectedValue() == null) {  //any name
             return;
         }
         if ("".equals(constraint.getExpectedValue()) && "".equals(expectedParameter)) {  //empty value
@@ -208,8 +223,8 @@ public class DpsTaskValidator {
         final InputDataType dataType;
         try {
             dataType = InputDataType.valueOf(constraint.getExpectedName());
-        }catch (IllegalArgumentException e){
-            throw new DpsTaskValidationException("Input data is not valid.",e);
+        } catch (IllegalArgumentException e) {
+            throw new DpsTaskValidationException("Input data is not valid.", e);
         }
         List<String> expectedInputData = task.getDataEntry(dataType);
 
@@ -219,7 +234,7 @@ public class DpsTaskValidator {
         if (constraint.getExpectedValueType() != null) {
             validateInputDataContent(expectedInputData, constraint);
         }
-        if (constraint.getExpectedValue() == null && expectedInputData != null) {   //any value
+        if (constraint.getExpectedValue() == null) {   //any value
             return;
         }
         if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
@@ -235,7 +250,7 @@ public class DpsTaskValidator {
         for (String expectedInputDataValue : expectedInputData) {
             try {
                 if (constraint.getExpectedValueType().equals(LINK_TO_FILE)) {
-                        tryValidateFileUrl(expectedInputDataValue);
+                    tryValidateFileUrl(expectedInputDataValue);
                 } else if (constraint.getExpectedValueType().equals(LINK_TO_DATASET)) {
                     tryValidateDatasetUrl(expectedInputDataValue);
                 } else if (constraint.getExpectedValueType().equals(LINK_TO_EXTERNAL_URL)) {
@@ -279,16 +294,26 @@ public class DpsTaskValidator {
         throw new DpsTaskValidationException("Task id is not valid.");
     }
 
-    private void validateOutputRevision(DpsTask task) throws DpsTaskValidationException {
+    private void validateOutputRevision(DpsTask task, boolean revisionMustExist) throws DpsTaskValidationException {
         Revision outputRevision = task.getOutputRevision();
-        if (outputRevision != null) {
-            if (outputRevision.getRevisionName() == null || outputRevision.getRevisionProviderId() == null) {
-                throw new DpsTaskValidationException("Revision name and revision provider has to be not null");
-            }
+        if (revisionMustExist) {
+            if (outputRevision == null)
+                throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
+            else
+                checkOutputRevisionContent(outputRevision);
+        } else {
+            if (outputRevision != null)
+                checkOutputRevisionContent(outputRevision);
+        }
+    }
 
-            if (outputRevision.getRevisionName().matches("\\s*") || outputRevision.getRevisionProviderId().matches("\\s*")) {
-                throw new DpsTaskValidationException("Revision name and revision provider has to be non empty");
-            }
+    private void checkOutputRevisionContent(Revision outputRevision) throws DpsTaskValidationException {
+        if (outputRevision.getRevisionName() == null || outputRevision.getRevisionProviderId() == null) {
+            throw new DpsTaskValidationException("Revision name and revision provider has to be not null");
+        }
+
+        if (outputRevision.getRevisionName().matches("\\s*") || outputRevision.getRevisionProviderId().matches("\\s*")) {
+            throw new DpsTaskValidationException("Revision name and revision provider has to be non empty");
         }
     }
 }
