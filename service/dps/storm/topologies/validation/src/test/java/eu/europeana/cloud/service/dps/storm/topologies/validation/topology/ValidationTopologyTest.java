@@ -33,10 +33,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
@@ -58,16 +62,13 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
-    private static final String TASK_PARAMETERS = "\"parameters\":" +
-            "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
-            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
-            "\"taskId\":1," +
-            "\"taskName\":\"taskName\"}";
+
 
 
     private static final String TASK_PARAMETERS_WITH_OUTPUT_REVISION = "\"parameters\":" +
             "{\"REPRESENTATION_NAME\":\"" + SOURCE + REPRESENTATION_NAME + "\"," +
-            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"}," +
+            "\"AUTHORIZATION_HEADER\":\"AUTHORIZATION_HEADER\"," +
+            "\"SCHEMA_NAME\":\"edm-internal\"}," +
             "\"taskId\":1," +
             "\"outputRevision\":" +
             "{\"revisionName\":\"revisionName\"," +
@@ -128,24 +129,12 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         final String input = "{\"inputData\":" +
                 "{\"FILE_URLS\":" +
                 "[\"" + SOURCE_VERSION_URL + "," + SOURCE_VERSION_URL_FILE2 + "\"]}," +
-                TASK_PARAMETERS;
+                TASK_PARAMETERS_WITH_OUTPUT_REVISION;
         assertTopology(input);
 
     }
 
-    @Test
-    public final void testTopologyWithDataSet() throws MCSException, IOException, URISyntaxException {
-        //given
-        prepareForDataset();
 
-        final String input = "{\"inputData\":" +
-                "{\"DATASET_URLS\":" +
-                "[\"" + SOURCE_DATASET_URL + "\"]}," +
-                TASK_PARAMETERS;
-
-        assertTopology(input);
-
-    }
 
     @Test
     public final void testTopologyWithDataSetAndOutputRevision() throws MCSException, IOException, URISyntaxException {
@@ -164,15 +153,15 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     private final void prepareForFileUrls() throws URISyntaxException, IOException, MCSException {
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
     }
 
     private final void prepareForDataset() throws URISyntaxException, IOException, MCSException {
         List<File> files = new ArrayList<>();
         List<Revision> revisions = new ArrayList<>();
-        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
-        files.add(new File("sourceFileName", "text/plain", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
+        files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL)));
+        files.add(new File("sourceFileName", "application/xml", "md5", "1", 5, new URI(SOURCE_VERSION_URL_FILE2)));
 
         Representation representation = new Representation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, new URI(SOURCE_VERSION_URL), new URI(SOURCE_VERSION_URL), DATA_PROVIDER, files, revisions, false, new Date());
 
@@ -180,8 +169,8 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         when(representationIterator.hasNext()).thenReturn(true, false);
         when(representationIterator.next()).thenReturn(representation);
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
-        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream("testContent".getBytes()));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
+        when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"))));
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(revisionServiceClient.addRevision(anyString(), anyString(), anyString(), isA(Revision.class))).thenReturn(new URI(REVISION_URL));
     }

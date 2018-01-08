@@ -144,6 +144,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         DpsTask task = new DpsTask("validationTask");
         task.addDataEntry(DATASET_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
         task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
+        task.addParameter(SCHEMA_NAME, "edm-internal");
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         String topologyName = "validation_topology";
@@ -160,6 +161,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         //given
         DpsTask task = new DpsTask("validationTask");
         task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        task.addParameter(SCHEMA_NAME, "edm-internal");
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         task.setOutputRevision(revision);
         String topologyName = "validation_topology";

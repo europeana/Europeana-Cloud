@@ -56,12 +56,14 @@ public class DpsTaskValidatorFactory {
         } else if (taskType.equalsIgnoreCase(VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS)) {
             return new DpsTaskValidator("FileUrl validator for Validation Topology")
                     .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-                    .withAnyOutputRevision();
+                    .withAnyOutputRevision()
+                    .withParameter(PluginParameterKeys.SCHEMA_NAME);
         } else if (taskType.equalsIgnoreCase(VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS)) {
             return new DpsTaskValidator("DataSet validator for Validation Topology")
                     .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
                     .withAnyOutputRevision()
-                    .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET);
+                    .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+                    .withParameter(PluginParameterKeys.SCHEMA_NAME);
         } else {
             return EMPTY_VALIDATOR;
         }

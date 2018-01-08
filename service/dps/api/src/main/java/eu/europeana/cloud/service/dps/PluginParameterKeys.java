@@ -68,6 +68,13 @@ public final class PluginParameterKeys {
     public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
 
+    //---------- Validation DPS Task ----
+
+    // Input params
+    // SCHEMA_NAME - required
+
+    public static final String SCHEMA_NAME = "SCHEMA_NAME";
+
     //----------  OAI-PMH harvesting DPS task  ----
 
     // Input params
