@@ -41,3 +41,28 @@ CREATE TABLE error_counters (
     error_count counter,
     PRIMARY KEY(task_id,error_type)
 );
+
+CREATE TABLE general_statistics (
+    task_id bigint,
+    parent_xpath varchar,
+    node_xpath varchar,
+    occurrence counter,
+    PRIMARY KEY(task_id, parent_xpath, node_xpath)
+);
+
+CREATE TABLE node_statistics (
+    task_id bigint,
+    node_xpath varchar,
+    value varchar,
+    occurrence counter,
+    PRIMARY KEY((task_id, node_xpath), value)
+);
+
+CREATE TABLE attribute_statistics (
+    task_id bigint,
+    node_xpath varchar,
+    name varchar,
+    value varchar,
+    occurrence counter,
+    PRIMARY KEY((task_id, node_xpath), name, value)
+);
