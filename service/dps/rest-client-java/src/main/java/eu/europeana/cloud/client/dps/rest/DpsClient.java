@@ -1,14 +1,7 @@
 package eu.europeana.cloud.client.dps.rest;
 
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
+import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -16,8 +9,16 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.List;
+
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.DpsTask;
 
 /**
  * The REST API client for the Data Processing service.
@@ -68,6 +69,7 @@ public class DpsClient {
                     .post(Entity.json(task));
 
             if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
+				String response = resp.readEntity(String.class);
                 throw new RuntimeException("submitting task failed!!");
             } else {
                 return getTaskId(resp.getLocation());

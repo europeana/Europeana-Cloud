@@ -16,9 +16,9 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 
-public class MediaSpout extends BaseRichSpout implements Constants {
+public class DummySpout extends BaseRichSpout implements Constants {
 	
-	private static final Logger logger = LoggerFactory.getLogger(MediaSpout.class);
+	private static final Logger logger = LoggerFactory.getLogger(DummySpout.class);
 	
 	private SpoutOutputCollector outputCollector;
 	
@@ -28,10 +28,9 @@ public class MediaSpout extends BaseRichSpout implements Constants {
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		outputCollector = collector;
 		
-		Map<String, String> config = conf;
-		DataSetServiceClient datasetClient = Util.getDataSetServiceClient(config);
-		String datasetProvider = config.get("MEDIATOPOLOGY_DATASET_PROVIDER");
-		String datasetId = config.get("MEDIATOPOLOGY_DATASET_ID");
+		DataSetServiceClient datasetClient = Util.getDataSetServiceClient(conf);
+		String datasetProvider = (String) conf.get("MEDIATOPOLOGY_DATASET_PROVIDER");
+		String datasetId = (String) conf.get("MEDIATOPOLOGY_DATASET_ID");
 		representationIterator = datasetClient.getRepresentationIterator(datasetProvider, datasetId);
 		if (!representationIterator.hasNext()) {
 			throw new RuntimeException("There are no representations for dataset " + datasetId);

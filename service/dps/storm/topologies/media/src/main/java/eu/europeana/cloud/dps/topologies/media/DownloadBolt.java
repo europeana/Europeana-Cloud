@@ -53,8 +53,7 @@ public class DownloadBolt extends BaseRichBolt {
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		outputCollector = collector;
 		
-		Map<String, String> config = stormConf;
-		fileClient = Util.getFileServiceClient(config);
+		fileClient = Util.getFileServiceClient(stormConf);
 		
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();

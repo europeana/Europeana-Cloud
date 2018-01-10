@@ -14,6 +14,11 @@ MEDIATOPOLOGY_DATASET_ID: "mms_set"
 MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD: 10
 MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING: 10
 
+#MEDIATOPOLOGY_DATASET_DATASET_LIMIT: 10
+
+#Zookeeper
+INPUT_ZOOKEEPER_ADDRESS: "10.10.30.36,10.10.30.37,10.10.30.38"
+
 # Cassandra
 CASSANDRA_HOSTS: "cassandra-01.man.poznan.pl,cassandra-02.man.poznan.pl,cassandra-03.man.poznan.pl,cassandra-04.man.poznan.pl,cassandra-05.man.poznan.pl,cassandra-06.man.poznan.pl"
 CASSANDRA_PORT: 9042
