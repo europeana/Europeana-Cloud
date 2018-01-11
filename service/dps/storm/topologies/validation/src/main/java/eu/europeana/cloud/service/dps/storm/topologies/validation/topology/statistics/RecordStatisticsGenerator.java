@@ -30,7 +30,7 @@ public class RecordStatisticsGenerator {
         doc.getDocumentElement().normalize();
         Node root = getRootElement(doc);
         addRootToNodeList(root);
-        prepareNodesList(root);
+        prepareNodeStatistics(root);
         return new ArrayList<>(nodeStatistics.values());
     }
 
@@ -54,7 +54,7 @@ public class RecordStatisticsGenerator {
         nodeStatistics.put(modelKey, new NodeStatistics(nodeXpath, null, nodeValue, 1));
     }
 
-    private void prepareNodesList(Node root) {
+    private void prepareNodeStatistics(Node root) {
         String parentXpath = getXPath(root);
         NodeList childrenNodes = root.getChildNodes();
         for (int i = 0; i < childrenNodes.getLength(); i++) {
@@ -72,7 +72,7 @@ public class RecordStatisticsGenerator {
                 }
                 assignAttributesToNode(nodeModel, node.getAttributes());
                 nodeStatistics.put(modelKey, nodeModel);
-                prepareNodesList(node);
+                prepareNodeStatistics(node);
             }
         }
     }
