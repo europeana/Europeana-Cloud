@@ -7,6 +7,9 @@ import java.util.List;
  * Statistics for a node.
  */
 public class NodeStatistics {
+    /** Parent xpath */
+    private final String parentXpath;
+
     /** Node xpath */
     private final String xpath;
 
@@ -19,15 +22,20 @@ public class NodeStatistics {
     /** List of attributes together with their statistics */
     private List<AttributeStatistics> attributesStatistics = new ArrayList<>();
 
-    public NodeStatistics(String xpath, String value, int occurrence) {
-        this(xpath, value, occurrence, new ArrayList<AttributeStatistics>());
+    public NodeStatistics(String parentXpath, String xpath, String value, int occurrence) {
+        this(parentXpath, xpath, value, occurrence, new ArrayList<AttributeStatistics>());
     }
 
-    public NodeStatistics(String xpath, String value, int occurrence, List<AttributeStatistics> attributesStatistics) {
+    public NodeStatistics(String parentXpath, String xpath, String value, int occurrence, List<AttributeStatistics> attributesStatistics) {
+        this.parentXpath = parentXpath;
         this.xpath = xpath;
         this.value = value;
-        this.occurrence = occurrence;
+        this.occurrence = occurrence <= 0 ? 1 : occurrence;
         this.attributesStatistics = attributesStatistics;
+    }
+
+    public String getParentXpath() {
+        return parentXpath;
     }
 
     public String getXpath() {
@@ -50,24 +58,7 @@ public class NodeStatistics {
         this.attributesStatistics = attributesStatistics;
     }
 
-    /**
-     * Equals compares only xpath and value fields as they are significant when trying to identify the object.
-     *
-     * @param obj object to check
-     * @return true when obj is the same object or when it has both xpath and value equal to this object's xpath and value
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!obj.getClass().equals(this.getClass())) {
-            return false;
-        }
-        NodeStatistics stats = (NodeStatistics) obj;
-        return (this.xpath.equals(stats.xpath) && this.value.equals(stats.value));
+    public boolean hasAttributes() {
+        return !attributesStatistics.isEmpty();
     }
 }
