@@ -1,7 +1,10 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
+
+import org.w3c.dom.Document;
 
 import eu.europeana.cloud.common.model.Representation;
 
@@ -24,8 +27,10 @@ public class MediaTupleData implements Serializable {
 	
 	private long taskId;
 	private Representation edmRepresentation;
-	private Map<UrlType, String> fileUrls;
+	
+	private Map<UrlType, List<String>> fileUrls;
 	private Map<String, byte[]> fileContents;
+	private Document edm;
 	
 	public MediaTupleData(long taskId) {
 		this.taskId = taskId;
@@ -43,11 +48,11 @@ public class MediaTupleData implements Serializable {
 		this.edmRepresentation = edmRepresentation;
 	}
 	
-	public Map<UrlType, String> getFileUrls() {
+	public Map<UrlType, List<String>> getFileUrls() {
 		return fileUrls;
 	}
 	
-	public void setFileUrls(Map<UrlType, String> fileUrls) {
+	public void setFileUrls(Map<UrlType, List<String>> fileUrls) {
 		this.fileUrls = fileUrls;
 	}
 	
@@ -58,4 +63,13 @@ public class MediaTupleData implements Serializable {
 	public void setFileContents(Map<String, byte[]> fileContents) {
 		this.fileContents = fileContents;
 	}
+	
+	public Document getEdm() {
+		return edm;
+	}
+	
+	public void setEdm(Document edm) {
+		this.edm = edm;
+	}
+	
 }

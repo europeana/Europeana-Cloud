@@ -2,6 +2,7 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,15 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.MediaTupleData.UrlType;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 
 public class DownloadBolt extends BaseRichBolt {
 	
@@ -59,6 +58,7 @@ public class DownloadBolt extends BaseRichBolt {
 		
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			dbFactory.setNamespaceAware(true);
 			documentBuilder = dbFactory.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
 			throw new RuntimeException("xml problem", e);
@@ -84,17 +84,32 @@ public class DownloadBolt extends BaseRichBolt {
 	
 	@Override
 	public void execute(Tuple input) {
+		
 		MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
-		Map<UrlType, String> urls;
+		Map<UrlType, List<String>> urls = new HashMap<>();;
+		
+		Representation rep = data.getEdmRepresentation();
+		List<File> files = rep.getFiles();
+		if (files.size() != 1) {
+			logger.error("EDM representation has " + files.size() + " files!");
+			return;
+		}
+		
 		try {
-			urls = retrieveUrls(data.getEdmRepresentation());
+			Document edm = getEdmDocument(rep, files.get(0));
+			urls = retrieveUrls(edm);
+			
+			data.setEdm(edm);
 			data.setFileUrls(urls);
 		} catch (MediaException e) {
 			logger.error("Could not retrieve media urls from representation " + data.getEdmRepresentation(), e);
 			return;
 		}
 		
-		HashSet<String> urlsSet = new HashSet<>(urls.values());
+		HashSet<String> urlsSet = new HashSet<>();
+		for (List<String> values : urls.values())
+			urlsSet.addAll(values);
+		
 		HashMap<String, byte[]> contents = new HashMap<>();
 		for (String url : urlsSet) {
 			byte[] content = downloadFile(url, data.getTaskId());
@@ -107,29 +122,30 @@ public class DownloadBolt extends BaseRichBolt {
 		}
 	}
 	
-	private Map<UrlType, String> retrieveUrls(Representation rep) throws MediaException {
-		List<File> files = rep.getFiles();
-		if (files.size() != 1)
-			throw new MediaException("EDM representation has " + files.size() + " files!");
-		
+	private Map<UrlType, List<String>> retrieveUrls(Document edm) throws MediaException {
+		Map<UrlType, List<String>> urls = new HashMap<>();
 		long start = System.currentTimeMillis();
-		Map<UrlType, String> urls = new HashMap<>();
-		try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-				files.get(0).getFileName())) {
-			Document edm = documentBuilder.parse(is);
+		
+		for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
+			NodeList list = edm.getElementsByTagName(urlType.tagName);
+			if (!urls.containsKey(urlType))
+				urls.put(urlType, new ArrayList<>());
 			
-			for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
-				NodeList list = edm.getElementsByTagName(urlType.tagName);
-				if (list.getLength() > 0) {
-					String url = ((Element) list.item(0)).getAttribute("rdf:resource");
-					urls.put(urlType, url);
-				}
+			List<String> typeValues = urls.get(urlType);
+			
+			for (int i = 0; i < list.getLength(); i++) {
+				Node node = list.item(i);
+				typeValues.add(((Element) node).getAttribute("rdf:resource"));
+				
 			}
-		} catch (IOException | SAXException | DriverException | MCSException e) {
-			throw new MediaException("Could not read edm file", e);
-		} finally {
-			logger.debug("edm document retrieving took {} ms", System.currentTimeMillis() - start);
+			
+			if (list.getLength() > 0) {
+				urls.put(urlType, typeValues);
+			}
 		}
+		
+		logger.debug("edm document retrieving took {} ms", System.currentTimeMillis() - start);
+		
 		if (urls.isEmpty())
 			throw new MediaException("edm file representation doesn't contain content urls");
 		return urls;
@@ -170,5 +186,17 @@ public class DownloadBolt extends BaseRichBolt {
 		outputCollector.emit(StatsTupleData.STREAM_ID, new Values(tupleData));
 		
 		return bytes;
+	}
+	
+	private Document getEdmDocument(Representation rep, File file) throws MediaException {
+		try {
+			try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+					file.getFileName())) {
+				return documentBuilder.parse(is);
+			}
+		} catch (Exception e) {
+			throw new MediaException("Could not read edm file", e);
+		}
+		
 	}
 }

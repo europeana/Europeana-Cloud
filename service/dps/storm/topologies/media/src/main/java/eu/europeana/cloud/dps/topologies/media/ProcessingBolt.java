@@ -1,6 +1,7 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,14 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +33,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.MediaTupleData.UrlType;
@@ -64,23 +76,37 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		Representation edmRep = mediaData.getEdmRepresentation();
 		HashSet<String> processedUrls = new HashSet<>();
-		for (Entry<UrlType, String> entry : mediaData.getFileUrls().entrySet()) {
-			String url = entry.getValue();
-			if (!processedUrls.add(url))
-				continue;
-			try {
-				Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false,
-						mediaData.getFileContents().get(url));
-				String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
-				logger.debug("identify result:\n{}", identifyResult);
+		for (Entry<UrlType, List<String>> entry : mediaData.getFileUrls().entrySet()) {
+			for (String url : entry.getValue()) {
 				
-				storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), "techmetadata",
-						identifyResult.getBytes("UTF-8"), "text/plain");
-			} catch (IOException e) {
-				logger.error("Image Magick identify: I/O error on " + edmRep, e);
-			} catch (MediaException e) {
-				logger.error("Processing url " + url + " failed", e);
+				if (!processedUrls.add(url))
+					continue;
+				try {
+					Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false,
+							mediaData.getFileContents().get(url));
+					
+					String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
+					logger.debug("identify result:\n{}", identifyResult);
+					
+					Document edm = mediaData.getEdm();
+					ImageParameters parameters = new ImageParameters(identifyResult);
+					EdmWebResource edmWebResource = new EdmWebResource(edm, url);
+					
+					edmWebResource.setValue("ebucore:hasMimeType", parameters.mimeType);
+					edmWebResource.setValue("ebucore:fileByteSize", parameters.fileSize);
+					edmWebResource.setValue("ebucore:width", parameters.width);
+					edmWebResource.setValue("ebucore:height", parameters.height);
+					
+					storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), "techmetadata",
+							edm, "text/plain");
+				} catch (IOException e) {
+					logger.error("Image Magick identify: I/O error on " + edmRep, e);
+				} catch (MediaException e) {
+					logger.error("Processing url " + url + " failed", e);
+				}
+				
 			}
+			
 		}
 	}
 	
@@ -130,7 +156,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		return process;
 	}
 	
-	private void storeRepresentation(String cloudId, String providerId, String repName, byte[] data, String mimeType)
+	private void storeRepresentation(String cloudId, String providerId, String repName, Document document,
+			String mimeType)
 			throws MediaException {
 		try {
 			long start = System.currentTimeMillis();
@@ -144,7 +171,18 @@ public class ProcessingBolt extends BaseRichBolt {
 				uri = recordClient.createRepresentation(cloudId, repName, providerId);
 				logger.debug("saving new representation: " + uri);
 			}
-			try (ByteArrayInputStream bais = new ByteArrayInputStream(data)) {
+			
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			try {
+				TransformerFactory.newInstance().newTransformer().transform(new DOMSource(document),
+						new StreamResult(outputStream));
+			} catch (TransformerException | TransformerFactoryConfigurationError e) {
+				throw new MediaException(
+						"Could not transform xml document of the representation " + cloudId + "/" + repName,
+						e);
+			}
+			
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(outputStream.toByteArray())) {
 				URI newFileUri = fileClient.uploadFile(uri.toString(), bais, mimeType);
 				logger.debug("saved representation in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
 			}
@@ -165,4 +203,78 @@ public class ProcessingBolt extends BaseRichBolt {
 			input.close();
 		}
 	}
+	
+	private class ImageParameters {
+		
+		private Pattern mimeTypePattern = Pattern.compile("Image(.*)Mime type: (.*?)(\\r\\n)+", Pattern.DOTALL);
+		
+		private Pattern fileSizeTypePattern =
+				Pattern.compile("Image(.*)Filesize: (.*?)B+(\\r\\n)+", Pattern.DOTALL);
+		
+		private Pattern geometryTypePattern = Pattern.compile("Image(.*)Geometry: (.*?)(\\r\\n)+", Pattern.DOTALL);
+		
+		public String mimeType;
+		public Long fileSize;
+		public Integer width;
+		public Integer height;
+		
+		public ImageParameters(String imageMagickResults) {
+			Matcher m = mimeTypePattern.matcher(imageMagickResults);
+			mimeType = m.find() ? m.group(2) : "";
+			
+			m = fileSizeTypePattern.matcher(imageMagickResults);
+			fileSize = m.find() ? Long.parseLong(m.group(2)) : 0;
+			
+			m = geometryTypePattern.matcher(imageMagickResults);
+			String[] size = m.find() ? m.group(2).split("x") : new String[4];
+			
+			width = Integer.parseInt(size[0]);
+			height = Integer.parseInt(size[1].split("\\+")[0]);
+			
+		}
+		
+	}
+	
+	private class EdmWebResource {
+		private Document edm;
+		private Element edmWebResource;
+		
+		public EdmWebResource(Document edm, String url) {
+			this.edm = edm;
+			edmWebResource = null;
+			NodeList nList = edm.getElementsByTagName("edm:WebResource");
+			for (int i = 0; i < nList.getLength(); i++) {
+				Element node = (Element) nList.item(i);
+				if (node.getAttributes().getNamedItem("rdf:about").getNodeValue().equals(url)) {
+					edmWebResource = node;
+					break;
+				}
+			}
+			
+			if (edmWebResource == null) {
+				edmWebResource = edm.createElement("edm:WebResource");
+				edmWebResource.setAttribute("rdf:about", url);
+				edm.getDocumentElement().appendChild(edmWebResource);
+			}
+			
+		}
+		
+		public void setValue(String name, Object value) {
+			Element ebucoreElement =
+					(Element) edmWebResource.getElementsByTagName(name).item(0);
+			if (ebucoreElement == null) {
+				ebucoreElement = edm.createElementNS(
+						"http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#", name);
+				edmWebResource.appendChild(ebucoreElement);
+				
+				String type = value.getClass().getSimpleName();
+				if (!type.equalsIgnoreCase("string")) {
+					ebucoreElement.setAttribute("rdf:datatype",
+							"http://www.w3.org/2001/XMLSchema#" + StringUtils.lowerCase(type));
+				}
+			}
+			ebucoreElement.setTextContent(String.valueOf(value));
+		}
+	}
+	
 }
