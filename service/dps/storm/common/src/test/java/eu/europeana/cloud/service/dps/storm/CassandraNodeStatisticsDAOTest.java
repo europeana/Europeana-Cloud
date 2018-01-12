@@ -15,11 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
-    private static final long TASK_ID_1 = 1;
-
-    private static final long TASK_ID_2 = 2;
-
-    private static final long TASK_ID_3 = 3;
+    private static final long TASK_ID = 1;
 
     private static final String ROOT_XPATH = "/root";
 
@@ -56,10 +52,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(false);
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID_1, toStore);
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID_1);
+        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -72,11 +68,11 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(false);
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID_1, toStore);
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID_1, toStore);
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID_1);
+        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -92,10 +88,10 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         List<NodeStatistics> toStore = prepareNodeStatistics(true);
 
         // when
-        nodeStatisticsDAO.insertNodeStatistics(TASK_ID_1, toStore);
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
 
         // then
-        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID_1);
+        List<NodeStatistics> retrieved = nodeStatisticsDAO.getNodeStatistics(TASK_ID);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (NodeStatistics stats : retrieved) {
             Assert.assertTrue(toStore.contains(stats));
