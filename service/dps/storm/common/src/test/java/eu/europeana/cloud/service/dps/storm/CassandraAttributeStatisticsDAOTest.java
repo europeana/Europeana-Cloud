@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
-import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.junit.Assert;
@@ -10,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
