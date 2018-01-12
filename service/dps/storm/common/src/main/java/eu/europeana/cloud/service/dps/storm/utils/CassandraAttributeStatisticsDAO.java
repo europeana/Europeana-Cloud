@@ -9,7 +9,9 @@ import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     private static CassandraAttributeStatisticsDAO instance = null;
@@ -47,7 +49,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         updateAttributeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectAttributesStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
-                        "WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
+                        " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
                         "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? ");
         selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
@@ -58,9 +60,9 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param taskId task identifier
      * @param attributes list of attribute statistics
      */
-    public void insertAttributeStatistics(long taskId, List<AttributeStatistics> attributes) {
+    public void insertAttributeStatistics(long taskId, String nodeXpath, Set<AttributeStatistics> attributes) {
         for (AttributeStatistics attributeStatistics : attributes) {
-            insertAttributeStatistics(taskId, attributeStatistics);
+            insertAttributeStatistics(taskId, nodeXpath, attributeStatistics);
         }
     }
 
@@ -70,8 +72,12 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param taskId task identifier
      * @param attributeStatistics attribute statistics to insert
      */
-    public void insertAttributeStatistics(long taskId, AttributeStatistics attributeStatistics) {
-        dbService.getSession().execute(updateAttributeStatement.bind(taskId, attributeStatistics.getOccurrence(), attributeStatistics.getName(), attributeStatistics.getValue()));
+    public void insertAttributeStatistics(long taskId, String nodeXpath, AttributeStatistics attributeStatistics) {
+        dbService.getSession().execute(updateAttributeStatement.bind(attributeStatistics.getOccurrence(),
+                taskId,
+                nodeXpath,
+                attributeStatistics.getName(),
+                attributeStatistics.getValue()));
     }
 
     /**
@@ -81,16 +87,16 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param nodeXpath node xpath that contains returned attributes
      * @return list of attribute statistics objects
      */
-    public List<AttributeStatistics> getAttribtueStatistics(long taskId, String nodeXpath) {
+    public Set<AttributeStatistics> getAttribtueStatistics(long taskId, String nodeXpath) {
         BoundStatement bs = selectAttributesStatement.bind(taskId, nodeXpath);
         ResultSet rs = dbService.getSession().execute(bs);
-        List<AttributeStatistics> result = new ArrayList<>();
+        Set<AttributeStatistics> result = new HashSet<>();
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
             result.add(new AttributeStatistics(row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME),
                     row.getString(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE),
-                    (int) row.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE)));
+                    row.getLong(CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_OCCURRENCE)));
         }
 
         return result;

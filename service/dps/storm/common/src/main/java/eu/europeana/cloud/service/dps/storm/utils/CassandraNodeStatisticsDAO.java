@@ -107,9 +107,12 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      */
     public void insertNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
         updateGeneralStatistics(taskId, nodeStatistics);
-        updateNodeStatistics(taskId, nodeStatistics);
+        // store node statistics only for nodes with values, occurrence of the node itself will be taken from the general statistics
+        if (nodeStatistics.getValue() != null) {
+            updateNodeStatistics(taskId, nodeStatistics);
+        }
         if (nodeStatistics.hasAttributes()) {
-            cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeStatistics.getAttributesStatistics());
+            cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeStatistics.getXpath(), nodeStatistics.getAttributesStatistics());
         }
     }
 
@@ -119,7 +122,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      * @param nodeStatistics node statistics object to store / update
      */
     private void updateNodeStatistics(long taskId, NodeStatistics nodeStatistics) {
-        dbService.getSession().execute(updateNodeStatement.bind(taskId, nodeStatistics.getXpath(), nodeStatistics.getValue(), nodeStatistics.getOccurrence()));
+        dbService.getSession().execute(updateNodeStatement.bind(nodeStatistics.getOccurrence(), taskId, nodeStatistics.getXpath(), nodeStatistics.getValue()));
     }
 
     /**
@@ -143,19 +146,29 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
-            result.addAll(createNodeStatistics(taskId, row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH), row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH)));
+            String parentXpath = row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH);
+            String nodeXpath = row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH);
+
+            List<NodeStatistics> nodeStatistics = createNodeStatistics(taskId, parentXpath, nodeXpath);
+            if (nodeStatistics.isEmpty()) {
+                // this case happens when there is a node without a value but it may contain attributes
+                Long occurrence = row.getLong(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE);
+                NodeStatistics node = new NodeStatistics(parentXpath, nodeXpath, "", occurrence);
+                node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttribtueStatistics(taskId, nodeXpath));
+            }
+            result.addAll(nodeStatistics);
         }
         return result;
     }
 
     private List<NodeStatistics> createNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
-        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath));
         List<NodeStatistics> result = new ArrayList<>();
+        ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath));
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
 
-            NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath, row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE), (int) row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
+            NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath, row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE), row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
             nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttribtueStatistics(taskId, nodeXpath));
             result.add(nodeStatistics);
         }
@@ -175,8 +188,8 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
      */
     public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
         BoundStatement bs;
-        if (nodeXpath == null) {
-            bs = searchByParentStatement.bind(taskId, parentXpath == null ? "null" : parentXpath);
+        if (nodeXpath.isEmpty()) {
+            bs = searchByParentStatement.bind(taskId, parentXpath);
         } else {
             bs = searchByNodeStatement.bind(taskId, parentXpath, nodeXpath);
         }
@@ -187,7 +200,9 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
 
-            result.addAll(createNodeStatistics(taskId, row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH), row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH)));
+            result.addAll(createNodeStatistics(taskId,
+                    row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH),
+                    row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH)));
         }
         return result;
     }
