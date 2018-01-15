@@ -33,7 +33,7 @@ public class DataSetReaderBolt extends BaseRichBolt {
 	
 	private DataSetServiceClient datasetClient;
 	
-	private int emitLimit;
+	private long emitLimit;
 	
 	@Override
 	public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
@@ -42,7 +42,7 @@ public class DataSetReaderBolt extends BaseRichBolt {
 		datasetClient = Util.getDataSetServiceClient(conf);
 		
 		String limitKey = "MEDIATOPOLOGY_DATASET_DATASET_LIMIT";
-		emitLimit = conf.containsKey(limitKey) ? (int) conf.get(limitKey) : Integer.MAX_VALUE;
+		emitLimit = conf.containsKey(limitKey) ? (Long) conf.get(limitKey) : Long.MAX_VALUE;
 	}
 	
 	@Override
@@ -66,18 +66,22 @@ public class DataSetReaderBolt extends BaseRichBolt {
 		
 		String datasetUrl = task.getDataEntry(InputDataType.DATASET_URLS).get(0);
 		try {
+			long start = System.currentTimeMillis();
+			long count = 0;
 			UrlParser urlParser = new UrlParser(datasetUrl);
 			RepresentationIterator repIterator = datasetClient.getRepresentationIterator(
 					urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
-			int limit = emitLimit;
-			while (repIterator.hasNext() && limit-- > 0) {
+			while (repIterator.hasNext() && count < emitLimit) {
 				Representation rep = repIterator.next();
 				if ("edm".equals(rep.getRepresentationName())) {
 					MediaTupleData data = new MediaTupleData(task.getTaskId());
 					data.setEdmRepresentation(rep);
 					outputCollector.emit(new Values(data));
+					count++;
 				}
 			}
+			logger.info("Task {}: emitted {} EDMs in {} ms", task.getTaskName(), count,
+					System.currentTimeMillis() - start);
 		} catch (MalformedURLException e) {
 			logger.error("Url problem: " + datasetUrl, e);
 		}
