@@ -1,4 +1,4 @@
-package eu.europeana.cloud.dps.topologies.media;
+package eu.europeana.cloud.dps.topologies.media.support;
 
 /** General class for exceptions generated in media topology. */
 public class MediaException extends Exception {

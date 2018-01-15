@@ -24,6 +24,8 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -57,7 +59,6 @@ public class MediaTopology {
 			builder.setSpout("spout", new KafkaSpout(kafkaConfig), 1);
 			builder.setBolt("source", new DataSetReaderBolt(), 1).shuffleGrouping("spout");
 		}
-//		builder.setBolt("dummy", new DummyBolt()).shuffleGrouping("source");
 		
 		builder.setBolt("downloadBolt", new DownloadBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD"))

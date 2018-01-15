@@ -1,4 +1,4 @@
-package eu.europeana.cloud.dps.topologies.media;
+package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.io.Serializable;
 

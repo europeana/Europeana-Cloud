@@ -1,4 +1,4 @@
-package eu.europeana.cloud.dps.topologies.media;
+package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.util.Arrays;
 
@@ -11,7 +11,7 @@ public class MediaTaskSubmitter {
 	public static void main(String[] args) {
 		try {
 			DpsClient client =
-					new DpsClient("http://195.216.97.81:8080/services", "mms_user", "TODO");
+					new DpsClient("http://195.216.97.81:8080/services", "mms_user", "");
 			String topologyName = "media_topology";
 			
 			DpsTask task = new DpsTask();

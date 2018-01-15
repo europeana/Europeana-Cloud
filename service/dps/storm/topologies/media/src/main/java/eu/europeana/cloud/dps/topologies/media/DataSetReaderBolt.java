@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.urls.UrlParser;

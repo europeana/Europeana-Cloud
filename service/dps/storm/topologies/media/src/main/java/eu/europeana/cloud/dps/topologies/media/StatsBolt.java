@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 
