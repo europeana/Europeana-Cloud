@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import eu.europeana.cloud.common.model.File;
@@ -83,18 +82,14 @@ public class DownloadBolt extends BaseRichBolt {
 	
 	@Override
 	public void execute(Tuple input) {
-		
 		MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
-		Map<UrlType, List<String>> urls = new HashMap<>();;
 		
-		Representation rep = data.getEdmRepresentation();
-		List<File> files = rep.getFiles();
-		if (files.size() != 1) {
-			logger.error("EDM representation has " + files.size() + " files!");
-			return;
-		}
-		
+		Map<UrlType, List<String>> urls;
 		try {
+			Representation rep = data.getEdmRepresentation();
+			List<File> files = rep.getFiles();
+			if (files.size() != 1)
+				throw new MediaException("EDM representation has " + files.size() + " files!");
 			Document edm = getEdmDocument(rep, files.get(0));
 			urls = retrieveUrls(edm);
 			
@@ -127,18 +122,11 @@ public class DownloadBolt extends BaseRichBolt {
 		
 		for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
 			NodeList list = edm.getElementsByTagName(urlType.tagName);
-			if (!urls.containsKey(urlType))
-				urls.put(urlType, new ArrayList<>());
-			
-			List<String> typeValues = urls.get(urlType);
-			
-			for (int i = 0; i < list.getLength(); i++) {
-				Node node = list.item(i);
-				typeValues.add(((Element) node).getAttribute("rdf:resource"));
-				
-			}
-			
 			if (list.getLength() > 0) {
+				List<String> typeValues = new ArrayList<>();
+				for (int i = 0; i < list.getLength(); i++) {
+					typeValues.add(((Element) list.item(i)).getAttribute("rdf:resource"));
+				}
 				urls.put(urlType, typeValues);
 			}
 		}

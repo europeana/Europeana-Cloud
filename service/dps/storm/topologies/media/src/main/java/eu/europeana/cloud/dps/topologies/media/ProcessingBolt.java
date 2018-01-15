@@ -88,11 +88,10 @@ public class ProcessingBolt extends BaseRichBolt {
 				if (!processedUrls.add(url))
 					continue;
 				try {
+					ImageInfo imageInfo = getImageInfo(mediaData.getFileContents().get(url));
 					
-					ImageParameters params = getImageParameters(mediaData.getFileContents().get(url));
-					
-					createTechnicalMetadata(mediaData, url, params);
-					createThumbnails(mediaData, url, params);
+					createTechnicalMetadata(mediaData, url, imageInfo);
+					createThumbnails(mediaData, url, imageInfo);
 					
 				} catch (IOException e) {
 					logger.error("Image Magick identify: I/O error on " + edmRep, e);
@@ -105,9 +104,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 	}
 	
-	private void createThumbnails(MediaTupleData mediaData, String url, ImageParameters parameters)
+	private void createThumbnails(MediaTupleData mediaData, String url, ImageInfo imageInfo)
 			throws IOException, MediaException {
-		String mimeType = parameters.mimeType;
+		String mimeType = imageInfo.mimeType;
 		
 		if (mimeType.startsWith("image")) {
 			createImageThumbnail(url, mediaData, "200");
@@ -138,16 +137,16 @@ public class ProcessingBolt extends BaseRichBolt {
 		return name;
 	}
 	
-	private void createTechnicalMetadata(MediaTupleData mediaData, String url, ImageParameters parameters)
+	private void createTechnicalMetadata(MediaTupleData mediaData, String url, ImageInfo imageInfo)
 			throws MediaException {
 		Representation edmRep = mediaData.getEdmRepresentation();
 		
 		EdmWebResourceWrapper edmWebResource = new EdmWebResourceWrapper(mediaData.getEdm(), url);
 		
-		edmWebResource.setValue("ebucore:hasMimeType", parameters.mimeType);
-		edmWebResource.setValue("ebucore:fileByteSize", parameters.fileSize);
-		edmWebResource.setValue("ebucore:width", parameters.width);
-		edmWebResource.setValue("ebucore:height", parameters.height);
+		edmWebResource.setValue("ebucore:hasMimeType", imageInfo.mimeType);
+		edmWebResource.setValue("ebucore:fileByteSize", imageInfo.fileSize);
+		edmWebResource.setValue("ebucore:width", imageInfo.width);
+		edmWebResource.setValue("ebucore:height", imageInfo.height);
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
@@ -164,13 +163,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 	}
 	
-	private ImageParameters getImageParameters(byte[] content) throws IOException {
-		Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false,
-				content);
+	private ImageInfo getImageInfo(byte[] content) throws IOException {
+		Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false, content);
 		String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
-		logger.debug("identify result:\n{}", identifyResult);
-		
-		return new ImageParameters(identifyResult);
+		return new ImageInfo(content, identifyResult);
 	}
 	
 	private String findImageMagickCommand(String command) {
@@ -257,33 +253,29 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 	}
 	
-	private class ImageParameters {
+	private static class ImageInfo {
 		
-		private Pattern mimeTypePattern = Pattern.compile("Image(.*)Mime type: (.*?)(\\r\\n)+", Pattern.DOTALL);
+		private static final Pattern MIME_TYPE = Pattern.compile("^  Mime type: (.*)");
 		
-		private Pattern fileSizeTypePattern =
-				Pattern.compile("Image(.*)Filesize: (.*?)B+(\\r\\n)+", Pattern.DOTALL);
+		private static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)");
 		
-		private Pattern geometryTypePattern = Pattern.compile("Image(.*)Geometry: (.*?)(\\r\\n)+", Pattern.DOTALL);
+		public String mimeType = "";
+		public long fileSize;
+		public int width;
+		public int height;
 		
-		public String mimeType;
-		public Long fileSize;
-		public Integer width;
-		public Integer height;
-		
-		public ImageParameters(String imageMagickResults) {
-			Matcher m = mimeTypePattern.matcher(imageMagickResults);
-			mimeType = m.find() ? m.group(2) : "";
+		public ImageInfo(byte[] content, String identifyResult) {
+			Matcher m = MIME_TYPE.matcher(identifyResult);
+			if (m.find())
+				mimeType = m.group(1);
 			
-			m = fileSizeTypePattern.matcher(imageMagickResults);
-			fileSize = m.find() ? Long.parseLong(m.group(2)) : 0;
+			m = GEOMETRY.matcher(identifyResult);
+			if (m.find()) {
+				width = Integer.parseInt(m.group(1));
+				height = Integer.parseInt(m.group(2));
+			}
 			
-			m = geometryTypePattern.matcher(imageMagickResults);
-			String[] size = m.find() ? m.group(2).split("x") : new String[4];
-			
-			width = Integer.parseInt(size[0]);
-			height = Integer.parseInt(size[1].split("\\+")[0]);
-			
+			fileSize = content.length;
 		}
 		
 	}
