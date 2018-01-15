@@ -43,8 +43,8 @@ import org.w3c.dom.NodeList;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
-import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
+import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -61,14 +61,11 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private RecordServiceClient recordClient;
 	
-	private String identifyCmd;
-	
-	private String convertCmd;
+	private String magickCmd;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-		identifyCmd = findImageMagickCommand("identify");
-		convertCmd = findImageMagickCommand("convert");
+		magickCmd = findImageMagickCommand();
 		threadPool = Executors.newFixedThreadPool(2);
 		fileClient = Util.getFileServiceClient(stormConf);
 		recordClient = Util.getRecordServiceClient(stormConf);
@@ -120,8 +117,8 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private void createImageThumbnail(String url, MediaTupleData mediaData, String width)
 			throws IOException, MediaException {
-		Process convertProcess = runCommand(Arrays.asList(convertCmd, "-", "-thumbnail", width + "x", "-"), false,
-				mediaData.getFileContents().get(url));
+		Process convertProcess = runCommand(Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "-"),
+				false, mediaData.getFileContents().get(url));
 		String name = createThumbnailName(url, width);
 		Representation edmRep = mediaData.getEdmRepresentation();
 		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), name,
@@ -167,15 +164,15 @@ public class ProcessingBolt extends BaseRichBolt {
 	}
 	
 	private ImageInfo getImageInfo(byte[] content) throws IOException {
-		Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false, content);
+		Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false, content);
 		String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
 		return new ImageInfo(content, identifyResult);
 	}
 	
-	private String findImageMagickCommand(String command) {
+	private String findImageMagickCommand() {
 		boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 		try {
-			Process which = runCommand(Arrays.asList(isWindows ? "where" : "which", command), true);
+			Process which = runCommand(Arrays.asList(isWindows ? "where" : "which", "magick"), true);
 			List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
 			for (String path : paths) {
 				Process test = runCommand(Arrays.asList(path, "-version"), true);
@@ -183,7 +180,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				if (version.matches("(?s)^Version: ImageMagick (6|7).*")) // (?s) means . matches newline
 					return path;
 			}
-			throw new RuntimeException("ImageMagick command " + command + " version 6/7 not found in " + paths);
+			throw new RuntimeException("ImageMagick command version 6/7 not found in " + paths);
 		} catch (IOException e) {
 			throw new RuntimeException("Error while looking for ImageMagick tools", e);
 		}
