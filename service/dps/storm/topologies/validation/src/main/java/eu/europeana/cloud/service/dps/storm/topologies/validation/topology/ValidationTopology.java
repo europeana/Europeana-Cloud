@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
@@ -107,6 +108,11 @@ public class ValidationTopology {
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
+
+        builder.setBolt(TopologyHelper.STATISTICS_BOLT, new StatisticsBolt(),
+                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL))))
+                .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS))))
+                .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
 
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, validationRevisionWriter,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
