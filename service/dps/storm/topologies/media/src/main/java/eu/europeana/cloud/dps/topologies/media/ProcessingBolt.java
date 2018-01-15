@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -57,9 +60,12 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private String identifyCmd;
 	
+	private String convertCmd;
+	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		identifyCmd = findImageMagickCommand("identify");
+		convertCmd = findImageMagickCommand("convert");
 		threadPool = Executors.newFixedThreadPool(2);
 		fileClient = Util.getFileServiceClient(stormConf);
 		recordClient = Util.getRecordServiceClient(stormConf);
@@ -82,23 +88,12 @@ public class ProcessingBolt extends BaseRichBolt {
 				if (!processedUrls.add(url))
 					continue;
 				try {
-					Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false,
-							mediaData.getFileContents().get(url));
 					
-					String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
-					logger.debug("identify result:\n{}", identifyResult);
+					ImageParameters params = getImageParameters(mediaData.getFileContents().get(url));
 					
-					Document edm = mediaData.getEdm();
-					ImageParameters parameters = new ImageParameters(identifyResult);
-					EdmWebResource edmWebResource = new EdmWebResource(edm, url);
+					createTechnicalMetadata(mediaData, url, params);
+					createThumbnails(mediaData, url, params);
 					
-					edmWebResource.setValue("ebucore:hasMimeType", parameters.mimeType);
-					edmWebResource.setValue("ebucore:fileByteSize", parameters.fileSize);
-					edmWebResource.setValue("ebucore:width", parameters.width);
-					edmWebResource.setValue("ebucore:height", parameters.height);
-					
-					storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), "techmetadata",
-							edm, "text/plain");
 				} catch (IOException e) {
 					logger.error("Image Magick identify: I/O error on " + edmRep, e);
 				} catch (MediaException e) {
@@ -108,6 +103,74 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 			
 		}
+	}
+	
+	private void createThumbnails(MediaTupleData mediaData, String url, ImageParameters parameters)
+			throws IOException, MediaException {
+		String mimeType = parameters.mimeType;
+		
+		if (mimeType.startsWith("image")) {
+			createImageThumbnail(url, mediaData, "200");
+			createImageThumbnail(url, mediaData, "400");
+		}
+		
+	}
+	
+	private void createImageThumbnail(String url, MediaTupleData mediaData, String width)
+			throws IOException, MediaException {
+		Process convertProcess = runCommand(Arrays.asList(convertCmd, "-", "-thumbnail", width + "x", "-"), false,
+				mediaData.getFileContents().get(url));
+		String name = createThumbnailName(url, width);
+		Representation edmRep = mediaData.getEdmRepresentation();
+		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), name,
+				IOUtils.toByteArray(convertProcess.getInputStream()), "image/jpeg");
+		
+	}
+	
+	private String createThumbnailName(String url, String width) throws MediaException {
+		String name = "";
+		try {
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			name = (new HexBinaryAdapter()).marshal(md5.digest(url.getBytes())) + "-w" + width;
+		} catch (NoSuchAlgorithmException e) {
+			throw new MediaException(e.getMessage(), e);
+		}
+		return name;
+	}
+	
+	private void createTechnicalMetadata(MediaTupleData mediaData, String url, ImageParameters parameters)
+			throws MediaException {
+		Representation edmRep = mediaData.getEdmRepresentation();
+		
+		EdmWebResourceWrapper edmWebResource = new EdmWebResourceWrapper(mediaData.getEdm(), url);
+		
+		edmWebResource.setValue("ebucore:hasMimeType", parameters.mimeType);
+		edmWebResource.setValue("ebucore:fileByteSize", parameters.fileSize);
+		edmWebResource.setValue("ebucore:width", parameters.width);
+		edmWebResource.setValue("ebucore:height", parameters.height);
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try {
+			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(edmWebResource.parent),
+					new StreamResult(outputStream));
+		} catch (TransformerException | TransformerFactoryConfigurationError e) {
+			throw new MediaException(
+					"Could not transform xml document of the representation " + edmRep.getCloudId()
+							+ "/techmetadata",
+					e);
+		}
+		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), "techmetadata",
+				outputStream.toByteArray(), "text/xml");
+		
+	}
+	
+	private ImageParameters getImageParameters(byte[] content) throws IOException {
+		Process identifyProcess = runCommand(Arrays.asList(identifyCmd, "-verbose", "-"), false,
+				content);
+		String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
+		logger.debug("identify result:\n{}", identifyResult);
+		
+		return new ImageParameters(identifyResult);
 	}
 	
 	private String findImageMagickCommand(String command) {
@@ -156,7 +219,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		return process;
 	}
 	
-	private void storeRepresentation(String cloudId, String providerId, String repName, Document document,
+	private void storeRepresentation(String cloudId, String providerId, String repName, byte[] data,
 			String mimeType)
 			throws MediaException {
 		try {
@@ -172,17 +235,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				logger.debug("saving new representation: " + uri);
 			}
 			
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			try {
-				TransformerFactory.newInstance().newTransformer().transform(new DOMSource(document),
-						new StreamResult(outputStream));
-			} catch (TransformerException | TransformerFactoryConfigurationError e) {
-				throw new MediaException(
-						"Could not transform xml document of the representation " + cloudId + "/" + repName,
-						e);
-			}
-			
-			try (ByteArrayInputStream bais = new ByteArrayInputStream(outputStream.toByteArray())) {
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(data)) {
 				URI newFileUri = fileClient.uploadFile(uri.toString(), bais, mimeType);
 				logger.debug("saved representation in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
 			}
@@ -235,12 +288,12 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 	}
 	
-	private class EdmWebResource {
-		private Document edm;
+	private class EdmWebResourceWrapper {
+		private Document parent;
 		private Element edmWebResource;
 		
-		public EdmWebResource(Document edm, String url) {
-			this.edm = edm;
+		public EdmWebResourceWrapper(Document edm, String url) {
+			this.parent = edm;
 			edmWebResource = null;
 			NodeList nList = edm.getElementsByTagName("edm:WebResource");
 			for (int i = 0; i < nList.getLength(); i++) {
@@ -263,7 +316,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			Element ebucoreElement =
 					(Element) edmWebResource.getElementsByTagName(name).item(0);
 			if (ebucoreElement == null) {
-				ebucoreElement = edm.createElementNS(
+				ebucoreElement = parent.createElementNS(
 						"http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#", name);
 				edmWebResource.appendChild(ebucoreElement);
 				
