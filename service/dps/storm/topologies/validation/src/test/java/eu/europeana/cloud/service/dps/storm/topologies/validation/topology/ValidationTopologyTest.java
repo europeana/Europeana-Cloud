@@ -56,13 +56,12 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,CassandraTaskErrorsDAO.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ValidationTopologyTest extends ValidationMockHelper {
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
-
 
 
     private static final String TASK_PARAMETERS_WITH_OUTPUT_REVISION = "\"parameters\":" +
@@ -95,7 +94,6 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     @Before
     public final void setUp() throws Exception {
-        mockZookeeperKS();
         mockRecordSC();
         mockFileSC();
         mockCassandraInteraction();
@@ -133,7 +131,6 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         assertTopology(input);
 
     }
-
 
 
     @Test

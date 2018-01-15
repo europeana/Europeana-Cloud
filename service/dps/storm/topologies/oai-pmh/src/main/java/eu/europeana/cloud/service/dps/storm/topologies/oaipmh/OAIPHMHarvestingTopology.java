@@ -69,7 +69,6 @@ public class OAIPHMHarvestingTopology {
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD));
 
 
-
         builder.setSpout(SPOUT, kafkaSpout, (getAnInt(KAFKA_SPOUT_PARALLEL)))
                 .setNumTasks((getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
@@ -146,7 +145,6 @@ public class OAIPHMHarvestingTopology {
 
     public static void main(String[] args) throws Exception {
         Config config = new Config();
-        config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
 
         if (args.length <= 1) {
 
