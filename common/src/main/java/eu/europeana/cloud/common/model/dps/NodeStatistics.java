@@ -64,5 +64,9 @@ public class NodeStatistics {
         this.occurrence = occurrence;
     }
 
+    public void increaseOccurrence() {
+        this.occurrence++;
+    }
+
 
 }

@@ -26,25 +26,21 @@ public class RecordStatisticsGenerator {
     }
 
     public List<NodeStatistics> getStatistics() throws SAXException, IOException, ParserConfigurationException {
-        Document doc = getParsedDocument(fileContent);
+        Document doc = getParsedDocument();
         doc.getDocumentElement().normalize();
-        Node root = getRootElement(doc);
+        Node root = doc.getDocumentElement();
         addRootToNodeList(root);
         prepareNodeStatistics(root);
         return new ArrayList<>(nodeStatistics.values());
     }
 
 
-    private Document getParsedDocument(String fileContent) throws ParserConfigurationException, SAXException, IOException {
+    private Document getParsedDocument() throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         InputSource is = new InputSource();
         is.setCharacterStream(new StringReader(fileContent));
         return db.parse(is);
-    }
-
-    private Element getRootElement(Document document) {
-        return document.getDocumentElement();
     }
 
     private void addRootToNodeList(Node root) {
@@ -67,23 +63,17 @@ public class RecordStatisticsGenerator {
                 if (nodeModel == null) {
                     nodeModel = new NodeStatistics(nodeXpath, parentXpath, nodeValue, 1);
                 } else {
-                    int currentOccurrence = nodeModel.getOccurrence();
-                    nodeModel.setOccurrence(++currentOccurrence);
+                    nodeModel.increaseOccurrence();
                 }
-                assignAttributesToNode(nodeModel, node.getAttributes());
+                assignAttributesToNode(nodeModel.getAttributes(), node.getAttributes());
                 nodeStatistics.put(modelKey, nodeModel);
                 prepareNodeStatistics(node);
             }
         }
     }
 
-    private void assignAttributesToNode(NodeStatistics nodeModel, NamedNodeMap newAttributes) {
-        Set<AttributeStatistics> existedAttributes = nodeModel.getAttributes();
-        calculateAttributeStatistics(existedAttributes, newAttributes);
-        nodeModel.setAttributes(existedAttributes);
-    }
 
-    private void calculateAttributeStatistics(Set<AttributeStatistics> existedAttributes, NamedNodeMap attributes) {
+    private void assignAttributesToNode(Set<AttributeStatistics> existedAttributes, NamedNodeMap attributes) {
         for (int j = 0; j < attributes.getLength(); j++) {
             Attr attr = (Attr) attributes.item(j);
             String attrName = getAttributeXPath(attr);
@@ -95,8 +85,8 @@ public class RecordStatisticsGenerator {
                 AttributeStatistics attributeModel = new AttributeStatistics(attrName, attrValue, 1);
                 if (existedAttributes.contains(attributeModel)) {
                     increaseOccurrence(existedAttributes, attributeModel);
-                }
-                existedAttributes.add(attributeModel);
+                } else
+                    existedAttributes.add(attributeModel);
             }
         }
     }
@@ -120,10 +110,10 @@ public class RecordStatisticsGenerator {
     }
 
 
-    public void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics ComparableAttributeModel) {
+    public void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics comparableAttributeModel) {
         for (Iterator<AttributeStatistics> it = models.iterator(); it.hasNext(); ) {
             AttributeStatistics attributeModel = it.next();
-            if (attributeModel.equals(ComparableAttributeModel)) {
+            if (attributeModel.equals(comparableAttributeModel)) {
                 attributeModel.increaseOccurrence();
                 break;
             }
