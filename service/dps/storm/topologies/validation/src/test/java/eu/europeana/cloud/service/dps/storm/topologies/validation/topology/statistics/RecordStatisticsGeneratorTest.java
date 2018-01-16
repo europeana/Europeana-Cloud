@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class RecordStatisticsGeneratorTest {
     private static Multimap<String, String> xpathValueMap;
-    private static Multimap<String, Integer> xpathOccurrenceMap;
+    private static Multimap<String, Long> xpathOccurrenceMap;
     private static Multimap<String, Set<AttributeStatistics>> xpathAttributeMap;
 
     @BeforeClass
@@ -60,7 +60,7 @@ public class RecordStatisticsGeneratorTest {
 
             assertEquals(getParentXpathFromXpath(nodeModel.getXpath()), nodeModel.getParentXpath());
 
-            Set<AttributeStatistics> attributeModels = nodeModel.getAttributes();
+            Set<AttributeStatistics> attributeModels = nodeModel.getAttributesStatistics();
             assertTrue(xpathAttributeMap.get(nodeModel.getXpath()).contains(attributeModels));
 
         }
@@ -128,13 +128,13 @@ public class RecordStatisticsGeneratorTest {
 
     private static void initXpathOccurrenceMap() {
         xpathOccurrenceMap = ArrayListMultimap.create();
-        xpathOccurrenceMap.put("//root/father1", 1);
-        xpathOccurrenceMap.put("//root/father3/childA", 2);
-        xpathOccurrenceMap.put("//root/father1/childA", 1);
-        xpathOccurrenceMap.put("//root/father3", 2);
-        xpathOccurrenceMap.put("//root", 1);
-        xpathOccurrenceMap.put("//root/father1/childA", 1);
-        xpathOccurrenceMap.put("//root/father1", 1);
+        xpathOccurrenceMap.put("//root/father1", Long.valueOf(1));
+        xpathOccurrenceMap.put("//root/father3/childA", Long.valueOf(2));
+        xpathOccurrenceMap.put("//root/father1/childA", Long.valueOf(1));
+        xpathOccurrenceMap.put("//root/father3", Long.valueOf(2));
+        xpathOccurrenceMap.put("//root", Long.valueOf(1));
+        xpathOccurrenceMap.put("//root/father1/childA", Long.valueOf(1));
+        xpathOccurrenceMap.put("//root/father1", Long.valueOf(1));
     }
 
     private static void initXpathValueMap() {
