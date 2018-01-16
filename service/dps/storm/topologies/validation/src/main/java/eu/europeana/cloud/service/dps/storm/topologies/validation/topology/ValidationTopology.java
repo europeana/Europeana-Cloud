@@ -29,15 +29,23 @@ import java.util.Properties;
  */
 public class ValidationTopology {
     private static Properties topologyProperties;
+    private static Properties validationProperties;
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "validation-topology-config.properties";
+    private static final String VALIDATION_PROPERTIES_FILE = "validation.properties";
     private final String DATASET_STREAM = InputDataType.DATASET_URLS.name();
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
 
-    public ValidationTopology(String defaultPropertyFile, String providedPropertyFile) {
+    public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
         topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
+        loadValidationProperties(defaultValidationPropertiesFile, providedValidationPropertiesFile);
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
+    }
+
+    private void loadValidationProperties(String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
+        validationProperties = new Properties();
+        PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
     }
 
     public final StormTopology buildTopology(String validationTopic, String ecloudMcsAddress) {
@@ -51,7 +59,7 @@ public class ValidationTopology {
         kafkaConfig.ignoreZkOffsets = true;
         kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         TopologyBuilder builder = new TopologyBuilder();
-        KafkaSpout kafkaSpout =  new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+        KafkaSpout kafkaSpout = new CustomKafkaSpout(kafkaConfig, topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
@@ -103,7 +111,7 @@ public class ValidationTopology {
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM).shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
 
-        builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt(),
+        builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt(validationProperties),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
@@ -145,11 +153,15 @@ public class ValidationTopology {
 
         if (args.length <= 1) {
 
+            String providedValidationPropertiesFile = "";
             String providedPropertyFile = "";
-            if (args.length == 1) {
+            if (args.length == 1)
                 providedPropertyFile = args[0];
+            else if (args.length == 2) {
+                providedPropertyFile = args[0];
+                providedValidationPropertiesFile = args[1];
             }
-            ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+            ValidationTopology validationTopology = new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
             String topologyName = topologyProperties.getProperty(TopologyPropertyKeys.TOPOLOGY_NAME);
             // kafka topic == topology name
             String kafkaTopic = topologyName;

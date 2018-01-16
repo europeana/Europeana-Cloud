@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:oai="http://www.openarchives.org/OAI/2.0/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:dcat="http://www.w3.org/ns/dcat#"
+         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
+         xmlns:adms="http://www.w3.org/ns/adms#"
+         xmlns:wdrs="http://www.w3.org/2007/05/powder-s#">
+
+    <edm:ProvidedCHO rdf:about="/item/08502/5F41E0B657BDD9923BA2C4655BB7A6880A2ED5C2">
+        <dc:contributor>CHO - dc:contributor</dc:contributor>
+        <dc:coverage>CHO - dc:coverage</dc:coverage>
+        <dc:creator rdf:resource="http://dbpedia.org/resource/Paul_Gauguin"/>
+        <dc:creator>Paul Gauguin</dc:creator>
+        <dc:creator>French, 1848-1903</dc:creator>
+        <dc:date>1899</dc:date>
+        <!--<dc:description/>-->
+        <dc:format>CHO - dc:format </dc:format>
+        <dc:identifier>local (default) 505/172</dc:identifier>
+        <dc:identifier>local (default) B66.1041 B66.06.1041</dc:identifier>
+        <dc:identifier>item 193112</dc:identifier>
+        <dc:language>N/A</dc:language>
+        <dc:publisher>CHO - dc:publisher </dc:publisher>
+        <dc:relation>CHO - dc:relation </dc:relation>
+        <dc:rights>Gift of Yad Hanadiv, Jerusalem, from the collection of Miriam Alexandrine de Rothschild, daughter of the first Baron Edmond de RothschildIsrael Museum, Jerusalem</dc:rights>
+        <dc:rights>Photo © The Israel Museum, Jerusalem</dc:rights>
+        <dc:source>CHO - dc:source</dc:source>
+        <dc:subject rdf:resource="http://dbpedia.org/resource/Painting"/>
+        <dc:subject rdf:resource="http://dbpedia.org/resource/Modern_art"/>
+        <dc:subject>Art</dc:subject>
+
+        <dc:type>CHO-dc:type </dc:type>
+        <dcterms:alternative> THIS IS A TEST OBJECT </dcterms:alternative>
+        <dcterms:conformsTo>CHO - dcterms:conformsTo</dcterms:conformsTo>
+        <dcterms:created>CHO- dcterms:created</dcterms:created>
+        <dcterms:extent>45.5 x 61.3 cm</dcterms:extent>
+        <dcterms:hasFormat>CHO - dcterms:hasFormat</dcterms:hasFormat>
+        <dcterms:hasPart>CHO - dcterms:hasPart</dcterms:hasPart>
+        <dcterms:hasPart rdf:resource="http://CHO-edm-hasPart"/>
+        <dcterms:hasVersion>CHO - dcterms:hasVersion</dcterms:hasVersion>
+        <dcterms:isFormatOf>CHO - dcterms:isFormatOf</dcterms:isFormatOf>
+        <dcterms:isPartOf rdf:resource="http://CHO-edm-isPartOf"/>
+        <dcterms:isReferencedBy>CHO - dcterms:isReferencedBy</dcterms:isReferencedBy>
+        <dcterms:isReplacedBy>CHO - dcterms:isReplacedBy</dcterms:isReplacedBy>
+        <dcterms:isRequiredBy>CHO - dcterms:isRequiredBy</dcterms:isRequiredBy>
+        <dcterms:issued>CHO - dcterms:issued</dcterms:issued>
+        <dcterms:issued>CHO- dcterms:issued</dcterms:issued>
+        <dcterms:isVersionOf>CHO - dcterms:isVersionOf</dcterms:isVersionOf>
+        <dcterms:medium xml:lang="en">Oil On Canvas</dcterms:medium>
+        <dcterms:provenance>CHO - dcterms:provenance</dcterms:provenance>
+        <dcterms:references>CHO - dcterms:references</dcterms:references>
+        <dcterms:replaces>CHO - dcterms:replaces</dcterms:replaces>
+        <dcterms:requires>dcterms:requires</dcterms:requires>
+        <dcterms:spatial xml:lang="fr">France</dcterms:spatial>
+        <dcterms:spatial rdf:resource="http://sws.geonames.org/3017382/"/>
+        <dcterms:tableOfContents>CHO - dcterms:tableOfContents</dcterms:tableOfContents>
+        <dcterms:temporal rdf:resource="http://dbpedia.org/resource/Post-Impressionism"/>
+        <edm:currentLocation rdf:resource="http://dummylocation.com"/>
+        <edm:hasMet rdf:resource="http://CHO-edm-hasMet"/>
+        <edm:hasType>CHO - edm:hasType</edm:hasType>
+        <edm:incorporates rdf:resource="http://CHO-edm-incorporates"/>
+        <edm:isDerivativeOf rdf:resource="http://CHO-edm-isDerivativeOf"/>
+        <edm:isNextInSequence rdf:resource="http://CHO-edm-isNextInSequence.eu"/>
+        <edm:isNextInSequence rdf:resource="http://CHO-edm-isNextInSequence2.eu"/>
+        <edm:isRelatedTo>CHO - edm:isRelatedTo</edm:isRelatedTo>
+        <edm:isRepresentationOf rdf:resource="http://CHO-edm-isRepresentationOf.eu"></edm:isRepresentationOf>
+        <edm:isSimilarTo rdf:resource="http://www.europeana.eu/portal/record/08502/5F41E0B657BDD9923BA2C4655BB7A6880A2ED5C2.html"/>
+        <edm:isSuccessorOf rdf:resource="http://CHO-edm-isSuccessorOf.eu"></edm:isSuccessorOf>
+        <edm:realizes rdf:resource="http://CHO-edm-realizes.eu"></edm:realizes>
+        <edm:type>TEXT</edm:type>
+        <owl:sameAs rdf:resource="http://CHO-owl-sameAs.eu"></owl:sameAs>
+    </edm:ProvidedCHO>
+    <ore:Aggregation rdf:about="/aggregation/provider/08502/5F41E0B657BDD9923BA2C4655BB7A6880A2ED5C2">
+        <edm:aggregatedCHO rdf:resource="/item/08502/5F41E0B657BDD9923BA2C4655BB7A6880A2ED5C2"/>
+        <edm:dataProvider>Israel Museum, Jerusalem</edm:dataProvider>
+        <edm:isShownAt rdf:resource="http://www.imj.org.il/imagine/collections/item.asp?itemNum=193112"/>
+        <edm:isShownBy rdf:resource="http://www.imj.org.il/images/corridor/bezalel/modern/new modern scans/g-h-i/gauguin-still life~b66_1041.jpg"/>
+        <edm:object rdf:resource="http://www.imj.org.il/images/corridor/bezalel/modern/new modern scans/g-h-i/gauguin-still life~b66_1041.jpg"/>
+        <edm:provider>Athena</edm:provider>
+        <dc:rights>aggregation - dc:rights</dc:rights>
+        <edm:rights rdf:resource="http://rightReserved.html"/>
+        <edm:intermediateProvider> Name of the intermediate provider</edm:intermediateProvider>
+        <edm:intermediateProvider rdf:resource="http://Aggregation-edm-intermediateProvider"/>
+    </ore:Aggregation>
+
+</rdf:RDF>
+<!--<?xml version="1.0"  encoding="UTF-8" ?>
+<rdf:RDF xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcterms="http://purl.org/dc/terms/"
+         xmlns:edm="http://www.europeana.eu/schemas/edm/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:ore="http://www.openarchives.org/ore/terms/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+         xmlns:wgs84="http://www.w3.org/2003/01/geo/wgs84_pos#"
+         xmlns:xalan="http://xml.apache.org/xalan">
+    <edm:ProvidedCHO rdf:about="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662"/>
+    <edm:WebResource rdf:about="http://hdl.handle.net/10796/79B8632E-8057-4D11-A87C-98B8A20D6FF6?locatt=view:level2">
+        <edm:rights rdf:resource="http://www.europeana.eu/rights/rr-f/"/>
+    </edm:WebResource>
+    <ore:Aggregation rdf:about="10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662">
+        <edm:aggregatedCHO rdf:resource="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662"/>
+        <edm:dataProvider>Amsab-Institute of Social History
+        </edm:dataProvider><edm:isShownAt rdf:resource="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662#1"/>
+        <edm:isShownBy rdf:resource="http://hdl.handle.net/10796/79B8632E-8057-4D11-A87C-98B8A20D6FF6?locatt=view:level2"/>
+        <edm:object rdf:resource="http://hdl.handle.net/10796/79B8632E-8057-4D11-A87C-98B8A20D6FF6?locatt=view:level2"/>
+        <edm:provider>HOPE - Heritage of the People's Europe</edm:provider>
+        <edm:rights rdf:resource="http://www.europeana.eu/rights/rr-f/"/>
+    </ore:Aggregation>
+    <ore:Proxy rdf:about="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662">
+        <dc:identifier>http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662</dc:identifier>
+        <dc:identifier>PV-MTSF 258</dc:identifier>-->
+        <!--<dc:language>fra</dc:language>--><!--
+        <dc:relation>http://www.peoplesheritage.eu</dc:relation>
+        <dc:subject>Syndicalism/Trade Unions</dc:subject>
+        <dc:subject>Socialist and social democrat parties/Socialist International</dc:subject>
+        <dc:subject>Workers movements/Workers councils/Workers International organizations</dc:subject>
+        <dc:title>Combat (1974)13</dc:title>
+        <dc:type>item</dc:type>
+        <dcterms:isPartOf rdf:resource="http://hdl.handle.net/10796/4BF04AA4-0D1B-4A8F-B4F3-A32EE1B05D064"/>
+        <dcterms:issued>1974</dcterms:issued>
+        <dcterms:provenance/>
+        <edm:type>TEXT</edm:type>
+
+
+
+
+
+
+        </ore:Proxy>
+    <edm:EuropeanaAggregation rdf:about="http://hdl.handle.net/10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662">
+        <edm:aggregatedCHO rdf:resource="10796/0C787F5D-D4D6-40B0-B0A7-C196CD67891662"/>
+        <edm:country>Hungary</edm:country>
+        <edm:language>hu</edm:language>
+        <edm:rights rdf:resource="http://www.europeana.eu/rights/rr-f/"/>
+    </edm:EuropeanaAggregation></rdf:RDF>-->
+
