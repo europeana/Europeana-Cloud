@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -83,25 +82,19 @@ public class ProcessingBolt extends BaseRichBolt {
 		MediaTupleData mediaData = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
 		
 		Representation edmRep = mediaData.getEdmRepresentation();
-		HashSet<String> processedUrls = new HashSet<>();
-		for (Entry<UrlType, List<String>> entry : mediaData.getFileUrls().entrySet()) {
-			for (String url : entry.getValue()) {
-				
-				if (!processedUrls.add(url))
-					continue;
-				try {
-					ImageInfo imageInfo = new ImageInfo(mediaData.getFileInfos().get(url));
-					if (imageInfo.shouldBeMetadataExtracted()) {
-						String identifyResult = getIdentifyResult(imageInfo.fileInfo.getContent());
-						imageInfo.prepareParameters(identifyResult);
-						createTechnicalMetadata(mediaData, imageInfo);
-						createThumbnails(mediaData, imageInfo);
-					}
-				} catch (IOException e) {
-					logger.error("Image Magick identify: I/O error on " + edmRep, e);
-				} catch (MediaException e) {
-					logger.error("Processing url " + url + " failed", e);
+		for (FileInfo fileInfo : mediaData.getFileInfos()) {
+			try {
+				ImageInfo imageInfo = new ImageInfo(fileInfo);
+				if (imageInfo.shouldBeMetadataExtracted()) {
+					String identifyResult = getIdentifyResult(imageInfo.fileInfo.getContent());
+					imageInfo.prepareParameters(identifyResult);
+					createTechnicalMetadata(mediaData, imageInfo);
+					createThumbnails(mediaData, imageInfo);
 				}
+			} catch (IOException e) {
+				logger.error("Image Magick identify: I/O error on " + edmRep, e);
+			} catch (MediaException e) {
+				logger.error("Processing url " + fileInfo.getUrl() + " failed", e);
 			}
 		}
 	}

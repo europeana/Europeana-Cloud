@@ -11,24 +11,18 @@ public class FileInfo implements Serializable {
 	private String url;
 	private Set<UrlType> types;
 	
-	public FileInfo(String fileUrl) {
-		url = fileUrl;
+	public FileInfo(String url, String mimeType, byte[] content) {
+		this.url = url;
+		this.mimeType = mimeType;
+		this.content = content;
 	}
 	
 	public byte[] getContent() {
 		return content;
 	}
 	
-	public void setContent(byte[] content) {
-		this.content = content;
-	}
-	
 	public String getMimeType() {
 		return mimeType;
-	}
-	
-	public void setMimeType(String mimeType) {
-		this.mimeType = mimeType;
 	}
 	
 	public int getLength() {
@@ -37,10 +31,6 @@ public class FileInfo implements Serializable {
 	
 	public String getUrl() {
 		return url;
-	}
-	
-	public boolean isEmpty() {
-		return content == null;
 	}
 	
 	public Set<UrlType> getTypes() {

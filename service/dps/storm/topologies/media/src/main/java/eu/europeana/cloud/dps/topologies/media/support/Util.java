@@ -2,8 +2,6 @@ package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.util.Map;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;

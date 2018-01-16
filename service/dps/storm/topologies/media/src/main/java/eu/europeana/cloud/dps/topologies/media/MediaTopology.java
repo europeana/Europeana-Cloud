@@ -68,7 +68,8 @@ public class MediaTopology {
 				.shuffleGrouping("downloadBolt");
 		
 		builder.setBolt("statsBolt", new StatsBolt(), 1)
-				.shuffleGrouping("downloadBolt", StatsTupleData.STREAM_ID);
+				.shuffleGrouping("downloadBolt", StatsTupleData.STREAM_ID)
+				.shuffleGrouping("processingBolt", StatsTupleData.STREAM_ID);
 		
 		builder.setBolt(TopologyHelper.NOTIFICATION_BOLT,
 				new NotificationBolt((String) conf.get(TopologyPropertyKeys.CASSANDRA_HOSTS),
