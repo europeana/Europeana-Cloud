@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.ValidationMockHelper;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -56,7 +57,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class,CassandraTaskErrorsDAO.class})
+@PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, StatisticsBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class, CassandraNodeStatisticsDAO.class})
 @PowerMockIgnore({"javax.management.*", "javax.security.*"})
 public class ValidationTopologyTest extends ValidationMockHelper {
 
@@ -81,7 +82,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
 
     private static Map<String, String> routingRules;
     private static StormTopology topology;
-    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.VALIDATION_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
+    static final List<String> PRINT_ORDER = Arrays.asList(TopologyHelper.SPOUT, TopologyHelper.PARSE_TASK_BOLT, TopologyHelper.READ_DATASETS_BOLT, TopologyHelper.READ_DATASET_BOLT, TopologyHelper.READ_REPRESENTATION_BOLT, TopologyHelper.RETRIEVE_FILE_BOLT, TopologyHelper.VALIDATION_BOLT, TopologyHelper.STATISTICS_BOLT, TopologyHelper.NOTIFICATION_BOLT, TEST_END_BOLT);
 
 
     @BeforeClass
@@ -214,6 +215,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         ReadDatasetBolt readDataSetBolt = new ReadDatasetBolt(MCS_URL);
         ReadRepresentationBolt readRepresentationBolt = new ReadRepresentationBolt(MCS_URL);
         NotificationBolt notificationBolt = new NotificationBolt("", 1, "", "", "");
+        StatisticsBolt statisticsBolt = new StatisticsBolt("", 1, "", "", "");
         TestInspectionBolt endTest = new TestInspectionBolt();
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -225,7 +227,8 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         builder.setBolt(TopologyHelper.RETRIEVE_FILE_BOLT, retrieveFileBolt).shuffleGrouping(TopologyHelper.PARSE_TASK_BOLT, FILE_STREAM)
                 .shuffleGrouping(TopologyHelper.READ_REPRESENTATION_BOLT);
         builder.setBolt(TopologyHelper.VALIDATION_BOLT, new ValidationBolt()).shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
-        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+        builder.setBolt(TopologyHelper.STATISTICS_BOLT, statisticsBolt).shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+        builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, new ValidationRevisionWriter(MCS_URL)).shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
         builder.setBolt(TEST_END_BOLT, endTest).shuffleGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME);
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, notificationBolt)
@@ -235,6 +238,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
                 .fieldsGrouping(TopologyHelper.READ_DATASET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.taskIdFieldName));
 
         topology = builder.createTopology();

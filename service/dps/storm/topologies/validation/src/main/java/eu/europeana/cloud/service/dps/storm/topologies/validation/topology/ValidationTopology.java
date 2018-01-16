@@ -109,7 +109,11 @@ public class ValidationTopology {
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
 
-        builder.setBolt(TopologyHelper.STATISTICS_BOLT, new StatisticsBolt(),
+        builder.setBolt(TopologyHelper.STATISTICS_BOLT, new StatisticsBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+                        Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL))))
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
@@ -118,7 +122,7 @@ public class ValidationTopology {
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
-                .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+                .shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
 
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),

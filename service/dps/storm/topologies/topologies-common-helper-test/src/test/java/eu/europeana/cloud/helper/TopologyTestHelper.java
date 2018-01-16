@@ -32,6 +32,7 @@ public class TopologyTestHelper {
     protected CassandraTaskInfoDAO taskInfoDAO;
     protected CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected CassandraTaskErrorsDAO taskErrorsDAO;
+    protected CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
 
     protected FileServiceClient fileServiceClient;
     protected DataSetServiceClient dataSetClient;
@@ -58,6 +59,9 @@ public class TopologyTestHelper {
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         when(CassandraTaskErrorsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);
+        cassandraNodeStatisticsDAO = Mockito.mock(CassandraNodeStatisticsDAO.class);
+        PowerMockito.mockStatic(CassandraNodeStatisticsDAO.class);
+        when(CassandraNodeStatisticsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(cassandraNodeStatisticsDAO);
         PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
         when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }

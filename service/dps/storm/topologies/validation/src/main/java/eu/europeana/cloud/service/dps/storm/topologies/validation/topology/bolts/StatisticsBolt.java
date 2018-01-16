@@ -1,39 +1,60 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+import org.xml.sax.SAXException;
 
-/**
- * Created by Tarek on 12/5/2017.
- */
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.util.List;
+
 public class StatisticsBolt extends AbstractDpsBolt {
-    private ValidationExecutionService validationService;
+    private String hosts;
+    private int port;
+    private String keyspaceName;
+    private String userName;
+    private String password;
+    private static CassandraConnectionProvider cassandraConnectionProvider;
+    private static CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
+
+    public StatisticsBolt(String hosts, int port, String keyspaceName,
+                          String userName, String password) {
+        this.hosts = hosts;
+        this.port = port;
+        this.keyspaceName = keyspaceName;
+        this.userName = userName;
+        this.password = password;
+    }
 
     @Override
     public void execute(StormTaskTuple stormTaskTuple) {
-        ValidationResult result = validateFile(stormTaskTuple);
-        if (result.isSuccess()) {
+        try {
+            countStatistics(stormTaskTuple);
+            // we can remove the file content before emitting further
+            stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+        } catch (Exception e) {
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.");
         }
-        else {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), null);
-        }
-    }
-
-    private ValidationResult validateFile(StormTaskTuple stormTaskTuple) {
-        String document = new String(stormTaskTuple.getFileData());
-        return validationService.singleValidation(getSchemaName(stormTaskTuple), document);
     }
 
     @Override
     public void prepare() {
-        validationService = new ValidationExecutionService();
+        cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
+                userName, password);
+        cassandraNodeStatisticsDAO = CassandraNodeStatisticsDAO.getInstance(cassandraConnectionProvider);
     }
 
-    private String getSchemaName(StormTaskTuple stormTaskTuple) {
-        return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
+    private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
+        String document = new String(stormTaskTuple.getFileData());
+        RecordStatisticsGenerator statisticsGenerator = new RecordStatisticsGenerator(document);
+        cassandraNodeStatisticsDAO.insertNodeStatistics(stormTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
     }
 }

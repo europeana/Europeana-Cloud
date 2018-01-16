@@ -110,9 +110,8 @@ public class RecordStatisticsGenerator {
     }
 
 
-    public void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics comparableAttributeModel) {
-        for (Iterator<AttributeStatistics> it = models.iterator(); it.hasNext(); ) {
-            AttributeStatistics attributeModel = it.next();
+    private void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics comparableAttributeModel) {
+        for (AttributeStatistics attributeModel : models) {
             if (attributeModel.equals(comparableAttributeModel)) {
                 attributeModel.increaseOccurrence();
                 break;
