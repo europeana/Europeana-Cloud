@@ -4,69 +4,91 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by Tarek on 1/9/2018.
+ * Statistics for a node.
  */
 public class NodeStatistics {
-    private String xpath;
-    private String parentXpath;
-    private String value;
-    private int occurrence;
-    private Set<AttributeStatistics> attributes;
+    /** Parent xpath */
+    private final String parentXpath;
 
-    public NodeStatistics(String xpath, String parentXpath, String value, int occurrence) {
-        this.xpath = xpath;
-        this.parentXpath = parentXpath;
-        this.value = value;
-        this.occurrence = occurrence;
-        attributes = new HashSet<>();
+    /** Node xpath */
+    private final String xpath;
+
+    /** Node value */
+    private final String value;
+
+    /** Node occurrence */
+    private long occurrence;
+
+    /** List of attributes together with their statistics */
+    private Set<AttributeStatistics> attributesStatistics = new HashSet<>();
+
+    public NodeStatistics(String parentXpath, String xpath, String value, long occurrence) {
+        this(parentXpath, xpath, value, occurrence, new HashSet<AttributeStatistics>());
     }
 
+    public NodeStatistics(String parentXpath, String xpath, String value, long occurrence, Set<AttributeStatistics> attributesStatistics) {
+        this.parentXpath = parentXpath;
+        this.xpath = xpath;
+        this.value = value;
+        this.occurrence = occurrence <= 0 ? 1 : occurrence;
+        this.attributesStatistics = attributesStatistics;
+    }
 
     public String getParentXpath() {
         return parentXpath;
     }
 
-    public void setParentXpath(String parentXpath) {
-        this.parentXpath = parentXpath;
-    }
-
-
-    public Set<AttributeStatistics> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Set<AttributeStatistics> attributes) {
-        this.attributes = attributes;
-    }
-
-
     public String getXpath() {
         return xpath;
-    }
-
-    public void setXpath(String xpath) {
-        this.xpath = xpath;
     }
 
     public String getValue() {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public int getOccurrence() {
+    public long getOccurrence() {
         return occurrence;
-    }
-
-    public void setOccurrence(int occurrence) {
-        this.occurrence = occurrence;
     }
 
     public void increaseOccurrence() {
         this.occurrence++;
     }
 
+    public Set<AttributeStatistics> getAttributesStatistics() {
+        return attributesStatistics;
+    }
 
+    public void setAttributesStatistics(Set<AttributeStatistics> attributesStatistics) {
+        this.attributesStatistics = attributesStatistics;
+    }
+
+    public boolean hasAttributes() {
+        return !attributesStatistics.isEmpty();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+        if (!(o instanceof NodeStatistics)) {
+            return false;
+        }
+
+        NodeStatistics nodeStatistics = (NodeStatistics) o;
+
+        return nodeStatistics.getParentXpath().equals(parentXpath) &&
+                nodeStatistics.getValue().equals(value) &&
+                nodeStatistics.getXpath().equals(xpath) &&
+                nodeStatistics.getAttributesStatistics().equals(attributesStatistics);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + parentXpath.hashCode();
+        result = 31 * result + xpath.hashCode();
+        result = 31 * result + value.hashCode();
+        result = 31 * result + attributesStatistics.hashCode();
+        return result;
+    }
 }

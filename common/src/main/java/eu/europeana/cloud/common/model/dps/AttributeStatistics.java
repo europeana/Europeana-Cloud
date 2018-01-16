@@ -1,47 +1,43 @@
 package eu.europeana.cloud.common.model.dps;
 
 /**
- * Created by Tarek on 1/9/2018.
+ * Statistics of a node's attribute
  */
 public class AttributeStatistics {
+    /** Attribute name */
     private String name;
-    private String value;
-    private int occurrence;
 
-    public AttributeStatistics(String name, String value, int occurrence) {
+    /** Attribute value */
+    private String value;
+
+    /** Attribute value occurrence */
+    private long occurrence;
+
+    public AttributeStatistics(String name, String value) {
+        this(name, value, 1);
+    }
+
+    public AttributeStatistics(String name, String value, long occurrence) {
         this.name = name;
         this.value = value;
-        this.occurrence = occurrence;
+        this.occurrence = occurrence <= 0 ? 1 : occurrence;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getValue() {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public int getOccurrence() {
+    public long getOccurrence() {
         return occurrence;
-    }
-
-    public void setOccurrence(int occurrence) {
-        this.occurrence = occurrence;
     }
 
     public void increaseOccurrence() {
         this.occurrence++;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -51,10 +47,10 @@ public class AttributeStatistics {
             return false;
         }
 
-        AttributeStatistics attributeModel = (AttributeStatistics) o;
+        AttributeStatistics attributeStatistics = (AttributeStatistics) o;
 
-        return attributeModel.getName().equals(name) &&
-                attributeModel.getValue().equals(value);
+        return attributeStatistics.getName().equals(name) &&
+                attributeStatistics.getValue().equals(value);
     }
 
     @Override

@@ -65,7 +65,7 @@ public class RecordStatisticsGenerator {
                 } else {
                     nodeModel.increaseOccurrence();
                 }
-                assignAttributesToNode(nodeModel.getAttributes(), node.getAttributes());
+                assignAttributesToNode(nodeModel.getAttributesStatistics(), node.getAttributes());
                 nodeStatistics.put(modelKey, nodeModel);
                 prepareNodeStatistics(node);
             }
