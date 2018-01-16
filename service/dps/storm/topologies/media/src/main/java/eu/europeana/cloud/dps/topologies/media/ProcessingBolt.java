@@ -10,6 +10,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
@@ -88,63 +90,61 @@ public class ProcessingBolt extends BaseRichBolt {
 				if (!processedUrls.add(url))
 					continue;
 				try {
-					ImageInfo imageInfo = getImageInfo(mediaData.getFileContents().get(url));
-					
-					createTechnicalMetadata(mediaData, url, imageInfo);
-					createThumbnails(mediaData, url, imageInfo);
-					
+					ImageInfo imageInfo = new ImageInfo(mediaData.getFileInfos().get(url));
+					if (imageInfo.shouldBeMetadataExtracted()) {
+						String identifyResult = getIdentifyResult(imageInfo.fileInfo.getContent());
+						imageInfo.prepareParameters(identifyResult);
+						createTechnicalMetadata(mediaData, imageInfo);
+						createThumbnails(mediaData, imageInfo);
+					}
 				} catch (IOException e) {
 					logger.error("Image Magick identify: I/O error on " + edmRep, e);
 				} catch (MediaException e) {
 					logger.error("Processing url " + url + " failed", e);
 				}
-				
 			}
-			
 		}
 	}
 	
-	private void createThumbnails(MediaTupleData mediaData, String url, ImageInfo imageInfo)
-			throws IOException, MediaException {
-		String mimeType = imageInfo.mimeType;
-		
-		if (mimeType.startsWith("image")) {
-			createImageThumbnail(url, mediaData, "200");
-			createImageThumbnail(url, mediaData, "400");
-		}
-		
+	private String getIdentifyResult(byte[] content) throws IOException {
+		Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false, content);
+		return doAndClose(IOUtils::toString, identifyProcess.getInputStream());
 	}
 	
-	private void createImageThumbnail(String url, MediaTupleData mediaData, String width)
+	private void createThumbnails(MediaTupleData mediaData, ImageInfo imageInfo)
 			throws IOException, MediaException {
-		Process convertProcess = runCommand(Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "-"),
-				false, mediaData.getFileContents().get(url));
-		String name = createThumbnailName(url, width);
+		int width = imageInfo.width;
+		if (width < 200) {
+			createImageThumbnail(imageInfo, mediaData, width);
+		} else {
+			createImageThumbnail(imageInfo, mediaData, 200);
+		}
+		if (width < 400 && width >= 200) {
+			createImageThumbnail(imageInfo, mediaData, width);
+		} else {
+			createImageThumbnail(imageInfo, mediaData, 400);
+		}
+	}
+	
+	private void createImageThumbnail(ImageInfo info, MediaTupleData mediaData, int width)
+			throws IOException, MediaException {
+		
+		Process convertProcess = runCommand(prepareConvertParams(info, width), false, info.fileInfo.getContent());
+		String name = createThumbnailName(info.fileInfo.getUrl(), width);
 		Representation edmRep = mediaData.getEdmRepresentation();
 		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), name,
-				IOUtils.toByteArray(convertProcess.getInputStream()), "image/jpeg");
-		
+				IOUtils.toByteArray(convertProcess.getInputStream()), info.getMimeTypeOfMiniature());
 	}
 	
-	private String createThumbnailName(String url, String width) throws MediaException {
-		String name = "";
-		try {
-			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			name = (new HexBinaryAdapter()).marshal(md5.digest(url.getBytes())) + "-w" + width;
-		} catch (NoSuchAlgorithmException e) {
-			throw new MediaException(e.getMessage(), e);
-		}
-		return name;
-	}
-	
-	private void createTechnicalMetadata(MediaTupleData mediaData, String url, ImageInfo imageInfo)
+	private void createTechnicalMetadata(MediaTupleData mediaData, ImageInfo imageInfo)
 			throws MediaException {
 		Representation edmRep = mediaData.getEdmRepresentation();
 		
-		EdmWebResourceWrapper edmWebResource = new EdmWebResourceWrapper(mediaData.getEdm(), url);
+		EdmWebResourceWrapper edmWebResource =
+				new EdmWebResourceWrapper(mediaData.getEdm(), imageInfo.fileInfo.getUrl());
 		
 		edmWebResource.setValue("ebucore:hasMimeType", imageInfo.mimeType);
-		edmWebResource.setValue("ebucore:fileByteSize", imageInfo.fileSize);
+		edmWebResource.setValue("ebucore:fileByteSize", imageInfo.fileInfo.getLength());
 		edmWebResource.setValue("ebucore:width", imageInfo.width);
 		edmWebResource.setValue("ebucore:height", imageInfo.height);
 		
@@ -163,10 +163,31 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 	}
 	
-	private ImageInfo getImageInfo(byte[] content) throws IOException {
-		Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false, content);
-		String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
-		return new ImageInfo(content, identifyResult);
+	private List<String> prepareConvertParams(ImageInfo info, int width) {
+		String originalMimeType = info.mimeType;
+		List<String> params = Arrays.asList();
+		
+		if (originalMimeType.equals("application/pdf")) {
+			params = Arrays.asList(magickCmd, "convert", "-", "-background", "white", "-alpha", "remove", "-thumbnail",
+					width + "x",
+					"png:-");
+		} else if (originalMimeType.equals("image/png")) {
+			params = Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "png:-");
+		} else {
+			params = Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "-");
+		}
+		return params;
+	}
+	
+	private String createThumbnailName(String url, int width) throws MediaException {
+		String name = "";
+		try {
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			name = (new HexBinaryAdapter()).marshal(md5.digest(url.getBytes())) + "-w" + width;
+		} catch (NoSuchAlgorithmException e) {
+			throw new MediaException(e.getMessage(), e);
+		}
+		return name;
 	}
 	
 	private String findImageMagickCommand() {
@@ -255,27 +276,40 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class ImageInfo {
 		
-		private static final Pattern MIME_TYPE = Pattern.compile("^  Mime type: (.*)");
+		private static final Pattern MIME_TYPE = Pattern.compile("^  Mime type: (.*)", Pattern.MULTILINE);
 		
-		private static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)");
+		private static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)", Pattern.MULTILINE);
 		
 		public String mimeType = "";
-		public long fileSize;
 		public int width;
 		public int height;
 		
-		public ImageInfo(byte[] content, String identifyResult) {
+		private FileInfo fileInfo;
+		
+		public ImageInfo(FileInfo fileInfo) {
+			this.fileInfo = fileInfo;
+		}
+		
+		public boolean shouldBeMetadataExtracted() {
+			String fMimeType = fileInfo.getMimeType();
+			return (fMimeType.equals("application/pdf") || fMimeType.startsWith("image"))
+					&& !Collections.disjoint(Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY),
+							fileInfo.getTypes());
+		}
+		
+		public void prepareParameters(String identifyResult) {
 			Matcher m = MIME_TYPE.matcher(identifyResult);
 			if (m.find())
 				mimeType = m.group(1);
-			
 			m = GEOMETRY.matcher(identifyResult);
 			if (m.find()) {
 				width = Integer.parseInt(m.group(1));
 				height = Integer.parseInt(m.group(2));
 			}
-			
-			fileSize = content.length;
+		}
+		
+		public String getMimeTypeOfMiniature() {
+			return Arrays.asList("application/pdf", "image/png").contains(mimeType) ? "image/png" : "image/jpeg";
 		}
 		
 	}

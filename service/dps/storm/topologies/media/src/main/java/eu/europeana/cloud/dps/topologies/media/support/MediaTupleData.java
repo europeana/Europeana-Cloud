@@ -29,7 +29,7 @@ public class MediaTupleData implements Serializable {
 	private Representation edmRepresentation;
 	
 	private Map<UrlType, List<String>> fileUrls;
-	private Map<String, byte[]> fileContents;
+	private Map<String, FileInfo> fileInfos;
 	private Document edm;
 	
 	public MediaTupleData(long taskId) {
@@ -56,12 +56,12 @@ public class MediaTupleData implements Serializable {
 		this.fileUrls = fileUrls;
 	}
 	
-	public Map<String, byte[]> getFileContents() {
-		return fileContents;
+	public Map<String, FileInfo> getFileInfos() {
+		return fileInfos;
 	}
 	
-	public void setFileContents(Map<String, byte[]> fileContents) {
-		this.fileContents = fileContents;
+	public void setFileInfos(Map<String, FileInfo> fileInfos) {
+		this.fileInfos = fileInfos;
 	}
 	
 	public Document getEdm() {

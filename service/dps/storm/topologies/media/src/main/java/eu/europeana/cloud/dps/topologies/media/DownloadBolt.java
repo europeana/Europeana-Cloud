@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,12 +34,13 @@ import org.w3c.dom.NodeList;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.dps.topologies.media.support.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;;
 
 public class DownloadBolt extends BaseRichBolt {
 	
@@ -103,19 +105,20 @@ public class DownloadBolt extends BaseRichBolt {
 			logger.error("Could not retrieve media urls from representation " + data.getEdmRepresentation(), e);
 			return;
 		}
-		
 		HashSet<String> urlsSet = new HashSet<>();
 		for (List<String> values : urls.values())
 			urlsSet.addAll(values);
 		
-		HashMap<String, byte[]> contents = new HashMap<>();
+		HashMap<String, FileInfo> files = new HashMap<>();
 		for (String url : urlsSet) {
-			byte[] content = downloadFile(url, data.getTaskId());
-			if (content != null)
-				contents.put(url, content);
+			FileInfo file = downloadFile(url, data.getTaskId());
+			file.setTypes(urls.entrySet().stream().filter(p -> p.getValue().contains(url)).map(p -> p.getKey())
+					.collect(Collectors.toSet()));
+			if (!file.isEmpty())
+				files.put(url, file);
 		}
-		if (!contents.isEmpty()) {
-			data.setFileContents(contents);
+		if (!files.isEmpty()) {
+			data.setFileInfos(files);
 			outputCollector.emit(new Values(data));
 		}
 	}
@@ -142,17 +145,18 @@ public class DownloadBolt extends BaseRichBolt {
 		return urls;
 	}
 	
-	private byte[] downloadFile(String fileUrl, long taskId) {
+	private FileInfo downloadFile(String fileUrl, long taskId) {
 		long start = System.currentTimeMillis();
-		byte[] bytes = null;
+		FileInfo file = new FileInfo(fileUrl);
 		String error = null;
 		try {
 			@SuppressWarnings("resource") // closing response will prevent connection reuse
 			HttpResponse response = httpClient.execute(new HttpGet(fileUrl));
+			file.setMimeType(response.getFirstHeader("Content-Type").getValue());
 			try {
 				int status = response.getStatusLine().getStatusCode();
 				if (status >= 200 && status < 300) {
-					bytes = EntityUtils.toByteArray(response.getEntity());
+					file.setContent(EntityUtils.toByteArray(response.getEntity()));
 				} else {
 					error = "STATUS CODE " + status;
 					logger.info("Download failed, status code {} for {}", status, fileUrl);
@@ -167,16 +171,16 @@ public class DownloadBolt extends BaseRichBolt {
 		}
 		
 		StatsTupleData tupleData;
-		if (bytes != null) {
+		if (!file.isEmpty()) {
 			long time = System.currentTimeMillis() - start;
-			logger.debug("Downloaded file: {} (size: {}, time: {})", fileUrl, bytes.length, time);
-			tupleData = new StatsTupleData(taskId, bytes.length, time);
+			logger.debug("Downloaded file: {} (size: {}, time: {})", fileUrl, file.getLength(), time);
+			tupleData = new StatsTupleData(taskId, file.getLength(), time);
 		} else {
 			tupleData = new StatsTupleData(taskId, error);
 		}
 		outputCollector.emit(StatsTupleData.STREAM_ID, new Values(tupleData));
 		
-		return bytes;
+		return file;
 	}
 	
 	private Document getEdmDocument(Representation rep, File file) throws MediaException {
