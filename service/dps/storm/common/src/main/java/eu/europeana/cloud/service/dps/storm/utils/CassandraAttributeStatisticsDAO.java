@@ -87,7 +87,7 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
      * @param nodeXpath node xpath that contains returned attributes
      * @return list of attribute statistics objects
      */
-    public Set<AttributeStatistics> getAttribtueStatistics(long taskId, String nodeXpath) {
+    public Set<AttributeStatistics> getAttributeStatistics(long taskId, String nodeXpath) {
         BoundStatement bs = selectAttributesStatement.bind(taskId, nodeXpath);
         ResultSet rs = dbService.getSession().execute(bs);
         Set<AttributeStatistics> result = new HashSet<>();

@@ -149,19 +149,19 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             String parentXpath = row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH);
             String nodeXpath = row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH);
 
-            List<NodeStatistics> nodeStatistics = createNodeStatistics(taskId, parentXpath, nodeXpath);
+            List<NodeStatistics> nodeStatistics = retrieveNodeStatistics(taskId, parentXpath, nodeXpath);
             if (nodeStatistics.isEmpty()) {
                 // this case happens when there is a node without a value but it may contain attributes
                 Long occurrence = row.getLong(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE);
                 NodeStatistics node = new NodeStatistics(parentXpath, nodeXpath, "", occurrence);
-                node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttribtueStatistics(taskId, nodeXpath));
+                node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath));
             }
             result.addAll(nodeStatistics);
         }
         return result;
     }
 
-    private List<NodeStatistics> createNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
+    private List<NodeStatistics> retrieveNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
         List<NodeStatistics> result = new ArrayList<>();
         ResultSet rs = dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath));
 
@@ -169,7 +169,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             Row row = rs.one();
 
             NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath, row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE), row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
-            nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttribtueStatistics(taskId, nodeXpath));
+            nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath));
             result.add(nodeStatistics);
         }
         return result;
@@ -200,7 +200,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
 
-            result.addAll(createNodeStatistics(taskId,
+            result.addAll(retrieveNodeStatistics(taskId,
                     row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH),
                     row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH)));
         }
