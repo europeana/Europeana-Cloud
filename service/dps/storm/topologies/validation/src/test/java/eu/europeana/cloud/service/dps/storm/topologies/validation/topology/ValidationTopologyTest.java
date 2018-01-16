@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.*;
+import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.ValidationMockHelper;
 import eu.europeana.cloud.service.dps.storm.utils.*;
@@ -58,11 +59,11 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReadFileBolt.class, ReadDatasetsBolt.class, ReadRepresentationBolt.class, ReadDatasetBolt.class, ValidationBolt.class, ValidationRevisionWriter.class, NotificationBolt.class, CassandraConnectionProviderSingleton.class, CassandraTaskInfoDAO.class, CassandraSubTaskInfoDAO.class, CassandraTaskErrorsDAO.class})
-@PowerMockIgnore({"javax.management.*", "javax.security.*","javax.net.ssl.*"})
+@PowerMockIgnore({"javax.management.*", "javax.security.*", "javax.net.ssl.*"})
 public class ValidationTopologyTest extends ValidationMockHelper {
 
     @Rule
-    public  WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
 
     private static final String DATASET_STREAM = "DATASET_URLS";
     private static final String FILE_STREAM = "FILE_URLS";
@@ -91,7 +92,6 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         routingRules.put(DATASET_STREAM, DATASET_STREAM);
         routingRules.put(FILE_STREAM, FILE_STREAM);
         buildTopology();
-
 
 
     }
@@ -286,24 +286,8 @@ public class ValidationTopologyTest extends ValidationMockHelper {
     }
 
     private static Properties readProperties(String propertyFilename) {
-        InputStream is = null;
         Properties props = new Properties();
-        try {
-            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            is = classLoader.getResourceAsStream(propertyFilename);
-            props.load(is);
-        } catch (IOException e) {
-            System.err.println("Validation properties file could not be loaded.");
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    System.err.println("Could not close property file input stream");
-                }
-            }
-        }
-
+        PropertyFileLoader.loadPropertyFile(propertyFilename, "", props);
         return props;
     }
 }
