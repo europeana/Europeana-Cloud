@@ -28,8 +28,8 @@ import java.util.Properties;
  * Created by Tarek on 12/5/2017.
  */
 public class ValidationTopology {
-    private static Properties topologyProperties;
-    private static Properties validationProperties;
+    private static Properties topologyProperties = new Properties();
+    private static Properties validationProperties = new Properties();
     private final BrokerHosts brokerHosts;
     private static final String TOPOLOGY_PROPERTIES_FILE = "validation-topology-config.properties";
     private static final String VALIDATION_PROPERTIES_FILE = "validation.properties";
@@ -37,16 +37,11 @@ public class ValidationTopology {
     private final String FILE_STREAM = InputDataType.FILE_URLS.name();
 
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile, String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
-        topologyProperties = new Properties();
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        loadValidationProperties(defaultValidationPropertiesFile, providedValidationPropertiesFile);
+        PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
         brokerHosts = new ZkHosts(topologyProperties.getProperty(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
     }
 
-    private void loadValidationProperties(String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
-        validationProperties = new Properties();
-        PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
-    }
 
     public final StormTopology buildTopology(String validationTopic, String ecloudMcsAddress) {
         Map<String, String> routingRules = new HashMap<>();
@@ -151,7 +146,7 @@ public class ValidationTopology {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
 
-        if (args.length <= 1) {
+        if (args.length <= 2) {
 
             String providedValidationPropertiesFile = "";
             String providedPropertyFile = "";

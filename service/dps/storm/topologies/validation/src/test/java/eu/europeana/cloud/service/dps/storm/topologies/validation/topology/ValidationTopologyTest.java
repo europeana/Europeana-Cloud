@@ -197,7 +197,7 @@ public class ValidationTopologyTest extends ValidationMockHelper {
         when(fileServiceClient.getFile(SOURCE_VERSION_URL_FILE2)).thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get("src/test/resources/Item_35834473.xml"))));
     }
 
-    private void prepareMockFileUrls() throws URISyntaxException {
+    private final void prepareMockFileUrls() throws URISyntaxException {
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(SOURCE_VERSION_URL));
         when(fileServiceClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE2)).thenReturn(new URI(SOURCE_VERSION_URL_FILE2));
     }
