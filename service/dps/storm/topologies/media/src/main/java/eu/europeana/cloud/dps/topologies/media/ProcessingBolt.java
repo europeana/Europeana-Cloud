@@ -11,7 +11,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -19,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import javax.xml.transform.TransformerException;
@@ -49,6 +49,8 @@ import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
@@ -80,80 +82,129 @@ public class ProcessingBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple input) {
 		MediaTupleData mediaData = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
+		List<ImageInfo> infos = getImageInfos(mediaData);
+		List<ImageInfo> infosToIdentify =
+				infos.stream().filter(ImageInfo::shouldBeMetadataCreated).collect(Collectors.toList());
+		List<ImageInfo> infosToConvert =
+				infos.stream().filter(ImageInfo::shouldBeThumbnailsCreated).collect(Collectors.toList());
 		
-		Representation edmRep = mediaData.getEdmRepresentation();
-		for (FileInfo fileInfo : mediaData.getFileInfos()) {
+		createTechnicalMetadata(mediaData, infosToIdentify);
+		for (ImageInfo info : infosToConvert) {
+			createThumbnails(mediaData, info);
+		}
+	}
+	
+	private List<ImageInfo> getImageInfos(MediaTupleData mediaData) {
+		List<ImageInfo> infos = mediaData.getFileInfos().stream().map(p -> new ImageInfo(p))
+				.filter(p -> p.fileInfo.getMimeType().equals("application/pdf")
+						|| p.fileInfo.getMimeType().startsWith("image"))
+				.collect(Collectors.toList());
+		
+		for (ImageInfo info : infos) {
+			String identifyResult;
 			try {
-				ImageInfo imageInfo = new ImageInfo(fileInfo);
-				if (imageInfo.shouldBeMetadataExtracted()) {
-					String identifyResult = getIdentifyResult(imageInfo.fileInfo.getContent());
-					imageInfo.prepareParameters(identifyResult);
-					createTechnicalMetadata(mediaData, imageInfo);
-					createThumbnails(mediaData, imageInfo);
-				}
+				identifyResult = getIdentifyResult(info.fileInfo.getContent());
+				info.prepareParameters(identifyResult);
 			} catch (IOException e) {
-				logger.error("Image Magick identify: I/O error on " + edmRep, e);
-			} catch (MediaException e) {
-				logger.error("Processing url " + fileInfo.getUrl() + " failed", e);
+				logger.error("Image Magick identify: I/O error on " + mediaData.getEdmRepresentation(), e);
 			}
 		}
+		return infos;
 	}
 	
 	private String getIdentifyResult(byte[] content) throws IOException {
-		Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false, content);
+		Process identifyProcess = runCommand(Arrays.asList(magickCmd, "-verbose", "-"), false, content);
 		return doAndClose(IOUtils::toString, identifyProcess.getInputStream());
 	}
 	
-	private void createThumbnails(MediaTupleData mediaData, ImageInfo imageInfo)
-			throws IOException, MediaException {
-		int width = imageInfo.width;
-		if (width < 200) {
-			createImageThumbnail(imageInfo, mediaData, width);
-		} else {
+	private void createThumbnails(MediaTupleData mediaData, ImageInfo imageInfo) {
+		try {
 			createImageThumbnail(imageInfo, mediaData, 200);
-		}
-		if (width < 400 && width >= 200) {
-			createImageThumbnail(imageInfo, mediaData, width);
-		} else {
 			createImageThumbnail(imageInfo, mediaData, 400);
+		} catch (IOException e) {
+			logger.error("Image Magick identify: I/O error on " + mediaData.getEdmRepresentation(), e);
+		} catch (MediaException e) {
+			logger.error("Processing url " + imageInfo.fileInfo.getUrl() + " failed", e);
 		}
 	}
 	
 	private void createImageThumbnail(ImageInfo info, MediaTupleData mediaData, int width)
 			throws IOException, MediaException {
-		
-		Process convertProcess = runCommand(prepareConvertParams(info, width), false, info.fileInfo.getContent());
+		int thumbnailWidth = info.width < width ? info.width : width;
+		Process convertProcess =
+				runCommand(prepareConvertParams(info, thumbnailWidth), false, info.fileInfo.getContent());
 		String name = createThumbnailName(info.fileInfo.getUrl(), width);
 		Representation edmRep = mediaData.getEdmRepresentation();
-		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), name,
-				IOUtils.toByteArray(convertProcess.getInputStream()), info.getMimeTypeOfMiniature());
+		
+		String newRepresentation = "thumbnail";
+		long start = System.currentTimeMillis();
+		try {
+			URI uri = getRepresentationUri(mediaData, newRepresentation);
+			
+			UrlParser urlParser = new UrlParser(uri.toString());
+			String version = urlParser.getPart(UrlPart.VERSIONS);
+			
+			URI newFileUri = fileClient.uploadFile(edmRep.getCloudId(), newRepresentation, version,
+					name + ".jpg", convertProcess.getInputStream(), info.getMimeTypeOfMiniature());
+			logger.debug("saved representation in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
+			
+		} catch (DriverException | MCSException e) {
+			logger.error("Could not store representation " + edmRep.getCloudId() + "/" + newRepresentation, e);
+		}
 	}
 	
-	private void createTechnicalMetadata(MediaTupleData mediaData, ImageInfo imageInfo)
-			throws MediaException {
+	private void createTechnicalMetadata(MediaTupleData mediaData, List<ImageInfo> imageInfos) {
 		Representation edmRep = mediaData.getEdmRepresentation();
 		
-		EdmWebResourceWrapper edmWebResource =
-				new EdmWebResourceWrapper(mediaData.getEdm(), imageInfo.fileInfo.getUrl());
-		
-		edmWebResource.setValue("ebucore:hasMimeType", imageInfo.mimeType);
-		edmWebResource.setValue("ebucore:fileByteSize", imageInfo.fileInfo.getLength());
-		edmWebResource.setValue("ebucore:width", imageInfo.width);
-		edmWebResource.setValue("ebucore:height", imageInfo.height);
+		for (ImageInfo info : imageInfos) {
+			EdmWebResourceWrapper edmWebResource =
+					new EdmWebResourceWrapper(mediaData.getEdm(), info.fileInfo.getUrl());
+			edmWebResource.setValue("ebucore:hasMimeType", info.mimeType);
+			edmWebResource.setValue("ebucore:fileByteSize", info.fileInfo.getLength());
+			edmWebResource.setValue("ebucore:width", info.width);
+			edmWebResource.setValue("ebucore:height", info.height);
+		}
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
-			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(edmWebResource.parent),
+			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(mediaData.getEdm()),
 					new StreamResult(outputStream));
 		} catch (TransformerException | TransformerFactoryConfigurationError e) {
-			throw new MediaException(
+			logger.error(
 					"Could not transform xml document of the representation " + edmRep.getCloudId()
 							+ "/techmetadata",
 					e);
 		}
-		storeRepresentation(edmRep.getCloudId(), edmRep.getDataProvider(), "techmetadata",
-				outputStream.toByteArray(), "text/xml");
 		
+		String newRepresentation = "techmetadata";
+		long start = System.currentTimeMillis();
+		try {
+			URI uri = getRepresentationUri(mediaData, newRepresentation);
+			try (ByteArrayInputStream bais = new ByteArrayInputStream(outputStream.toByteArray())) {
+				URI newFileUri = fileClient.uploadFile(uri.toString(), bais, "text/xml");
+				logger.debug("saved representation in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
+			}
+		} catch (IOException | DriverException | MCSException e) {
+			logger.error("Could not store representation " + edmRep.getCloudId() + "/" + newRepresentation, e);
+		}
+		
+	}
+	
+	private URI getRepresentationUri(MediaTupleData mediaData, String repName) throws MCSException {
+		String cloudId = mediaData.getEdmRepresentation().getCloudId();
+		String providerId = mediaData.getEdmRepresentation().getDataProvider();
+		
+		URI uri;
+		try {
+			uri = recordClient.getRepresentations(cloudId, repName).stream()
+					.filter(r -> !r.isPersistent())
+					.findAny().get().getUri();
+			logger.debug("overwriting existing representation: " + uri);
+		} catch (RepresentationNotExistsException | NoSuchElementException e) {
+			uri = recordClient.createRepresentation(cloudId, repName, providerId);
+			logger.debug("saving new representation: " + uri);
+		}
+		return uri;
 	}
 	
 	private List<String> prepareConvertParams(ImageInfo info, int width) {
@@ -161,13 +212,13 @@ public class ProcessingBolt extends BaseRichBolt {
 		List<String> params = Arrays.asList();
 		
 		if (originalMimeType.equals("application/pdf")) {
-			params = Arrays.asList(magickCmd, "convert", "-", "-background", "white", "-alpha", "remove", "-thumbnail",
+			params = Arrays.asList(magickCmd, "-", "-background", "white", "-alpha", "remove", "-thumbnail",
 					width + "x",
 					"png:-");
 		} else if (originalMimeType.equals("image/png")) {
-			params = Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "png:-");
+			params = Arrays.asList(magickCmd, "-", "-thumbnail", width + "x", "png:-");
 		} else {
-			params = Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x", "-");
+			params = Arrays.asList(magickCmd, "-", "-thumbnail", width + "x", "-");
 		}
 		return params;
 	}
@@ -229,31 +280,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		return process;
 	}
 	
-	private void storeRepresentation(String cloudId, String providerId, String repName, byte[] data,
-			String mimeType)
-			throws MediaException {
-		try {
-			long start = System.currentTimeMillis();
-			URI uri;
-			try {
-				uri = recordClient.getRepresentations(cloudId, repName).stream()
-						.filter(r -> !r.isPersistent())
-						.findAny().get().getUri();
-				logger.debug("overwriting existing representation: " + uri);
-			} catch (RepresentationNotExistsException | NoSuchElementException e) {
-				uri = recordClient.createRepresentation(cloudId, repName, providerId);
-				logger.debug("saving new representation: " + uri);
-			}
-			
-			try (ByteArrayInputStream bais = new ByteArrayInputStream(data)) {
-				URI newFileUri = fileClient.uploadFile(uri.toString(), bais, mimeType);
-				logger.debug("saved representation in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
-			}
-		} catch (IOException | DriverException | MCSException e) {
-			throw new MediaException("Could not store representation " + cloudId + "/" + repName, e);
-		}
-	}
-	
 	@FunctionalInterface
 	private interface IOFunction<T, R> {
 		R apply(T t) throws IOException;
@@ -283,7 +309,14 @@ public class ProcessingBolt extends BaseRichBolt {
 			this.fileInfo = fileInfo;
 		}
 		
-		public boolean shouldBeMetadataExtracted() {
+		public boolean shouldBeMetadataCreated() {
+			String fMimeType = fileInfo.getMimeType();
+			return (fMimeType.equals("application/pdf") || fMimeType.startsWith("image"))
+					&& !Collections.disjoint(Arrays.asList(UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY),
+							fileInfo.getTypes());
+		}
+		
+		public boolean shouldBeThumbnailsCreated() {
 			String fMimeType = fileInfo.getMimeType();
 			return (fMimeType.equals("application/pdf") || fMimeType.startsWith("image"))
 					&& !Collections.disjoint(Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY),
