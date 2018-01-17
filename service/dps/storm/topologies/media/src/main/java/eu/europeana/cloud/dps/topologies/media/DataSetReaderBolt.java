@@ -1,7 +1,6 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Map;
 
 import org.apache.storm.task.OutputCollector;
@@ -17,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -41,21 +42,24 @@ public class DataSetReaderBolt extends BaseRichBolt {
 		
 		datasetClient = Util.getDataSetServiceClient(conf);
 		
-		String limitKey = "MEDIATOPOLOGY_DATASET_DATASET_LIMIT";
+		String limitKey = "MEDIATOPOLOGY_DATASET_EMIT_LIMIT";
 		emitLimit = conf.containsKey(limitKey) ? (Long) conf.get(limitKey) : Long.MAX_VALUE;
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields(MediaTupleData.FIELD_NAME));
+		declarer.declareStream(StatsInitTupleData.STREAM_ID, new Fields(StatsInitTupleData.FIELD_NAME));
 	}
 	
 	@Override
 	public void execute(Tuple tuple) {
-		ObjectMapper mapper = new ObjectMapper();
 		DpsTask task;
+		UrlParser datasetUrlParser;
 		try {
-			task = mapper.readValue(tuple.getString(0), DpsTask.class);
+			task = new ObjectMapper().readValue(tuple.getString(0), DpsTask.class);
+			String datasetUrl = task.getDataEntry(InputDataType.DATASET_URLS).get(0);
+			datasetUrlParser = new UrlParser(datasetUrl);
 		} catch (IOException e) {
 			logger.error("Message '{}' rejected because: {}", tuple.getString(0), e.getMessage());
 			logger.debug("Exception details", e);
@@ -64,13 +68,12 @@ public class DataSetReaderBolt extends BaseRichBolt {
 		}
 		logger.debug("Task {} parsed", task.getTaskName());
 		
-		String datasetUrl = task.getDataEntry(InputDataType.DATASET_URLS).get(0);
 		try {
 			long start = System.currentTimeMillis();
 			long count = 0;
-			UrlParser urlParser = new UrlParser(datasetUrl);
+			
 			RepresentationIterator repIterator = datasetClient.getRepresentationIterator(
-					urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+					datasetUrlParser.getPart(UrlPart.DATA_PROVIDERS), datasetUrlParser.getPart(UrlPart.DATA_SETS));
 			while (repIterator.hasNext() && count < emitLimit) {
 				Representation rep = repIterator.next();
 				if ("edm".equals(rep.getRepresentationName())) {
@@ -82,9 +85,12 @@ public class DataSetReaderBolt extends BaseRichBolt {
 			}
 			logger.info("Task {}: emitted {} EDMs in {} ms", task.getTaskName(), count,
 					System.currentTimeMillis() - start);
-		} catch (MalformedURLException e) {
-			logger.error("Url problem: " + datasetUrl, e);
+			outputCollector.emit(StatsInitTupleData.STREAM_ID,
+					new Values(new StatsInitTupleData(task.getTaskId(), start, count)));
+			outputCollector.ack(tuple);
+		} catch (DriverException e) {
+			logger.error("MCS error", e);
+			outputCollector.fail(tuple);
 		}
-		outputCollector.ack(tuple);
 	}
 }

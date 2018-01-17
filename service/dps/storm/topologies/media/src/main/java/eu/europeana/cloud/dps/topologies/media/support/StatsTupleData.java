@@ -10,7 +10,7 @@ public class StatsTupleData implements Serializable {
 	public static final String STREAM_ID = "stats";
 	
 	private final long taskId;
-	private final int resourceNumber;
+	private final int resourceCount;
 	private ArrayList<String> errors = new ArrayList<>();
 	
 	private long downloadStartTime;
@@ -20,17 +20,17 @@ public class StatsTupleData implements Serializable {
 	private long processingStartTime;
 	private long processingEndTime;
 	
-	public StatsTupleData(long taskId, int resourceNumber) {
+	public StatsTupleData(long taskId, int resourceCount) {
 		this.taskId = taskId;
-		this.resourceNumber = resourceNumber;
+		this.resourceCount = resourceCount;
 	}
 	
 	public long getTaskId() {
 		return taskId;
 	}
 	
-	public int getResourceNumber() {
-		return resourceNumber;
+	public int getResourceCount() {
+		return resourceCount;
 	}
 	
 	public void setDownloadStartTime(long downloadStartTime) {

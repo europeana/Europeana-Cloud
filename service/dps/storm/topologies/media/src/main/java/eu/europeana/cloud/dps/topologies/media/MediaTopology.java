@@ -19,18 +19,14 @@ import org.apache.storm.shade.org.yaml.snakeyaml.Yaml;
 import org.apache.storm.shade.org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
+import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 
 public class MediaTopology {
 	
@@ -68,19 +64,9 @@ public class MediaTopology {
 				.shuffleGrouping("downloadBolt");
 		
 		builder.setBolt("statsBolt", new StatsBolt(), 1)
+				.shuffleGrouping("source", StatsInitTupleData.STREAM_ID)
 				.shuffleGrouping("downloadBolt", StatsTupleData.STREAM_ID)
 				.shuffleGrouping("processingBolt", StatsTupleData.STREAM_ID);
-		
-		builder.setBolt(TopologyHelper.NOTIFICATION_BOLT,
-				new NotificationBolt((String) conf.get(TopologyPropertyKeys.CASSANDRA_HOSTS),
-						(int) conf.get(TopologyPropertyKeys.CASSANDRA_PORT),
-						(String) conf.get(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
-						(String) conf.get(TopologyPropertyKeys.CASSANDRA_USERNAME),
-						(String) conf.get(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
-				(int) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL))
-				.setNumTasks((int) conf.get(TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS))
-				.fieldsGrouping("statsBolt", AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-						new Fields(NotificationTuple.taskIdFieldName));
 		
 		if (isTest) {
 			LocalCluster cluster = new LocalCluster();

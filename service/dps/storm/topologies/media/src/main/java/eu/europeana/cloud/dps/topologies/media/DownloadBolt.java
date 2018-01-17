@@ -118,11 +118,17 @@ public class DownloadBolt extends BaseRichBolt {
 				data.addFileInfo(file);
 				byteCount += file.getLength();
 			} catch (MediaException e) {
-				logger.info("Download failed ({}): {}", e.getMessage(), entry.getKey());
+				logger.info("Download failed ({}) for {}", e.getMessage(), entry.getKey());
 				logger.trace("download failure details:", e);
-				stats.addError(e.getMessage());
+				if (e.reportError != null) {
+					stats.addError("DOWNLOAD: " + e.reportError);
+				} else {
+					logger.warn("Exception without proper report error:", e);
+					stats.addError("DOWNLOAD: UNKNOWN");
+				}
 			}
 		}
+		stats.setDownloadEndTime(System.currentTimeMillis());
 		if (!data.getFileInfos().isEmpty()) {
 			stats.setDownloadedBytes(byteCount);
 			outputCollector.emit(input, new Values(data, stats));
@@ -164,14 +170,14 @@ public class DownloadBolt extends BaseRichBolt {
 					byte[] content = EntityUtils.toByteArray(response.getEntity());
 					return new FileInfo(fileUrl, mimeType, content);
 				} else {
-					throw new MediaException("STATUS CODE " + status);
+					throw new MediaException("status code " + status, "STATUS CODE " + status);
 				}
 			} finally {
 				EntityUtils.consume(response.getEntity());
 				logger.debug("download took {} ms: {}", System.currentTimeMillis() - start, fileUrl);
 			}
 		} catch (IOException e) {
-			throw new MediaException(e.getMessage());
+			throw new MediaException("connection error: " + e.getMessage(), "CONNECTION ERROR", e);
 		}
 	}
 	

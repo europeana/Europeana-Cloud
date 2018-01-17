@@ -24,6 +24,10 @@ public class DummySpout extends BaseRichSpout implements Constants {
 	
 	private RepresentationIterator representationIterator;
 	
+	private long emitLimit;
+	private long emitCount = 0;
+	private long startTime;
+	
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		outputCollector = collector;
@@ -35,16 +39,27 @@ public class DummySpout extends BaseRichSpout implements Constants {
 		if (!representationIterator.hasNext()) {
 			throw new RuntimeException("There are no representations for dataset " + datasetId);
 		}
+		
+		String limitKey = "MEDIATOPOLOGY_DATASET_EMIT_LIMIT";
+		emitLimit = conf.containsKey(limitKey) ? (Long) conf.get(limitKey) : Long.MAX_VALUE;
 	}
 	
 	@Override
 	public void nextTuple() {
-		while (representationIterator.hasNext()) {
+		if (startTime == 0)
+			startTime = System.currentTimeMillis();
+		while (representationIterator.hasNext() && emitCount < emitLimit) {
 			Representation rep = representationIterator.next();
 			if ("edm".equals(rep.getRepresentationName())) {
-				MediaTupleData data = new MediaTupleData(777L); // TODO
+				final long taskId = 777;
+				MediaTupleData data = new MediaTupleData(taskId);
 				data.setEdmRepresentation(rep);
 				outputCollector.emit(new Values(data));
+				emitCount++;
+				if (!(representationIterator.hasNext() && emitCount < emitLimit)) {
+					outputCollector.emit(StatsInitTupleData.STREAM_ID,
+							new Values(new StatsInitTupleData(taskId, startTime, emitCount)));
+				}
 				return;
 			}
 		}
@@ -59,5 +74,6 @@ public class DummySpout extends BaseRichSpout implements Constants {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields(MediaTupleData.FIELD_NAME));
+		declarer.declareStream(StatsInitTupleData.STREAM_ID, new Fields(StatsInitTupleData.FIELD_NAME));
 	}
 }
