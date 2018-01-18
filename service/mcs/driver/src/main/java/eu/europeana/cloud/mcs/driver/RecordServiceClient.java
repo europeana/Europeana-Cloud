@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -332,6 +333,7 @@ public class RecordServiceClient extends MCSClient {
             }
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 

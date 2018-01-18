@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -136,6 +137,7 @@ public class FileServiceClient extends MCSClient {
         Builder request = target.request().header(H_RANGE, range);
 
         Response response = null;
+
         try {
             response = request.get();
             if (response.getStatus() == Response.Status.PARTIAL_CONTENT.getStatusCode()) {
@@ -159,6 +161,7 @@ public class FileServiceClient extends MCSClient {
             DriverException, MCSException, IOException {
 
         Response response = null;
+
         try {
             response = client.target(fileUrl).request().get();
 
@@ -216,6 +219,7 @@ public class FileServiceClient extends MCSClient {
             }
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -257,6 +261,7 @@ public class FileServiceClient extends MCSClient {
 
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -298,6 +303,7 @@ public class FileServiceClient extends MCSClient {
             }
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -330,6 +336,7 @@ public class FileServiceClient extends MCSClient {
 
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -376,6 +383,7 @@ public class FileServiceClient extends MCSClient {
             }
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -402,6 +410,7 @@ public class FileServiceClient extends MCSClient {
 
         } finally {
             closeResponse(response);
+            IOUtils.closeQuietly(data);
         }
     }
 
@@ -513,6 +522,7 @@ public class FileServiceClient extends MCSClient {
             buffer.write(data, 0, nRead);
         }
         buffer.flush();
+        IOUtils.closeQuietly(originIS);
         return new ByteArrayInputStream(buffer.toByteArray());
     }
 
