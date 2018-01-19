@@ -67,16 +67,17 @@ CREATE TABLE general_statistics (
 CREATE TABLE node_statistics (
     task_id bigint,
     node_xpath varchar,
-    value varchar,
+    node_value varchar,
     occurrence counter,
-    PRIMARY KEY((task_id, node_xpath), value)
+    PRIMARY KEY((task_id, node_xpath), node_value)
 );
 
 CREATE TABLE attribute_statistics (
     task_id bigint,
     node_xpath varchar,
-    name varchar,
-    value varchar,
+    node_value varchar,
+    attribute_name varchar,
+    attribute_value varchar,
     occurrence counter,
-    PRIMARY KEY((task_id, node_xpath), name, value)
+    PRIMARY KEY((task_id, node_xpath, node_value), attribute_name, attribute_value)
 );
