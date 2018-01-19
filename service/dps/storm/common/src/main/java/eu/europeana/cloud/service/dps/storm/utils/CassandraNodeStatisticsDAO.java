@@ -112,7 +112,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             updateNodeStatistics(taskId, nodeStatistics);
         }
         if (nodeStatistics.hasAttributes()) {
-            cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeStatistics.getXpath(), nodeStatistics.getAttributesStatistics());
+            cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeStatistics.getXpath(), nodeStatistics.getValue(), nodeStatistics.getAttributesStatistics());
         }
     }
 
@@ -154,7 +154,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 // this case happens when there is a node without a value but it may contain attributes
                 Long occurrence = row.getLong(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE);
                 NodeStatistics node = new NodeStatistics(parentXpath, nodeXpath, "", occurrence);
-                node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath));
+                node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, ""));
             }
             result.addAll(nodeStatistics);
         }
@@ -169,7 +169,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             Row row = rs.one();
 
             NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath, row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE), row.getLong(CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE));
-            nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath));
+            nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, nodeStatistics.getValue()));
             result.add(nodeStatistics);
         }
         return result;

@@ -16,6 +16,8 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
 
     private static final String NODE_1_XPATH = "/root/node1";
 
+    private static final String NODE_1_VALUE = "value1";
+
     private static final String ATTRIBUTE_1_NAME = "attribute1";
 
     private static final String ATTRIBUTE_1_VALUE = "value1";
@@ -37,10 +39,10 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
         Set<AttributeStatistics> toStore = prepareAttributeStatistics();
 
         // when
-        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, toStore);
+        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
         // then
-        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH);
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (AttributeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
@@ -53,11 +55,11 @@ public class CassandraAttributeStatisticsDAOTest extends CassandraTestBase {
         Set<AttributeStatistics> toStore = prepareAttributeStatistics();
 
         // when
-        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, toStore);
-        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, toStore);
+        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+        attributeStatisticsDAO.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
         // then
-        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH);
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE);
         Assert.assertEquals(retrieved.size(), toStore.size());
         for (AttributeStatistics stats : toStore) {
             Assert.assertTrue(retrieved.contains(stats));
