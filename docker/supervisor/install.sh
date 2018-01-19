@@ -43,5 +43,6 @@ export LD_LIBRARY_PATH
 rm -fr ./kdu
 
 ranlib /usr/local/lib/libjpeg.a
+#to have it configured after restart: create /etc/ld.so.conf.d/imagemagick.conf file (with root) and put /usr/local/lib into it. Then run ldconfig and reboot
 ldconfig /usr/local/lib
 

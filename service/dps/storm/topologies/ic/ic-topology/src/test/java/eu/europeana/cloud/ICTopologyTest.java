@@ -104,7 +104,6 @@ public class ICTopologyTest extends ICTestMocksHelper {
 
     @Before
     public final void setUp() throws Exception {
-        mockZookeeperKS();
         mockRecordSC();
         mockFileSC();
         mockImageCS();
