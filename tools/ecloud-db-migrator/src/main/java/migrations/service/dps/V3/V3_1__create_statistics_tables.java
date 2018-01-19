@@ -16,17 +16,18 @@ public class V3_1__create_statistics_tables implements JavaMigration {
         session.execute("CREATE TABLE node_statistics (\n" +
                 "    task_id bigint,\n" +
                 "    node_xpath varchar,\n" +
-                "    value varchar,\n" +
+                "    node_value varchar,\n" +
                 "    occurence counter,\n" +
-                "    PRIMARY KEY((task_id, node_xpath), value)\n" +
+                "    PRIMARY KEY((task_id, node_xpath), node_value)\n" +
                 ");\n");
         session.execute("CREATE TABLE attribute_statistics (\n" +
                 "    task_id bigint,\n" +
                 "    node_xpath varchar,\n" +
-                "    name varchar,\n" +
-                "    value varchar,\n" +
+                "    node_value varchar,\n" +
+                "    attribute_name varchar,\n" +
+                "    attribute_value varchar,\n" +
                 "    occurrence counter,\n" +
-                "    PRIMARY KEY((task_id, node_xpath), name, value)\n" +
+                "    PRIMARY KEY((task_id, node_xpath, node_value), attribute_name, attribute_value)\n" +
                 ");\n");
     }
 }

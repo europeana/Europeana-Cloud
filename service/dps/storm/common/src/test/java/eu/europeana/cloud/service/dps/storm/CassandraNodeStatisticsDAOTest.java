@@ -37,6 +37,8 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
 
     private static final String ATTRIBUTE_1_VALUE = "value1";
 
+    private static final String ATTRIBUTE_2_VALUE = "value2";
+
     private static final long OCCURRENCE = 1;
 
     private CassandraNodeStatisticsDAO nodeStatisticsDAO;
@@ -49,7 +51,7 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
     @Test
     public void testShouldProperlyStoreNodeStatistics() {
         // given
-        List<NodeStatistics> toStore = prepareNodeStatistics(false);
+        List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
         // when
         nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
@@ -65,7 +67,7 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
     @Test
     public void testShouldProperlyUpdateNodeStatistics() {
         // given
-        List<NodeStatistics> toStore = prepareNodeStatistics(false);
+        List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
         // when
         nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
@@ -85,7 +87,7 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
     @Test
     public void testShouldProperlyUpdateNodeStatisticsWithAttributeStatistics() {
         // given
-        List<NodeStatistics> toStore = prepareNodeStatistics(true);
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
         // when
         nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
@@ -99,24 +101,31 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         }
     }
 
-    private NodeStatistics createNodeStatistics(String parentXpath, String nodeXpath, String nodeValue, long occurrence, boolean withAttributes) {
+    private List<AttributeStatistics> createAttributeStatistics() {
+        List<AttributeStatistics> result = new ArrayList<>();
+        result.add(new AttributeStatistics(ATTRIBUTE_1_NAME, ATTRIBUTE_1_VALUE));
+        result.add(new AttributeStatistics(ATTRIBUTE_1_NAME, ATTRIBUTE_2_VALUE));
+        return result;
+    }
+
+    private NodeStatistics createNodeStatistics(String parentXpath, String nodeXpath, String nodeValue, long occurrence, AttributeStatistics withAttributes) {
         NodeStatistics nodeStatistics = new NodeStatistics(parentXpath, nodeXpath, nodeValue, occurrence);
-        if (withAttributes) {
+        if (withAttributes != null) {
             Set<AttributeStatistics> attributeStatistics = new HashSet<>();
-            attributeStatistics.add(new AttributeStatistics(ATTRIBUTE_1_NAME, ATTRIBUTE_1_VALUE));
+            attributeStatistics.add(withAttributes);
             nodeStatistics.setAttributesStatistics(attributeStatistics);
         }
         return nodeStatistics;
     }
 
-    private List<NodeStatistics> prepareNodeStatistics(boolean withAttributes) {
+    private List<NodeStatistics> prepareNodeStatistics(List<AttributeStatistics> attributeStatistics) {
         List<NodeStatistics> statistics = new ArrayList<>();
-        statistics.add(createNodeStatistics("", ROOT_XPATH, "", OCCURRENCE, withAttributes));
-        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_1_XPATH, NODE_VALUE_1, OCCURRENCE, withAttributes));
-        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_1_XPATH, NODE_VALUE_2, OCCURRENCE, withAttributes));
-        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_2_XPATH, NODE_VALUE_1, OCCURRENCE, withAttributes));
-        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_3_XPATH, "", OCCURRENCE, withAttributes));
-        statistics.add(createNodeStatistics(NODE_3_XPATH, NODE_4_XPATH, NODE_VALUE_3, OCCURRENCE, withAttributes));
+        statistics.add(createNodeStatistics("", ROOT_XPATH, "", OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(0) : null));
+        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_1_XPATH, NODE_VALUE_1, OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(0) : null));
+        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_1_XPATH, NODE_VALUE_2, OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(1) : null));
+        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_2_XPATH, NODE_VALUE_1, OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(0) : null));
+        statistics.add(createNodeStatistics(ROOT_XPATH, NODE_3_XPATH, "", OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(1) : null));
+        statistics.add(createNodeStatistics(NODE_3_XPATH, NODE_4_XPATH, NODE_VALUE_3, OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(0) : null));
         return statistics;
     }
 }

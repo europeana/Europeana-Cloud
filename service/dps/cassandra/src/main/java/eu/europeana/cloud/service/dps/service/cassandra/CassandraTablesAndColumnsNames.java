@@ -60,14 +60,15 @@ public class CassandraTablesAndColumnsNames {
     //-------- NODE STATISTICS ----------
     public static final String NODE_STATISTICS_TASK_ID = "task_id";
     public static final String NODE_STATISTICS_NODE_XPATH = "node_xpath";
-    public static final String NODE_STATISTICS_VALUE = "value";
+    public static final String NODE_STATISTICS_VALUE = "node_value";
     public static final String NODE_STATISTICS_OCCURRENCE = "occurrence";
 
 
     //-------- ATTRIBUTE STATISTICS ----------
     public static final String ATTRIBUTE_STATISTICS_TASK_ID = "task_id";
     public static final String ATTRIBUTE_STATISTICS_NODE_XPATH = "node_xpath";
-    public static final String ATTRIBUTE_STATISTICS_NAME = "name";
-    public static final String ATTRIBUTE_STATISTICS_VALUE = "value";
+    public static final String ATTRIBUTE_STATISTICS_NODE_VALUE = "node_value";
+    public static final String ATTRIBUTE_STATISTICS_NAME = "attribute_name";
+    public static final String ATTRIBUTE_STATISTICS_VALUE = "attribute_value";
     public static final String ATTRIBUTE_STATISTICS_OCCURRENCE = "occurrence";
 }
