@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.io.*;
 import eu.europeana.cloud.service.dps.storm.spouts.kafka.CustomKafkaSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.Config;
@@ -111,11 +112,20 @@ public class ValidationTopology {
                 .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.VALIDATION_BOLT_NUMBER_OF_TASKS))))
                 .shuffleGrouping(TopologyHelper.RETRIEVE_FILE_BOLT);
 
+        builder.setBolt(TopologyHelper.STATISTICS_BOLT, new StatisticsBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
+                        Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PORT)),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_USERNAME),
+                        topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_PASSWORD)),
+                ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL))))
+                .setNumTasks(((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS))))
+                .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+
         builder.setBolt(TopologyHelper.REVISION_WRITER_BOLT, validationRevisionWriter,
                 ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL))))
                 .setNumTasks(
                         ((int) Integer.parseInt(topologyProperties.getProperty(TopologyPropertyKeys.Revision_WRITER_BOLT_NUMBER_OF_TASKS))))
-                .shuffleGrouping(TopologyHelper.VALIDATION_BOLT);
+                .shuffleGrouping(TopologyHelper.STATISTICS_BOLT);
 
 
         builder.setBolt(TopologyHelper.NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(TopologyPropertyKeys.CASSANDRA_HOSTS),
@@ -137,6 +147,8 @@ public class ValidationTopology {
                 .fieldsGrouping(TopologyHelper.READ_REPRESENTATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.VALIDATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                        new Fields(NotificationTuple.taskIdFieldName))
+                .fieldsGrouping(TopologyHelper.STATISTICS_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName))
                 .fieldsGrouping(TopologyHelper.REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                         new Fields(NotificationTuple.taskIdFieldName));

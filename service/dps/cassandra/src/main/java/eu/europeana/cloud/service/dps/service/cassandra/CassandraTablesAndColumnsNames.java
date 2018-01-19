@@ -9,6 +9,9 @@ public class CassandraTablesAndColumnsNames {
     public static final String NOTIFICATIONS_TABLE = "notifications";
     public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
     public static final String ERROR_COUNTERS_TABLE = "error_counters";
+    public static final String GENERAL_STATISTICS_TABLE = "general_statistics";
+    public static final String NODE_STATISTICS_TABLE = "node_statistics";
+    public static final String ATTRIBUTE_STATISTICS_TABLE = "attribute_statistics";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -45,4 +48,27 @@ public class CassandraTablesAndColumnsNames {
     public static final String ERROR_COUNTERS_TASK_ID = "task_id";
     public static final String ERROR_COUNTERS_ERROR_TYPE = "error_type";
     public static final String ERROR_COUNTERS_COUNTER = "error_count";
+
+
+    //-------- GENERAL STATISTICS ----------
+    public static final String GENERAL_STATISTICS_TASK_ID = "task_id";
+    public static final String GENERAL_STATISTICS_PARENT_XPATH = "parent_xpath";
+    public static final String GENERAL_STATISTICS_NODE_XPATH = "node_xpath";
+    public static final String GENERAL_STATISTICS_OCCURRENCE = "occurrence";
+
+
+    //-------- NODE STATISTICS ----------
+    public static final String NODE_STATISTICS_TASK_ID = "task_id";
+    public static final String NODE_STATISTICS_NODE_XPATH = "node_xpath";
+    public static final String NODE_STATISTICS_VALUE = "node_value";
+    public static final String NODE_STATISTICS_OCCURRENCE = "occurrence";
+
+
+    //-------- ATTRIBUTE STATISTICS ----------
+    public static final String ATTRIBUTE_STATISTICS_TASK_ID = "task_id";
+    public static final String ATTRIBUTE_STATISTICS_NODE_XPATH = "node_xpath";
+    public static final String ATTRIBUTE_STATISTICS_NODE_VALUE = "node_value";
+    public static final String ATTRIBUTE_STATISTICS_NAME = "attribute_name";
+    public static final String ATTRIBUTE_STATISTICS_VALUE = "attribute_value";
+    public static final String ATTRIBUTE_STATISTICS_OCCURRENCE = "occurrence";
 }
