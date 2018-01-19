@@ -14,26 +14,27 @@
 
 USE ecloud_test;
 CREATE TABLE general_statistics (
-task_id bigint,
-parent_xpath varchar,
-node_xpath varchar,
-occurrence counter,
-PRIMARY KEY(task_id, parent_xpath, node_xpath)
+  task_id bigint,
+  parent_xpath varchar,
+  node_xpath varchar,
+  occurrence counter,
+  PRIMARY KEY(task_id, parent_xpath, node_xpath)
 );
 
 CREATE TABLE node_statistics (
-task_id bigint,
-node_xpath varchar,
-value varchar,
-occurrence counter,
-PRIMARY KEY((task_id, node_xpath), value)
+  task_id bigint,
+  node_xpath varchar,
+  node_value varchar,
+  occurrence counter,
+  PRIMARY KEY((task_id, node_xpath), node_value)
 );
 
 CREATE TABLE attribute_statistics (
-task_id bigint,
-node_xpath varchar,
-name varchar,
-value varchar,
-occurrence counter,
-PRIMARY KEY((task_id, node_xpath), name, value)
+  task_id bigint,
+  node_xpath varchar,
+  node_value varchar,
+  attribute_name varchar,
+  attribute_value varchar,
+  occurrence counter,
+  PRIMARY KEY((task_id, node_xpath, node_value), attribute_name, attribute_value)
 );

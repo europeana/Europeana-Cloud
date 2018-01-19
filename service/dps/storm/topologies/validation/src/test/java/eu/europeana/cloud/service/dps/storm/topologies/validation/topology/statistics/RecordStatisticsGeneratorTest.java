@@ -96,7 +96,7 @@ public class RecordStatisticsGeneratorTest {
 
     private String getParentXpathFromXpath(String xpath) {
         if (StringUtils.countMatches(xpath, '/') < 3)
-            return null;
+            return "";
         return xpath.substring(0, xpath.lastIndexOf('/'));
     }
 
