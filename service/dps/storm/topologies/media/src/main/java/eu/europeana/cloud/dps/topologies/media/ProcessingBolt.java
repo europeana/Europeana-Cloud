@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
@@ -55,7 +55,6 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 public class ProcessingBolt extends BaseRichBolt {
 	
@@ -137,10 +136,10 @@ public class ProcessingBolt extends BaseRichBolt {
 			logger.info("Identify failed ({}) for {}", e.getMessage(), image.fileInfo.getUrl());
 			logger.trace("Identify failure details:", e);
 			if (e.reportError != null) {
-				image.error = "IMAGE: " + e.reportError;
+				image.error = "IMAGE " + e.reportError;
 			} else {
 				logger.warn("Exception without proper report error:", e);
-				image.error = "IMAGE: UNKNOWN";
+				image.error = "IMAGE UNKNOWN";
 			}
 			return false;
 		}
@@ -178,8 +177,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream()) {
 			xmlTtransformer.transform(new DOMSource(mediaData.getEdm()), new StreamResult(byteStream));
 			try (ByteArrayInputStream bais = new ByteArrayInputStream(byteStream.toByteArray())) {
-				String representationUri = getRepresentationUri(mediaData, "techmetadata");
-				URI newFileUri = fileClient.uploadFile(representationUri, bais, "text/xml");
+				Representation r = mediaData.getEdmRepresentation();
+				URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider(),
+						bais, "techmetadata.xml", "text/xml");
 				logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
 			}
 		} catch (IOException | DriverException | MCSException | TransformerException e) {
@@ -194,12 +194,17 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private void saveThumbnails(MediaTupleData mediaData, ArrayList<ImageInfo> imageInfos) {
 		long start = System.currentTimeMillis();
+		String cloudId = mediaData.getEdmRepresentation().getCloudId();
+		String providerId = mediaData.getEdmRepresentation().getDataProvider();
 		String repName = "thumbnail";
-		String version;
 		try {
-			String uri = getRepresentationUri(mediaData, repName);
-			UrlParser urlParser = new UrlParser(uri);
-			version = urlParser.getPart(UrlPart.VERSIONS);
+			URI uri = recordClient.createRepresentation(cloudId, repName, providerId);
+			UrlParser urlParser = new UrlParser(uri.toString());
+			String version = urlParser.getPart(UrlPart.VERSIONS);
+			for (ImageInfo image : imageInfos) {
+				uploadThumbnail(cloudId, repName, version, image);
+			}
+			recordClient.persistRepresentation(cloudId, repName, version);
 		} catch (DriverException | MCSException | MalformedURLException e) {
 			logger.error("Could not store thumbnail representation in "
 					+ mediaData.getEdmRepresentation().getCloudId(), e);
@@ -207,46 +212,29 @@ public class ProcessingBolt extends BaseRichBolt {
 				if (image.error == null)
 					image.error = "THUMBNAIL SAVING";
 			}
-			return;
 		}
-		
-		String cloudId = mediaData.getEdmRepresentation().getCloudId();
-		for (ImageInfo image : imageInfos) {
-			try {
-				String md5 = DigestUtils.md5Hex(image.fileInfo.getUrl());
-				String mimeType = "image/" + image.getThumbnailFormat();
-				if (image.thumbnail200 != null) {
-					fileClient.uploadFile(cloudId, repName, version, md5 + "-w200",
-							new ByteArrayInputStream(image.thumbnail200), mimeType);
-				}
-				if (image.thumbnail400 != null) {
-					fileClient.uploadFile(cloudId, repName, version, md5 + "-w400",
-							new ByteArrayInputStream(image.thumbnail400), mimeType);
-				}
-			} catch (DriverException | MCSException e) {
-				logger.error("Could not save thumbnails for cloudId " + cloudId, e);
-				if (image.error == null)
-					image.error = "THUMBNAIL SAVING";
-			}
-		}
-		logger.debug("image saving took {} ms", System.currentTimeMillis() - start);
+		logger.debug("thumbnail saving took {} ms", System.currentTimeMillis() - start);
 	}
-	
-	private String getRepresentationUri(MediaTupleData mediaData, String repName) throws MCSException {
-		String cloudId = mediaData.getEdmRepresentation().getCloudId();
-		String providerId = mediaData.getEdmRepresentation().getDataProvider();
-		
-		URI uri;
+
+	private void uploadThumbnail(String cloudId, String repName, String version, ImageInfo image) {
 		try {
-			uri = recordClient.getRepresentations(cloudId, repName).stream()
-					.filter(r -> !r.isPersistent())
-					.findAny().get().getUri();
-			logger.debug("overwriting existing representation: " + uri);
-		} catch (RepresentationNotExistsException | NoSuchElementException e) {
-			uri = recordClient.createRepresentation(cloudId, repName, providerId);
-			logger.debug("saving new representation: " + uri);
+			String md5 = DigestUtils.md5Hex(image.fileInfo.getUrl());
+			String mimeType = "image/" + image.getThumbnailFormat();
+			if (image.thumbnail200 != null) {
+				URI uri = fileClient.uploadFile(cloudId, repName, version, md5 + "-w200",
+						new ByteArrayInputStream(image.thumbnail200), mimeType);
+				logger.debug("thumbnail saved: {}", uri);
+			}
+			if (image.thumbnail400 != null) {
+				URI uri = fileClient.uploadFile(cloudId, repName, version, md5 + "-w400",
+						new ByteArrayInputStream(image.thumbnail400), mimeType);
+				logger.debug("thumbnail saved: {}", uri);
+			}
+		} catch (DriverException | MCSException e) {
+			logger.error("Could not save thumbnails for cloudId " + cloudId, e);
+			if (image.error == null)
+				image.error = "THUMBNAIL SAVING";
 		}
-		return uri.toString();
 	}
 	
 	private String findImageMagickCommand() {
