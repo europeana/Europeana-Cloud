@@ -119,6 +119,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	}
 	
 	private boolean identifyImage(ImageInfo image, Document edm) {
+		long start = System.currentTimeMillis();
 		try {
 			Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false,
 					image.fileInfo.getContent());
@@ -142,10 +143,13 @@ public class ProcessingBolt extends BaseRichBolt {
 				image.error = "IMAGE UNKNOWN";
 			}
 			return false;
+		} finally {
+			logger.debug("identify command took {} ms", System.currentTimeMillis() - start);
 		}
 	}
 	
 	private byte[] createThumbnail(ImageInfo image, int width) {
+		long start = System.currentTimeMillis();
 		String mimeType = image.fileInfo.getMimeType();
 		if (image.width < width) {
 			if (mimeType.equals("image/" + image.getThumbnailFormat()))
@@ -169,6 +173,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			logger.error("Exception processing " + image.fileInfo.getUrl(), e);
 			image.error = "THUMBNAIL IOException";
 			return null;
+		} finally {
+			logger.debug("convert command took {} ms", System.currentTimeMillis() - start);
 		}
 	}
 	
