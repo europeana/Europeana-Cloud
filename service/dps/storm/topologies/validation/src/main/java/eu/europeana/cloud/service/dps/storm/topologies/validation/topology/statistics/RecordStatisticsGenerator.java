@@ -47,7 +47,7 @@ public class RecordStatisticsGenerator {
         String nodeXpath = getXPath(root);
         String nodeValue = getFirstLevelTextContent(root);
         String modelKey = getKey(nodeXpath, nodeValue);
-        nodeStatistics.put(modelKey, new NodeStatistics(null, nodeXpath, nodeValue, 1));
+        nodeStatistics.put(modelKey, new NodeStatistics("", nodeXpath, nodeValue, 1));
     }
 
     private void prepareNodeStatistics(Node root) {

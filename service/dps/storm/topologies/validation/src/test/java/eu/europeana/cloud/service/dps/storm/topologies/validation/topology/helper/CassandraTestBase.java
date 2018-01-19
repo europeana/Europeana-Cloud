@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
