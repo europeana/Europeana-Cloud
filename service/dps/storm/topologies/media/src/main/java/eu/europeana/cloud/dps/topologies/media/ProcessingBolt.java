@@ -43,9 +43,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.dps.topologies.media.support.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
