@@ -12,13 +12,9 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.cloud.service.dps.TaskExecutionKillService;
-import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +39,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     protected Map stormConfig;
     protected TopologyContext topologyContext;
     protected OutputCollector outputCollector;
-    protected TaskExecutionKillService killService;
     protected String topologyName;
 
     public abstract void execute(StormTaskTuple t);
@@ -58,11 +53,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         StormTaskTuple t = null;
         try {
             t = StormTaskTuple.fromStormTuple(tuple);
-            if (killService.hasKillFlag(topologyName, t.getTaskId())) {
-                LOGGER.info("Task {} going to be killed.", t.getTaskId());
-                emitKillNotification(t.getTaskId(), t.getFileUrl(), "", "");
-                return;
-            }
             LOGGER.info("Mapped to StormTaskTuple :" + t.toStormTuple().toString());
             execute(t);
         } catch (Exception e) {
@@ -82,17 +72,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         this.stormConfig = stormConfig;
         this.topologyContext = tc;
         this.outputCollector = oc;
-
-        List<String> zooServers = (List<String>) stormConfig.get(Config.STORM_ZOOKEEPER_SERVERS);
-        String zooPort = String.valueOf(stormConfig.get(Config.STORM_ZOOKEEPER_PORT));
-
         this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
-
-        //String connectString = String.join(":"+zooPort+",", zooServers);    //Java 8
-        String connectString = StringUtils.join(zooServers, ":" + zooPort + ",");    //Java 7
-
-        this.killService = new ZookeeperKillService(connectString);
-
         prepare();
     }
 
@@ -135,21 +115,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 
-    /**
-     * Emit {@link NotificationTuple} with kill notification to {@link #NOTIFICATION_STREAM_NAME}.
-     * Only one notification call per resource per task.
-     *
-     * @param taskId                 task ID
-     * @param resource               affected resource (e.g. file URL)
-     * @param message                short text
-     * @param additionalInformations the rest of informations
-     */
-    protected void emitKillNotification(long taskId, String resource, String message, String additionalInformations) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.KILLED, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
-    }
-
 
     protected void endTask(long taskId, String info, TaskState state, Date finishTime) {
         NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
@@ -163,10 +128,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
 
     protected void emitSuccessNotification(long taskId, String resource,
-                                         String message, String additionalInformations, String resultResource) {
+                                           String message, String additionalInformations, String resultResource) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
                 resource, States.SUCCESS, message, additionalInformations, resultResource);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME,inputTuple, nt.toStormTuple());
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, inputTuple, nt.toStormTuple());
     }
 
 

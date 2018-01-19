@@ -113,7 +113,6 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
 
     @Before
     public final void setUp() throws Exception {
-        mockZookeeperKS();
         mockRecordSC();
         mockFileSC();
         mockSourceProvider();

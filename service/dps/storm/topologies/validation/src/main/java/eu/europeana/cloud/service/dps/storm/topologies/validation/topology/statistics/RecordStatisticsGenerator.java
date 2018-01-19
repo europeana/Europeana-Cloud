@@ -47,7 +47,7 @@ public class RecordStatisticsGenerator {
         String nodeXpath = getXPath(root);
         String nodeValue = getFirstLevelTextContent(root);
         String modelKey = getKey(nodeXpath, nodeValue);
-        nodeStatistics.put(modelKey, new NodeStatistics(nodeXpath, null, nodeValue, 1));
+        nodeStatistics.put(modelKey, new NodeStatistics("", nodeXpath, nodeValue, 1));
     }
 
     private void prepareNodeStatistics(Node root) {
@@ -61,7 +61,7 @@ public class RecordStatisticsGenerator {
                 String modelKey = getKey(nodeXpath, nodeValue);
                 NodeStatistics nodeModel = nodeStatistics.get(modelKey);
                 if (nodeModel == null) {
-                    nodeModel = new NodeStatistics(nodeXpath, parentXpath, nodeValue, 1);
+                    nodeModel = new NodeStatistics(parentXpath, nodeXpath, nodeValue, 1);
                 } else {
                     nodeModel.increaseOccurrence();
                 }
@@ -110,9 +110,8 @@ public class RecordStatisticsGenerator {
     }
 
 
-    public void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics comparableAttributeModel) {
-        for (Iterator<AttributeStatistics> it = models.iterator(); it.hasNext(); ) {
-            AttributeStatistics attributeModel = it.next();
+    private void increaseOccurrence(Set<AttributeStatistics> models, AttributeStatistics comparableAttributeModel) {
+        for (AttributeStatistics attributeModel : models) {
             if (attributeModel.equals(comparableAttributeModel)) {
                 attributeModel.increaseOccurrence();
                 break;
