@@ -101,6 +101,11 @@ public class StatsBolt extends BaseRichBolt {
 		long bytesDownloaded;
 		long downloadStart = Long.MAX_VALUE;
 		long downloadEnd;
+		long downloadTimeSum;
+		long downloadedResourceCount;
+		
+		long processingTimeSum;
+		long processedResourceCount;
 		
 		long startTime;
 		long lastUpdate;
@@ -124,9 +129,18 @@ public class StatsBolt extends BaseRichBolt {
 			for (String error : data.getErrors())
 				errorsCount.merge(error, 1L, Long::sum);
 			
-			bytesDownloaded += data.getDownloadedBytes();
-			downloadStart = Math.min(downloadStart, data.getDownloadStartTime());
-			downloadEnd = Math.max(downloadEnd, data.getDownloadEndTime());
+			if (data.getDownloadedBytes() > 0) {
+				bytesDownloaded += data.getDownloadedBytes();
+				downloadStart = Math.min(downloadStart, data.getDownloadStartTime());
+				downloadEnd = Math.max(downloadEnd, data.getDownloadEndTime());
+				downloadTimeSum += data.getDownloadEndTime() - data.getDownloadStartTime();
+				downloadedResourceCount++;
+			}
+			
+			if (data.getProcessingStartTime() > 0 && data.getProcessingEndTime() > 0) {
+				processingTimeSum += data.getProcessingEndTime() - data.getProcessingStartTime();
+				processedResourceCount++;
+			}
 		}
 		
 		@Override
@@ -138,8 +152,13 @@ public class StatsBolt extends BaseRichBolt {
 			json.put("bytesDownloaded", bytesDownloaded);
 			long downloadTime = (downloadEnd - downloadStart + 500) / 1000;
 			json.put("downloadTimeSeconds", downloadTime);
-			if (downloadTime > 0)
+			if (downloadTime > 0) {
 				json.put("downloadSpeedMBps", (double) bytesDownloaded / downloadTime / 1000000);
+				json.put("averageDownloadTimeMilis", downloadTimeSum / downloadedResourceCount);
+			}
+			if (processedResourceCount > 0) {
+				json.put("averageProcessingTimeMilis", processingTimeSum / processedResourceCount);
+			}
 			json.put("errors", errorsCount);
 			Date now = new Date();
 			json.put("lastUpdate", now);
