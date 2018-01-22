@@ -71,6 +71,8 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private String magickCmd;
 	
+	private boolean persistResult;
+	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.outputCollector = collector;
@@ -83,6 +85,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 		fileClient = Util.getFileServiceClient(stormConf);
 		recordClient = Util.getRecordServiceClient(stormConf);
+		
+		persistResult = (Boolean) stormConf.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
 	}
 	
 	@Override
@@ -184,9 +188,18 @@ public class ProcessingBolt extends BaseRichBolt {
 			xmlTtransformer.transform(new DOMSource(mediaData.getEdm()), new StreamResult(byteStream));
 			try (ByteArrayInputStream bais = new ByteArrayInputStream(byteStream.toByteArray())) {
 				Representation r = mediaData.getEdmRepresentation();
-				URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider(),
-						bais, "techmetadata.xml", "text/xml");
-				logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
+				if (persistResult) {
+					URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata",
+							r.getDataProvider(), bais, "techmetadata.xml", "text/xml");
+					logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
+				} else {
+					URI rep = recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider());
+					String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
+					fileClient.uploadFile(r.getCloudId(), "techmetadata", version, "techmetadata.xml", bais,
+							"text/xml");
+					recordClient.deleteRepresentation(r.getCloudId(), "techmetadata", version);
+					logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
+				}
 			}
 		} catch (IOException | DriverException | MCSException | TransformerException e) {
 			logger.error("Could not store tech metadata representation in "
@@ -210,7 +223,11 @@ public class ProcessingBolt extends BaseRichBolt {
 			for (ImageInfo image : imageInfos) {
 				uploadThumbnail(cloudId, repName, version, image);
 			}
-			recordClient.persistRepresentation(cloudId, repName, version);
+			if (persistResult) {
+				recordClient.persistRepresentation(cloudId, repName, version);
+			} else {
+				recordClient.deleteRepresentation(cloudId, repName, version);
+			}
 		} catch (DriverException | MCSException | MalformedURLException e) {
 			logger.error("Could not store thumbnail representation in "
 					+ mediaData.getEdmRepresentation().getCloudId(), e);
@@ -219,7 +236,8 @@ public class ProcessingBolt extends BaseRichBolt {
 					image.error = "THUMBNAIL SAVING";
 			}
 		}
-		logger.debug("thumbnail saving took {} ms", System.currentTimeMillis() - start);
+		logger.debug("thumbnail saving{} took {} ms", persistResult ? "" : " simulation",
+				System.currentTimeMillis() - start);
 	}
 
 	private void uploadThumbnail(String cloudId, String repName, String version, ImageInfo image) {
