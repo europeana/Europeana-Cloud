@@ -98,9 +98,9 @@ public class ProcessingBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 		MediaTupleData mediaData = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
 		StatsTupleData statsData = (StatsTupleData) input.getValueByField(StatsTupleData.FIELD_NAME);
-		statsData.setProcessingStartTime(System.currentTimeMillis());
 		
 		ArrayList<ImageInfo> imageInfos = new ArrayList<>();
+		statsData.setProcessingStartTime(System.currentTimeMillis());
 		for (FileInfo file : mediaData.getFileInfos()) {
 			if (!isImage(file.getMimeType()))
 				continue;
@@ -113,11 +113,14 @@ public class ProcessingBolt extends BaseRichBolt {
 				image.thumbnail400 = createThumbnail(image, 400);
 			}
 		}
+		statsData.setProcessingEndTime(System.currentTimeMillis());
+		
+		statsData.setUploadStartTime(System.currentTimeMillis());
 		saveThumbnails(mediaData, imageInfos);
 		saveMetadata(mediaData, imageInfos);
+		statsData.setUploadEndTime(System.currentTimeMillis());
 		
 		imageInfos.stream().map(i -> i.error).filter(Objects::nonNull).forEach(statsData::addError);
-		statsData.setProcessingEndTime(System.currentTimeMillis());
 		outputCollector.emit(StatsTupleData.STREAM_ID, input, new Values(statsData));
 		outputCollector.ack(input);
 	}

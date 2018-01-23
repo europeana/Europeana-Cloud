@@ -72,7 +72,7 @@ public class StatsBolt extends BaseRichBolt {
 						stats.toString(), TaskState.PROCESSED.toString(), new Date());
 				taskStats.remove(taskId);
 				logger.info("finished stats gathering for task " + taskId);
-			} else if (stats.lastUpdate < System.currentTimeMillis() - UPDATE_PERIOD) {
+			} else {
 				updateDao(stats);
 			}
 		}
@@ -80,11 +80,13 @@ public class StatsBolt extends BaseRichBolt {
 	}
 	
 	private void updateDao(TaskStats stats) {
-		taskInfoDao.updateTask(stats.taskId, stats.toString(), TaskState.CURRENTLY_PROCESSING.toString(),
-				new Date(stats.startTime));
-		taskInfoDao.setUpdateProcessedFiles(stats.taskId, (int) stats.processedEdmsCount,
-				(int) stats.failedEdmsCount);
-		stats.lastUpdate = System.currentTimeMillis();
+		if (stats.lastUpdate < System.currentTimeMillis() - UPDATE_PERIOD) {
+			taskInfoDao.updateTask(stats.taskId, stats.toString(), TaskState.CURRENTLY_PROCESSING.toString(),
+					new Date(stats.startTime));
+			taskInfoDao.setUpdateProcessedFiles(stats.taskId, (int) stats.processedEdmsCount,
+					(int) stats.failedEdmsCount);
+			stats.lastUpdate = System.currentTimeMillis();
+		}
 	}
 	
 	private static class TaskStats {
@@ -105,6 +107,7 @@ public class StatsBolt extends BaseRichBolt {
 		long downloadedResourceCount;
 		
 		long processingTimeSum;
+		long uploadTimeSum;
 		long processedResourceCount;
 		
 		long startTime;
@@ -137,8 +140,9 @@ public class StatsBolt extends BaseRichBolt {
 				downloadedResourceCount++;
 			}
 			
-			if (data.getProcessingStartTime() > 0 && data.getProcessingEndTime() > 0) {
+			if (data.getUploadEndTime() > 0) {
 				processingTimeSum += data.getProcessingEndTime() - data.getProcessingStartTime();
+				uploadTimeSum += data.getUploadEndTime() - data.getUploadStartTime();
 				processedResourceCount++;
 			}
 		}
@@ -151,13 +155,14 @@ public class StatsBolt extends BaseRichBolt {
 			json.put("resourcesSuccessfull", totalResourcesCount - failedEdmsCount);
 			json.put("bytesDownloaded", bytesDownloaded);
 			long downloadTime = (downloadEnd - downloadStart + 500) / 1000;
-			json.put("downloadTimeSeconds", downloadTime);
 			if (downloadTime > 0) {
+				json.put("downloadTimeSeconds", downloadTime);
 				json.put("downloadSpeedMBps", (double) bytesDownloaded / downloadTime / 1000000);
-				json.put("averageDownloadTimeMilis", downloadTimeSum / downloadedResourceCount);
+				json.put("averageDownloadTimeMillis", downloadTimeSum / downloadedResourceCount);
 			}
 			if (processedResourceCount > 0) {
-				json.put("averageProcessingTimeMilis", processingTimeSum / processedResourceCount);
+				json.put("averageProcessingTimeMillis", processingTimeSum / processedResourceCount);
+				json.put("averageUploadTimeMillis", uploadTimeSum / processedResourceCount);
 			}
 			json.put("errors", errorsCount);
 			Date now = new Date();

@@ -20,6 +20,9 @@ public class StatsTupleData implements Serializable {
 	private long processingStartTime;
 	private long processingEndTime;
 	
+	private long uploadStartTime;
+	private long uploadEndTime;
+	
 	public StatsTupleData(long taskId, int resourceCount) {
 		this.taskId = taskId;
 		this.resourceCount = resourceCount;
@@ -79,5 +82,21 @@ public class StatsTupleData implements Serializable {
 	
 	public long getProcessingEndTime() {
 		return processingEndTime;
+	}
+	
+	public void setUploadStartTime(long uploadStartTime) {
+		this.uploadStartTime = uploadStartTime;
+	}
+
+	public long getUploadStartTime() {
+		return uploadStartTime;
+	}
+	
+	public void setUploadEndTime(long uploadEndTime) {
+		this.uploadEndTime = uploadEndTime;
+	}
+
+	public long getUploadEndTime() {
+		return uploadEndTime;
 	}
 }
