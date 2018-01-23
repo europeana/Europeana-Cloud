@@ -99,6 +99,14 @@ public class CassandraReportService implements TaskExecutionReportService {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StatisticsReport getTaskStatisticsReport(String taskId) {
+        return new StatisticsReport(Long.valueOf(taskId));
+    }
+
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
 
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();

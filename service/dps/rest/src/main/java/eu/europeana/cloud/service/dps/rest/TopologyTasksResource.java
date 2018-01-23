@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.dps.rest;
 
 import com.qmino.miredot.annotations.ReturnType;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -285,6 +282,36 @@ public class TopologyTasksResource {
         }
         return reportService.getSpecificTaskErrorReport(taskId, error);
     }
+
+
+
+
+    /**
+     * Retrieves a statistics report for the specified task. Only applicable for tasks executing {@link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
+     *
+     * <p/>
+     * <br/><br/>
+     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+     * <strong>Required permissions:</strong>
+     * <ul>
+     * <li>Authenticated user</li>
+     * <li>Read permission for selected task</li>
+     * </ul>
+     * </div>
+     *
+     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @return Statistics report for the specified task.
+     * @summary Retrieve task statistics report
+     */
+    @GET
+    @Path("{taskId}/statistics")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    public StatisticsReport getTaskStatisticsReport(@PathParam("taskId") String taskId) {
+        return reportService.getTaskStatisticsReport(taskId);
+    }
+
+
 
     /**
      * Grants read / write permissions for a task to the specified user.

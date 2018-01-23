@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
@@ -31,6 +32,15 @@ public interface TaskExecutionReportService {
      * by the last bolt of a topology by 1.
      */
     void incrTaskProgress(String taskId);
+
+    /**
+     * Returns statistics report for a given task. The report is only available if validation was run and there were correctly validated records.
+     *
+     * @param taskId task identifier
+     * @return statistics report
+     */
+    StatisticsReport getTaskStatisticsReport(String taskId);
+
 
     /**
      * Retrieve all errors that occurred for the given task
