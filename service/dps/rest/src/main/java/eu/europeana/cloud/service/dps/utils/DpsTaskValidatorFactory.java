@@ -12,6 +12,9 @@ public class DpsTaskValidatorFactory {
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
     private static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
 
+    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
+    private static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
+
 
     private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
     private static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
@@ -62,6 +65,15 @@ public class DpsTaskValidatorFactory {
                     .withAnyOutputRevision()
                     .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                     .withParameter(PluginParameterKeys.SCHEMA_NAME);
+        } else if (taskType.equalsIgnoreCase(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS)) {
+            return new DpsTaskValidator("FileUrl validator for Enrichment Topology")
+                    .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+                    .withOutputRevisionCheckingIfExists();
+        } else if (taskType.equalsIgnoreCase(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS)) {
+            return new DpsTaskValidator("DataSet validator for Enrichment Topology")
+                    .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
+                    .withOutputRevisionCheckingIfExists()
+                    .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET);
         } else {
             return EMPTY_VALIDATOR;
         }
