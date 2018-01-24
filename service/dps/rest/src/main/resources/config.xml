@@ -19,6 +19,7 @@
 		<property name="properties">
 			<value>
 				numberOfElementsOnPage=100
+				maxIdentifiersCount=100
 			</value>
 		</property>
 	</bean>

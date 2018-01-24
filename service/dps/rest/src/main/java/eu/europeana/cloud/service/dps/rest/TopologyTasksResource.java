@@ -23,10 +23,12 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -49,6 +51,9 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @Path("/{topologyName}/tasks")
 @Component
 public class TopologyTasksResource {
+
+    @Value("${maxIdentifiersCount}")
+    private int maxIdentifiersCount;
 
     @Autowired
     ApplicationContext context;
@@ -88,6 +93,7 @@ public class TopologyTasksResource {
 
 
     private final static String TOPOLOGY_PREFIX = "Topology";
+
     public final static String TASK_PREFIX = "DPS_Task";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
@@ -258,7 +264,7 @@ public class TopologyTasksResource {
     /**
      * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
      * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
-     * A sample of identifiers is returned as well.
+     * A sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
      *
      * <p/>
      * <br/><br/>
@@ -272,6 +278,8 @@ public class TopologyTasksResource {
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param error <strong>REQUIRED</strong> Error type.
+     * @param idsCount number of identifiers to retrieve
+     *
      * @return Errors that occurred for the specified task.
      * @summary Retrieve task detailed error report
      */
@@ -279,11 +287,14 @@ public class TopologyTasksResource {
     @Path("{taskId}/reports/errors")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error) throws AccessDeniedOrObjectDoesNotExistException {
-        if (error == null) {
-            return reportService.getGeneralTaskErrorReport(taskId);
+    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error, @Min(0) @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
+        if (idsCount > maxIdentifiersCount) {
+            throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
         }
-        return reportService.getSpecificTaskErrorReport(taskId, error);
+        if (error == null) {
+            return reportService.getGeneralTaskErrorReport(taskId, idsCount);
+        }
+        return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
     }
 
     /**
