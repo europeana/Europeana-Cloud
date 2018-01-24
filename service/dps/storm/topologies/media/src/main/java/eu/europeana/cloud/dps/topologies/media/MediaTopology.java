@@ -11,13 +11,8 @@ import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.kafka.KafkaSpout;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.shade.org.yaml.snakeyaml.Yaml;
 import org.apache.storm.shade.org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
@@ -47,13 +42,7 @@ public class MediaTopology {
 		if (isTest) {
 			builder.setSpout("source", new DummySpout(), 1);
 		} else {
-			ZkHosts brokerHosts = new ZkHosts((String) conf.get(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
-			SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topologyName, "", "storm");
-			kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-			kafkaConfig.ignoreZkOffsets = true;
-			kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-			builder.setSpout("spout", new KafkaSpout(kafkaConfig), 1);
-			builder.setBolt("source", new DataSetReaderBolt(), 1).shuffleGrouping("spout");
+			builder.setSpout("source", new DataSetReaderSpout(conf), 1);
 		}
 		
 		builder.setBolt("downloadBolt", new DownloadBolt(),

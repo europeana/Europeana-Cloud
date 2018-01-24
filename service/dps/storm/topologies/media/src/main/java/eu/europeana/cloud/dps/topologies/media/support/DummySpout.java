@@ -52,8 +52,7 @@ public class DummySpout extends BaseRichSpout implements Constants {
 			Representation rep = representationIterator.next();
 			if ("edm".equals(rep.getRepresentationName())) {
 				final long taskId = 777;
-				MediaTupleData data = new MediaTupleData(taskId);
-				data.setEdmRepresentation(rep);
+				MediaTupleData data = new MediaTupleData(taskId, rep);
 				outputCollector.emit(new Values(data));
 				emitCount++;
 				if (!(representationIterator.hasNext() && emitCount < emitLimit)) {

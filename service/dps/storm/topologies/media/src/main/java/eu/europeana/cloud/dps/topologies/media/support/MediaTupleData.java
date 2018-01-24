@@ -64,14 +64,15 @@ public class MediaTupleData implements Serializable {
 	
 	public static final String FIELD_NAME = "mediaTopology.mediaData";
 	
-	private long taskId;
-	private Representation edmRepresentation;
+	final private long taskId;
+	final private Representation edmRepresentation;
 	
 	private List<FileInfo> fileInfos = new ArrayList<>();
 	private Document edm;
 	
-	public MediaTupleData(long taskId) {
+	public MediaTupleData(long taskId, Representation edmRepresentation) {
 		this.taskId = taskId;
+		this.edmRepresentation = edmRepresentation;
 	}
 	
 	public long getTaskId() {
@@ -80,10 +81,6 @@ public class MediaTupleData implements Serializable {
 	
 	public Representation getEdmRepresentation() {
 		return edmRepresentation;
-	}
-	
-	public void setEdmRepresentation(Representation edmRepresentation) {
-		this.edmRepresentation = edmRepresentation;
 	}
 	
 	public List<FileInfo> getFileInfos() {

@@ -77,8 +77,7 @@ public class DataSetReaderBolt extends BaseRichBolt {
 			while (repIterator.hasNext() && count < emitLimit) {
 				Representation rep = repIterator.next();
 				if ("edm".equals(rep.getRepresentationName())) {
-					MediaTupleData data = new MediaTupleData(task.getTaskId());
-					data.setEdmRepresentation(rep);
+					MediaTupleData data = new MediaTupleData(task.getTaskId(), rep);
 					outputCollector.emit(new Values(data));
 					count++;
 				}
