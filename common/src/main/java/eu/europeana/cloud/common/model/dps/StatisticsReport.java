@@ -26,12 +26,13 @@ public class StatisticsReport {
         return taskId;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        StatisticsReport that = (StatisticsReport) o;
-        return taskId == that.taskId;
+        StatisticsReport report = (StatisticsReport) o;
+        return taskId == report.taskId;
     }
 
     @Override
@@ -39,4 +40,5 @@ public class StatisticsReport {
 
         return Objects.hash(taskId);
     }
+
 }
