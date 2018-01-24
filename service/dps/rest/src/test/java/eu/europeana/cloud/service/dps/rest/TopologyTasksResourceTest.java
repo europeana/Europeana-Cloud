@@ -19,6 +19,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
@@ -54,6 +55,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget detailedReportWebTarget;
     private WebTarget progressReportWebTarget;
     private WebTarget errorsReportWebTarget;
+    private WebTarget statisticsReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -97,6 +99,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
+        statisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
     }
 
     @Test
@@ -417,6 +420,26 @@ public class TopologyTasksResourceTest extends JerseyTest {
 
         //then
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void shouldGetStatisticReport() {
+        WebTarget enrichedWebTarget = statisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        StatisticsReport report = new StatisticsReport(TASK_ID);
+        when(reportService.getTaskStatisticsReport(Long.toString(TASK_ID))).thenReturn(report);
+        Response response = enrichedWebTarget.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertEquals(report, response.readEntity(StatisticsReport.class));
+    }
+
+    //TODO check if service will ever throw it
+    @Ignore
+    @Test
+    public void shouldReturn405WhenStatisicsServiceReturnAccessDeniedException() throws AccessDeniedOrObjectDoesNotExistException {
+        WebTarget enrichedWebTarget = statisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        when(reportService.getTaskStatisticsReport(Long.toString(TASK_ID))).thenThrow(new AccessDeniedOrObjectDoesNotExistException());
+        Response response = enrichedWebTarget.request().get();
+        assertEquals(response.getStatus(), 405);
     }
 
     @Test

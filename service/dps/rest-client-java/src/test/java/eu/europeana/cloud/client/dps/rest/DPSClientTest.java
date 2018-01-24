@@ -3,6 +3,7 @@ package eu.europeana.cloud.client.dps.rest;
 import co.freeside.betamax.Betamax;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import org.glassfish.jersey.Beta;
 import org.junit.Ignore;
 import org.junit.Rule;
 
@@ -25,6 +26,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class DPSClientTest {
@@ -162,6 +164,14 @@ public class DPSClientTest {
         TaskErrorsInfo report = createErrorInfo(TASK_ID, true);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, ERROR_TYPE), is(report));
 
+    }
+
+    @Test
+    @Betamax(tape ="DPSClient_shouldReturnStatistics" )
+    public void shouldReturnStatistics() {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        StatisticsReport expected = new StatisticsReport(TASK_ID);
+        assertThat(dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID), is(expected));
     }
 
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
