@@ -3,6 +3,8 @@ package eu.europeana.cloud.dps.topologies.media;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -106,12 +108,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				continue;
 			ImageInfo image = new ImageInfo(file);
 			imageInfos.add(image);
-			if (!identifyImage(image, mediaData.getEdm()))
-				continue;
-			if (image.shouldProcessThumbnails()) {
-				image.thumbnail200 = createThumbnail(image, 200);
-				image.thumbnail400 = createThumbnail(image, 400);
-			}
+			doMagick(image, mediaData.getEdm());
 		}
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
@@ -125,63 +122,53 @@ public class ProcessingBolt extends BaseRichBolt {
 		outputCollector.ack(input);
 	}
 	
-	private boolean identifyImage(ImageInfo image, Document edm) {
+	private void doMagick(ImageInfo image, Document edm) {
 		long start = System.currentTimeMillis();
 		try {
-			Process identifyProcess = runCommand(Arrays.asList(magickCmd, "identify", "-verbose", "-"), false,
-					image.fileInfo.getContent());
-			String identifyResult = doAndClose(IOUtils::toString, identifyProcess.getInputStream());
+			ArrayList<String> convertCmd = new ArrayList<>();
+			convertCmd.addAll(Arrays.asList(magickCmd, "convert", "-", "-verbose", "-write", "info:", "+verbose"));
+			File tmp200 = null, tmp400 = null;
+			if (image.shouldProcessThumbnails()) {
+				String ext = "." + image.getThumbnailFormat();
+				tmp200 = File.createTempFile("thumb200", ext);
+				tmp400 = File.createTempFile("thumb400", ext);
+				if ("application/pdf".equals(image.fileInfo.getMimeType()))
+					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
+				convertCmd.addAll(Arrays.asList(
+						"(", "+clone", "-thumbnail", "200x", "-write", tmp200.getPath(), "+delete", ")",
+						"-thumbnail", "400x", tmp400.getPath()));
+			}
+			Process magickProcess = runCommand(convertCmd, false, image.fileInfo.getContent());
+			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
 			image.extract(identifyResult);
 			if (image.shouldProcessMetadata()) {
 				new EdmWebResourceWrapper(edm, image.fileInfo.getUrl()).setData(image);
 			}
-			return true;
+			if (image.shouldProcessThumbnails()) {
+				image.thumbnail200 = doAndClose(IOUtils::toByteArray, new FileInputStream(tmp200));
+				image.thumbnail400 = doAndClose(IOUtils::toByteArray, new FileInputStream(tmp400));
+				if (image.thumbnail200.length == 0 || image.thumbnail400.length == 0) {
+					logger.error("No convert output for " + image.fileInfo.getUrl());
+					image.error = "IMAGEMAGICK ERROR";
+				}
+				if (!tmp200.delete() || !tmp400.delete()) {
+					logger.warn("Could not delete temp file: {} {}", tmp200, tmp400);
+				}
+			}
 		} catch (IOException e) {
 			logger.error("Exception processing " + image.fileInfo.getUrl(), e);
-			image.error = "IDENTIFY IOException";
-			return false;
+			image.error = "IMAGE IOException";
 		} catch (MediaException e) {
-			logger.info("Identify failed ({}) for {}", e.getMessage(), image.fileInfo.getUrl());
-			logger.trace("Identify failure details:", e);
+			logger.info("ImageMagick failed ({}) for {}", e.getMessage(), image.fileInfo.getUrl());
+			logger.trace("ImageMagick failure details:", e);
 			if (e.reportError != null) {
 				image.error = "IMAGE " + e.reportError;
 			} else {
 				logger.warn("Exception without proper report error:", e);
 				image.error = "IMAGE UNKNOWN";
 			}
-			return false;
 		} finally {
 			logger.debug("identify command took {} ms", System.currentTimeMillis() - start);
-		}
-	}
-	
-	private byte[] createThumbnail(ImageInfo image, int width) {
-		long start = System.currentTimeMillis();
-		String mimeType = image.fileInfo.getMimeType();
-		if (image.width < width) {
-			if (mimeType.equals("image/" + image.getThumbnailFormat()))
-				return image.fileInfo.getContent();
-			width = image.width;
-		}
-		ArrayList<String> convertCmd = new ArrayList<>();
-		convertCmd.addAll(Arrays.asList(magickCmd, "convert", "-", "-thumbnail", width + "x"));
-		if (mimeType.equals("application/pdf"))
-			convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
-		convertCmd.add(image.getThumbnailFormat() + ":-");
-		try {
-			Process convertProcess = runCommand(convertCmd, false, image.fileInfo.getContent());
-			byte[] result = doAndClose(IOUtils::toByteArray, convertProcess.getInputStream());
-			if (result.length > 0)
-				return result;
-			logger.error("No convert output for " + image.fileInfo.getUrl());
-			image.error = "THUMBNAIL ERROR";
-			return null;
-		} catch (IOException e) {
-			logger.error("Exception processing " + image.fileInfo.getUrl(), e);
-			image.error = "THUMBNAIL IOException";
-			return null;
-		} finally {
-			logger.debug("convert command took {} ms", System.currentTimeMillis() - start);
 		}
 	}
 	
