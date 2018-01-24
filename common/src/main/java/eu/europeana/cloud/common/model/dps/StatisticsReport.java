@@ -1,8 +1,6 @@
 package eu.europeana.cloud.common.model.dps;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -11,21 +9,21 @@ import java.util.Objects;
 @XmlRootElement()
 public class StatisticsReport {
 
-    private long id;
+    private long taskId;
 
     public StatisticsReport() {
     }
 
     public StatisticsReport(long taskId) {
-        this.id = taskId;
+        this.taskId = taskId;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setTaskId(long taskId) {
+        this.taskId = taskId;
     }
 
-    public long getId() {
-        return id;
+    public long getTaskId() {
+        return taskId;
     }
 
     @Override
@@ -33,12 +31,12 @@ public class StatisticsReport {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StatisticsReport that = (StatisticsReport) o;
-        return id == that.id;
+        return taskId == that.taskId;
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(id);
+        return Objects.hash(taskId);
     }
 }
