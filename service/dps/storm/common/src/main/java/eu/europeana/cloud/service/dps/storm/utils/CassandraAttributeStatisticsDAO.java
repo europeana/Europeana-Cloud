@@ -6,11 +6,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {

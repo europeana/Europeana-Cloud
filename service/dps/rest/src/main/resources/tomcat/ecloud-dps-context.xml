@@ -40,7 +40,7 @@
         </constructor-arg>
     </bean>
 
-    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService">
+    <bean id="taskReportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService">
         <constructor-arg name="hosts">
             <jee:jndi-lookup expected-type="java.lang.String" jndi-name="java:comp/env/dps/cassandra/hosts"/>
         </constructor-arg>

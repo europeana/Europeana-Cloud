@@ -20,6 +20,12 @@
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-cassandra-connector</artifactId>
+            <version>0.8-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-cos</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -90,11 +96,6 @@
                     <artifactId>log4j-over-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>ecloud-service-dps-cassandra</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>

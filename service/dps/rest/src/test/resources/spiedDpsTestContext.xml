@@ -19,7 +19,7 @@
     <bean class="eu.europeana.cloud.service.dps.ApplicationContextUtils"/>
     <mockito:mock id="context" class="org.springframework.context.ApplicationContext"/>
     <mockito:mock id="permissionManger" class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
-    <mockito:mock id="reportService" class="eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService"/>
+    <mockito:mock id="reportService" class="eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService"/>
     <mockito:mock id="submitService" class="eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService"/>
     <mockito:mock id="killService" class="eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService"/>
     <!--<mockito:mock  id="loggingConfigurator" class="eu.europeana.cloud.service.commons.logging.SimpleLoggingConfigurator"/>-->

@@ -1,6 +1,7 @@
-package eu.europeana.cloud.service.dps.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
+import eu.europeana.cloud.service.dps.storm.CassandraTestBase;
 import org.junit.Before;
 import org.junit.Test;
 
