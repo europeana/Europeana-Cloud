@@ -22,6 +22,8 @@ public final class PluginParameterKeys {
     public static final String TASK_NAME = "TASK_NAME";
     public static final String ROUTING = "ROUTING";
 
+    public static final String METIS_DATASET_ID = "METIS_DATASET_ID";
+
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String DATASET_ID = "DATASET_ID";
@@ -104,6 +106,8 @@ public final class PluginParameterKeys {
         PLUGIN_PARAMETERS.put(FILE_DATA, "FILE_DATA");
 
         PLUGIN_PARAMETERS.put(DPS_TASK_INPUT_DATA, "DPS_TASK_INPUT_DATA");
+
+        PLUGIN_PARAMETERS.put(METIS_DATASET_ID, "METIS_DATASET_ID");
 
         //the default value for output mimeType
         PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");

@@ -25,12 +25,14 @@ public class DpsTaskValidatorFactory {
         if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_URLS)) {
             return new DpsTaskValidator("FileUrl validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
+                    .withParameter(PluginParameterKeys.METIS_DATASET_ID)
                     .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
                     .withOutputRevisionCheckingIfExists();
         } else if (taskType.equalsIgnoreCase(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS)) {
             return new DpsTaskValidator("DataSet validator for XSLT Topology")
                     .withParameter(PluginParameterKeys.XSLT_URL)
                     .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
+                    .withParameter(PluginParameterKeys.METIS_DATASET_ID)
                     .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
                     .withOutputRevisionCheckingIfExists();
         } else if (taskType.equalsIgnoreCase(IC_TOPOLOGY_TASK_WITH_FILE_URLS)) {
