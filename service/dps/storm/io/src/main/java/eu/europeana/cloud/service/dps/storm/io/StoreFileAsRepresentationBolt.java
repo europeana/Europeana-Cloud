@@ -87,14 +87,14 @@ public class StoreFileAsRepresentationBolt extends AbstractDpsBolt
         {
             String message = "Can not upload file because:" + ex.getMessage();
             LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), t.getFileUrl(), message, "");
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), message, "");
             outputCollector.fail(inputTuple);
             return;
         } 
         catch (MCSException ex) 
         {
             LOGGER.error("StoreFileAsNewRepresentationBolt error:" + ex.getMessage());
-            emitDropNotification(t.getTaskId(), t.getFileUrl(), ex.getMessage(), t.getParameters().toString());
+            emitErrorNotification(t.getTaskId(), t.getFileUrl(), ex.getMessage(), t.getParameters().toString());
             outputCollector.ack(inputTuple);
             return;
         }

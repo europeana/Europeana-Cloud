@@ -49,7 +49,6 @@ public class ReadDatasetsBolt extends AbstractDpsBolt {
         } else {
             String message = "No URL to retrieve dataset.";
             LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
             endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }

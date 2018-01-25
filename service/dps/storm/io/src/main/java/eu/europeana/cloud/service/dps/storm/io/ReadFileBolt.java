@@ -48,7 +48,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
         } else {
             String message = "No URL for retrieve file.";
             LOGGER.warn(message);
-            emitDropNotification(t.getTaskId(), "", message, t.getParameters().toString());
             endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
             return;
         }
@@ -70,7 +69,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
             } catch (RepresentationNotExistsException | FileNotExistsException |
                     WrongContentRangeException ex) {
                 LOGGER.warn("Can not retrieve file at {}", file);
-                emitDropNotification(t.getTaskId(), file, "Can not retrieve file", "");
+                emitErrorNotification(t.getTaskId(), file, "Can not retrieve file", "");
             } catch (DriverException | MCSException | IOException ex) {
                 LOGGER.error("ReadFileBolt error:" + ex.getMessage());
                 emitErrorNotification(t.getTaskId(), file, ex.getMessage(), t.getParameters().toString());

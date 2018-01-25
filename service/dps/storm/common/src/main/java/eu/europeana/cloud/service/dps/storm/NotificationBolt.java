@@ -142,7 +142,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private boolean isError(String state) {
-        return state.equalsIgnoreCase(States.ERROR.toString()) || state.equalsIgnoreCase(States.DROPPED.toString());
+        return state.equalsIgnoreCase(States.ERROR.toString());
     }
 
     @Override

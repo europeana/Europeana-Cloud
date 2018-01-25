@@ -85,20 +85,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
-    /**
-     * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
-     * Only one notification call per resource per task.
-     *
-     * @param taskId                 task ID
-     * @param resource               affected resource (e.g. file URL)
-     * @param message                short text
-     * @param additionalInformations the rest of informations (e.g. stack trace)
-     */
-    protected void emitDropNotification(long taskId, String resource, String message, String additionalInformations) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.DROPPED, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
 
     /**
      * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.

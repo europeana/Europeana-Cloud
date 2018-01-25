@@ -67,7 +67,7 @@ public class ReadRepresentationBolt extends AbstractDpsBolt {
             }
         } else {
             LOGGER.warn("Problem while reading representation");
-            emitDropNotification(t.getTaskId(), null, "Problem while reading representation", "");
+            emitErrorNotification(t.getTaskId(), null, "Problem while reading representation", "");
         }
     }
 
