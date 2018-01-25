@@ -1,26 +1,57 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Statistics for a node.
  */
+@XmlRootElement()
 public class NodeStatistics {
-    /** Parent xpath */
-    private final String parentXpath;
+    /**
+     * Parent xpath
+     */
+    private String parentXpath;
 
-    /** Node xpath */
-    private final String xpath;
+    public void setParentXpath(String parentXpath) {
+        this.parentXpath = parentXpath;
+    }
 
-    /** Node value */
-    private final String value;
+    public void setXpath(String xpath) {
+        this.xpath = xpath;
+    }
 
-    /** Node occurrence */
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setOccurrence(long occurrence) {
+        this.occurrence = occurrence;
+    }
+
+    /**
+     * Node xpath
+     */
+    private String xpath;
+
+    /**
+     * Node value
+     */
+    private String value;
+
+    /**
+     * Node occurrence
+     */
     private long occurrence;
 
-    /** List of attributes together with their statistics */
+    /**
+     * List of attributes together with their statistics
+     */
     private Set<AttributeStatistics> attributesStatistics = new HashSet<>();
+
+    public NodeStatistics() {}
+
 
     public NodeStatistics(String parentXpath, String xpath, String value, long occurrence) {
         this(parentXpath, xpath, value, occurrence, new HashSet<AttributeStatistics>());

@@ -1,8 +1,11 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Statistics of a node's attribute
  */
+@XmlRootElement()
 public class AttributeStatistics {
     /** Attribute name */
     private String name;
@@ -12,6 +15,8 @@ public class AttributeStatistics {
 
     /** Attribute value occurrence */
     private long occurrence;
+
+    public AttributeStatistics() {}
 
     public AttributeStatistics(String name, String value) {
         this(name, value, 1);
@@ -38,6 +43,20 @@ public class AttributeStatistics {
     public void increaseOccurrence() {
         this.occurrence++;
     }
+
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setOccurrence(long occurrence) {
+        this.occurrence = occurrence;
+    }
+
 
     @Override
     public boolean equals(Object o) {

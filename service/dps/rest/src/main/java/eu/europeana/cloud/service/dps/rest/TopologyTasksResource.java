@@ -34,7 +34,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +54,9 @@ public class TopologyTasksResource {
 
     @Autowired
     private TaskExecutionReportService reportService;
+
+    @Autowired
+    private ValidationStaticsReportService validationStatisticsService;
 
     @Autowired
     private TaskExecutionSubmitService submitService;
@@ -307,8 +312,9 @@ public class TopologyTasksResource {
     @Path("{taskId}/statistics")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(@PathParam("taskId") String taskId) {
-        return reportService.getTaskStatisticsReport(taskId);
+    public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+        assertContainTopology(topologyName);
+        return validationStatisticsService.getTaskStatisticsReport(Long.valueOf(taskId));
     }
 
 
