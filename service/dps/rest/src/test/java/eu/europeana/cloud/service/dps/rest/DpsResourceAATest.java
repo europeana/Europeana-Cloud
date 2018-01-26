@@ -93,6 +93,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private final static String ADMIN = "admin";
     private final static String ADMIN_PASSWORD = "admin";
     private final static long TASK_ID=12345;
+    private final static String SAMPLE_METIS_DATASET_ID = "ORG_DSID_DSNAME";
 
     private final static String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
     private final static String PROGRESS = "100%";
@@ -100,8 +101,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     private DpsTask XSLT_TASK2;
     private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
     private DpsTask IC_TASK;
-
-
 
     private UriInfo URI_INFO;
     private AsyncResponse asyncResponse;
@@ -114,13 +113,15 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
         XSLT_TASK = new DpsTask("xsltTask");
         XSLT_TASK.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
         XSLT_TASK2 = new DpsTask("xsltTask");
         XSLT_TASK2.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
         XSLT_TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
         XSLT_TASK_WITH_MALFORMED_URL.addDataEntry(FILE_URLS, Arrays.asList("httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
-
+        XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
         URI_INFO = Mockito.mock(UriInfo.class);
         asyncResponse = Mockito.mock(AsyncResponse.class);
@@ -163,6 +164,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         DpsTask task = new DpsTask("xsltTask");
         task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
+        task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -176,6 +178,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //when
         DpsTask task = new DpsTask("xsltTask");
         task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
+        task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
@@ -195,6 +198,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         //when
         DpsTask task = new DpsTask("xsltTask");
         task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
         String topologyName = "xslt_topology";
         String user = VAN_PERSIE;
         grantUserToTopology(topologyName, user);
