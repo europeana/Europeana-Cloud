@@ -98,21 +98,11 @@ public class ParseTaskBolt extends BaseRichBolt {
         } else {
             String message = "The taskType is not recognised!";
             LOGGER.warn(message);
-            emitDropNotification(task.getTaskId(), "", message,
-                    taskParameters != null ? taskParameters.toString() : "");
             endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
         }
 
         outputCollector.ack(tuple);
     }
-
-    private void emitDropNotification(long taskId, String resource,
-                                      String message, String additionalInformations) {
-        NotificationTuple nt = NotificationTuple.prepareNotification(taskId,
-                resource, States.DROPPED, message, additionalInformations);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
-
 
     private void updateTask(long taskId, String info, TaskState state, Date startTime) {
         NotificationTuple nt = NotificationTuple.prepareUpdateTask(taskId, info, state, startTime);
