@@ -11,6 +11,7 @@ import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.grouping.ShuffleGrouping;
 import org.apache.storm.shade.org.yaml.snakeyaml.Yaml;
 import org.apache.storm.shade.org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.apache.storm.topology.TopologyBuilder;
@@ -47,10 +48,10 @@ public class MediaTopology {
 		
 		builder.setBolt("downloadBolt", new DownloadBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD"))
-				.shuffleGrouping("source");
+				.customGrouping("source", new ShuffleGrouping());
 		builder.setBolt("processingBolt", new ProcessingBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING"))
-				.shuffleGrouping("downloadBolt");
+				.customGrouping("downloadBolt", new ShuffleGrouping());
 		
 		builder.setBolt("statsBolt", new StatsBolt(), 1)
 				.shuffleGrouping("source", StatsInitTupleData.STREAM_ID)
