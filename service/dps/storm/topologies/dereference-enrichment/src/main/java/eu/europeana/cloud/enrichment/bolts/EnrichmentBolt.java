@@ -1,5 +1,8 @@
 package eu.europeana.cloud.enrichment.bolts;
 
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.corelib.definitions.jibx.RDF;
@@ -7,8 +10,8 @@ import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.utils.EnrichmentUtils;
 import eu.europeana.metis.dereference.DereferenceUtils;
 
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
-
 
 
 /**
@@ -43,8 +46,17 @@ public class EnrichmentBolt extends AbstractDpsBolt {
 
     private void emitEnrichedContent(StormTaskTuple stormTaskTuple, RDF output) throws Exception {
         String resultString = EnrichmentUtils.convertRDFtoString(output);
-        stormTaskTuple.setFileData(resultString.getBytes(Charset.forName("UTF-8")));
+        prepareStormTaskTuple(stormTaskTuple, resultString);
         outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
+    }
+
+    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
+        stormTaskTuple.setFileData(resultString.getBytes(Charset.forName("UTF-8")));
+        final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
+        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
+
     }
 
     @Override

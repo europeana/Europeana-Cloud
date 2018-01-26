@@ -16,6 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
@@ -48,7 +49,7 @@ public class EnrichmentBoltTest {
     @Test
     public void enrichEdmInternalSuccessfully() throws Exception {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, null, null);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, new HashMap<String, String>(), null);
         enrichmentBolt.execute(tuple);
         assertSuccessfulValidation();
     }

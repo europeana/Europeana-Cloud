@@ -43,7 +43,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.info("WriteRecordBolt: persisting...");
             URI uri = uploadFileInNewRepresentation(t);
             LOGGER.info("WriteRecordBolt: file modified, new URI:" + uri);
-            t.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
+            prepareEmittedTuple(t, uri.toString());
             outputCollector.emit(inputTuple, t.toStormTuple());
 
         } catch (Exception e) {
@@ -73,6 +73,14 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         Representation rep = recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME), stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION));
         return rep.getDataProvider();
 
+    }
+
+    private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
+        stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
+        stormTaskTuple.setFileData((byte[]) null);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
+        stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
     }
 
 
