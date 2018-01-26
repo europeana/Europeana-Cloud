@@ -277,7 +277,7 @@ public class TopologyTasksResource {
      * </div>
      *
      * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param error <strong>REQUIRED</strong> Error type.
+     * @param error Error type.
      * @param idsCount number of identifiers to retrieve
      *
      * @return Errors that occurred for the specified task.
@@ -287,8 +287,8 @@ public class TopologyTasksResource {
     @Path("{taskId}/reports/errors")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error, @Min(0) @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
-        if (idsCount > maxIdentifiersCount) {
+    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error, @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
+        if (idsCount < 0 || idsCount > maxIdentifiersCount) {
             throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
         }
         if (error == null) {
