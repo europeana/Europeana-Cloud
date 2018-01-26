@@ -39,7 +39,7 @@ public interface TaskExecutionReportService {
      * @return task error info object
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
-    TaskErrorsInfo getGeneralTaskErrorReport(String task) throws AccessDeniedOrObjectDoesNotExistException;
+    TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException;
 
     /**
      * Retrieve sample of identifiers for the given error type
@@ -49,7 +49,7 @@ public interface TaskExecutionReportService {
      *
      * @return task error info objects with sample identifiers
      */
-    TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType) throws AccessDeniedOrObjectDoesNotExistException;
+    TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException;
 }
 
 

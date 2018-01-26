@@ -123,27 +123,61 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
     @Override
-    public TaskErrorsInfo getGeneralTaskErrorReport(String task) throws AccessDeniedOrObjectDoesNotExistException {
+    public TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
         long taskId = Long.valueOf(task);
+        List<TaskErrorInfo> errors = new ArrayList<>();
+        TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
+
         ResultSet rs = cassandra.getSession().execute(selectErrorsStatement.bind(taskId));
         if (!rs.iterator().hasNext()) {
-            return new TaskErrorsInfo(taskId, new ArrayList<TaskErrorInfo>());
+            return  result;
         }
 
-        List<TaskErrorInfo> errors = new ArrayList<>();
         Map<String, String> errorMessages = new HashMap<>();
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
 
             String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
-            String errorMessage = getErrorMessage(taskId, errorMessages, errorType);
-            errors.add(new TaskErrorInfo(errorType,
-                    errorMessage,
-                    (int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER)));
+            String message = getErrorMessage(taskId, errorMessages, errorType);
+            int occurrences = (int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
+            List<String> identifiers = retrieveIdentifiers(taskId, errorType, idsCount);
+            errors.add(new TaskErrorInfo(errorType, message, occurrences, identifiers));
         }
-        return new TaskErrorsInfo(taskId, errors);
+        return result;
     }
+
+
+    /**
+     * Retrieve identifiers that occurred in the error notifications for the specified task identifier and error type.
+     * Number of returned identifiers is <code>idsCount</code>. Maximum value is specified in the configuration file.
+     * When there is no data for the specified task or error type <code>AccessDeniedOrObjectDoesNotExistException</code>
+     * is thrown.
+     *
+     * @param taskId task identifier
+     * @param errorType error type
+     * @param idsCount number of identifiers to retrieve
+     * @return list of identifiers that occurred for the specific error while processing the given task
+     * @throws AccessDeniedOrObjectDoesNotExistException
+     */
+    private List<String> retrieveIdentifiers(long taskId, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
+        List<String> identifiers = new ArrayList<>();
+        if (idsCount == 0) {
+            return identifiers;
+        }
+
+        ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), idsCount));
+        if (!rs.iterator().hasNext()) {
+            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
+        }
+
+        while (rs.iterator().hasNext()) {
+            Row row = rs.one();
+            identifiers.add(row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE));
+        }
+        return identifiers;
+    }
+
 
     /**
      * Retrieve the specific error message. First it tries to retrieve it from the map that caches the messages
@@ -178,29 +212,25 @@ public class CassandraReportService implements TaskExecutionReportService {
      * @return task error info objects with sample identifiers
      */
     @Override
-    public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
+    public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
         long taskId = Long.valueOf(task);
-        ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), FETCH_SIZE));
-        if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
-        }
-
-        List<String> identifiers = new ArrayList<>();
-        String message = null;
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-            identifiers.add(row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE));
-            if (message == null) {
-                message = row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
-            }
-        }
         TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
-        taskErrorInfo.setIdentifiers(identifiers);
+        taskErrorInfo.setIdentifiers(retrieveIdentifiers(taskId, errorType, idsCount));
+        String message = getErrorMessage(taskId, new HashMap<String, String>(), errorType);
         taskErrorInfo.setMessage(message);
         return new TaskErrorsInfo(taskId, Arrays.asList(taskErrorInfo));
     }
 
+
+    /**
+     * Create task error info object and set the correct occurrence value. Exception is thrown when there is no task
+     * with the given identifier or no data for the specified error type
+     *
+     * @param taskId task identifier
+     * @param errorType error type
+     * @return object initialized with the correct occurrence number
+     * @throws AccessDeniedOrObjectDoesNotExistException
+     */
     private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
         ResultSet rs = cassandra.getSession().execute(selectErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {

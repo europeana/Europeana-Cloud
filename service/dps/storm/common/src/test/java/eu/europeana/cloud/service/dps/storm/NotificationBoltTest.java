@@ -201,7 +201,7 @@ public class NotificationBoltTest extends CassandraTestBase {
             testedBolt.execute(tuple);
         }
 
-        TaskErrorsInfo errorsInfo = cassandraReportService.getGeneralTaskErrorReport(String.valueOf(taskId));
+        TaskErrorsInfo errorsInfo = cassandraReportService.getGeneralTaskErrorReport(String.valueOf(taskId), 0);
 
         //then
         assertEquals(beforeExecute.getProcessedElementCount(), 0);

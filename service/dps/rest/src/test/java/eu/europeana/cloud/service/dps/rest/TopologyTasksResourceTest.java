@@ -443,11 +443,23 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
+    public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
+        WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("idsCount", 10);
+        when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
+        TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
+        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(10))).thenReturn(errorsInfo);
+
+        Response response = enrichedWebTarget.request().get();
+        TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
+        assertThat(retrievedInfo, is(errorsInfo));
+    }
+
+    @Test
     public void shouldGetSpecificErrorReport() throws Exception {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("error", ERROR_TYPES[0]);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]))).thenReturn(errorsInfo);
+        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]), eq(100))).thenReturn(errorsInfo);
 
         Response response = enrichedWebTarget.request().get();
         TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);
@@ -459,7 +471,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         WebTarget enrichedWebTarget = errorsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
-        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)))).thenReturn(errorsInfo);
+        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(0))).thenReturn(errorsInfo);
 
         Response response = enrichedWebTarget.request().get();
         TaskErrorsInfo retrievedInfo = response.readEntity(TaskErrorsInfo.class);

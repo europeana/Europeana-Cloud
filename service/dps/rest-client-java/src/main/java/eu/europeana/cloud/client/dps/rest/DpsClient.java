@@ -24,7 +24,8 @@ import java.util.List;
  */
 public class DpsClient {
 
-    public static final String ERROR = "error";
+    private static final String ERROR = "error";
+    private static final String IDS_COUNT = "idsCount";
     private Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
 
     private String dpsUrl;
@@ -36,11 +37,11 @@ public class DpsClient {
     private static final String TASKS_URL = "/{" + TOPOLOGY_NAME + "}/tasks";
     private static final String PERMIT_TOPOLOGY_URL = "/{" + TOPOLOGY_NAME + "}/permit";
     private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
-    public static final String REPORTS_RESOURCE = "reports";
+    private static final String REPORTS_RESOURCE = "reports";
 
-    public static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
-    public static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
-    public static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
+    private static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
+    private static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
+    private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
 
     /**
      * Creates a new instance of this class.
@@ -123,8 +124,7 @@ public class DpsClient {
                     .get();
 
             if (getResponse.getStatus() == Response.Status.OK.getStatusCode()) {
-                DpsTask task = getResponse.readEntity(DpsTask.class);
-                return task;
+                return getResponse.readEntity(DpsTask.class);
             } else {
                 throw new RuntimeException();
             }
@@ -149,8 +149,7 @@ public class DpsClient {
                     .request().get();
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                TaskInfo taskInfo = response.readEntity(TaskInfo.class);
-                return taskInfo;
+                return response.readEntity(TaskInfo.class);
             } else {
                 LOGGER.error("Task progress cannot be read");
                 throw new RuntimeException();
@@ -200,9 +199,8 @@ public class DpsClient {
 
     private List<SubTaskInfo> handleResponse(Response response) {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            List<SubTaskInfo> subTaskInfoList = response.readEntity(new GenericType<List<SubTaskInfo>>() {
+            return response.readEntity(new GenericType<List<SubTaskInfo>>() {
             });
-            return subTaskInfoList;
         } else {
             LOGGER.error("Task detailed report cannot be read");
             throw new RuntimeException();
@@ -215,7 +213,7 @@ public class DpsClient {
         }
     }
 
-    public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId, final String error) {
+    public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId, final String error, final int idsCount) {
 
         Response response = null;
 
@@ -226,6 +224,7 @@ public class DpsClient {
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)
                     .resolveTemplate(TASK_ID, taskId)
                     .queryParam(ERROR, error)
+                    .queryParam(IDS_COUNT, idsCount)
                     .request().get();
 
             return handleErrorResponse(response);
@@ -237,8 +236,7 @@ public class DpsClient {
 
     private TaskErrorsInfo handleErrorResponse(Response response) {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            TaskErrorsInfo taskErrorsInfo = response.readEntity(TaskErrorsInfo.class);
-            return taskErrorsInfo;
+            return response.readEntity(TaskErrorsInfo.class);
         } else {
             LOGGER.error("Task error report cannot be read");
             throw new RuntimeException();
