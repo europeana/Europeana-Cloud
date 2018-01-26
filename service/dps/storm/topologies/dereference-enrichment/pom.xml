@@ -27,6 +27,10 @@
             <version>1.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
+                    <groupId>org.apache.maven.surefire</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
@@ -227,8 +231,6 @@
         </dependency>
 
         <!--test dependencies-->
-
-
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-core</artifactId>
