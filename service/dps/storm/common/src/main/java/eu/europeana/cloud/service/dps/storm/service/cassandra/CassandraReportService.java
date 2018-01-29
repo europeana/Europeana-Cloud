@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -10,6 +10,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
 
@@ -99,13 +100,6 @@ public class CassandraReportService implements TaskExecutionReportService {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public StatisticsReport getTaskStatisticsReport(String taskId) {
-        return new StatisticsReport(Long.valueOf(taskId));
-    }
 
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
 

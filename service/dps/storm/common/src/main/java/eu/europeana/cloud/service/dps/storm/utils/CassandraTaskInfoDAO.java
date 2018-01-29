@@ -7,9 +7,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.exception.TaskErrorsInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraTablesAndColumnsNames;
 
 import java.util.*;
 

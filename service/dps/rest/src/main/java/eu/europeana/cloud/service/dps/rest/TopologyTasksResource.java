@@ -54,6 +54,9 @@ public class TopologyTasksResource {
     private TaskExecutionReportService reportService;
 
     @Autowired
+    private ValidationStatisticsReportService validationStatisticsService;
+
+    @Autowired
     private TaskExecutionSubmitService submitService;
 
     @Autowired
@@ -307,8 +310,9 @@ public class TopologyTasksResource {
     @Path("{taskId}/statistics")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(@PathParam("taskId") String taskId) {
-        return reportService.getTaskStatisticsReport(taskId);
+    public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+        assertContainTopology(topologyName);
+        return validationStatisticsService.getTaskStatisticsReport(Long.valueOf(taskId));
     }
 
 

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.utils;
 
 /**
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>

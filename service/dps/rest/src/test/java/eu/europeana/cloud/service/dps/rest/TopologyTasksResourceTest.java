@@ -5,21 +5,18 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.ApplicationContextUtils;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.kafka.KafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.*;
@@ -55,7 +52,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private WebTarget detailedReportWebTarget;
     private WebTarget progressReportWebTarget;
     private WebTarget errorsReportWebTarget;
-    private WebTarget statisticsReportWebTarget;
+    private WebTarget validationStatisticsReportWebTarget;
     private RecordServiceClient recordServiceClient;
     private ApplicationContext context;
     private DataSetServiceClient dataSetServiceClient;
@@ -65,6 +62,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
     private FilesCounter filesCounter;
     private KafkaSubmitService kafkaSubmitService;
     private TaskExecutionReportService reportService;
+    private ValidationStatisticsReportService validationStatisticsService;
 
     private static final String RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
     private static final String RESULT_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE";
@@ -91,6 +89,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         filesCounter = applicationContext.getBean(FilesCounter.class);
         context = applicationContext.getBean(ApplicationContext.class);
         reportService = applicationContext.getBean(TaskExecutionReportService.class);
+        validationStatisticsService = applicationContext.getBean(CassandraValidationStatisticsService.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
@@ -99,7 +98,7 @@ public class TopologyTasksResourceTest extends JerseyTest {
         detailedReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/details");
         progressReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/progress");
         errorsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/reports/errors");
-        statisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
+        validationStatisticsReportWebTarget = target(TopologyTasksResource.class.getAnnotation(Path.class).value() + "/{taskId}/statistics");
     }
 
     @Test
@@ -423,21 +422,20 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetStatisticReport() {
-        WebTarget enrichedWebTarget = statisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
-        StatisticsReport report = new StatisticsReport(TASK_ID);
-        when(reportService.getTaskStatisticsReport(Long.toString(TASK_ID))).thenReturn(report);
+    public void shouldGetStatisticReport() throws TaskSubmissionException, MCSException {
+        when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         Response response = enrichedWebTarget.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertEquals(report, response.readEntity(StatisticsReport.class));
+        assertEquals(TASK_ID, response.readEntity(StatisticsReport.class).getTaskId());
     }
 
-    //TODO check if service will ever throw it
-    @Ignore
     @Test
-    public void shouldReturn405WhenStatisicsServiceReturnAccessDeniedException() throws AccessDeniedOrObjectDoesNotExistException {
-        WebTarget enrichedWebTarget = statisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
-        when(reportService.getTaskStatisticsReport(Long.toString(TASK_ID))).thenThrow(new AccessDeniedOrObjectDoesNotExistException());
+    public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws AccessDeniedOrObjectDoesNotExistException {
+        when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
+        when(topologyManager.containsTopology(anyString())).thenReturn(false);
+        WebTarget enrichedWebTarget = validationStatisticsReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         Response response = enrichedWebTarget.request().get();
         assertEquals(response.getStatus(), 405);
     }
