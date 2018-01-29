@@ -14,22 +14,6 @@ public class NodeStatistics {
      */
     private String parentXpath;
 
-    public void setParentXpath(String parentXpath) {
-        this.parentXpath = parentXpath;
-    }
-
-    public void setXpath(String xpath) {
-        this.xpath = xpath;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public void setOccurrence(long occurrence) {
-        this.occurrence = occurrence;
-    }
-
     /**
      * Node xpath
      */
@@ -91,6 +75,22 @@ public class NodeStatistics {
 
     public void setAttributesStatistics(Set<AttributeStatistics> attributesStatistics) {
         this.attributesStatistics = attributesStatistics;
+    }
+
+    public void setParentXpath(String parentXpath) {
+        this.parentXpath = parentXpath;
+    }
+
+    public void setXpath(String xpath) {
+        this.xpath = xpath;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setOccurrence(long occurrence) {
+        this.occurrence = occurrence;
     }
 
     public boolean hasAttributes() {

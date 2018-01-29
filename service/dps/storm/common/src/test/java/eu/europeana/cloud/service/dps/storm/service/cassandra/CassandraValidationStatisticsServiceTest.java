@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.service.dps.ValidationStaticsReportService;
+import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 public class CassandraValidationStatisticsServiceTest {
 
     @Autowired
-    private ValidationStaticsReportService cassandraStatisticsService;
+    private ValidationStatisticsReportService cassandraStatisticsService;
     @Autowired
     private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
 

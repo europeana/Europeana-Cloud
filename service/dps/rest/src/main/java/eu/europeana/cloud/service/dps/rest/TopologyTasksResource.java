@@ -34,9 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +54,7 @@ public class TopologyTasksResource {
     private TaskExecutionReportService reportService;
 
     @Autowired
-    private ValidationStaticsReportService validationStatisticsService;
+    private ValidationStatisticsReportService validationStatisticsService;
 
     @Autowired
     private TaskExecutionSubmitService submitService;

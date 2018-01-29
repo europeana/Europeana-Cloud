@@ -2,16 +2,15 @@ package eu.europeana.cloud.service.dps.storm.service.cassandra;
 
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
-import eu.europeana.cloud.service.dps.ValidationStaticsReportService;
+import eu.europeana.cloud.service.dps.ValidationStatisticsReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CassandraValidationStatisticsService implements ValidationStaticsReportService {
+public class CassandraValidationStatisticsService implements ValidationStatisticsReportService {
 
     @Autowired
     private CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO;
