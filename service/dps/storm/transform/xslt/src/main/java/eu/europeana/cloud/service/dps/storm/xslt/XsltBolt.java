@@ -50,6 +50,8 @@ public class XsltBolt extends AbstractDpsBolt {
                 transformer = tFactory.newTransformer(xslDoc);
                 cache.put(xsltUrl, transformer);
             }
+            // metis specific
+            injectMetisDatasetId(stormTaskTuple, transformer);
             stream = new ByteArrayInputStream(fileContent);
             Source xmlDoc = new StreamSource(stream);
             writer = new StringWriter();
@@ -98,6 +100,13 @@ public class XsltBolt extends AbstractDpsBolt {
                 } catch (IOException e) {
                     LOGGER.error("error: during closing the writter" + e.getMessage());
                 }
+        }
+    }
+
+    private void injectMetisDatasetId(StormTaskTuple stormTaskTuple, Transformer transformer) {
+        String value = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+        if (value != null && !value.isEmpty()) {
+            transformer.setParameter(PluginParameterKeys.METIS_DATASET_ID_PARAMETER_NAME, value);
         }
     }
 

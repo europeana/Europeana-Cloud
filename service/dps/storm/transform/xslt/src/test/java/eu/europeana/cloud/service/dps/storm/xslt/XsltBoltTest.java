@@ -34,12 +34,15 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
  * Created by Tarek on 7/18/2017.
  */
 public class XsltBoltTest {
+    public static final String EXAMPLE_METIS_DATASET_ID = "metis_dataset_id";
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
 
     private final String sampleXmlFileName = "/xmlForTesting.xml";
     private final String sampleXsltFileName = "sample_xslt.xslt";
 
+    private final String injectXmlFileName = "/xmlForTestingParamInjection.xml";
+    private final String injectNodeXsltFileName = "inject_node.xslt";
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -56,23 +59,23 @@ public class XsltBoltTest {
 
     @Test
     public void executeBolt() throws IOException {
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(), prepareStormTaskTupleParameters(), new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
         xsltBolt.execute(tuple);
         when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues);
+        assertEmittedTuple(allValues, 4);
     }
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
 
-    private HashMap<String, String> prepareStormTaskTupleParameters() throws MalformedURLException {
+    private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) throws MalformedURLException {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
-        URL xsltFileUrl = Resources.getResource(sampleXsltFileName);
+        URL xsltFileUrl = Resources.getResource(xsltFile);
         parameters.put(PluginParameterKeys.XSLT_URL, xsltFileUrl.toString());
         return parameters;
     }
@@ -88,11 +91,11 @@ public class XsltBoltTest {
     }
 
     //This is a mock content for the FILE URL
-    private byte[] readMockContentOfURL() throws IOException {
-        return readFile(sampleXmlFileName);
+    private byte[] readMockContentOfURL(String xmlFile) throws IOException {
+        return readFile(xmlFile);
     }
 
-    private void assertEmittedTuple(List<Values> allValues) {
+    private void assertEmittedTuple(List<Values> allValues, int expectedParametersSize) {
         assertNotNull(allValues);
         assertEquals(allValues.size(), 1);
 
@@ -100,7 +103,7 @@ public class XsltBoltTest {
         assertTrue(allValues.get(0).get(4) instanceof Map);
         Map<String, String> parameters = ((Map<String, String>) allValues.get(0).get(4));
         assertNotNull(parameters);
-        assertEquals(parameters.size(), 4);
+        assertEquals(parameters.size(), expectedParametersSize);
         String cloudId = parameters.get(PluginParameterKeys.CLOUD_ID);
         assertNotNull(cloudId);
         assertEquals(cloudId, SOURCE + CLOUD_ID);
@@ -114,5 +117,23 @@ public class XsltBoltTest {
         assertNotNull(authorizationHeader);
 
 
+    }
+
+    @Test
+    public void executeBoltWithInjection() throws IOException {
+        HashMap<String, String> parameters = prepareStormTaskTupleParameters(injectNodeXsltFileName);
+        parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
+
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
+        xsltBolt.execute(tuple);
+        when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), is(1));
+        List<Values> allValues = captor.getAllValues();
+        assertEmittedTuple(allValues, 5);
+
+        String transformed = new String((byte[]) allValues.get(0).get(3));
+        assertNotNull(transformed);
+        assertTrue(transformed.contains(EXAMPLE_METIS_DATASET_ID));
     }
 }
