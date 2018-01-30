@@ -23,9 +23,6 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
     @Override
     public StatisticsReport getTaskStatisticsReport(long taskId) {
         List<NodeStatistics> nodeStatistics = cassandraNodeStatisticsDAO.getNodeStatistics(taskId);
-        for(NodeStatistics ns : nodeStatistics){
-            System.out.println(ns);
-        }
         return new StatisticsReport(taskId, nodeStatistics);
     }
 

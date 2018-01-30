@@ -6,7 +6,13 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +28,12 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     private PreparedStatement searchByNodeStatement;
 
     private PreparedStatement searchNodesStatement;
+
+    private PreparedStatement getStatisticsReportStatement;
+
+    private PreparedStatement checkStatisticsReportStatement;
+
+    private PreparedStatement storeStatisticsReportStatement;
 
     private CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO;
 
@@ -85,6 +97,22 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
         searchNodesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        checkStatisticsReportStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID +
+                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        checkStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        getStatisticsReportStatement = dbService.getSession().prepare("SELECT *" +
+                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
+                " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
+                CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
+                " VALUES (?,varcharToBlob(?))");
+        storeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**
@@ -204,5 +232,56 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                     row.getString(CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH)));
         }
         return result;
+    }
+
+    /**
+     * Check whether report for the specific task has already been stored.
+     *
+     * @param taskId task identifier
+     * @return true when a row for the given task identifier is in the table
+     */
+    public boolean isReportStored(long taskId) {
+        BoundStatement bs = checkStatisticsReportStatement.bind(taskId);
+        ResultSet rs = dbService.getSession().execute(bs);
+
+        return rs.iterator().hasNext();
+    }
+
+    public void storeStatisticsReport(long taskId, StatisticsReport report) {
+        if (isReportStored(taskId)) {
+            return;
+        }
+
+        String reportSerialized = serializeReport(report);
+        if (reportSerialized != null) {
+            BoundStatement bs = storeStatisticsReportStatement.bind(taskId, reportSerialized);
+            dbService.getSession().execute(bs);
+        }
+    }
+
+    private String serializeReport(StatisticsReport report) {
+        JAXBContext context = null;
+        Marshaller m = null;
+        StringWriter sw = new StringWriter();
+
+        try {
+            context = JAXBContext.newInstance(StatisticsReport.class);
+            m = context.createMarshaller();
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            m.marshal(report, sw);
+            return sw.toString();
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (sw != null) {
+                try {
+                    sw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
     }
 }
