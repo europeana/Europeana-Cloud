@@ -22,7 +22,9 @@ public final class PluginParameterKeys {
     public static final String TASK_NAME = "TASK_NAME";
     public static final String ROUTING = "ROUTING";
 
+    // --------- METIS -------------
     public static final String METIS_DATASET_ID = "METIS_DATASET_ID";
+    public static final String METIS_DATASET_ID_PARAMETER_NAME = "datasetId";
 
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
