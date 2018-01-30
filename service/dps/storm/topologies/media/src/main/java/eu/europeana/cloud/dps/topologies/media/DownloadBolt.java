@@ -8,13 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -113,10 +114,13 @@ public class DownloadBolt extends BaseRichBolt {
 		
 		for (Entry<String, Set<UrlType>> entry : urls.entrySet()) {
 			try {
-				FileInfo file = downloadFile(entry.getKey());
-				file.setTypes(entry.getValue());
-				data.addFileInfo(file);
-				byteCount += file.getLength();
+				Optional<FileInfo> info = downloadFile(entry.getKey());
+				if (info.isPresent()) {
+					FileInfo file = info.get();
+					file.setTypes(entry.getValue());
+					data.addFileInfo(file);
+					byteCount += file.getLength();
+				}
 			} catch (MediaException e) {
 				logger.info("Download failed ({}) for {}", e.getMessage(), entry.getKey());
 				logger.trace("download failure details:", e);
@@ -158,22 +162,26 @@ public class DownloadBolt extends BaseRichBolt {
 	}
 	
 	@SuppressWarnings("resource") // response shouldn't be closed, it may prevent connection reuse
-	private FileInfo downloadFile(String fileUrl) throws MediaException {
+	private Optional<FileInfo> downloadFile(String fileUrl) throws MediaException {
 		long start = System.currentTimeMillis();
 		try {
-			HttpResponse response = httpClient.execute(new HttpGet(fileUrl));
+			CloseableHttpResponse response = httpClient.execute(new HttpGet(fileUrl));
 			
 			try {
 				int status = response.getStatusLine().getStatusCode();
 				if (status >= 200 && status < 300) {
 					String mimeType = ContentType.get(response.getEntity()).getMimeType();
-					byte[] content = EntityUtils.toByteArray(response.getEntity());
-					return new FileInfo(fileUrl, mimeType, content);
+					if (ProcessingBolt.isImage(mimeType)) {
+						byte[] content = EntityUtils.toByteArray(response.getEntity());
+						return Optional.of(new FileInfo(fileUrl, mimeType, content));
+					} else {
+						return Optional.empty();
+					}
 				} else {
 					throw new MediaException("status code " + status, "STATUS CODE " + status);
 				}
 			} finally {
-				EntityUtils.consume(response.getEntity());
+				response.close();
 				logger.debug("download took {} ms: {}", System.currentTimeMillis() - start, fileUrl);
 			}
 		} catch (IOException e) {

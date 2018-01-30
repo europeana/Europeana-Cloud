@@ -297,7 +297,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		return process;
 	}
 	
-	private static boolean isImage(String mimeType) {
+	public static boolean isImage(String mimeType) {
 		return mimeType.equals("application/pdf") || mimeType.startsWith("image");
 	}
 	
