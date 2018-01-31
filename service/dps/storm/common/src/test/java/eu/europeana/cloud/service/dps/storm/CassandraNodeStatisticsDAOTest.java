@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.junit.Assert;
@@ -127,5 +128,45 @@ public class CassandraNodeStatisticsDAOTest extends CassandraTestBase {
         statistics.add(createNodeStatistics(ROOT_XPATH, NODE_3_XPATH, "", OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(1) : null));
         statistics.add(createNodeStatistics(NODE_3_XPATH, NODE_4_XPATH, NODE_VALUE_3, OCCURRENCE, attributeStatistics != null ? attributeStatistics.get(0) : null));
         return statistics;
+    }
+
+    @Test
+    public void testShouldReturnFalseWhenReportNotPresent() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+
+        // when
+        nodeStatisticsDAO.insertNodeStatistics(TASK_ID, toStore);
+
+        // then
+        Assert.assertFalse(nodeStatisticsDAO.isReportStored(TASK_ID));
+    }
+
+    @Test
+    public void testShouldStoreReportSuccessfully() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+        StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
+
+        // when
+        nodeStatisticsDAO.storeStatisticsReport(TASK_ID, report);
+
+
+        // then
+        Assert.assertTrue(nodeStatisticsDAO.isReportStored(TASK_ID));
+    }
+
+    @Test
+    public void testShouldProperlyStoreAndRetrieveReport() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+        StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
+
+        // when
+        nodeStatisticsDAO.storeStatisticsReport(TASK_ID, report);
+
+        // then
+        StatisticsReport reportRetrieved = nodeStatisticsDAO.getStatisticsReport(TASK_ID);
+        Assert.assertEquals(report, reportRetrieved);
     }
 }

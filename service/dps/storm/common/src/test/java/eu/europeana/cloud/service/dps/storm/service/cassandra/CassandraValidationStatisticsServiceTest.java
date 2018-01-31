@@ -17,6 +17,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/default-context.xml"})
@@ -32,9 +33,18 @@ public class CassandraValidationStatisticsServiceTest {
 
     @Test
     public void getTaskStatisticsReport() {
+        // given
         List<NodeStatistics> stats = prepareStats();
         Mockito.when(cassandraNodeStatisticsDAO.getNodeStatistics(TASK_ID)).thenReturn(stats);
+        Mockito.when(cassandraNodeStatisticsDAO.getStatisticsReport(TASK_ID)).thenReturn(null);
+
+        // when
         StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(Long.valueOf(TASK_ID));
+
+        // then
+        Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(1)).storeStatisticsReport(eq(TASK_ID), Mockito.any(StatisticsReport.class));
+        Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(1)).getNodeStatistics(eq(TASK_ID));
+
         assertEquals(TASK_ID, actual.getTaskId());
         assertThat(actual.getNodeStatistics().size(), is(2));
         assertEquals(stats, actual.getNodeStatistics());
@@ -47,5 +57,23 @@ public class CassandraValidationStatisticsServiceTest {
         nodeStatistics.add(node1);
         nodeStatistics.add(node2);
         return nodeStatistics;
+    }
+
+    @Test
+    public void getStoredTaskStatisticsReport() {
+        // given
+        StatisticsReport report = new StatisticsReport(TASK_ID, prepareStats());
+        Mockito.when(cassandraNodeStatisticsDAO.getStatisticsReport(TASK_ID)).thenReturn(report);
+
+        // when
+        StatisticsReport actual = cassandraStatisticsService.getTaskStatisticsReport(Long.valueOf(TASK_ID));
+
+        // then
+        Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(0)).storeStatisticsReport(eq(TASK_ID), Mockito.any(StatisticsReport.class));
+        Mockito.verify(cassandraNodeStatisticsDAO, Mockito.times(0)).getNodeStatistics(eq(TASK_ID));
+
+        assertEquals(TASK_ID, actual.getTaskId());
+        assertThat(actual.getNodeStatistics().size(), is(2));
+        assertEquals(report, actual);
     }
 }

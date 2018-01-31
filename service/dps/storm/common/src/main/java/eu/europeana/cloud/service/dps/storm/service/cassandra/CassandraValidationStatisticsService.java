@@ -22,8 +22,17 @@ public class CassandraValidationStatisticsService implements ValidationStatistic
      */
     @Override
     public StatisticsReport getTaskStatisticsReport(long taskId) {
-        List<NodeStatistics> nodeStatistics = cassandraNodeStatisticsDAO.getNodeStatistics(taskId);
-        return new StatisticsReport(taskId, nodeStatistics);
+        StatisticsReport report = cassandraNodeStatisticsDAO.getStatisticsReport(taskId);
+
+        if (report == null) {
+            List<NodeStatistics> nodeStatistics = cassandraNodeStatisticsDAO.getNodeStatistics(taskId);
+            if (nodeStatistics == null || nodeStatistics.isEmpty()) {
+                return null;
+            }
+            report = new StatisticsReport(taskId, nodeStatistics);
+            cassandraNodeStatisticsDAO.storeStatisticsReport(taskId, report);
+        }
+        return report;
     }
 
 }

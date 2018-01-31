@@ -11,7 +11,9 @@ import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +105,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
         checkStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        getStatisticsReportStatement = dbService.getSession().prepare("SELECT *" +
+        getStatisticsReportStatement = dbService.getSession().prepare("SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
         getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
@@ -111,7 +113,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
                 CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
-                " VALUES (?,varcharToBlob(?))");
+                " VALUES (?,textasblob(?))");
         storeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -247,40 +249,39 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         return rs.iterator().hasNext();
     }
 
+    /**
+     * Store the StatisticsReport object in the database.
+     *
+     * @param taskId task identifier
+     * @param report report object to store
+     */
     public void storeStatisticsReport(long taskId, StatisticsReport report) {
         if (isReportStored(taskId)) {
             return;
         }
 
-        String reportSerialized = serializeReport(report);
+        String reportSerialized = new XMLSerializer<StatisticsReport>().serialize(report, StatisticsReport.class);
         if (reportSerialized != null) {
             BoundStatement bs = storeStatisticsReportStatement.bind(taskId, reportSerialized);
             dbService.getSession().execute(bs);
         }
     }
 
-    private String serializeReport(StatisticsReport report) {
-        JAXBContext context = null;
-        Marshaller m = null;
-        StringWriter sw = new StringWriter();
+    /**
+     * Return statistics report from the database. When not present null will be returned.
+     *
+     * @param taskId task identifier
+     * @return statistics report object
+     */
+    public StatisticsReport getStatisticsReport(long taskId) {
+        BoundStatement bs = getStatisticsReportStatement.bind(taskId);
+        ResultSet rs = dbService.getSession().execute(bs);
 
-        try {
-            context = JAXBContext.newInstance(StatisticsReport.class);
-            m = context.createMarshaller();
-            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m.marshal(report, sw);
-            return sw.toString();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (sw != null) {
-                try {
-                    sw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        if (rs.iterator().hasNext()) {
+            Row row = rs.one();
+
+            String report = row.getString(0);
+            return new XMLSerializer<StatisticsReport>().deserialize(report, StatisticsReport.class);
         }
         return null;
     }
