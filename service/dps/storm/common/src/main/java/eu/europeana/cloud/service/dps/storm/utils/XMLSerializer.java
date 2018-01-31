@@ -16,12 +16,9 @@ import java.io.StringWriter;
 public final class XMLSerializer<T> {
 
     public T deserialize(String xml, Class<T> outputClass) {
-        JAXBContext context = null;
-        Unmarshaller um = null;
-
         try {
-            context = JAXBContext.newInstance(outputClass);
-            um = context.createUnmarshaller();
+            JAXBContext context = JAXBContext.newInstance(outputClass);
+            Unmarshaller um = context.createUnmarshaller();
             return (T) um.unmarshal(new StringReader(xml));
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -30,13 +27,11 @@ public final class XMLSerializer<T> {
     }
 
     public String serialize(T object, Class<T> inputClass) {
-        JAXBContext context = null;
-        Marshaller m = null;
         StringWriter sw = new StringWriter();
 
         try {
-            context = JAXBContext.newInstance(inputClass);
-            m = context.createMarshaller();
+            JAXBContext context = JAXBContext.newInstance(inputClass);
+            Marshaller m = context.createMarshaller();
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             m.marshal(object, sw);
             return sw.toString();
