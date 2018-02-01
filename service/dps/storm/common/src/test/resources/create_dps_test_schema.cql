@@ -81,3 +81,9 @@ CREATE TABLE attribute_statistics (
     occurrence counter,
     PRIMARY KEY((task_id, node_xpath, node_value), attribute_name, attribute_value)
 );
+
+CREATE TABLE statistics_reports (
+task_id bigint,
+report_data blob,
+PRIMARY KEY(task_id)
+);
