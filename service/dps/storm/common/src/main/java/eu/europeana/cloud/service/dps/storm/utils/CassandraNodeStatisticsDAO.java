@@ -4,6 +4,7 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraNodeStatisticsDAO extends CassandraDAO {
+    private final Gson gson = new Gson();
+
     private PreparedStatement updateStatement;
 
     private PreparedStatement updateNodeStatement;
@@ -259,8 +262,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
         if (isReportStored(taskId)) {
             return;
         }
-
-        String reportSerialized = new XMLSerializer<StatisticsReport>().serialize(report, StatisticsReport.class);
+        String reportSerialized = gson.toJson(report);
         if (reportSerialized != null) {
             BoundStatement bs = storeStatisticsReportStatement.bind(taskId, reportSerialized);
             dbService.getSession().execute(bs);
@@ -281,7 +283,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
             Row row = rs.one();
 
             String report = row.getString(0);
-            return new XMLSerializer<StatisticsReport>().deserialize(report, StatisticsReport.class);
+            return gson.fromJson(report, StatisticsReport.class);
         }
         return null;
     }

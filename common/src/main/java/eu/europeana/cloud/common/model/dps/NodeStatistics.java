@@ -42,7 +42,7 @@ public class NodeStatistics {
     }
 
     public NodeStatistics(String parentXpath, String xpath, String value, long occurrence, Set<AttributeStatistics> attributesStatistics) {
-        this.parentXpath = parentXpath;
+        this.parentXpath = parentXpath == null ? "" : parentXpath;
         this.xpath = xpath;
         this.value = value;
         this.occurrence = occurrence <= 0 ? 1 : occurrence;
