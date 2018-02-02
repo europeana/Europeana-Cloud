@@ -1,5 +1,6 @@
 package eu.europeana.cloud.client.dps.rest;
 
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -38,10 +40,12 @@ public class DpsClient {
     private static final String PERMIT_TOPOLOGY_URL = "/{" + TOPOLOGY_NAME + "}/permit";
     private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
     private static final String REPORTS_RESOURCE = "reports";
+    private static final String STATISTICS_RESOURCE = "statistics";
 
     private static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
     private static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
     private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
+    private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
 
     /**
      * Creates a new instance of this class.
@@ -81,7 +85,7 @@ public class DpsClient {
 
     private long getTaskId(URI uri) {
         String[] elements = uri.getRawPath().split("/");
-        return Long.parseLong(elements[elements.length-1]);
+        return Long.parseLong(elements[elements.length - 1]);
     }
 
     /**
@@ -240,6 +244,23 @@ public class DpsClient {
         } else {
             LOGGER.error("Task error report cannot be read");
             throw new RuntimeException();
+        }
+    }
+
+    public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) {
+        Response response = null;
+        try {
+            response = client.target(dpsUrl).path(STATISTICS_REPORT_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().get();
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(StatisticsReport.class);
+            } else {
+                LOGGER.error("Task statistics report cannot be read");
+                throw new RuntimeException();
+            }
+
+        } finally {
+            closeResponse(response);
         }
     }
 }

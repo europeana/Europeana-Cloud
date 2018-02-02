@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.service.cassandra;
+package eu.europeana.cloud.service.dps.storm.utils;
 
 /**
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
@@ -12,6 +12,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String GENERAL_STATISTICS_TABLE = "general_statistics";
     public static final String NODE_STATISTICS_TABLE = "node_statistics";
     public static final String ATTRIBUTE_STATISTICS_TABLE = "attribute_statistics";
+    public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
 
     //------- BASIC INFO -------
     public static final String BASIC_TASK_ID = "task_id";
@@ -71,4 +72,8 @@ public class CassandraTablesAndColumnsNames {
     public static final String ATTRIBUTE_STATISTICS_NAME = "attribute_name";
     public static final String ATTRIBUTE_STATISTICS_VALUE = "attribute_value";
     public static final String ATTRIBUTE_STATISTICS_OCCURRENCE = "occurrence";
+
+    //--------- STATISTICS REPORTS ------------
+    public static final String STATISTICS_REPORTS_TASK_ID = "task_id";
+    public static final String STATISTICS_REPORTS_REPORT_DATA = "report_data";
 }

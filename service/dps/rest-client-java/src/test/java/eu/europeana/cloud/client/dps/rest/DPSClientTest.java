@@ -3,7 +3,6 @@ package eu.europeana.cloud.client.dps.rest;
 import co.freeside.betamax.Betamax;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import org.junit.Ignore;
 import org.junit.Rule;
 
 import co.freeside.betamax.Recorder;
@@ -11,11 +10,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.URI;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,8 +18,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class DPSClientTest {
 
@@ -162,6 +155,15 @@ public class DPSClientTest {
         TaskErrorsInfo report = createErrorInfo(TASK_ID, true);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, ERROR_TYPE, 100), is(report));
 
+    }
+
+    @Test
+    @Betamax(tape ="DPSClient_shouldReturnStatistics" )
+    public void shouldReturnStatistics() {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        StatisticsReport report = dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
+        assertNotNull(report.getNodeStatistics());
+        assertEquals(TASK_ID, report.getTaskId());
     }
 
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {

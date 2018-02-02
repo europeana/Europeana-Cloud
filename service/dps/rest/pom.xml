@@ -36,11 +36,6 @@
                     <artifactId>ecloud-service-dps-zoo</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>ecloud-service-dps-cassandra</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
             </dependencies>
         </profile>
         <profile>

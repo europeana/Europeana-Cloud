@@ -4,7 +4,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 
 import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.service.cassandra.CassandraReportService;
+import eu.europeana.cloud.service.dps.storm.service.cassandra.CassandraReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import org.apache.storm.Config;
@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 
 public class NotificationBoltTest extends CassandraTestBase {
