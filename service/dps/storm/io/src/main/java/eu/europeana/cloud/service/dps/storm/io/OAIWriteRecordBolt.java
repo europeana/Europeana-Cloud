@@ -36,7 +36,10 @@ public class OAIWriteRecordBolt extends WriteRecordBolt {
         String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.OAI_IDENTIFIER);
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
-        return recordServiceClient.createRepresentation(cloudId, stormTaskTuple.getSourceDetails().getSchema(), providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
+        String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        if (representationName == null || representationName.isEmpty())
+            representationName = stormTaskTuple.getSourceDetails().getSchema();
+        return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
 
     }
 
