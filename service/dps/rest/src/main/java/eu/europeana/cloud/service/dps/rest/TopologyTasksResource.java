@@ -204,10 +204,14 @@ public class TopologyTasksResource {
                         asyncResponse.resume(response);
                         LOGGER.info("The task is in a pending mode");
                         int expectedSize = getFilesCountInsideTask(task, authorizationHeader);
-                        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
-                        submitService.submitTask(task, topologyName);
-                        LOGGER.info("Task submitted successfully");
-                        taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
+                        if (expectedSize == 0)
+                            taskDAO.insert(task.getTaskId(), topologyName, 0, TaskState.DROPPED.toString(), "The task doesn't include any records", sentTime);
+                        else {
+                            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
+                            submitService.submitTask(task, topologyName);
+                            LOGGER.info("Task submitted successfully");
+                            taskDAO.insert(task.getTaskId(), topologyName, expectedSize, TaskState.SENT.toString(), "", sentTime);
+                        }
                     } catch (URISyntaxException e) {
                         LOGGER.error("Task submission failed");
                         e.printStackTrace();
@@ -265,7 +269,7 @@ public class TopologyTasksResource {
      * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
      * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
      * A sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
-     *
+     * <p>
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
@@ -276,10 +280,9 @@ public class TopologyTasksResource {
      * </ul>
      * </div>
      *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param error Error type.
+     * @param taskId   <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param error    Error type.
      * @param idsCount number of identifiers to retrieve
-     *
      * @return Errors that occurred for the specified task.
      * @summary Retrieve task detailed error report
      */
@@ -298,11 +301,9 @@ public class TopologyTasksResource {
     }
 
 
-
-
     /**
      * Retrieves a statistics report for the specified task. Only applicable for tasks executing {@link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
-     *
+     * <p>
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
@@ -325,7 +326,6 @@ public class TopologyTasksResource {
         assertContainTopology(topologyName);
         return validationStatisticsService.getTaskStatisticsReport(Long.valueOf(taskId));
     }
-
 
 
     /**
