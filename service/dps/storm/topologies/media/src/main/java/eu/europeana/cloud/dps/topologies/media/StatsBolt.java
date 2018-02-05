@@ -157,7 +157,7 @@ public class StatsBolt extends BaseRichBolt {
 			long downloadTime = (downloadEnd - downloadStart + 500) / 1000;
 			if (downloadTime > 0) {
 				json.put("downloadTimeSeconds", downloadTime);
-				json.put("downloadSpeedMBps", (double) bytesDownloaded / downloadTime / 1000000);
+				json.put("downloadSpeedMBps", (double) bytesDownloaded / downloadTime / (1024 * 1024));
 				json.put("averageDownloadTimeMillis", downloadTimeSum / downloadedResourceCount);
 			}
 			if (processedResourceCount > 0) {
