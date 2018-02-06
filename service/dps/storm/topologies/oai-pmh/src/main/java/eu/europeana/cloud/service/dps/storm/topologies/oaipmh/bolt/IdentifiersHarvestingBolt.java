@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.InvalidOAIResponse;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

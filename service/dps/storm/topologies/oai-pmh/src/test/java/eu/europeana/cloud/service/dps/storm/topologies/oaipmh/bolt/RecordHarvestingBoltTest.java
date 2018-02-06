@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
