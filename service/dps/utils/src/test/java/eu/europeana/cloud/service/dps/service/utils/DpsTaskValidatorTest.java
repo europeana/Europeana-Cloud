@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.service.utils;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;

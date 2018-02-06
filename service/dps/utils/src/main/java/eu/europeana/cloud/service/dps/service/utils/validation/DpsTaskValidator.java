@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
@@ -224,7 +225,7 @@ public class DpsTaskValidator {
         try {
             dataType = InputDataType.valueOf(constraint.getExpectedName());
         } catch (IllegalArgumentException e) {
-            throw new DpsTaskValidationException("Input data is not valid.", e);
+            throw new DpsTaskValidationException("Input data is not valid.");
         }
         List<String> expectedInputData = task.getDataEntry(dataType);
 

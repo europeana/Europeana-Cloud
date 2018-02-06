@@ -3,6 +3,9 @@ package eu.europeana.cloud.client.dps.rest;
 import co.freeside.betamax.Betamax;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
+import eu.europeana.cloud.service.dps.exception.DpsException;
 import org.junit.Rule;
 
 import co.freeside.betamax.Recorder;
@@ -73,7 +76,7 @@ public class DPSClientTest {
 
 
     @Betamax(tape = "DPSClient/submitTaskAndFail")
-    @Test(expected = RuntimeException.class )
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     public final void shouldThrowAnExceptionWhenCannotSubmitATask()
             throws Exception {
         //given
@@ -89,8 +92,8 @@ public class DPSClientTest {
 
 
     @Betamax(tape = "DPSClient/permitAndSubmitTaskReturnBadURI")
-    @Test(expected = RuntimeException.class )
-    public final void shouldThrowAnExceptionWhenURIMalformed()
+    @Test(expected = RuntimeException.class)
+    public final void shouldThrowAnExceptionWhenReturnedTaskIdIsNotParsable()
             throws Exception {
         //given
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
@@ -113,15 +116,14 @@ public class DPSClientTest {
             //when
             dpsClient.topologyPermit(NOT_DEFINED_TOPOLOGY_NAME, "user");
             fail();
-        } catch (RuntimeException e) {
-            //then
-            assertThat(e.getLocalizedMessage(), equalTo("Permit topology failed!"));
+        } catch (AccessDeniedOrTopologyDoesNotExistException e) {
+            assertThat(e.getLocalizedMessage(), equalTo("The topology doesn't exist"));
         }
     }
 
     @Test
     @Betamax(tape = "DPSClient/getTaskProgressTest")
-    public final void shouldReturnedProgressReport() {
+    public final void shouldReturnedProgressReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         TaskInfo taskInfo = new TaskInfo(TASK_ID, TOPOLOGY_NAME, TaskState.PROCESSED, "", 1, 0, 0, null, null, null);
         assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), is(taskInfo));
@@ -130,7 +132,7 @@ public class DPSClientTest {
 
     @Test
     @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
-    public final void shouldReturnedDetailsReport() {
+    public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", States.SUCCESS, "", "", "result");
         List<SubTaskInfo> taskInfoList = new ArrayList<>();
@@ -141,7 +143,7 @@ public class DPSClientTest {
 
     @Test
     @Betamax(tape = "DPSClient_shouldReturnedGeneralErrorReport")
-    public final void shouldReturnedGeneralErrorReport() {
+    public final void shouldReturnedGeneralErrorReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         TaskErrorsInfo report = createErrorInfo(TASK_ID, false);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, null, 0), is(report));
@@ -150,7 +152,7 @@ public class DPSClientTest {
 
     @Test
     @Betamax(tape = "DPSClient_shouldReturnedSpecificErrorReport")
-    public final void shouldReturnedSpecificErrorReport() {
+    public final void shouldReturnedSpecificErrorReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         TaskErrorsInfo report = createErrorInfo(TASK_ID, true);
         assertThat(dpsClient.getTaskErrorsReport(TOPOLOGY_NAME, TASK_ID, ERROR_TYPE, 100), is(report));
@@ -158,13 +160,28 @@ public class DPSClientTest {
     }
 
     @Test
-    @Betamax(tape ="DPSClient_shouldReturnStatistics" )
-    public void shouldReturnStatistics() {
+    @Betamax(tape = "DPSClient_shouldReturnStatistics")
+    public void shouldReturnStatistics() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         StatisticsReport report = dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
         assertNotNull(report.getNodeStatistics());
         assertEquals(TASK_ID, report.getTaskId());
     }
+
+    @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
+    @Betamax(tape = "DPSClient_shouldThrowExceptionForStatisticsWhenTopologyDoesNotExist")
+    public void shouldThrowExceptionForStatistics() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        dpsClient.getTaskStatisticsReport(NOT_DEFINED_TOPOLOGY_NAME, TASK_ID);
+    }
+
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    @Betamax(tape = "DPSClient_shouldThrowExceptionForStatisticsWhenTaskIdDoesNotExistOrUnAccessible")
+    public void shouldThrowExceptionForStatisticsWhenTaskIdIsUnAccessible() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
+        dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
+    }
+
 
     private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo();

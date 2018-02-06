@@ -1,19 +1,16 @@
 !tape
-name: DPSClient/permitForNotDefinedTopologyTest
+name: DPSClient_shouldThrowExceptionForStatisticsWhenToplologyDoesNotExist
 interactions:
-- recorded: 2015-11-06T07:12:29.086Z
+- recorded: 2018-01-26T15:26:00.424Z
   request:
-    method: POST
-    uri: http://localhost:8080/services/NotDefinedTopologyName/permit
+    method: GET
+    uri: http://localhost:8080/services/NotDefinedTopologyName/tasks/12345/statistics
     headers:
       Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
       Authorization: Basic YWRtaW46ZWNsb3VkX2FkbWlu
-      Content-Length: '13'
-      Content-Type: application/x-www-form-urlencoded
-      Host: localhost:18080
+      Host: localhost:8080
       Proxy-Connection: keep-alive
-      User-Agent: Jersey/2.4 (HttpUrlConnection 1.7.0_60)
-    body: username=user
+      User-Agent: Jersey/2.23.1 (HttpUrlConnection 1.8.0_151)
   response:
     status: 405
     headers:
