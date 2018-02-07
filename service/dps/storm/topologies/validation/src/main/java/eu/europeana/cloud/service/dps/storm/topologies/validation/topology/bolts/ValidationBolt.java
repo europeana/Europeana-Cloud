@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+
 import java.util.Properties;
 
 /**
@@ -30,7 +31,7 @@ public class ValidationBolt extends AbstractDpsBolt {
 
     private ValidationResult validateFile(StormTaskTuple stormTaskTuple) {
         String document = new String(stormTaskTuple.getFileData());
-        return validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), document);
+        return validationService.singleValidation(getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple), getSchematromLocation(stormTaskTuple), document);
     }
 
     @Override
@@ -44,6 +45,10 @@ public class ValidationBolt extends AbstractDpsBolt {
 
     private String getRootLocation(StormTaskTuple stormTaskTuple) {
         return stormTaskTuple.getParameter(PluginParameterKeys.ROOT_LOCATION);
+    }
+
+    private String getSchematromLocation(StormTaskTuple stormTaskTuple) {
+        return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION);
     }
 
 }
