@@ -524,9 +524,11 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForTheFirst100Resources() {
+    public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
         Response detailedReportResponse = enrichedWebTarget.request().get();
         assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
@@ -613,10 +615,12 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetDetailedReportForSpecifiedResources() {
+    public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID).queryParam("from", 120).queryParam("to", 150);
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
         when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
         Response detailedReportResponse = enrichedWebTarget.request().get();
         assertDetailedReportResponse(subTaskInfoList.get(0), detailedReportResponse);
     }

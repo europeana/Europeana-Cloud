@@ -28,6 +28,8 @@ public class CassandraReportService implements TaskExecutionReportService {
     private PreparedStatement selectErrorStatement;
     private PreparedStatement selectErrorCounterStatement;
 
+    private PreparedStatement checkIfTaskExistsStatement;
+
     /**
      * Constructor of Cassandra report service.
      *
@@ -56,6 +58,10 @@ public class CassandraReportService implements TaskExecutionReportService {
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + " = ?");
         selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
+
+        checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.BASIC_INFO_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.BASIC_TASK_ID + " = ?");
+        checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
     }
 
     @Override
@@ -95,12 +101,6 @@ public class CassandraReportService implements TaskExecutionReportService {
     }
 
 
-    @Override
-    public void incrTaskProgress(String taskId) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
 
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
@@ -132,7 +132,7 @@ public class CassandraReportService implements TaskExecutionReportService {
 
         ResultSet rs = cassandra.getSession().execute(selectErrorsStatement.bind(taskId));
         if (!rs.iterator().hasNext()) {
-            return  result;
+            return result;
         }
 
         Map<String, String> errorMessages = new HashMap<>();
@@ -156,9 +156,9 @@ public class CassandraReportService implements TaskExecutionReportService {
      * When there is no data for the specified task or error type <code>AccessDeniedOrObjectDoesNotExistException</code>
      * is thrown.
      *
-     * @param taskId task identifier
+     * @param taskId    task identifier
      * @param errorType error type
-     * @param idsCount number of identifiers to retrieve
+     * @param idsCount  number of identifiers to retrieve
      * @return list of identifiers that occurred for the specific error while processing the given task
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
@@ -185,9 +185,9 @@ public class CassandraReportService implements TaskExecutionReportService {
      * Retrieve the specific error message. First it tries to retrieve it from the map that caches the messages
      * by their error type. If not present it fetches one row from the table.
      *
-     * @param taskId task identifier
+     * @param taskId        task identifier
      * @param errorMessages map of error messages
-     * @param errorType error type
+     * @param errorType     error type
      * @return error message
      * @throws AccessDeniedOrObjectDoesNotExistException
      */
@@ -208,9 +208,8 @@ public class CassandraReportService implements TaskExecutionReportService {
     /**
      * Retrieve sample of identifiers (max {@value #FETCH_SIZE}) for the given error type
      *
-     * @param task task identifier
+     * @param task      task identifier
      * @param errorType type of error
-     *
      * @return task error info objects with sample identifiers
      */
     @Override
@@ -228,7 +227,7 @@ public class CassandraReportService implements TaskExecutionReportService {
      * Create task error info object and set the correct occurrence value. Exception is thrown when there is no task
      * with the given identifier or no data for the specified error type
      *
-     * @param taskId task identifier
+     * @param taskId    task identifier
      * @param errorType error type
      * @return object initialized with the correct occurrence number
      * @throws AccessDeniedOrObjectDoesNotExistException
@@ -246,5 +245,13 @@ public class CassandraReportService implements TaskExecutionReportService {
         taskErrorInfo.setOccurrences((int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER));
 
         return taskErrorInfo;
+    }
+
+
+    @Override
+    public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
+        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(taskId)).one();
+        if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME).equals(topologyName))
+            throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
     }
 }

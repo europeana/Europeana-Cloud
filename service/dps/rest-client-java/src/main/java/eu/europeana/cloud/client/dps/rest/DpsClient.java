@@ -77,9 +77,8 @@ public class DpsClient {
             if (resp.getStatus() == Response.Status.CREATED.getStatusCode())
                 return getTaskId(resp.getLocation());
             else {
-                System.out.println(resp);
-                ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-                throw DPSExceptionProvider.generateException(errorInfo);
+                LOGGER.error("Submit Task Was not successful");
+                throw handleException(resp);
             }
         } finally {
             closeResponse(resp);
@@ -110,8 +109,7 @@ public class DpsClient {
                 return resp.getStatusInfo();
             else {
                 LOGGER.error("Granting permission was not successful");
-                ErrorInfo errorInfo = resp.readEntity(ErrorInfo.class);
-                throw DPSExceptionProvider.generateException(errorInfo);
+                throw handleException(resp);
             }
         } finally {
             closeResponse(resp);
@@ -138,8 +136,7 @@ public class DpsClient {
                 return response.readEntity(TaskInfo.class);
             } else {
                 LOGGER.error("Task progress cannot be read");
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw DPSExceptionProvider.generateException(errorInfo);
+                throw handleException(response);
             }
         } finally {
             closeResponse(response);
@@ -189,9 +186,7 @@ public class DpsClient {
             return response.readEntity(new GenericType<List<SubTaskInfo>>() {
             });
         } else {
-            LOGGER.error("Task detailed report cannot be read");
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw DPSExceptionProvider.generateException(errorInfo);
+            throw handleException(response);
         }
     }
 
@@ -227,8 +222,7 @@ public class DpsClient {
             return response.readEntity(TaskErrorsInfo.class);
         } else {
             LOGGER.error("Task error report cannot be read");
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw DPSExceptionProvider.generateException(errorInfo);
+            throw handleException(response);
         }
     }
 
@@ -237,17 +231,26 @@ public class DpsClient {
         try {
             response = client.target(dpsUrl).path(STATISTICS_REPORT_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().get();
+
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(StatisticsReport.class);
             } else {
                 LOGGER.error("Task statistics report cannot be read");
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw DPSExceptionProvider.generateException(errorInfo);
+                throw handleException(response);
             }
-
         } finally {
             closeResponse(response);
         }
+    }
+
+    private DpsException handleException(Response response) throws DpsException {
+        try {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            return DPSExceptionProvider.generateException(errorInfo);
+        } catch (Exception e) {
+            return new DpsException("Unexpected Exception happened while communicating with DPS, Check your request!");
+        }
+
     }
 }
 

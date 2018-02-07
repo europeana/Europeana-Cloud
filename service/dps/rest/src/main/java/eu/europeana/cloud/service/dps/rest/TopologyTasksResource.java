@@ -98,40 +98,6 @@ public class TopologyTasksResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTasksResource.class);
 
     /**
-     * Retrieves a task with the given taskId from the specified topology.
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @return The requested task.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Task retrieval
-     * @summary Task retrieval
-     */
-    @GET
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @Path("/{taskId}")
-    public DpsTask getTask(
-            @PathParam("topologyName") String topologyName,
-            @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
-
-        assertContainTopology(topologyName);
-
-        LOGGER.info("Fetching task");
-        DpsTask task = submitService.fetchTask(topologyName, Long.valueOf(taskId));
-        return task;
-    }
-
-    /**
      * Retrieves the current progress for the requested task.
      * <p/>
      * <br/><br/>
@@ -157,9 +123,8 @@ public class TopologyTasksResource {
     public TaskInfo getTaskProgress(
             @PathParam("topologyName") String topologyName,
             @PathParam("taskId") String taskId) throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
-
         assertContainTopology(topologyName);
-
+        reportService.checkIfTaskExists(taskId, topologyName);
         TaskInfo progress = reportService.getTaskProgress(taskId);
         return progress;
     }
@@ -244,9 +209,10 @@ public class TopologyTasksResource {
      * </ul>
      * </div>
      *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param from   The starting resource number should be bigger than 0
-     * @param to     The ending resource number should be bigger than 0
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param from         The starting resource number should be bigger than 0
+     * @param to           The ending resource number should be bigger than 0
      * @return Notification messages for the specified task.
      * @summary Retrieve task detailed report
      */
@@ -254,7 +220,9 @@ public class TopologyTasksResource {
     @Path("{taskId}/reports/details")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<SubTaskInfo> getTaskDetailedReport(@PathParam("taskId") String taskId, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) {
+    public List<SubTaskInfo> getTaskDetailedReport(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName, @Min(1) @DefaultValue("1") @QueryParam("from") int from, @Min(1) @DefaultValue("100") @QueryParam("to") int to) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+        assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
         List<SubTaskInfo> taskInfo = reportService.getDetailedTaskReportBetweenChunks(taskId, from, to);
         return taskInfo;
     }
@@ -264,7 +232,7 @@ public class TopologyTasksResource {
      * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
      * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
      * A sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
-     *
+     * <p>
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
@@ -275,10 +243,10 @@ public class TopologyTasksResource {
      * </ul>
      * </div>
      *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param error Error type.
-     * @param idsCount number of identifiers to retrieve
-     *
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+     * @param error        Error type.
+     * @param idsCount     number of identifiers to retrieve
      * @return Errors that occurred for the specified task.
      * @summary Retrieve task detailed error report
      */
@@ -286,7 +254,10 @@ public class TopologyTasksResource {
     @Path("{taskId}/reports/errors")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @QueryParam("error") String error, @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
+    public TaskErrorsInfo getTaskErrorReport(@PathParam("taskId") String taskId, @PathParam("topologyName") final String topologyName, @QueryParam("error") String error, @DefaultValue("0") @QueryParam("idsCount") int idsCount) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+        assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
+
         if (idsCount < 0 || idsCount > maxIdentifiersCount) {
             throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
         }
@@ -297,11 +268,9 @@ public class TopologyTasksResource {
     }
 
 
-
-
     /**
      * Retrieves a statistics report for the specified task. Only applicable for tasks executing {@link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
-     *
+     * <p>
      * <p/>
      * <br/><br/>
      * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
@@ -312,7 +281,8 @@ public class TopologyTasksResource {
      * </ul>
      * </div>
      *
-     * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
+     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return Statistics report for the specified task.
      * @summary Retrieve task statistics report
      */
@@ -320,11 +290,11 @@ public class TopologyTasksResource {
     @Path("{taskId}/statistics")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException {
+    public StatisticsReport getTaskStatisticsReport(@PathParam("topologyName") String topologyName, @PathParam("taskId") String taskId) throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
+        reportService.checkIfTaskExists(taskId, topologyName);
         return validationStatisticsService.getTaskStatisticsReport(Long.valueOf(taskId));
     }
-
 
 
     /**
