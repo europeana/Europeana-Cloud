@@ -408,6 +408,28 @@ public class TopologyTasksResourceTest extends JerseyTest {
         assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
 
+    @Test
+    public void shouldNotSubmitEmptyTask() throws MCSException, TaskSubmissionException, InterruptedException {
+        //given
+        DpsTask task = new DpsTask("validationTask");
+        task.addDataEntry(FILE_URLS, Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName"));
+        task.addParameter(SCHEMA_NAME, "edm-internal");
+        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
+        task.setOutputRevision(revision);
+        String topologyName = "validation_topology";
+        prepareMocks(topologyName);
+        WebTarget enrichedWebTarget = webTarget.resolveTemplate("topologyName", topologyName);
+        when(filesCounter.getFilesCount(isA(DpsTask.class), anyString())).thenReturn(0);
+
+        //when
+        Response sendTaskResponse = enrichedWebTarget.request().post(Entity.entity(task, MediaType.APPLICATION_JSON_TYPE));
+
+        //then
+        assertThat(sendTaskResponse.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        Thread.sleep(10000);
+        verifyZeroInteractions(kafkaSubmitService);
+    }
+
 
     @Test
     public void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws MCSException, TaskSubmissionException {
