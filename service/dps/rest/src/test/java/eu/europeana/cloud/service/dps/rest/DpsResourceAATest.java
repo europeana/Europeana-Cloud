@@ -13,7 +13,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.rest.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidationException;
+import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;

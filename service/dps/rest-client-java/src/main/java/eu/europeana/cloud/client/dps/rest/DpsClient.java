@@ -4,7 +4,10 @@ import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
+import eu.europeana.cloud.service.dps.exception.DpsException;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -13,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -62,7 +64,7 @@ public class DpsClient {
     /**
      * Submits a task for execution in the specified topology.
      */
-    public long submitTask(DpsTask task, String topologyName) {
+    public long submitTask(DpsTask task, String topologyName) throws DpsException {
 
         Response resp = null;
         try {
@@ -72,12 +74,12 @@ public class DpsClient {
                     .request()
                     .post(Entity.json(task));
 
-            if (resp.getStatus() != Response.Status.CREATED.getStatusCode()) {
-                throw new RuntimeException("submitting task failed!!");
-            } else {
+            if (resp.getStatus() == Response.Status.CREATED.getStatusCode())
                 return getTaskId(resp.getLocation());
+            else {
+                LOGGER.error("Submit Task Was not successful");
+                throw handleException(resp);
             }
-
         } finally {
             closeResponse(resp);
         }
@@ -89,9 +91,9 @@ public class DpsClient {
     }
 
     /**
-     * Submits a task for execution in the specified topology.
+     * permit user to use topology
      */
-    public void topologyPermit(String topologyName, String username) {
+    public Response.StatusType topologyPermit(String topologyName, String username) throws DpsException {
         Form form = new Form();
         form.param("username", username);
         Response resp = null;
@@ -103,10 +105,11 @@ public class DpsClient {
                     .request()
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
-
-            if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-                //TODO exception wrapping should be implemented
-                throw new RuntimeException("Permit topology failed!");
+            if (resp.getStatus() == Response.Status.OK.getStatusCode())
+                return resp.getStatusInfo();
+            else {
+                LOGGER.error("Granting permission was not successful");
+                throw handleException(resp);
             }
         } finally {
             closeResponse(resp);
@@ -114,33 +117,10 @@ public class DpsClient {
     }
 
 
-    public DpsTask getTask(String topologyName, long taskId) {
-
-        Response getResponse = null;
-        try {
-            getResponse = client
-                    .target(dpsUrl)
-                    .path(TASK_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, String.valueOf(taskId))
-                    .request()
-                    .header("Accept", MediaType.APPLICATION_JSON)
-                    .get();
-
-            if (getResponse.getStatus() == Response.Status.OK.getStatusCode()) {
-                return getResponse.readEntity(DpsTask.class);
-            } else {
-                throw new RuntimeException();
-            }
-        } finally {
-            closeResponse(getResponse);
-        }
-    }
-
     /**
      * Retrieves progress for the specified combination of taskId and topology.
      */
-    public TaskInfo getTaskProgress(String topologyName, final long taskId) {
+    public TaskInfo getTaskProgress(String topologyName, final long taskId) throws DpsException {
 
         Response response = null;
 
@@ -156,14 +136,14 @@ public class DpsClient {
                 return response.readEntity(TaskInfo.class);
             } else {
                 LOGGER.error("Task progress cannot be read");
-                throw new RuntimeException();
+                throw handleException(response);
             }
         } finally {
             closeResponse(response);
         }
     }
 
-    public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId) {
+    public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId) throws DpsException {
 
         Response response = null;
 
@@ -182,7 +162,7 @@ public class DpsClient {
         }
     }
 
-    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId, int from, int to) {
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName, final long taskId, int from, int to) throws DpsException {
 
         Response getResponse = null;
 
@@ -201,13 +181,12 @@ public class DpsClient {
         }
     }
 
-    private List<SubTaskInfo> handleResponse(Response response) {
+    private List<SubTaskInfo> handleResponse(Response response) throws DpsException {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(new GenericType<List<SubTaskInfo>>() {
             });
         } else {
-            LOGGER.error("Task detailed report cannot be read");
-            throw new RuntimeException();
+            throw handleException(response);
         }
     }
 
@@ -217,7 +196,7 @@ public class DpsClient {
         }
     }
 
-    public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId, final String error, final int idsCount) {
+    public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId, final String error, final int idsCount) throws DpsException {
 
         Response response = null;
 
@@ -238,30 +217,40 @@ public class DpsClient {
         }
     }
 
-    private TaskErrorsInfo handleErrorResponse(Response response) {
+    private TaskErrorsInfo handleErrorResponse(Response response) throws DpsException {
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return response.readEntity(TaskErrorsInfo.class);
         } else {
             LOGGER.error("Task error report cannot be read");
-            throw new RuntimeException();
+            throw handleException(response);
         }
     }
 
-    public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) {
+    public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) throws DpsException {
         Response response = null;
         try {
             response = client.target(dpsUrl).path(STATISTICS_REPORT_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().get();
+
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 return response.readEntity(StatisticsReport.class);
             } else {
                 LOGGER.error("Task statistics report cannot be read");
-                throw new RuntimeException();
+                throw handleException(response);
             }
-
         } finally {
             closeResponse(response);
         }
+    }
+
+    private DpsException handleException(Response response) throws DpsException {
+        try {
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            return DPSExceptionProvider.generateException(errorInfo);
+        } catch (Exception e) {
+            return new DpsException("Unexpected Exception happened while communicating with DPS, Check your request!");
+        }
+
     }
 }
 
