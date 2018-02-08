@@ -536,6 +536,17 @@ public class TopologyTasksResourceTest extends JerseyTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
+        WebTarget enrichedWebTarget = detailedReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
+        List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        when(topologyManager.containsTopology(anyString())).thenReturn(true);
+        when(reportService.getDetailedTaskReportBetweenChunks(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        Response detailedReportResponse = enrichedWebTarget.request().get();
+        assertThat(detailedReportResponse.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
+    }
+
+    @Test
     public void shouldGetProgressReport() throws Exception {
         WebTarget enrichedWebTarget = progressReportWebTarget.resolveTemplate("topologyName", TOPOLOGY_NAME).resolveTemplate("taskId", TASK_ID);
 

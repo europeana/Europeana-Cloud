@@ -250,7 +250,7 @@ public class CassandraReportService implements TaskExecutionReportService {
 
     @Override
     public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(taskId)).one();
+        Row basicInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.valueOf(taskId))).one();
         if (basicInfo == null || !basicInfo.getString(CassandraTablesAndColumnsNames.BASIC_TOPOLOGY_NAME).equals(topologyName))
             throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
     }
