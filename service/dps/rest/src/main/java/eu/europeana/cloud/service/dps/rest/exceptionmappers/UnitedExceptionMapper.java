@@ -89,7 +89,7 @@ public class UnitedExceptionMapper {
     }
 
     public Response toResponse(AccessDeniedOrObjectDoesNotExistException exception) {
-        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.OTHER, exception);
+        return buildResponse(Response.Status.METHOD_NOT_ALLOWED, DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
     }
     
     private static Response buildResponse(Response.Status httpStatus, DpsErrorCode errorCode, Exception e) {
