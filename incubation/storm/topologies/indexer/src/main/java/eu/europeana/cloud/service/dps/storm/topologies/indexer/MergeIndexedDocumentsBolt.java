@@ -54,7 +54,7 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
         if (indexer == null) {
             LOGGER.warn("No indexer. Task {} is dropped.", t.getTaskId());
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "No indexer.", t.getParameters().toString());
-            endTask(t.getTaskId(), "No indexer. Task " + t.getTaskId() + " is dropped.", TaskState.DROPPED, new Date());
+            //endTask(t.getTaskId(), "No indexer. Task " + t.getTaskId() + " is dropped.", TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }
@@ -117,7 +117,7 @@ public class MergeIndexedDocumentsBolt extends AbstractDpsBolt {
             StringWriter stack = new StringWriter();
             ex.printStackTrace(new PrintWriter(stack));
             emitDropNotification(t.getTaskId(), t.getFileUrl(), "Cannot serialize merged data.", stack.toString());
-            endTask(t.getTaskId(), ex.getMessage(), TaskState.DROPPED, new Date());
+            //endTask(t.getTaskId(), ex.getMessage(), TaskState.DROPPED, new Date());
             outputCollector.ack(inputTuple);
             return;
         }
