@@ -16,7 +16,7 @@
     <context:component-scan    base-package="eu.europeana.cloud.service.dps.rest"/>
 
     <bean id="permissionManger" class="eu.europeana.cloud.service.dps.utils.PermissionManager"/>
-    <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" />
+    <bean id="dpsResource"  class="eu.europeana.cloud.service.dps.rest.TopologyTasksResource" scope="request"/>
 
     <bean id="mcsLocation" class="java.lang.String">
         <constructor-arg type="java.lang.String" value="http://mcsLocation.com"/>

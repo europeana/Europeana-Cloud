@@ -24,7 +24,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.container.AsyncResponse;
@@ -43,6 +45,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
 public class DpsResourceAATest extends AbstractSecurityTest {
 
 
