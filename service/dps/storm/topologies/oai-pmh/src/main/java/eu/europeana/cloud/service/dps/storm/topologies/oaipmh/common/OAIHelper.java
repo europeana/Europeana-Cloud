@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
 
-import com.lyncode.xoai.model.oaipmh.MetadataFormat;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.InvalidOAIResponse;
-import com.lyncode.xoai.serviceprovider.model.Context;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
+import org.dspace.xoai.serviceprovider.client.OAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
+import org.dspace.xoai.serviceprovider.model.Context;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.IdentifiersHarvestingBolt;
 import org.slf4j.Logger;
@@ -48,6 +49,8 @@ public class OAIHelper {
                     LOGGER.error("Retrieving metadata schemas failed.");
                     throw e;
                 }
+            } catch (IdDoesNotExistException e) {
+               //will never happen in here as we don't specify "identifier" argument
             }
         }
     }

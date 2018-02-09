@@ -1,15 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
-import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.client.OAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;

@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers;
 
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.model.Context;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
+import org.dspace.xoai.serviceprovider.model.Context;
 
 import java.io.Serializable;
 

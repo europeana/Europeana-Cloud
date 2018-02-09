@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
 
-import com.lyncode.xoai.model.oaipmh.MetadataFormat;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper.WiremockHelper;
 import org.junit.Test;
 
