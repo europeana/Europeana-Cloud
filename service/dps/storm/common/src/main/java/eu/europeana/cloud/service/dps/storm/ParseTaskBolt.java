@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
-import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -72,15 +71,7 @@ public class ParseTaskBolt extends BaseRichBolt {
             return;
         }
         Map<String, String> taskParameters = task.getParameters();
-        String authenticationHeader = taskParameters.get(PluginParameterKeys.AUTHORIZATION_HEADER);
-        if (authenticationHeader == null) {
-            LOGGER.error("Message '{}' rejected because: {}", tuple.getString(0), "missing authentication Header");
-            endTask(task.getTaskId(), "missing authentication Header", TaskState.DROPPED, new Date());
-            outputCollector.ack(tuple);
-            return;
-        }
         Date startTime = new Date();
-
 
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = task.getHarvestingDetails();
         if (oaipmhHarvestingDetails == null)
@@ -96,21 +87,13 @@ public class ParseTaskBolt extends BaseRichBolt {
             updateTask(task.getTaskId(), "", TaskState.CURRENTLY_PROCESSING, startTime);
             outputCollector.emit(stream, tuple, stormTaskTuple.toStormTuple());
         } else {
-            String message = "The taskType is not recognised!";
-            LOGGER.warn(message);
-            endTask(task.getTaskId(), message, TaskState.DROPPED, new Date());
+            LOGGER.warn("The taskType is not recognised!");
         }
-
         outputCollector.ack(tuple);
     }
 
     private void updateTask(long taskId, String info, TaskState state, Date startTime) {
         NotificationTuple nt = NotificationTuple.prepareUpdateTask(taskId, info, state, startTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
-    }
-
-    private void endTask(long taskId, String info, TaskState state, Date finishTime) {
-        NotificationTuple nt = NotificationTuple.prepareEndTask(taskId, info, state, finishTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, nt.toStormTuple());
     }
 

@@ -99,11 +99,10 @@ public class ReadDatasetBolt extends AbstractDpsBolt {
                 emitErrorNotification(t.getTaskId(), dataSetUrl, ex.getMessage(), t.getParameters().toString());
             }
         } else {
-            String message = "Missing dataset URL";
-            LOGGER.warn(message);
-            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
+            String errorMessage = "Missing dataset URL";
+            LOGGER.warn(errorMessage);
+            emitErrorNotification(t.getTaskId(), dataSetUrl, errorMessage, "");
         }
-
     }
 
     private void handleLatestRevisions(StormTaskTuple t, DataSetServiceClient dataSetServiceClient, RecordServiceClient recordServiceClient, String representationName, String revisionName, String revisionProvider, String datasetName, String datasetProvider) throws MCSException {

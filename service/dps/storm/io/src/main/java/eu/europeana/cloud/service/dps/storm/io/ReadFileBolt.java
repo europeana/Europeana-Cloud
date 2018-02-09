@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import com.rits.cloning.Cloner;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import eu.europeana.cloud.common.model.dps.TaskState;
+
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 
-import java.lang.reflect.Type;
 
 /**
  * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
@@ -46,10 +46,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
             emitFiles(t, files);
             return;
         } else {
-            String message = "No URL for retrieve file.";
-            LOGGER.warn(message);
-            endTask(t.getTaskId(), message, TaskState.DROPPED, new Date());
-            return;
+            String errorMessage = "No URL for retrieve file.";
+            LOGGER.warn(errorMessage);
+            emitErrorNotification(t.getTaskId(), "", errorMessage, parameters.toString());
         }
     }
 
