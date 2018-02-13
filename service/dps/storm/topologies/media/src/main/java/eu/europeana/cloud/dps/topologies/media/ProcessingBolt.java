@@ -136,7 +136,10 @@ public class ProcessingBolt extends BaseRichBolt {
 					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
 				convertCmd.addAll(Arrays.asList(
 						"(", "+clone", "-thumbnail", "200x", "-write", tmp200.getPath(), "+delete", ")",
-						"-thumbnail", "400x", tmp400.getPath()));
+						"(", "+clone", "-thumbnail", "400x", "-write", tmp400.getPath(), "+delete", ")"));
+				
+				convertCmd.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
+						"-format", "\nDominant colors:\n%c", "histogram:info:"));
 			}
 			Process magickProcess = runCommand(convertCmd, false, image.fileInfo.getContent());
 			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
@@ -320,8 +323,19 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		private static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)", Pattern.MULTILINE);
 		
+		private static final Pattern COLORSPACE = Pattern.compile("^  Colorspace: (.*)", Pattern.MULTILINE);
+		
+		private static final Pattern ORIENTATION = Pattern.compile("^  Orientation: (.*)", Pattern.MULTILINE);
+		
+		private static final Pattern DOMINANT_COLORS =
+				Pattern.compile("^\\s+([0-9]*):.*(#[0-9a-zA-Z]+).*$", Pattern.MULTILINE);
+		
 		int width;
 		int height;
+		String colorspace;
+		String orientation;
+		
+		List<String> dominantColors = new ArrayList<>();
 		
 		byte[] thumbnail200;
 		byte[] thumbnail400;
@@ -347,7 +361,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		void extract(String identifyResult) throws MediaException {
 			Matcher m = MIME_TYPE.matcher(identifyResult);
 			Matcher g = GEOMETRY.matcher(identifyResult);
-			if (m.find() && g.find()) {
+			Matcher c = COLORSPACE.matcher(identifyResult);
+			Matcher o = ORIENTATION.matcher(identifyResult);
+			if (m.find() && g.find() && c.find() && o.find()) {
 				String mimeType = m.group(1);
 				if (!mimeType.equals(fileInfo.getMimeType())) {
 					throw new MediaException(
@@ -356,6 +372,15 @@ public class ProcessingBolt extends BaseRichBolt {
 				}
 				width = Integer.parseInt(g.group(1));
 				height = Integer.parseInt(g.group(2));
+				colorspace = c.group(1);
+				orientation = o.group(1);
+				
+				Matcher dc =
+						DOMINANT_COLORS.matcher(identifyResult.substring(identifyResult.indexOf("Dominant colors:")));
+				while (dc.find()) {
+					dominantColors.add(dc.group(2));
+				}
+				
 			} else {
 				throw new MediaException("identify result missing data: " + identifyResult, "CORRUPTED");
 			}
@@ -397,6 +422,9 @@ public class ProcessingBolt extends BaseRichBolt {
 			setValue("fileByteSize", (long) image.fileInfo.getLength());
 			setValue("width", image.width);
 			setValue("height", image.height);
+			setValue("hasFormat", image.colorspace);
+			setValue("dominantColors", image.dominantColors.toString().replaceAll("[\\[\\] ]*", ""));
+			setValue("orientation", image.orientation);
 		}
 		
 		private void setValue(String name, Object value) {
