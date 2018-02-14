@@ -1,6 +1,8 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import java.io.File;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,19 +27,29 @@ public class MediaTupleData implements Serializable {
 	}
 	
 	public static class FileInfo implements Serializable {
-		private byte[] content;
-		private String mimeType;
-		private String url;
+		private File content;
+		private final InetAddress contentSource;
+		private final String mimeType;
+		private final String url;
 		private Set<UrlType> types;
 		
-		public FileInfo(String url, String mimeType, byte[] content) {
+		public FileInfo(String url, String mimeType, File content, InetAddress contentSource) {
 			this.url = url;
 			this.mimeType = mimeType;
 			this.content = content;
+			this.contentSource = contentSource;
 		}
 		
-		public byte[] getContent() {
+		public File getContent() {
 			return content;
+		}
+		
+		void setContent(File content) {
+			this.content = content;
+		}
+		
+		public InetAddress getContentSource() {
+			return contentSource;
 		}
 		
 		public String getMimeType() {

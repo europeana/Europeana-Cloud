@@ -1,21 +1,23 @@
 package eu.europeana.cloud.dps.topologies.media;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -41,6 +43,7 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 
@@ -55,6 +58,8 @@ public class DownloadBolt extends BaseRichBolt {
 	private DocumentBuilder documentBuilder;
 	
 	private CloseableHttpClient httpClient;
+	
+	private InetAddress localAddress;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -71,6 +76,7 @@ public class DownloadBolt extends BaseRichBolt {
 		}
 		
 		httpClient = HttpClients.createDefault();
+		localAddress = TempFileSync.startServer(stormConf);
 	}
 	
 	@Override
@@ -80,6 +86,7 @@ public class DownloadBolt extends BaseRichBolt {
 		} catch (IOException e) {
 			logger.error("HttpClient could not close", e);
 		}
+		TempFileSync.stopServer();
 	}
 	
 	@Override
@@ -114,13 +121,10 @@ public class DownloadBolt extends BaseRichBolt {
 		
 		for (Entry<String, Set<UrlType>> entry : urls.entrySet()) {
 			try {
-				Optional<FileInfo> info = downloadFile(entry.getKey());
-				if (info.isPresent()) {
-					FileInfo file = info.get();
-					file.setTypes(entry.getValue());
-					data.addFileInfo(file);
-					byteCount += file.getContent().length;
-				}
+				FileInfo info = downloadFile(entry.getKey());
+				info.setTypes(entry.getValue());
+				data.addFileInfo(info);
+				byteCount += info.getContent().length();
 			} catch (MediaException e) {
 				logger.info("Download failed ({}) for {}", e.getMessage(), entry.getKey());
 				logger.trace("download failure details:", e);
@@ -162,26 +166,24 @@ public class DownloadBolt extends BaseRichBolt {
 	}
 	
 	@SuppressWarnings("resource") // response shouldn't be closed, it may prevent connection reuse
-	private Optional<FileInfo> downloadFile(String fileUrl) throws MediaException {
+	private FileInfo downloadFile(String fileUrl) throws MediaException {
 		long start = System.currentTimeMillis();
 		try {
-			CloseableHttpResponse response = httpClient.execute(new HttpGet(fileUrl));
+			HttpResponse response = httpClient.execute(new HttpGet(fileUrl));
 			
 			try {
 				int status = response.getStatusLine().getStatusCode();
-				if (status >= 200 && status < 300) {
-					String mimeType = ContentType.get(response.getEntity()).getMimeType();
-					if (ProcessingBolt.isImage(mimeType)) {
-						byte[] content = EntityUtils.toByteArray(response.getEntity());
-						return Optional.of(new FileInfo(fileUrl, mimeType, content));
-					} else {
-						return Optional.empty();
-					}
-				} else {
+				if (status < 200 || status >= 300)
 					throw new MediaException("status code " + status, "STATUS CODE " + status);
+				
+				java.io.File content = java.io.File.createTempFile("media", null);
+				try (FileOutputStream out = new FileOutputStream(content)) {
+					IOUtils.copy(response.getEntity().getContent(), out);
 				}
+				String mimeType = ContentType.get(response.getEntity()).getMimeType();
+				return new FileInfo(fileUrl, mimeType, content, localAddress);
 			} finally {
-				response.close();
+				EntityUtils.consume(response.getEntity());
 				logger.debug("download took {} ms: {}", System.currentTimeMillis() - start, fileUrl);
 			}
 		} catch (IOException e) {

@@ -50,6 +50,7 @@ import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -90,6 +91,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		persistResult = (Boolean) stormConf.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
 		
+		TempFileSync.init(stormConf);
 		ImageInfo.init(this);
 	}
 	
@@ -123,6 +125,11 @@ public class ProcessingBolt extends BaseRichBolt {
 		mediaInfos.stream().map(i -> i.error).filter(Objects::nonNull).forEach(statsData::addError);
 		outputCollector.emit(StatsTupleData.STREAM_ID, input, new Values(statsData));
 		outputCollector.ack(input);
+	}
+	
+	@Override
+	public void cleanup() {
+		threadPool.shutdown();
 	}
 	
 	private void saveMetadata(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
@@ -239,7 +246,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		return process;
 	}
 	
-	public static boolean isImage(String mimeType) {
+	private static boolean isImage(String mimeType) {
 		return mimeType.equals("application/pdf") || mimeType.startsWith("image");
 	}
 	
@@ -290,6 +297,13 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		public void process() {
 			long start = System.currentTimeMillis();
+			try {
+				TempFileSync.ensureLocal(fileInfo);
+			} catch (MediaException e) {
+				logger.error("Temp file synch failed", e);
+				error = "TEMP-SYNC";
+				return;
+			}
 			try {
 				doProcess();
 				if (shouldProcessMetadata()) {
@@ -351,9 +365,12 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		public void clenaup() {
 			for (File thumb : thumbnails) {
-				if (thumb != null && !thumb.delete())
+				if (thumb == null || thumb.equals(fileInfo.getContent()))
+					continue;
+				if (!thumb.delete())
 					logger.warn("Could not delete thumbnail from temp: {}", thumb);
 			}
+			TempFileSync.delete(fileInfo);
 		}
 		
 		abstract void doProcess() throws IOException, MediaException;
@@ -389,7 +406,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void doProcess() throws IOException, MediaException {
 			ArrayList<String> convertCmd = new ArrayList<>();
-			convertCmd.addAll(Arrays.asList(magickCmd, "convert", "-", "-verbose", "-write", "info:", "+verbose"));
+			String path = fileInfo.getContent().getPath();
+			convertCmd.addAll(Arrays.asList(magickCmd, "convert", path, "-verbose", "-write", "info:", "+verbose"));
 			if (shouldProcessThumbnails()) {
 				if ("application/pdf".equals(fileInfo.getMimeType()))
 					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
@@ -404,7 +422,7 @@ public class ProcessingBolt extends BaseRichBolt {
 						.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
 								"-format", "\nDominant colors:\n%c", "histogram:info:"));
 			}
-			Process magickProcess = pb.runCommand(convertCmd, false, fileInfo.getContent());
+			Process magickProcess = pb.runCommand(convertCmd, false);
 			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
 			extract(identifyResult);
 		}
@@ -446,7 +464,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			setEbucoreValue("hasMimeType", fileInfo.getMimeType());
-			setEbucoreValue("fileByteSize", (long) fileInfo.getContent().length);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length());
 			setEbucoreValue("width", width);
 			setEbucoreValue("height", height);
 			setEbucoreValue("hasFormat", colorspace);
