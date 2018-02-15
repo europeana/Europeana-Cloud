@@ -22,6 +22,7 @@ public class AllSchemasSplitter extends SchemasSplitter {
         Iterator<MetadataFormat> metadataFormatIterator = splitter.getOaiHelper().listSchemas();
         OAIPMHHarvestingDetails oaipmhHarvestingDetails = splitter.getStormTaskTuple().getSourceDetails();
         Set<String> excludedSchemas = oaipmhHarvestingDetails.getExcludedSchemas();
+        oaipmhHarvestingDetails.setGranularity(splitter.getGranularity().toString());
         while (metadataFormatIterator.hasNext()) {
             String schema = metadataFormatIterator.next().getMetadataPrefix();
             if (excludedSchemas == null || !excludedSchemas.contains(schema)) {

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
@@ -86,6 +87,7 @@ public class IdentifiersHarvestingBoltTest {
         sourceDetails.setExcludedSets(excludedSets);
         sourceDetails.setDateFrom(from);
         sourceDetails.setDateUntil(until);
+        sourceDetails.setGranularity(Granularity.Second.toString());
         initHeaders(sourceDetails);
         mockSource(iterator);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);

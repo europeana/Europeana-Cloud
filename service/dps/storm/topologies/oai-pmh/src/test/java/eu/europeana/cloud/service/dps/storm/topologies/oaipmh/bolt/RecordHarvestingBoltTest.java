@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import com.lyncode.xml.exceptions.XmlWriteException;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
 import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
@@ -43,7 +42,7 @@ public class RecordHarvestingBoltTest {
     private RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
 
     @Test
-    public void harvestingForAllParametersSpecified() throws OAIRequestException, IOException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
+    public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
         //given
         when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenReturn(new
                 ByteArrayInputStream(new byte[]{}));
@@ -59,8 +58,8 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void shouldEmitErrorOnHarvestingException() throws OAIRequestException, IOException,
-            HarvesterException, CannotDisseminateFormatException, XmlWriteException, XMLStreamException, BadArgumentException, IdDoesNotExistException, TransformerConfigurationException {
+    public void shouldEmitErrorOnHarvestingException() throws IOException,
+            HarvesterException {
         //given
         when(harvester.harvestRecord(anyString(), anyString(), anyString())).thenThrow(new
                 HarvesterException("Some!"));
@@ -75,7 +74,7 @@ public class RecordHarvestingBoltTest {
     }
 
     @Test
-    public void harvestingForEmptyUrl() throws OAIRequestException {
+    public void harvestingForEmptyUrl() {
         //given
         StormTaskTuple task = taskWithoutResourceUrl();
 
