@@ -119,7 +119,7 @@ public class DownloadBolt extends BaseRichBolt {
 					FileInfo file = info.get();
 					file.setTypes(entry.getValue());
 					data.addFileInfo(file);
-					byteCount += file.getLength();
+					byteCount += file.getContent().length;
 				}
 			} catch (MediaException e) {
 				logger.info("Download failed ({}) for {}", e.getMessage(), entry.getKey());

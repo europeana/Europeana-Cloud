@@ -62,6 +62,9 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ProcessingBolt.class);
 	
+	// careful - in some places it's assumed these won't change
+	private static final int[] THUMB_SIZE = { 200, 400 };
+	
 	private OutputCollector outputCollector;
 	
 	private ExecutorService threadPool;
@@ -71,14 +74,11 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private RecordServiceClient recordClient;
 	
-	private String magickCmd;
-	
 	private boolean persistResult;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.outputCollector = collector;
-		magickCmd = findImageMagickCommand();
 		threadPool = Executors.newFixedThreadPool(2);
 		try {
 			xmlTtransformer = TransformerFactory.newInstance().newTransformer();
@@ -89,6 +89,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		recordClient = Util.getRecordServiceClient(stormConf);
 		
 		persistResult = (Boolean) stormConf.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
+		
+		ImageInfo.init(this);
 	}
 	
 	@Override
@@ -101,81 +103,29 @@ public class ProcessingBolt extends BaseRichBolt {
 		MediaTupleData mediaData = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
 		StatsTupleData statsData = (StatsTupleData) input.getValueByField(StatsTupleData.FIELD_NAME);
 		
-		ArrayList<ImageInfo> imageInfos = new ArrayList<>();
+		ArrayList<MediaInfo> mediaInfos = new ArrayList<>();
 		statsData.setProcessingStartTime(System.currentTimeMillis());
 		for (FileInfo file : mediaData.getFileInfos()) {
-			if (!isImage(file.getMimeType()))
-				continue;
-			ImageInfo image = new ImageInfo(file);
-			imageInfos.add(image);
-			doMagick(image, mediaData.getEdm());
+			if (isImage(file.getMimeType())) {
+				mediaInfos.add(new ImageInfo(this, file, mediaData.getEdm()));
+			}
 		}
+		mediaInfos.forEach(MediaInfo::process);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
 		statsData.setUploadStartTime(System.currentTimeMillis());
-		saveThumbnails(mediaData, imageInfos);
-		saveMetadata(mediaData, imageInfos);
+		saveThumbnails(mediaData, mediaInfos);
+		saveMetadata(mediaData, mediaInfos);
 		statsData.setUploadEndTime(System.currentTimeMillis());
 		
-		imageInfos.stream().map(i -> i.error).filter(Objects::nonNull).forEach(statsData::addError);
+		mediaInfos.forEach(MediaInfo::clenaup);
+		
+		mediaInfos.stream().map(i -> i.error).filter(Objects::nonNull).forEach(statsData::addError);
 		outputCollector.emit(StatsTupleData.STREAM_ID, input, new Values(statsData));
 		outputCollector.ack(input);
 	}
 	
-	private void doMagick(ImageInfo image, Document edm) {
-		long start = System.currentTimeMillis();
-		try {
-			ArrayList<String> convertCmd = new ArrayList<>();
-			convertCmd.addAll(Arrays.asList(magickCmd, "convert", "-", "-verbose", "-write", "info:", "+verbose"));
-			File tmp200 = null, tmp400 = null;
-			if (image.shouldProcessThumbnails()) {
-				String ext = "." + image.getThumbnailFormat();
-				tmp200 = File.createTempFile("thumb200", ext);
-				tmp400 = File.createTempFile("thumb400", ext);
-				if ("application/pdf".equals(image.fileInfo.getMimeType()))
-					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
-				convertCmd.addAll(Arrays.asList(
-						"(", "+clone", "-thumbnail", "200x", "-write", tmp200.getPath(), "+delete", ")",
-						"(", "+clone", "-thumbnail", "400x", "-write", tmp400.getPath(), "+delete", ")"));
-				
-				convertCmd.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
-						"-format", "\nDominant colors:\n%c", "histogram:info:"));
-			}
-			Process magickProcess = runCommand(convertCmd, false, image.fileInfo.getContent());
-			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
-			image.extract(identifyResult);
-			if (image.shouldProcessMetadata()) {
-				new EdmWebResourceWrapper(edm, image.fileInfo.getUrl()).setData(image);
-			}
-			if (image.shouldProcessThumbnails()) {
-				image.thumbnail200 = doAndClose(IOUtils::toByteArray, new FileInputStream(tmp200));
-				image.thumbnail400 = doAndClose(IOUtils::toByteArray, new FileInputStream(tmp400));
-				if (image.thumbnail200.length == 0 || image.thumbnail400.length == 0) {
-					logger.error("No convert output for " + image.fileInfo.getUrl());
-					image.error = "IMAGEMAGICK ERROR";
-				}
-				if (!tmp200.delete() || !tmp400.delete()) {
-					logger.warn("Could not delete temp file: {} {}", tmp200, tmp400);
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Exception processing " + image.fileInfo.getUrl(), e);
-			image.error = "IMAGE IOException";
-		} catch (MediaException e) {
-			logger.info("ImageMagick failed ({}) for {}", e.getMessage(), image.fileInfo.getUrl());
-			logger.trace("ImageMagick failure details:", e);
-			if (e.reportError != null) {
-				image.error = "IMAGE " + e.reportError;
-			} else {
-				logger.warn("Exception without proper report error:", e);
-				image.error = "IMAGE UNKNOWN";
-			}
-		} finally {
-			logger.debug("identify command took {} ms", System.currentTimeMillis() - start);
-		}
-	}
-	
-	private void saveMetadata(MediaTupleData mediaData, ArrayList<ImageInfo> imageInfos) {
+	private void saveMetadata(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
 		long start = System.currentTimeMillis();
 		try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream()) {
 			xmlTtransformer.transform(new DOMSource(mediaData.getEdm()), new StreamResult(byteStream));
@@ -197,14 +147,14 @@ public class ProcessingBolt extends BaseRichBolt {
 		} catch (IOException | DriverException | MCSException | TransformerException e) {
 			logger.error("Could not store tech metadata representation in "
 					+ mediaData.getEdmRepresentation().getCloudId(), e);
-			for (ImageInfo image : imageInfos) {
-				if (image.error == null)
-					image.error = "TECH METADATA SAVING";
+			for (MediaInfo media : mediaInfos) {
+				if (media.error == null)
+					media.error = "TECH METADATA SAVING";
 			}
 		}
 	}
 	
-	private void saveThumbnails(MediaTupleData mediaData, ArrayList<ImageInfo> imageInfos) {
+	private void saveThumbnails(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
 		long start = System.currentTimeMillis();
 		String cloudId = mediaData.getEdmRepresentation().getCloudId();
 		String providerId = mediaData.getEdmRepresentation().getDataProvider();
@@ -213,10 +163,14 @@ public class ProcessingBolt extends BaseRichBolt {
 			URI uri = recordClient.createRepresentation(cloudId, repName, providerId);
 			UrlParser urlParser = new UrlParser(uri.toString());
 			String version = urlParser.getPart(UrlPart.VERSIONS);
-			for (ImageInfo image : imageInfos) {
-				uploadThumbnail(cloudId, repName, version, image);
+			
+			boolean uploaded = false;
+			for (MediaInfo media : mediaInfos) {
+				uploaded |= uploadThumbnail(cloudId, repName, version, media);
 			}
-			if (persistResult) {
+			if (!uploaded)
+				logger.debug("No thumbnails were uploaded for {}", cloudId);
+			if (persistResult && uploaded) {
 				recordClient.persistRepresentation(cloudId, repName, version);
 			} else {
 				recordClient.deleteRepresentation(cloudId, repName, version);
@@ -224,51 +178,36 @@ public class ProcessingBolt extends BaseRichBolt {
 		} catch (DriverException | MCSException | MalformedURLException e) {
 			logger.error("Could not store thumbnail representation in "
 					+ mediaData.getEdmRepresentation().getCloudId(), e);
-			for (ImageInfo image : imageInfos) {
-				if (image.error == null)
-					image.error = "THUMBNAIL SAVING";
+			for (MediaInfo media : mediaInfos) {
+				if (media.error == null)
+					media.error = "THUMBNAIL SAVING";
 			}
 		}
 		logger.debug("thumbnail saving{} took {} ms", persistResult ? "" : " simulation",
 				System.currentTimeMillis() - start);
 	}
 
-	private void uploadThumbnail(String cloudId, String repName, String version, ImageInfo image) {
-		try {
-			String md5 = DigestUtils.md5Hex(image.fileInfo.getUrl());
-			String mimeType = "image/" + image.getThumbnailFormat();
-			if (image.thumbnail200 != null) {
-				URI uri = fileClient.uploadFile(cloudId, repName, version, md5 + "-w200",
-						new ByteArrayInputStream(image.thumbnail200), mimeType);
-				logger.debug("thumbnail saved: {}", uri);
+	private boolean uploadThumbnail(String cloudId, String repName, String version, MediaInfo media) {
+		String md5 = DigestUtils.md5Hex(media.fileInfo.getUrl());
+		String mimeType = "image/" + media.getThumbnailFormat();
+		boolean uploaded = false;
+		for (int i = 0; i < THUMB_SIZE.length; i++) {
+			try {
+				if (media.thumbnails[i] == null)
+					continue;
+				try (FileInputStream fileStream = new FileInputStream(media.thumbnails[i])) {
+					String fileName = md5 + "-w" + THUMB_SIZE[i];
+					URI uri = fileClient.uploadFile(cloudId, repName, version, fileName, fileStream, mimeType);
+					logger.debug("thumbnail saved: {}", uri);
+				}
+				uploaded = true;
+			} catch (DriverException | MCSException | IOException e) {
+				logger.error("Could not save thumbnails for cloudId " + cloudId, e);
+				if (media.error == null)
+					media.error = "THUMBNAIL SAVING";
 			}
-			if (image.thumbnail400 != null) {
-				URI uri = fileClient.uploadFile(cloudId, repName, version, md5 + "-w400",
-						new ByteArrayInputStream(image.thumbnail400), mimeType);
-				logger.debug("thumbnail saved: {}", uri);
-			}
-		} catch (DriverException | MCSException e) {
-			logger.error("Could not save thumbnails for cloudId " + cloudId, e);
-			if (image.error == null)
-				image.error = "THUMBNAIL SAVING";
 		}
-	}
-	
-	private String findImageMagickCommand() {
-		boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-		try {
-			Process which = runCommand(Arrays.asList(isWindows ? "where" : "which", "magick"), true);
-			List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
-			for (String path : paths) {
-				Process test = runCommand(Arrays.asList(path, "-version"), true);
-				String version = doAndClose(IOUtils::toString, test.getInputStream());
-				if (version.matches("(?s)^Version: ImageMagick (6|7).*")) // (?s) means . matches newline
-					return path;
-			}
-			throw new RuntimeException("ImageMagick command version 6/7 not found in " + paths);
-		} catch (IOException e) {
-			throw new RuntimeException("Error while looking for ImageMagick tools", e);
-		}
+		return uploaded;
 	}
 	
 	private Process runCommand(List<String> command, boolean mergeError) throws IOException {
@@ -317,35 +256,26 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 	}
 	
-	private static class ImageInfo {
+	private abstract static class MediaInfo {
 		
-		private static final Pattern MIME_TYPE = Pattern.compile("^  Mime type: (.*)", Pattern.MULTILINE);
+		static final String EBUCORE_RUI = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
 		
-		private static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)", Pattern.MULTILINE);
+		final ProcessingBolt pb;
+		final FileInfo fileInfo;
+		final Document edm;
+		Element edmWebResource;
 		
-		private static final Pattern COLORSPACE = Pattern.compile("^  Colorspace: (.*)", Pattern.MULTILINE);
-		
-		private static final Pattern ORIENTATION = Pattern.compile("^  Orientation: (.*)", Pattern.MULTILINE);
-		
-		private static final Pattern DOMINANT_COLORS =
-				Pattern.compile("^\\s+([0-9]*):.*(#[0-9a-zA-Z]+).*$", Pattern.MULTILINE);
-		
-		int width;
-		int height;
-		String colorspace;
-		String orientation;
-		
-		List<String> dominantColors = new ArrayList<>();
-		
-		byte[] thumbnail200;
-		byte[] thumbnail400;
-		
+		final String errorPrefix;
 		String error;
 		
-		FileInfo fileInfo;
+		File[] thumbnails = new File[THUMB_SIZE.length];
 		
-		ImageInfo(FileInfo fileInfo) {
+		MediaInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			this.pb = pb;
 			this.fileInfo = fileInfo;
+			this.edm = edm;
+			
+			this.errorPrefix = getClass().getSimpleName().replace("Info", " ").toUpperCase();
 		}
 		
 		boolean shouldProcessMetadata() {
@@ -356,6 +286,127 @@ public class ProcessingBolt extends BaseRichBolt {
 		boolean shouldProcessThumbnails() {
 			return Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY).stream()
 					.anyMatch(fileInfo.getTypes()::contains);
+		}
+		
+		public void process() {
+			long start = System.currentTimeMillis();
+			try {
+				doProcess();
+				if (shouldProcessMetadata()) {
+					updateResourceMetadata();
+				}
+				if (shouldProcessThumbnails()
+						&& Arrays.stream(thumbnails).anyMatch(file -> file == null || file.length() == 0)) {
+					logger.warn("No thumbnail output for " + fileInfo.getUrl());
+					error = error == null ? "THUMBNAIL ERROR" : error;
+				}
+			} catch (IOException e) {
+				logger.error("Exception processing " + fileInfo.getUrl(), e);
+				error = errorPrefix + "IOException";
+			} catch (MediaException e) {
+				logger.info("{}processing failed ({}) for {}", errorPrefix, e.getMessage(), fileInfo.getUrl());
+				logger.trace("{}failure details:", errorPrefix, e);
+				if (e.reportError != null) {
+					error = errorPrefix + e.reportError;
+				} else {
+					logger.warn("Exception without proper report error:", e);
+					error = errorPrefix + "UNKNOWN";
+				}
+			} finally {
+				logger.debug("{}processing took {} ms", errorPrefix, System.currentTimeMillis() - start);
+			}
+		}
+		
+		void updateResourceMetadata() {
+			NodeList nList = edm.getElementsByTagName("edm:WebResource");
+			for (int i = 0; i < nList.getLength(); i++) {
+				Element node = (Element) nList.item(i);
+				if (node.getAttributes().getNamedItem("rdf:about").getNodeValue().equals(fileInfo.getUrl())) {
+					edmWebResource = node;
+					break;
+				}
+			}
+			if (edmWebResource == null) {
+				edmWebResource = edm.createElement("edm:WebResource");
+				edmWebResource.setAttribute("rdf:about", fileInfo.getUrl());
+				edm.getDocumentElement().appendChild(edmWebResource);
+			}
+			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_RUI);
+		}
+		
+		void setEbucoreValue(String name, Object value) {
+			Element ebucoreElement = (Element) edmWebResource.getElementsByTagName(name).item(0);
+			if (ebucoreElement == null) {
+				ebucoreElement = edm.createElementNS(EBUCORE_RUI, "ebucore:" + name);
+				edmWebResource.appendChild(ebucoreElement);
+				
+				String type = value.getClass().getSimpleName();
+				if (!"string".equalsIgnoreCase(type)) {
+					ebucoreElement.setAttribute("rdf:datatype",
+							"http://www.w3.org/2001/XMLSchema#" + StringUtils.lowerCase(type));
+				}
+			}
+			ebucoreElement.setTextContent(String.valueOf(value));
+		}
+		
+		public void clenaup() {
+			for (File thumb : thumbnails) {
+				if (thumb != null && !thumb.delete())
+					logger.warn("Could not delete thumbnail from temp: {}", thumb);
+			}
+		}
+		
+		abstract void doProcess() throws IOException, MediaException;
+		
+		public abstract String getThumbnailFormat();
+	}
+	
+	private static class ImageInfo extends MediaInfo {
+		
+		static final Pattern MIME_TYPE = Pattern.compile("^  Mime type: (.*)", Pattern.MULTILINE);
+		
+		static final Pattern GEOMETRY = Pattern.compile("^  Geometry: (\\d+)x(\\d+)", Pattern.MULTILINE);
+		
+		static final Pattern COLORSPACE = Pattern.compile("^  Colorspace: (.*)", Pattern.MULTILINE);
+		
+		static final Pattern ORIENTATION = Pattern.compile("^  Orientation: (.*)", Pattern.MULTILINE);
+		
+		static final Pattern DOMINANT_COLORS = Pattern.compile("^\\s+([0-9]*):.*(#[0-9a-zA-Z]+).*$", Pattern.MULTILINE);
+		
+		static String magickCmd;
+		
+		int width;
+		int height;
+		String colorspace;
+		String orientation;
+		
+		List<String> dominantColors = new ArrayList<>();
+		
+		ImageInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			super(pb, fileInfo, edm);
+		}
+		
+		@Override
+		void doProcess() throws IOException, MediaException {
+			ArrayList<String> convertCmd = new ArrayList<>();
+			convertCmd.addAll(Arrays.asList(magickCmd, "convert", "-", "-verbose", "-write", "info:", "+verbose"));
+			if (shouldProcessThumbnails()) {
+				if ("application/pdf".equals(fileInfo.getMimeType()))
+					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
+				String ext = "." + getThumbnailFormat();
+				thumbnails[0] = File.createTempFile("thumb200", ext);
+				thumbnails[1] = File.createTempFile("thumb400", ext);
+				convertCmd.addAll(Arrays.asList(
+						"(", "+clone", "-thumbnail", "200x", "-write", thumbnails[0].getPath(), "+delete", ")",
+						"(", "+clone", "-thumbnail", "400x", "-write", thumbnails[1].getPath(), "+delete", ")"));
+				
+				convertCmd
+						.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
+								"-format", "\nDominant colors:\n%c", "histogram:info:"));
+			}
+			Process magickProcess = pb.runCommand(convertCmd, false, fileInfo.getContent());
+			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
+			extract(identifyResult);
 		}
 		
 		void extract(String identifyResult) throws MediaException {
@@ -386,61 +437,41 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 		}
 		
-		String getThumbnailFormat() {
+		@Override
+		public String getThumbnailFormat() {
 			return Arrays.asList("application/pdf", "image/png").contains(fileInfo.getMimeType()) ? "png" : "jpeg";
 		}
 		
-	}
-	
-	private class EdmWebResourceWrapper {
-		final String ebucoreUri = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
-		private Document parent;
-		private Element edmWebResource;
-		
-		EdmWebResourceWrapper(Document edm, String url) {
-			this.parent = edm;
-			edmWebResource = null;
-			NodeList nList = edm.getElementsByTagName("edm:WebResource");
-			for (int i = 0; i < nList.getLength(); i++) {
-				Element node = (Element) nList.item(i);
-				if (node.getAttributes().getNamedItem("rdf:about").getNodeValue().equals(url)) {
-					edmWebResource = node;
-					break;
-				}
-			}
-			
-			if (edmWebResource == null) {
-				edmWebResource = edm.createElement("edm:WebResource");
-				edmWebResource.setAttribute("rdf:about", url);
-				edm.getDocumentElement().appendChild(edmWebResource);
-			}
-			parent.getDocumentElement().setAttribute("xmlns:ebucore", ebucoreUri);
+		@Override
+		void updateResourceMetadata() {
+			super.updateResourceMetadata();
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType());
+			setEbucoreValue("fileByteSize", (long) fileInfo.getContent().length);
+			setEbucoreValue("width", width);
+			setEbucoreValue("height", height);
+			setEbucoreValue("hasFormat", colorspace);
+			setEbucoreValue("dominantColors", String.join(",", dominantColors));
+			setEbucoreValue("orientation", orientation);
 		}
 		
-		void setData(ImageInfo image) {
-			setValue("hasMimeType", image.fileInfo.getMimeType());
-			setValue("fileByteSize", (long) image.fileInfo.getLength());
-			setValue("width", image.width);
-			setValue("height", image.height);
-			setValue("hasFormat", image.colorspace);
-			setValue("dominantColors", image.dominantColors.toString().replaceAll("[\\[\\] ]*", ""));
-			setValue("orientation", image.orientation);
-		}
-		
-		private void setValue(String name, Object value) {
-			Element ebucoreElement = (Element) edmWebResource.getElementsByTagName(name).item(0);
-			if (ebucoreElement == null) {
-				ebucoreElement = parent.createElementNS(ebucoreUri, "ebucore:" + name);
-				edmWebResource.appendChild(ebucoreElement);
-				
-				String type = value.getClass().getSimpleName();
-				if (!"string".equalsIgnoreCase(type)) {
-					ebucoreElement.setAttribute("rdf:datatype",
-							"http://www.w3.org/2001/XMLSchema#" + StringUtils.lowerCase(type));
+		static synchronized void init(ProcessingBolt pb) {
+			// make sure ImageMagick is available
+			boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+			try {
+				Process which = pb.runCommand(Arrays.asList(isWindows ? "where" : "which", "magick"), true);
+				List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
+				for (String path : paths) {
+					Process test = pb.runCommand(Arrays.asList(path, "-version"), true);
+					String version = doAndClose(IOUtils::toString, test.getInputStream());
+					if (version.matches("(?s)^Version: ImageMagick (6|7).*")) { // (?s) means . matches newline
+						magickCmd = path;
+						return;
+					}
 				}
+				throw new RuntimeException("ImageMagick command version 6/7 not found in " + paths);
+			} catch (IOException e) {
+				throw new RuntimeException("Error while looking for ImageMagick tools", e);
 			}
-			ebucoreElement.setTextContent(String.valueOf(value));
 		}
 	}
-	
 }

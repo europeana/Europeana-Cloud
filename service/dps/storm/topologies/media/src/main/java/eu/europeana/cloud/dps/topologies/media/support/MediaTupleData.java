@@ -44,10 +44,6 @@ public class MediaTupleData implements Serializable {
 			return mimeType;
 		}
 		
-		public int getLength() {
-			return content.length;
-		}
-		
 		public String getUrl() {
 			return url;
 		}
