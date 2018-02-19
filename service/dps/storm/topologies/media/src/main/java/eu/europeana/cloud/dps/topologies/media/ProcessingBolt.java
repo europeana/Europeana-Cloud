@@ -107,6 +107,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		TempFileSync.init(stormConf);
 		ImageInfo.init(this);
+		AudioInfo.init(this);
 	}
 	
 	@Override
@@ -124,6 +125,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		for (FileInfo file : mediaData.getFileInfos()) {
 			if (isImage(file.getMimeType())) {
 				mediaInfos.add(new ImageInfo(this, file, mediaData.getEdm()));
+			}
+			
+			if (isAudio(file.getMimeType())) {
+				mediaInfos.add(new AudioInfo(this, file, mediaData.getEdm()));
 			}
 		}
 		mediaInfos.forEach(MediaInfo::process);
@@ -181,7 +186,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		boolean uploaded = false;
 		for (MediaInfo media : mediaInfos) {
-			uploaded |= uploadThumbnail(media);
+			if (media instanceof ImageInfo) {
+				uploaded |= uploadThumbnail((ImageInfo) media);
+			}
 		}
 		if (!uploaded)
 			logger.debug("No thumbnails were uploaded for {}", cloudId);
@@ -189,7 +196,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
 	}
 	
-	private boolean uploadThumbnail(MediaInfo media) {
+	private boolean uploadThumbnail(ImageInfo media) {
 		boolean uploaded = false;
 		String url = media.fileInfo.getUrl();
 		String md5Url = DigestUtils.md5Hex(url);
@@ -247,6 +254,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		return mimeType.equals("application/pdf") || mimeType.startsWith("image");
 	}
 	
+	private static boolean isAudio(String mimeType) {
+		return mimeType.startsWith("audio");
+	}
+	
 	@FunctionalInterface
 	private interface IOFunction<T, R> {
 		R apply(T t) throws IOException;
@@ -274,24 +285,12 @@ public class ProcessingBolt extends BaseRichBolt {
 		final String errorPrefix;
 		String error;
 		
-		File[] thumbnails = new File[THUMB_SIZE.length];
-		
 		MediaInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
 			this.pb = pb;
 			this.fileInfo = fileInfo;
 			this.edm = edm;
 			
 			this.errorPrefix = getClass().getSimpleName().replace("Info", " ").toUpperCase();
-		}
-		
-		boolean shouldProcessMetadata() {
-			return Arrays.asList(UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY).stream()
-					.anyMatch(fileInfo.getTypes()::contains);
-		}
-		
-		boolean shouldProcessThumbnails() {
-			return Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY).stream()
-					.anyMatch(fileInfo.getTypes()::contains);
 		}
 		
 		public void process() {
@@ -305,14 +304,6 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 			try {
 				doProcess();
-				if (shouldProcessMetadata()) {
-					updateResourceMetadata();
-				}
-				if (shouldProcessThumbnails()
-						&& Arrays.stream(thumbnails).anyMatch(file -> file == null || file.length() == 0)) {
-					logger.warn("No thumbnail output for " + fileInfo.getUrl());
-					error = error == null ? "THUMBNAIL ERROR" : error;
-				}
 			} catch (IOException e) {
 				logger.error("Exception processing " + fileInfo.getUrl(), e);
 				error = errorPrefix + "IOException";
@@ -391,18 +382,92 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 		
 		public void clenaup() {
-			for (File thumb : thumbnails) {
-				if (thumb == null || thumb.equals(fileInfo.getContent()))
-					continue;
-				if (!thumb.delete())
-					logger.warn("Could not delete thumbnail from temp: {}", thumb);
-			}
 			TempFileSync.delete(fileInfo);
 		}
 		
 		abstract void doProcess() throws IOException, MediaException;
 		
-		public abstract String getThumbnailFormat();
+	}
+	
+	private static class AudioInfo extends MediaInfo {
+		
+		private static final Pattern DURATION = Pattern.compile("^duration=(.*)", Pattern.MULTILINE);
+		private static final Pattern CHANNELS = Pattern.compile("^channels=(.*)", Pattern.MULTILINE);
+		private static final Pattern SAMPLE_RATE = Pattern.compile("^sample_rate=(.*)", Pattern.MULTILINE);
+		private static final Pattern BITS_PER_SAMPLE = Pattern.compile("^bits_per_sample=(.*)", Pattern.MULTILINE);
+		private static final Pattern BIT_RATE = Pattern.compile("^bit_rate=(.*)", Pattern.MULTILINE);
+		
+		double duration;
+		int channels;
+		int sampleRate;
+		int bitDepth;
+		int bitRate;
+		
+		static String ffprobeCmd;
+		
+		AudioInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			super(pb, fileInfo, edm);
+		}
+		
+		@Override
+		void doProcess() throws IOException, MediaException {
+			String path = fileInfo.getContent().getPath();
+			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams", path);
+			
+			Process ffprobeProcess = pb.runCommand(cmd, false);
+			String ffprobeResult = doAndClose(IOUtils::toString, ffprobeProcess.getInputStream());
+			extract(ffprobeResult);
+		}
+		
+		void extract(String ffprobeResult) throws MediaException {
+			Matcher d = DURATION.matcher(ffprobeResult);
+			Matcher c = CHANNELS.matcher(ffprobeResult);
+			Matcher s = SAMPLE_RATE.matcher(ffprobeResult);
+			Matcher b = BITS_PER_SAMPLE.matcher(ffprobeResult);
+			Matcher br = BIT_RATE.matcher(ffprobeResult);
+			
+			if (d.find() && c.find() && s.find() && b.find() && br.find()) {
+				duration = Double.parseDouble(d.group(1));
+				channels = Integer.parseInt(c.group(1));
+				sampleRate = Integer.parseInt(s.group(1));
+				bitDepth = Integer.parseInt(b.group(1));
+				bitRate = Integer.parseInt(br.group(1));
+			} else {
+				throw new MediaException("ffprobeResult result missing data: " + ffprobeResult, "CORRUPTED");
+			}
+			
+		}
+		
+		@Override
+		void updateResourceMetadata() {
+			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
+			String typeLong = StringUtils.lowerCase(Double.class.getSimpleName());
+			String typeDouble = StringUtils.lowerCase(Double.class.getSimpleName());
+			super.updateResourceMetadata();
+			
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
+			setEbucoreValue("duration", duration, typeDouble);
+			setEbucoreValue("channels", channels, typeInteger);
+			setEbucoreValue("sampleRate", sampleRate, typeInteger);
+			setEbucoreValue("bitDepth", bitDepth, typeInteger);
+			setEbucoreValue("bitRate", bitRate, typeInteger);
+		}
+		
+		static synchronized void init(ProcessingBolt pb) {
+			boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+			try {
+				Process which = pb.runCommand(Arrays.asList(isWindows ? "where" : "which", "ffprobe"), true);
+				List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
+				if (paths.isEmpty()) {
+					throw new RuntimeException("ffprobe not found in " + paths);
+				}
+				ffprobeCmd = paths.get(0);
+			} catch (IOException e) {
+				throw new RuntimeException("Error while looking for ffprobe tools", e);
+			}
+		}
+		
 	}
 	
 	private static class ImageInfo extends MediaInfo {
@@ -417,6 +482,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		String orientation;
 		
 		List<String> dominantColors = new ArrayList<>();
+		
+		File[] thumbnails = new File[THUMB_SIZE.length];
 		
 		ImageInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
 			super(pb, fileInfo, edm);
@@ -445,6 +512,12 @@ public class ProcessingBolt extends BaseRichBolt {
 			Process magickProcess = pb.runCommand(convertCmd, false);
 			List<String> identifyResult = doAndClose(IOUtils::readLines, magickProcess.getInputStream());
 			extract(identifyResult);
+			
+			if (shouldProcessThumbnails()
+					&& Arrays.stream(thumbnails).anyMatch(file -> file == null || file.length() == 0)) {
+				logger.warn("No thumbnail output for " + fileInfo.getUrl());
+				error = error == null ? "THUMBNAIL ERROR" : error;
+			}
 		}
 		
 		void extract(List<String> identifyResult) throws MediaException {
@@ -468,7 +541,6 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 		}
 		
-		@Override
 		public String getThumbnailFormat() {
 			return Arrays.asList("application/pdf", "image/png").contains(fileInfo.getMimeType()) ? "png" : "jpeg";
 		}
@@ -508,6 +580,22 @@ public class ProcessingBolt extends BaseRichBolt {
 			} catch (IOException e) {
 				throw new RuntimeException("Error while looking for ImageMagick tools", e);
 			}
+		}
+		
+		boolean shouldProcessThumbnails() {
+			return Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY).stream()
+					.anyMatch(fileInfo.getTypes()::contains);
+		}
+		
+		@Override
+		public void clenaup() {
+			for (File thumb : thumbnails) {
+				if (thumb == null || thumb.equals(fileInfo.getContent()))
+					continue;
+				if (!thumb.delete())
+					logger.warn("Could not delete thumbnail from temp: {}", thumb);
+			}
+			super.clenaup();
 		}
 	}
 }
