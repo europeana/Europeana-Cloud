@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
-import com.lyncode.xoai.model.oaipmh.Header;
-import com.lyncode.xoai.serviceprovider.ServiceProvider;
-import com.lyncode.xoai.serviceprovider.client.OAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
+import org.dspace.xoai.model.oaipmh.Granularity;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.client.OAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
@@ -119,9 +120,11 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
         mockOAIClientProvider();
         mockDatSetClient();
         mockRevisionServiceClient();
+        mockOAIHelper();
         mockUISClient();
         configureMocks();
         mockCassandraInteraction();
+
     }
 
     private void assertTopology(final String input) {
@@ -175,6 +178,7 @@ public class OAIPHMHarvestingTopologyTest extends OAITestMocksHelper {
     }
 
     private void configureMocks() throws MCSException, IOException, URISyntaxException, BadArgumentException, OAIRequestException, CloudException, HarvesterException, CannotDisseminateFormatException, XmlWriteException, IdDoesNotExistException, XMLStreamException, TransformerConfigurationException {
+        when(oaiHelper.getGranularity()).thenReturn(Granularity.Day);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(sourceProvider.provide(anyString())).thenReturn(serviceProvider);
         List<Header> headers = new ArrayList<>();

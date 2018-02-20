@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import com.lyncode.xoai.model.oaipmh.Verb;
-import com.lyncode.xoai.serviceprovider.client.HttpOAIClient;
-import com.lyncode.xoai.serviceprovider.exceptions.OAIRequestException;
-import com.lyncode.xoai.serviceprovider.parameters.ListIdentifiersParameters;
-import com.lyncode.xoai.serviceprovider.parameters.Parameters;
+import org.dspace.xoai.model.oaipmh.Verb;
+import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
+import org.dspace.xoai.serviceprovider.exceptions.OAIRequestException;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
+import org.dspace.xoai.serviceprovider.parameters.Parameters;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -17,7 +17,6 @@ import org.xml.sax.InputSource;
 
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.*;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;

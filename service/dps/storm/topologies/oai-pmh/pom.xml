@@ -26,9 +26,9 @@
             <artifactId>hamcrest-all</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.lyncode</groupId>
+            <groupId>org.dspace</groupId>
             <artifactId>xoai-service-provider</artifactId>
-            <version>4.1.0</version>
+            <version>4.2.0</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

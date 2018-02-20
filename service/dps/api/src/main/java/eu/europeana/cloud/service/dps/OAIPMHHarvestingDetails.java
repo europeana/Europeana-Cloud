@@ -12,23 +12,40 @@ import java.util.Set;
 @XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {
 
-    /** Schemas to harvest - optional */
+    /**
+     * Schemas to harvest - optional
+     */
     private Set<String> schemas;
 
-    /** Schemas to exclude - optional */
+    /**
+     * Schemas to exclude - optional
+     */
     private Set<String> excludedSchemas;
 
-    /** Sets to harvest - optional */
+    /**
+     * Sets to harvest - optional
+     */
     private Set<String> sets;
 
-    /** Sets to exclude - optional */
+    /**
+     * Sets to exclude - optional
+     */
     private Set<String> excludedSets;
 
-    /** From date - optional */
+    /**
+     * From date - optional
+     */
     private Date dateFrom;
 
-    /** Until date - optional */
+    /**
+     * Until date - optional
+     */
     private Date dateUntil;
+
+    /**
+     * dates granularity supported by the source
+     */
+    private String granularity;
 
     public OAIPMHHarvestingDetails() {
         // serialization purposes
@@ -39,15 +56,16 @@ public class OAIPMHHarvestingDetails implements Serializable {
         this.schemas.add(schema);
     }
 
-    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> sets, Date dateFrom, Date dateUntil) {
+    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> sets, Date dateFrom, Date dateUntil, String granularity) {
         this.schemas = schemas;
         this.sets = sets;
         this.dateFrom = dateFrom;
         this.dateUntil = dateUntil;
+        this.granularity = granularity;
     }
 
-    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil) {
-        this(schemas, sets, dateFrom, dateUntil);
+    public OAIPMHHarvestingDetails(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludeSets, Date dateFrom, Date dateUntil, String granularity) {
+        this(schemas, sets, dateFrom, dateUntil, granularity);
         this.excludedSchemas = excludedSchemas;
         this.excludedSets = excludeSets;
     }
@@ -96,6 +114,8 @@ public class OAIPMHHarvestingDetails implements Serializable {
         return dateUntil;
     }
 
+    public String getGranularity() { return granularity; }
+
     public void setDateUntil(Date dateUntil) {
         this.dateUntil = dateUntil;
     }
@@ -114,6 +134,10 @@ public class OAIPMHHarvestingDetails implements Serializable {
 
     public void setExcludedSets(Set<String> excludeSets) {
         this.excludedSets = excludeSets;
+    }
+
+    public void setGranularity(String granularity) {
+        this.granularity = granularity;
     }
 
     @Override
@@ -136,7 +160,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(schemas, excludedSchemas, sets, excludedSets, dateFrom, dateUntil);
+        return Objects.hashCode(schemas, excludedSchemas, sets, excludedSets, dateFrom, dateUntil, granularity);
     }
 
     @Override
@@ -148,6 +172,9 @@ public class OAIPMHHarvestingDetails implements Serializable {
                 ", excludedSets=" + excludedSets +
                 ", dateFrom=" + dateFrom +
                 ", dateUntil=" + dateUntil +
+                ", granularity=" + granularity +
                 '}';
     }
+
+
 }
