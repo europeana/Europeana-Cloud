@@ -2,11 +2,13 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -15,8 +17,13 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -33,10 +40,13 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({CassandraTaskInfoDAO.class})
 public class ReadRepresentationBoltTest {
 
     private ReadRepresentationBolt instance;
     private OutputCollector oc;
+    private CassandraTaskInfoDAO taskInfoDAO;
     private final int TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
@@ -49,7 +59,10 @@ public class ReadRepresentationBoltTest {
     public void init() {
         oc = mock(OutputCollector.class);
         fileClient = mock(FileServiceClient.class);
-        instance = getTestInstance("http://localhost:8080/mcs", oc);
+        taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
+        PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
+        when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
+        instance = getTestInstance("http://localhost:8080/mcs", oc,taskInfoDAO);
         testHelper = new TestHelper();
     }
 
@@ -60,8 +73,9 @@ public class ReadRepresentationBoltTest {
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation),new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
         when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);

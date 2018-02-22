@@ -131,6 +131,16 @@ public class DPSClientTest {
     }
 
     @Test
+    @Betamax(tape = "DPSClient/killTaskTest")
+    public final void shouldKillTask() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID);
+        assertEquals(responseMessage, "Task killing request was registered successfully");
+
+
+    }
+
+    @Test
     @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);

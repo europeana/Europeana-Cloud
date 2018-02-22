@@ -43,11 +43,13 @@ public class DpsClient {
     private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
     private static final String REPORTS_RESOURCE = "reports";
     private static final String STATISTICS_RESOURCE = "statistics";
+    private static final String KILL_TASK = "kill";
 
     private static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
     private static final String DETAILED_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/details";
     private static final String ERRORS_TASK_REPORT_URL = TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
     private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
+    private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
 
     /**
      * Creates a new instance of this class.
@@ -236,6 +238,23 @@ public class DpsClient {
                 return response.readEntity(StatisticsReport.class);
             } else {
                 LOGGER.error("Task statistics report cannot be read");
+                throw handleException(response);
+            }
+        } finally {
+            closeResponse(response);
+        }
+    }
+
+    public String killTask(final String topologyName, final long taskId) throws DpsException {
+        Response response = null;
+        try {
+            response = client.target(dpsUrl).path(KILL_TASK_URL)
+                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request().post(null);
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(String.class);
+            } else {
+                LOGGER.error("Task Can't be killed");
                 throw handleException(response);
             }
         } finally {

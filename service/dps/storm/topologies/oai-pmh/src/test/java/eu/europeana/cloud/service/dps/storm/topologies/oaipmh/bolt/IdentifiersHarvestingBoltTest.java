@@ -12,9 +12,11 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -42,6 +44,9 @@ public class IdentifiersHarvestingBoltTest {
 
     @Mock
     private ServiceProvider source;
+
+    @Mock
+    private CassandraTaskInfoDAO taskInfoDAO;
 
     @InjectMocks
     private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
@@ -91,6 +96,11 @@ public class IdentifiersHarvestingBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, null, null, new HashMap<String, String>(), new Revision(), sourceDetails);
         tuple.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, url);
         return tuple;
+    }
+
+    @Before
+    public void init() {
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
     }
 
     @Test

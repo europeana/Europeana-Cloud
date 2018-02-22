@@ -2,19 +2,15 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.NodeStatistics;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import eu.europeana.validation.model.ValidationResult;
-import eu.europeana.validation.service.ValidationExecutionService;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.List;
+
 
 public class StatisticsBolt extends AbstractDpsBolt {
     private String hosts;

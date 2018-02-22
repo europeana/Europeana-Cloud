@@ -9,14 +9,15 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraNodeStatisticsDAO;
-import org.apache.storm.Config;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -36,28 +37,28 @@ public class StatisticsBoltTest extends CassandraTestBase {
 
     private static final String TASK_NAME = "task1";
 
+    private CassandraNodeStatisticsDAO statisticsDAO;
+
+
+    @Mock(name = "outputCollector")
     private OutputCollector collector;
 
-    private StatisticsBolt statisticsBolt;
+    @Mock
+    private CassandraTaskInfoDAO taskInfoDAO;
 
-    private CassandraNodeStatisticsDAO statisticsDAO;
+    @InjectMocks
+    private StatisticsBolt statisticsBolt = new StatisticsBolt(HOST, PORT, KEYSPACE, "", "");
+
 
     @Before
     public void setUp() throws Exception {
-        collector = Mockito.mock(OutputCollector.class);
-        statisticsBolt = new StatisticsBolt(HOST, PORT, KEYSPACE, "", "");
-
-        Map<String, Object> boltConfig = new HashMap<>();
-        boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
-        boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
-        boltConfig.put(Config.TOPOLOGY_NAME, "");
-        statisticsBolt.prepare(boltConfig, null, collector);
+        statisticsBolt.prepare();
         statisticsDAO = CassandraNodeStatisticsDAO.getInstance(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, PORT, KEYSPACE, "", ""));
 
     }
 
     @Test
-    public void testCountStatisticsSuccessfull() throws Exception {
+    public void testCountStatisticsSuccessfully() throws Exception {
         //given
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
@@ -72,7 +73,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     @Test
-    public void testAggregatedCountStatisticsSuccessfull() throws Exception {
+    public void testAggregatedCountStatisticsSuccessfully() throws Exception {
         //given
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
@@ -142,7 +143,7 @@ public class StatisticsBoltTest extends CassandraTestBase {
     public void testCountStatisticsFailed() throws Exception {
         //given
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        fileData[0]='X'; // will cause SAXException
+        fileData[0] = 'X'; // will cause SAXException
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, new HashMap<String, String>(), new Revision());
         //when
         statisticsBolt.execute(tuple);
@@ -156,6 +157,8 @@ public class StatisticsBoltTest extends CassandraTestBase {
     }
 
     private void assertFailure() {
+
+
         Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(collector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
     }

@@ -20,6 +20,8 @@ import org.powermock.api.mockito.PowerMockito;
 
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PASSWORD;
 import static eu.europeana.cloud.service.dps.test.TestConstants.NUM_WORKERS;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,7 @@ public class TopologyTestHelper {
         taskErrorsDAO = Mockito.mock(CassandraTaskErrorsDAO.class);
         PowerMockito.mockStatic(CassandraTaskErrorsDAO.class);
         when(CassandraTaskErrorsDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskErrorsDAO);
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
         PowerMockito.mockStatic(CassandraConnectionProviderSingleton.class);
         when(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(anyString(), anyInt(), anyString(), anyString(), anyString())).thenReturn(Mockito.mock(CassandraConnectionProvider.class));
     }
@@ -86,12 +89,22 @@ public class TopologyTestHelper {
     }
 
     protected CompleteTopologyParam prepareCompleteTopologyParam(MockedSources mockedSources) {
-        Config conf = new Config();
-        conf.setNumWorkers(NUM_WORKERS);
+
         CompleteTopologyParam completeTopologyParam = new CompleteTopologyParam();
         completeTopologyParam.setMockedSources(mockedSources);
-        completeTopologyParam.setStormConf(conf);
+        completeTopologyParam.setStormConf(buildConfig());
         return completeTopologyParam;
+    }
+
+    private Config buildConfig() {
+        Config conf = new Config();
+        conf.setNumWorkers(NUM_WORKERS);
+        conf.put(CASSANDRA_HOSTS, CASSANDRA_HOSTS);
+        conf.put(CASSANDRA_PORT, "9042");
+        conf.put(CASSANDRA_KEYSPACE_NAME, CASSANDRA_KEYSPACE_NAME);
+        conf.put(CASSANDRA_USERNAME, CASSANDRA_USERNAME);
+        conf.put(CASSANDRA_PASSWORD, CASSANDRA_PASSWORD);
+        return conf;
     }
 
 

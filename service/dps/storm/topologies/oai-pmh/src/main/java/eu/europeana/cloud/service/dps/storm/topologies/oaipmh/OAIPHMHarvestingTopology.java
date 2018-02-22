@@ -15,7 +15,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvest
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.TaskSplittingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
-import org.apache.storm.Config;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.*;
@@ -23,7 +23,6 @@ import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -144,10 +143,7 @@ public class OAIPHMHarvestingTopology {
     }
 
     public static void main(String[] args) throws Exception {
-        Config config = new Config();
-
         if (args.length <= 1) {
-
             String providedPropertyFile = "";
             if (args.length == 1) {
                 providedPropertyFile = args[0];
@@ -159,18 +155,7 @@ public class OAIPHMHarvestingTopology {
             String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
             String ecloudUisAddress = topologyProperties.getProperty(UIS_URL);
             StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology(kafkaTopic, ecloudMcsAddress, ecloudUisAddress);
-            config.setNumWorkers(getAnInt(WORKER_COUNT));
-            config.setMaxTaskParallelism(
-                    getAnInt(MAX_TASK_PARALLELISM));
-            config.put(Config.NIMBUS_THRIFT_PORT,
-                    getAnInt(THRIFT_PORT));
-            config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-                    topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-            config.put(Config.NIMBUS_SEEDS, Arrays.asList(topologyProperties.getProperty(NIMBUS_SEEDS)));
-            config.put(Config.STORM_ZOOKEEPER_SERVERS,
-                    Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
-
-            StormSubmitter.submitTopology(topologyName, config, stormTopology);
+            StormSubmitter.submitTopology(topologyName, TopologyHelper.configureTopology(topologyProperties), stormTopology);
         }
     }
 }
