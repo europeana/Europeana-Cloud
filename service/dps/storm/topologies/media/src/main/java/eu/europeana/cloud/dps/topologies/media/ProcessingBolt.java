@@ -178,24 +178,15 @@ public class ProcessingBolt extends BaseRichBolt {
 	private void saveThumbnails(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
 		long start = System.currentTimeMillis();
 		String cloudId = mediaData.getEdmRepresentation().getCloudId();
-		try {
-			boolean uploaded = false;
-			for (MediaInfo media : mediaInfos) {
-				uploaded |= uploadThumbnail(media);
-			}
-			if (!uploaded)
-				logger.debug("No thumbnails were uploaded for {}", cloudId);
-			
-		} catch (AmazonClientException e) {
-			logger.error("Could not store thumbnail in bucket "
-					+ storageBucket, e);
-			for (MediaInfo media : mediaInfos) {
-				if (media.error == null)
-					media.error = "THUMBNAIL SAVING";
-			}
+		
+		boolean uploaded = false;
+		for (MediaInfo media : mediaInfos) {
+			uploaded |= uploadThumbnail(media);
 		}
-		logger.debug("thumbnail saving{} took {} ms", persistResult ? "" : " simulation",
-				System.currentTimeMillis() - start);
+		if (!uploaded)
+			logger.debug("No thumbnails were uploaded for {}", cloudId);
+		
+		logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
 	}
 	
 	private boolean uploadThumbnail(MediaInfo media) {
@@ -212,7 +203,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				cos.putObject(storageBucket,
 						storedFilename, media.thumbnails[i]);
 				
-				logger.debug("thumbnail saved: {}", storedFilename + ": md5(" + url + ")-" + size);
+				logger.debug("thumbnail saved: {}: md5({})-{}", storedFilename, url, size);
 				uploaded = true;
 			} catch (AmazonClientException e) {
 				logger.error("Could not save thumbnails for " + media.fileInfo.getUrl(), e);
@@ -366,9 +357,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 		
 		void setEdmValues(String name, List<String> values, String type) {
-			removeElements(name);
+			String edmFieldName = "edm:" + name;
+			removeElements(edmFieldName);
 			for (Object color : values) {
-				createElement("edm:" + name, type).setTextContent(String.valueOf(color));;
+				createElement(edmFieldName, type).setTextContent(String.valueOf(color));;
 			}
 		}
 		
@@ -415,7 +407,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class ImageInfo extends MediaInfo {
 		
-		static final Pattern DOMINANT_COLORS = Pattern.compile("#([0-9A-F]+)", Pattern.MULTILINE);
+		static final Pattern DOMINANT_COLORS = Pattern.compile("#([0-9A-F]+)");
 		
 		static String magickCmd;
 		
