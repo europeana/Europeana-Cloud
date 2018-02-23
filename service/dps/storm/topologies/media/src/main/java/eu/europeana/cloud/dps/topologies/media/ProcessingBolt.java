@@ -88,11 +88,11 @@ public class ProcessingBolt extends BaseRichBolt {
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.outputCollector = collector;
 		
-		BasicAWSCredentials credentials = new BasicAWSCredentials(stormConf.get("AWSCredentials.accessKey").toString(),
-				stormConf.get("AWSCredentials.secretKey").toString());
+		BasicAWSCredentials credentials = new BasicAWSCredentials((String) stormConf.get("AWS_CREDENTIALS_ACCESSKEY"),
+				(String) stormConf.get("AWS_CREDENTIALS_SECRETKEY"));
 		cos = new AmazonS3Client(credentials);
-		cos.setEndpoint(stormConf.get("AWSCredentials.endpoint").toString());
-		storageBucket = stormConf.get("AWSCredentials.bucket").toString();
+		cos.setEndpoint((String) stormConf.get("AWS_CREDENTIALS_ENDPOINT"));
+		storageBucket = (String) stormConf.get("AWS_CREDENTIALS_BUCKET");
 		
 		threadPool = Executors.newFixedThreadPool(2);
 		try {
@@ -200,12 +200,12 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private boolean uploadThumbnail(MediaInfo media) {
 		boolean uploaded = false;
+		String url = media.fileInfo.getUrl();
+		String md5Url = DigestUtils.md5Hex(url);
 		for (int i = 0; i < THUMB_SIZE.length; i++) {
 			try {
 				if (media.thumbnails[i] == null)
 					continue;
-				String url = media.fileInfo.getUrl();
-				String md5Url = DigestUtils.md5Hex(url);
 				String size = i == 0 ? "MEDIUM" : "LARGE";
 				String storedFilename = md5Url + "-" + size;
 				
@@ -271,7 +271,9 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private abstract static class MediaInfo {
 		
-		static final String EBUCORE_RUI = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
+		static final String EBUCORE_URI = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
+		
+		static final String EDM_URI = "http://www.europeana.eu/schemas/edm/";
 		
 		final ProcessingBolt pb;
 		final FileInfo fileInfo;
@@ -351,40 +353,45 @@ public class ProcessingBolt extends BaseRichBolt {
 				edmWebResource.setAttribute("rdf:about", fileInfo.getUrl());
 				edm.getDocumentElement().appendChild(edmWebResource);
 			}
-			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_RUI);
+			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_URI);
+			edm.getDocumentElement().setAttribute("xmlns:edm", EDM_URI);
 		}
 		
-		void setMetaValue(String name, Object value, String type) {
-			Element ebucoreElement = (Element) edmWebResource.getElementsByTagName(name).item(0);
-			
-			String[] n = name.split(":");
-			if (ebucoreElement == null && n.length == 2) {
-				ebucoreElement = edm.createElementNS(EBUCORE_RUI, n[0] + ":" + n[1]);
-				edmWebResource.appendChild(ebucoreElement);
-				
-				if (type != null) {
-					ebucoreElement.setAttribute("rdf:datatype",
-							"http://www.w3.org/2001/XMLSchema#" + type);
-				}
+		void setEbucoreValue(String name, Object value, String type) {
+			setValue("ebucore:" + name, value, type);
+		}
+		
+		void setEdmValue(String name, Object value, String type) {
+			setValue("edm:" + name, value, type);
+		}
+		
+		void setEdmValues(String name, List<String> values, String type) {
+			removeElements(name);
+			for (Object color : values) {
+				createElement("edm:" + name, type).setTextContent(String.valueOf(color));;
 			}
-			ebucoreElement.setTextContent(String.valueOf(value));
 		}
 		
-		void addMetaValue(String name, Object value, String type) {
-			String[] n = name.split(":");
-			if (n.length == 2) {
-				Element ebucoreElement = edm.createElementNS(EBUCORE_RUI, n[0] + ":" + n[1]);
-				edmWebResource.appendChild(ebucoreElement);
-				if (type != null) {
-					ebucoreElement.setAttribute("rdf:datatype",
-							"http://www.w3.org/2001/XMLSchema#" + type);
-				}
-				ebucoreElement.setTextContent(String.valueOf(value));
+		void setValue(String name, Object value, String type) {
+			Element element = (Element) edmWebResource.getElementsByTagName(name).item(0);
+			if (element == null) {
+				element = createElement(name, type);
 			}
-			
+			element.setTextContent(String.valueOf(value));
 		}
 		
-		void removeMetaValues(String name) {
+		Element createElement(String name, String type) {
+			Element element = edm.createElement(name);
+			edmWebResource.appendChild(element);
+			
+			if (type != null) {
+				element.setAttribute("rdf:datatype",
+						"http://www.w3.org/2001/XMLSchema#" + type);
+			}
+			return element;
+		}
+		
+		void removeElements(String name) {
 			NodeList nodeList = edmWebResource.getElementsByTagName(name);
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				edmWebResource.removeChild(nodeList.item(i));
@@ -408,7 +415,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class ImageInfo extends MediaInfo {
 		
-		static final Pattern DOMINANT_COLORS = Pattern.compile("^\\s+([0-9]*):.*#([0-9a-zA-Z]+).*$", Pattern.MULTILINE);
+		static final Pattern DOMINANT_COLORS = Pattern.compile("#([0-9A-F]+)", Pattern.MULTILINE);
 		
 		static String magickCmd;
 		
@@ -428,9 +435,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			ArrayList<String> convertCmd = new ArrayList<>();
 			String path = fileInfo.getContent().getPath();
 			convertCmd.addAll(
-					Arrays.asList(magickCmd, "convert", path, "-format", "%w,%h,%[colorspace],%[orientation],",
-							"-verbose", "-write", "info:",
-							" -format \"\n%w\" ", "+verbose"));
+					Arrays.asList(magickCmd, "convert", path, "-format", "%w\n%h\n%[colorspace]\n%[orientation]\n",
+							"-write", "info:"));
 			if (shouldProcessThumbnails()) {
 				String ext = "." + getThumbnailFormat();
 				thumbnails[0] = File.createTempFile("thumb200", ext);
@@ -439,29 +445,30 @@ public class ProcessingBolt extends BaseRichBolt {
 					convertCmd.addAll(Arrays.asList("-background", "white", "-alpha", "remove"));
 				convertCmd.addAll(Arrays.asList(
 						"(", "+clone", "-thumbnail", "200x", "-write", thumbnails[0].getPath(), "+delete", ")",
-						"-thumbnail", "400x", thumbnails[1].getPath()));
+						"-thumbnail", "400x", "-write", thumbnails[1].getPath()));
 				
 				convertCmd.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
-						"-format", "\nDominant colors:\n%c", "histogram:info:"));
+						"-format", "\n%c", "histogram:info:"));
 			}
 			Process magickProcess = pb.runCommand(convertCmd, false);
-			String identifyResult = doAndClose(IOUtils::toString, magickProcess.getInputStream());
+			List<String> identifyResult = doAndClose(IOUtils::readLines, magickProcess.getInputStream());
 			extract(identifyResult);
 		}
 		
-		void extract(String identifyResult) throws MediaException {
-			List<String> lines = Arrays.asList(identifyResult.split(","));
+		void extract(List<String> identifyResult) throws MediaException {
 			
-			if (lines.size() > 4 && lines.subList(0, 3).stream().allMatch(l -> !l.isEmpty())) {
-				width = Integer.parseInt(lines.get(0));
-				height = Integer.parseInt(lines.get(1));
-				colorspace = lines.get(2);
-				orientation = lines.get(3);
+			if (identifyResult.size() > 4 && identifyResult.subList(0, 3).stream().allMatch(l -> !l.isEmpty())) {
+				width = Integer.parseInt(identifyResult.get(0));
+				height = Integer.parseInt(identifyResult.get(1));
+				colorspace = identifyResult.get(2);
+				orientation = identifyResult.get(3);
 				
-				Matcher dc =
-						DOMINANT_COLORS.matcher(identifyResult.substring(identifyResult.indexOf("Dominant colors:")));
-				while (dc.find()) {
-					dominantColors.add(dc.group(2));
+				for (String value : identifyResult.subList(4, identifyResult.size())) {
+					Matcher dc =
+							DOMINANT_COLORS.matcher(value);
+					if (dc.find()) {
+						dominantColors.add(dc.group(1).toLowerCase());
+					}
 				}
 				
 			} else {
@@ -482,17 +489,13 @@ public class ProcessingBolt extends BaseRichBolt {
 			String typeLong = StringUtils.lowerCase(Long.class.getSimpleName());
 			String typeString = StringUtils.lowerCase(String.class.getSimpleName());
 			
-			setMetaValue("ebucore:hasMimeType", fileInfo.getMimeType(), null);
-			setMetaValue("ebucore:fileByteSize", fileInfo.getContent().length(), typeLong);
-			setMetaValue("ebucore:width", width, typeInteger);
-			setMetaValue("ebucore:height", height, typeInteger);
-			setMetaValue("edm:hasColorSpace", colorspace, null);
-			
-			removeMetaValues("componentColor");
-			for (String color : dominantColors) {
-				addMetaValue("edm:componentColor", color, "hexBinary");
-			}
-			setMetaValue("ebucore:orientation", orientation, typeString);
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
+			setEbucoreValue("width", width, typeInteger);
+			setEbucoreValue("height", height, typeInteger);
+			setEdmValue("hasColorSpace", colorspace, null);
+			setEdmValues("componentColor", dominantColors, "hexBinary");
+			setEbucoreValue("orientation", orientation, typeString);
 		}
 		
 		static synchronized void init(ProcessingBolt pb) {

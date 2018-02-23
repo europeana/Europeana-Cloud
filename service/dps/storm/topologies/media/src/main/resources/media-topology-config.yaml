@@ -40,8 +40,9 @@ NOTIFICATION_BOLT_PARALLEL: 1
 #
 # Storm Parallelism
 NOTIFICATION_BOLT_NUMBER_OF_TASKS: 1
-#AWSCredentials
-AWSCredentials.accessKey: ""
-AWSCredentials.secretKey: ""
-AWSCredentials.endpoint: "https://s3.eu-geo.objectstorage.softlayer.net"
-AWSCredentials.bucket: "europeana-crf-thumbnails-test"
+
+# Bluemix Storage
+AWS_CREDENTIALS_ACCESSKEY: ""
+AWS_CREDENTIALS_SECRETKEY: ""
+AWS_CREDENTIALS_ENDPOINT: "https://s3.eu-geo.objectstorage.softlayer.net"
+AWS_CREDENTIALS_BUCKET: "europeana-crf-thumbnails-test"
