@@ -32,6 +32,8 @@ import java.util.*;
 
 
 import static eu.europeana.cloud.service.dps.storm.io.ReadRepresentationBolt.getTestInstance;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
@@ -62,7 +64,7 @@ public class ReadRepresentationBoltTest {
         taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
         PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
         when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
-        instance = getTestInstance("http://localhost:8080/mcs", oc,taskInfoDAO);
+        instance = getTestInstance("http://localhost:8080/mcs", oc, taskInfoDAO);
         testHelper = new TestHelper();
     }
 
@@ -72,10 +74,33 @@ public class ReadRepresentationBoltTest {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date());
+        Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
-        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL));
-        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false);
+        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false, false);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        //when
+        instance.execute(tuple);
+        //then
+        String exptectedFileUrl = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/fileName";
+        verify(oc, times(2)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), is(2));
+        List<Values> allValues = captor.getAllValues();
+        for (Values values : allValues) {
+            assertNotNull(values);
+            assertTrue(values.size() >= 4);
+            assertFile(exptectedFileUrl, values);
+        }
+        verifyNoMoreInteractions(oc);
+    }
+
+    @Test
+    public void NoFilesShouldBeEmittedIfTaskWasKilled() throws MCSException, URISyntaxException {
+        //given
+        Representation representation = testHelper.prepareRepresentationWithMultipleFiles(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, new Date(), 2);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, FILE_URL, FILE_DATA, prepareStormTaskTupleParameters(representation), new Revision());
+        when(fileClient.getFileUri(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE + FILE)).thenReturn(new URI(FILE_URL)).thenReturn(new URI(FILE_URL));
+        when(taskInfoDAO.hasKillFlag(anyLong())).thenReturn(false, true);
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.execute(tuple);
@@ -84,13 +109,17 @@ public class ReadRepresentationBoltTest {
         verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertFile(exptectedFileUrl, allValues);
+        for (Values values : allValues) {
+            assertNotNull(values);
+            assertTrue(values.size() >= 4);
+            assertFile(exptectedFileUrl, values);
+        }
         verifyNoMoreInteractions(oc);
     }
 
 
-    private void assertFile(String expectedFileUrl, List<Values> allValues) {
-        String fileUrl = ((Map<String, String>) allValues.get(0).get(4)).get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
+    private void assertFile(String expectedFileUrl, Values values) {
+        String fileUrl = ((Map<String, String>) values.get(4)).get(PluginParameterKeys.DPS_TASK_INPUT_DATA);
         assertThat(fileUrl, is(expectedFileUrl));
     }
 

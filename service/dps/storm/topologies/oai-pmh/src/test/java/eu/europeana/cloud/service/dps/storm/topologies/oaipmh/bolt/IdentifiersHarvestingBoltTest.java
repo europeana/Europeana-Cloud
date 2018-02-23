@@ -48,6 +48,7 @@ public class IdentifiersHarvestingBoltTest {
     @Mock
     private CassandraTaskInfoDAO taskInfoDAO;
 
+
     @InjectMocks
     private IdentifiersHarvestingBolt instance = new IdentifiersHarvestingBolt();
 
@@ -294,6 +295,27 @@ public class IdentifiersHarvestingBoltTest {
         verifyNoMoreInteractions(oc);
         verifyNoInteraction();
     }
+
+    @Test
+    public void testListIdentifierAfterKillingTheTask() {
+        //given
+        StormTaskTuple tuple = configureStormTaskTuple(OAI_URL, SCHEMA, null, null, null, null);
+        when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        //when
+        instance.execute(tuple);
+        //then
+        verify(oc, times(1)).emit(any(Tuple.class), captor.capture());
+
+        List<Values> values = captor.getAllValues();
+        assertThat(values.size(), is(1));
+
+        Set<String> identifiers = new HashSet<>();
+        identifiers.add(((HashMap<String, String>) values.get(0).get(4)).get(PluginParameterKeys.OAI_IDENTIFIER));
+        verifyNoMoreInteractions(oc);
+        verifyNoInteraction();
+    }
+
 
     private void verifyNoInteraction() {
         verify(oc, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());

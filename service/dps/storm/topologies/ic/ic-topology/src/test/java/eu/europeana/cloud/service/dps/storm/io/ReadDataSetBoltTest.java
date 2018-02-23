@@ -13,6 +13,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DateHelper;
 import eu.europeana.cloud.service.dps.test.TestHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -21,14 +22,17 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt.getTestInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
@@ -39,11 +43,22 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ReadDataSetBoltTest {
 
 
-    private ReadDatasetBolt instance;
+    @Mock(name = "outputCollector")
     private OutputCollector oc;
+
+
+    @Mock
+    private CassandraTaskInfoDAO taskInfoDAO;
+
+
+    @InjectMocks
+    private ReadDatasetBolt instance = new ReadDatasetBolt("http://localhost:8080/mcs");
+
+
     private final int TASK_ID = 1;
     private final byte[] FILE_DATA = "Data".getBytes();
     private DataSetServiceClient datasetClient;
@@ -55,12 +70,11 @@ public class ReadDataSetBoltTest {
 
     @Before
     public void init() {
-        oc = mock(OutputCollector.class);
         datasetClient = mock(DataSetServiceClient.class);
         recordServiceClient = mock(RecordServiceClient.class);
         representationIterator = mock(RepresentationIterator.class);
-        instance = getTestInstance("http://localhost:8080/mcs", oc);
         testHelper = new TestHelper();
+
     }
 
     @Captor
@@ -69,7 +83,8 @@ public class ReadDataSetBoltTest {
     @Test
     public void successfulExecuteStormTuple() throws MCSException, URISyntaxException {
         //given
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL),new Revision());
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
         Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         List<Representation> representations = new ArrayList<>();
         representations.add(representation);
@@ -81,9 +96,25 @@ public class ReadDataSetBoltTest {
 
 
     @Test
+    public void killTaskShouldPreventEmittingRepresentation() throws MCSException, URISyntaxException {
+        //given
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(SOURCE_DATASET_URL), new Revision());
+        Representation representation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>();
+        representations.add(representation);
+        when(datasetClient.getRepresentationIterator(anyString(), anyString())).thenReturn(representationIterator);
+        when(representationIterator.hasNext()).thenReturn(true, true, false);
+        when(representationIterator.next()).thenReturn(representation);
+        assertBoltExecutionResults(tuple, representations);
+    }
+
+
+    @Test
     public void successfulStormTupleExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
         //given
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL),new Revision());
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
         List<Representation> representations = new ArrayList<>();
@@ -104,7 +135,29 @@ public class ReadDataSetBoltTest {
         assertBoltExecutionResults(tuple, representations);
     }
 
+    @Test
+    public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithLatestRevisions() throws MCSException, URISyntaxException {
+        //given
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>();
+        representations.add(firstRepresentation);
+        representations.add(secondRepresentation);
+
+        List<CloudIdAndTimestampResponse> cloudIdAndTimestampResponseList = testHelper.prepareCloudIdAndTimestampResponseList(date);
+        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
+
+        when(datasetClient.getLatestDataSetCloudIdByRepresentationAndRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean())).thenReturn(cloudIdAndTimestampResponseList);
+        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
+
+        assertBoltExecutionResults(tuple, representations.subList(0, 1));
+    }
+
     private void assertBoltExecutionResults(StormTaskTuple tuple, List<Representation> representations) {
+
         when(oc.emit(any(Tuple.class), anyList())).thenReturn(null);
         //when
         instance.emitSingleRepresentationFromDataSet(tuple, datasetClient, recordServiceClient);
@@ -126,7 +179,8 @@ public class ReadDataSetBoltTest {
     @Test
     public void successfulStormTupleExecutionWithSpecificRevisions() throws MCSException, URISyntaxException {
         //given
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL),new Revision());
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
         tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
 
         Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
@@ -146,6 +200,30 @@ public class ReadDataSetBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(secondRepresentation);
         assertBoltExecutionResults(tuple, representations);
+    }
+
+    @Test
+    public void killTaskShouldPreventEmittingRepresentationWhenExecutionWithSpecificRevisions() throws MCSException, URISyntaxException {
+        //given
+        when(taskInfoDAO.hasKillFlag(TASK_ID)).thenReturn(false, true);
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParametersForRevision(SOURCE_DATASET_URL), new Revision());
+        tuple.getParameters().put(PluginParameterKeys.REVISION_TIMESTAMP, DateHelper.getUTCDateString(date));
+
+        Representation firstRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        Representation secondRepresentation = testHelper.prepareRepresentation(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, SOURCE_VERSION_URL, DATA_PROVIDER, false, date);
+        List<Representation> representations = new ArrayList<>();
+        representations.add(firstRepresentation);
+        representations.add(secondRepresentation);
+
+        List<CloudTagsResponse> cloudIdCloudTagsResponses = testHelper.prepareCloudTagsResponsesList();
+        when(datasetClient.getDataSetRevisions(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(cloudIdCloudTagsResponses);
+
+        RepresentationRevisionResponse firstRepresentationRevisionResponse = new RepresentationRevisionResponse(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, REVISION_PROVIDER, REVISION_NAME, date);
+
+        when(recordServiceClient.getRepresentationRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, DateHelper.getUTCDateString(date))).thenReturn(firstRepresentationRevisionResponse);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(firstRepresentation);
+
+        assertBoltExecutionResults(tuple, representations.subList(0, 1));
     }
 
     private void assertRepresentation(Representation expectedRepresentation, String representationJSON) {
