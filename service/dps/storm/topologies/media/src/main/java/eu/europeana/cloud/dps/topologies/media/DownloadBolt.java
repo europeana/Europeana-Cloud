@@ -1,28 +1,21 @@
 package eu.europeana.cloud.dps.topologies.media;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.nio.client.methods.HttpAsyncMethods;
+import org.apache.http.nio.client.methods.ZeroCopyConsumer;
+import org.apache.http.pool.ConnPoolControl;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -32,50 +25,44 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.dps.topologies.media.support.MediaException;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
-import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.TempFileSync;
-import eu.europeana.cloud.dps.topologies.media.support.Util;
-import eu.europeana.cloud.mcs.driver.FileServiceClient;
 
 public class DownloadBolt extends BaseRichBolt {
+	
+	/** Temporary "error" value for counting successful downloads */
+	private static final String OK = "OK";
 	
 	private static final Logger logger = LoggerFactory.getLogger(DownloadBolt.class);
 	
 	private OutputCollector outputCollector;
 	
-	private FileServiceClient fileClient;
-	
-	private DocumentBuilder documentBuilder;
-	
-	private CloseableHttpClient httpClient;
+	private CloseableHttpAsyncClient httpClient;
+	private ConnPoolControl<HttpRoute> connPoolControl;
 	
 	private InetAddress localAddress;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+		
 		outputCollector = collector;
 		
-		fileClient = Util.getFileServiceClient(stormConf);
-		
 		try {
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			dbFactory.setNamespaceAware(true);
-			documentBuilder = dbFactory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			throw new RuntimeException("xml problem", e);
+			PoolingNHttpClientConnectionManager connMgr =
+					new PoolingNHttpClientConnectionManager(new DefaultConnectingIOReactor());
+			connMgr.setDefaultMaxPerRoute(
+					(int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE", 4));
+			connMgr.setMaxTotal((int) (long) stormConf.getOrDefault("MEDIATOPOLOGY_CONNECTIONS_TOTAL", 200));
+			httpClient = HttpAsyncClients.custom().setConnectionManager(connMgr).build();
+			httpClient.start();
+			connPoolControl = connMgr;
+		} catch (IOException e) {
+			throw new RuntimeException("Could not initialize http client", e);
 		}
 		
-		httpClient = HttpClients.createDefault();
 		localAddress = TempFileSync.startServer(stormConf);
 	}
 	
@@ -98,108 +85,88 @@ public class DownloadBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple input) {
 		MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
+		List<FileInfo> files = data.getFileInfos();
+		StatsTupleData stats = new StatsTupleData(data.getTaskId(), files.size());
 		
-		Map<String, Set<UrlType>> urls;
+		List<ZeroCopyConsumer<Void>> fileStorers = new ArrayList<>();
 		try {
-			Representation rep = data.getEdmRepresentation();
-			List<File> files = rep.getFiles();
-			if (files.size() != 1)
-				throw new MediaException("EDM representation has " + files.size() + " files!");
-			Document edm = getEdmDocument(rep, files.get(0));
-			urls = retrieveUrls(edm);
-			
-			data.setEdm(edm);
-		} catch (MediaException e) {
-			logger.error("Could not retrieve media urls from representation " + data.getEdmRepresentation(), e);
+			for (FileInfo fileInfo : files)
+				fileStorers.add(createFileStorer(fileInfo, stats, input));
+		} catch (IOException e) {
+			logger.error("Disk error", e);
 			outputCollector.fail(input);
 			return;
 		}
-		
-		StatsTupleData stats = new StatsTupleData(data.getTaskId(), urls.size());
-		stats.setDownloadStartTime(System.currentTimeMillis());
-		long byteCount = 0;
-		
-		for (Entry<String, Set<UrlType>> entry : urls.entrySet()) {
-			try {
-				FileInfo info = downloadFile(entry.getKey());
-				info.setTypes(entry.getValue());
-				data.addFileInfo(info);
-				byteCount += info.getContent().length();
-			} catch (MediaException e) {
-				logger.info("Download failed ({}) for {}", e.getMessage(), entry.getKey());
-				logger.trace("download failure details:", e);
-				if (e.reportError != null) {
-					stats.addError("DOWNLOAD: " + e.reportError);
-				} else {
-					logger.warn("Exception without proper report error:", e);
-					stats.addError("DOWNLOAD: UNKNOWN");
-				}
-			}
+		for (int i = 0; i < files.size(); i++) {
+			httpClient.execute(HttpAsyncMethods.createGet(files.get(i).getUrl()), fileStorers.get(i), null);
 		}
-		stats.setDownloadEndTime(System.currentTimeMillis());
-		if (!data.getFileInfos().isEmpty()) {
-			stats.setDownloadedBytes(byteCount);
-			outputCollector.emit(input, new Values(data, stats));
-		} else {
-			outputCollector.emit(StatsTupleData.STREAM_ID, input, new Values(stats));
-		}
-		outputCollector.ack(input);
 	}
 	
-	private Map<String, Set<UrlType>> retrieveUrls(Document edm) throws MediaException {
-		Map<String, Set<UrlType>> urls = new HashMap<>();
-		long start = System.currentTimeMillis();
-		
-		for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
-			NodeList list = edm.getElementsByTagName(urlType.tagName);
-			for (int i = 0; i < list.getLength(); i++) {
-				String url = ((Element) list.item(i)).getAttribute("rdf:resource");
-				urls.computeIfAbsent(url, e -> new HashSet<>()).add(urlType);
-			}
-		}
-		
-		logger.debug("edm document retrieving took {} ms", System.currentTimeMillis() - start);
-		
-		if (urls.isEmpty())
-			throw new MediaException("edm file representation doesn't contain content urls");
-		return urls;
-	}
-	
-	@SuppressWarnings("resource") // response shouldn't be closed, it may prevent connection reuse
-	private FileInfo downloadFile(String fileUrl) throws MediaException {
-		long start = System.currentTimeMillis();
-		try {
-			HttpResponse response = httpClient.execute(new HttpGet(fileUrl));
+	private ZeroCopyConsumer<Void> createFileStorer(FileInfo fileInfo, StatsTupleData stats, Tuple tuple)
+			throws IOException {
+		java.io.File content = java.io.File.createTempFile("media", null);
+		return new ZeroCopyConsumer<Void>(content) {
 			
-			try {
+			@Override
+			protected Void process(HttpResponse response, java.io.File file, ContentType contentType) throws Exception {
 				int status = response.getStatusLine().getStatusCode();
-				if (status < 200 || status >= 300)
-					throw new MediaException("status code " + status, "STATUS CODE " + status);
-				
-				java.io.File content = java.io.File.createTempFile("media", null);
-				try (FileOutputStream out = new FileOutputStream(content)) {
-					IOUtils.copy(response.getEntity().getContent(), out);
+				long byteCount = file.length();
+				if (status < 200 || status >= 300 || byteCount == 0) {
+					logger.info("Download error (code {}) for {}", status, fileInfo.getUrl());
+					if (file.exists() && !file.delete())
+						logger.warn("Could not remove temp file {}", file);
+					statusUpdate("DOWNLOAD: STATUS CODE " + status);
+					return null;
 				}
-				String mimeType = ContentType.get(response.getEntity()).getMimeType();
-				return new FileInfo(fileUrl, mimeType, content, localAddress);
-			} finally {
-				EntityUtils.consume(response.getEntity());
-				logger.debug("download took {} ms: {}", System.currentTimeMillis() - start, fileUrl);
+				fileInfo.setContent(file);
+				fileInfo.setMimeType(contentType.getMimeType());
+				fileInfo.setContentSource(localAddress);
+				
+				long now = System.currentTimeMillis();
+				stats.setDownloadEndTime(now);
+				if (stats.getDownloadStartTime() == 0) {
+					// too hard to determine actual start time, not significant for global measurement
+					stats.setDownloadStartTime(now);
+				}
+				stats.setDownloadedBytes(stats.getDownloadedBytes() + byteCount);
+				
+				statusUpdate(OK);
+				return null;
 			}
-		} catch (IOException e) {
-			throw new MediaException("connection error: " + e.getMessage(), "CONNECTION ERROR", e);
-		}
+			
+			@Override
+			protected void releaseResources() {
+				super.releaseResources();
+				Exception e = getException();
+				if (e != null) {
+					logger.info("Download exception ({}) for {}", e.getMessage(), fileInfo.getUrl());
+					logger.trace("Download failure details:", e);
+					if (content.exists() && !content.delete())
+						logger.warn("Could not remove temp file {}", content);
+					statusUpdate("CONNECTION ERROR");
+				}
+			}
+
+			private void statusUpdate(String status) {
+				stats.addError(status);
+				if (stats.getErrors().size() == stats.getResourceCount()) {
+					boolean someSuccess = stats.getErrors().removeIf(OK::equals);
+					
+					MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
+					data.getFileInfos().removeIf(f -> f.getContent() == null);
+					
+					logger.debug("Completed resource download for {} ({} files, {} bytes)",
+							data.getEdmRepresentation().getCloudId(), data.getFileInfos().size(),
+							stats.getDownloadedBytes());
+					if (someSuccess) {
+						outputCollector.emit(tuple, new Values(data, stats));
+					} else {
+						outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
+					}
+					outputCollector.ack(tuple);
+				}
+			}
+		};
 	}
 	
-	private Document getEdmDocument(Representation rep, File file) throws MediaException {
-		try {
-			try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-					file.getFileName())) {
-				return documentBuilder.parse(is);
-			}
-		} catch (Exception e) {
-			throw new MediaException("Could not read edm file", e);
-		}
-		
-	}
 }

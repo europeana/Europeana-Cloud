@@ -1,160 +1,390 @@
 package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import org.apache.storm.Config;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.storm.kafka.KafkaSpout;
-import org.apache.storm.kafka.SpoutConfig;
-import org.apache.storm.kafka.StringScheme;
-import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.shade.org.eclipse.jetty.util.ConcurrentHashSet;
 import org.apache.storm.spout.ISpoutOutputCollector;
-import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.FileInfo;
+import eu.europeana.cloud.dps.topologies.media.support.MediaTupleData.UrlType;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
+import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
-public class DataSetReaderSpout extends KafkaSpout {
+/**
+ * Wraps a base spout that generates tuples with JSON encoded {@link DpsTask}s
+ * (usually a {@link KafkaSpout}) and translates its output to handle one EDM
+ * representation per tuple.
+ */
+public class DataSetReaderSpout extends BaseRichSpout {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DataSetReaderSpout.class);
 	
+	private final IRichSpout baseSpout;
 	private SpoutOutputCollector outputCollector;
+	private Map<String, Object> config;
 	
-	private DataSetServiceClient datasetClient;
+	private ConcurrentHashMap<String, EdmInfo> edmsByCloudId = new ConcurrentHashMap<>();
 	
-	private List<TaskInfo> pendingTasks = new ArrayList<>();
+	private ConcurrentHashMap<String, SourceInfo> sourcesByHost = new ConcurrentHashMap<>();
 	
-	private TaskInfo taskInfo;
-	private RepresentationIterator representationIterator;
+	private DatasetDownloader datasetDownloader;
+	private EdmDownloader edmDownloader;
+	
 	private long emitLimit;
-	private long emitCount = 0;
 	private long startTime;
 	
-	public DataSetReaderSpout(Config conf) {
-		super(getKafkaConfig(conf));
-	}
-	
-	private static SpoutConfig getKafkaConfig(Config conf) {
-		String topologyName = (String) conf.get(TopologyPropertyKeys.TOPOLOGY_NAME);
-		ZkHosts brokerHosts = new ZkHosts((String) conf.get(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
-		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topologyName, "", "storm");
-		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-		kafkaConfig.ignoreZkOffsets = true;
-		kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
-		return kafkaConfig;
+	public DataSetReaderSpout(IRichSpout baseSpout) {
+		this.baseSpout = baseSpout;
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(MediaTupleData.FIELD_NAME));
+		declarer.declare(new Fields(MediaTupleData.FIELD_NAME, MediaTopology.SOURCE_FIELD));
 		declarer.declareStream(StatsInitTupleData.STREAM_ID, new Fields(StatsInitTupleData.FIELD_NAME));
 	}
 	
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		outputCollector = collector;
+		config = conf;
 		
-		datasetClient = Util.getDataSetServiceClient(conf);
+		datasetDownloader = new DatasetDownloader();
+		edmDownloader = new EdmDownloader();
 		
 		emitLimit = (Long) conf.getOrDefault("MEDIATOPOLOGY_DATASET_EMIT_LIMIT", Long.MAX_VALUE);
 		
-		super.open(conf, context, new CollectorWrapper(collector));
+		baseSpout.open(conf, context, new CollectorWrapper(collector));
+	}
+	
+	@Override
+	public void close() {
+		baseSpout.close();
+		edmDownloader.stop();
 	}
 	
 	@Override
 	public void nextTuple() {
-		if (taskInfo != null && !representationIterator.hasNext() && !taskInfo.failedQueue.isEmpty()) {
-			Object cloudId = taskInfo.failedQueue.remove();
-			Representation rep = taskInfo.pendingRepresentations.get(cloudId);
-			MediaTupleData data = new MediaTupleData(taskInfo.task.getTaskId(), rep);
-			outputCollector.emit(new Values(data), rep.getCloudId());
-			logger.info("Reemiting failed msg: {}", cloudId);
-			return;
-		}
-		if (representationIterator == null || !representationIterator.hasNext()) {
-			super.nextTuple();
-		}
-		while (representationIterator != null && representationIterator.hasNext() && emitCount < emitLimit) {
-			Representation rep = representationIterator.next();
-			if ("edm".equals(rep.getRepresentationName())) {
-				long taskId = taskInfo.task.getTaskId();
-				MediaTupleData data = new MediaTupleData(taskId, rep);
-				outputCollector.emit(new Values(data), rep.getCloudId());
-				taskInfo.pendingRepresentations.put(rep.getCloudId(), rep);
-				
-				emitCount++;
-				if (!representationIterator.hasNext() || emitCount >= emitLimit) {
-					taskInfo.emitComplete = true;
-					outputCollector.emit(StatsInitTupleData.STREAM_ID,
-							new Values(new StatsInitTupleData(taskId, startTime, emitCount)));
-				}
-				return;
+		baseSpout.nextTuple();
+		Optional<SourceInfo> leastBusyActiveSource = sourcesByHost.values().stream()
+				.filter(s -> !s.isEmpty())
+				.min(Comparator.comparing(s -> s.running.size()));
+		if (leastBusyActiveSource.isPresent()) {
+			SourceInfo source = leastBusyActiveSource.get();
+			EdmInfo edmInfo = source.removeFromQueue();
+			TaskInfo taskInfo = edmInfo.taskInfo;
+			long taskId = taskInfo.task.getTaskId();
+			
+			MediaTupleData tupleData = new MediaTupleData(taskId, edmInfo.representation);
+			tupleData.setEdm(edmInfo.edmDocument);
+			tupleData.getFileInfos().addAll(edmInfo.fileInfos.values());
+			
+			outputCollector.emit(new Values(tupleData, source.host), edmInfo.representation.getCloudId());
+			
+			taskInfo.running.add(edmInfo);
+			taskInfo.emitCount++;
+			if (taskInfo.emitCount == taskInfo.emitsTotal) {
+				outputCollector.emit(StatsInitTupleData.STREAM_ID,
+						new Values(new StatsInitTupleData(taskId, startTime, taskInfo.emitsTotal)));
 			}
-		}
-		// everything retrieved
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
+			
+			source.running.add(edmInfo);
+		} else {
+			// nothing to do
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 	
 	@Override
 	public void ack(Object msgId) {
-		for (TaskInfo info : pendingTasks) {
-			if (info.pendingRepresentations.remove(msgId) != null) {
-				if (info.pendingRepresentations.isEmpty() && info.emitComplete) {
-					logger.info("Task {} finished", info.task.getTaskName());
-					pendingTasks.remove(info);
-					super.ack(info.kafkaMsgId);
-				}
-				return;
-			}
+		EdmInfo edmInfo = edmsByCloudId.get(msgId);
+		if (edmInfo == null) {
+			logger.warn("Unrecognied ACK: {}", msgId);
+			return;
 		}
-		logger.warn("Unrecognied ACK: {}", msgId);
+		
+		removeEdm(edmInfo);
 	}
 	
 	@Override
 	public void fail(Object msgId) {
-		for (TaskInfo info : pendingTasks) {
-			Representation rep = info.pendingRepresentations.get(msgId);
-			if (rep != null) {
-				info.failedQueue.add(msgId);
-				logger.info("FAIL received: {}", msgId);
-				return;
-			}
+		EdmInfo edmInfo = edmsByCloudId.get(msgId);
+		if (edmInfo == null) {
+			logger.warn("Unrecognied FAIL: {}", msgId);
+			return;
 		}
-		logger.warn("Unrecognized FAIL: {}", msgId);
+		
+		if (edmInfo.attempts > 0) {
+			logger.info("FAIL received for {}, will retry ({} attempts left)", msgId, edmInfo.attempts);
+			edmInfo.attempts--;
+			edmInfo.sourceInfo.addToQueue(edmInfo);
+		} else {
+			logger.info("FAIL received for {}, no more retries", msgId);
+			removeEdm(edmInfo);
+		}
+	}
+	
+	private void removeEdm(EdmInfo edmInfo) {
+		SourceInfo source = edmInfo.sourceInfo;
+		source.running.remove(edmInfo);
+		if (source.running.isEmpty() && source.isEmpty()) {
+			logger.info("Finished all EDMs from source {}", source.host);
+			sourcesByHost.remove(source.host);
+		}
+		
+		TaskInfo task = edmInfo.taskInfo;
+		task.running.remove(edmInfo);
+		if (task.running.isEmpty() && task.emitCount == task.emitsTotal) {
+			logger.info("Task {} finished", task.task.getTaskName());
+			baseSpout.ack(task.baseMsgId);
+		}
 	}
 	
 	private class TaskInfo {
 		DpsTask task;
-		Object kafkaMsgId;
-		HashMap<String, Representation> pendingRepresentations = new HashMap<>();
-		ArrayDeque<Object> failedQueue = new ArrayDeque<>();
-		boolean emitComplete;
+		Object baseMsgId;
+		List<UrlParser> datasetUrls = new ArrayList<>();
+		ConcurrentHashSet<EdmInfo> running = new ConcurrentHashSet<>();
+		int emitCount = 0;
+		int emitsTotal;
+	}
+	
+	private class SourceInfo {
+		final String host;
+		private ArrayDeque<EdmInfo> queue = new ArrayDeque<>();
+		ConcurrentHashSet<EdmInfo> running = new ConcurrentHashSet<>();
+		
+		public SourceInfo(String host) {
+			this.host = host;
+		}
+		
+		public synchronized void addToQueue(EdmInfo edmInfo) {
+			queue.add(edmInfo);
+		}
+		
+		public synchronized EdmInfo removeFromQueue() {
+			return queue.remove();
+		}
+		
+		public synchronized boolean isEmpty() {
+			return queue.isEmpty();
+		}
+	}
+	
+	private class EdmInfo {
+		Representation representation;
+		Document edmDocument;
+		Map<String, FileInfo> fileInfos;
+		TaskInfo taskInfo;
+		SourceInfo sourceInfo;
+		int attempts = 5;
+	}
+	
+	private class EdmDownloader {
+		
+		ArrayBlockingQueue<EdmInfo> edmQueue = new ArrayBlockingQueue<>(1024 * 128);
+		ArrayList<EdmDownloadThread> threads;
+		
+		public EdmDownloader() {
+			int threadsCount = (int) config.getOrDefault("MEDIATOPOLOGY_REPRESENTATION_DOWNLOAD_THREADS", 1);
+			threads = new ArrayList<>();
+			for (int i = 0; i < threadsCount; i++) {
+				EdmDownloadThread thread = new EdmDownloadThread(i);
+				thread.start();
+				threads.add(thread);
+			}
+		}
+		
+		public void queue(EdmInfo edmInfo) throws InterruptedException {
+			edmQueue.put(edmInfo);
+		}
+		
+		public void stop() {
+			for (EdmDownloadThread thread : threads)
+				thread.interrupt();
+		}
+		
+		private class EdmDownloadThread extends Thread {
+			
+			FileServiceClient fileClient;
+			DocumentBuilder documentBuilder;
+			
+			public EdmDownloadThread(int id) {
+				super("edm-downloader-" + id);
+				fileClient = Util.getFileServiceClient(config);
+				try {
+					DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+					dbFactory.setNamespaceAware(true);
+					documentBuilder = dbFactory.newDocumentBuilder();
+				} catch (ParserConfigurationException e) {
+					throw new RuntimeException("xml problem", e);
+				}
+			}
+			
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						EdmInfo edmInfo = edmQueue.take();
+						edmInfo.edmDocument = downloadEdm(edmInfo);
+						prepareEdmInfo(edmInfo);
+					}
+				} catch (InterruptedException e) {
+					logger.trace("edm download thread finishing", e);
+					Thread.currentThread().interrupt();
+				}
+			}
+			
+			Document downloadEdm(EdmInfo edmInfo) throws InterruptedException {
+				Representation rep = edmInfo.representation;
+				try {
+					File file = rep.getFiles().get(0);
+					try (InputStream is = fileClient.getFile(rep.getCloudId(), rep.getRepresentationName(),
+							rep.getVersion(), file.getFileName())) {
+						return documentBuilder.parse(is);
+					}
+				} catch (Exception e) {
+					logger.error("Downloading edm failed for " + rep, e);
+					edmQueue.put(edmInfo); // retry later
+					Thread.sleep(1000);
+					return null;
+				}
+			}
+			
+			void prepareEdmInfo(EdmInfo edmInfo) {
+				Map<String, FileInfo> urls = new HashMap<>();
+				for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
+					NodeList list = edmInfo.edmDocument.getElementsByTagName(urlType.tagName);
+					for (int i = 0; i < list.getLength(); i++) {
+						String url = ((Element) list.item(i)).getAttribute("rdf:resource");
+						urls.computeIfAbsent(url, FileInfo::new).getTypes().add(urlType);
+					}
+				}
+				if (urls.isEmpty()) {
+					logger.error("edm file representation doesn't contain content urls: " + edmInfo.representation);
+					return;
+				}
+				edmInfo.fileInfos = urls;
+				
+				String host = urls.keySet().stream()
+						.collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()))
+						.entrySet().stream().max(Comparator.comparing(Entry::getValue))
+						.get().getKey();
+				edmInfo.sourceInfo = sourcesByHost.computeIfAbsent(host, SourceInfo::new);
+				edmInfo.sourceInfo.addToQueue(edmInfo);
+			}
+		}
+	}
+	
+	private class DatasetDownloader extends Thread {
+		
+		ArrayBlockingQueue<TaskInfo> taskQueue = new ArrayBlockingQueue<>(128);
+		DataSetServiceClient datasetClient;
+		
+		public DatasetDownloader() {
+			super("dataset-downloader");
+			datasetClient = Util.getDataSetServiceClient(config);
+			start();
+		}
+		
+		public void queue(TaskInfo taskInfo) {
+			try {
+				taskQueue.put(taskInfo);
+			} catch (InterruptedException e) {
+				logger.trace("Thread interrupted", e);
+				Thread.currentThread().interrupt();
+			}
+		}
+		
+		@Override
+		public void run() {
+			try {
+				while (true) {
+					TaskInfo taskInfo = null;
+					try {
+						taskInfo = taskQueue.take();
+						downloadDataset(taskInfo);
+					} catch (DriverException e) {
+						logger.warn("Problem downloading datasets from task " + taskInfo.task.getTaskName(), e);
+						taskQueue.put(taskInfo); // retry later
+						Thread.sleep(1000);
+					}
+				}
+			} catch (InterruptedException e) {
+				logger.trace("dataset download thread finishing", e);
+				Thread.currentThread().interrupt();
+			}
+		}
+		
+		void downloadDataset(TaskInfo taskInfo) throws InterruptedException {
+			int edmCount = 0;
+			for (UrlParser datasetUrl : taskInfo.datasetUrls) {
+				RepresentationIterator representationIterator = datasetClient.getRepresentationIterator(
+						datasetUrl.getPart(UrlPart.DATA_PROVIDERS),
+						datasetUrl.getPart(UrlPart.DATA_SETS));
+				while (representationIterator.hasNext() && edmCount < emitLimit) {
+					Representation rep = representationIterator.next();
+					if (!"edm".equals(rep.getRepresentationName()))
+						continue;
+					EdmInfo edmInfo = new EdmInfo();
+					edmInfo.representation = rep;
+					edmInfo.taskInfo = taskInfo;
+					edmsByCloudId.put(rep.getCloudId(), edmInfo);
+					edmDownloader.queue(edmInfo);
+					edmCount++;
+				}
+			}
+			taskInfo.emitsTotal = edmCount;
+			logger.debug("Downloaded {} representations from datasets {}", edmCount, taskInfo.datasetUrls.stream()
+					.map(du -> du.getPart(UrlPart.DATA_SETS)).collect(Collectors.toList()));
+		}
 	}
 	
 	private class CollectorWrapper extends SpoutOutputCollector {
@@ -165,28 +395,21 @@ public class DataSetReaderSpout extends KafkaSpout {
 		
 		@Override
 		public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-			UrlParser datasetUrlParser;
 			DpsTask task;
 			try {
 				task = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
-				String datasetUrl = task.getDataEntry(InputDataType.DATASET_URLS).get(0);
-				datasetUrlParser = new UrlParser(datasetUrl);
+				TaskInfo taskInfo = new TaskInfo();
+				taskInfo.task = task;
+				taskInfo.baseMsgId = messageId;
+				for (String datasetUrl : task.getDataEntry(InputDataType.DATASET_URLS))
+					taskInfo.datasetUrls.add(new UrlParser(datasetUrl));
+				datasetDownloader.queue(taskInfo);
+				logger.info("Task {} parsed", task.getTaskName());
 			} catch (IOException e) {
 				logger.error("Message '{}' rejected because: {}", tuple.get(0), e.getMessage());
 				logger.debug("Exception details", e);
-				return Collections.emptyList();
 			}
-			logger.info("Task {} parsed", task.getTaskName());
 			
-			taskInfo = new TaskInfo();
-			taskInfo.task = task;
-			taskInfo.kafkaMsgId = messageId;
-			pendingTasks.add(taskInfo);
-			
-			emitCount = 0;
-			startTime = System.currentTimeMillis();
-			representationIterator = datasetClient.getRepresentationIterator(
-					datasetUrlParser.getPart(UrlPart.DATA_PROVIDERS), datasetUrlParser.getPart(UrlPart.DATA_SETS));
 			return Collections.emptyList();
 		}
 	}

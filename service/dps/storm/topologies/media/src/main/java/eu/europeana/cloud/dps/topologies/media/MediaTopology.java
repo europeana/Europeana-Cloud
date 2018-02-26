@@ -12,9 +12,12 @@ import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.grouping.ShuffleGrouping;
+import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.shade.org.yaml.snakeyaml.Yaml;
 import org.apache.storm.shade.org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +25,12 @@ import org.slf4j.LoggerFactory;
 import eu.europeana.cloud.dps.topologies.media.support.DummySpout;
 import eu.europeana.cloud.dps.topologies.media.support.StatsInitTupleData;
 import eu.europeana.cloud.dps.topologies.media.support.StatsTupleData;
+import eu.europeana.cloud.dps.topologies.media.support.Util;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
 public class MediaTopology {
+	
+	public static final String SOURCE_FIELD = "source";
 	
 	private static final Logger logger = LoggerFactory.getLogger(MediaTopology.class);
 	
@@ -40,15 +46,12 @@ public class MediaTopology {
 		TopologyBuilder builder = new TopologyBuilder();
 		String topologyName = (String) conf.get(TopologyPropertyKeys.TOPOLOGY_NAME);
 		
-		if (isTest) {
-			builder.setSpout("source", new DummySpout(), 1);
-		} else {
-			builder.setSpout("source", new DataSetReaderSpout(conf), 1);
-		}
+		IRichSpout baseSpout = isTest ? new DummySpout() : new KafkaSpout(Util.getKafkaSpoutConfig(conf));
+		builder.setSpout("source", new DataSetReaderSpout(baseSpout), 1);
 		
 		builder.setBolt("downloadBolt", new DownloadBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD"))
-				.customGrouping("source", new ShuffleGrouping());
+				.fieldsGrouping("source", new Fields(SOURCE_FIELD));
 		builder.setBolt("processingBolt", new ProcessingBolt(),
 				(int) conf.get("MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING"))
 				.customGrouping("downloadBolt", new ShuffleGrouping());

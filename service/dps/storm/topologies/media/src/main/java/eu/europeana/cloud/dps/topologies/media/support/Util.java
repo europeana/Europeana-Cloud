@@ -2,6 +2,12 @@ package eu.europeana.cloud.dps.topologies.media.support;
 
 import java.util.Map;
 
+import org.apache.storm.Config;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.StringScheme;
+import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.spout.SchemeAsMultiScheme;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -38,5 +44,15 @@ public class Util {
 		String password = (String) config.get(TopologyPropertyKeys.CASSANDRA_PASSWORD);
 		return CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspace, username,
 				password);
+	}
+	
+	public static SpoutConfig getKafkaSpoutConfig(Config conf) {
+		String topologyName = (String) conf.get(TopologyPropertyKeys.TOPOLOGY_NAME);
+		ZkHosts brokerHosts = new ZkHosts((String) conf.get(TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS));
+		SpoutConfig kafkaConfig = new SpoutConfig(brokerHosts, topologyName, "", "storm");
+		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+		kafkaConfig.ignoreZkOffsets = true;
+		kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+		return kafkaConfig;
 	}
 }

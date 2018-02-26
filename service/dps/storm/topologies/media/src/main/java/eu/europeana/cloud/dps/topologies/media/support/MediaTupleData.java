@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,24 +28,21 @@ public class MediaTupleData implements Serializable {
 	}
 	
 	public static class FileInfo implements Serializable {
-		private File content;
-		private final InetAddress contentSource;
-		private final String mimeType;
 		private final String url;
-		private Set<UrlType> types;
+		private Set<UrlType> types = new HashSet<>();
+		private File content;
+		private String mimeType;
+		private InetAddress contentSource;
 		
-		public FileInfo(String url, String mimeType, File content, InetAddress contentSource) {
+		public FileInfo(String url) {
 			this.url = url;
-			this.mimeType = mimeType;
-			this.content = content;
-			this.contentSource = contentSource;
 		}
 		
 		public File getContent() {
 			return content;
 		}
 		
-		void setContent(File content) {
+		public void setContent(File content) {
 			this.content = content;
 		}
 		
@@ -52,8 +50,16 @@ public class MediaTupleData implements Serializable {
 			return contentSource;
 		}
 		
+		public void setContentSource(InetAddress contentSource) {
+			this.contentSource = contentSource;
+		}
+		
 		public String getMimeType() {
 			return mimeType;
+		}
+		
+		public void setMimeType(String mimeType) {
+			this.mimeType = mimeType;
 		}
 		
 		public String getUrl() {
@@ -93,10 +99,6 @@ public class MediaTupleData implements Serializable {
 	
 	public List<FileInfo> getFileInfos() {
 		return fileInfos;
-	}
-	
-	public void addFileInfo(FileInfo fileInfo) {
-		fileInfos.add(fileInfo);
 	}
 	
 	public Document getEdm() {
