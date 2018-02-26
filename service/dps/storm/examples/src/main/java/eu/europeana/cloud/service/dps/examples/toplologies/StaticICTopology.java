@@ -2,10 +2,11 @@ package eu.europeana.cloud.service.dps.examples.toplologies;
 
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.toplologies.builder.SimpleStaticTopologyBuilder;
+import eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
+import eu.europeana.cloud.service.dps.examples.util.TopologyConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.topologies.ic.topology.bolt.IcBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
-import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.utils.Utils;
@@ -13,6 +14,7 @@ import org.apache.storm.utils.Utils;
 import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
 
 
 /**
@@ -25,21 +27,16 @@ import static eu.europeana.cloud.service.dps.examples.toplologies.constants.Topo
  */
 public class StaticICTopology {
 
+    public static final String TOPOLOGY_NAME = "ic_topology";
+
     public static void main(String[] args) throws Exception {
-        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC());
-        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new IcBolt(), TopologyHelper.IC_BOLT, MCS_URL);
-        Config conf = new Config();
-        conf.setDebug(true);
-        conf.put(Config.TOPOLOGY_DEBUG, true);
-        conf.put(INPUT_ZOOKEEPER_ADDRESS,
-                INPUT_ZOOKEEPER_PORT);
-        conf.put(Config.STORM_ZOOKEEPER_SERVERS,
-                Arrays.asList(STORM_ZOOKEEPER_ADDRESS));
+        StaticDpsTaskSpout staticDpsTaskSpout = new StaticDpsTaskSpout(DpsTaskUtil.generateDPsTaskForIC(), TOPOLOGY_NAME);
+        StormTopology stormTopology = SimpleStaticTopologyBuilder.buildTopology(staticDpsTaskSpout, new IcBolt(), TopologyHelper.IC_BOLT, TopologyConstants.MCS_URL);
 
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology("test", conf, stormTopology);
+        cluster.submitTopology(TOPOLOGY_NAME, TopologyConfigBuilder.buildConfig(), stormTopology);
         Utils.sleep(60000);
-        cluster.killTopology("test");
+        cluster.killTopology(TOPOLOGY_NAME);
         cluster.shutdown();
 
     }
