@@ -513,11 +513,18 @@ public class ProcessingBolt extends BaseRichBolt {
 			List<String> identifyResult = doAndClose(IOUtils::readLines, magickProcess.getInputStream());
 			extract(identifyResult);
 			
+			for (int i = 0; i < THUMB_SIZE.length; i++) {
+				if (width < THUMB_SIZE[i]) {
+					thumbnails[i] = fileInfo.getContent();
+				}
+			}
+			
 			if (shouldProcessThumbnails()
 					&& Arrays.stream(thumbnails).anyMatch(file -> file == null || file.length() == 0)) {
 				logger.warn("No thumbnail output for " + fileInfo.getUrl());
 				error = error == null ? "THUMBNAIL ERROR" : error;
 			}
+			
 		}
 		
 		void extract(List<String> identifyResult) throws MediaException {
