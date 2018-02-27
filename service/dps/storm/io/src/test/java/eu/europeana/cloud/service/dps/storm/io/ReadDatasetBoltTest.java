@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
@@ -44,7 +43,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ReadDataSetBoltTest {
+public class ReadDatasetBoltTest {
 
 
     @Mock(name = "outputCollector")
