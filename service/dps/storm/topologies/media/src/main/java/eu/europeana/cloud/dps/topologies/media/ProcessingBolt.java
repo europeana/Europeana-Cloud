@@ -130,6 +130,10 @@ public class ProcessingBolt extends BaseRichBolt {
 			if (isAudio(file.getMimeType())) {
 				mediaInfos.add(new AudioInfo(this, file, mediaData.getEdm()));
 			}
+			
+			if (isVideo(file.getMimeType())) {
+				mediaInfos.add(new VideoInfo(this, file, mediaData.getEdm()));
+			}
 		}
 		mediaInfos.forEach(MediaInfo::process);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
@@ -258,6 +262,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		return mimeType.startsWith("audio");
 	}
 	
+	private static boolean isVideo(String mimeType) {
+		return mimeType.startsWith("video");
+	}
+	
 	@FunctionalInterface
 	private interface IOFunction<T, R> {
 		R apply(T t) throws IOException;
@@ -293,6 +301,11 @@ public class ProcessingBolt extends BaseRichBolt {
 			this.errorPrefix = getClass().getSimpleName().replace("Info", " ").toUpperCase();
 		}
 		
+		boolean shouldProcessMetadata() {
+			return Arrays.asList(UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY).stream()
+					.anyMatch(fileInfo.getTypes()::contains);
+		}
+		
 		public void process() {
 			long start = System.currentTimeMillis();
 			try {
@@ -304,6 +317,9 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 			try {
 				doProcess();
+				if (shouldProcessMetadata()) {
+					updateResourceMetadata();
+				}
 			} catch (IOException e) {
 				logger.error("Exception processing " + fileInfo.getUrl(), e);
 				error = errorPrefix + "IOException";
@@ -389,36 +405,76 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 	}
 	
-	private static class AudioInfo extends MediaInfo {
+	private abstract static class AudioVideoInfo extends MediaInfo {
 		
-		private static final Pattern DURATION = Pattern.compile("^duration=(.*)", Pattern.MULTILINE);
-		private static final Pattern CHANNELS = Pattern.compile("^channels=(.*)", Pattern.MULTILINE);
-		private static final Pattern SAMPLE_RATE = Pattern.compile("^sample_rate=(.*)", Pattern.MULTILINE);
-		private static final Pattern BITS_PER_SAMPLE = Pattern.compile("^bits_per_sample=(.*)", Pattern.MULTILINE);
-		private static final Pattern BIT_RATE = Pattern.compile("^bit_rate=(.*)", Pattern.MULTILINE);
+		protected static final Pattern BIT_RATE = Pattern.compile("^bit_rate=(.*)", Pattern.MULTILINE);
+		protected static final Pattern DURATION = Pattern.compile("^duration=(.*)", Pattern.MULTILINE);
 		
 		double duration;
-		int channels;
-		int sampleRate;
-		int bitDepth;
 		int bitRate;
 		
-		static String ffprobeCmd;
-		
-		AudioInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+		AudioVideoInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
 			super(pb, fileInfo, edm);
 		}
+		
+		static String ffprobeCmd;
 		
 		@Override
 		void doProcess() throws IOException, MediaException {
 			String path = fileInfo.getContent().getPath();
-			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams", path);
+			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams", "-loglevel", "warning", path);
 			
 			Process ffprobeProcess = pb.runCommand(cmd, false);
 			String ffprobeResult = doAndClose(IOUtils::toString, ffprobeProcess.getInputStream());
 			extract(ffprobeResult);
 		}
 		
+		static synchronized void init(ProcessingBolt pb) {
+			boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+			try {
+				Process which = pb.runCommand(Arrays.asList(isWindows ? "where" : "which", "ffprobe"), true);
+				List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
+				if (paths.isEmpty()) {
+					throw new RuntimeException("ffprobe not found in " + paths);
+				}
+				ffprobeCmd = paths.get(0);
+			} catch (IOException e) {
+				throw new RuntimeException("Error while looking for ffprobe tools", e);
+			}
+		}
+		
+		@Override
+		void updateResourceMetadata() {
+			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
+			String typeLong = StringUtils.lowerCase(Long.class.getSimpleName());
+			String typeDouble = StringUtils.lowerCase(Double.class.getSimpleName());
+			super.updateResourceMetadata();
+			
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
+			setEbucoreValue("duration", duration, typeDouble);
+			setEbucoreValue("bitRate", bitRate, typeInteger);
+		}
+		
+		abstract void extract(String ffprobeResult) throws MediaException;
+		
+	}
+	
+	private static class AudioInfo extends AudioVideoInfo {
+		
+		protected static final Pattern CHANNELS = Pattern.compile("^channels=(.*)", Pattern.MULTILINE);
+		protected static final Pattern SAMPLE_RATE = Pattern.compile("^sample_rate=(.*)", Pattern.MULTILINE);
+		protected static final Pattern BITS_PER_SAMPLE = Pattern.compile("^bits_per_sample=(.*)", Pattern.MULTILINE);
+		
+		int channels;
+		int sampleRate;
+		int bitDepth;
+		
+		AudioInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			super(pb, fileInfo, edm);
+		}
+		
+		@Override
 		void extract(String ffprobeResult) throws MediaException {
 			Matcher d = DURATION.matcher(ffprobeResult);
 			Matcher c = CHANNELS.matcher(ffprobeResult);
@@ -440,32 +496,67 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void updateResourceMetadata() {
-			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
-			String typeLong = StringUtils.lowerCase(Double.class.getSimpleName());
-			String typeDouble = StringUtils.lowerCase(Double.class.getSimpleName());
 			super.updateResourceMetadata();
+			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
 			
-			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
-			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
-			setEbucoreValue("duration", duration, typeDouble);
 			setEbucoreValue("channels", channels, typeInteger);
 			setEbucoreValue("sampleRate", sampleRate, typeInteger);
 			setEbucoreValue("bitDepth", bitDepth, typeInteger);
-			setEbucoreValue("bitRate", bitRate, typeInteger);
+		}
+	}
+	
+	private static class VideoInfo extends AudioVideoInfo {
+		
+		private static final Pattern CODEC_NAME = Pattern.compile("^codec_name=(.*)", Pattern.MULTILINE);
+		private static final Pattern WIDTH = Pattern.compile("^width=(.*)", Pattern.MULTILINE);
+		private static final Pattern HEIGHT = Pattern.compile("^height=(.*)", Pattern.MULTILINE);
+		private static final Pattern FRAME_RATE = Pattern.compile("^r_frame_rate=([0-9]*)/", Pattern.MULTILINE);
+		
+		String codecName;
+		int width;
+		int height;
+		int frameRate;
+		
+		VideoInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			super(pb, fileInfo, edm);
 		}
 		
-		static synchronized void init(ProcessingBolt pb) {
-			boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-			try {
-				Process which = pb.runCommand(Arrays.asList(isWindows ? "where" : "which", "ffprobe"), true);
-				List<String> paths = doAndClose(IOUtils::readLines, which.getInputStream());
-				if (paths.isEmpty()) {
-					throw new RuntimeException("ffprobe not found in " + paths);
-				}
-				ffprobeCmd = paths.get(0);
-			} catch (IOException e) {
-				throw new RuntimeException("Error while looking for ffprobe tools", e);
+		@Override
+		void extract(String ffprobeResult) throws MediaException {
+			Matcher c = CODEC_NAME.matcher(ffprobeResult);
+			Matcher d = DURATION.matcher(ffprobeResult);
+			
+			Matcher w = WIDTH.matcher(ffprobeResult);
+			Matcher h = HEIGHT.matcher(ffprobeResult);
+			
+			Matcher br = BIT_RATE.matcher(ffprobeResult);
+			Matcher fr = FRAME_RATE.matcher(ffprobeResult);
+			
+			if (c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
+				codecName = c.group(1);
+				duration = Double.parseDouble(d.group(1));
+				
+				width = Integer.parseInt(w.group(1));
+				height = Integer.parseInt(h.group(1));
+				
+				bitRate = Integer.parseInt(br.group(1));
+				frameRate = Integer.parseInt(fr.group(1));
+			} else {
+				throw new MediaException("ffprobeResult result missing data: " + ffprobeResult, "CORRUPTED");
 			}
+			
+		}
+		
+		@Override
+		void updateResourceMetadata() {
+			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
+			super.updateResourceMetadata();
+			
+			setEbucoreValue("codecName", codecName, null);
+			setEbucoreValue("width", width, typeInteger);
+			setEbucoreValue("height", height, typeInteger);
+			setEbucoreValue("lines", height, typeInteger);
+			setEbucoreValue("frameRate", frameRate, typeInteger);
 		}
 		
 	}
