@@ -29,6 +29,8 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -133,6 +135,10 @@ public class ProcessingBolt extends BaseRichBolt {
 			
 			if (isVideo(file.getMimeType())) {
 				mediaInfos.add(new VideoInfo(this, file, mediaData.getEdm()));
+			}
+			
+			if (isText(file.getMimeType())) {
+				mediaInfos.add(new TextInfo(this, file, mediaData.getEdm()));
 			}
 		}
 		mediaInfos.forEach(MediaInfo::process);
@@ -266,6 +272,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		return mimeType.startsWith("video");
 	}
 	
+	private static boolean isText(String mimeType) {
+		return mimeType.startsWith("text") || mimeType.equals("application/pdf");
+	}
+	
 	@FunctionalInterface
 	private interface IOFunction<T, R> {
 		R apply(T t) throws IOException;
@@ -353,6 +363,10 @@ public class ProcessingBolt extends BaseRichBolt {
 			}
 			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_URI);
 			edm.getDocumentElement().setAttribute("xmlns:edm", EDM_URI);
+			
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(),
+					StringUtils.lowerCase(Long.class.getSimpleName()));
 		}
 		
 		void setEbucoreValue(String name, Object value, String type) {
@@ -361,6 +375,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		void setEdmValue(String name, Object value, String type) {
 			setValue("edm:" + name, value, type);
+		}
+		
+		void setDcmitype(String name, Object value, String type) {
+			setValue("dcmitype:" + name, value, type);
 		}
 		
 		void setEdmValues(String name, List<String> values, String type) {
@@ -403,6 +421,35 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		abstract void doProcess() throws IOException, MediaException;
 		
+	}
+	
+	private static class TextInfo extends MediaInfo {
+		
+		boolean containsText = true;
+		
+		TextInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
+			super(pb, fileInfo, edm);
+		}
+		
+		@Override
+		void updateResourceMetadata() {
+			super.updateResourceMetadata();
+			String typeBoolean = StringUtils.lowerCase(Boolean.class.getSimpleName());
+			setDcmitype("Text", containsText, typeBoolean);
+		}
+		
+		@Override
+		void doProcess() throws IOException, MediaException {
+			if (fileInfo.getMimeType().equals("application/pdf")) {
+				try (PDDocument document = PDDocument.load(fileInfo.getContent())) {
+					PDFTextStripper pdfStripper = new PDFTextStripper();
+					String text = pdfStripper.getText(document).replaceAll("\\s", "");
+					if (text.length() == 0) {
+						containsText = false;
+					}
+				}
+			}
+		}
 	}
 	
 	private abstract static class AudioVideoInfo extends MediaInfo {
@@ -450,8 +497,6 @@ public class ProcessingBolt extends BaseRichBolt {
 			String typeDouble = StringUtils.lowerCase(Double.class.getSimpleName());
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
-			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
 			setEbucoreValue("duration", duration, typeDouble);
 			setEbucoreValue("bitRate", bitRate, typeInteger);
 		}
@@ -648,11 +693,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			super.updateResourceMetadata();
 			
 			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
-			String typeLong = StringUtils.lowerCase(Long.class.getSimpleName());
 			String typeString = StringUtils.lowerCase(String.class.getSimpleName());
 			
-			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
-			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), typeLong);
 			setEbucoreValue("width", width, typeInteger);
 			setEbucoreValue("height", height, typeInteger);
 			setEdmValue("hasColorSpace", colorspace, null);
