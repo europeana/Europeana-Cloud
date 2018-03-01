@@ -3,9 +3,9 @@ package eu.europeana.cloud.dps.topologies.media.support;
 import java.io.File;
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.w3c.dom.Document;
@@ -81,8 +81,9 @@ public class MediaTupleData implements Serializable {
 	final private long taskId;
 	final private Representation edmRepresentation;
 	
-	private List<FileInfo> fileInfos = new ArrayList<>();
 	private Document edm;
+	private List<FileInfo> fileInfos;
+	private Map<String, Integer> connectionLimitsPerSource;
 	
 	public MediaTupleData(long taskId, Representation edmRepresentation) {
 		this.taskId = taskId;
@@ -101,6 +102,10 @@ public class MediaTupleData implements Serializable {
 		return fileInfos;
 	}
 	
+	public void setFileInfos(List<FileInfo> fileInfos) {
+		this.fileInfos = fileInfos;
+	}
+	
 	public Document getEdm() {
 		return edm;
 	}
@@ -109,4 +114,11 @@ public class MediaTupleData implements Serializable {
 		this.edm = edm;
 	}
 	
+	public Map<String, Integer> getConnectionLimitsPerSource() {
+		return connectionLimitsPerSource;
+	}
+	
+	public void setConnectionLimitsPerSource(Map<String, Integer> connectionLimitsPerSource) {
+		this.connectionLimitsPerSource = connectionLimitsPerSource;
+	}
 }

@@ -2,10 +2,13 @@ package eu.europeana.cloud.dps.topologies.media;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ContentType;
@@ -42,6 +45,8 @@ public class DownloadBolt extends BaseRichBolt {
 	
 	private CloseableHttpAsyncClient httpClient;
 	private ConnPoolControl<HttpRoute> connPoolControl;
+	private HashMap<String, Integer> connectionLimitsPerHost = new HashMap<>();
+	private HashMap<HttpRoute, Integer> currentClientLimits = new HashMap<>();
 	
 	private InetAddress localAddress;
 	
@@ -85,6 +90,7 @@ public class DownloadBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple input) {
 		MediaTupleData data = (MediaTupleData) input.getValueByField(MediaTupleData.FIELD_NAME);
+		updateConnectionLimits(data);
 		List<FileInfo> files = data.getFileInfos();
 		StatsTupleData stats = new StatsTupleData(data.getTaskId(), files.size());
 		
@@ -94,11 +100,30 @@ public class DownloadBolt extends BaseRichBolt {
 				fileStorers.add(createFileStorer(fileInfo, stats, input));
 		} catch (IOException e) {
 			logger.error("Disk error", e);
+			for (ZeroCopyConsumer<Void> storer : fileStorers)
+				storer.failed(e);
 			outputCollector.fail(input);
 			return;
 		}
 		for (int i = 0; i < files.size(); i++) {
 			httpClient.execute(HttpAsyncMethods.createGet(files.get(i).getUrl()), fileStorers.get(i), null);
+		}
+	}
+	
+	private void updateConnectionLimits(MediaTupleData data) {
+		connectionLimitsPerHost.putAll(data.getConnectionLimitsPerSource());
+		for (FileInfo fileInfo : data.getFileInfos()) {
+			URI uri = URI.create(fileInfo.getUrl());
+			Integer limit = connectionLimitsPerHost.get(uri.getHost());
+			if (limit == null)
+				continue;
+			boolean secure = "https".equals(uri.getScheme());
+			HttpRoute route = new HttpRoute(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()), null, secure);
+			Integer currentLimit = currentClientLimits.get(route);
+			if (!limit.equals(currentLimit)) {
+				connPoolControl.setMaxPerRoute(route, limit);
+				currentClientLimits.put(route, limit);
+			}
 		}
 	}
 	
@@ -122,14 +147,17 @@ public class DownloadBolt extends BaseRichBolt {
 				fileInfo.setMimeType(contentType.getMimeType());
 				fileInfo.setContentSource(localAddress);
 				
-				long now = System.currentTimeMillis();
-				stats.setDownloadEndTime(now);
-				if (stats.getDownloadStartTime() == 0) {
-					// too hard to determine actual start time, not significant for global measurement
-					stats.setDownloadStartTime(now);
+				synchronized (stats) {
+					long now = System.currentTimeMillis();
+					stats.setDownloadEndTime(now);
+					if (stats.getDownloadStartTime() == 0) {
+						// too hard to determine actual start time, not significant for global measure
+						stats.setDownloadStartTime(now);
+					}
+					stats.setDownloadedBytes(stats.getDownloadedBytes() + byteCount);
 				}
-				stats.setDownloadedBytes(stats.getDownloadedBytes() + byteCount);
 				
+				logger.debug("Downloaded {} bytes: {}", byteCount, fileInfo.getUrl());
 				statusUpdate(OK);
 				return null;
 			}
@@ -148,22 +176,21 @@ public class DownloadBolt extends BaseRichBolt {
 			}
 
 			private void statusUpdate(String status) {
-				stats.addError(status);
-				if (stats.getErrors().size() == stats.getResourceCount()) {
-					boolean someSuccess = stats.getErrors().removeIf(OK::equals);
-					
-					MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
-					data.getFileInfos().removeIf(f -> f.getContent() == null);
-					
-					logger.debug("Completed resource download for {} ({} files, {} bytes)",
-							data.getEdmRepresentation().getCloudId(), data.getFileInfos().size(),
-							stats.getDownloadedBytes());
-					if (someSuccess) {
-						outputCollector.emit(tuple, new Values(data, stats));
-					} else {
-						outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
+				synchronized (stats) {
+					stats.addError(status);
+					if (stats.getErrors().size() == stats.getResourceCount()) {
+						boolean someSuccess = stats.getErrors().removeIf(OK::equals);
+						
+						MediaTupleData data = (MediaTupleData) tuple.getValueByField(MediaTupleData.FIELD_NAME);
+						data.getFileInfos().removeIf(f -> f.getContent() == null);
+						
+						if (someSuccess) {
+							outputCollector.emit(tuple, new Values(data, stats));
+						} else {
+							outputCollector.emit(StatsTupleData.STREAM_ID, tuple, new Values(stats));
+						}
+						outputCollector.ack(tuple);
 					}
-					outputCollector.ack(tuple);
 				}
 			}
 		};

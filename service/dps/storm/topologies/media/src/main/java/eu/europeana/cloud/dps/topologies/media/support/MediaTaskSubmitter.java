@@ -20,6 +20,10 @@ public class MediaTaskSubmitter {
 			task.addDataEntry(InputDataType.DATASET_URLS,
 					Arrays.asList("https://test-cloud.europeana.eu/api/data-providers/mms_prov/data-sets/mms_set"));
 			
+//			HashMap<String, String> params = new HashMap<>();
+//			params.put("host.limit.dlibrary.ascsa.edu.gr", "3");
+//			task.setParameters(params);
+			
 			long taskId = client.submitTask(task, topologyName);
 			
 			System.out.println("OK! " + taskId);

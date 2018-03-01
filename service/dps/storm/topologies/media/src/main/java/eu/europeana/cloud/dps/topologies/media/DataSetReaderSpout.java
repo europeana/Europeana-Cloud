@@ -75,7 +75,6 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	private EdmDownloader edmDownloader;
 	
 	private long emitLimit;
-	private long startTime;
 	
 	public DataSetReaderSpout(IRichSpout baseSpout) {
 		this.baseSpout = baseSpout;
@@ -120,7 +119,8 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			
 			MediaTupleData tupleData = new MediaTupleData(taskId, edmInfo.representation);
 			tupleData.setEdm(edmInfo.edmDocument);
-			tupleData.getFileInfos().addAll(edmInfo.fileInfos.values());
+			tupleData.setFileInfos(edmInfo.fileInfos);
+			tupleData.setConnectionLimitsPerSource(taskInfo.connectionLimitPerSource);
 			
 			outputCollector.emit(new Values(tupleData, source.host), edmInfo.representation.getCloudId());
 			
@@ -128,7 +128,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			taskInfo.emitCount++;
 			if (taskInfo.emitCount == taskInfo.emitsTotal) {
 				outputCollector.emit(StatsInitTupleData.STREAM_ID,
-						new Values(new StatsInitTupleData(taskId, startTime, taskInfo.emitsTotal)));
+						new Values(new StatsInitTupleData(taskId, taskInfo.startTime, taskInfo.emitsTotal)));
 			}
 			
 			source.running.add(edmInfo);
@@ -187,16 +187,18 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		}
 	}
 	
-	private class TaskInfo {
+	private static class TaskInfo {
 		DpsTask task;
+		Map<String, Integer> connectionLimitPerSource;
 		Object baseMsgId;
 		List<UrlParser> datasetUrls = new ArrayList<>();
 		ConcurrentHashSet<EdmInfo> running = new ConcurrentHashSet<>();
 		int emitCount = 0;
 		int emitsTotal;
+		long startTime;
 	}
 	
-	private class SourceInfo {
+	private static class SourceInfo {
 		final String host;
 		private ArrayDeque<EdmInfo> queue = new ArrayDeque<>();
 		ConcurrentHashSet<EdmInfo> running = new ConcurrentHashSet<>();
@@ -218,10 +220,10 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		}
 	}
 	
-	private class EdmInfo {
+	private static class EdmInfo {
 		Representation representation;
 		Document edmDocument;
-		Map<String, FileInfo> fileInfos;
+		List<FileInfo> fileInfos;
 		TaskInfo taskInfo;
 		SourceInfo sourceInfo;
 		int attempts = 5;
@@ -311,7 +313,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 					logger.error("edm file representation doesn't contain content urls: " + edmInfo.representation);
 					return;
 				}
-				edmInfo.fileInfos = urls;
+				edmInfo.fileInfos = new ArrayList<>(urls.values());
 				
 				String host = urls.keySet().stream()
 						.collect(Collectors.groupingBy(url -> URI.create(url).getHost(), Collectors.counting()))
@@ -395,18 +397,24 @@ public class DataSetReaderSpout extends BaseRichSpout {
 		
 		@Override
 		public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-			DpsTask task;
 			try {
-				task = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
+				DpsTask task = new ObjectMapper().readValue((String) tuple.get(0), DpsTask.class);
 				TaskInfo taskInfo = new TaskInfo();
 				taskInfo.task = task;
 				taskInfo.baseMsgId = messageId;
+				taskInfo.startTime = System.currentTimeMillis();
 				for (String datasetUrl : task.getDataEntry(InputDataType.DATASET_URLS))
 					taskInfo.datasetUrls.add(new UrlParser(datasetUrl));
+				
+				taskInfo.connectionLimitPerSource = task.getParameters().entrySet().stream()
+						.filter(e -> e.getKey().startsWith("host.limit."))
+						.collect(Collectors.toMap(e -> e.getKey().replace("host.limit.", ""),
+								e -> Integer.valueOf(e.getValue())));
+				
 				datasetDownloader.queue(taskInfo);
 				logger.info("Task {} parsed", task.getTaskName());
 			} catch (IOException e) {
-				logger.error("Message '{}' rejected because: {}", tuple.get(0), e.getMessage());
+				logger.error("Task rejected ({}: {})\n{}", e.getClass().getSimpleName(), e.getMessage(), tuple.get(0));
 				logger.debug("Exception details", e);
 			}
 			
