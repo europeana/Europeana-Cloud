@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
 import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
 
 /**
  * Manage connection for Openstack Swift endpoints using jClouds library.

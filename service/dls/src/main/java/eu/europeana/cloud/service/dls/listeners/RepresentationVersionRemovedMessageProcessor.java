@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dls.listeners;
 
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
-import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationVersionMessage;
 import java.io.IOException;
 import org.apache.commons.lang.StringUtils;

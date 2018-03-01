@@ -1,7 +1,5 @@
 package eu.europeana.cloud.common.response;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
 

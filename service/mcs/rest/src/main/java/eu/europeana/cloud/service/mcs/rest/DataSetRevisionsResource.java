@@ -7,7 +7,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
@@ -19,13 +18,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Date;
-import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 

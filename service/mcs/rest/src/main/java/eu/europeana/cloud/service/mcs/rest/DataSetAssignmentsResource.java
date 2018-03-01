@@ -8,7 +8,6 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
 import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
 import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-import com.qmino.miredot.annotations.ReturnType;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.ic.topology.api;
 
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;

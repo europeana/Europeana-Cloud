@@ -1,7 +1,5 @@
 package eu.europeana.cloud.common.response;
 
-import eu.europeana.cloud.common.utils.Tags;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
 
