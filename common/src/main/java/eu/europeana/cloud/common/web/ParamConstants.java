@@ -5,108 +5,108 @@ package eu.europeana.cloud.common.web;
  */
 public interface ParamConstants {
 
-    static final String LATEST_VERSION_KEYWORD = "LATEST";
+    String LATEST_VERSION_KEYWORD = "LATEST";
 
     // resources' paths
-    static final String RECORDS = "records";
+    String RECORDS = "records";
 
-    static final String REPRESENTATIONS = "representations";
+    String REPRESENTATIONS = "representations";
 
-    static final String VERSIONS = "versions";
+    String VERSIONS = "versions";
 
-    static final String PROVIDERS = "data-providers";
+    String PROVIDERS = "data-providers";
 
-    static final String DATASETS = "data-sets";
+    String DATASETS = "data-sets";
 
-    static final String ASSIGNMENTS = "assignments";
+    String ASSIGNMENTS = "assignments";
 
     String REVISIONS = "revisions";
 
     String REVISION_PROVIDER = "revisionProvider";
 
-    static final String COPY = "copy";
+    String COPY = "copy";
 
-    static final String PERSIST = "persist";
+    String PERSIST = "persist";
 
-    static final String PERMIT = "permit";
+    String PERMIT = "permit";
 
     // path parameters' names
-    static final String P_CLOUDID = "CLOUDID";
+    String P_CLOUDID = "CLOUDID";
 
-    static final String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
+    String P_REPRESENTATIONNAME = "REPRESENTATIONNAME";
 
-    static final String P_REVISIONID = "P_REVISIONID";
+    String P_REVISIONID = "P_REVISIONID";
 
-    static final String P_VER = "VERSION";
+    String P_VER = "VERSION";
 
-    static final String P_PROVIDER = "DATAPROVIDER";
+    String P_PROVIDER = "DATAPROVIDER";
 
-    static final String P_DATASET = "DATASET";
+    String P_DATASET = "DATASET";
 
-    static final String P_FILENAME = "FILENAME";
+    String P_FILENAME = "FILENAME";
 
-    static final String P_LOCALID = "LOCALID";
+    String P_LOCALID = "LOCALID";
 
-    static final String P_USERNAME = "USERNAME";
+    String P_USERNAME = "USERNAME";
 
-    static final String P_PERMISSION_TYPE = "PERMISSION_TYPE";
+    String P_PERMISSION_TYPE = "PERMISSION_TYPE";
 
-    static final String P_TAG = "TAG";
+    String P_TAG = "TAG";
 
-    static final String P_TAGS = "TAGS";
+    String P_TAGS = "TAGS";
 
     // form parameters' names (also used as query parameters' names)
-    static final String F_DATASET = "dataSetId";
+    String F_DATASET = "dataSetId";
 
-    static final String F_DATASET_PROVIDER_ID = "dataSetProviderId";
+    String F_DATASET_PROVIDER_ID = "dataSetProviderId";
 
-    static final String F_DESCRIPTION = "description";
+    String F_DESCRIPTION = "description";
 
-    static final String F_PROVIDER = "providerId";
+    String F_PROVIDER = "providerId";
 
-    static final String F_CLOUDID = "cloudId";
+    String F_CLOUDID = "cloudId";
 
-    static final String F_REPRESENTATIONNAME = "representationName";
+    String F_REPRESENTATIONNAME = "representationName";
 
-    static final String F_VER = "version";
+    String F_VER = "version";
 
-    static final String F_FILE_DATA = "data";
+    String F_FILE_DATA = "data";
 
-    static final String F_FILE_MIME = "mimeType";
+    String F_FILE_MIME = "mimeType";
 
-    static final String F_FILE_NAME = "fileName";
+    String F_FILE_NAME = "fileName";
 
-    static final String F_DATE_FROM = "creationDateFrom";
+    String F_DATE_FROM = "creationDateFrom";
 
-    static final String F_PERSISTENT = "persistent";
+    String F_PERSISTENT = "persistent";
 
-    static final String F_DATE_UNTIL = "creationDateUntil";
+    String F_DATE_UNTIL = "creationDateUntil";
 
-    static final String F_START_FROM = "startFrom";
+    String F_START_FROM = "startFrom";
 
-    static final String F_LIMIT = "limit";
+    String F_LIMIT = "limit";
 
-    static final String F_REPRESENTATION = "representation";
+    String F_REPRESENTATION = "representation";
 
-    static final String F_DATASETS = "dataSets";
+    String F_DATASETS = "dataSets";
 
-    static final String F_TAG = "tag";
+    String F_TAG = "tag";
 
-    static final String F_TAGS = "tags";
+    String F_TAGS = "tags";
 
-    static final String IS_DELETED = "deleted";
+    String IS_DELETED = "deleted";
 
-    static final String F_REVISION_TIMESTAMP = "revisionTimestamp";
+    String F_REVISION_TIMESTAMP = "revisionTimestamp";
 
-    static final String F_REVISION_PROVIDER_ID = "revisionProviderId";
+    String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
-    static final String P_REVISION_NAME = "REVISION_NAME";
+    String P_REVISION_NAME = "REVISION_NAME";
 
-    static final String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
+    String P_REVISION_PROVIDER_ID = "REVISION_PROVIDER_ID";
 
-    static final String F_REVISION_NAME = "revisionName";
+    String F_REVISION_NAME = "revisionName";
 
     //header paramiters' names
-    static final String H_RANGE = "Range";
+    String H_RANGE = "Range";
 
 }

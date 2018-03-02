@@ -14,7 +14,7 @@ public interface CommandBuilder {
 	 * @param properties           List of properties attached to the kakadu command
 	 * @return Full-fledged command .
 	 */
-	public  String constructCommand(String inputFilePath,
+	String constructCommand(String inputFilePath,
 									String outputFilePath, List<String> properties);
 
 }

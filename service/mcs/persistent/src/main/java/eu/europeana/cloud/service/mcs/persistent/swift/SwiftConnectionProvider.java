@@ -22,12 +22,12 @@ public interface SwiftConnectionProvider {
     /**
      * Close connection on container destroy.
      */
-    public void closeConnections();
+    void closeConnections();
 
 
     /**
      * Reconnect connection.
      */
-    public void reconnectConnections();
+    void reconnectConnections();
 
 }
