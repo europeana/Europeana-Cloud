@@ -1,19 +1,17 @@
 package eu.europeana.cloud.client.uis.rest.console.commands.tests;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import javax.naming.directory.InvalidAttributesException;
-
-import org.apache.commons.io.FileUtils;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.client.uis.rest.console.commands.Command;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
+import org.apache.commons.io.FileUtils;
+
+import javax.naming.directory.InvalidAttributesException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Test retrieve local Id without pagination

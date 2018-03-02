@@ -8,7 +8,9 @@ import org.apache.storm.task.OutputCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Read datasets and emit every dataset as a separate {@link StormTaskTuple}.

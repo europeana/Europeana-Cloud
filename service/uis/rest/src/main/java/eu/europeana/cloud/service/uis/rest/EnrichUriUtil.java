@@ -1,14 +1,12 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-
-import java.net.URI;
+import com.google.common.collect.ImmutableMap;
+import eu.europeana.cloud.common.model.DataProvider;
 
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 
-import com.google.common.collect.ImmutableMap;
-
-import eu.europeana.cloud.common.model.*;
+import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as

@@ -1,11 +1,7 @@
 package eu.europeana.cloud.service.aas.authentication;
 
 import eu.europeana.cloud.common.model.User;
-import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidPasswordException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidUsernameException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
+import eu.europeana.cloud.service.aas.authentication.exception.*;
 
 /**
  * Specifies functionality for authentication.

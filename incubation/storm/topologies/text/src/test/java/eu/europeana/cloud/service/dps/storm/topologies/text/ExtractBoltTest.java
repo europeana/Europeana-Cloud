@@ -6,35 +6,29 @@ import backtype.storm.Testing;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
-import backtype.storm.testing.AckTracker;
-import backtype.storm.testing.CompleteTopologyParam;
-import backtype.storm.testing.FeederSpout;
-import backtype.storm.testing.MockedSources;
-import backtype.storm.testing.TestJob;
-import backtype.storm.testing.TrackedTopology;
+import backtype.storm.testing.*;
 import backtype.storm.topology.TopologyBuilder;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.service.zoo.ZookeeperKillService;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
 import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 
 /**
  * Class for test {@link ExtractBolt}.

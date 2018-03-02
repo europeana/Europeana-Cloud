@@ -7,17 +7,15 @@ import eu.europeana.cloud.service.dls.listeners.RepresentationVersionAddedMessag
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
 import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationMessage;
-import java.util.HashMap;
-import java.util.Map;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.*;
 
 public class MessageDispatherTest {
 

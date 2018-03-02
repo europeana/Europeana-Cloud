@@ -1,15 +1,13 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import java.net.URI;
-import java.util.Map;
-
-import javax.ws.rs.core.UriBuilder;
-
 import com.google.common.collect.ImmutableMap;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
+
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.Map;
 
 class URITools {
 

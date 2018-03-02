@@ -1,10 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
-import java.io.*;
-import java.util.HashMap;
-
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import org.apache.commons.io.IOUtils;
@@ -12,6 +8,8 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
+import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 
 

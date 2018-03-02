@@ -8,7 +8,10 @@ import org.apache.commons.io.input.NullInputStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
 
 import static org.hamcrest.CoreMatchers.is;

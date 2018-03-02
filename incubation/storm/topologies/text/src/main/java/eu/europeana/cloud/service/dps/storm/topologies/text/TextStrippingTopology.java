@@ -1,13 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.text;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
-import storm.kafka.ZkHosts;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -29,7 +21,14 @@ import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.StoreFileAsRepresentationBolt;
-import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
+import storm.kafka.KafkaSpout;
+import storm.kafka.SpoutConfig;
+import storm.kafka.StringScheme;
+import storm.kafka.ZkHosts;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Storm topology for extracting text from different types of files.

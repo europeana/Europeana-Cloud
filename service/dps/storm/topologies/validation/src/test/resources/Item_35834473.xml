@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rdf:RDF xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:dc="http://purl.org/dc/elements/1.1/"
-         xmlns:edm="http://www.europeana.eu/schemas/edm/"
-         xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
-         xmlns:foaf="http://xmlns.com/foaf/0.1/"
-         xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/"
-         xmlns:oai="http://www.openarchives.org/OAI/2.0/"
-         xmlns:owl="http://www.w3.org/2002/07/owl#"
-         xmlns:ore="http://www.openarchives.org/ore/terms/"
-         xmlns:skos="http://www.w3.org/2004/02/skos/core#"
-         xmlns:dcterms="http://purl.org/dc/terms/"
-         xmlns:sch="http://purl.oclc.org/dsdl/schematron"
-         xmlns:cc="http://creativecommons.org/ns#"
-         xmlns:dcat="http://www.w3.org/ns/dcat#"
-         xmlns:odrl="http://www.w3.org/ns/odrl/2/"
-         xmlns:adms="http://www.w3.org/ns/adms#"
-         xmlns:wdrs="http://www.w3.org/2007/05/powder-s#">
+<rdf:RDF
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:edm="http://www.europeana.eu/schemas/edm/"
+        xmlns:owl="http://www.w3.org/2002/07/owl#"
+        xmlns:ore="http://www.openarchives.org/ore/terms/"
+        xmlns:dcterms="http://purl.org/dc/terms/"
+>
 
     <edm:ProvidedCHO rdf:about="/item/08502/5F41E0B657BDD9923BA2C4655BB7A6880A2ED5C2">
         <dc:contributor>CHO - dc:contributor</dc:contributor>

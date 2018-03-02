@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-
-import java.net.URI;
+import com.google.common.collect.ImmutableMap;
+import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Record;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 
-import com.google.common.collect.ImmutableMap;
-
-import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as REST responses.

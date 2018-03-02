@@ -2,11 +2,6 @@
 package eu.europeana.ecloud.service.uis;
 
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -14,6 +9,10 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.InMemoryDataProviderService;
 import eu.europeana.cloud.service.uis.dao.InMemoryDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * InMemory data provider service tests

@@ -1,11 +1,7 @@
 package eu.europeana.cloud.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import junitparams.internal.ParameterisedTestClassRunner;
 import junitparams.internal.TestMethod;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,6 +10,9 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CassandraParamertizedTestRunner extends CassandraTestRunner {
 

@@ -49,7 +49,6 @@ public class EnrichmentBoltTest {
     }
 
     @Test
-    @Ignore
     public void enrichEdmInternalSuccessfully() throws Exception {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, new HashMap<String, String>(), null);

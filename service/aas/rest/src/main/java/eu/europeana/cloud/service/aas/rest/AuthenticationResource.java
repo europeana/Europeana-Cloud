@@ -1,25 +1,20 @@
 package eu.europeana.cloud.service.aas.rest;
 
+import eu.europeana.cloud.common.model.User;
+import eu.europeana.cloud.common.web.AASParamConstants;
+import eu.europeana.cloud.service.aas.authentication.AuthenticationService;
+import eu.europeana.cloud.service.aas.authentication.exception.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
+
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
-
-import eu.europeana.cloud.common.model.User;
-import eu.europeana.cloud.common.web.AASParamConstants;
-import eu.europeana.cloud.service.aas.authentication.AuthenticationService;
-import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidPasswordException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidUsernameException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 
 /**
  * AAS: just a single call that creates an ecloud user

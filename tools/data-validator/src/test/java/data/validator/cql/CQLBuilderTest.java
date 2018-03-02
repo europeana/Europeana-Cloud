@@ -3,6 +3,7 @@ package data.validator.cql;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.List;
 

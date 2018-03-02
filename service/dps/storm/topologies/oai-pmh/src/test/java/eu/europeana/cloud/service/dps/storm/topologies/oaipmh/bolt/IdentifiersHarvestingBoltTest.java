@@ -1,11 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import org.dspace.xoai.model.oaipmh.Granularity;
-import org.dspace.xoai.model.oaipmh.Header;
-import org.dspace.xoai.serviceprovider.ServiceProvider;
-import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
-import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
-import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.States;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -16,6 +10,12 @@ import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProv
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.dspace.xoai.model.oaipmh.Granularity;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.ServiceProvider;
+import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
+import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
+import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;

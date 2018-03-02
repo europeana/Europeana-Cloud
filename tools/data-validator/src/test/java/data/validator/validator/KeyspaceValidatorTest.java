@@ -1,6 +1,5 @@
 package data.validator.validator;
 
-import com.datastax.driver.core.*;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,7 +7,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

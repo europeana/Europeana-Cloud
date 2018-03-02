@@ -13,10 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
 
-import static org.junit.Assert.*;
 import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
+import static org.junit.Assert.*;
 
 /**
  * Created by Tarek on 9/19/2016.

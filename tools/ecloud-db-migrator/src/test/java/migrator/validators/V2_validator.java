@@ -1,6 +1,5 @@
 package migrator.validators;
 
-import com.datastax.driver.core.*;
 import migrator.EmbeddedCassandra;
 import org.junit.Assert;
 

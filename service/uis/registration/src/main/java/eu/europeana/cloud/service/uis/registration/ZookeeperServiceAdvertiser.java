@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.uis.registration;
 
+import com.google.common.base.Throwables;
+import eu.europeana.cloud.common.service.ServiceProperties;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.EnsurePath;
 import org.apache.curator.x.discovery.ServiceDiscovery;
@@ -8,10 +10,6 @@ import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
-
-import eu.europeana.cloud.common.service.ServiceProperties;
 
 
 /**

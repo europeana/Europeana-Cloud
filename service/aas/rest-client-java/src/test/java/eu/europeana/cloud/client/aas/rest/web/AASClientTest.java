@@ -1,7 +1,5 @@
 package eu.europeana.cloud.client.aas.rest.web;
 
-import org.junit.Test;
-
 import eu.europeana.cloud.client.aas.rest.AASClient;
 import eu.europeana.cloud.client.aas.rest.CloudException;
 

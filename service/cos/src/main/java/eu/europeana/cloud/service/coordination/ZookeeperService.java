@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.coordination;
 
+import com.google.common.base.Throwables;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -8,8 +9,6 @@ import org.apache.curator.utils.EnsurePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Throwables;
 
 
 /**

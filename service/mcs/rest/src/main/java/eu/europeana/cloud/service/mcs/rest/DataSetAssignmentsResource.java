@@ -3,23 +3,14 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import static eu.europeana.cloud.common.web.ParamConstants.F_CLOUDID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.F_VER;
-import static eu.europeana.cloud.common.web.ParamConstants.P_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.*;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * Resource to assign and unassign representations to/from data sets.

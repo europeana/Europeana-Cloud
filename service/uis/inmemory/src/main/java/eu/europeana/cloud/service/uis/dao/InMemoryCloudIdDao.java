@@ -1,13 +1,12 @@
 package eu.europeana.cloud.service.uis.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
-
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * In Memory Cloud Id implementation

@@ -2,7 +2,6 @@ package eu.europeana.cloud.integration.usecases;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
@@ -15,8 +14,6 @@ import org.apache.commons.io.IOUtils;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.util.*;
 
 import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 import static org.junit.Assert.assertEquals;

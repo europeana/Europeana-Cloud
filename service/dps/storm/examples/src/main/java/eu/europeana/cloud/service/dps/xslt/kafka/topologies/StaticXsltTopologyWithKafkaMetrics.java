@@ -1,10 +1,6 @@
 
 package eu.europeana.cloud.service.dps.xslt.kafka.topologies;
 
-import java.util.HashMap;
-import java.util.Map;
-
-
 import eu.europeana.cloud.service.dps.examples.StaticDpsTaskSpout;
 import eu.europeana.cloud.service.dps.examples.util.DpsTaskUtil;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -16,6 +12,9 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Example ecloud topology:

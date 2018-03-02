@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common;
 
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
@@ -8,7 +9,6 @@ import org.dspace.xoai.serviceprovider.client.OAIClient;
 import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import org.dspace.xoai.serviceprovider.exceptions.InvalidOAIResponse;
 import org.dspace.xoai.serviceprovider.model.Context;
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

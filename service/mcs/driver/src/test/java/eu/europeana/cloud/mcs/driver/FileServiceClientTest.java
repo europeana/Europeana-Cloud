@@ -1,35 +1,25 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static java.util.Arrays.copyOfRange;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import co.freeside.betamax.Betamax;
+import co.freeside.betamax.Recorder;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteStreams;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.exception.*;
+import org.junit.Rule;
+import org.junit.Test;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-
-import org.junit.Rule;
-import org.junit.Test;
-
-import co.freeside.betamax.Betamax;
-import co.freeside.betamax.Recorder;
-
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
-
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import static java.util.Arrays.copyOfRange;
+import static org.junit.Assert.*;
 
 public class FileServiceClientTest {
 

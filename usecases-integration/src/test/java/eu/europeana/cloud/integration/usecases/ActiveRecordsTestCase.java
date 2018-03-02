@@ -14,11 +14,10 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.*;
 
+import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
 
 /**
  * Created by Tarek on 2/9/2017.

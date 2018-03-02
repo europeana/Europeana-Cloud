@@ -1,15 +1,10 @@
 package eu.europeana.cloud.service.uis.persistent.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
@@ -19,6 +14,10 @@ import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Dao providing access to the search based on record id and provider id

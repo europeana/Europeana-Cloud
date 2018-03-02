@@ -1,8 +1,5 @@
 package eu.europeana.cloud;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Created by Tarek on 9/2/2016.
  */

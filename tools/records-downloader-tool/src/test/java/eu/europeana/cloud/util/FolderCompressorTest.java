@@ -1,14 +1,12 @@
 package eu.europeana.cloud.util;
 
 import eu.europeana.cloud.TestConstantsHelper;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.zeroturnaround.zip.ZipException;
 
-import java.io.*;
 import java.util.Date;
 
 import static org.junit.Assert.assertNotNull;

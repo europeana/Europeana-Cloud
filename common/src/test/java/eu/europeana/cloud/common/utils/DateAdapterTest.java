@@ -1,15 +1,15 @@
 package eu.europeana.cloud.common.utils;
 
-import org.junit.*;
+import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by Tarek on 11/30/2017.

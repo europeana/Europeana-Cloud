@@ -1,7 +1,6 @@
 package migrations.service.dps.V2;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-import com.datastax.driver.core.*;
 
 import java.util.HashMap;
 import java.util.Map;

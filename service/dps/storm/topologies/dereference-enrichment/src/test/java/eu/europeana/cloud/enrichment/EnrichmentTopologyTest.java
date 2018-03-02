@@ -43,11 +43,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static eu.europeana.cloud.service.dps.test.TestConstants.MCS_URL;
-import static eu.europeana.cloud.service.dps.test.TestConstants.TEST_END_BOLT;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;

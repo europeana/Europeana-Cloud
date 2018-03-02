@@ -1,18 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.schemas;
 
-import org.dspace.xoai.model.oaipmh.Granularity;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
+import org.dspace.xoai.model.oaipmh.Granularity;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

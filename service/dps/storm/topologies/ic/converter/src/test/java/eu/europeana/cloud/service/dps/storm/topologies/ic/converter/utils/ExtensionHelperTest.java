@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utils;
 
 import eu.europeana.cloud.service.dps.storm.topologies.ic.converter.utlis.ExtensionHelper;
 import org.apache.tika.mime.MimeTypeException;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

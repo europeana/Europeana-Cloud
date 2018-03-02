@@ -8,25 +8,18 @@ import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.kafka.ProducerWrapper;
-import eu.europeana.cloud.service.mcs.messages.AddAssignmentMessage;
-import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
-import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentsFromDataSetMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRecordRepresentationsMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationVersionMessage;
+import eu.europeana.cloud.service.mcs.messages.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.apache.commons.lang.SerializationUtils;
-import static org.apache.commons.lang.SerializationUtils.serialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Receives information about modifications in record representations and their
