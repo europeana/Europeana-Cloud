@@ -140,6 +140,25 @@ public class DPSClientTest {
 
     }
 
+    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+    @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingNonExistingTaskTest")
+    public final void shouldThrowExceptionWhenKillingNonExistingTaskTest() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        long nonExistedTaskId = 1111l;
+        dpsClient.killTask(TOPOLOGY_NAME, nonExistedTaskId);
+
+
+    }
+
+    @Test(expected = AccessDeniedOrTopologyDoesNotExistException.class)
+    @Betamax(tape = "DPSClient/shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest")
+    public final void shouldThrowExceptionWhenKillingTaskForNonExistedTopologyTest() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        dpsClient.killTask(NOT_DEFINED_TOPOLOGY_NAME, TASK_ID);
+
+
+    }
+
     @Test
     @Betamax(tape = "DPSClient_getTaskDetailsReportTest")
     public final void shouldReturnedDetailsReport() throws DpsException {
