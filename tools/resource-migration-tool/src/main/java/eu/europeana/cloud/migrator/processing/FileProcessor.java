@@ -1,7 +1,6 @@
 package eu.europeana.cloud.migrator.processing;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 
 public interface FileProcessor {

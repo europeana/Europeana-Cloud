@@ -1,10 +1,7 @@
 package eu.europeana.cloud.service.commons.logging;
 
 import eu.europeana.cloud.service.coordination.registration.ZookeeperServiceAdvertiser;
-import org.apache.log4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 

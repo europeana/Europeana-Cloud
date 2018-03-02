@@ -328,24 +328,24 @@ class DpsTaskConstraint {
     private InputDataValueType expectedValueType;
     private String expectedName;
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, Object expectedValue) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
         this.expectedValue = expectedValue;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, InputDataValueType expectedValueType) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName, InputDataValueType expectedValueType) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
         this.expectedValueType = expectedValueType;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType, String expectedName) {
         this.fieldType = fieldType;
         this.expectedName = expectedName;
     }
 
-    public DpsTaskConstraint(DpsTaskFieldType fieldType) {
+    DpsTaskConstraint(DpsTaskFieldType fieldType) {
         this.fieldType = fieldType;
     }
 

@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.sch
 
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**

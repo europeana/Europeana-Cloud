@@ -13,5 +13,5 @@ public interface Dispatcher {
      * @param message
      *            to be routed
      */
-    public <T extends AbstractMessage> void routeMessage(T message);
+    <T extends AbstractMessage> void routeMessage(T message);
 }

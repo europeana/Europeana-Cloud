@@ -1,7 +1,5 @@
 package eu.europeana.cloud.common.model.dps;
 
-import sun.misc.BASE64Decoder;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;

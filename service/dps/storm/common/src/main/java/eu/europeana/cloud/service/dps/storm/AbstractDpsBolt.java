@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.common.model.dps.States;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -14,10 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Date;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.

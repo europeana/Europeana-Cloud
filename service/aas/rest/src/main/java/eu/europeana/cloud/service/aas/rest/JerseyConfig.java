@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.aas.rest.exception.InvalidPasswordExceptionMap
 import eu.europeana.cloud.service.aas.rest.exception.InvalidUsernameExceptionMapper;
 import eu.europeana.cloud.service.aas.rest.exception.UserExistsExceptionMapper;
 import eu.europeana.cloud.service.aas.rest.exception.UserDoesNotExistExceptionMapper;
-import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 

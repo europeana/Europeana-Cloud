@@ -527,7 +527,7 @@ public class DataSetServiceClient extends MCSClient {
                 .queryParam(F_START_FROM, startFrom);
 
         if (limit != null) {
-            target.queryParam(F_LIMIT, limit);
+            target = target.queryParam(F_LIMIT, limit);
         }
 
         Response response = null;

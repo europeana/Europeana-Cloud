@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dls.services;
 
-import com.github.ddth.kafka.IKafkaMessageListener;
-import com.github.ddth.kafka.KafkaConsumer;
 import java.util.List;
 import org.springframework.stereotype.Service;
 

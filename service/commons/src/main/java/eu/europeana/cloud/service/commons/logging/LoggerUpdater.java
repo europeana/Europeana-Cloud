@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.Priority;
 
 import java.util.Enumeration;
 

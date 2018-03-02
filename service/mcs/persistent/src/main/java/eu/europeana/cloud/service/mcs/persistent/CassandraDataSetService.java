@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.BoundStatement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
