@@ -600,7 +600,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			setEbucoreValue("codecName", codecName, null);
 			setEbucoreValue("width", width, typeInteger);
 			setEbucoreValue("height", height, typeInteger);
-			setEbucoreValue("lines", height, typeInteger);
+			setEbucoreValue("lines", width + " x " + height, typeInteger);
 			setEbucoreValue("frameRate", frameRate, typeInteger);
 		}
 		
@@ -615,7 +615,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		int width;
 		int height;
 		String colorspace;
-		String orientation;
 		
 		List<String> dominantColors = new ArrayList<>();
 		
@@ -630,7 +629,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			ArrayList<String> convertCmd = new ArrayList<>();
 			String path = fileInfo.getContent().getPath();
 			convertCmd.addAll(
-					Arrays.asList(magickCmd, "convert", path, "-format", "%w\n%h\n%[colorspace]\n%[orientation]\n",
+					Arrays.asList(magickCmd, "convert", path, "-format", "%w\n%h\n%[colorspace]\n",
 							"-write", "info:"));
 			if (shouldProcessThumbnails()) {
 				String ext = "." + getThumbnailFormat();
@@ -669,7 +668,6 @@ public class ProcessingBolt extends BaseRichBolt {
 				width = Integer.parseInt(identifyResult.get(0));
 				height = Integer.parseInt(identifyResult.get(1));
 				colorspace = identifyResult.get(2);
-				orientation = identifyResult.get(3);
 				
 				for (String value : identifyResult.subList(4, identifyResult.size())) {
 					Matcher dc =
@@ -699,7 +697,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			setEbucoreValue("height", height, typeInteger);
 			setEdmValue("hasColorSpace", colorspace, null);
 			setEdmValues("componentColor", dominantColors, "hexBinary");
-			setEbucoreValue("orientation", orientation, typeString);
+			setEbucoreValue("orientation", width > height ? "landscape" : "portrait", typeString);
 		}
 		
 		static synchronized void init(ProcessingBolt pb) {
