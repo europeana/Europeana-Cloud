@@ -469,7 +469,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void doProcess() throws IOException, MediaException {
 			String path = fileInfo.getContent().getPath();
-			List<String> cmd = Arrays.asList(ffprobeCmd, "-show_streams", "-loglevel", "warning", path);
+			List<String> cmd = getCmdList(path);
 			
 			Process ffprobeProcess = pb.runCommand(cmd, false);
 			String ffprobeResult = doAndClose(IOUtils::toString, ffprobeProcess.getInputStream());
@@ -502,6 +502,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		}
 		
 		abstract void extract(String ffprobeResult) throws MediaException;
+		
+		abstract List<String> getCmdList(String path);
 		
 	}
 	
@@ -548,15 +550,23 @@ public class ProcessingBolt extends BaseRichBolt {
 			setEbucoreValue("sampleRate", sampleRate, typeInteger);
 			setEbucoreValue("bitDepth", bitDepth, typeInteger);
 		}
+		
+		@Override
+		List<String> getCmdList(String path) {
+			return Arrays.asList(ffprobeCmd, "-show_streams", "-select_streams", "a",
+					"-loglevel", "warning", path);
+		}
 	}
 	
 	private static class VideoInfo extends AudioVideoInfo {
 		
+		private static final Pattern FORMAT_NAME = Pattern.compile("^format_name=(.*)", Pattern.MULTILINE);
 		private static final Pattern CODEC_NAME = Pattern.compile("^codec_name=(.*)", Pattern.MULTILINE);
 		private static final Pattern WIDTH = Pattern.compile("^width=(.*)", Pattern.MULTILINE);
 		private static final Pattern HEIGHT = Pattern.compile("^height=(.*)", Pattern.MULTILINE);
 		private static final Pattern FRAME_RATE = Pattern.compile("^r_frame_rate=([0-9]*)/", Pattern.MULTILINE);
 		
+		String formatName;
 		String codecName;
 		int width;
 		int height;
@@ -568,6 +578,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void extract(String ffprobeResult) throws MediaException {
+			
+			Matcher f = FORMAT_NAME.matcher(ffprobeResult);
 			Matcher c = CODEC_NAME.matcher(ffprobeResult);
 			Matcher d = DURATION.matcher(ffprobeResult);
 			
@@ -577,7 +589,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			Matcher br = BIT_RATE.matcher(ffprobeResult);
 			Matcher fr = FRAME_RATE.matcher(ffprobeResult);
 			
-			if (c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
+			if (f.find() && c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
+				formatName = f.group(1);
 				codecName = c.group(1);
 				duration = Double.parseDouble(d.group(1));
 				
@@ -597,11 +610,18 @@ public class ProcessingBolt extends BaseRichBolt {
 			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
 			super.updateResourceMetadata();
 			
+			setEbucoreValue("hasFormat", formatName, null);
 			setEbucoreValue("codecName", codecName, null);
 			setEbucoreValue("width", width, typeInteger);
 			setEbucoreValue("height", height, typeInteger);
 			setEbucoreValue("lines", width + " x " + height, typeInteger);
 			setEbucoreValue("frameRate", frameRate, typeInteger);
+		}
+		
+		@Override
+		List<String> getCmdList(String path) {
+			return Arrays.asList(ffprobeCmd, "-show_format", "-show_streams", "-select_streams", "v",
+					"-loglevel", "warning", path);
 		}
 		
 	}
