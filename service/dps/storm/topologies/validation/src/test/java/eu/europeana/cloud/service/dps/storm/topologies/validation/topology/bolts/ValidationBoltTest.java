@@ -27,11 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 
 /**
  * Created by Tarek on 1/16/2018.

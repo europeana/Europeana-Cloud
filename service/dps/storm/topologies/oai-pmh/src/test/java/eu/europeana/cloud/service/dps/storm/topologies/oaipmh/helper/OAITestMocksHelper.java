@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helper;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.helper.TopologyTestHelper;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.harvester.Harvester;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.common.OAIHelper;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.helpers.SourceProvider;
 import org.mockito.Mockito;

@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.mcs.Storage;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author krystian.

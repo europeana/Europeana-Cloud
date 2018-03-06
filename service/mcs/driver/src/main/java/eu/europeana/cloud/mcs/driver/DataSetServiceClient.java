@@ -1,8 +1,8 @@
 package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.CloudIdAndTimestampResponse;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;

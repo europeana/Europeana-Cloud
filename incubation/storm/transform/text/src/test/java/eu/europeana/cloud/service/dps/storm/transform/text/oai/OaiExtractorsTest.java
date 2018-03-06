@@ -1,7 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.oai;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

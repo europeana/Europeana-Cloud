@@ -1,11 +1,11 @@
 package eu.europeana.cloud.common.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Representation of a record in specific version.

@@ -12,9 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID;
-import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID2;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 
 /**
  * Created by Tarek on 3/13/2017.

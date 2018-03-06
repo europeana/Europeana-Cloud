@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.index.exception.IndexerException;
 import eu.europeana.cloud.service.dps.index.structure.IndexedDocument;
 import eu.europeana.cloud.service.dps.index.structure.IndexerInformations;
 import eu.europeana.cloud.service.dps.index.structure.SearchResult;
+
 import java.util.Map;
 
 /**

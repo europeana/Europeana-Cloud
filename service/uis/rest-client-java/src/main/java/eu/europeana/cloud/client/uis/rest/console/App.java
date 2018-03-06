@@ -1,39 +1,12 @@
 package eu.europeana.cloud.client.uis.rest.console;
 
-import java.util.HashMap;
-import java.util.Map;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.*;
+import eu.europeana.cloud.client.uis.rest.console.commands.tests.*;
 
 import javax.naming.directory.InvalidAttributesException;
-
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.commands.Command;
-import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdBatchWithGenerationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.CreateCloudIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.CreateMappingCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.DeleteCloudIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetCloudIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetCloudIdsByProviderCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetCloudIdsByProviderWithPaginationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetRecordIdsByProviderCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetRecordIdsByProviderWithPaginationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.GetRecordIdsCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.HelpCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.RemoveMappingByLocalIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestCreateMappingIdManyProvidersCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestCreateMappingIdOneProviderCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestDeleteCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadManyProvidersCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadOneProviderCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadWriteManyProvidersCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadWriteManyProvidersWithIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadWriteOneProviderCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestReadWriteOneProviderWithIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveCloudIdCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveCloudIdNoPaginationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveCloudIdWithPaginationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveLocalIdNoPaginationCommand;
-import eu.europeana.cloud.client.uis.rest.console.commands.tests.TestRetrieveLocalIdWithPaginationCommand;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Command line application that uses the REST API Client

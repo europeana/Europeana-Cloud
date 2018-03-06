@@ -1,11 +1,5 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Rule;
-import org.junit.Test;
-
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.client.uis.rest.CloudException;
@@ -15,6 +9,11 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /** 
  * Tests the UISClient, using Betamax. 

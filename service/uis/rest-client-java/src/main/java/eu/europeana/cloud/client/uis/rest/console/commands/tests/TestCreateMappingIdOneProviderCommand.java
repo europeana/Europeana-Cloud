@@ -1,21 +1,19 @@
 package eu.europeana.cloud.client.uis.rest.console.commands.tests;
 
+import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.client.uis.rest.console.commands.Command;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import org.apache.commons.io.IOUtils;
+
+import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.naming.directory.InvalidAttributesException;
-
-import org.apache.commons.io.IOUtils;
-
-import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.client.uis.rest.console.commands.Command;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProviderProperties;
 
 /**
  * Test Create id mappings with one provider

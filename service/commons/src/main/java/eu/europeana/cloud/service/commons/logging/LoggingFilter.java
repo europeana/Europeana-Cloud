@@ -3,11 +3,7 @@ package eu.europeana.cloud.service.commons.logging;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.container.*;
 import javax.ws.rs.core.Context;
 import java.io.IOException;
 

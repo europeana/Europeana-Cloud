@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 
 /**
  * Maps {@link RepresentationNotExistsExceptionMapper} to {@link javax.ws.rs.core.Response}.

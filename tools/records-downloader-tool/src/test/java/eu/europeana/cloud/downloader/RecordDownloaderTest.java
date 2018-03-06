@@ -1,7 +1,5 @@
 package eu.europeana.cloud.downloader;
 
-import static junit.framework.Assert.assertEquals;
-
 import eu.europeana.cloud.TestConstantsHelper;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
@@ -22,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 

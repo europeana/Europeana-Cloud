@@ -12,7 +12,6 @@ import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.apache.commons.io.input.NullInputStream;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;

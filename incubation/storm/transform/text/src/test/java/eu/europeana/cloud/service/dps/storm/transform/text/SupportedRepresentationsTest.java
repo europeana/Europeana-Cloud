@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.transform.text;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**

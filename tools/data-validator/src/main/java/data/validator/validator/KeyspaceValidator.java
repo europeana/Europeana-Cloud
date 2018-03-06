@@ -8,9 +8,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
 
 /**
  * Created by Tarek on 5/2/2017.

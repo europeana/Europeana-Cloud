@@ -2,7 +2,6 @@ package eu.europeana.cloud.integration.usecases;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.common.utils.Tags;
@@ -11,14 +10,12 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
-
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
 
 import static eu.europeana.cloud.integration.usecases.IntegrationConstants.*;
+import static org.junit.Assert.*;
 
 /**
  * Created by Tarek on 9/19/2016.

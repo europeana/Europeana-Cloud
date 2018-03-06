@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

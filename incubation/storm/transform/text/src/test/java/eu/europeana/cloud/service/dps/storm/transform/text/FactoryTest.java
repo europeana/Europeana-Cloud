@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.transform.text;
 
+import eu.europeana.cloud.service.dps.storm.transform.text.edm.EdmExtractionMethods;
 import eu.europeana.cloud.service.dps.storm.transform.text.oai.OaiExtractionMethods;
 import eu.europeana.cloud.service.dps.storm.transform.text.pdf.PdfExtractionMethods;
 import eu.europeana.cloud.service.dps.storm.transform.text.txt.TxtExtractionMethods;
-import eu.europeana.cloud.service.dps.storm.transform.text.edm.EdmExtractionMethods;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  *

@@ -1,25 +1,16 @@
 package eu.europeana.cloud.service.dls.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.Path;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-
+import com.google.common.base.Functions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.dls.ApplicationContextUtils;
+import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
-
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
@@ -28,19 +19,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
+import javax.ws.rs.Path;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.*;
 
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.dls.ApplicationContextUtils;
-import eu.europeana.cloud.service.dls.solr.SolrDAO;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * FileResourceTest

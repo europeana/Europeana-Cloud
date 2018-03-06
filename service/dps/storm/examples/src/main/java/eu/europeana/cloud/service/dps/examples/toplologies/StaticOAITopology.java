@@ -11,7 +11,6 @@ import org.apache.storm.utils.Utils;
 import java.util.Arrays;
 
 import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.*;
-import static eu.europeana.cloud.service.dps.examples.toplologies.constants.TopologyConstants.UIS_URL;
 
 /**
  * Created by Tarek on 10/2/2017.

@@ -3,33 +3,21 @@ package eu.europeana.cloud.service.dls.rest;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATE_FROM;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATE_UNTIL;
-import static eu.europeana.cloud.common.web.ParamConstants.F_PERSISTENT;
-import static eu.europeana.cloud.common.web.ParamConstants.F_PROVIDER;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REPRESENTATIONNAME;
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
 import eu.europeana.cloud.service.dls.RepresentationSearchParams;
 import eu.europeana.cloud.service.dls.services.SearchRecordService;
-
-import java.util.Date;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Date;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 /**
  * This resource allows to search representation versions by multiple parameters.

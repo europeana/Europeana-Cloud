@@ -1,8 +1,7 @@
 package eu.europeana.cloud.database.truncate;
 
-import org.springframework.context.ApplicationContext;
-
 import eu.europeana.cloud.database.truncate.context.ApplicationContextUtils;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Truncate application 

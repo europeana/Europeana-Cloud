@@ -11,10 +11,10 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import java.util.Iterator;
-
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Iterator;
 
 /**
  * Communicates with Unique Identifier Service using UISClient. Used for

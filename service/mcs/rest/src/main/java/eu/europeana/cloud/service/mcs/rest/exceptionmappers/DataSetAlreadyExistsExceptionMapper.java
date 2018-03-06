@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest.exceptionmappers;
 
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 
 /**
  * Maps {@link DataSetAlreadyExistsExceptionMapper} to {@link javax.ws.rs.core.Response}.

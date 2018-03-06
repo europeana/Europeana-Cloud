@@ -1,14 +1,10 @@
 package eu.europeana.cloud.service.aas.authentication.status;
 
-import javax.ws.rs.core.Response.Status;
-
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidPasswordException;
-import eu.europeana.cloud.service.aas.authentication.exception.InvalidUsernameException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
-import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
+import eu.europeana.cloud.service.aas.authentication.exception.*;
+
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Status Messages returned by all methods

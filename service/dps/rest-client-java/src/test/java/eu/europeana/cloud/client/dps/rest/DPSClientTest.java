@@ -1,16 +1,15 @@
 package eu.europeana.cloud.client.dps.rest;
 
 import co.freeside.betamax.Betamax;
+import co.freeside.betamax.Recorder;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsException;
-import org.junit.Rule;
-
-import co.freeside.betamax.Recorder;
-import eu.europeana.cloud.service.dps.DpsTask;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;

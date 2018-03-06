@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.dls.solr;
 
-import javax.annotation.PreDestroy;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PreDestroy;
 
 /**
  * Establishes connection to the Solr server.

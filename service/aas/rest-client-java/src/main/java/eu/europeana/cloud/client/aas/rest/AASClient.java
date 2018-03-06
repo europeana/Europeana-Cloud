@@ -2,7 +2,6 @@ package eu.europeana.cloud.client.aas.rest;
 
 import eu.europeana.cloud.common.web.AASParamConstants;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

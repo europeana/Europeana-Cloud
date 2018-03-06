@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.edm;
 
-import java.io.InputStream;
 import org.junit.Assert;
-import static org.junit.Assert.assertNull;
 import org.junit.Test;
+
+import java.io.InputStream;
+
+import static org.junit.Assert.assertNull;
 
 /**
  *

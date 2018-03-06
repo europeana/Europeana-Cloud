@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.schemas;
 
-import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.splitter.Splitter;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
 
 import java.util.Iterator;
 import java.util.Set;

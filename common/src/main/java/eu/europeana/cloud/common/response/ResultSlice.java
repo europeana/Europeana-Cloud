@@ -2,12 +2,11 @@ package eu.europeana.cloud.common.response;
 
 import eu.europeana.cloud.common.model.*;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 
 /**
  * Result slice for methods that would return possibly huge collections of objects that must be divided into paged to

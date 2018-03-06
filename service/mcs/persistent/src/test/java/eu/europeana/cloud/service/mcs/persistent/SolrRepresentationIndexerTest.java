@@ -11,15 +11,17 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.kafka.ProducerWrapper;
-import eu.europeana.cloud.service.mcs.messages.AddAssignmentMessage;
-import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
-import eu.europeana.cloud.service.mcs.messages.InsertRepresentationPersistentMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentsFromDataSetMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRecordRepresentationsMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationMessage;
-import eu.europeana.cloud.service.mcs.messages.RemoveRepresentationVersionMessage;
+import eu.europeana.cloud.service.mcs.messages.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import org.apache.commons.lang.SerializationUtils;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -27,31 +29,10 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.commons.lang.SerializationUtils;
-
 import static org.hamcrest.Matchers.is;
-
-import org.junit.After;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
-
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/rabbitContext.xml"})

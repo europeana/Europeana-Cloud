@@ -4,9 +4,9 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 
-import java.util.*;
+import java.util.UUID;
 
 /**
  * The {@link TaskInfo} DAO

@@ -22,18 +22,16 @@ import eu.europeana.cloud.service.dps.storm.ParseTaskBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.StoreFileAsRepresentationBolt;
-import eu.europeana.cloud.service.dps.storm.kafka.KafkaMetricsConsumer;
 import eu.europeana.cloud.service.dps.storm.topologies.indexer.IndexBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.text.ExtractTextBolt;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * This topology combines {@link TextStrippingTopology} and {@link IndexTopology}.

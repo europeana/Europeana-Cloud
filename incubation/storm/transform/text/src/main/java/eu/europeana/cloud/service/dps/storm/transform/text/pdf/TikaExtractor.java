@@ -1,10 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.transform.text.pdf;
 
 import eu.europeana.cloud.service.dps.storm.transform.text.TextExtractor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -13,6 +9,11 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Text extractor for PDF files that uses the Apache Tika toolkit

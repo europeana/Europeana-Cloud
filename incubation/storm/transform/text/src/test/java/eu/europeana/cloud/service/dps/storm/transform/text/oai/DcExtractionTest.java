@@ -2,10 +2,12 @@ package eu.europeana.cloud.service.dps.storm.transform.text.oai;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.junit.Test;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**

@@ -4,13 +4,14 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.service.dls.solr.SolrDAO;
 import eu.europeana.cloud.service.mcs.messages.RemoveAssignmentsFromDataSetMessage;
-import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 /**
  * Processor that processes messages about removing all assignments from a

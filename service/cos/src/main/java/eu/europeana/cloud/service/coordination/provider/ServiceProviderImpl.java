@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.coordination.provider;
 
+import eu.europeana.cloud.service.coordination.ServiceProperties;
+import eu.europeana.cloud.service.coordination.discovery.EcloudServiceDiscovery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.europeana.cloud.service.coordination.ServiceProperties;
-import eu.europeana.cloud.service.coordination.discovery.EcloudServiceDiscovery;
 
 /**
  *  Returns random service instances from the list of all available services,

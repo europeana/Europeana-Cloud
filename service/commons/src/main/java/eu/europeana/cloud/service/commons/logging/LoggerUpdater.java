@@ -1,13 +1,7 @@
 package eu.europeana.cloud.service.commons.logging;
 
 import kafka.producer.KafkaLog4jAppender;
-import org.apache.log4j.Appender;
-import org.apache.log4j.EnhancedPatternLayout;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.*;
 
 import java.util.Enumeration;
 

@@ -14,18 +14,11 @@
  */
 package eu.europeana.aas.acl.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import eu.europeana.aas.acl.CassandraTestBase;
+import eu.europeana.aas.acl.model.AclEntry;
+import eu.europeana.aas.acl.model.AclObjectIdentity;
+import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
+import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,11 +30,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.aas.acl.CassandraTestBase;
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclAlreadyExistsException;
-import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:/default-context.xml" })

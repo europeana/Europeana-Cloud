@@ -1,24 +1,18 @@
 package eu.europeana.cloud.service.coordination.discovery;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.curator.x.discovery.ServiceCache;
-import org.apache.curator.x.discovery.ServiceDiscovery;
-import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
-import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.ServiceProvider;
+import com.google.common.base.Throwables;
+import eu.europeana.cloud.service.coordination.ServiceProperties;
+import eu.europeana.cloud.service.coordination.ZookeeperService;
+import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
-import eu.europeana.cloud.service.coordination.ServiceProperties;
-import eu.europeana.cloud.service.coordination.ZookeeperService;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Asks Zookeeper for available services. 

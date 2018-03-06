@@ -2,14 +2,15 @@ package eu.europeana.cloud.service.uis.persistent;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
+import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,23 +19,14 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraCloudIdDAO;
-import eu.europeana.cloud.service.uis.persistent.dao.CassandraLocalIdDAO;
-import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.junit.Ignore;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * Persistent Unique Identifier Service Unit tests

@@ -2,21 +2,21 @@ package eu.europeana.cloud.service.dls.kafka;
 
 import eu.europeana.cloud.service.mcs.messages.AbstractMessage;
 import eu.europeana.cloud.service.mcs.messages.InsertRepresentationMessage;
-import java.util.Random;
 import kafka.serializer.DefaultEncoder;
 import org.apache.commons.lang.SerializationUtils;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = { "classpath:/testKafkaMessageListener.xml" })

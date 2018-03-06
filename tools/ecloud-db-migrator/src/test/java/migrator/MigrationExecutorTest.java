@@ -1,6 +1,5 @@
 package migrator;
 
-import com.datastax.driver.core.*;
 import migrator.validators.V10_validator;
 import migrator.validators.V2_validator;
 import org.junit.Before;
@@ -10,12 +9,10 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author krystian.

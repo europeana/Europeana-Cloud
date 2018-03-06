@@ -7,13 +7,11 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.CloudVersionRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;

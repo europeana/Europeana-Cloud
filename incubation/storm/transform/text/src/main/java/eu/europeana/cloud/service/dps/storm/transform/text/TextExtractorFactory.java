@@ -5,8 +5,8 @@ import eu.europeana.cloud.service.dps.storm.transform.text.edm.JibxExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.oai.DcExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.oai.OaiExtractionMethods;
 import eu.europeana.cloud.service.dps.storm.transform.text.pdf.PdfBoxExtractor;
-import eu.europeana.cloud.service.dps.storm.transform.text.pdf.TikaExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.pdf.PdfExtractionMethods;
+import eu.europeana.cloud.service.dps.storm.transform.text.pdf.TikaExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.txt.ReadFileExtractor;
 import eu.europeana.cloud.service.dps.storm.transform.text.txt.TxtExtractionMethods;
 

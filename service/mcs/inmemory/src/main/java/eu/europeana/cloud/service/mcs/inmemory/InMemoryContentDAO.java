@@ -1,5 +1,12 @@
 package eu.europeana.cloud.service.mcs.inmemory;
 
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.springframework.stereotype.Repository;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,15 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.stereotype.Repository;
-
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 
 /**
  * InMemoryContentDAO
