@@ -10,9 +10,11 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -29,7 +31,11 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -291,9 +297,14 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private abstract static class MediaInfo {
 		
+
 		static final String EBUCORE_URI = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
 		
 		static final String EDM_URI = "http://www.europeana.eu/schemas/edm/";
+		
+		static final String NUMBER_TYPE = "number";
+		
+		static final String STRING_TYPE = "string";
 		
 		final ProcessingBolt pb;
 		final FileInfo fileInfo;
@@ -364,9 +375,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_URI);
 			edm.getDocumentElement().setAttribute("xmlns:edm", EDM_URI);
 			
-			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
-			setEbucoreValue("fileByteSize", fileInfo.getContent().length(),
-					StringUtils.lowerCase(Long.class.getSimpleName()));
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), STRING_TYPE);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), NUMBER_TYPE);
 		}
 		
 		void setEbucoreValue(String name, Object value, String type) {
@@ -377,8 +387,12 @@ public class ProcessingBolt extends BaseRichBolt {
 			setValue("edm:" + name, value, type);
 		}
 		
-		void setDcmitype(String name, Object value, String type) {
-			setValue("dcmitype:" + name, value, type);
+		void setExifValue(String name, Object value, String type) {
+			setValue("exif:" + name, value, type);
+		}
+		
+		void setRdfValue(String name, Object value, String type) {
+			setValue("rdf:" + name, value, type);
 		}
 		
 		void setEdmValues(String name, List<String> values, String type) {
@@ -425,6 +439,13 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class TextInfo extends MediaInfo {
 		
+		private static final Pattern X_RESOLUTION =
+				Pattern.compile("<exif:XResolution>(.*)</exif:XResolution>", Pattern.MULTILINE);
+		private static final Pattern Y_RESOLUTION =
+				Pattern.compile("<exif:YResolution>(.*)</exif:YResolution>", Pattern.MULTILINE);
+		
+		Optional<Integer> resolution = Optional.empty();
+		
 		boolean containsText = true;
 		
 		TextInfo(ProcessingBolt pb, FileInfo fileInfo, Document edm) {
@@ -434,8 +455,12 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
-			String typeBoolean = StringUtils.lowerCase(Boolean.class.getSimpleName());
-			setDcmitype("Text", containsText, typeBoolean);
+			if (containsText) {
+				setRdfValue("type", "http://www.europeana.eu/schemas/edm/FullTextResource", "URI");
+			}
+			if (resolution.isPresent()) {
+				setExifValue("resolution", resolution.get(), STRING_TYPE);
+			}
 		}
 		
 		@Override
@@ -447,8 +472,45 @@ public class ProcessingBolt extends BaseRichBolt {
 					if (text.length() == 0) {
 						containsText = false;
 					}
+					extract(getImageMetadata(document));
 				}
 			}
+		}
+		
+		void extract(String metadata) {
+			Matcher xMatcher = X_RESOLUTION.matcher(metadata);
+			Matcher yMatcher = Y_RESOLUTION.matcher(metadata);
+			
+			if (xMatcher.find() && yMatcher.find()) {
+				
+				try {
+					int x = Integer.parseInt(xMatcher.group(1));
+					int y = Integer.parseInt(yMatcher.group(1));
+					resolution = x == y ? Optional.of(x) : Optional.empty();
+				} catch (NumberFormatException e) {
+					logger.warn("Can't parse resolution of the extracted image from pdf file " + fileInfo.getUrl());
+					error = error == null ? "IMAGE RESOLUTION EXTRACTION" : error;
+				}
+			}
+		}
+		
+		private String getImageMetadata(PDDocument document) throws IOException {
+			for (int i = 0; i < document.getNumberOfPages(); i++) {
+				PDPage page = document.getPage(i);
+				PDResources res = page.getResources();
+				Iterator<COSName> it = res.getXObjectNames().iterator();
+				
+				while (it.hasNext()) {
+					COSName name = it.next();
+					
+					if (res.getXObject(name) instanceof PDImageXObject) {
+						PDImageXObject ob = (PDImageXObject) res.getXObject(name);
+						ob.getMetadata().createInputStream();
+						return IOUtils.toString(ob.getMetadata().createInputStream(), "UTF-8");
+					}
+				}
+			}
+			return "";
 		}
 	}
 	
@@ -492,13 +554,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void updateResourceMetadata() {
-			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
-			String typeLong = StringUtils.lowerCase(Long.class.getSimpleName());
-			String typeDouble = StringUtils.lowerCase(Double.class.getSimpleName());
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("duration", duration, typeDouble);
-			setEbucoreValue("bitRate", bitRate, typeInteger);
+			setEbucoreValue("duration", duration * 1000, STRING_TYPE);
+			setEbucoreValue("bitRate", bitRate, STRING_TYPE);
 		}
 		
 		abstract void extract(String ffprobeResult) throws MediaException;
@@ -544,11 +603,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
-			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
 			
-			setEbucoreValue("channels", channels, typeInteger);
-			setEbucoreValue("sampleRate", sampleRate, typeInteger);
-			setEbucoreValue("bitDepth", bitDepth, typeInteger);
+			setEbucoreValue("audioChannelNumber", channels, NUMBER_TYPE);
+			setEbucoreValue("sampleRate", sampleRate, STRING_TYPE);
+			setEbucoreValue("sampleSize", bitDepth, STRING_TYPE);
 		}
 		
 		@Override
@@ -560,13 +618,11 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class VideoInfo extends AudioVideoInfo {
 		
-		private static final Pattern FORMAT_NAME = Pattern.compile("^format_name=(.*)", Pattern.MULTILINE);
 		private static final Pattern CODEC_NAME = Pattern.compile("^codec_name=(.*)", Pattern.MULTILINE);
 		private static final Pattern WIDTH = Pattern.compile("^width=(.*)", Pattern.MULTILINE);
 		private static final Pattern HEIGHT = Pattern.compile("^height=(.*)", Pattern.MULTILINE);
 		private static final Pattern FRAME_RATE = Pattern.compile("^r_frame_rate=([0-9]*)/", Pattern.MULTILINE);
 		
-		String formatName;
 		String codecName;
 		int width;
 		int height;
@@ -579,7 +635,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void extract(String ffprobeResult) throws MediaException {
 			
-			Matcher f = FORMAT_NAME.matcher(ffprobeResult);
 			Matcher c = CODEC_NAME.matcher(ffprobeResult);
 			Matcher d = DURATION.matcher(ffprobeResult);
 			
@@ -589,8 +644,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			Matcher br = BIT_RATE.matcher(ffprobeResult);
 			Matcher fr = FRAME_RATE.matcher(ffprobeResult);
 			
-			if (f.find() && c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
-				formatName = f.group(1);
+			if (c.find() && d.find() && w.find() && h.find() && br.find() && fr.find()) {
 				codecName = c.group(1);
 				duration = Double.parseDouble(d.group(1));
 				
@@ -607,15 +661,12 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void updateResourceMetadata() {
-			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("hasFormat", formatName, null);
-			setEbucoreValue("codecName", codecName, null);
-			setEbucoreValue("width", width, typeInteger);
-			setEbucoreValue("height", height, typeInteger);
-			setEbucoreValue("lines", width + " x " + height, typeInteger);
-			setEbucoreValue("frameRate", frameRate, typeInteger);
+			setEdmValue("codecName", codecName, STRING_TYPE);
+			setEbucoreValue("width", width, NUMBER_TYPE);
+			setEbucoreValue("height", height, NUMBER_TYPE);
+			setEbucoreValue("frameRate", frameRate, STRING_TYPE);
 		}
 		
 		@Override
@@ -713,11 +764,11 @@ public class ProcessingBolt extends BaseRichBolt {
 			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
 			String typeString = StringUtils.lowerCase(String.class.getSimpleName());
 			
-			setEbucoreValue("width", width, typeInteger);
-			setEbucoreValue("height", height, typeInteger);
-			setEdmValue("hasColorSpace", colorspace, null);
-			setEdmValues("componentColor", dominantColors, "hexBinary");
-			setEbucoreValue("orientation", width > height ? "landscape" : "portrait", typeString);
+			setEbucoreValue("width", width, NUMBER_TYPE);
+			setEbucoreValue("height", height, NUMBER_TYPE);
+			setEdmValue("hasColorSpace", colorspace, STRING_TYPE);
+			setEdmValues("componentColor", dominantColors, STRING_TYPE);
+			setEbucoreValue("orientation", width > height ? "landscape" : "portrait", STRING_TYPE);
 		}
 		
 		static synchronized void init(ProcessingBolt pb) {
@@ -756,4 +807,5 @@ public class ProcessingBolt extends BaseRichBolt {
 			super.clenaup();
 		}
 	}
+	
 }
