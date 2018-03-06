@@ -150,17 +150,33 @@ public class File {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof File)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof File)) {
+			return false;
+		}
 
-        File file = (File) o;
+		File file = (File) o;
 
-        if (contentLength != file.contentLength) return false;
-        if (fileStorage != file.fileStorage) return false;
-        if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) return false;
-        if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) return false;
-        if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) return false;
-        if (date != null ? !date.equals(file.date) : file.date != null) return false;
+		if (contentLength != file.contentLength) {
+			return false;
+		}
+		if (fileStorage != file.fileStorage) {
+			return false;
+		}
+		if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) {
+			return false;
+		}
+		if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) {
+			return false;
+		}
+		if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) {
+			return false;
+		}
+		if (date != null ? !date.equals(file.date) : file.date != null) {
+			return false;
+		}
         return contentUri != null ? contentUri.equals(file.contentUri) : file.contentUri == null;
 
     }

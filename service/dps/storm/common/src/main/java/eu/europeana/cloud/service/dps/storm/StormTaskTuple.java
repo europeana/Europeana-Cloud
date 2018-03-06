@@ -98,10 +98,12 @@ public class StormTaskTuple implements Serializable {
                 this.fileData = null;
             }
         } finally {
-            if (is != null)
+            if (is != null) {
                 is.close();
-            if (tempByteArrayOutputStream != null)
+            }
+            if (tempByteArrayOutputStream != null) {
                 tempByteArrayOutputStream.close();
+            }
         }
     }
 

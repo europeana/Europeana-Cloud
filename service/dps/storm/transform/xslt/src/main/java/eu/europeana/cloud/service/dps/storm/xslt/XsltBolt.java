@@ -81,25 +81,27 @@ public class XsltBolt extends AbstractDpsBolt {
             emitErrorNotification(stormTaskTuple.getTaskId(), "", e.getMessage(), stormTaskTuple
                     .getParameters().toString());
         } finally {
-            if (stream != null)
+            if (stream != null) {
                 try {
                     stream.close();
                 } catch (IOException e) {
                     LOGGER.error("error: during closing the stream" + e.getMessage());
                 }
-            if (xsltStream != null)
+            }
+            if (xsltStream != null) {
                 try {
                     xsltStream.close();
                 } catch (IOException e) {
                     LOGGER.error("error: during closing the stream" + e.getMessage());
                 }
-
-            if (writer != null)
+            }
+            if (writer != null) {
                 try {
                     writer.close();
                 } catch (IOException e) {
                     LOGGER.error("error: during closing the writter" + e.getMessage());
                 }
+            }
         }
     }
 

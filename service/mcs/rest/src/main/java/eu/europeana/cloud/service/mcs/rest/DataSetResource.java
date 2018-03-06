@@ -144,8 +144,9 @@ public class DataSetResource {
         Tags tags = Tags.valueOf(tag.toUpperCase());
         DateTime utc = new DateTime(dateFrom, DateTimeZone.UTC);
 
-        if (Tags.PUBLISHED.equals(tags))
+        if (Tags.PUBLISHED.equals(tags)) {
             return dataSetService.getDataSetCloudIdsByRepresentationPublished(dataSetId, providerId, representationName, utc.toDate(), startFrom, numberOfElementsOnPage);
+        }
         throw new IllegalArgumentException("Only PUBLISHED tag is supported for this request.");
     }
 

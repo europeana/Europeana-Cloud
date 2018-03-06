@@ -142,8 +142,9 @@ public class PreBufferedInputStream extends BufferedInputStream {
      */
     @Override
     public synchronized void mark(int readLimit) {
-        if (readLimit > bufferSize)
+        if (readLimit > bufferSize) {
             throw new UnsupportedOperationException("Marking outside buffer is not supported!");
+        }
         marklimit = readLimit;
         markpos = position;
     }
@@ -154,8 +155,9 @@ public class PreBufferedInputStream extends BufferedInputStream {
     @Override
     public synchronized void reset() throws IOException {
         ensureIsNotClosed();
-        if (markpos < 0)
+        if (markpos < 0) {
             throw new IOException("Resetting to invalid mark");
+        }
         position = markpos;
     }
 
@@ -164,8 +166,9 @@ public class PreBufferedInputStream extends BufferedInputStream {
      */
     @Override
     public synchronized void close() throws IOException {
-        if (in == null && buffer == null)
+        if (in == null && buffer == null) {
             return;
+        }
         buffer = null;
         in.close();
         in = null;
@@ -202,7 +205,8 @@ public class PreBufferedInputStream extends BufferedInputStream {
     }
 
     private void ensureIsNotClosed() throws IOException {
-        if (in == null)
+        if (in == null) {
             throw new IOException("Stream closed");
+        }
     }
 }

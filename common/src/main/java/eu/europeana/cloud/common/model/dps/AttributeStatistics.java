@@ -61,7 +61,9 @@ public class AttributeStatistics {
     @Override
     public boolean equals(Object o) {
 
-        if (o == this) return true;
+        if (o == this) {
+            return true;
+        }
         if (!(o instanceof AttributeStatistics)) {
             return false;
         }

@@ -87,8 +87,9 @@ public class CloudIdAndTimestampResponse {
     }
 
     public boolean isEmpty() {
-        if ((cloudId == null) && (revisionTimestamp == null))
+        if ((cloudId == null) && (revisionTimestamp == null)) {
             return true;
+        }
         return false;
     }
 

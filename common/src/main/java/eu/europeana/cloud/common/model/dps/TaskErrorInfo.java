@@ -69,16 +69,28 @@ public class TaskErrorInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskErrorInfo)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof TaskErrorInfo)) {
+            return false;
+        }
+
 
         TaskErrorInfo taskInfo = (TaskErrorInfo) o;
 
-        if (occurrences != taskInfo.occurrences) return false;
-        if (message != null ? !message.equals(taskInfo.message) : taskInfo.message != null) return false;
-        if (errorType != null ? !errorType.equals(taskInfo.errorType) : taskInfo.errorType != null)
+        if (occurrences != taskInfo.occurrences) {
             return false;
-        if (identifiers != null ? !identifiers.equals(taskInfo.identifiers) : taskInfo.identifiers != null) return false;
+        }
+        if (message != null ? !message.equals(taskInfo.message) : taskInfo.message != null) {
+            return false;
+        }
+        if (errorType != null ? !errorType.equals(taskInfo.errorType) : taskInfo.errorType != null) {
+            return false;
+        }
+        if (identifiers != null ? !identifiers.equals(taskInfo.identifiers) : taskInfo.identifiers != null) {
+            return false;
+        }
 
         return true;
     }

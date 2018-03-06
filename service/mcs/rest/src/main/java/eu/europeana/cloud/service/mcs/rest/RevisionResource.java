@@ -178,14 +178,18 @@ public class RevisionResource {
     }
 
     private Revision setRevisionTags(Revision revision, Set<String> tags) {
-        if (tags == null || tags.isEmpty())
+        if (tags == null || tags.isEmpty()) {
             return revision;
-        if (tags.contains(Tags.ACCEPTANCE.getTag()))
+        }
+        if (tags.contains(Tags.ACCEPTANCE.getTag())) {
             revision.setAcceptance(true);
-        if (tags.contains(Tags.PUBLISHED.getTag()))
+        }
+        if (tags.contains(Tags.PUBLISHED.getTag())) {
             revision.setPublished(true);
-        if (tags.contains(Tags.DELETED.getTag()))
+        }
+        if (tags.contains(Tags.DELETED.getTag())) {
             revision.setDeleted(true);
+        }
         return revision;
     }
 

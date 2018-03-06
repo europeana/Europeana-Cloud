@@ -74,8 +74,9 @@ public class DataSetRevisionsResource {
         // when limitParam is specified we can retrieve more results than configured number of elements per page
         final int limitWithNextSlice = (limitParam > 0 && limitParam <= 10000) ? limitParam : numberOfElementsOnPage;
         // validate parameters
-        if (revisionTimestamp == null)
+        if (revisionTimestamp == null) {
             throw new WebApplicationException("Revision timestamp parameter cannot be null");
+        }
         DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
 
         ResultSlice<CloudTagsResponse> result = dataSetService.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, timestamp.toDate(), representationName, startFrom, limitWithNextSlice);

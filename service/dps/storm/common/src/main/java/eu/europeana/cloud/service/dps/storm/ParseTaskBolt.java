@@ -98,8 +98,9 @@ public class ParseTaskBolt extends BaseRichBolt {
     }
 
     private String getStream(DpsTask task) {
-        if (task.getInputData().get(FILE_URLS) != null)
+        if (task.getInputData().get(FILE_URLS) != null) {
             return FILE_URLS.name();
+        }
         else if (task.getInputData().get(DATASET_URLS) != null)
             return DATASET_URLS.name();
         else if (task.getInputData().get(REPOSITORY_URLS) != null)

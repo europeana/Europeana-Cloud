@@ -298,8 +298,9 @@ public class DpsTaskValidator {
     private void validateOutputRevision(DpsTask task, boolean revisionMustExist) throws DpsTaskValidationException {
         Revision outputRevision = task.getOutputRevision();
         if (revisionMustExist) {
-            if (outputRevision == null)
+            if (outputRevision == null) {
                 throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
+            }
             else
                 checkOutputRevisionContent(outputRevision);
         } else {

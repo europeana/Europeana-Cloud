@@ -49,10 +49,12 @@ public class Splitter {
 
 
     public void separateSchemaBySet(String schema, Set<String> sets, Date start, Date end) {
-        if (start == null)
+        if (start == null) {
             start = oaiHelper.getEarlierDate();
-        if (end == null)
+        }
+        if (end == null) {
             end = new Date();
+        }
         if (sets == null || sets.isEmpty()) {
             emitNextTupleByDateRange(schema, null, start, end);
         } else

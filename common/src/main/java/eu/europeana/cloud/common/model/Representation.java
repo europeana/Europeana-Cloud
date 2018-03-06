@@ -134,8 +134,9 @@ public class Representation {
 
     private static List<Revision> cloneRevisions(Representation representation) {
         List<Revision> revisions = representation.getRevisions();
-        if (revisions == null || revisions.isEmpty())
+        if (revisions == null || revisions.isEmpty()) {
             return new ArrayList<>();
+        }
         List<Revision> clonedRevisions = new ArrayList<>(revisions.size());
         for (Revision revision : revisions) {
             clonedRevisions.add(new Revision(revision));

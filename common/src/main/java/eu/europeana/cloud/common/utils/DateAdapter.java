@@ -16,16 +16,18 @@ public class DateAdapter extends XmlAdapter<String, Date> {
 
     @Override
     public String marshal(Date date) {
-        if (date == null)
+        if (date == null) {
             throw new RuntimeException("The revision creation Date shouldn't be null");
+        }
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return dateFormat.format(date);
     }
 
     @Override
     public Date unmarshal(String stringDate) throws ParseException {
-        if (stringDate == null || stringDate.isEmpty())
+        if (stringDate == null || stringDate.isEmpty()) {
             return null;
+        }
         try {
             return dateFormat.parse(stringDate);
         } catch (ParseException e) {

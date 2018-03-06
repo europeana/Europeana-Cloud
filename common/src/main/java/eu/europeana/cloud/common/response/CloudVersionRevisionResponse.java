@@ -150,8 +150,9 @@ public class CloudVersionRevisionResponse implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        if (o == null)
+        if (o == null) {
             return 1;
+        }
 
         CloudVersionRevisionResponse other = (CloudVersionRevisionResponse) o;
         if (this.cloudId.equals(other.cloudId)) {

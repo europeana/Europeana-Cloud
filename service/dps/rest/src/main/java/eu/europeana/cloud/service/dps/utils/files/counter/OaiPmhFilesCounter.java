@@ -169,8 +169,9 @@ public class OaiPmhFilesCounter extends FilesCounter {
     }
 
     private boolean specified(Set<String> strings) {
-        if (strings == null || strings.isEmpty())
+        if (strings == null || strings.isEmpty()) {
             return false;
+        }
         return true;
     }
 

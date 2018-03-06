@@ -37,8 +37,9 @@ public class OAIWriteRecordBolt extends WriteRecordBolt {
         String localId = stormTaskTuple.getParameter(PluginParameterKeys.OAI_IDENTIFIER);
         String cloudId = getCloudId(stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER), providerId, localId);
         String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        if (representationName == null || representationName.isEmpty())
+        if (representationName == null || representationName.isEmpty()){
             representationName = stormTaskTuple.getSourceDetails().getSchema();
+        }
         return recordServiceClient.createRepresentation(cloudId, representationName, providerId, stormTaskTuple.getFileByteDataAsStream(), stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_FILE_NAME), TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE));
 
     }
@@ -56,8 +57,9 @@ public class OAIWriteRecordBolt extends WriteRecordBolt {
                 throw e;
             }
         }
-        if (cloudId != null)
+        if (cloudId != null) {
             return cloudId.getId();
+        }
         return uisClient.createCloudId(providerId, localId).getId();
     }
 

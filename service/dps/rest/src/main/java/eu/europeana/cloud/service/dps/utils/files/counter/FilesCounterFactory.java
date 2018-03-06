@@ -20,12 +20,15 @@ public class FilesCounterFactory {
     RecordServiceClient recordServiceClient;
 
     public FilesCounter createFilesCounter(String taskType) {
-        if (FILE_URLS.name().equals(taskType))
+        if (FILE_URLS.name().equals(taskType)) {
             return new RecordFilesCounter();
-        if (DATASET_URLS.name().equals(taskType))
+        }
+        if (DATASET_URLS.name().equals(taskType)) {
             return new DatasetFilesCounter(dataSetServiceClient, recordServiceClient);
-        if (REPOSITORY_URLS.name().equals(taskType))
+        }
+        if (REPOSITORY_URLS.name().equals(taskType)) {
             return new OaiPmhFilesCounter();
+        }
         else
             return null;
     }

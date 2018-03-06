@@ -723,8 +723,9 @@ public class RecordServiceClient extends MCSClient {
         } else
             throw new MCSException("RevisionProviderId is required");
         // revision timestamp is optional
-        if (revisionTimestamp != null)
+        if (revisionTimestamp != null) {
             webtarget = webtarget.queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
+        }
 
         Builder request = webtarget.request();
 

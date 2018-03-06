@@ -136,8 +136,9 @@ public class CloudTagsResponse implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        if (o == null)
+        if (o == null) {
             return 1;
+        }
 
         CloudTagsResponse other = (CloudTagsResponse) o;
         if (this.cloudId.equals(other.cloudId)) {
