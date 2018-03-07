@@ -1,12 +1,19 @@
 package eu.europeana.cloud.dps.topologies.media.support;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.storm.Config;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.StringScheme;
 import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.shade.org.yaml.snakeyaml.Yaml;
+import org.apache.storm.shade.org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -16,6 +23,8 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys;
 
 public class Util {
+	
+	private static final Logger logger = LoggerFactory.getLogger(Util.class);
 	
 	private static final String CONF_FS_URL = "MEDIATOPOLOGY_FILE_SERVICE_URL";
 	private static final String CONF_FS_USER = "MEDIATOPOLOGY_FILE_SERVICE_USER";
@@ -54,5 +63,24 @@ public class Util {
 		kafkaConfig.ignoreZkOffsets = true;
 		kafkaConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
 		return kafkaConfig;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static Config loadConfig() {
+		Config conf = new Config();
+		Yaml yamlConf = new Yaml(new SafeConstructor());
+		String configFileName = "media-topology-config.yaml";
+		try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName)) {
+			conf.putAll((Map) yamlConf.load(is));
+		} catch (IOException e) {
+			throw new RuntimeException("Built in config could not be loaded: " + configFileName, e);
+		}
+		try (InputStream is = new FileInputStream(configFileName)) {
+			conf.putAll((Map) yamlConf.load(is));
+		} catch (IOException e) {
+			logger.warn("Could not load custom config file, using defaults");
+			logger.debug("Custom config load problem", e);
+		}
+		return conf;
 	}
 }

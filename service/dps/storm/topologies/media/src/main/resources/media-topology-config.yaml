@@ -1,5 +1,8 @@
 # General Settings
-TOPOLOGY_NAME: "media_topology"
+
+## Topologies have their name hardcoded, but this property can be used to override it in special cases
+# TOPOLOGY_NAME: "media_topology_2"
+
 topology.workers: 2
 topology.debug: false
 
@@ -23,7 +26,6 @@ MEDIATOPOLOGY_EDM_DOWNLOAD_THREADS: 4
 MEDIATOPOLOGY_CONNECTIONS_PER_SOURCE: 4
 MEDIATOPOLOGY_CONNECTIONS_TOTAL: 200
 
-MEDIATOPOLOGY_PARALLEL_HINT_DOWNLOAD: 10
 MEDIATOPOLOGY_PARALLEL_HINT_PROCESSING: 10
 
 #MEDIATOPOLOGY_DATASET_EMIT_LIMIT: 10

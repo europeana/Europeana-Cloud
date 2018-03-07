@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -61,9 +61,12 @@ import eu.europeana.cloud.service.dps.InputDataType;
  */
 public class DataSetReaderSpout extends BaseRichSpout {
 	
+	public static final String SOURCE_FIELD = "source";
+	
 	private static final Logger logger = LoggerFactory.getLogger(DataSetReaderSpout.class);
 	
 	private final IRichSpout baseSpout;
+	private final Collection<UrlType> urlTypes;
 	private SpoutOutputCollector outputCollector;
 	private Map<String, Object> config;
 	
@@ -76,13 +79,14 @@ public class DataSetReaderSpout extends BaseRichSpout {
 	
 	private long emitLimit;
 	
-	public DataSetReaderSpout(IRichSpout baseSpout) {
+	public DataSetReaderSpout(IRichSpout baseSpout, Collection<UrlType> urlTypes) {
 		this.baseSpout = baseSpout;
+		this.urlTypes = urlTypes;
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(MediaTupleData.FIELD_NAME, MediaTopology.SOURCE_FIELD));
+		declarer.declare(new Fields(MediaTupleData.FIELD_NAME, SOURCE_FIELD));
 		declarer.declareStream(StatsInitTupleData.STREAM_ID, new Fields(StatsInitTupleData.FIELD_NAME));
 	}
 	
@@ -302,7 +306,7 @@ public class DataSetReaderSpout extends BaseRichSpout {
 			
 			void prepareEdmInfo(EdmInfo edmInfo) {
 				Map<String, FileInfo> urls = new HashMap<>();
-				for (UrlType urlType : Arrays.asList(UrlType.OBJECT, UrlType.HAS_VIEW, UrlType.IS_SHOWN_BY)) {
+				for (UrlType urlType : urlTypes) {
 					NodeList list = edmInfo.edmDocument.getElementsByTagName(urlType.tagName);
 					for (int i = 0; i < list.getLength(); i++) {
 						String url = ((Element) list.item(i)).getAttribute("rdf:resource");
