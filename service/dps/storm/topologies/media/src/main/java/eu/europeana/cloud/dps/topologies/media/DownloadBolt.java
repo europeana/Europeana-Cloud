@@ -78,7 +78,8 @@ public class DownloadBolt extends HttpClientBolt {
 			}
 			
 			@Override
-			protected void onClose() {
+			protected void releaseResources() {
+				super.releaseResources();
 				Exception e = getException();
 				if (e != null) {
 					String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

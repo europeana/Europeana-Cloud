@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -77,45 +78,38 @@ public class ProcessingBolt extends BaseRichBolt {
 	// careful - in some places it's assumed these won't change
 	private static final int[] THUMB_SIZE = { 200, 400 };
 	
+	private static AmazonS3 amazonClient;
+	private static String storageBucket = "";
+	
 	private OutputCollector outputCollector;
+	private Map<String, Object> config;
 	
-	private ExecutorService threadPool;
-	private Transformer xmlTtransformer;
+	private ExecutorService commandIOThreadPool;
 	
-	private FileServiceClient fileClient;
-	
-	private RecordServiceClient recordClient;
-	
-	private boolean persistResult;
-	
-	private AmazonS3 cos;
-	
-	private String storageBucket = "";
+	private ResultsUploader resultsUploader;
 	
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.outputCollector = collector;
+		this.config = stormConf;
 		
-		BasicAWSCredentials credentials = new BasicAWSCredentials((String) stormConf.get("AWS_CREDENTIALS_ACCESSKEY"),
-				(String) stormConf.get("AWS_CREDENTIALS_SECRETKEY"));
-		cos = new AmazonS3Client(credentials);
-		cos.setEndpoint((String) stormConf.get("AWS_CREDENTIALS_ENDPOINT"));
-		storageBucket = (String) stormConf.get("AWS_CREDENTIALS_BUCKET");
+		commandIOThreadPool = Executors.newFixedThreadPool(2);
 		
-		threadPool = Executors.newFixedThreadPool(2);
-		try {
-			xmlTtransformer = TransformerFactory.newInstance().newTransformer();
-		} catch (TransformerConfigurationException | TransformerFactoryConfigurationError e) {
-			throw new AssertionError(e);
-		}
-		fileClient = Util.getFileServiceClient(stormConf);
-		recordClient = Util.getRecordServiceClient(stormConf);
-		
-		persistResult = (Boolean) stormConf.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
+		resultsUploader = new ResultsUploader();
 		
 		TempFileSync.init(stormConf);
 		ImageInfo.init(this);
 		AudioInfo.init(this);
+		
+		synchronized (ProcessingBolt.class) {
+			if (amazonClient == null) {
+				amazonClient = new AmazonS3Client(new BasicAWSCredentials(
+						(String) config.get("AWS_CREDENTIALS_ACCESSKEY"),
+						(String) config.get("AWS_CREDENTIALS_SECRETKEY")));
+				amazonClient.setEndpoint((String) config.get("AWS_CREDENTIALS_ENDPOINT"));
+				storageBucket = (String) config.get("AWS_CREDENTIALS_BUCKET");
+			}
+		}
 	}
 	
 	@Override
@@ -150,91 +144,13 @@ public class ProcessingBolt extends BaseRichBolt {
 		mediaInfos.forEach(MediaInfo::process);
 		statsData.setProcessingEndTime(System.currentTimeMillis());
 		
-		statsData.setUploadStartTime(System.currentTimeMillis());
-		saveThumbnails(mediaData, mediaInfos);
-		saveMetadata(mediaData, mediaInfos);
-		statsData.setUploadEndTime(System.currentTimeMillis());
-		
-		mediaInfos.forEach(MediaInfo::clenaup);
-		
-		mediaInfos.stream().map(i -> i.error).filter(Objects::nonNull).forEach(statsData::addError);
-		outputCollector.emit(StatsTupleData.STREAM_ID, input, new Values(statsData));
-		outputCollector.ack(input);
+		resultsUploader.queue(input, mediaData, statsData, mediaInfos);
 	}
 	
 	@Override
 	public void cleanup() {
-		threadPool.shutdown();
-	}
-	
-	private void saveMetadata(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
-		long start = System.currentTimeMillis();
-		try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream()) {
-			xmlTtransformer.transform(new DOMSource(mediaData.getEdm()), new StreamResult(byteStream));
-			try (ByteArrayInputStream bais = new ByteArrayInputStream(byteStream.toByteArray())) {
-				Representation r = mediaData.getEdmRepresentation();
-				if (persistResult) {
-					URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata",
-							r.getDataProvider(), bais, "techmetadata.xml", "text/xml");
-					logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start, newFileUri);
-				} else {
-					URI rep = recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider());
-					String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
-					fileClient.uploadFile(r.getCloudId(), "techmetadata", version, "techmetadata.xml", bais,
-							"text/xml");
-					recordClient.deleteRepresentation(r.getCloudId(), "techmetadata", version);
-					logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
-				}
-			}
-		} catch (IOException | DriverException | MCSException | TransformerException e) {
-			logger.error("Could not store tech metadata representation in "
-					+ mediaData.getEdmRepresentation().getCloudId(), e);
-			for (MediaInfo media : mediaInfos) {
-				if (media.error == null)
-					media.error = "TECH METADATA SAVING";
-			}
-		}
-	}
-	
-	private void saveThumbnails(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
-		long start = System.currentTimeMillis();
-		String cloudId = mediaData.getEdmRepresentation().getCloudId();
-		
-		boolean uploaded = false;
-		for (MediaInfo media : mediaInfos) {
-			if (media instanceof ImageInfo) {
-				uploaded |= uploadThumbnail((ImageInfo) media);
-			}
-		}
-		if (!uploaded)
-			logger.debug("No thumbnails were uploaded for {}", cloudId);
-		
-		logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
-	}
-	
-	private boolean uploadThumbnail(ImageInfo media) {
-		boolean uploaded = false;
-		String url = media.fileInfo.getUrl();
-		String md5Url = DigestUtils.md5Hex(url);
-		for (int i = 0; i < THUMB_SIZE.length; i++) {
-			try {
-				if (media.thumbnails[i] == null)
-					continue;
-				String size = i == 0 ? "MEDIUM" : "LARGE";
-				String storedFilename = md5Url + "-" + size;
-				
-				cos.putObject(storageBucket,
-						storedFilename, media.thumbnails[i]);
-				
-				logger.debug("thumbnail saved: {}: md5({})-{}", storedFilename, url, size);
-				uploaded = true;
-			} catch (AmazonClientException e) {
-				logger.error("Could not save thumbnails for " + media.fileInfo.getUrl(), e);
-				if (media.error == null)
-					media.error = "THUMBNAIL SAVING";
-			}
-		}
-		return uploaded;
+		commandIOThreadPool.shutdown();
+		resultsUploader.stop();
 	}
 	
 	private Process runCommand(List<String> command, boolean mergeError) throws IOException {
@@ -244,7 +160,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	private Process runCommand(List<String> command, boolean mergeError, byte[] inputBytes) throws IOException {
 		Process process = new ProcessBuilder(command).redirectErrorStream(mergeError).start();
 		if (!mergeError) {
-			threadPool.execute(() -> {
+			commandIOThreadPool.execute(() -> {
 				try (InputStream errorStream = process.getErrorStream()) {
 					String output = IOUtils.toString(errorStream);
 					if (!StringUtils.isBlank(output))
@@ -255,7 +171,7 @@ public class ProcessingBolt extends BaseRichBolt {
 			});
 		}
 		if (inputBytes != null) {
-			threadPool.execute(() -> {
+			commandIOThreadPool.execute(() -> {
 				try (OutputStream processInput = process.getOutputStream()) {
 					processInput.write(inputBytes);
 				} catch (IOException e) {
@@ -761,9 +677,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			
-			String typeInteger = StringUtils.lowerCase(Integer.class.getSimpleName());
-			String typeString = StringUtils.lowerCase(String.class.getSimpleName());
-			
 			setEbucoreValue("width", width, NUMBER_TYPE);
 			setEbucoreValue("height", height, NUMBER_TYPE);
 			setEdmValue("hasColorSpace", colorspace, STRING_TYPE);
@@ -807,5 +720,178 @@ public class ProcessingBolt extends BaseRichBolt {
 			super.clenaup();
 		}
 	}
-	
+
+	private class ResultsUploader {
+		
+		class Item {
+			Tuple tuple;
+			MediaTupleData mediaData;
+			StatsTupleData statsData;
+			ArrayList<MediaInfo> mediaInfos;
+			byte[] edmContents;
+		}
+		
+		Transformer xmlTtransformer;
+		
+		ArrayBlockingQueue<Item> queue = new ArrayBlockingQueue<>(100);
+		ArrayList<ResultsUploadThread> threads = new ArrayList<>();
+		
+		boolean persistResult;
+		
+		public ResultsUploader() {
+			try {
+				xmlTtransformer = TransformerFactory.newInstance().newTransformer();
+			} catch (TransformerConfigurationException | TransformerFactoryConfigurationError e) {
+				throw new AssertionError(e);
+			}
+			
+			persistResult = (Boolean) config.getOrDefault("MEDIATOPOLOGY_RESULT_PERSIST", true);
+			
+			int threadCount = (int) (long) config.getOrDefault("MEDIATOPOLOGY_RESULT_UPLOAD_THREADS", 2);
+			for (int i = 0; i < threadCount; i++) {
+				ResultsUploadThread thread = new ResultsUploadThread(i);
+				thread.start();
+				threads.add(thread);
+			}
+		}
+		
+		public void queue(Tuple tuple, MediaTupleData mediaData, StatsTupleData statsData,
+				ArrayList<MediaInfo> mediaInfos) {
+			Item item = new Item();
+			item.tuple = tuple;
+			item.mediaData = mediaData;
+			item.statsData = statsData;
+			item.mediaInfos = mediaInfos;
+			item.edmContents = getEdmContents(mediaData);
+			try {
+				if (queue.remainingCapacity() == 0)
+					logger.warn("Results upload queue full");
+				queue.put(item);
+			} catch (InterruptedException e) {
+				logger.trace("Thread interrupted", e);
+				Thread.currentThread().interrupt();
+			}
+		}
+		
+		public void stop() {
+			for (ResultsUploadThread thread : threads)
+				thread.interrupt();
+		}
+		
+		byte[] getEdmContents(MediaTupleData mediaData) {
+			try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream()) {
+				xmlTtransformer.transform(new DOMSource(mediaData.getEdm()), new StreamResult(byteStream));
+				return byteStream.toByteArray();
+			} catch (IOException | TransformerException e) {
+				logger.error("Result EDM XML generation error", e);
+				return new byte[0];
+			}
+		}
+		
+		class ResultsUploadThread extends Thread {
+			
+			FileServiceClient fileClient;
+			RecordServiceClient recordClient;
+			
+			ResultsUploadThread(int id) {
+				super("result-uploader-" + id);
+				
+				fileClient = Util.getFileServiceClient(config);
+				recordClient = Util.getRecordServiceClient(config);
+			}
+			
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						Item i = queue.take();
+						i.statsData.setUploadStartTime(System.currentTimeMillis());
+						saveThumbnails(i.mediaData, i.mediaInfos);
+						saveMetadata(i.mediaData, i.mediaInfos, i.edmContents);
+						i.statsData.setUploadEndTime(System.currentTimeMillis());
+						
+						i.mediaInfos.forEach(MediaInfo::clenaup);
+						
+						i.mediaInfos.stream().map(m -> m.error).filter(Objects::nonNull).forEach(i.statsData::addError);
+						outputCollector.emit(StatsTupleData.STREAM_ID, i.tuple, new Values(i.statsData));
+						outputCollector.ack(i.tuple);
+					}
+				} catch (InterruptedException e) {
+					logger.trace("result upload thread finishing", e);
+					Thread.currentThread().interrupt();
+				}
+			}
+			
+			void saveMetadata(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos, byte[] edmContents) {
+				long start = System.currentTimeMillis();
+				try (ByteArrayInputStream bais = new ByteArrayInputStream(edmContents)) {
+					if (edmContents.length == 0)
+						throw new IOException("Result EDM contents missing");
+					
+					Representation r = mediaData.getEdmRepresentation();
+					if (persistResult) {
+						URI newFileUri = recordClient.createRepresentation(r.getCloudId(), "techmetadata",
+								r.getDataProvider(), bais, "techmetadata.xml", "text/xml");
+						logger.debug("saved tech metadata in {} ms: {}", System.currentTimeMillis() - start,
+								newFileUri);
+					} else {
+						URI rep =
+								recordClient.createRepresentation(r.getCloudId(), "techmetadata", r.getDataProvider());
+						String version = new UrlParser(rep.toString()).getPart(UrlPart.VERSIONS);
+						fileClient.uploadFile(r.getCloudId(), "techmetadata", version, "techmetadata.xml", bais,
+								"text/xml");
+						recordClient.deleteRepresentation(r.getCloudId(), "techmetadata", version);
+						logger.debug("tech metadata saving simulation took {} ms", System.currentTimeMillis() - start);
+					}
+				} catch (IOException | DriverException | MCSException e) {
+					logger.error("Could not store tech metadata representation in "
+							+ mediaData.getEdmRepresentation().getCloudId(), e);
+					for (MediaInfo media : mediaInfos) {
+						if (media.error == null)
+							media.error = "TECH METADATA SAVING";
+					}
+				}
+			}
+			
+			void saveThumbnails(MediaTupleData mediaData, ArrayList<MediaInfo> mediaInfos) {
+				long start = System.currentTimeMillis();
+				String cloudId = mediaData.getEdmRepresentation().getCloudId();
+				
+				boolean uploaded = false;
+				for (MediaInfo media : mediaInfos) {
+					if (media instanceof ImageInfo) {
+						uploaded |= uploadThumbnail((ImageInfo) media);
+					}
+				}
+				if (!uploaded)
+					logger.debug("No thumbnails were uploaded for {}", cloudId);
+				
+				logger.debug("thumbnail saving took {} ms ", System.currentTimeMillis() - start);
+			}
+			
+			boolean uploadThumbnail(ImageInfo media) {
+				boolean uploaded = false;
+				String url = media.fileInfo.getUrl();
+				String md5Url = DigestUtils.md5Hex(url);
+				for (int i = 0; i < THUMB_SIZE.length; i++) {
+					try {
+						if (media.thumbnails[i] == null)
+							continue;
+						String size = i == 0 ? "MEDIUM" : "LARGE";
+						String storedFilename = md5Url + "-" + size;
+						
+						amazonClient.putObject(storageBucket, storedFilename, media.thumbnails[i]);
+						
+						logger.debug("thumbnail saved: {}: md5({})-{}", storedFilename, url, size);
+						uploaded = true;
+					} catch (AmazonClientException e) {
+						logger.error("Could not save thumbnails for " + media.fileInfo.getUrl(), e);
+						if (media.error == null)
+							media.error = "THUMBNAIL SAVING";
+					}
+				}
+				return uploaded;
+			}
+		}
+	}
 }
