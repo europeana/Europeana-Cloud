@@ -37,6 +37,10 @@
             <artifactId>spring-security-acl</artifactId>
             <version>${spring-security.version}</version>
         </dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<properties>

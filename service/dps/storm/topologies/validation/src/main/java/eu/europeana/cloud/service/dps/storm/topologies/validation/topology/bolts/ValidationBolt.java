@@ -25,7 +25,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         if (result.isSuccess()) {
             outputCollector.emit(inputTuple, stormTaskTuple.toStormTuple());
         } else {
-            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), null);
+            emitErrorNotification(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result));
         }
     }
 
@@ -37,6 +37,23 @@ public class ValidationBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         validationService = new ValidationExecutionService(properties);
+    }
+
+    private String getAdditionalInfo(ValidationResult vr) {
+        String additionalInfo = null;
+        StringBuilder sb = new StringBuilder();
+        if (vr.getRecordId() != null) {
+            sb.append("recordId: ");
+            sb.append(vr.getRecordId());
+            sb.append(" ");
+        }
+        if (vr.getNodeId() != null) {
+            sb.append("nodeId: ");
+            sb.append(vr.getNodeId());
+        }
+        additionalInfo = sb.toString();
+
+        return !additionalInfo.isEmpty() ? additionalInfo : null;
     }
 
     private String getSchemaName(StormTaskTuple stormTaskTuple) {

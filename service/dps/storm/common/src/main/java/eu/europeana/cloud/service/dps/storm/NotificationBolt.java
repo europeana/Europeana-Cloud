@@ -131,10 +131,11 @@ public class NotificationBolt extends BaseRichBolt {
     private void storeNotificationError(long taskId, NotificationCache nCache, Map<String, Object> parameters) {
         Validate.notNull(parameters);
         String errorMessage = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
+        String additionalInformations = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         String errorType = nCache.getErrorType(errorMessage);
         String resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         taskErrorDAO.updateErrorCounter(taskId, errorType);
-        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource);
+        taskErrorDAO.insertError(taskId, errorType, errorMessage, resource, additionalInformations);
     }
 
     private boolean isError(String state) {
