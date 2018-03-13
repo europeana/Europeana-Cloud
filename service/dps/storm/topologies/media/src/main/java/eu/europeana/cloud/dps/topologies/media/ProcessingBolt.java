@@ -10,16 +10,20 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -99,7 +103,7 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		TempFileSync.init(stormConf);
 		ImageInfo.init(this);
-		AudioInfo.init(this);
+		AudioVideoInfo.init(this);
 		
 		synchronized (ProcessingBolt.class) {
 			if (amazonClient == null) {
@@ -213,14 +217,15 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private abstract static class MediaInfo {
 		
-
 		static final String EBUCORE_URI = "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#";
 		
 		static final String EDM_URI = "http://www.europeana.eu/schemas/edm/";
 		
-		static final String NUMBER_TYPE = "number";
-		
 		static final String STRING_TYPE = "string";
+		static final String LONG_TYPE = "long";
+		static final String NON_NEGATIVE_INTEGER = "nonNegativeInteger";
+		static final String INTEGER_TYPE = "integer";
+		static final String DOUBLE_TYPE = "double";
 		
 		final ProcessingBolt pb;
 		final FileInfo fileInfo;
@@ -291,8 +296,8 @@ public class ProcessingBolt extends BaseRichBolt {
 			edm.getDocumentElement().setAttribute("xmlns:ebucore", EBUCORE_URI);
 			edm.getDocumentElement().setAttribute("xmlns:edm", EDM_URI);
 			
-			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), STRING_TYPE);
-			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), NUMBER_TYPE);
+			setEbucoreValue("hasMimeType", fileInfo.getMimeType(), null);
+			setEbucoreValue("fileByteSize", fileInfo.getContent().length(), LONG_TYPE);
 		}
 		
 		void setEbucoreValue(String name, Object value, String type) {
@@ -303,12 +308,14 @@ public class ProcessingBolt extends BaseRichBolt {
 			setValue("edm:" + name, value, type);
 		}
 		
-		void setExifValue(String name, Object value, String type) {
-			setValue("exif:" + name, value, type);
-		}
-		
-		void setRdfValue(String name, Object value, String type) {
-			setValue("rdf:" + name, value, type);
+		void setRdfType(String value) {
+			String name = "rdf:type";
+			removeElements(name);
+			
+			Element element = edm.createElement(name);
+			edmWebResource.appendChild(element);
+			
+			element.setAttribute("rdf:resource", value);
 		}
 		
 		void setEdmValues(String name, List<String> values, String type) {
@@ -371,11 +378,11 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
-			if (containsText) {
-				setRdfValue("type", "http://www.europeana.eu/schemas/edm/FullTextResource", "URI");
-			}
 			if (resolution.isPresent()) {
-				setExifValue("resolution", resolution.get(), STRING_TYPE);
+				setEdmValue("spatialResolution", resolution.get(), NON_NEGATIVE_INTEGER);
+			}
+			if (containsText) {
+				setRdfType("http://www.europeana.eu/schemas/edm/FullTextResource");
 			}
 		}
 		
@@ -472,8 +479,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("duration", duration * 1000, STRING_TYPE);
-			setEbucoreValue("bitRate", bitRate, STRING_TYPE);
+			setEbucoreValue("duration", duration * 1000, null);
+			setEbucoreValue("bitRate", bitRate, NON_NEGATIVE_INTEGER);
 		}
 		
 		abstract void extract(String ffprobeResult) throws MediaException;
@@ -520,9 +527,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("audioChannelNumber", channels, NUMBER_TYPE);
-			setEbucoreValue("sampleRate", sampleRate, STRING_TYPE);
-			setEbucoreValue("sampleSize", bitDepth, STRING_TYPE);
+			setEbucoreValue("sampleSize", bitDepth, INTEGER_TYPE);
+			setEbucoreValue("sampleRate", sampleRate, INTEGER_TYPE);
+			setEbucoreValue("audioChannelNumber", channels, NON_NEGATIVE_INTEGER);
 		}
 		
 		@Override
@@ -579,10 +586,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			
-			setEdmValue("codecName", codecName, STRING_TYPE);
-			setEbucoreValue("width", width, NUMBER_TYPE);
-			setEbucoreValue("height", height, NUMBER_TYPE);
-			setEbucoreValue("frameRate", frameRate, STRING_TYPE);
+			setEdmValue("codecName", codecName, null);
+			setEbucoreValue("width", width, INTEGER_TYPE);
+			setEbucoreValue("height", height, INTEGER_TYPE);
+			setEbucoreValue("frameRate", frameRate, DOUBLE_TYPE);
 		}
 		
 		@Override
@@ -595,7 +602,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	
 	private static class ImageInfo extends MediaInfo {
 		
-		static final Pattern DOMINANT_COLORS = Pattern.compile("#([0-9A-F]+)");
+		static final Pattern DOMINANT_COLORS = Pattern.compile("([0-9]+).*#([0-9A-F]{6})");
 		
 		static String magickCmd;
 		
@@ -613,6 +620,9 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void doProcess() throws IOException, MediaException {
+			File file2 = new File("colormap.png");
+			String absolutePath = file2.getAbsolutePath();
+			
 			ArrayList<String> convertCmd = new ArrayList<>();
 			String path = fileInfo.getContent().getPath();
 			convertCmd.addAll(
@@ -628,8 +638,10 @@ public class ProcessingBolt extends BaseRichBolt {
 						"(", "+clone", "-thumbnail", "200x", "-write", thumbnails[0].getPath(), "+delete", ")",
 						"-thumbnail", "400x", "-write", thumbnails[1].getPath()));
 				
-				convertCmd.addAll(Arrays.asList("+dither", "-colors", "6", "-define", "histogram:unique-colors=true",
-						"-format", "\n%c", "histogram:info:"));
+				convertCmd
+						.addAll(Arrays.asList("-colorspace", "sRGB", "-dither",
+								"Riemersma", "-remap", absolutePath,
+								"-format", "\n%c", "histogram:info:"));
 			}
 			Process magickProcess = pb.runCommand(convertCmd, false);
 			List<String> identifyResult = doAndClose(IOUtils::readLines, magickProcess.getInputStream());
@@ -656,12 +668,21 @@ public class ProcessingBolt extends BaseRichBolt {
 				height = Integer.parseInt(identifyResult.get(1));
 				colorspace = identifyResult.get(2);
 				
+				TreeMap<Integer, String> colorsMap =
+						new TreeMap<>(Collections.reverseOrder());
+				
 				for (String value : identifyResult.subList(4, identifyResult.size())) {
 					Matcher dc =
 							DOMINANT_COLORS.matcher(value);
 					if (dc.find()) {
-						dominantColors.add(dc.group(1).toLowerCase());
+						colorsMap.put(Integer.parseInt(dc.group(1)), dc.group(2));
 					}
+				}
+				
+				List<Entry<Integer, String>> prominentColors =
+						colorsMap.entrySet().stream().limit(6).collect(Collectors.toList());
+				for (Entry<Integer, String> color : prominentColors) {
+					dominantColors.add(color.getValue());
 				}
 				
 			} else {
@@ -677,10 +698,10 @@ public class ProcessingBolt extends BaseRichBolt {
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
 			
-			setEbucoreValue("width", width, NUMBER_TYPE);
-			setEbucoreValue("height", height, NUMBER_TYPE);
-			setEdmValue("hasColorSpace", colorspace, STRING_TYPE);
-			setEdmValues("componentColor", dominantColors, STRING_TYPE);
+			setEbucoreValue("width", width, INTEGER_TYPE);
+			setEbucoreValue("height", height, INTEGER_TYPE);
+			setEdmValue("hasColorSpace", colorspace, null);
+			setEdmValues("componentColor", dominantColors, null);
 			setEbucoreValue("orientation", width > height ? "landscape" : "portrait", STRING_TYPE);
 		}
 		
