@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -363,11 +362,11 @@ public class ProcessingBolt extends BaseRichBolt {
 	private static class TextInfo extends MediaInfo {
 		
 		private static final Pattern X_RESOLUTION =
-				Pattern.compile("<exif:XResolution>(.*)</exif:XResolution>", Pattern.MULTILINE);
+				Pattern.compile("<exif:XResolution>(.*)</exif:XResolution>");
 		private static final Pattern Y_RESOLUTION =
-				Pattern.compile("<exif:YResolution>(.*)</exif:YResolution>", Pattern.MULTILINE);
+				Pattern.compile("<exif:YResolution>(.*)</exif:YResolution>");
 		
-		Optional<Integer> resolution = Optional.empty();
+		Integer resolution = null;
 		
 		boolean containsText = true;
 		
@@ -378,8 +377,8 @@ public class ProcessingBolt extends BaseRichBolt {
 		@Override
 		void updateResourceMetadata() {
 			super.updateResourceMetadata();
-			if (resolution.isPresent()) {
-				setEdmValue("spatialResolution", resolution.get(), NON_NEGATIVE_INTEGER);
+			if (resolution != null) {
+				setEdmValue("spatialResolution", resolution, NON_NEGATIVE_INTEGER);
 			}
 			if (containsText) {
 				setRdfType("http://www.europeana.eu/schemas/edm/FullTextResource");
@@ -407,9 +406,9 @@ public class ProcessingBolt extends BaseRichBolt {
 			if (xMatcher.find() && yMatcher.find()) {
 				
 				try {
-					int x = Integer.parseInt(xMatcher.group(1));
-					int y = Integer.parseInt(yMatcher.group(1));
-					resolution = x == y ? Optional.of(x) : Optional.empty();
+					Integer x = Integer.parseInt(xMatcher.group(1));
+					Integer y = Integer.parseInt(yMatcher.group(1));
+					resolution = x.equals(y) ? x : null;
 				} catch (NumberFormatException e) {
 					logger.warn("Can't parse resolution of the extracted image from pdf file " + fileInfo.getUrl());
 					error = error == null ? "IMAGE RESOLUTION EXTRACTION" : error;
