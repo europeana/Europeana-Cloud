@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -82,6 +83,7 @@ public class ProcessingBolt extends BaseRichBolt {
 	private static final int[] THUMB_SIZE = { 200, 400 };
 	
 	private static AmazonS3 amazonClient;
+	private static File colormapFile;
 	private static String storageBucket = "";
 	
 	private OutputCollector outputCollector;
@@ -112,7 +114,17 @@ public class ProcessingBolt extends BaseRichBolt {
 				amazonClient.setEndpoint((String) config.get("AWS_CREDENTIALS_ENDPOINT"));
 				storageBucket = (String) config.get("AWS_CREDENTIALS_BUCKET");
 			}
+			try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("colormap.png")) {
+				colormapFile = File.createTempFile("colormap", "png");
+				colormapFile.deleteOnExit();
+				try (FileOutputStream out = new FileOutputStream(colormapFile)) {
+					IOUtils.copy(is, out);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException("colormap.png can't be loaded", e);
+			}
 		}
+		
 	}
 	
 	@Override
@@ -582,8 +594,6 @@ public class ProcessingBolt extends BaseRichBolt {
 		
 		@Override
 		void doProcess() throws IOException, MediaException {
-			File file2 = new File("colormap.png");
-			String absolutePath = file2.getAbsolutePath();
 			
 			ArrayList<String> convertCmd = new ArrayList<>();
 			String path = fileInfo.getContent().getPath() + "[0]";
@@ -602,7 +612,7 @@ public class ProcessingBolt extends BaseRichBolt {
 				
 				convertCmd
 						.addAll(Arrays.asList("-colorspace", "sRGB", "-dither",
-								"Riemersma", "-remap", absolutePath,
+								"Riemersma", "-remap", colormapFile.getAbsolutePath(),
 								"-format", "\n%c", "histogram:info:"));
 			}
 			Process magickProcess = pb.runCommand(convertCmd, false);
