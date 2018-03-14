@@ -14,6 +14,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- skipped as the project is not maintained actively for now-->
+		<sonar.skip>true</sonar.skip>
 	</properties>
 	<dependencies>
 		<dependency>

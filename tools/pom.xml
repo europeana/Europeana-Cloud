@@ -11,6 +11,10 @@
   <version>0.8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Europeana Cloud: Tools</name>
+  <properties>
+    <!-- skipped as those are just helper/tools projects-->
+    <sonar.skip>true</sonar.skip>
+  </properties>
   <modules>
       <!--<module>ecloud-dlf-ingestion-tool</module>-->
     <module>resource-migration-tool</module>
